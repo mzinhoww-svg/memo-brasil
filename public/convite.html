@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Você está convidado!</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main>
+  <div class="envelope">
+    <p style="letter-spacing:.2em;font-size:12px">CONVITE</p>
+    <h1>Você está convidado!</h1>
+    <p id="titulo" style="font-family:var(--serif);font-size:24px;margin:14px 0 4px;color:#1b1916">…</p>
+    <p>Capture as melhores memórias. Seus cliques viram parte do álbum dos noivos.</p>
+  </div>
+  <p class="center" id="regra"></p>
+  <form id="f">
+    <label for="nome">Seu nome (aparece nas suas fotos)</label>
+    <input id="nome" maxlength="40" autocomplete="given-name" placeholder="Como os noivos te chamam?" required>
+    <p id="err" class="err"></p>
+    <button class="btn primary">Entrar no álbum</button>
+  </form>
+  <a id="ver" class="btn" style="margin-top:10px;display:none">Ver álbum</a>
+</main>
+<script src="/common.js"></script>
+<script>
+const id = eventId();
+(async () => {
+  let info;
+  try { info = await api(`/api/events/${id}`); }
+  catch (e) { document.querySelector('main').innerHTML = `<h1>Convite não encontrado</h1><p>${e.message} Confira o QR Code com os noivos.</p>`; return; }
+  document.title = info.titulo;
+  $('#titulo').textContent = info.titulo;
+  const g = getGuest(id);
+  if (g) $('#nome').value = g.nome;
+  if (info.revelado) {
+    $('#regra').textContent = 'O evento terminou e as fotos já foram reveladas.';
+    $('#f').style.display = 'none';
+    $('#ver').style.display = 'flex'; $('#ver').href = `/e/${id}/album`; $('#ver').classList.add('primary');
+  } else {
+    $('#regra').textContent = `Você tem ${info.fotosPorConvidado} fotos. Elas ficam escondidas e são reveladas para todos ao mesmo tempo, no fim da festa.`;
+  }
+})();
+$('#f').addEventListener('submit', async (e) => {
+  e.preventDefault(); $('#err').textContent = '';
+  const nome = $('#nome').value.trim();
+  const g = getGuest(id);
+  if (g && g.nome === nome) return (location.href = `/e/${id}/camera`);
+  try {
+    const r = await api(`/api/events/${id}/guests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome }) });
+    setGuest(id, { guestId: r.guestId, nome: r.nome });
+    location.href = `/e/${id}/camera`;
+  } catch (er) { $('#err').textContent = er.message; }
+});
+</script>
+</body>
+</html>

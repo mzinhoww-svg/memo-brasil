@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memo Brasil — cada convidado é seu fotógrafo</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main>
+  <p class="center" style="letter-spacing:.2em;font-size:12px;margin-top:8px">MEMO BRASIL</p>
+  <h1 class="center" style="margin-top:14px">Cada convidado é seu fotógrafo</h1>
+  <p class="center">Crie o álbum do casamento, compartilhe o QR Code e receba os melhores momentos sob o olhar de quem estava lá. As fotos ficam guardadas e só são reveladas na hora que você escolher.</p>
+
+  <form id="f">
+    <label for="titulo">Nome do evento</label>
+    <input id="titulo" maxlength="80" placeholder="Casamento Ana & Pedro" required>
+    <label for="revealAt">Quando revelar as fotos</label>
+    <input id="revealAt" type="datetime-local" required>
+    <label for="fpg">Fotos por convidado</label>
+    <input id="fpg" type="number" min="1" max="100" value="20">
+    <p id="err" class="err"></p>
+    <button class="btn primary" id="go">Criar evento</button>
+  </form>
+  <p class="center" style="font-size:13px">O organizador cria o evento em nome dos noivos e compartilha o QR Code com os convidados.</p>
+</main>
+<script src="/common.js"></script>
+<script>
+const d = new Date(Date.now() + 24 * 3600 * 1000); d.setMinutes(0, 0, 0);
+const pad = (n) => String(n).padStart(2, '0');
+$('#revealAt').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`;
+$('#f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('#go').disabled = true; $('#err').textContent = '';
+  try {
+    const r = await api('/api/events', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        titulo: $('#titulo').value,
+        revealAt: new Date($('#revealAt').value).toISOString(),
+        fotosPorConvidado: $('#fpg').value,
+      }),
+    });
+    localStorage.setItem(hostKey(r.id), r.hostToken);
+    location.href = `/painel/${r.id}#t=${r.hostToken}`;
+  } catch (er) { $('#err').textContent = er.message; $('#go').disabled = false; }
+});
+</script>
+</body>
+</html>

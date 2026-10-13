@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Álbum</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main>
+  <h1 id="titulo" class="center">…</h1>
+  <div class="stats">
+    <div><b id="momentos">0</b><span>Momentos</span></div>
+    <div><b id="restam">—</b><span id="restamLbl">Restantes</span></div>
+    <div><b id="pessoas">0</b><span>Pessoas</span></div>
+  </div>
+  <button class="btn primary" id="retro" style="display:none">✨ Ver retrospectiva</button>
+  <div class="row" style="margin-top:10px">
+    <a class="btn" id="camera">📷 Abrir câmera</a>
+    <a class="btn" id="convidar">Convidar</a>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p id="vazio" class="center" style="display:none">Ainda não há momentos. Abra a câmera e faça o primeiro.</p>
+</main>
+<div class="retro" id="overlay"><button class="close" id="fechar">Fechar</button><img id="rimg" alt=""><div class="autor" id="rautor"></div></div>
+<script src="/common.js"></script>
+<script>
+const id = eventId();
+const g = getGuest(id);
+$('#camera').href = `/e/${id}/camera`;
+$('#convidar').href = `/e/${id}`;
+let info, fotos = [], now = Date.now, revelado = false;
+
+async function load() {
+  try {
+    info = await api(`/api/events/${id}`);
+    const r = await api(`/api/events/${id}/photos${g ? `?guestId=${encodeURIComponent(g.guestId)}` : ''}`);
+    now = relogio(info.agora);
+    revelado = r.revelado; fotos = r.fotos;
+    document.title = info.titulo;
+    $('#titulo').textContent = info.titulo;
+    $('#momentos').textContent = info.momentos;
+    $('#pessoas').textContent = info.pessoas;
+    $('#retro').style.display = revelado && fotos.length ? 'flex' : 'none';
+    $('#camera').style.display = revelado ? 'none' : 'flex';
+    $('#vazio').style.display = fotos.length ? 'none' : 'block';
+    render(); tick();
+  } catch (e) { document.querySelector('main').innerHTML = `<h1>Álbum não encontrado</h1><p>${e.message}</p>`; clearInterval(load.t); }
+}
+function render() {
+  const grid = $('#grid'); grid.textContent = '';
+  for (const f of fotos) {
+    const t = document.createElement('div');
+    if (f.bloqueada) {
+      t.className = 'tile locked';
+      const lock = document.createElement('span'); lock.textContent = '🔒';
+      const p = document.createElement('span'); p.className = 'pill'; p.dataset.rev = '1';
+      t.append(lock, p);
+    } else {
+      t.className = 'tile';
+      const im = document.createElement('img'); im.loading = 'lazy'; im.src = f.url; im.alt = `Foto de ${f.autor}`;
+      const a = document.createElement('span'); a.className = 'autor'; a.textContent = f.autor;
+      t.append(im, a);
+      t.onclick = () => abre(f);
+    }
+    grid.append(t);
+  }
+}
+function tick() {
+  if (!info) return;
+  const ms = new Date(info.revealAt).getTime() - now();
+  if (!revelado && ms <= 0) return load();
+  $('#restam').textContent = revelado ? 'Revelado' : duracao(ms);
+  $('#restamLbl').textContent = revelado ? 'Álbum aberto' : 'Restantes';
+  document.querySelectorAll('[data-rev]').forEach((el) => (el.textContent = `Revela em ${duracao(ms)}`));
+}
+function abre(f) { $('#rimg').src = f.url; $('#rautor').textContent = f.autor; $('#overlay').classList.add('on'); }
+let timer = null;
+$('#retro').onclick = () => {
+  let i = 0; const lista = [...fotos].sort(() => Math.random() - 0.5);
+  const passo = () => { abre(lista[i % lista.length]); i++; };
+  passo(); timer = setInterval(passo, 3000);
+};
+$('#fechar').onclick = () => { clearInterval(timer); $('#overlay').classList.remove('on'); };
+$('#overlay').onclick = (e) => { if (e.target.id === 'overlay') $('#fechar').click(); };
+load(); load.t = setInterval(load, 20000); setInterval(tick, 20000);
+</script>
+</body>
+</html>

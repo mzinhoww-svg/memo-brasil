@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel do evento — Memo Brasil</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main>
+  <p style="letter-spacing:.2em;font-size:12px">PAINEL DO ORGANIZADOR</p>
+  <h1 id="titulo">…</h1>
+  <div class="stats">
+    <div><b id="momentos">0</b><span>Momentos</span></div>
+    <div><b id="restam">—</b><span id="restamLbl">Para revelar</span></div>
+    <div><b id="pessoas">0</b><span>Pessoas</span></div>
+  </div>
+  <img id="qr" class="qr" alt="QR Code do convite">
+  <p class="center">Imprima o QR Code em uma placa na entrada ou nas mesas. Quem escanear recebe o convite e entra direto na câmera.</p>
+  <div class="linkbox" id="link"></div>
+  <div class="row" style="margin-top:10px">
+    <button class="btn" id="copiar">Copiar link</button>
+    <a class="btn" id="baixar" download="qrcode-evento.png">Baixar QR</a>
+  </div>
+  <a class="btn primary" id="album" style="margin-top:14px">Ver álbum</a>
+
+  <h2 style="margin-top:34px">Convidados</h2>
+  <ul class="list" id="convidados"></ul>
+
+  <h2 style="margin-top:28px">Hora da revelação</h2>
+  <input id="revealAt" type="datetime-local">
+  <button class="btn" id="salvar" style="margin-top:10px">Atualizar horário</button>
+  <p id="msg" class="err"></p>
+</main>
+<script src="/common.js"></script>
+<script>
+const id = eventId();
+const hashToken = new URLSearchParams(location.hash.slice(1)).get('t');
+if (hashToken) localStorage.setItem(hostKey(id), hashToken);
+const token = localStorage.getItem(hostKey(id));
+const H = { 'x-host-token': token || '' };
+const pad = (n) => String(n).padStart(2, '0');
+const local = (iso) => { const d = new Date(iso); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+let info, now = Date.now;
+
+async function load() {
+  try {
+    info = await api(`/api/events/${id}/host`, { headers: H });
+  } catch (e) { document.body.innerHTML = `<main><h1>Acesso restrito</h1><p>${e.message} Abra o painel pelo mesmo aparelho em que o evento foi criado.</p></main>`; return; }
+  now = relogio(info.agora);
+  $('#titulo').textContent = info.titulo;
+  $('#momentos').textContent = info.momentos;
+  $('#pessoas').textContent = info.pessoas;
+  $('#link').textContent = info.linkConvite;
+  $('#qr').src = `/api/events/${id}/qr.png`;
+  $('#baixar').href = `/api/events/${id}/qr.png`;
+  $('#album').href = `/e/${id}/album`;
+  if (document.activeElement !== $('#revealAt')) $('#revealAt').value = local(info.revealAt);
+  const ul = $('#convidados'); ul.textContent = '';
+  if (!info.convidados.length) { const li = document.createElement('li'); li.textContent = 'Ninguém entrou ainda.'; ul.append(li); }
+  for (const c of info.convidados) {
+    const li = document.createElement('li');
+    const n = document.createElement('span'); n.textContent = c.nome;
+    const f = document.createElement('span'); f.textContent = `${c.fotos} foto${c.fotos === 1 ? '' : 's'}`;
+    li.append(n, f); ul.append(li);
+  }
+  tick();
+}
+function tick() {
+  if (!info) return;
+  const ms = new Date(info.revealAt).getTime() - now();
+  $('#restam').textContent = ms > 0 ? duracao(ms) : 'Revelado';
+  $('#restamLbl').textContent = ms > 0 ? 'Para revelar' : 'Álbum aberto';
+}
+$('#copiar').onclick = async () => { await navigator.clipboard.writeText(info.linkConvite); $('#copiar').textContent = 'Link copiado!'; setTimeout(() => $('#copiar').textContent = 'Copiar link', 1800); };
+$('#salvar').onclick = async () => {
+  $('#msg').textContent = '';
+  try {
+    await api(`/api/events/${id}`, { method: 'PATCH', headers: { ...H, 'content-type': 'application/json' }, body: JSON.stringify({ revealAt: new Date($('#revealAt').value).toISOString() }) });
+    $('#msg').className = 'err ok'; $('#msg').textContent = 'Horário atualizado.'; load();
+  } catch (e) { $('#msg').className = 'err'; $('#msg').textContent = e.message; }
+};
+load(); setInterval(load, 15000); setInterval(tick, 30000);
+</script>
+</body>
+</html>

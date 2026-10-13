@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Câmera</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="cam">
+  <div class="top"><a id="voltar" aria-label="Voltar">←</a><span id="resta">…</span><span id="fotos"></span></div>
+  <div class="view">
+    <video id="v" playsinline muted autoplay></video>
+    <div class="flash" id="flash"></div>
+    <div class="toast" id="toast"></div>
+    <div id="semcam" class="center" style="display:none;padding:30px">
+      <h2>Toque para fotografar</h2>
+      <p>Seu navegador abre a câmera do celular direto no botão abaixo.</p>
+    </div>
+  </div>
+  <div class="bottom">
+    <button class="side" id="virar" aria-label="Virar câmera">⟳</button>
+    <button class="shutter" id="clicar" aria-label="Tirar foto"></button>
+    <a class="side" id="album" aria-label="Álbum">▦</a>
+  </div>
+</div>
+<input id="arq" type="file" accept="image/*" capture="environment" hidden>
+<script src="/common.js"></script>
+<script>
+const id = eventId();
+const g = getGuest(id);
+if (!g) location.replace(`/e/${id}`);
+$('#voltar').href = `/e/${id}`;
+$('#album').href = `/e/${id}/album`;
+const v = $('#v');
+let stream = null, facing = 'environment', info, now = Date.now, restantes = null, enviando = false, semStream = false;
+
+function toast(t, ms = 2200) { const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), ms); }
+
+async function startCam() {
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  if (!navigator.mediaDevices?.getUserMedia) return fallback();
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1440 } }, audio: false });
+    v.srcObject = stream; v.style.display = 'block'; $('#semcam').style.display = 'none'; semStream = false;
+    v.style.transform = facing === 'user' ? 'scaleX(-1)' : '';
+  } catch { fallback(); }
+}
+function fallback() { semStream = true; v.style.display = 'none'; $('#semcam').style.display = 'block'; $('#virar').style.display = 'none'; }
+
+async function enviar(blob) {
+  if (enviando) return;
+  enviando = true;
+  const fd = new FormData();
+  fd.append('guestId', g.guestId);
+  fd.append('foto', blob, 'foto.jpg');
+  try {
+    const r = await api(`/api/events/${id}/photos`, { method: 'POST', body: fd });
+    restantes = r.restantes; pintaFotos();
+    toast('Momento guardado ✓');
+  } catch (e) { toast(e.message, 3500); }
+  enviando = false;
+}
+function pintaFotos() { $('#fotos').textContent = restantes === null ? '' : `${restantes} restantes`; }
+
+function capturar() {
+  const f = $('#flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+  const w = v.videoWidth, h = v.videoHeight;
+  const esc = Math.min(1, 1600 / Math.max(w, h));
+  const c = document.createElement('canvas');
+  c.width = Math.round(w * esc); c.height = Math.round(h * esc);
+  const ctx = c.getContext('2d');
+  if (facing === 'user') { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(v, 0, 0, c.width, c.height);
+  c.toBlob((b) => b && enviar(b), 'image/jpeg', 0.85);
+}
+
+$('#clicar').onclick = () => {
+  if (info?.revelado || new Date(info.revealAt).getTime() <= now()) return toast('O evento terminou.');
+  if (restantes === 0) return toast('Suas fotos acabaram.');
+  if (semStream || !stream) return $('#arq').click();
+  capturar();
+};
+$('#arq').onchange = async (e) => {
+  const file = e.target.files[0]; e.target.value = '';
+  if (!file) return;
+  const bmp = await createImageBitmap(file).catch(() => null);
+  if (!bmp) return enviar(file);
+  const esc = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * esc); c.height = Math.round(bmp.height * esc);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  c.toBlob((b) => b && enviar(b), 'image/jpeg', 0.85);
+};
+$('#virar').onclick = () => { facing = facing === 'environment' ? 'user' : 'environment'; startCam(); };
+
+function tick() {
+  if (!info) return;
+  const ms = new Date(info.revealAt).getTime() - now();
+  $('#resta').textContent = ms > 0 ? `${duracao(ms)} restantes` : 'Evento encerrado';
+}
+(async () => {
+  try {
+    info = await api(`/api/events/${id}`);
+    now = relogio(info.agora);
+    if (info.revelado) return (location.replace(`/e/${id}/album`));
+    restantes = info.fotosPorConvidado; // refinado após a primeira foto
+    const lista = await api(`/api/events/${id}/photos?guestId=${encodeURIComponent(g.guestId)}`);
+    restantes = Math.max(0, info.fotosPorConvidado - lista.fotos.filter((f) => f.minha).length);
+    pintaFotos(); tick(); setInterval(tick, 30000);
+  } catch (e) { toast(e.message, 4000); }
+  startCam();
+})();
+</script>
+</body>
+</html>
