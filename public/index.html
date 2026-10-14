@@ -16,6 +16,8 @@
   <form id="f">
     <label for="titulo">Nome do evento</label>
     <input id="titulo" maxlength="80" placeholder="Casamento Ana & Pedro" required>
+    <label for="contato">Seu e-mail ou WhatsApp (para o suporte falar com você)</label>
+    <input id="contato" maxlength="80" autocomplete="email">
     <label for="dataEvento">Data e hora do casamento</label>
     <input id="dataEvento" type="datetime-local">
     <label for="local">Local</label>
@@ -45,6 +47,7 @@ $('#f').addEventListener('submit', async (e) => {
         revealAt: new Date($('#revealAt').value).toISOString(),
         dataEvento: $('#dataEvento').value ? new Date($('#dataEvento').value).toISOString() : null,
         local: $('#local').value,
+        contato: $('#contato').value,
         fotosPorConvidado: $('#fpg').value,
       }),
     });

@@ -30,7 +30,7 @@
 const id = eventId();
 const h = new URLSearchParams(location.hash.slice(1)).get('t');
 if (h) { localStorage.setItem(hostKey(id), h); history.replaceState(null, '', location.pathname + '#resumo'); }
-const TOKEN = localStorage.getItem(hostKey(id)) || '';
+const TOKEN = localStorage.getItem(hostKey(id)) || localStorage.getItem('memo:master') || '';
 const H = { 'x-host-token': TOKEN, 'content-type': 'application/json' };
 const call = (p, o = {}) => api(`/api/events/${id}${p}`, { ...o, headers: { ...H, ...(o.headers || {}) } });
 const pad = (n) => String(n).padStart(2, '0');
@@ -62,9 +62,9 @@ async function route() {
     document.body.append(el('div', { class: 'content' }, el('h1', {}, 'Acesso restrito'), el('p', { class: 'sub' }, `${e.message} Abra o painel pelo link de acesso que o casal recebeu, ou peça um novo link na aba Equipe.`), el('a', { href: '/' }, 'Voltar ao início')));
     return;
   }
-  $('#who').textContent = `${info.nome} · ${info.papel === 'casal' ? 'Casal' : 'Cerimonial'}`;
+  $('#who').textContent = info.master ? 'Admin master' : `${info.nome} · ${info.papel === 'casal' ? 'Casal' : 'Cerimonial'}`;
   $('#navEquipe').style.display = info.dono ? '' : 'none';
-  crumbs([{ t: 'Início', href: '/' }, { t: info.titulo, href: '#resumo' }, { t: SECOES[key][0] }]);
+  crumbs([...(info.master ? [{ t: 'Master', href: '/master' }] : [{ t: 'Início', href: '/' }]), { t: info.titulo, href: '#resumo' }, { t: SECOES[key][0] }]);
   const v = $('#view'); v.textContent = '';
   await SECOES[key][1](v);
 }
@@ -73,6 +73,7 @@ window.addEventListener('hashchange', route);
 // ── Resumo
 async function rResumo(v) {
   const ms = new Date(info.revealAt).getTime() - relogio(info.agora)();
+  if (info.master) v.append(el('div', { class: 'warn' }, `Você está como admin master neste casamento.${info.contato ? ' Contato: ' + info.contato : ''}`));
   v.append(el('h1', {}, info.titulo), el('p', { class: 'sub' }, [dataBr(info.dataEvento), info.local].filter(Boolean).join(' · ') || 'Complete os detalhes do casamento na aba "Detalhes e programação".'));
   v.append(el('div', { class: 'cards' },
     stat(info.totalLista, 'Convidados na lista'),

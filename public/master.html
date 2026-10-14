@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin master — Memo Brasil</title>
+<link rel="stylesheet" href="/admin.css">
+<style>.wide{max-width:1200px;margin:0 auto;padding:24px 20px 60px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}</style>
+</head>
+<body>
+<div class="wide">
+  <div class="top"><div><div class="brand" style="padding:0">MEMO BRASIL · ADMIN MASTER</div></div><button class="btn sm" id="sair" style="display:none">Sair</button></div>
+  <nav class="crumbs" id="crumbs"></nav>
+  <div id="view"></div>
+</div>
+<script src="/common.js"></script>
+<script>
+const KEY = 'memo:master';
+let TOKEN = localStorage.getItem(KEY) || '';
+const H = () => ({ 'x-master-token': TOKEN, 'content-type': 'application/json' });
+const call = (p, o = {}) => api(`/api/master${p}`, { ...o, headers: H() });
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) { if (k.startsWith('on')) n[k] = v; else if (k === 'class') n.className = v; else if (v !== undefined && v !== null && v !== false) n.setAttribute(k, v); }
+  for (const c of kids.flat()) n.append(c instanceof Node ? c : document.createTextNode(c ?? ''));
+  return n;
+}
+const v = $('#view');
+const fmt = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+let aba = 'casamentos';
+
+function login(erro) {
+  $('#sair').style.display = 'none';
+  crumbs([{ t: 'Admin master' }, { t: 'Entrar' }]);
+  v.textContent = '';
+  const inp = el('input', { type: 'password', placeholder: 'Token do admin master', autocomplete: 'off' });
+  const out = el('p', { class: 'msg' }, erro || '');
+  v.append(el('div', { class: 'panel', style: 'max-width:420px' }, el('h1', {}, 'Admin master'),
+    el('p', { class: 'sub' }, 'Acesso a todos os casamentos. O token fica no arquivo data/master.token do servidor (ou na variável MASTER_TOKEN).'),
+    inp, el('button', { class: 'btn primary', style: 'margin-top:12px', onclick: async () => {
+      TOKEN = inp.value.trim();
+      try { await call('/ping'); localStorage.setItem(KEY, TOKEN); carrega(); } catch (e) { out.textContent = e.message; }
+    } }, 'Entrar'), out));
+}
+
+async function carrega() {
+  let dados;
+  try { dados = await call('/events'); } catch { return login('Token inválido ou ausente.'); }
+  $('#sair').style.display = ''; $('#sair').onclick = () => { localStorage.removeItem(KEY); TOKEN = ''; login(); };
+  crumbs([{ t: 'Admin master' }, { t: aba === 'casamentos' ? 'Casamentos' : 'Fotos recentes' }]);
+  v.textContent = '';
+  const t = dados.totais;
+  v.append(el('div', { class: 'cards' }, ...[[t.eventos, 'Casamentos'], [t.camera, 'Pessoas na câmera'], [t.fotos, 'Fotos'], [t.lista, 'Convidados nas listas']]
+    .map(([n, l]) => el('div', { class: 'card stat' }, el('b', {}, String(n)), el('span', {}, l)))));
+  v.append(el('div', { class: 'filters' },
+    el('button', { class: 'chip' + (aba === 'casamentos' ? ' on' : ''), onclick: () => { aba = 'casamentos'; carrega(); } }, 'Casamentos'),
+    el('button', { class: 'chip' + (aba === 'fotos' ? ' on' : ''), onclick: () => { aba = 'fotos'; carrega(); } }, 'Fotos recentes (todas, antes da revelação)')));
+  if (aba === 'fotos') return fotos();
+  const busca = el('input', { placeholder: 'Buscar casamento ou contato' });
+  const tb = el('tbody');
+  const pinta = () => {
+    tb.textContent = '';
+    const q = busca.value.toLowerCase();
+    const lista = dados.eventos.filter((e) => !q || (e.titulo + ' ' + e.contato).toLowerCase().includes(q));
+    lista.forEach((e) => tb.append(el('tr', {},
+      el('td', {}, el('b', {}, e.titulo), el('div', { class: 'sub', style: 'margin:0;font-size:12px' }, e.contato || 'sem contato')),
+      el('td', {}, fmt(e.criadoEm)), el('td', {}, fmt(e.revealAt)),
+      el('td', {}, `${e.confirmados}/${e.lista}`), el('td', {}, String(e.camera)), el('td', {}, String(e.fotos)),
+      el('td', {}, e.suspenso ? el('span', { class: 'tag recusado' }, 'Suspenso') : e.revelado ? el('span', { class: 'tag confirmado' }, 'Revelado') : el('span', { class: 'tag pendente' }, 'Em andamento')),
+      el('td', {}, el('div', { class: 'row' },
+        el('a', { class: 'btn sm primary', href: `/painel/${e.id}#resumo` }, 'Abrir'),
+        el('button', { class: 'btn sm', onclick: async () => { await call(`/events/${e.id}`, { method: 'PATCH', body: JSON.stringify({ suspenso: !e.suspenso }) }); carrega(); } }, e.suspenso ? 'Reativar' : 'Suspender'),
+        el('button', { class: 'btn sm danger', onclick: async () => {
+          if (prompt(`Excluir "${e.titulo}" e todas as ${e.fotos} fotos para sempre?\nDigite o id do evento para confirmar: ${e.id}`) === e.id) { await call(`/events/${e.id}`, { method: 'DELETE', body: JSON.stringify({ confirmar: e.id }) }); carrega(); }
+        } }, 'Excluir'))))));
+    if (!lista.length) tb.append(el('tr', {}, el('td', { colspan: '8' }, 'Nenhum casamento encontrado.')));
+  };
+  busca.oninput = pinta; pinta();
+  v.append(el('div', { class: 'panel' }, busca, el('div', { style: 'overflow-x:auto;margin-top:12px' }, el('table', {},
+    el('thead', {}, el('tr', {}, ['Casamento', 'Criado', 'Revelação', 'Confirmados', 'Câmera', 'Fotos', 'Status', ''].map((x) => el('th', {}, x)))), tb))));
+}
+async function fotos() {
+  const r = await call('/photos?limit=120');
+  v.append(el('div', { class: 'warn' }, `Mostrando as ${r.fotos.length} mais recentes de ${r.total}. Os convidados e os noivos só veem na hora da revelação; você vê agora.`));
+  const g = el('div', { class: 'thumbs' });
+  r.fotos.forEach((f) => g.append(el('div', { class: 'thumb' }, el('img', { src: `${f.url}?token=${encodeURIComponent(TOKEN)}`, alt: `Foto de ${f.autor}`, loading: 'lazy' }),
+    el('div', {}, el('span', {}, `${f.autor} · ${f.evento}`), el('a', { class: 'btn sm', href: `/painel/${f.eventoId}#fotos` }, 'Moderar')))));
+  v.append(r.fotos.length ? g : el('p', { class: 'sub' }, 'Ainda não há fotos.'));
+}
+TOKEN ? carrega() : login();
+</script>
+</body>
+</html>

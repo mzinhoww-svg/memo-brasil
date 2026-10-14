@@ -7,6 +7,7 @@ Memo Brasil é um álbum colaborativo de casamento: "cada convidado é seu fotó
 Ponto de partida (já existe, v2): repositório em /Users/aurimar.nogueira@latam.com/projetos/memo-brasil. Node, Express, Multer, qrcode, HTML/JS puro, armazenamento em JSON + arquivos em disco, porta 3210. Duas jornadas separadas:
 - Convidado (tema escuro, mobile first): /e/:id (convite, nome com autocompletar da lista), /e/:id/inicio (hub com câmera, álbum, programação e local, confirmar presença, recados), /e/:id/camera, /e/:id/album, /e/:id/programacao, /e/:id/presenca, /e/:id/recados. Breadcrumbs em todas as telas.
 - Organização, casal e cerimonial (tema claro, desktop first, nunca linkada a partir da jornada do convidado): / (criar evento) e /painel/:id com abas Resumo, Convidados (lista de até 5000 com RSVP, filtros e colagem de planilha), Detalhes e programação, Fotos e recados (moderação, apagar), Convite e QR Code, Equipe (links de acesso por papel; cerimonial não altera equipe).
+- Admin master (multi-tenant): qualquer pessoa cadastra o próprio casamento em `/`; o admin master, em `/master` (token em `data/master.token` ou `MASTER_TOKEN`), lista todos os casamentos, entra em qualquer painel com poder total, vê as fotos de todos antes da revelação, suspende e exclui (com confirmação pelo id). Casal e cerimonial só enxergam o próprio evento.
 API verificada por smoke test: foto bloqueada devolve 403 até a revelação (exceto para a organização, na moderação), limite de fotos por convidado, papéis casal x cerimonial, lista com 300 nomes e deduplicação, RSVP e recados. As telas NUNCA foram abertas em navegador ou celular: trate-as como não validadas. Lacunas conhecidas: sem testes automatizados, sem login real (acesso por link com token), sem mapa de mesas, sem lista de presentes, sem e-mail, sem paginação da lista acima de 300 linhas na tela, armazenamento em JSON.
 
 Definição de MVP (checklist verificável):
@@ -22,7 +23,8 @@ Definição de MVP (checklist verificável):
 10. Identidade pt-BR própria. Aceite: nome, logotipo, paleta e tipografia originais (não copiar o Memo); tokens em CSS variables; textos revisados em português do Brasil; Lighthouse ≥90 em performance e acessibilidade.
 11. Observabilidade e limites. Aceite: logs sem dados pessoais, rate limit por IP e por evento, limite de tamanho e de total de fotos por evento, healthcheck, alerta de erro (Sentry ou similar no plano gratuito).
 12. Plano das lojas. Aceite: docs/lojas.md com decisão registrada entre PWA instalável, Capacitor sobre esta web, ou React Native/Expo; requisitos Apple/Google (conta de desenvolvedor, política de privacidade, classificação etária por conteúdo gerado por usuários, moderação e denúncia); custos e prazos. Não implementar o app nativo agora.
-13. Painel ao vivo em http://127.0.0.1:3300 e STATUS.md final com limitações conhecidas.
+13. Admin master seguro. Aceite: login do master com senha forte e 2º fator (substitui o token estático), log de auditoria só de inserção de toda ação do master (quem, quando, qual evento, o quê), aviso de privacidade nos termos de que a plataforma pode acessar o conteúdo para suporte e moderação, rate limit na criação aberta de eventos e anti-spam (captcha).
+14. Painel ao vivo em http://127.0.0.1:3300 e STATUS.md final com limitações conhecidas.
 
 LIMITES (autorizações prévias)
 

@@ -27,6 +27,24 @@ for (const ev of Object.values(db.events)) {
   });
 }
 
+// Admin master: administra todos os casamentos (tenants). Token por ambiente ou gerado no primeiro uso.
+const MASTER_FILE = path.join(DATA_DIR, 'master.token');
+let MASTER_TOKEN = process.env.MASTER_TOKEN || '';
+let masterGerado = false;
+if (!MASTER_TOKEN) {
+  if (fs.existsSync(MASTER_FILE)) MASTER_TOKEN = fs.readFileSync(MASTER_FILE, 'utf8').trim();
+  else {
+    MASTER_TOKEN = crypto.randomBytes(24).toString('base64url');
+    fs.writeFileSync(MASTER_FILE, MASTER_TOKEN, { mode: 0o600 });
+    masterGerado = true;
+  }
+}
+function isMaster(token) {
+  if (!token || !MASTER_TOKEN) return false;
+  const a = Buffer.from(String(token)), b = Buffer.from(MASTER_TOKEN);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 function save() {
   const tmp = DB_FILE + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(db));
@@ -64,7 +82,8 @@ function getEvent(req, res, next) {
 function adminOnly(req, res, next) {
   const token = req.get('x-host-token') || req.query.token;
   const ev = req.ev;
-  if (token && token === ev.hostToken) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
+  if (isMaster(token)) req.admin = { papel: 'master', nome: 'Admin master', dono: true, master: true };
+  else if (token && token === ev.hostToken) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
   else {
     const m = token && ev.equipe.find((e) => e.token === token);
     if (m) req.admin = { papel: m.papel, nome: m.nome, id: m.id };
@@ -81,7 +100,7 @@ function publicInfo(ev) {
     agora: new Date().toISOString(), fotosPorConvidado: ev.fotosPorConvidado,
     momentos: ev.photos.length, pessoas: ev.guests.length,
     dataEvento: ev.dataEvento, local: ev.local, endereco: ev.endereco, mensagem: ev.mensagem,
-    cronograma: ev.cronograma,
+    cronograma: ev.cronograma, suspenso: !!ev.suspenso,
   };
 }
 function parseCronograma(arr) {
@@ -103,6 +122,7 @@ app.post('/api/events', (req, res) => {
     id: newId(5), hostToken: newId(16), titulo, revealAt: revealAt.toISOString(), fotosPorConvidado,
     dataEvento: dataEvento && !isNaN(dataEvento) ? dataEvento.toISOString() : null,
     local: clean(req.body.local, 80), endereco: clean(req.body.endereco, 160), mensagem: '',
+    contato: clean(req.body.contato, 80), suspenso: false,
     cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [],
     createdAt: new Date().toISOString(),
   };
@@ -124,7 +144,8 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
   const base = baseUrl(req);
   res.json({
     ...publicInfo(ev),
-    papel: req.admin.papel, nome: req.admin.nome, dono: !!req.admin.dono,
+    papel: req.admin.papel, nome: req.admin.nome, dono: !!req.admin.dono, master: !!req.admin.master,
+    contato: req.admin.master ? req.ev.contato : undefined,
     linkConvite: `${base}/e/${ev.id}`,
     totalLista: ev.lista.length, rsvp,
     fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
@@ -275,6 +296,7 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   const ev = req.ev;
   const nome = clean(req.body.nome, 40);
   if (!nome) return res.status(400).json({ erro: 'Diga seu nome para entrar.' });
+  if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
   if (ev.guests.length >= MAX_GUESTS) return res.status(409).json({ erro: 'Evento lotado.' });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
   const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: new Date().toISOString(), listaId: item?.id };
@@ -331,6 +353,7 @@ app.post('/api/events/:id/recados', getEvent, (req, res) => {
 // ───── Fotos
 app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) => {
   const ev = req.ev;
+  if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
   if (revealed(ev)) return res.status(409).json({ erro: 'O evento já terminou. As fotos foram reveladas.' });
   const guest = ev.guests.find((g) => g.id === req.body.guestId);
   if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de fotografar.' });
@@ -363,7 +386,7 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
 // O arquivo só sai depois da revelação — exceto para a organização (moderação).
 app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
   const token = req.get('x-host-token') || req.query.token;
-  const org = token && (token === req.ev.hostToken || req.ev.equipe.some((m) => m.token === token));
+  const org = isMaster(token) || (token && (token === req.ev.hostToken || req.ev.equipe.some((m) => m.token === token)));
   if (!revealed(req.ev) && !org) return res.status(403).json({ erro: 'Esta foto ainda não foi revelada.' });
   const p = req.ev.photos.find((x) => x.id === req.params.pid);
   if (!p) return res.status(404).end();
@@ -376,6 +399,46 @@ app.use((err, req, res, next) => {
   res.status(500).json({ erro: 'Algo deu errado. Tente de novo.' });
 });
 
+// ───── Admin master (todos os casamentos)
+function masterOnly(req, res, next) {
+  if (!isMaster(req.get('x-master-token') || req.get('x-host-token') || req.query.token))
+    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Memo.' });
+  next();
+}
+const resumoEvento = (ev) => ({
+  id: ev.id, titulo: ev.titulo, contato: ev.contato || '', criadoEm: ev.createdAt,
+  dataEvento: ev.dataEvento, revealAt: ev.revealAt, revelado: revealed(ev), suspenso: !!ev.suspenso,
+  fotos: ev.photos.length, camera: ev.guests.length, lista: ev.lista.length, recados: ev.recados.length,
+  confirmados: ev.lista.filter((l) => l.rsvp === 'confirmado').length, equipe: ev.equipe.length,
+});
+app.get('/api/master/ping', masterOnly, (req, res) => res.json({ ok: true }));
+app.get('/api/master/events', masterOnly, (req, res) => {
+  const eventos = Object.values(db.events).map(resumoEvento).sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
+  const tot = eventos.reduce((t, e) => ({ eventos: t.eventos + 1, fotos: t.fotos + e.fotos, camera: t.camera + e.camera, lista: t.lista + e.lista }), { eventos: 0, fotos: 0, camera: 0, lista: 0 });
+  res.json({ totais: tot, eventos });
+});
+app.patch('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
+  if (req.body.suspenso !== undefined) req.ev.suspenso = !!req.body.suspenso;
+  save();
+  res.json(resumoEvento(req.ev));
+});
+app.delete('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
+  if (req.body?.confirmar !== req.ev.id) return res.status(400).json({ erro: 'Confirme enviando o id do evento.' });
+  fs.rmSync(path.join(PHOTO_DIR, req.ev.id), { recursive: true, force: true });
+  delete db.events[req.ev.id];
+  save();
+  res.json({ ok: true });
+});
+// Fotos mais recentes de todos os casamentos, antes de qualquer revelação.
+app.get('/api/master/photos', masterOnly, (req, res) => {
+  const lim = Math.min(parseInt(req.query.limit, 10) || 60, 300);
+  const todas = [];
+  for (const ev of Object.values(db.events))
+    for (const p of ev.photos) todas.push({ id: p.id, eventoId: ev.id, evento: ev.titulo, autor: p.autor, criadaEm: p.criadaEm, url: `/api/events/${ev.id}/photos/${p.id}/file` });
+  todas.sort((a, b) => b.criadaEm.localeCompare(a.criadaEm));
+  res.json({ fotos: todas.slice(0, lim), total: todas.length });
+});
+
 // ───── Páginas
 const page = (f) => (req, res) => res.sendFile(path.join(__dirname, 'public', f));
 app.get('/e/:id', page('convite.html'));
@@ -386,11 +449,14 @@ app.get('/e/:id/programacao', page('programacao.html'));
 app.get('/e/:id/recados', page('recados.html'));
 app.get('/e/:id/presenca', page('presenca.html'));
 app.get('/painel/:id', page('painel.html'));
+app.get('/master', page('master.html'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Memo Brasil em http://localhost:${PORT}`);
+    console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
+    console.log(`Admin master: http://localhost:${PORT}/master`);
     if (lanIp()) console.log(`Na mesma rede Wi-Fi (celular): http://${lanIp()}:${PORT}`);
   });
 }
