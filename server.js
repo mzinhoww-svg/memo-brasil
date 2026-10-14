@@ -6,7 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
-const archiver = require('archiver');
+const { ZipArchive } = require('archiver');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -610,7 +610,7 @@ app.get('/api/events/:id/fotos.zip', getEvent, adminOnly, (req, res) => {
   if (!revealed(ev) && !req.admin.master) return res.status(409).json({ erro: 'O álbum só pode ser baixado depois da revelação.' });
   audit(req, 'fotos.baixadas', { total: ev.photos.length });
   res.type('application/zip').set('Content-Disposition', `attachment; filename="album-${ev.id}.zip"`);
-  const z = archiver('zip', { store: true });
+  const z = new ZipArchive({ store: true });
   z.on('error', () => res.end());
   z.pipe(res);
   const n = {};

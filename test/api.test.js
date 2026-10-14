@@ -105,3 +105,15 @@ test('push: inscrição inválida é recusada; manifest é por casamento', async
   assert.equal(m.name, 'Casamento Z');
   assert.equal(m.start_url, `/e/${a.id}/inicio`);
 });
+
+test('ZIP do álbum só depois da revelação e só do próprio casamento', async () => {
+  const a = await criar('A');
+  assert.equal((await get(`/api/events/${a.id}/fotos.zip`, { 'x-host-token': a.tk })).status, 409);
+  const M = { 'x-host-token': 'master-de-teste' };
+  const r = await get(`/api/events/${a.id}/fotos.zip`, M);
+  assert.equal(r.status, 200);
+  const buf = Buffer.from(await r.arrayBuffer());
+  assert.equal(buf.slice(0, 2).toString(), 'PK');
+  const b = await criar('B');
+  assert.equal((await get(`/api/events/${a.id}/fotos.zip`, { 'x-host-token': b.tk })).status, 403);
+});
