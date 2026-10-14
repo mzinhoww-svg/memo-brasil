@@ -7,6 +7,7 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 'sqlite'));
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -115,9 +116,9 @@ function adminOnly(req, res, next) {
   const token = req.get('x-host-token') || req.query.token;
   const ev = req.ev;
   if (isMaster(token)) req.admin = { papel: 'master', nome: 'Admin master', dono: true, master: true };
-  else if (token && token === ev.hostToken) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
+  else if (token && verifyToken(token, ev.hostTokenHash)) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
   else {
-    const m = token && ev.equipe.find((e) => e.token === token);
+    const m = token && ev.equipe.find((e) => verifyToken(token, e.tokenHash));
     if (m) req.admin = { papel: m.papel, nome: m.nome, id: m.id };
   }
   if (!req.admin) return res.status(403).json({ erro: 'Acesso restrito à organização do casamento.' });
@@ -151,8 +152,9 @@ app.post('/api/events', (req, res) => {
   if (!titulo) return res.status(400).json({ erro: 'Informe o nome do evento.' });
   if (isNaN(revealAt)) return res.status(400).json({ erro: 'Informe quando as fotos serão reveladas.' });
   const dataEvento = req.body.dataEvento ? new Date(req.body.dataEvento) : null;
+  const hostToken = newId(16);
   const ev = {
-    id: newId(5), hostToken: newId(16), titulo, revealAt: revealAt.toISOString(), fotosPorConvidado,
+    id: newId(5), hostToken, hostTokenHash: tokenHash(hostToken), titulo, revealAt: revealAt.toISOString(), fotosPorConvidado,
     dataEvento: dataEvento && !isNaN(dataEvento) ? dataEvento.toISOString() : null,
     local: clean(req.body.local, 80), endereco: clean(req.body.endereco, 160), mensagem: '',
     contato: clean(req.body.contato, 80), suspenso: false, limites: {}, config: { ...CONFIG_PADRAO },
@@ -287,9 +289,10 @@ app.post('/api/events/:id/equipe', getEvent, adminOnly, donoOnly, (req, res) => 
   const papel = req.body.papel === 'casal' ? 'casal' : 'cerimonial';
   if (!nome) return res.status(400).json({ erro: 'Informe o nome.' });
   if (req.ev.equipe.length >= 20) return res.status(409).json({ erro: 'Equipe cheia.' });
-  const m = { id: newId(5), nome, papel, token: newId(16) };
+  const token = newId(16);
+  const m = { id: newId(5), nome, papel, token, tokenHash: tokenHash(token) };
   req.ev.equipe.push(m);
-  audit(req, 'equipe.convidada', { nome, papel });
+  audit(req, 'equipe.convidada', { membro: m.id, papel });
   save();
   res.status(201).json({ id: m.id, nome, papel, link: `${baseUrl(req)}/painel/${req.ev.id}#t=${m.token}` });
 });
@@ -315,7 +318,7 @@ app.delete('/api/events/:id/photos/:pid', getEvent, adminOnly, (req, res) => {
   const i = req.ev.photos.findIndex((p) => p.id === req.params.pid);
   if (i < 0) return res.status(404).json({ erro: 'Foto não encontrada.' });
   const [p] = req.ev.photos.splice(i, 1);
-  audit(req, 'foto.apagada', { foto: p.id, autor: p.autor });
+  audit(req, 'foto.apagada', { foto: p.id });
   fs.rmSync(path.join(PHOTO_DIR, req.ev.id, `${p.id}.${p.ext}`), { force: true });
   save();
   res.json({ ok: true });
@@ -493,10 +496,8 @@ app.patch('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
 });
 app.delete('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
   if (req.body?.confirmar !== req.ev.id) return res.status(400).json({ erro: 'Confirme enviando o id do evento.' });
-  audit(req, 'evento.excluido', { titulo: req.ev.titulo });
-  fs.rmSync(path.join(PHOTO_DIR, req.ev.id), { recursive: true, force: true });
-  delete db.events[req.ev.id];
-  save();
+  audit(req, 'evento.excluido', { evento: req.ev.id });
+  store.deleteEvent(req.ev.id);
   res.json({ ok: true });
 });
 // Fotos mais recentes de todos os casamentos, antes de qualquer revelação.
@@ -632,10 +633,12 @@ app.get('/api/master/audit', masterOnly, (req, res) => {
   res.json({ registros: linhas });
 });
 app.post('/api/master/events/:id/rotacionar-link', masterOnly, getEvent, (req, res) => {
-  req.ev.hostToken = newId(16);
+  const hostToken = newId(16);
+  req.ev.hostToken = hostToken;
+  req.ev.hostTokenHash = tokenHash(hostToken);
   audit(req, 'link.casal.rotacionado');
   save();
-  res.json({ link: `${baseUrl(req)}/painel/${req.ev.id}#t=${req.ev.hostToken}` });
+  res.json({ link: `${baseUrl(req)}/painel/${req.ev.id}#t=${hostToken}` });
 });
 app.post('/api/master/avisos', masterOnly, async (req, res) => {
   const titulo = clean(req.body.titulo, 60), corpo = clean(req.body.corpo, 200);
