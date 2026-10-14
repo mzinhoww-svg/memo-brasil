@@ -16,7 +16,9 @@
       <a href="#convidados" data-s="convidados">👥 Convidados</a>
       <a href="#programacao" data-s="programacao">🗓️ Detalhes e programação</a>
       <a href="#fotos" data-s="fotos">🖼️ Fotos e recados</a>
+      <a href="#avisos" data-s="avisos">🔔 Avisos aos convidados</a>
       <a href="#convite" data-s="convite">🔗 Convite e QR Code</a>
+      <a href="#config" data-s="config">⚙️ Configurações</a>
       <a href="#equipe" data-s="equipe" id="navEquipe">🤝 Equipe</a>
     </nav>
   </aside>
@@ -36,6 +38,14 @@ const call = (p, o = {}) => api(`/api/events/${id}${p}`, { ...o, headers: { ...H
 const pad = (n) => String(n).padStart(2, '0');
 const local = (iso) => { if (!iso) return ''; const d = new Date(iso); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 let info = null;
+async function baixar(path, nome, out) {
+  try {
+    const r = await fetch(`/api/events/${id}${path}`, { headers: { 'x-host-token': TOKEN } });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).erro || 'Não foi possível baixar.');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(await r.blob()); a.download = nome; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  } catch (e) { if (out) msg(out, e.message); }
+}
 
 function el(tag, props = {}, ...kids) {
   const n = document.createElement(tag);
@@ -50,7 +60,8 @@ const stat = (n, l) => el('div', { class: 'card stat' }, el('b', {}, String(n)),
 
 const SECOES = {
   resumo: ['Resumo', rResumo], convidados: ['Convidados', rConvidados], programacao: ['Detalhes e programação', rProgramacao],
-  fotos: ['Fotos e recados', rFotos], convite: ['Convite e QR Code', rConvite], equipe: ['Equipe', rEquipe],
+  fotos: ['Fotos e recados', rFotos], avisos: ['Avisos aos convidados', rAvisos], convite: ['Convite e QR Code', rConvite],
+  config: ['Configurações', rConfig], equipe: ['Equipe', rEquipe],
 };
 async function carregaInfo() { info = await call('/host'); }
 async function route() {
@@ -81,6 +92,7 @@ async function rResumo(v) {
     stat(info.rsvp.pendente, 'Sem resposta'),
     stat(info.pessoas, 'Entraram na câmera'),
     stat(info.momentos, 'Fotos enviadas'),
+    stat(info.pushInscritos ?? 0, 'Com avisos ativos'),
     stat(ms > 0 ? duracao(ms) : 'Aberto', 'Para a revelação')));
   const prox = [];
   if (!info.totalLista) prox.push(['Monte a lista de convidados', '#convidados']);
@@ -109,6 +121,7 @@ async function rConvidados(v) {
     } }, 'Adicionar à lista'),
     el('span', { class: 'sub', style: 'margin:0' }, 'Dica: cole direto de uma planilha (colunas separadas por tab).')), out);
   v.append(add);
+  v.append(el('div', { class: 'row', style: 'margin-bottom:14px' }, el('button', { class: 'btn', onclick: () => baixar('/lista.csv', 'convidados.csv') }, '⬇ Exportar lista (CSV)')));
   const painel = el('div', { class: 'panel' });
   v.append(painel);
   let filtro = 'todos', busca = '', itens = [];
@@ -211,7 +224,48 @@ async function rFotos(v) {
   v.append(el('div', { class: 'panel' }, el('h2', {}, 'Resumo por pessoa'), info.fotosPorPessoa.length
     ? el('table', {}, el('tbody', {}, info.fotosPorPessoa.map((p) => el('tr', {}, el('td', {}, p.nome), el('td', {}, `${p.fotos} foto${p.fotos === 1 ? '' : 's'}`)))))
     : el('p', { class: 'sub' }, 'Ninguém entrou na câmera ainda.')));
-  v.append(el('button', { class: 'btn', onclick: mostrar }, revelado ? 'Ver fotos e recados' : 'Moderar fotos e recados (ver agora)'), area);
+  const outz = el('p', { class: 'msg' });
+  v.append(el('div', { class: 'row' },
+    el('button', { class: 'btn', onclick: mostrar }, revelado ? 'Ver fotos e recados' : 'Moderar fotos e recados (ver agora)'),
+    el('button', { class: 'btn primary', onclick: () => baixar('/fotos.zip', `album-${info.titulo}.zip`, outz) }, '⬇ Baixar álbum completo (ZIP)')), outz, area);
+}
+
+// ── Avisos
+async function rAvisos(v) {
+  v.append(el('h1', {}, 'Avisos aos convidados'), el('p', { class: 'sub' }, 'Mande uma notificação push para quem instalou o app do casamento. O aviso também aparece no início do app. Até 5 por hora.'));
+  v.append(el('div', { class: 'cards' }, el('div', { class: 'card stat' }, el('b', {}, String(info.pushInscritos ?? 0)), el('span', {}, 'Aparelhos com avisos ativos')),
+    el('div', { class: 'card stat' }, el('b', {}, String(info.pessoas)), el('span', {}, 'Pessoas que entraram'))));
+  const t = el('input', { maxlength: '60', placeholder: 'Ex.: A festa vai começar!' });
+  const c = el('textarea', { maxlength: '200', placeholder: 'Ex.: Abram a câmera e registrem o primeiro dueto dos noivos.' });
+  const out = el('p', { class: 'msg' });
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Novo aviso'), el('label', {}, 'Título'), t, el('label', {}, 'Mensagem'), c,
+    el('div', { class: 'row', style: 'margin-top:12px' }, el('button', { class: 'btn primary', onclick: async () => {
+      try { const r = await call('/avisos', { method: 'POST', body: JSON.stringify({ titulo: t.value, corpo: c.value }) });
+        msg(out, `Enviado para ${r.entregues} de ${r.alvos} aparelhos.`, true); t.value = ''; c.value = ''; route(); } catch (e) { msg(out, e.message); }
+    } }, 'Enviar aviso')), out));
+  const hist = (await api(`/api/events/${id}/avisos`)).avisos;
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Enviados'), hist.length
+    ? el('table', {}, el('tbody', {}, hist.map((a) => el('tr', {}, el('td', {}, el('b', {}, a.titulo), el('div', { class: 'sub', style: 'margin:0' }, a.corpo)), el('td', {}, new Date(a.enviadoEm).toLocaleString('pt-BR'))))))
+    : el('p', { class: 'sub' }, 'Nenhum aviso enviado ainda.')));
+  v.append(el('div', { class: 'warn' }, 'Para receber avisos, o convidado precisa instalar o app na tela inicial e aceitar as notificações. No iPhone isso só funciona com o app instalado (iOS 16.4 ou mais) e o site em HTTPS.'));
+}
+
+// ── Configurações do casamento
+async function rConfig(v) {
+  v.append(el('h1', {}, 'Configurações'), el('p', { class: 'sub' }, 'Regras do seu casamento. O que a plataforma limita fica com o administrador do Memo.'));
+  const cfg = info.config;
+  const out = el('p', { class: 'msg' });
+  const opt = (k, titulo, ajuda) => {
+    const cb = el('input', { type: 'checkbox', style: 'width:auto', ...(cfg[k] ? { checked: '' } : {}) });
+    cb.onchange = async () => { try { await call('', { method: 'PATCH', body: JSON.stringify({ config: { [k]: cb.checked } }) }); msg(out, 'Salvo.', true); } catch (e) { msg(out, e.message); cb.checked = !cb.checked; } };
+    return el('label', { style: 'display:flex;gap:12px;align-items:flex-start;color:var(--a-text);font-size:15px;margin:14px 0' }, cb, el('span', {}, el('b', {}, titulo), el('div', { class: 'sub', style: 'margin:2px 0 0' }, ajuda)));
+  };
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Convidados'),
+    opt('apenasLista', 'Só quem está na lista entra', 'O nome digitado precisa existir na aba Convidados. Evita penetras no álbum.'),
+    opt('recadosAtivos', 'Permitir recados', 'Convidados podem deixar mensagens para os noivos.'),
+    opt('mostrarAutor', 'Mostrar o nome de quem tirou cada foto', 'Desligue se preferir um álbum sem identificação.'), out));
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Limites deste casamento'),
+    el('p', { class: 'sub', style: 'margin:0' }, `Convidados na câmera: até ${info.limitesEfetivos.maxConvidados} · Lista: até ${info.limitesEfetivos.maxLista} · Fotos no evento: até ${info.limitesEfetivos.maxFotos}. Precisa de mais? Fale com o suporte do Memo.`)));
 }
 
 // ── Convite e QR

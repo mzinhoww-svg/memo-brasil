@@ -17,6 +17,13 @@
     <div><b id="fotos">—</b><span>Suas fotos restantes</span></div>
     <div><b id="momentos">0</b><span>Momentos do evento</span></div>
   </div>
+  <div id="aviso" class="recado" style="display:none"><p id="avTit" style="font-weight:700"></p><p id="avCorpo" style="margin:0"></p></div>
+  <div id="pwa" class="recado" style="display:none">
+    <p style="font-weight:700;margin:0 0 4px">Instale o app deste casamento</p>
+    <p id="pwaTxt" style="margin:0 0 10px"></p>
+    <div class="row"><button class="btn primary" id="pwaInstalar" style="display:none">Instalar app</button><button class="btn" id="pwaNotif" style="display:none">🔔 Ativar avisos</button></div>
+    <p id="pwaMsg" class="err" style="margin:8px 0 0"></p>
+  </div>
   <div class="hub">
     <a class="hubcard main" id="cCamera"><span class="ic">📷</span><span><b>Abrir câmera</b><small id="sCamera"></small></span></a>
     <a class="hubcard" id="cAlbum"><span class="ic">🖼️</span><span><b>Álbum do evento</b><small id="sAlbum"></small></span></a>
@@ -52,6 +59,33 @@
     if (me.rsvp && me.rsvp !== 'pendente') $('#sPres').textContent = me.rsvp === 'confirmado' ? 'Você confirmou presença ✓' : 'Você respondeu que não vai';
   } catch { $('#fotos').textContent = '—'; }
   $('#sAlbum').textContent = info.revelado ? 'As fotos foram reveladas — veja o que a galera viu' : 'Fotos escondidas até a revelação';
+  // Aviso mais recente da organização
+  try {
+    const av = (await api(`/api/events/${id}/avisos`)).avisos[0];
+    if (av) { $('#avTit').textContent = av.titulo; $('#avCorpo').textContent = av.corpo; $('#aviso').style.display = 'block'; }
+  } catch {}
+  // Instalação do PWA e notificações push
+  const instalado = ehPwa();
+  const jaPush = localStorage.getItem(`memo:${id}:push`) === '1' && 'Notification' in window && Notification.permission === 'granted';
+  const atualizaPwa = () => {
+    const card = $('#pwa'); let txt = '', mostra = false;
+    if (!instalado) {
+      mostra = true;
+      if (ehIos()) txt = 'No iPhone: toque em Compartilhar (□↑) e depois em "Adicionar à Tela de Início". Depois abra pelo ícone para ativar os avisos.';
+      else if (_promptInstalar) { txt = 'Fique com o álbum na tela inicial e receba um aviso quando as fotos forem reveladas.'; $('#pwaInstalar').style.display = ''; }
+      else txt = 'No menu do navegador, escolha "Instalar app" ou "Adicionar à tela inicial" para receber os avisos do casamento.';
+    } else if (!jaPush) { mostra = true; txt = 'Receba um aviso quando as fotos forem reveladas e novidades dos noivos.'; $('#pwaNotif').style.display = ''; }
+    $('#pwaTxt').textContent = txt; card.style.display = mostra ? 'block' : 'none';
+  };
+  window.addEventListener('memo:podeinstalar', atualizaPwa);
+  $('#pwaInstalar').onclick = async () => { if (await instalarPwa()) { $('#pwa').style.display = 'none'; } };
+  $('#pwaNotif').onclick = async () => {
+    $('#pwaMsg').textContent = '';
+    try { await ativarPush(id, guest.guestId); $('#pwa').style.display = 'none'; } catch (e) { $('#pwaMsg').textContent = e.message; }
+  };
+  if (!instalado || !jaPush) {
+    if (instalado && ehPwa()) atualizaPwa(); else atualizaPwa();
+  }
   $('#sair').onclick = (e) => { e.preventDefault(); localStorage.removeItem(guestKey(id)); location.href = `/e/${id}`; };
 })();
 </script>

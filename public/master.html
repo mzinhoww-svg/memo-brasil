@@ -28,34 +28,40 @@ function el(tag, props = {}, ...kids) {
 const v = $('#view');
 const fmt = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
 let aba = 'casamentos';
+const ABAS = [['casamentos', 'Casamentos'], ['fotos', 'Fotos por casamento'], ['plataforma', 'Plataforma'], ['avisos', 'Avisos globais'], ['auditoria', 'Auditoria'], ['politicas', 'Políticas de acesso']];
+const bytes = (n) => n > 1e9 ? (n / 1e9).toFixed(1) + ' GB' : n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.ceil(n / 1e3) + ' KB';
 
 function login(erro) {
   $('#sair').style.display = 'none';
   crumbs([{ t: 'Admin master' }, { t: 'Entrar' }]);
   v.textContent = '';
-  const inp = el('input', { type: 'password', placeholder: 'Token do admin master', autocomplete: 'off' });
+  const inp = el('input', { type: 'password', placeholder: 'Senha do admin master', autocomplete: 'off' });
   const out = el('p', { class: 'msg' }, erro || '');
+  const entrar = async () => {
+    TOKEN = inp.value.trim();
+    try { await call('/ping'); localStorage.setItem(KEY, TOKEN); carrega(); } catch (e) { out.textContent = e.message; }
+  };
+  inp.onkeydown = (e) => { if (e.key === 'Enter') entrar(); };
   v.append(el('div', { class: 'panel', style: 'max-width:420px' }, el('h1', {}, 'Admin master'),
-    el('p', { class: 'sub' }, 'Acesso a todos os casamentos. O token fica no arquivo data/master.token do servidor (ou na variável MASTER_TOKEN).'),
-    inp, el('button', { class: 'btn primary', style: 'margin-top:12px', onclick: async () => {
-      TOKEN = inp.value.trim();
-      try { await call('/ping'); localStorage.setItem(KEY, TOKEN); carrega(); } catch (e) { out.textContent = e.message; }
-    } }, 'Entrar'), out));
+    el('p', { class: 'sub' }, 'Acesso a todos os casamentos e às variáveis da plataforma. Toda ação sensível fica registrada.'),
+    inp, el('button', { class: 'btn primary', style: 'margin-top:12px', onclick: entrar }, 'Entrar'), out));
 }
 
 async function carrega() {
   let dados;
-  try { dados = await call('/events'); } catch { return login('Token inválido ou ausente.'); }
+  try { dados = await call('/events'); } catch { return login('Senha inválida ou ausente.'); }
   $('#sair').style.display = ''; $('#sair').onclick = () => { localStorage.removeItem(KEY); TOKEN = ''; login(); };
-  crumbs([{ t: 'Admin master' }, { t: aba === 'casamentos' ? 'Casamentos' : 'Fotos recentes' }]);
+  crumbs([{ t: 'Admin master' }, { t: ABAS.find((x) => x[0] === aba)[1] }]);
   v.textContent = '';
   const t = dados.totais;
   v.append(el('div', { class: 'cards' }, ...[[t.eventos, 'Casamentos'], [t.camera, 'Pessoas na câmera'], [t.fotos, 'Fotos'], [t.lista, 'Convidados nas listas']]
     .map(([n, l]) => el('div', { class: 'card stat' }, el('b', {}, String(n)), el('span', {}, l)))));
-  v.append(el('div', { class: 'filters' },
-    el('button', { class: 'chip' + (aba === 'casamentos' ? ' on' : ''), onclick: () => { aba = 'casamentos'; carrega(); } }, 'Casamentos'),
-    el('button', { class: 'chip' + (aba === 'fotos' ? ' on' : ''), onclick: () => { aba = 'fotos'; carrega(); } }, 'Fotos recentes (todas, antes da revelação)')));
-  if (aba === 'fotos') return fotos();
+  v.append(el('div', { class: 'filters' }, ABAS.map(([k, n]) => el('button', { class: 'chip' + (aba === k ? ' on' : ''), onclick: () => { aba = k; carrega(); } }, n))));
+  const f = { casamentos: () => casamentos(dados), fotos, plataforma, avisos, auditoria, politicas }[aba];
+  await f();
+}
+
+function casamentos(dados) {
   const busca = el('input', { placeholder: 'Buscar casamento ou contato' });
   const tb = el('tbody');
   const pinta = () => {
@@ -65,27 +71,109 @@ async function carrega() {
     lista.forEach((e) => tb.append(el('tr', {},
       el('td', {}, el('b', {}, e.titulo), el('div', { class: 'sub', style: 'margin:0;font-size:12px' }, e.contato || 'sem contato')),
       el('td', {}, fmt(e.criadoEm)), el('td', {}, fmt(e.revealAt)),
-      el('td', {}, `${e.confirmados}/${e.lista}`), el('td', {}, String(e.camera)), el('td', {}, String(e.fotos)),
+      el('td', {}, `${e.confirmados}/${e.lista}`), el('td', {}, String(e.camera)), el('td', {}, `${e.fotos} · ${bytes(e.bytes)}`), el('td', {}, String(e.push)),
       el('td', {}, e.suspenso ? el('span', { class: 'tag recusado' }, 'Suspenso') : e.revelado ? el('span', { class: 'tag confirmado' }, 'Revelado') : el('span', { class: 'tag pendente' }, 'Em andamento')),
       el('td', {}, el('div', { class: 'row' },
         el('a', { class: 'btn sm primary', href: `/painel/${e.id}#resumo` }, 'Abrir'),
+        el('button', { class: 'btn sm', onclick: () => limites(e) }, 'Limites'),
         el('button', { class: 'btn sm', onclick: async () => { await call(`/events/${e.id}`, { method: 'PATCH', body: JSON.stringify({ suspenso: !e.suspenso }) }); carrega(); } }, e.suspenso ? 'Reativar' : 'Suspender'),
+        el('button', { class: 'btn sm', onclick: async () => {
+          if (!confirm(`Gerar um novo link de acesso para o casal de "${e.titulo}"? O link antigo para de funcionar.`)) return;
+          const r = await call(`/events/${e.id}/rotacionar-link`, { method: 'POST', body: '{}' });
+          prompt('Novo link do casal (copie e envie):', r.link);
+        } }, 'Novo link do casal'),
         el('button', { class: 'btn sm danger', onclick: async () => {
           if (prompt(`Excluir "${e.titulo}" e todas as ${e.fotos} fotos para sempre?\nDigite o id do evento para confirmar: ${e.id}`) === e.id) { await call(`/events/${e.id}`, { method: 'DELETE', body: JSON.stringify({ confirmar: e.id }) }); carrega(); }
         } }, 'Excluir'))))));
-    if (!lista.length) tb.append(el('tr', {}, el('td', { colspan: '8' }, 'Nenhum casamento encontrado.')));
+    if (!lista.length) tb.append(el('tr', {}, el('td', { colspan: '9' }, 'Nenhum casamento encontrado.')));
   };
   busca.oninput = pinta; pinta();
   v.append(el('div', { class: 'panel' }, busca, el('div', { style: 'overflow-x:auto;margin-top:12px' }, el('table', {},
-    el('thead', {}, el('tr', {}, ['Casamento', 'Criado', 'Revelação', 'Confirmados', 'Câmera', 'Fotos', 'Status', ''].map((x) => el('th', {}, x)))), tb))));
+    el('thead', {}, el('tr', {}, ['Casamento', 'Criado', 'Revelação', 'Confirmados', 'Câmera', 'Fotos · espaço', 'Push', 'Status', ''].map((x) => el('th', {}, x)))), tb))));
 }
+function limites(e) {
+  const ef = e.limitesEfetivos;
+  const a = prompt(`Máximo de pessoas na câmera para "${e.titulo}" (atual ${ef.maxConvidados}; vazio volta ao padrão da plataforma):`, e.limites.maxConvidados ?? '');
+  if (a === null) return;
+  const b = prompt(`Máximo de convidados na lista (atual ${ef.maxLista}):`, e.limites.maxLista ?? '');
+  if (b === null) return;
+  const c = prompt(`Máximo de fotos no evento (atual ${ef.maxFotos}):`, e.limites.maxFotos ?? '');
+  if (c === null) return;
+  call(`/events/${e.id}`, { method: 'PATCH', body: JSON.stringify({ limites: { maxConvidados: a, maxLista: b, maxFotos: c } }) }).then(carrega);
+}
+
+// Cada casamento tem o seu álbum; aqui as fotos aparecem agrupadas e nunca misturadas.
 async function fotos() {
-  const r = await call('/photos?limit=120');
-  v.append(el('div', { class: 'warn' }, `Mostrando as ${r.fotos.length} mais recentes de ${r.total}. Os convidados e os noivos só veem na hora da revelação; você vê agora.`));
-  const g = el('div', { class: 'thumbs' });
-  r.fotos.forEach((f) => g.append(el('div', { class: 'thumb' }, el('img', { src: `${f.url}?token=${encodeURIComponent(TOKEN)}`, alt: `Foto de ${f.autor}`, loading: 'lazy' }),
-    el('div', {}, el('span', {}, `${f.autor} · ${f.evento}`), el('a', { class: 'btn sm', href: `/painel/${f.eventoId}#fotos` }, 'Moderar')))));
-  v.append(r.fotos.length ? g : el('p', { class: 'sub' }, 'Ainda não há fotos.'));
+  const r = await call('/photos?limit=300');
+  v.append(el('div', { class: 'warn' }, `Álbuns separados por casamento. Mostrando as ${r.fotos.length} fotos mais recentes de ${r.total}. Os convidados e os noivos só veem na hora da revelação de cada evento; você vê agora.`));
+  const por = new Map();
+  r.fotos.forEach((f) => { if (!por.has(f.eventoId)) por.set(f.eventoId, { nome: f.evento, fotos: [] }); por.get(f.eventoId).fotos.push(f); });
+  if (!por.size) v.append(el('p', { class: 'sub' }, 'Ainda não há fotos.'));
+  for (const [eid, g] of por) {
+    const grid = el('div', { class: 'thumbs' });
+    g.fotos.forEach((f) => grid.append(el('div', { class: 'thumb' }, el('img', { src: `${f.url}?token=${encodeURIComponent(TOKEN)}`, alt: `Foto de ${f.autor}`, loading: 'lazy' }), el('div', {}, el('span', {}, f.autor)))));
+    v.append(el('div', { class: 'panel' }, el('div', { class: 'row' }, el('h2', { class: 'grow', style: 'margin:0' }, `${g.nome} (${g.fotos.length})`),
+      el('a', { class: 'btn sm primary', href: `/painel/${eid}#fotos` }, 'Moderar este álbum')), el('div', { style: 'margin-top:12px' }, grid)));
+  }
+}
+
+const ROTULOS = {
+  criacaoAberta: ['Cadastro aberto', 'Qualquer pessoa pode criar um casamento. Desligue para fechar a entrada de novos eventos.'],
+  manutencao: ['Modo manutenção', 'Bloqueia todas as telas e APIs, exceto este painel.'],
+  avisoGlobal: ['Mensagem de manutenção', 'Texto mostrado quando o modo manutenção está ligado.'],
+  pushAtivo: ['Notificações push', 'Liga e desliga os avisos para toda a plataforma.'],
+  maxFotosPorConvidado: ['Fotos por convidado (máx.)', 'Teto que os casais podem escolher.'],
+  maxConvidadosPorEvento: ['Pessoas na câmera por evento', 'Padrão; cada casamento pode ter limite próprio.'],
+  maxListaPorEvento: ['Convidados na lista por evento', 'Padrão; cada casamento pode ter limite próprio.'],
+  maxFotosPorEvento: ['Fotos por evento', 'Padrão; controla o uso de armazenamento.'],
+  tamanhoMaxFotoMB: ['Tamanho máx. da foto (MB)', 'Acima disso o envio é recusado.'],
+  retencaoDiasAposRevelacao: ['Retenção (dias após a revelação)', 'Política registrada. A exclusão automática ainda não é executada.'],
+};
+async function plataforma() {
+  const { settings, padroes } = await call('/settings');
+  const out = el('p', { class: 'msg' });
+  const campos = {};
+  const p = el('div', { class: 'panel' }, el('h2', {}, 'Variáveis da plataforma'));
+  for (const [k, def] of Object.entries(padroes)) {
+    const [t, ajuda] = ROTULOS[k] || [k, ''];
+    let inp;
+    if (typeof def === 'boolean') { inp = el('input', { type: 'checkbox', style: 'width:auto', ...(settings[k] ? { checked: '' } : {}) }); campos[k] = () => inp.checked; }
+    else { inp = el('input', { type: typeof def === 'number' ? 'number' : 'text', value: String(settings[k]) }); campos[k] = () => inp.value; }
+    p.append(el('label', {}, t), inp, ajuda ? el('div', { class: 'sub', style: 'margin:4px 0 0;font-size:12px' }, ajuda) : '');
+  }
+  p.append(el('div', { class: 'row', style: 'margin-top:16px' }, el('button', { class: 'btn primary', onclick: async () => {
+    const body = {}; for (const k of Object.keys(campos)) body[k] = campos[k]();
+    try { await call('/settings', { method: 'PUT', body: JSON.stringify(body) }); msg(out, 'Variáveis salvas e já em vigor.', true); } catch (e) { msg(out, e.message); }
+  } }, 'Salvar variáveis')), out);
+  v.append(p);
+}
+function msg(n, t, ok) { n.textContent = t; n.className = 'msg' + (ok ? ' ok' : ''); }
+
+async function avisos() {
+  const t = el('input', { maxlength: '60', placeholder: 'Título' }), c = el('textarea', { maxlength: '200', placeholder: 'Mensagem para todos os aparelhos com o app instalado' });
+  const out = el('p', { class: 'msg' });
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Aviso para todos os casamentos'), el('p', { class: 'sub' }, 'Vai como notificação push para quem instalou o app em qualquer evento ativo.'), t, el('div', { style: 'height:8px' }), c,
+    el('div', { class: 'row', style: 'margin-top:12px' }, el('button', { class: 'btn primary', onclick: async () => {
+      if (!confirm('Enviar este aviso para todos os casamentos?')) return;
+      try { const r = await call('/avisos', { method: 'POST', body: JSON.stringify({ titulo: t.value, corpo: c.value }) }); msg(out, `Entregue a ${r.entregues} de ${r.alvos} aparelhos.`, true); } catch (e) { msg(out, e.message); }
+    } }, 'Enviar a todos')), out));
+}
+
+async function auditoria() {
+  const r = await call('/audit?limit=200');
+  const tb = el('tbody');
+  r.registros.forEach((x) => { const { t, quem, evento, acao, ...resto } = x; tb.append(el('tr', {}, el('td', {}, fmt(t)), el('td', {}, quem), el('td', {}, evento || '—'), el('td', {}, el('b', {}, acao)), el('td', { style: 'font-size:12px;color:var(--a-muted)' }, JSON.stringify(resto)))); });
+  if (!r.registros.length) tb.append(el('tr', {}, el('td', { colspan: '5' }, 'Nenhuma ação registrada ainda.')));
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Auditoria (só inserção)'), el('div', { style: 'overflow-x:auto' }, el('table', {},
+    el('thead', {}, el('tr', {}, ['Quando', 'Quem', 'Evento', 'Ação', 'Detalhe'].map((x) => el('th', {}, x)))), tb))));
+}
+
+async function politicas() {
+  const r = await call('/politicas');
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Isolamento entre casamentos'), el('p', {}, r.isolamento)));
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Quem pode o quê'), el('table', {}, el('thead', {}, el('tr', {}, ['Papel', 'Acessa', 'Não pode'].map((x) => el('th', {}, x)))),
+    el('tbody', {}, r.papeis.map((p) => el('tr', {}, el('td', {}, el('b', {}, p.papel)), el('td', {}, p.acessa), el('td', {}, p.nao)))))));
+  v.append(el('div', { class: 'warn' }, r.rls));
 }
 TOKEN ? carrega() : login();
 </script>

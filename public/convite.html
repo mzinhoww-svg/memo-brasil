@@ -28,6 +28,7 @@
 <script src="/common.js"></script>
 <script>
 const id = eventId();
+prepararPwa(id);
 (async () => {
   let info;
   try { info = await api(`/api/events/${id}`); }

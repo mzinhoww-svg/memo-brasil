@@ -48,7 +48,37 @@ async function carregaConvidado() {
   const id = eventId();
   const guest = getGuest(id);
   if (!guest) { location.replace(`/e/${id}`); return new Promise(() => {}); }
+  prepararPwa(id);
   const info = await api(`/api/events/${id}`);
   return { id, guest, info };
 }
 const dataBr = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' }) : '';
+
+// ── PWA e push (jornada do convidado)
+function prepararPwa(id) {
+  if (!document.querySelector('link[rel=manifest]')) {
+    const m = document.createElement('link'); m.rel = 'manifest'; m.href = `/e/${id}/manifest.webmanifest`; document.head.append(m);
+    const t = document.createElement('meta'); t.name = 'theme-color'; t.content = '#0e0d0c'; document.head.append(t);
+    const a = document.createElement('link'); a.rel = 'apple-touch-icon'; a.href = '/icons/apple-touch-icon.png'; document.head.append(a);
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+}
+let _promptInstalar = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); _promptInstalar = e; window.dispatchEvent(new Event('memo:podeinstalar')); });
+const ehPwa = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const ehIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+async function instalarPwa() { if (!_promptInstalar) return false; _promptInstalar.prompt(); const r = await _promptInstalar.userChoice; _promptInstalar = null; return r.outcome === 'accepted'; }
+const urlB64 = (b) => Uint8Array.from(atob((b + '='.repeat((4 - b.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+async function pushDisponivel() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+async function ativarPush(id, guestId) {
+  if (!(await pushDisponivel())) throw new Error('Este aparelho não suporta notificações. No iPhone, instale o app na Tela de Início primeiro.');
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') throw new Error('Permissão negada. Você pode liberar nas configurações do navegador.');
+  const reg = await navigator.serviceWorker.ready;
+  const cfg = await api('/api/config');
+  if (!cfg.pushAtivo) throw new Error('As notificações estão desativadas no momento.');
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64(cfg.vapidPublicKey) });
+  await api(`/api/events/${id}/push/subscribe`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ guestId, subscription: sub.toJSON() }) });
+  localStorage.setItem(`memo:${id}:push`, '1');
+}
