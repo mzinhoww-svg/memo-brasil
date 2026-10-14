@@ -302,7 +302,7 @@ function ensureMasterBootstrap() {
   const { hashes } = genRecoveryCodes(10);
   const id = newId(8);
   store.run(`INSERT INTO master_accounts (id,email,email_norm,nome,senha_hash,totp_secret,totp_ultimo_passo,recuperacao_hashes,ativo,criado_em,falhas) VALUES (?,?,?,?,?,?,?,?,?,?,0)`,
-    id, email, norm, nome, scryptHash(senha), secret, 0, JSON.stringify(hashes), 1, new Date().toISOString());
+    id, email, norm, nome, scryptHash(senha), cipherSecret(secret), 0, JSON.stringify(hashes), 1, new Date().toISOString());
   console.log(`Master bootstrap criado: ${email}`);
   if (!process.env.MASTER_BOOTSTRAP_TOTP_SECRET && !process.env.MASTER_TOTP_SECRET) {
     console.log(`TOTP secret (guarde): ${secret}`);
@@ -312,8 +312,29 @@ function ensureMasterBootstrap() {
 ensureMasterBootstrap();
 
 // Segredo cifrado em repouso (opcional, se MASTER_TOTP_KEY)
-function cipherSecret(s) { return s; } // simplificado: chave via env não disponível; guardar base32. (TODO: AES-GCM se chave presente)
-function decipherSecret(s) { return s; }
+function cipherSecret(s) {
+  if (!process.env.MASTER_TOTP_KEY) return s;
+  const key = crypto.createHash('sha256').update(process.env.MASTER_TOTP_KEY).digest();
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const enc = cipher.update(String(s), 'utf8', 'base64') + cipher.final('base64');
+  const tag = cipher.getAuthTag();
+  return `enc$${iv.toString('base64')}$${tag.toString('base64')}$${enc}`;
+}
+function decipherSecret(s) {
+  if (typeof s !== 'string' || !s.startsWith('enc$')) return s;
+  if (!process.env.MASTER_TOTP_KEY) return s;
+  const parts = s.split('$');
+  if (parts.length !== 4) return s;
+  const key = crypto.createHash('sha256').update(process.env.MASTER_TOTP_KEY).digest();
+  try {
+    const iv = Buffer.from(parts[1], 'base64');
+    const tag = Buffer.from(parts[2], 'base64');
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(tag);
+    return decipher.update(parts[3], 'base64', 'utf8') + decipher.final('utf8');
+  } catch { return s; }
+}
 // Variáveis da plataforma, editáveis pelo admin master.
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const DEFAULTS = {
@@ -1253,10 +1274,11 @@ function criarMasterConta({ email, nome, senha, totpSecret } = {}) {
   const existente = store.get(`SELECT id FROM master_accounts WHERE email_norm = ?`, emailN);
   if (existente) throw new Error('já existe master com esse e-mail');
   const secret = totpSecret || totpSecretNew();
+  const secretArmazenado = cipherSecret(secret);
   const { codes, hashes } = genRecoveryCodes(10);
   const id = newId(8);
   store.run(`INSERT INTO master_accounts (id,email,email_norm,nome,senha_hash,totp_secret,totp_ultimo_passo,recuperacao_hashes,ativo,criado_em,falhas) VALUES (?,?,?,?,?,?,?,?,?,?,0)`,
-    id, email, emailN, nome || 'Admin master', scryptHash(senha), secret, 0, JSON.stringify(hashes), 1, new Date().toISOString());
+    id, email, emailN, nome || 'Admin master', scryptHash(senha), secretArmazenado, 0, JSON.stringify(hashes), 1, new Date().toISOString());
   return { id, email, nome: nome || 'Admin master', totpSecret: secret, recoveryCodes: codes, otpauth: otpauthUrl(secret, email) };
 }
 app.criarMaster = criarMasterConta;
