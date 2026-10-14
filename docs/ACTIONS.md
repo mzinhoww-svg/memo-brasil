@@ -6,7 +6,7 @@ Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial).
 | # | Ação | Por quê | Bloqueia |
 |---|---|---|---|
 | D1 | Aceitar (ou ajustar) as decisões 002, 003 e 004 | Hoje só a 001 foi aceita; as outras três estão recomendadas | Itens 5, 9, 13 |
-| D2 | Escolher o nome definitivo (Lume é candidato): busca INPI, domínio, handle | Strings de produto já usam "Lume" (#4) | Publicação, lojas, textos |
+| D2 | Nome **Lume** já decidido por Aurimar: falta busca INPI (classes 9/42/38), domínio e handles | Strings de produto já usam "Lume" (#4) | Publicação, lojas, textos |
 | D3 | Conta de desenvolvedor Apple/Google: pessoal ou organização (CNPJ) | Define nome de vendedor e DUNS | Lojas (pós-MVP) |
 | D4 | Plano/custo da publicação aprovado (VPS, domínio, e-mail, backup) | Primeiro deploy só após aprovação | Item 4 |
 
@@ -27,7 +27,7 @@ Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial).
 - Confirmar que o teto de fotos por evento cabe nos 50 GB (limite atual 20.000 fotos × 10 MB).
 
 ## CI
-- #1: o job `test` falha em ~2 s sem log; verificar na aba Actions do repositório (permissões/billing de Actions ou workflow) — causa **não verificada**.
+- #1: o job `test` falha em ~2 s sem log; o QA cruzado atribui a cobrança/Actions. Regularizar o faturamento do GitHub Actions (ação humana) ou rodar a suíte localmente como evidência até lá.
 
 ## Conferir antes de usar
 - Valores e prazos das lojas (Apple US$ 99/ano, Google US$ 25) estão em `docs/lojas.md` (#5) e devem ser reconferidos no momento da conta.

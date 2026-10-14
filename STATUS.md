@@ -2,13 +2,13 @@
 
 > Atualizado em 2026-10-13 pelo Planejador. Estado real **da `main`** e dos PRs abertos; nada abaixo conta como "feito" se não estiver mergeado. Fonte do checklist: `docs/prompt-orquestrador.md`.
 
-**Resumo:** `main` ainda é o protótipo funcional do convidado + painel básico (JSON em disco, token estático). Há 9 PRs abertos; **nenhum mergeado**. Nada publicado. Bloqueios de merge: #2 e #9 devolvidos, #7 com ajustes, CI do #1 falhando.
+**Resumo:** `main` ainda é o protótipo funcional do convidado + painel básico (JSON em disco, token estático). Há 10 PRs abertos (#1–#10); **nenhum mergeado**. Nada publicado. Bloqueios de merge: #2 e #9 devolvidos, #7 com ajustes, CI do #1 falhando.
 
 ## Os 15 itens
 
 | # | Item | Estado | Onde / o que falta |
 |---|---|---|---|
-| 1 | Testes da API + CI | **Em PR — CI vermelho** | #1 (`feat/testes`): suíte e gitleaks; o job `test` falha em ~2 s sem log disponível (causa não verificada). Baseline de falhas em #3. Não conta como verde. |
+| 1 | Testes da API + CI | **Em PR — CI vermelho** | #1 (`feat/testes`): suíte e gitleaks; o job `test` falha em ~2 s sem log; o QA cruzado atribui a falha à cobrança/Actions, não ao código (19 testes passam localmente). Baseline de falhas em #3. Não conta como verde até o CI rodar. |
 | 2 | QA visual/funcional | **Parcial** | Baseline em #4 (`docs/qa/`); relatório "depois" incluído. Falta rodar o fluxo completo sobre a main integrada, sem erro de console, 390×844 e 1440×900. |
 | 3 | Persistência de produção | **Em PR — ajustes** | #7: SQLite atrás de `Store`, migrações, backup. Pendências: `save()` apaga por cascata (A1), exclusão/backup (A2), FKs de convidado (A3). Decisão 001 aceita (#5). |
 | 4 | Publicação com HTTPS | **Não iniciado** | Depende de itens 3, 5, 13 e de plano/custo aprovados. Ver `docs/ACTIONS.md` (VPS, domínio, e-mail, backup). |
@@ -17,7 +17,7 @@
 | 7 | Convidado sem fricção | **Parcial na main** | Entrada por nome existe; `guestId` sem segredo (reentrada/saldo frágeis), mensagens de estado em #6, navegador embutido do Instagram/WhatsApp não testado. |
 | 8 | Revelação e retrospectiva | **Parcial na main** | Revelação por relógio do servidor e retrospectiva existem; e-mail ao organizador depende do provedor de e-mail (sem credencial). Textos em #6. |
 | 9 | Moderação e privacidade (LGPD) | **Em PR — devolvido** | Textos em #2 (devolvido, B1–B6) e #6 (aprovado com condições). Faltam em código: exportar/apagar evento em um comando, job de retenção, denúncia, aviso de consentimento no fluxo (decisão 004 recados). |
-| 10 | Identidade pt-BR | **Em PR — aprovado** | #4 aprovado (Lume é candidato; INPI/domínio humanos). Lighthouse ≥90 não medido; textos dependem de #2/#6. |
+| 10 | Identidade pt-BR | **Em PR — aprovado** | #4 aprovado; nome **Lume** decidido por Aurimar (domínio e busca INPI pendentes). Lighthouse ≥90 não medido; textos dependem de #2/#6. |
 | 11 | Observabilidade e limites | **Não iniciado** | Rate limit parcial em #9 (spoofável por `X-Forwarded-For`, B8); falta log sem PII, healthcheck, Sentry, teto por evento (limite atual 20.000 fotos vs 50 GB de disco). |
 | 12 | Banco e RLS (Postgres) | **Pós-MVP imediato** | Decisão 001 (#5): início automático quando este STATUS final for publicado; gatilhos G1–G4 antecipam. Aceite migra do SQLite. |
 | 12b | Plano das lojas | **Em PR — aprovado** | `docs/lojas.md` em #5: PWA no MVP, Capacitor só para convidado depois. Valores e prazos a reconferir. |
@@ -28,7 +28,7 @@
 
 | PR | Conteúdo | Parecer do Planejador |
 |---|---|---|
-| #1 | Testes e CI | CI falhando — verificar |
+| #1 | Testes e CI | CI falhando (cobrança/Actions segundo o QA); QA devolveu por falta de teste da listagem pré-revelação |
 | #2 | Textos pt-BR (privacidade, termos, UI, e-mails) | **Devolvido** (B1–B6) |
 | #3 | QA baseline da API | Relatório; sem parecer de segurança pendente |
 | #4 | Identidade Lume | **Aprovado** (head `f13954e` reavaliado) |
@@ -36,6 +36,7 @@
 | #6 | Textos de estados, retrospectiva, painel | **Aprovado com condições** |
 | #7 | SQLite atrás de interface | **Ajustes** (A1–A3) |
 | #8 | Painel ao vivo | Não auditado |
+| #10 | Tabela de textos por tela (`docs/copy`) | Não auditado; herda os bloqueios do #2 até a correção |
 | #9 | Autenticação | **Devolvido** (B1–B8) |
 
 Ordem de merge sugerida: #5 → #4 → #6 → #1 (com CI verde) → #7 (corrigido) → #9 (corrigido). #2 volta quando o Redator resolver B1–B6.

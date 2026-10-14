@@ -11,7 +11,8 @@ Atualizado em 2026-10-13. Dono = papel. "Bloqueia" = o que impede o merge/aceite
 - [ ] **#9 autenticação** (dono: Forja-Auth) — corrigir B1–B4 obrigatórios e B5–B8; testes: vínculo por `eventoId` alheio, persistência após `save()`, auditoria de exclusão, `MASTER_TOKEN` rejeitado com conta master, produção sem e-mail/chave falha.
 - [ ] **#7 persistência** (dono: Forja-Dados) — A1 `save()` sem delete+insert; A2 exclusão atômica + política de backup; A3 FKs de convidado. **Merge antes do #9.**
 - [ ] **#2 textos** (dono: Redator) — B1–B6 do parecer; reler só o diff.
-- [ ] **#1 CI** (dono: QA) — job `test` falha em ~2 s; achar a causa e deixar a `main` verde.
+- [ ] **#1 testes/CI** (dono: QA/Forja-Testes) — teste da listagem pré-revelação; resolver a cobrança/Actions para o CI rodar e deixar a `main` verde.
+- [ ] **#10 textos por tela** (dono: Redator) — revisar depois das correções do #2; Planejador audita antes do merge.
 
 ## Aceites formais pendentes (Orquestrador)
 - [ ] Decisão 002 — auth do organizador (recomendada: link mágico por e-mail)
