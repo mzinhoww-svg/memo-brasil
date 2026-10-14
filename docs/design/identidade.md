@@ -49,7 +49,7 @@ Os dois temas usam os **mesmos nomes de token**; a troca é só `class="tema-cla
 - Botão primário: convidado = papel (`--cor-papel`) com texto escuro; organização = vinho com texto branco. Foco visível: anel 2 px `--cor-foco`.
 - Movimento: 180 ms, respeitar `prefers-reduced-motion`.
 
-## 6. Aplicação (para o Programador de identidade)
+## 6. Aplicação (feita em 2026-10-13, ver PR #4)
 1. Carregar `tokens.css` antes de `app.css`/`admin.css`; mapear as variáveis antigas (`--bg`→`--cor-fundo`, `--card`→`--cor-superficie`, `--accent`→`--cor-acento`, `--a-*`→mesmos tokens com `.tema-claro`).
 2. Adicionar `class="tema-claro"` em `index.html`, `painel.html`, `master.html`.
 3. Corrigir V1 (`minmax(0,1fr)`) e V2 (tabela rolável) do `docs/qa/baseline-visual.md`.
@@ -58,6 +58,8 @@ Os dois temas usam os **mesmos nomes de token**; a troca é só `class="tema-cla
 6. Revisar o texto com o Redator (tom acolhedor, pt-BR). O CSS aplicado nas telas **não** está neste PR.
 
 ## 7. Pendências
-- Nome, domínio e busca de marca (INPI) — decisão do usuário.
-- Arquivos WOFF2 das fontes (baixar das fontes oficiais OFL) — Programador de identidade.
-- Lighthouse ≥ 90 (item 10) só mede depois do CSS aplicado.
+- Domínio e busca de marca (INPI) — decisão do usuário.
+- Ícones SVG no lugar dos emojis (hub do convidado e menu do painel).
+- Textos de interface pelo Redator; o nome "Lume" está espalhado em strings (`public/*.html`, `server.js`, `sw.js`).
+- Lighthouse ≥ 90 (item 10): medir agora que o CSS está aplicado.
+- `docs/design/tokens.css` e `public/tokens.css` são cópias: mantenha `public/` como fonte e atualize a doc.

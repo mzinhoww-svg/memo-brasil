@@ -4,12 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Início</title>
+<link rel="icon" href="/icons/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/Fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
 <main>
   <nav id="crumbs" class="crumbs"></nav>
-  <p class="center" style="letter-spacing:.2em;font-size:12px" id="saud"></p>
+  <p class="center rotulo" id="saud"></p>
   <h1 class="center" id="titulo">…</h1>
   <p class="center" id="quando"></p>
   <div class="stats">
@@ -20,7 +23,7 @@
   <div id="aviso" class="recado" style="display:none"><p id="avTit" style="font-weight:700"></p><p id="avCorpo" style="margin:0"></p></div>
   <div id="pwa" class="recado" style="display:none">
     <p style="font-weight:700;margin:0 0 4px">Instale o app deste casamento</p>
-    <p id="pwaTxt" style="margin:0 0 10px"></p>
+    <p id="pwaTxt" class="suave" style="margin:0 0 10px"></p>
     <div class="row"><button class="btn primary" id="pwaInstalar" style="display:none">Instalar app</button><button class="btn" id="pwaNotif" style="display:none">🔔 Ativar avisos</button></div>
     <p id="pwaMsg" class="err" style="margin:8px 0 0"></p>
   </div>

@@ -26,7 +26,7 @@ Console: zero erros em todas as telas, exceto um `404` em `/favicon.ico` (nenhum
 | # | Gravidade | Onde | Descrição | Causa e correção sugerida |
 |---|---|---|---|---|
 | V1 | Alta | Painel, 390 px | Toda a página fica com 1248 px: o painel inteiro rola na horizontal e o conteúdo some à direita. Reprovou o critério "sem rolagem horizontal". | `.shell{grid-template-columns:1fr}` no `@media (max-width:760px)` de `admin.css`: a coluna `1fr` herda o `min-content` do `.nav` com `white-space:nowrap`. Trocar por `minmax(0,1fr)`. **Verificado no navegador:** 1248 → 390 px. |
-| V2 | Média | Master, 390 px | Tabela de casamentos corta as colunas depois de "Revelação" (sem rolagem própria). | Envolver tabelas em contêiner com `overflow-x:auto` ou virar cartões em telas estreitas. O master é desktop-first, então fica abaixo de V1. |
+| V2 | Baixa | Master, 390 px | Tabela de casamentos fica cortada: ela rola dentro do card (`overflow-x:auto`), mas sem indicação visual. | Aceitável para tela desktop-first; opcionalmente sombra nas bordas ou cartões em telas estreitas. (Reclassificada: antes apontada como Média.) |
 | V3 | Baixa | Todas | `GET /favicon.ico` → 404. | Adicionar `<link rel="icon">` com o logotipo (ver `docs/design/logo.svg`). |
 | V4 | Baixa | Painel, Resumo | O card "Hora da revelação" tem área vazia sob o botão Salvar. | Remover altura mínima / mensagem vazia reservada. |
 | V5 | Baixa | Início (convidado) | Aviso "Instale o app" com altura sobrando e texto em cor diferente do resto (branco puro). | Usar `--cor-texto-suave` e padding uniforme. |
@@ -39,3 +39,18 @@ Console: zero erros em todas as telas, exceto um `404` em `/favicon.ico` (nenhum
 
 ## Capturas
 `docs/qa/<tela>-m.png` (390x844) e `docs/qa/<tela>-d.png` (1440x900); abas do painel como `painel-<aba>-*`, abas do master como `master-<aba>-*`. Páginas inteiras (altura variável).
+
+## Reteste após aplicar a identidade (branch `design/identidade`, 2026-10-13)
+
+Mesma bateria (44 páginas, `docs/qa/depois/`): **0 rolagens horizontais e 0 erros de console** em 390x844 e 1440x900.
+
+| # | Estado |
+|---|---|
+| V1 | Corrigido (`minmax(0,1fr)`): painel a 390 px com 390 px de largura. |
+| V2 | Mantido (rola dentro do card); rebaixado para Baixa. |
+| V3 | Corrigido: `<link rel="icon">` com o logotipo em todas as páginas. |
+| V4 | Corrigido: `.msg:empty` não ocupa altura. |
+| V5 | Corrigido: aviso de instalação usa `--cor-texto-suave` e `.err:empty` oculto. |
+| V6 | Parcial: logotipo e nome Lume aplicados; **emojis como ícones continuam** (próximo passo: ícones SVG). |
+
+Observação: o script `qa-visual.js` tinha um erro próprio (`process` dentro do `addInitScript`), corrigido no mesmo commit.

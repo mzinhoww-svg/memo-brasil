@@ -17,10 +17,10 @@ const pages = [
   const rows = [];
   for (const [vp, W, H, mobile] of [['m', 390, 844, true], ['d', 1440, 900, false]]) {
     const ctx = await b.newContext({ viewport: { width: W, height: H }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1, permissions: ['camera'] });
-    await ctx.addInitScript(([id, gid, ht]) => {
+    await ctx.addInitScript(([id, gid, ht, mt]) => {
       localStorage.setItem(`memo:${id}:guest`, JSON.stringify({ guestId: gid, nome: 'Maria Silva' }));
-      localStorage.setItem(`memo:${id}:host`, ht); localStorage.setItem('memo:master', process.env.QA_MASTER_TOKEN);
-    }, [ID, GID, HT]);
+      localStorage.setItem(`memo:${id}:host`, ht); localStorage.setItem('memo:master', mt);
+    }, [ID, GID, HT, process.env.QA_MASTER_TOKEN]);
     for (const [name, url] of pages) {
       const p = await ctx.newPage(); const errs = [];
       p.on('console', m => { if (['error', 'warning'].includes(m.type())) errs.push(`${m.type()}: ${m.text().slice(0, 140)}`); });

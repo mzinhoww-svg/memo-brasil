@@ -110,7 +110,7 @@ app.use('/api', (req, res, next) => {
   if (!settings.manutencao) return next();
   const t = req.get('x-master-token') || req.get('x-host-token') || req.query.token;
   if (isMaster(t) || req.path.startsWith('/config')) return next();
-  res.status(503).json({ erro: settings.avisoGlobal || 'O Memo está em manutenção. Volte em instantes.' });
+  res.status(503).json({ erro: settings.avisoGlobal || 'O Lume está em manutenção. Volte em instantes.' });
 });
 app.get('/api/config', (req, res) => res.json({
   criacaoAberta: settings.criacaoAberta, manutencao: settings.manutencao, avisoGlobal: settings.avisoGlobal,
@@ -465,7 +465,7 @@ app.use((err, req, res, next) => {
 // ───── Admin master (todos os casamentos)
 function masterOnly(req, res, next) {
   if (!isMaster(req.get('x-master-token') || req.get('x-host-token') || req.query.token))
-    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Memo.' });
+    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Lume.' });
   req.admin = { papel: 'master', nome: 'Admin master', master: true, dono: true };
   next();
 }
@@ -588,7 +588,7 @@ app.get('/e/:id/manifest.webmanifest', getEvent, (req, res) => {
   res.type('application/manifest+json').json({
     name: ev.titulo, short_name: ev.titulo.slice(0, 12), lang: 'pt-BR', id: `/e/${ev.id}/`,
     start_url: `/e/${ev.id}/inicio`, scope: `/e/${ev.id}/`, display: 'standalone',
-    background_color: '#0e0d0c', theme_color: '#0e0d0c',
+    background_color: '#14110E', theme_color: '#14110E',
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -692,7 +692,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Memo Brasil em http://localhost:${PORT}`);
+    console.log(`Lume em http://localhost:${PORT}`);
     console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
     console.log(`Admin master: http://localhost:${PORT}/master`);
     if (lanIp()) console.log(`Na mesma rede Wi-Fi (celular): http://${lanIp()}:${PORT}`);
