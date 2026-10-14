@@ -3,23 +3,56 @@ set -euo pipefail
 
 DATA_DIR="${DATA_DIR:-./data}"
 DB="${DATA_DIR}/memo.db"
+RETENTION_DIAS="${BACKUP_RETENTION_DIAS:-30}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-BACKUP_DIR="${DATA_DIR}/backups/${STAMP}"
+TMP_DIR="$(mktemp -d)"
+BACKUP_BASE="${DATA_DIR}/backups"
+mkdir -p "${BACKUP_BASE}"
 
-mkdir -p "${BACKUP_DIR}"
+cleanup() { rm -rf "${TMP_DIR}"; }
+trap cleanup EXIT
 
 if [ -f "${DB}" ]; then
-  sqlite3 "${DB}" ".backup '${BACKUP_DIR}/memo.db'"
-  echo "Banco copiado: ${BACKUP_DIR}/memo.db"
+  if ! command -v sqlite3 >/dev/null 2>&1; then
+    echo "Erro: sqlite3 CLI não encontrado. Instale ou ajuste o PATH." >&2
+    exit 1
+  fi
+  sqlite3 "${DB}" ".backup '${TMP_DIR}/memo.db'"
+  chmod 600 "${TMP_DIR}/memo.db"
 else
-  echo "Banco SQLite não encontrado em ${DB}; ignorando backup do banco."
+  echo "Banco SQLite não encontrado em ${DB}; backup do banco ignorado." >&2
 fi
 
 if [ -d "${DATA_DIR}/photos" ]; then
-  cp -R "${DATA_DIR}/photos" "${BACKUP_DIR}/photos"
+  cp -R "${DATA_DIR}/photos" "${TMP_DIR}/photos"
 fi
-[ -f "${DATA_DIR}/audit.log" ] && cp "${DATA_DIR}/audit.log" "${BACKUP_DIR}/audit.log" || true
-[ -f "${DATA_DIR}/settings.json" ] && cp "${DATA_DIR}/settings.json" "${BACKUP_DIR}/settings.json" || true
+[ -f "${DATA_DIR}/audit.log" ] && cp "${DATA_DIR}/audit.log" "${TMP_DIR}/audit.log" || true
+[ -f "${DATA_DIR}/settings.json" ] && cp "${DATA_DIR}/settings.json" "${TMP_DIR}/settings.json" || true
+[ -f "${DATA_DIR}/vapid.json" ] && cp "${DATA_DIR}/vapid.json" "${TMP_DIR}/vapid.json" || true
 
-tar -czf "${BACKUP_DIR}.tar.gz" -C "${DATA_DIR}/backups" "${STAMP}"
-echo "Backup completo: ${BACKUP_DIR}.tar.gz"
+OUT="${BACKUP_BASE}/memo-${STAMP}.tar.gz"
+tar -czf "${OUT}" -C "${TMP_DIR}" .
+
+echo "Backup criado: ${OUT}"
+
+# Criptografia simétrica opcional (gpg); chave simétrica ou passphrase por ambiente.
+if [ -n "${BACKUP_GPG_KEY:-}" ] || [ -n "${BACKUP_PASSPHRASE:-}" ]; then
+  if ! command -v gpg >/dev/null 2>&1; then
+    echo "Aviso: gpg não encontrado; backup permanece sem criptografia." >&2
+  else
+    if [ -n "${BACKUP_GPG_KEY:-}" ]; then
+      gpg --batch --yes --recipient "${BACKUP_GPG_KEY}" --trust-model always --encrypt "${OUT}"
+    else
+      gpg --batch --yes --passphrase "${BACKUP_PASSPHRASE}" --symmetric --cipher-algo AES256 "${OUT}"
+    fi
+    rm -f "${OUT}"
+    OUT="${OUT}.gpg"
+    echo "Backup cifrado: ${OUT}"
+  fi
+fi
+
+# Retenção local
+find "${BACKUP_BASE}" -maxdepth 1 -type f \( -name 'memo-*.tar.gz' -o -name 'memo-*.tar.gz.gpg' \) -mtime +"${RETENTION_DIAS}" -delete
+
+echo "Backups locais com retenção de ${RETENTION_DIAS} dias."
+echo "IMPORTANTE: copie o arquivo para fora do host (offsite). O diretório descomprimido é removido automaticamente."
