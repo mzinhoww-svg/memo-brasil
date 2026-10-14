@@ -16,7 +16,8 @@ const MAX_HARD_PHOTO_BYTES = 25 * 1024 * 1024; // teto técnico; o limite config
 const RSVP = ['pendente', 'confirmado', 'recusado'];
 
 fs.mkdirSync(PHOTO_DIR, { recursive: true });
-
+const store = require(path.join(__dirname, 'src', 'store'))(DATA_DIR);
+const db = store.db;
 // Variáveis da plataforma, editáveis pelo admin master.
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const DEFAULTS = {
@@ -48,20 +49,7 @@ function audit(req, acao, detalhe = {}) {
   const linha = JSON.stringify({ t: new Date().toISOString(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
   fs.appendFile(AUDIT_FILE, linha + '\n', () => {});
 }
-const db = fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) : { events: {} };
-
 const revealedAtBoot = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
-// Eventos criados em versões anteriores ganham os campos novos.
-for (const ev of Object.values(db.events)) {
-  Object.assign(ev, {
-    dataEvento: ev.dataEvento || null, local: ev.local || '', endereco: ev.endereco || '',
-    mensagem: ev.mensagem || '', cronograma: ev.cronograma || [], lista: ev.lista || [],
-    equipe: ev.equipe || [], recados: ev.recados || [], limites: ev.limites || {},
-    config: { ...CONFIG_PADRAO, ...(ev.config || {}) }, push: ev.push || [], avisos: ev.avisos || [],
-    revealNotified: ev.revealNotified ?? revealedAtBoot(ev),
-  });
-}
-
 // Admin master: administra todos os casamentos (tenants). Token por ambiente ou gerado no primeiro uso.
 const MASTER_FILE = path.join(DATA_DIR, 'master.token');
 let MASTER_TOKEN = process.env.MASTER_TOKEN || '';
@@ -81,9 +69,7 @@ function isMaster(token) {
 }
 
 function save() {
-  const tmp = DB_FILE + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(db));
-  fs.renameSync(tmp, DB_FILE);
+  store.save();
 }
 const newId = (n = 6) => crypto.randomBytes(n).toString('base64url');
 const revealed = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
