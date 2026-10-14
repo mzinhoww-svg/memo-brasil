@@ -217,3 +217,33 @@ test('master: token inválido não lista casamentos', async () => {
   assert.equal((await get('/api/master/events', { 'x-master-token': 'errado' })).status, 403);
   assert.equal((await get('/api/master/events', { 'x-master-token': 'master-de-teste' })).status, 200);
 });
+
+test('listagem pré-revelação não vaza url, autor nem marca como revelado', async () => {
+  const ev = await criar('ListaPre');
+  await foto(ev);
+  const lista = await (await get(`/api/events/${ev.id}/photos`)).json();
+  assert.equal(lista.revelado, false);
+  assert.ok(lista.fotos.length >= 1);
+  for (const p of lista.fotos) {
+    assert.equal(p.bloqueada, true);
+    assert.equal('url' in p, false);
+    assert.equal('autor' in p, false);
+  }
+});
+
+test('nome vazio é recusado na entrada de convidado; saldo decresce após upload', async () => {
+  const ev = await criar('Saldo');
+  assert.equal((await post(`/api/events/${ev.id}/guests`, { nome: '' })).status, 400);
+  const antes = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`)).json();
+  assert.equal(antes.fotosRestantes, 2);
+  await foto(ev);
+  const depois = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`)).json();
+  assert.equal(depois.fotosUsadas, 1);
+  assert.equal(depois.fotosRestantes, 1);
+});
+
+test('evento suspenso bloqueia upload de fotos', async () => {
+  const ev = await criar('Suspenso');
+  await fetch(`${B}/api/master/events/${ev.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json', 'x-master-token': 'master-de-teste' }, body: JSON.stringify({ suspenso: true }) });
+  assert.equal((await foto(ev)).status, 403);
+});
