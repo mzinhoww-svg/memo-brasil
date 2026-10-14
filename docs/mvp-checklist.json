@@ -1,0 +1,17 @@
+[
+  { "id": 1, "titulo": "Testes automatizados da API e CI verde", "status": "em_andamento", "evidencia": "" },
+  { "id": 2, "titulo": "QA visual e funcional das telas em navegador real", "status": "em_andamento", "evidencia": "" },
+  { "id": 3, "titulo": "Persistência de produção", "status": "pendente", "evidencia": "" },
+  { "id": 4, "titulo": "Publicação com HTTPS", "status": "pendente", "evidencia": "" },
+  { "id": 5, "titulo": "Conta do organizador", "status": "pendente", "evidencia": "" },
+  { "id": 6, "titulo": "Painel completo", "status": "pendente", "evidencia": "" },
+  { "id": 7, "titulo": "Convidado sem fricção", "status": "pendente", "evidencia": "" },
+  { "id": 8, "titulo": "Revelação e retrospectiva", "status": "pendente", "evidencia": "" },
+  { "id": 9, "titulo": "Moderação e privacidade (LGPD)", "status": "em_andamento", "evidencia": "" },
+  { "id": 10, "titulo": "Identidade pt-BR própria", "status": "em_andamento", "evidencia": "" },
+  { "id": 11, "titulo": "Observabilidade e limites", "status": "pendente", "evidencia": "" },
+  { "id": 12, "titulo": "Banco e RLS", "status": "pendente", "evidencia": "" },
+  { "id": "12b", "titulo": "Plano das lojas", "status": "em_andamento", "evidencia": "" },
+  { "id": 13, "titulo": "Admin master seguro", "status": "pendente", "evidencia": "" },
+  { "id": 14, "titulo": "Painel ao vivo e STATUS.md final", "status": "pendente", "evidencia": "" }
+]

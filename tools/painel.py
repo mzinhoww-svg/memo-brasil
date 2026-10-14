@@ -1,0 +1,405 @@
+#!/usr/bin/env python3
+"""Painel ao vivo do MVP Memo Brasil (stdlib only).
+
+Serve http://127.0.0.1:3300 (ou PAINEL_PORT) com visao geral do checklist,
+PRs, agentes, testes, gasto e bloqueios. Atualiza a cada 10s.
+"""
+import html as H
+import json
+import os
+import re
+import subprocess
+import threading
+import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+PORT = int(os.environ.get("PAINEL_PORT", "3300"))
+ROOT = Path(__file__).resolve().parent.parent
+CHECKLIST_PATH = ROOT / "docs" / "mvp-checklist.json"
+
+_lock = threading.Lock()
+_cache = {"state": None, "ts": 0.0, "tests": None, "tests_ts": 0.0}
+
+
+def _run(cmd, timeout=30, cwd=ROOT):
+    try:
+        p = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout)
+        return p.returncode, p.stdout or "", p.stderr or ""
+    except Exception as e:  # noqa: BLE001
+        return -1, "", str(e)
+
+
+def _pct_status(status):
+    s = (status or "").strip().lower()
+    if s in ("concluido", "concluído", "done", "ok", "concluída"):
+        return 100
+    if s in ("em_andamento", "em andamento", "in_progress", "andamento"):
+        return 50
+    return 0
+
+
+def get_tests():
+    with _lock:
+        now = time.time()
+        if _cache["tests"] is None or now - _cache["tests_ts"] > 15:
+            rc, out, err = _run(["npm", "test"], timeout=90)
+            combined = out + "\n" + err
+            def grab(key):
+                m = re.search(re.escape(key) + r"\s+(\d+)", combined, re.I)
+                return int(m.group(1)) if m else None
+            _cache["tests"] = {
+                "rc": rc,
+                "tests": grab("tests"),
+                "pass": grab("pass"),
+                "fail": grab("fail"),
+                "tail": combined[-700:],
+            }
+            _cache["tests_ts"] = now
+        return _cache["tests"]
+
+
+def get_checklist():
+    try:
+        data = json.loads(CHECKLIST_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    if not isinstance(data, list):
+        return []
+    return data
+
+
+def get_prs():
+    rc, out, err = _run(
+        ["gh", "pr", "list", "--json", "number,title,state,author,url", "--limit", "20"]
+    )
+    if rc != 0:
+        return []
+    try:
+        items = json.loads(out or "[]")
+    except json.JSONDecodeError:
+        return []
+    prs = []
+    for it in items:
+        author = it.get("author")
+        login = author.get("login") if isinstance(author, dict) else str(author or "")
+        prs.append(
+            {
+                "number": it.get("number"),
+                "title": it.get("title", ""),
+                "state": it.get("state", ""),
+                "author": login,
+                "url": it.get("url", ""),
+            }
+        )
+    return prs
+
+
+def get_worktrees():
+    rc, out, _ = _run(["git", "worktree", "list", "--porcelain"])
+    trees = []
+    current = {}
+    for line in (out or "").splitlines():
+        if line.startswith("worktree "):
+            if current:
+                trees.append(current)
+            current = {"path": line[len("worktree "):]}
+        elif line.startswith("branch "):
+            current["branch"] = line[len("branch "):].replace("refs/heads/", "")
+        elif line == "":
+            if current:
+                trees.append(current)
+                current = {}
+    if current:
+        trees.append(current)
+    return trees
+
+
+def get_maestri():
+    rc, out, _ = _run(["maestri", "list"], timeout=15)
+    return out or ("" if rc == 0 else "")
+
+
+def get_issues():
+    rc, out, _ = _run(
+        ["gh", "issue", "list", "--state", "open", "--json", "number,title", "--limit", "10"]
+    )
+    if rc != 0:
+        return []
+    try:
+        return json.loads(out or "[]")
+    except json.JSONDecodeError:
+        return []
+
+
+def read_status_blockers():
+    candidates = [ROOT / "STATUS.md", ROOT / "docs" / "STATUS.md"]
+    for p in candidates:
+        if p.exists():
+            text = p.read_text(encoding="utf-8", errors="replace")
+            m = re.search(r"(?is)bloqueio[s]?\s*:?\s*\n(.*?)(?:\n##|\n#|\Z)", text)
+            chunk = m.group(1).strip() if m else ""
+            lines = [ln.strip("- ").strip() for ln in chunk.splitlines() if ln.strip()]
+            if lines:
+                return lines
+    issues = get_issues()
+    return [("#%s %s" % (i.get("number"), i.get("title", ""))).strip() for i in issues]
+
+
+def collect_state():
+    with _lock:
+        now = time.time()
+        if _cache["state"] is not None and now - _cache["ts"] < 5:
+            return _cache["state"]
+    checklist = get_checklist()
+    total = len(checklist)
+    done = sum(1 for it in checklist if _pct_status(it.get("status")) == 100)
+    in_progress = sum(1 for it in checklist if _pct_status(it.get("status")) == 50)
+    pending = total - done - in_progress
+    geral = round(100.0 * done / total, 1) if total else 0.0
+    state = {
+        "gerado_em": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "checklist": checklist,
+        "total": total,
+        "feitos": done,
+        "em_andamento": in_progress,
+        "pendentes": pending,
+        "percentual_geral": geral,
+        "prs": get_prs(),
+        "worktrees": get_worktrees(),
+        "maestri": get_maestri(),
+        "testes": get_tests(),
+        "gasto_reais": os.environ.get("GASTO_REAIS", "0,00"),
+        "teto_reais": os.environ.get("TETO_REAIS", "100,00"),
+        "bloqueios": read_status_blockers(),
+        "repo": str(ROOT),
+    }
+    with _lock:
+        _cache["state"] = state
+        _cache["ts"] = time.time()
+    return state
+
+
+def esc(s):
+    return H.escape(str(s) if s is not None else "")
+
+
+PAGE = """<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="10">
+<title>Painel MVP — Memo Brasil</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#ffffff;color:#111827;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:24px}
+h1{margin:0 0 4px;font-size:28px;font-weight:700}
+.sub{color:#6b7280;font-size:14px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.col4{grid-column:span 4} .col6{grid-column:span 6} .col8{grid-column:span 8} .col12{grid-column:span 12}
+@media(max-width:900px){.col4,.col6,.col8{grid-column:span 12}}
+.kpi{font-size:44px;font-weight:800;line-height:1}
+.kpi small{font-size:16px;font-weight:500;color:#6b7280}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:8px}
+.bar{height:10px;background:#f3f4f6;border-radius:999px;overflow:hidden;margin-top:8px}
+.bar>span{display:block;height:100%;background:#111827;width:0%;transition:width .3s}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #f3f4f6}
+.row:last-child{border-bottom:none}
+.badge{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600}
+.done{background:#dcfce7;color:#166534}
+.doing{background:#fef9c3;color:#854d0e}
+.pend{background:#f3f4f6;color:#4b5563}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+ul{margin:0;padding-left:18px}
+li{margin:4px 0;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #f3f4f6}
+th{color:#6b7280;font-weight:600;font-size:12px;text-transform:uppercase}
+a{color:#2563eb;text-decoration:none}
+a:hover{text-decoration:underline}
+.pre{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:8px;font-size:11px;max-height:160px;overflow:auto;white-space:pre-wrap}
+.muted{color:#6b7280;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Painel MVP — Memo Brasil</h1>
+  <div class="sub">Atualizacao automatica a cada 10s · <span id="ts"></span></div>
+  <div class="grid">
+    <div class="card col4">
+      <div class="label">Percentual geral</div>
+      <div class="kpi"><span id="geral">0</span><small>%</small></div>
+      <div class="bar"><span id="geralbar"></span></div>
+      <div class="muted" style="margin-top:8px"><span id="feitos">0</span> feitos · <span id="andamento">0</span> em andamento · <span id="pendentes">0</span> pendentes</div>
+    </div>
+    <div class="card col4">
+      <div class="label">Testes (node:test)</div>
+      <div class="kpi"><span id="testpass">-</span><small> pass</small></div>
+      <div class="muted" style="margin-top:8px">total <span id="testtotal">-</span> · falhas <span id="testfail">-</span> · rc <span id="testrc">-</span></div>
+      <div class="muted" style="margin-top:8px">atualizado a cada ~15s</div>
+    </div>
+    <div class="card col4">
+      <div class="label">Gasto (teto R$ <span id="teto"></span>/mes)</div>
+      <div class="kpi"><small>R$ </small><span id="gasto">0,00</span></div>
+      <div class="muted" style="margin-top:8px">VPS existente; sem novos servicos pagos</div>
+    </div>
+
+    <div class="card col8">
+      <div class="label">Checklist (por item)</div>
+      <div id="checklist"></div>
+    </div>
+    <div class="card col4">
+      <div class="label">Agentes / worktrees</div>
+      <div id="worktrees"></div>
+      <div class="label" style="margin-top:12px">Maestri</div>
+      <div class="pre" id="maestri"></div>
+    </div>
+
+    <div class="card col6">
+      <div class="label">PRs abertos</div>
+      <div id="prs"></div>
+    </div>
+    <div class="card col6">
+      <div class="label">Bloqueios</div>
+      <div id="bloqueios"></div>
+    </div>
+
+    <div class="card col12">
+      <div class="label">Saida dos testes (tail)</div>
+      <div class="pre" id="testtail"></div>
+    </div>
+  </div>
+</div>
+<script>
+function statusClass(s){
+  s=(s||'').toLowerCase();
+  if(s==='concluido'||s==='concluído') return 'done';
+  if(s==='em_andamento'||s==='em andamento') return 'doing';
+  return 'pend';
+}
+function statusLabel(s){
+  s=(s||'').toLowerCase();
+  if(s==='concluido'||s==='concluído') return 'Concluído';
+  if(s==='em_andamento'||s==='em andamento') return 'Em andamento';
+  return 'Pendente';
+}
+async function refresh(){
+  try{
+    const r=await fetch('/api/state',{cache:'no-store'});
+    const d=await r.json();
+    document.getElementById('ts').textContent=d.gerado_em;
+    document.getElementById('geral').textContent=d.percentual_geral;
+    document.getElementById('geralbar').style.width=d.percentual_geral+'%';
+    document.getElementById('feitos').textContent=d.feitos;
+    document.getElementById('andamento').textContent=d.em_andamento;
+    document.getElementById('pendentes').textContent=d.pendentes;
+    const t=d.testes||{};
+    document.getElementById('testpass').textContent=(t.pass!=null?t.pass:'-');
+    document.getElementById('testtotal').textContent=(t.tests!=null?t.tests:'-');
+    document.getElementById('testfail').textContent=(t.fail!=null?t.fail:'-');
+    document.getElementById('testrc').textContent=(t.rc!=null?t.rc:'-');
+    document.getElementById('testtail').textContent=t.tail||'';
+    document.getElementById('teto').textContent=d.teto_reais;
+    document.getElementById('gasto').textContent=d.gasto_reais;
+
+    const cl=document.getElementById('checklist');
+    cl.innerHTML='';
+    (d.checklist||[]).forEach(function(it){
+      const pct = it.status && (it.status.toLowerCase()==='concluido'||it.status.toLowerCase()==='concluído')?100:
+                  (it.status && it.status.toLowerCase().indexOf('andamento')>=0?50:0);
+      const row=document.createElement('div');
+      row.className='row';
+      row.innerHTML='<div style="flex:1"><strong>'+esc(it.id)+'</strong> · '+esc(it.titulo)+ (it.evidencia? ' <span class="muted">('+esc(it.evidencia)+')</span>':'') +'</div>'+
+        '<div style="display:flex;align-items:center;gap:8px"><div style="width:80px"><div class="bar"><span style="width:'+pct+'%"></span></div></div>'+
+        '<span class="badge '+statusClass(it.status)+'">'+statusLabel(it.status)+'</span></div>';
+      cl.appendChild(row);
+    });
+
+    const wt=document.getElementById('worktrees');
+    wt.innerHTML='';
+    (d.worktrees||[]).forEach(function(w){
+      const p=document.createElement('div');
+      p.className='row';
+      p.innerHTML='<div class="mono">'+esc(w.path)+'</div><div class="muted">'+esc(w.branch||'')+'</div>';
+      wt.appendChild(p);
+    });
+    if(!(d.worktrees||[]).length){ wt.innerHTML='<div class="muted">sem worktrees listados</div>'; }
+    document.getElementById('maestri').textContent=d.maestri||'(indisponivel)';
+
+    const prs=document.getElementById('prs');
+    prs.innerHTML='';
+    if(!(d.prs||[]).length){ prs.innerHTML='<div class="muted">nenhum PR aberto</div>'; }
+    (d.prs||[]).forEach(function(pr){
+      const p=document.createElement('div');
+      p.className='row';
+      const url=pr.url?' <a href="'+esc(pr.url)+'" target="_blank">abrir</a>':'';
+      p.innerHTML='<div style="flex:1"><strong>#'+esc(pr.number)+'</strong> '+esc(pr.title)+'</div><div class="muted">'+esc(pr.state)+' · '+esc(pr.author)+url+'</div>';
+      prs.appendChild(p);
+    });
+
+    const bl=document.getElementById('bloqueios');
+    bl.innerHTML='';
+    if(!(d.bloqueios||[]).length){ bl.innerHTML='<div class="muted">nenhum bloqueio registrado</div>'; }
+    (d.bloqueios||[]).forEach(function(b){
+      const p=document.createElement('div');
+      p.className='row';
+      p.innerHTML='<div>'+esc(b)+'</div>';
+      bl.appendChild(p);
+    });
+  }catch(e){
+    console.error(e);
+  }
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+refresh();
+setInterval(refresh,10000);
+</script>
+</body>
+</html>
+"""
+
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/" or self.path.startswith("/?"):
+            body = PAGE.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path.startswith("/api/state"):
+            st = collect_state()
+            body = json.dumps(st, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, fmt, *args):
+        pass
+
+
+def main():
+    global PORT
+    # Permite PAINEL_PORT sem redefinir global via env ja lido
+    httpd = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    print("Painel MVP: http://127.0.0.1:%d/" % PORT, flush=True)
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        httpd.server_close()
+
+
+if __name__ == "__main__":
+    main()
