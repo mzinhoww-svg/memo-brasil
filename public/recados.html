@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recados</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main>
+  <nav id="crumbs" class="crumbs"></nav>
+  <h1>Recados para os noivos</h1>
+  <label for="t">Seu recado</label>
+  <textarea id="t" maxlength="400" placeholder="Deixe uma mensagem carinhosa…"></textarea>
+  <p id="msg" class="err"></p>
+  <button class="btn primary" id="enviar">Enviar recado</button>
+  <div id="lista"></div>
+</main>
+<script src="/common.js"></script>
+<script>
+(async () => {
+  const { id, guest, info } = await carregaConvidado();
+  crumbs([{ t: info.titulo }, { t: 'Início', href: `/e/${id}/inicio` }, { t: 'Recados' }]);
+  async function carrega() {
+    const r = await api(`/api/events/${id}/recados`);
+    const el = $('#lista'); el.textContent = '';
+    if (!r.recados.length) { const p = document.createElement('p'); p.textContent = 'Seja o primeiro a deixar um recado.'; el.append(p); }
+    for (const x of r.recados) {
+      const d = document.createElement('div'); d.className = 'recado';
+      const p = document.createElement('p'); p.textContent = x.texto;
+      const s = document.createElement('small'); s.textContent = `— ${x.autor}`;
+      d.append(p, s); el.append(d);
+    }
+  }
+  $('#enviar').onclick = async () => {
+    $('#msg').textContent = '';
+    try {
+      await api(`/api/events/${id}/recados`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ guestId: guest.guestId, texto: $('#t').value }) });
+      $('#t').value = ''; carrega();
+    } catch (e) { $('#msg').textContent = e.message; }
+  };
+  carrega();
+})();
+</script>
+</body>
+</html>

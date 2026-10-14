@@ -5,7 +5,7 @@ os convidados entram, fotografam pela câmera do navegador e as fotos ficam bloq
 
 ## Rodar
     npm install
-    npm start        # http://localhost:3000 (e o endereço da rede Wi-Fi aparece no terminal)
+    npm start        # http://localhost:3210 (e o endereço da rede Wi-Fi aparece no terminal)
 
 Variáveis: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público usado no QR Code).
 

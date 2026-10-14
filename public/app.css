@@ -70,3 +70,29 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .retro .autor { position: absolute; bottom: 28px; left: 0; right: 0; text-align: center; font-family: var(--serif); font-style: italic; font-size: 24px; }
 .retro .close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,.15); color: #fff; border: 0; border-radius: 99px; padding: 10px 16px; font-size: 15px; cursor: pointer; }
 @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+/* breadcrumbs e navegação do convidado */
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); margin: 0 0 18px; }
+.crumbs a { color: var(--muted); text-decoration: none; }
+.crumbs a:hover { color: var(--text); text-decoration: underline; }
+.crumbs [aria-current] { color: var(--text); }
+.crumbs .sep { opacity: .5; }
+.hub { display: grid; gap: 10px; margin-top: 20px; }
+.hubcard { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); color: var(--text); text-decoration: none; }
+.hubcard .ic { width: 44px; height: 44px; border-radius: 12px; background: #2a2622; display: flex; align-items: center; justify-content: center; font-size: 22px; flex: none; }
+.hubcard b { display: block; font-size: 16px; }
+.hubcard small { color: var(--muted); font-size: 13px; }
+.hubcard.main { background: var(--cream); color: var(--ink); border-color: var(--cream); }
+.hubcard.main small { color: #5b544b; }
+.hubcard.main .ic { background: #e2d6c3; }
+.timeline { list-style: none; margin: 18px 0; padding: 0 0 0 16px; border-left: 1px solid var(--line); }
+.timeline li { position: relative; padding: 0 0 22px 18px; }
+.timeline li::before { content: ""; position: absolute; left: -22px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.timeline time { font-family: var(--serif); font-size: 22px; }
+.timeline b { display: block; }
+.recado { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-top: 10px; }
+.recado p { color: var(--text); margin: 0 0 6px; }
+.recado small { color: var(--muted); }
+textarea { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 16px; font-family: inherit; min-height: 110px; resize: vertical; }
+textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.choice .btn.on { background: var(--cream); color: var(--ink); border-color: var(--cream); }

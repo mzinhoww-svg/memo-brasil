@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="cam">
-  <div class="top"><a id="voltar" aria-label="Voltar">←</a><span id="resta">…</span><span id="fotos"></span></div>
+  <div class="top"><a id="voltar" aria-label="Voltar ao início">← Início</a><span id="resta">…</span><span id="fotos"></span></div>
   <div class="view">
     <video id="v" playsinline muted autoplay></video>
     <div class="flash" id="flash"></div>
@@ -30,7 +30,7 @@
 const id = eventId();
 const g = getGuest(id);
 if (!g) location.replace(`/e/${id}`);
-$('#voltar').href = `/e/${id}`;
+$('#voltar').href = `/e/${id}/inicio`;
 $('#album').href = `/e/${id}/album`;
 const v = $('#v');
 let stream = null, facing = 'environment', info, now = Date.now, restantes = null, enviando = false, semStream = false;

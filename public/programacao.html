@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programação</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main>
+  <nav id="crumbs" class="crumbs"></nav>
+  <h1 id="titulo">Programação</h1>
+  <p id="quando"></p>
+  <p id="msg" style="color:var(--text)"></p>
+  <ul class="timeline" id="tl"></ul>
+  <p id="vazio" style="display:none">Os noivos ainda não publicaram a programação.</p>
+  <div id="local" style="display:none">
+    <h2>Local</h2>
+    <p style="color:var(--text);margin:8px 0 2px" id="lnome"></p>
+    <p style="margin:0" id="lend"></p>
+    <a class="btn" id="mapa" style="margin-top:12px" target="_blank" rel="noopener">Abrir no mapa</a>
+  </div>
+</main>
+<script src="/common.js"></script>
+<script>
+(async () => {
+  const { id, info } = await carregaConvidado();
+  crumbs([{ t: info.titulo }, { t: 'Início', href: `/e/${id}/inicio` }, { t: 'Programação' }]);
+  $('#quando').textContent = dataBr(info.dataEvento);
+  $('#msg').textContent = info.mensagem || '';
+  const tl = $('#tl');
+  for (const c of info.cronograma) {
+    const li = document.createElement('li');
+    const t = document.createElement('time'); t.textContent = c.hora;
+    const b = document.createElement('b'); b.textContent = c.titulo;
+    li.append(t, b);
+    if (c.descricao) { const p = document.createElement('span'); p.style.color = 'var(--muted)'; p.textContent = c.descricao; li.append(p); }
+    tl.append(li);
+  }
+  $('#vazio').style.display = info.cronograma.length ? 'none' : 'block';
+  if (info.local || info.endereco) {
+    $('#local').style.display = 'block';
+    $('#lnome').textContent = info.local; $('#lend').textContent = info.endereco;
+    $('#mapa').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(info.endereco || info.local)}`;
+  }
+})();
+</script>
+</body>
+</html>

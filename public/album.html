@@ -8,6 +8,7 @@
 </head>
 <body>
 <main>
+  <nav id="crumbs" class="crumbs"></nav>
   <h1 id="titulo" class="center">…</h1>
   <div class="stats">
     <div><b id="momentos">0</b><span>Momentos</span></div>
@@ -28,7 +29,7 @@
 const id = eventId();
 const g = getGuest(id);
 $('#camera').href = `/e/${id}/camera`;
-$('#convidar').href = `/e/${id}`;
+$('#convidar').style.display = 'none';
 let info, fotos = [], now = Date.now, revelado = false;
 
 async function load() {
@@ -39,6 +40,7 @@ async function load() {
     revelado = r.revelado; fotos = r.fotos;
     document.title = info.titulo;
     $('#titulo').textContent = info.titulo;
+    crumbs(g ? [{ t: info.titulo }, { t: 'Início', href: `/e/${id}/inicio` }, { t: 'Álbum' }] : [{ t: info.titulo, href: `/e/${id}` }, { t: 'Álbum' }]);
     $('#momentos').textContent = info.momentos;
     $('#pessoas').textContent = info.pessoas;
     $('#retro').style.display = revelado && fotos.length ? 'flex' : 'none';

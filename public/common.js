@@ -28,3 +28,27 @@ const guestKey = (id) => `memo:${id}:guest`;
 const getGuest = (id) => { try { return JSON.parse(localStorage.getItem(guestKey(id))); } catch { return null; } };
 const setGuest = (id, g) => localStorage.setItem(guestKey(id), JSON.stringify(g));
 const hostKey = (id) => `memo:${id}:host`;
+
+// Trilha de navegação: crumbs([{t:'Início', href:'/'}, {t:'Câmera'}])
+function crumbs(items, el = $('#crumbs')) {
+  if (!el) return;
+  el.textContent = '';
+  el.setAttribute('aria-label', 'Você está em');
+  items.forEach((it, i) => {
+    if (i) { const s = document.createElement('span'); s.textContent = '›'; s.className = 'sep'; s.setAttribute('aria-hidden', 'true'); el.append(s); }
+    const n = document.createElement(it.href ? 'a' : 'span');
+    n.textContent = it.t;
+    if (it.href) n.href = it.href; else n.setAttribute('aria-current', 'page');
+    el.append(n);
+  });
+}
+
+// Páginas do convidado: carrega o evento e exige que a pessoa tenha entrado.
+async function carregaConvidado() {
+  const id = eventId();
+  const guest = getGuest(id);
+  if (!guest) { location.replace(`/e/${id}`); return new Promise(() => {}); }
+  const info = await api(`/api/events/${id}`);
+  return { id, guest, info };
+}
+const dataBr = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' }) : '';

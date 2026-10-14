@@ -8,6 +8,7 @@
 </head>
 <body>
 <main>
+  <nav class="crumbs"><span aria-current="page">Início</span></nav>
   <p class="center" style="letter-spacing:.2em;font-size:12px;margin-top:8px">MEMO BRASIL</p>
   <h1 class="center" style="margin-top:14px">Cada convidado é seu fotógrafo</h1>
   <p class="center">Crie o álbum do casamento, compartilhe o QR Code e receba os melhores momentos sob o olhar de quem estava lá. As fotos ficam guardadas e só são reveladas na hora que você escolher.</p>
@@ -15,6 +16,10 @@
   <form id="f">
     <label for="titulo">Nome do evento</label>
     <input id="titulo" maxlength="80" placeholder="Casamento Ana & Pedro" required>
+    <label for="dataEvento">Data e hora do casamento</label>
+    <input id="dataEvento" type="datetime-local">
+    <label for="local">Local</label>
+    <input id="local" maxlength="80" placeholder="Ex.: Espaço Villa Jardim">
     <label for="revealAt">Quando revelar as fotos</label>
     <input id="revealAt" type="datetime-local" required>
     <label for="fpg">Fotos por convidado</label>
@@ -22,7 +27,7 @@
     <p id="err" class="err"></p>
     <button class="btn primary" id="go">Criar evento</button>
   </form>
-  <p class="center" style="font-size:13px">O organizador cria o evento em nome dos noivos e compartilha o QR Code com os convidados.</p>
+  <p class="center" style="font-size:13px">Área da organização (casal e cerimonial). Os convidados entram só pelo QR Code, em outra jornada.</p>
 </main>
 <script src="/common.js"></script>
 <script>
@@ -38,6 +43,8 @@ $('#f').addEventListener('submit', async (e) => {
       body: JSON.stringify({
         titulo: $('#titulo').value,
         revealAt: new Date($('#revealAt').value).toISOString(),
+        dataEvento: $('#dataEvento').value ? new Date($('#dataEvento').value).toISOString() : null,
+        local: $('#local').value,
         fotosPorConvidado: $('#fpg').value,
       }),
     });

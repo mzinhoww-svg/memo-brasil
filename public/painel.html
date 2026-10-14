@@ -3,84 +3,255 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Painel do evento — Memo Brasil</title>
-<link rel="stylesheet" href="/app.css">
+<title>Organização — Memo Brasil</title>
+<link rel="stylesheet" href="/admin.css">
 </head>
 <body>
-<main>
-  <p style="letter-spacing:.2em;font-size:12px">PAINEL DO ORGANIZADOR</p>
-  <h1 id="titulo">…</h1>
-  <div class="stats">
-    <div><b id="momentos">0</b><span>Momentos</span></div>
-    <div><b id="restam">—</b><span id="restamLbl">Para revelar</span></div>
-    <div><b id="pessoas">0</b><span>Pessoas</span></div>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">MEMO BRASIL</div>
+    <div class="who" id="who">Organização</div>
+    <nav class="nav" id="nav">
+      <a href="#resumo" data-s="resumo">📊 Resumo</a>
+      <a href="#convidados" data-s="convidados">👥 Convidados</a>
+      <a href="#programacao" data-s="programacao">🗓️ Detalhes e programação</a>
+      <a href="#fotos" data-s="fotos">🖼️ Fotos e recados</a>
+      <a href="#convite" data-s="convite">🔗 Convite e QR Code</a>
+      <a href="#equipe" data-s="equipe" id="navEquipe">🤝 Equipe</a>
+    </nav>
+  </aside>
+  <div class="content">
+    <nav class="crumbs" id="crumbs"></nav>
+    <div id="view"></div>
   </div>
-  <img id="qr" class="qr" alt="QR Code do convite">
-  <p class="center">Imprima o QR Code em uma placa na entrada ou nas mesas. Quem escanear recebe o convite e entra direto na câmera.</p>
-  <div class="linkbox" id="link"></div>
-  <div class="row" style="margin-top:10px">
-    <button class="btn" id="copiar">Copiar link</button>
-    <a class="btn" id="baixar" download="qrcode-evento.png">Baixar QR</a>
-  </div>
-  <a class="btn primary" id="album" style="margin-top:14px">Ver álbum</a>
-
-  <h2 style="margin-top:34px">Convidados</h2>
-  <ul class="list" id="convidados"></ul>
-
-  <h2 style="margin-top:28px">Hora da revelação</h2>
-  <input id="revealAt" type="datetime-local">
-  <button class="btn" id="salvar" style="margin-top:10px">Atualizar horário</button>
-  <p id="msg" class="err"></p>
-</main>
+</div>
 <script src="/common.js"></script>
 <script>
 const id = eventId();
-const hashToken = new URLSearchParams(location.hash.slice(1)).get('t');
-if (hashToken) localStorage.setItem(hostKey(id), hashToken);
-const token = localStorage.getItem(hostKey(id));
-const H = { 'x-host-token': token || '' };
+const h = new URLSearchParams(location.hash.slice(1)).get('t');
+if (h) { localStorage.setItem(hostKey(id), h); history.replaceState(null, '', location.pathname + '#resumo'); }
+const TOKEN = localStorage.getItem(hostKey(id)) || '';
+const H = { 'x-host-token': TOKEN, 'content-type': 'application/json' };
+const call = (p, o = {}) => api(`/api/events/${id}${p}`, { ...o, headers: { ...H, ...(o.headers || {}) } });
 const pad = (n) => String(n).padStart(2, '0');
-const local = (iso) => { const d = new Date(iso); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-let info, now = Date.now;
+const local = (iso) => { if (!iso) return ''; const d = new Date(iso); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+let info = null;
 
-async function load() {
-  try {
-    info = await api(`/api/events/${id}/host`, { headers: H });
-  } catch (e) { document.body.innerHTML = `<main><h1>Acesso restrito</h1><p>${e.message} Abra o painel pelo mesmo aparelho em que o evento foi criado.</p></main>`; return; }
-  now = relogio(info.agora);
-  $('#titulo').textContent = info.titulo;
-  $('#momentos').textContent = info.momentos;
-  $('#pessoas').textContent = info.pessoas;
-  $('#link').textContent = info.linkConvite;
-  $('#qr').src = `/api/events/${id}/qr.png`;
-  $('#baixar').href = `/api/events/${id}/qr.png`;
-  $('#album').href = `/e/${id}/album`;
-  if (document.activeElement !== $('#revealAt')) $('#revealAt').value = local(info.revealAt);
-  const ul = $('#convidados'); ul.textContent = '';
-  if (!info.convidados.length) { const li = document.createElement('li'); li.textContent = 'Ninguém entrou ainda.'; ul.append(li); }
-  for (const c of info.convidados) {
-    const li = document.createElement('li');
-    const n = document.createElement('span'); n.textContent = c.nome;
-    const f = document.createElement('span'); f.textContent = `${c.fotos} foto${c.fotos === 1 ? '' : 's'}`;
-    li.append(n, f); ul.append(li);
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') n.className = v; else if (k.startsWith('on')) n[k] = v; else if (v !== undefined && v !== null) n.setAttribute(k, v);
   }
-  tick();
+  for (const c of kids.flat()) n.append(c instanceof Node ? c : document.createTextNode(c ?? ''));
+  return n;
 }
-function tick() {
-  if (!info) return;
-  const ms = new Date(info.revealAt).getTime() - now();
-  $('#restam').textContent = ms > 0 ? duracao(ms) : 'Revelado';
-  $('#restamLbl').textContent = ms > 0 ? 'Para revelar' : 'Álbum aberto';
-}
-$('#copiar').onclick = async () => { await navigator.clipboard.writeText(info.linkConvite); $('#copiar').textContent = 'Link copiado!'; setTimeout(() => $('#copiar').textContent = 'Copiar link', 1800); };
-$('#salvar').onclick = async () => {
-  $('#msg').textContent = '';
-  try {
-    await api(`/api/events/${id}`, { method: 'PATCH', headers: { ...H, 'content-type': 'application/json' }, body: JSON.stringify({ revealAt: new Date($('#revealAt').value).toISOString() }) });
-    $('#msg').className = 'err ok'; $('#msg').textContent = 'Horário atualizado.'; load();
-  } catch (e) { $('#msg').className = 'err'; $('#msg').textContent = e.message; }
+function msg(node, text, ok) { node.textContent = text; node.className = 'msg' + (ok ? ' ok' : ''); }
+const stat = (n, l) => el('div', { class: 'card stat' }, el('b', {}, String(n)), el('span', {}, l));
+
+const SECOES = {
+  resumo: ['Resumo', rResumo], convidados: ['Convidados', rConvidados], programacao: ['Detalhes e programação', rProgramacao],
+  fotos: ['Fotos e recados', rFotos], convite: ['Convite e QR Code', rConvite], equipe: ['Equipe', rEquipe],
 };
-load(); setInterval(load, 15000); setInterval(tick, 30000);
+async function carregaInfo() { info = await call('/host'); }
+async function route() {
+  const s = (location.hash.slice(1).split('&')[0]) || 'resumo';
+  const key = SECOES[s] ? s : 'resumo';
+  document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('on', a.dataset.s === key));
+  try { await carregaInfo(); } catch (e) {
+    document.body.innerHTML = '';
+    document.body.append(el('div', { class: 'content' }, el('h1', {}, 'Acesso restrito'), el('p', { class: 'sub' }, `${e.message} Abra o painel pelo link de acesso que o casal recebeu, ou peça um novo link na aba Equipe.`), el('a', { href: '/' }, 'Voltar ao início')));
+    return;
+  }
+  $('#who').textContent = `${info.nome} · ${info.papel === 'casal' ? 'Casal' : 'Cerimonial'}`;
+  $('#navEquipe').style.display = info.dono ? '' : 'none';
+  crumbs([{ t: 'Início', href: '/' }, { t: info.titulo, href: '#resumo' }, { t: SECOES[key][0] }]);
+  const v = $('#view'); v.textContent = '';
+  await SECOES[key][1](v);
+}
+window.addEventListener('hashchange', route);
+
+// ── Resumo
+async function rResumo(v) {
+  const ms = new Date(info.revealAt).getTime() - relogio(info.agora)();
+  v.append(el('h1', {}, info.titulo), el('p', { class: 'sub' }, [dataBr(info.dataEvento), info.local].filter(Boolean).join(' · ') || 'Complete os detalhes do casamento na aba "Detalhes e programação".'));
+  v.append(el('div', { class: 'cards' },
+    stat(info.totalLista, 'Convidados na lista'),
+    stat(info.rsvp.pessoasConfirmadas, 'Pessoas confirmadas'),
+    stat(info.rsvp.pendente, 'Sem resposta'),
+    stat(info.pessoas, 'Entraram na câmera'),
+    stat(info.momentos, 'Fotos enviadas'),
+    stat(ms > 0 ? duracao(ms) : 'Aberto', 'Para a revelação')));
+  const prox = [];
+  if (!info.totalLista) prox.push(['Monte a lista de convidados', '#convidados']);
+  if (!info.cronograma.length) prox.push(['Publique a programação do dia', '#programacao']);
+  if (!info.local) prox.push(['Informe o local do casamento', '#programacao']);
+  prox.push(['Imprima o QR Code para a entrada', '#convite']);
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Próximos passos'), el('ul', {}, prox.map(([t, h]) => el('li', {}, el('a', { href: h }, t))))));
+  const rev = el('div', { class: 'panel' }, el('h2', {}, 'Hora da revelação'));
+  const inp = el('input', { type: 'datetime-local', value: local(info.revealAt) });
+  const out = el('p', { class: 'msg' });
+  rev.append(inp, el('div', { class: 'row', style: 'margin-top:10px' }, el('button', { class: 'btn primary', onclick: async () => {
+    try { await call('', { method: 'PATCH', body: JSON.stringify({ revealAt: new Date(inp.value).toISOString() }) }); msg(out, 'Horário atualizado.', true); } catch (e) { msg(out, e.message); }
+  } }, 'Salvar')), out);
+  v.append(rev);
+}
+
+// ── Convidados (lista do casamento)
+async function rConvidados(v) {
+  v.append(el('h1', {}, 'Convidados'), el('p', { class: 'sub' }, 'A lista do casamento: quem foi convidado e quem confirmou. Aceita milhares de nomes.'));
+  const add = el('div', { class: 'panel' }, el('h2', {}, 'Adicionar convidados'));
+  const ta = el('textarea', { placeholder: 'Um por linha. Opcional: Nome; Grupo; Acompanhantes\nMaria Silva; Família da noiva; 1\nJoão Souza; Amigos do noivo' });
+  const out = el('p', { class: 'msg' });
+  add.append(ta, el('div', { class: 'row', style: 'margin-top:10px' },
+    el('button', { class: 'btn primary', onclick: async () => {
+      try { const r = await call('/lista', { method: 'POST', body: JSON.stringify({ texto: ta.value }) }); ta.value = ''; msg(out, `${r.adicionados} adicionados${r.repetidos ? `, ${r.repetidos} já estavam na lista` : ''}. Total: ${r.total}.`, true); desenha(); } catch (e) { msg(out, e.message); }
+    } }, 'Adicionar à lista'),
+    el('span', { class: 'sub', style: 'margin:0' }, 'Dica: cole direto de uma planilha (colunas separadas por tab).')), out);
+  v.append(add);
+  const painel = el('div', { class: 'panel' });
+  v.append(painel);
+  let filtro = 'todos', busca = '', itens = [];
+  async function desenha() {
+    itens = (await call('/lista')).itens;
+    render();
+  }
+  function render() {
+    painel.textContent = '';
+    const cont = { todos: itens.length, pendente: 0, confirmado: 0, recusado: 0 };
+    itens.forEach((i) => cont[i.rsvp]++);
+    painel.append(el('div', { class: 'filters' },
+      ['todos', 'confirmado', 'pendente', 'recusado'].map((f) => el('button', { class: 'chip' + (filtro === f ? ' on' : ''), onclick: () => { filtro = f; render(); } }, `${{ todos: 'Todos', confirmado: 'Confirmados', pendente: 'Sem resposta', recusado: 'Recusaram' }[f]} (${cont[f]})`))));
+    const b = el('input', { placeholder: 'Buscar por nome ou grupo', value: busca });
+    b.oninput = () => { busca = b.value; renderLinhas(); };
+    painel.append(b);
+    const tb = el('tbody'); painel.append(el('div', { style: 'overflow-x:auto;margin-top:10px' }, el('table', {}, el('thead', {}, el('tr', {}, ['Nome', 'Grupo', '+', 'Resposta', 'Câmera', ''].map((t) => el('th', {}, t)))), tb)));
+    function renderLinhas() {
+      tb.textContent = '';
+      const q = busca.toLowerCase();
+      const vis = itens.filter((i) => (filtro === 'todos' || i.rsvp === filtro) && (!q || (i.nome + ' ' + i.grupo).toLowerCase().includes(q)));
+      vis.slice(0, 300).forEach((i) => {
+        const sel = el('select', { onchange: async () => { await call(`/lista/${i.id}`, { method: 'PATCH', body: JSON.stringify({ rsvp: sel.value }) }); i.rsvp = sel.value; render(); } },
+          ['pendente', 'confirmado', 'recusado'].map((o) => el('option', { value: o, ...(o === i.rsvp ? { selected: '' } : {}) }, { pendente: 'Sem resposta', confirmado: 'Confirmado', recusado: 'Recusou' }[o])));
+        tb.append(el('tr', {}, el('td', {}, i.nome), el('td', {}, i.grupo || '—'), el('td', {}, String(i.acompanhantes || 0)), el('td', {}, sel),
+          el('td', {}, i.naCamera ? '✓' : '—'),
+          el('td', {}, el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover ${i.nome} da lista?`)) { await call(`/lista/${i.id}`, { method: 'DELETE' }); desenha(); } } }, 'Remover'))));
+      });
+      if (!vis.length) tb.append(el('tr', {}, el('td', { colspan: '6' }, 'Nenhum convidado aqui ainda.')));
+      if (vis.length > 300) tb.append(el('tr', {}, el('td', { colspan: '6' }, `Mostrando 300 de ${vis.length}. Use a busca para filtrar.`)));
+    }
+    renderLinhas();
+  }
+  await desenha();
+}
+
+// ── Detalhes e programação
+async function rProgramacao(v) {
+  v.append(el('h1', {}, 'Detalhes e programação'), el('p', { class: 'sub' }, 'O que os convidados veem na página "Programação e local".'));
+  const p = el('div', { class: 'panel' }, el('h2', {}, 'O casamento'));
+  const f = {
+    titulo: el('input', { value: info.titulo, maxlength: '80' }),
+    data: el('input', { type: 'datetime-local', value: local(info.dataEvento) }),
+    local: el('input', { value: info.local, maxlength: '80', placeholder: 'Ex.: Espaço Villa Jardim' }),
+    end: el('input', { value: info.endereco, maxlength: '160', placeholder: 'Rua, número, cidade' }),
+    msg: el('textarea', { maxlength: '500', placeholder: 'Uma mensagem de boas-vindas aos convidados.' }),
+    fpg: el('input', { type: 'number', min: '1', max: '200', value: String(info.fotosPorConvidado) }),
+  };
+  f.msg.value = info.mensagem || '';
+  p.append(el('label', {}, 'Nome do evento'), f.titulo, el('label', {}, 'Data e hora da cerimônia'), f.data, el('label', {}, 'Local'), f.local,
+    el('label', {}, 'Endereço'), f.end, el('label', {}, 'Mensagem aos convidados'), f.msg, el('label', {}, 'Fotos por convidado'), f.fpg);
+  v.append(p);
+  const c = el('div', { class: 'panel' }, el('h2', {}, 'Programação do dia'));
+  const linhas = el('div'); c.append(linhas);
+  const dados = info.cronograma.map((x) => ({ ...x }));
+  function desenha() {
+    linhas.textContent = '';
+    dados.forEach((d, i) => {
+      const hora = el('input', { type: 'time', value: d.hora }); hora.oninput = () => (d.hora = hora.value);
+      const tit = el('input', { value: d.titulo, placeholder: 'Ex.: Cerimônia', maxlength: '80' }); tit.oninput = () => (d.titulo = tit.value);
+      const desc = el('input', { value: d.descricao, placeholder: 'Detalhe (opcional)', maxlength: '200' }); desc.oninput = () => (d.descricao = desc.value);
+      linhas.append(el('div', { class: 'sched' }, hora, tit, desc, el('button', { class: 'btn sm danger', onclick: () => { dados.splice(i, 1); desenha(); } }, '✕')));
+    });
+  }
+  desenha();
+  c.append(el('button', { class: 'btn', onclick: () => { dados.push({ hora: '', titulo: '', descricao: '' }); desenha(); } }, '+ Adicionar momento'));
+  v.append(c);
+  const out = el('p', { class: 'msg' });
+  v.append(el('button', { class: 'btn primary', onclick: async () => {
+    try {
+      await call('', { method: 'PATCH', body: JSON.stringify({
+        titulo: f.titulo.value, dataEvento: f.data.value ? new Date(f.data.value).toISOString() : null, local: f.local.value,
+        endereco: f.end.value, mensagem: f.msg.value, fotosPorConvidado: f.fpg.value,
+        cronograma: dados.filter((d) => d.titulo.trim()),
+      }) });
+      msg(out, 'Salvo.', true);
+    } catch (e) { msg(out, e.message); }
+  } }, 'Salvar alterações'), out);
+}
+
+// ── Fotos e recados (moderação)
+async function rFotos(v) {
+  v.append(el('h1', {}, 'Fotos e recados'));
+  const revelado = info.revelado;
+  v.append(el('div', { class: 'warn' }, revelado ? 'O álbum já foi revelado.' : 'Atenção: ver as fotos agora estraga a surpresa. Use só para moderar conteúdo impróprio. Os convidados continuam sem ver nada até a hora da revelação.'));
+  const area = el('div');
+  const mostrar = async () => {
+    area.textContent = '';
+    const r = await call('/moderacao');
+    const grid = el('div', { class: 'thumbs' });
+    r.fotos.forEach((f) => {
+      grid.append(el('div', { class: 'thumb' }, el('img', { src: `${f.url}?token=${encodeURIComponent(TOKEN)}`, alt: `Foto de ${f.autor}`, loading: 'lazy' }),
+        el('div', {}, el('span', {}, f.autor), el('button', { class: 'btn sm danger', onclick: async () => { if (confirm('Apagar esta foto para sempre?')) { await call(`/photos/${f.id}`, { method: 'DELETE' }); mostrar(); } } }, 'Apagar'))));
+    });
+    area.append(el('h2', {}, `Fotos (${r.fotos.length})`), r.fotos.length ? grid : el('p', { class: 'sub' }, 'Ninguém enviou fotos ainda.'));
+    area.append(el('h2', { style: 'margin-top:22px' }, `Recados (${r.recados.length})`));
+    r.recados.slice().reverse().forEach((x) => area.append(el('div', { class: 'panel' }, el('p', { style: 'margin:0 0 6px' }, x.texto),
+      el('div', { class: 'row' }, el('span', { class: 'sub', style: 'margin:0' }, `— ${x.autor}`), el('button', { class: 'btn sm danger', onclick: async () => { await call(`/recados/${x.id}`, { method: 'DELETE' }); mostrar(); } }, 'Apagar')))));
+  };
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Resumo por pessoa'), info.fotosPorPessoa.length
+    ? el('table', {}, el('tbody', {}, info.fotosPorPessoa.map((p) => el('tr', {}, el('td', {}, p.nome), el('td', {}, `${p.fotos} foto${p.fotos === 1 ? '' : 's'}`)))))
+    : el('p', { class: 'sub' }, 'Ninguém entrou na câmera ainda.')));
+  v.append(el('button', { class: 'btn', onclick: mostrar }, revelado ? 'Ver fotos e recados' : 'Moderar fotos e recados (ver agora)'), area);
+}
+
+// ── Convite e QR
+async function rConvite(v) {
+  v.append(el('h1', {}, 'Convite e QR Code'), el('p', { class: 'sub' }, 'Imprima o QR Code em placas na entrada e nas mesas. Quem escanear recebe o convite e entra na jornada de convidado.'));
+  const out = el('p', { class: 'msg' });
+  v.append(el('div', { class: 'panel' },
+    el('div', { class: 'row', style: 'align-items:flex-start;gap:24px' },
+      el('img', { class: 'qr', src: `/api/events/${id}/qr.png`, alt: 'QR Code do convite' }),
+      el('div', { class: 'grow' },
+        el('div', { class: 'linkbox' }, info.linkConvite),
+        el('div', { class: 'row', style: 'margin-top:10px' },
+          el('button', { class: 'btn', onclick: async () => { await navigator.clipboard.writeText(info.linkConvite); msg(out, 'Link copiado.', true); } }, 'Copiar link'),
+          el('a', { class: 'btn', href: `/api/events/${id}/qr.png`, download: 'qrcode-convite.png' }, 'Baixar QR Code'),
+          el('a', { class: 'btn', href: info.linkConvite, target: '_blank', rel: 'noopener' }, 'Ver como convidado')), out))));
+  v.append(el('div', { class: 'warn' }, 'Para a câmera ao vivo funcionar no celular dos convidados, o endereço precisa ser HTTPS. Em rede local (HTTP) o app usa a câmera nativa do celular.'));
+}
+
+// ── Equipe
+async function rEquipe(v) {
+  v.append(el('h1', {}, 'Equipe'), el('p', { class: 'sub' }, 'Cerimonial e outros membros do casal acessam esta área por link próprio. Cerimonial gerencia lista, programação e fotos, mas não altera a equipe.'));
+  const nome = el('input', { placeholder: 'Nome', maxlength: '40' });
+  const papel = el('select', {}, el('option', { value: 'cerimonial' }, 'Cerimonial'), el('option', { value: 'casal' }, 'Casal'));
+  const out = el('p', { class: 'msg' });
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Convidar para a organização'),
+    el('div', { class: 'row' }, el('div', { class: 'grow' }, nome), papel,
+      el('button', { class: 'btn primary', onclick: async () => {
+        try { await call('/equipe', { method: 'POST', body: JSON.stringify({ nome: nome.value, papel: papel.value }) }); route(); } catch (e) { msg(out, e.message); }
+      } }, 'Gerar link de acesso')), out));
+  const lista = el('div', { class: 'panel' }, el('h2', {}, 'Quem tem acesso'));
+  if (!info.equipe.length) lista.append(el('p', { class: 'sub' }, 'Só você, por enquanto.'));
+  info.equipe.forEach((m) => lista.append(el('div', { style: 'padding:10px 0;border-top:1px solid var(--a-line)' },
+    el('div', { class: 'row' }, el('b', { class: 'grow' }, `${m.nome} · ${m.papel === 'casal' ? 'Casal' : 'Cerimonial'}`),
+      el('button', { class: 'btn sm', onclick: async () => { await navigator.clipboard.writeText(m.link); } }, 'Copiar link'),
+      el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover o acesso de ${m.nome}?`)) { await call(`/equipe/${m.id}`, { method: 'DELETE' }); route(); } } }, 'Remover')),
+    el('div', { class: 'linkbox', style: 'margin-top:6px' }, m.link))));
+  v.append(lista);
+}
+
+route();
+setInterval(() => { if (!document.activeElement || !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {} }, 60000);
 </script>
 </body>
 </html>

@@ -8,6 +8,7 @@
 </head>
 <body>
 <main>
+  <nav id="crumbs" class="crumbs"></nav>
   <div class="envelope">
     <p style="letter-spacing:.2em;font-size:12px">CONVITE</p>
     <h1>Você está convidado!</h1>
@@ -17,7 +18,8 @@
   <p class="center" id="regra"></p>
   <form id="f">
     <label for="nome">Seu nome (aparece nas suas fotos)</label>
-    <input id="nome" maxlength="40" autocomplete="given-name" placeholder="Como os noivos te chamam?" required>
+    <input id="nome" maxlength="40" autocomplete="off" list="sugestoes" placeholder="Como os noivos te chamam?" required>
+    <datalist id="sugestoes"></datalist>
     <p id="err" class="err"></p>
     <button class="btn primary">Entrar no álbum</button>
   </form>
@@ -32,6 +34,7 @@ const id = eventId();
   catch (e) { document.querySelector('main').innerHTML = `<h1>Convite não encontrado</h1><p>${e.message} Confira o QR Code com os noivos.</p>`; return; }
   document.title = info.titulo;
   $('#titulo').textContent = info.titulo;
+  crumbs([{ t: info.titulo }, { t: 'Convite' }]);
   const g = getGuest(id);
   if (g) $('#nome').value = g.nome;
   if (info.revelado) {
@@ -42,15 +45,28 @@ const id = eventId();
     $('#regra').textContent = `Você tem ${info.fotosPorConvidado} fotos. Elas ficam escondidas e são reveladas para todos ao mesmo tempo, no fim da festa.`;
   }
 })();
+let tbusca;
+$('#nome').addEventListener('input', () => {
+  clearTimeout(tbusca);
+  const q = $('#nome').value.trim();
+  if (q.length < 3) return;
+  tbusca = setTimeout(async () => {
+    try {
+      const r = await api(`/api/events/${id}/buscar?q=${encodeURIComponent(q)}`);
+      const dl = $('#sugestoes'); dl.textContent = '';
+      r.nomes.forEach((n) => { const o = document.createElement('option'); o.value = n; dl.append(o); });
+    } catch {}
+  }, 250);
+});
 $('#f').addEventListener('submit', async (e) => {
   e.preventDefault(); $('#err').textContent = '';
   const nome = $('#nome').value.trim();
   const g = getGuest(id);
-  if (g && g.nome === nome) return (location.href = `/e/${id}/camera`);
+  if (g && g.nome === nome) return (location.href = `/e/${id}/inicio`);
   try {
     const r = await api(`/api/events/${id}/guests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome }) });
     setGuest(id, { guestId: r.guestId, nome: r.nome });
-    location.href = `/e/${id}/camera`;
+    location.href = `/e/${id}/inicio`;
   } catch (er) { $('#err').textContent = er.message; }
 });
 </script>
