@@ -170,6 +170,42 @@ class SqliteStore extends Store {
     }
   }
 
+  run(sql, ...params) {
+    return this.conn.prepare(sql).run(...params);
+  }
+
+  get(sql, ...params) {
+    return this.conn.prepare(sql).get(...params);
+  }
+
+  all(sql, ...params) {
+    return this.conn.prepare(sql).all(...params);
+  }
+
+  // Transação síncrona (SQLite + Node single-thread). `fn` recebe um handle
+  // tx { run/get/all } ligado à mesma conexão; não chamar store.save() dentro.
+  transaction(fn) {
+    this.conn.exec('BEGIN IMMEDIATE');
+    try {
+      const tx = {
+        run: (sql, ...params) => this.conn.prepare(sql).run(...params),
+        get: (sql, ...params) => this.conn.prepare(sql).get(...params),
+        all: (sql, ...params) => this.conn.prepare(sql).all(...params),
+      };
+      const result = fn(tx);
+      this.conn.exec('COMMIT');
+      return result;
+    } catch (e) {
+      try { this.conn.exec('ROLLBACK'); } catch {}
+      throw e;
+    }
+  }
+
+  schemaVersion() {
+    const row = this.conn.prepare('SELECT COALESCE(MAX(version), 0) AS v FROM schema_migrations').get();
+    return row ? row.v : 0;
+  }
+
   close() {
     try { this.conn.close(); } catch {}
   }
