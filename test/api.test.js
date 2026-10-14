@@ -117,3 +117,103 @@ test('ZIP do álbum só depois da revelação e só do próprio casamento', asyn
   const b = await criar('B');
   assert.equal((await get(`/api/events/${a.id}/fotos.zip`, { 'x-host-token': b.tk })).status, 403);
 });
+
+// helpers adicionais para os cenários do item 1
+async function criarComReveal(titulo, revealAtISO) {
+  const r = await (await post('/api/events', { titulo, revealAt: revealAtISO, fotosPorConvidado: 2 })).json();
+  const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
+  return { id: r.id, tk: r.hostToken, guest: g.guestId };
+}
+const passado = () => new Date(Date.now() - 3600e3).toISOString();
+
+test('criação de evento: valida campos e devolve id e token do organizador', async () => {
+  await fetch(`${B}/api/master/settings`, { method: 'PUT', headers: { 'content-type': 'application/json', 'x-master-token': 'master-de-teste' }, body: JSON.stringify({ criacaoAberta: true }) });
+  const ok = await post('/api/events', { titulo: 'Casamento Teste', revealAt: futuro() });
+  assert.equal(ok.status, 201);
+  const j = await ok.json();
+  assert.match(j.id, /^[A-Za-z0-9_-]+$/);
+  assert.match(j.hostToken, /^[A-Za-z0-9_-]+$/);
+  const pub = await (await get(`/api/events/${j.id}`)).json();
+  assert.equal(pub.titulo, 'Casamento Teste');
+  assert.equal((await post('/api/events', { titulo: '', revealAt: futuro() })).status, 400);
+  assert.equal((await post('/api/events', { titulo: 'X' })).status, 400);
+  assert.equal((await post('/api/events', { titulo: 'X', revealAt: 'nao-e-data' })).status, 400);
+});
+
+test('entrada de convidado: cria convidado e consulta saldo; id inexistente', async () => {
+  const ev = await criar('Entrada');
+  const r = await post(`/api/events/${ev.id}/guests`, { nome: 'Maria' });
+  assert.equal(r.status, 201);
+  const j = await r.json();
+  assert.ok(j.guestId);
+  const info = await (await get(`/api/events/${ev.id}/guests/${j.guestId}`)).json();
+  assert.equal(info.nome, 'Maria');
+  assert.equal(info.fotosRestantes, 2);
+  assert.equal((await get(`/api/events/${ev.id}/guests/inexistente`)).status, 404);
+});
+
+test('upload de foto: funciona antes da revelação e valida tipo e guest', async () => {
+  const ev = await criar('Upload');
+  const r = await foto(ev);
+  assert.equal(r.status, 201);
+  const j = await r.json();
+  assert.ok(j.id);
+  assert.equal(j.restantes, 1);
+  const fd = new FormData();
+  fd.append('guestId', ev.guest);
+  fd.append('foto', new Blob(['x'], { type: 'text/plain' }), 'x.txt');
+  const bad = await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', body: fd });
+  assert.equal(bad.status, 400);
+  const fd2 = new FormData();
+  fd2.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  const noGuest = await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', body: fd2 });
+  assert.equal(noGuest.status, 403);
+});
+
+test('limite por convidado bloqueia upload excedente', async () => {
+  const ev = await criar('Limite');
+  assert.equal((await foto(ev)).status, 201);
+  assert.equal((await foto(ev)).status, 201);
+  assert.equal((await foto(ev)).status, 409);
+});
+
+test('foto bloqueada antes da revelação e liberada depois; token do organizador acessa antes', async () => {
+  const ev = await criar('Bloqueio');
+  const up = await (await foto(ev)).json();
+  const id = up.id;
+  assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`)).status, 403);
+  assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`, { 'x-host-token': 'token-invalido' })).status, 403);
+  assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`, { 'x-host-token': ev.tk })).status, 200);
+  const p = await fetch(`${B}/api/events/${ev.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json', 'x-host-token': ev.tk }, body: JSON.stringify({ revealAt: new Date(Date.now() - 1000).toISOString() }) });
+  assert.equal(p.status, 200);
+  assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`)).status, 200);
+  const lista = await (await get(`/api/events/${ev.id}/photos`)).json();
+  assert.equal(lista.revelado, true);
+  assert.ok(lista.fotos[0].url);
+});
+
+test('upload após revelação é bloqueado', async () => {
+  const ev = await criarComReveal('Depois', passado());
+  assert.equal((await foto(ev)).status, 409);
+});
+
+test('token do organizador: inválido não acessa; master acessa todos', async () => {
+  const a = await criar('TokenOrg');
+  const b = await criar('TokenOrg2');
+  assert.equal((await get(`/api/events/${b.id}/host`, { 'x-host-token': a.tk })).status, 403);
+  assert.equal((await get(`/api/events/${b.id}/host`, { 'x-host-token': 'qualquer' })).status, 403);
+  assert.equal((await get(`/api/events/${b.id}/host`, { 'x-host-token': 'master-de-teste' })).status, 200);
+});
+
+test('ids inexistentes retornam 404', async () => {
+  assert.equal((await get('/api/events/naoexiste')).status, 404);
+  assert.equal((await get('/api/events/naoexiste/photos')).status, 404);
+  assert.equal((await get('/api/events/naoexiste/photos/x/file')).status, 404);
+  assert.equal((await get('/api/events/naoexiste/guests/y')).status, 404);
+  assert.equal((await post('/api/events/naoexiste/guests', { nome: 'X' })).status, 404);
+});
+
+test('master: token inválido não lista casamentos', async () => {
+  assert.equal((await get('/api/master/events', { 'x-master-token': 'errado' })).status, 403);
+  assert.equal((await get('/api/master/events', { 'x-master-token': 'master-de-teste' })).status, 200);
+});
