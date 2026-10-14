@@ -1,7 +1,8 @@
 # 001 — Persistência de produção
 
-- Status: **recomendada** (aguarda aceite do orquestrador)
+- Status: **aceita** pelo orquestrador em 2026-10-13 (SQLite como banco do MVP, item 3; Postgres + RLS mantido como item 12, pós-MVP imediato, com gatilho explícito, ver "Decisão")
 - Autor: Planejador · Data: 2026-10-13
+- Histórico: recomendada em 2026-10-13 → aceita em 2026-10-13 (sem alteração de mérito; só o gatilho do item 12 foi tornado explícito).
 - Cobre itens 3 e 12 do checklist do MVP.
 
 ## Contexto
@@ -43,11 +44,18 @@ Restrições:
 
 1. **Interface `Repo` (obrigatória, independe de banco).** Módulo `src/repo/index.js` expondo operações por intenção, não por tabela: `eventos.criar/obter/atualizar/excluir`, `convidados.*`, `fotos.*`, `lista.*`, `equipe.*`, `recados.*`, `push.*`, `avisos.*`, `auditoria.append/listar`, `config.*`. **Toda função de tenant recebe `eventoId` como primeiro argumento**; não existe `listarFotos()` sem evento. Rotas deixam de tocar em `db.events[...]`. Adaptadores: `repo-json` (código atual, para migrar sem big bang) e `repo-sqlite`.
 2. **Banco do MVP: SQLite** (opção A) com `tenant_id` (= `evento_id`) em todas as tabelas filhas, chaves estrangeiras `ON DELETE CASCADE` (exclusão de evento em cascata e auditada), migrações numeradas em `migrations/NNN_*.sql` com tabela `schema_migrations`, WAL ligado, `busy_timeout`. Fotos em `DATA_DIR/photos/<evento>/` num **volume persistente**, atrás de uma segunda interface `Blobs` (`put/get/delete/listar`), para trocar por objeto (S3-compatível) sem tocar rotas.
-3. **Item 12 (RLS) cumprido por gatilho, não por data.** O SQL das migrações é escrito já compatível com Postgres (tipos simples, sem recursos exclusivos do SQLite, `tenant_id` sempre presente e indexado). Migrar para Postgres com RLS quando ocorrer **qualquer um**: (a) segundo processo/instância da API, (b) mais de ~50 eventos ativos ou >20 GB de fotos, (c) exigência contratual/LGPD de isolamento comprovado em banco, (d) cliente nativo exigir escrita concorrente. Nesse momento: opção B (Postgres na VPS ou em instância própria) com fotos migradas para objeto; a opção C só se o orçamento mudar.
+3. **Item 12 (Postgres + RLS): permanece no checklist como pós-MVP imediato, com gatilho explícito.** O MVP (itens 1-11, 13, 14) fecha com SQLite; o item 12 **não é cortado nem rebaixado**, só sequenciado. O SQL das migrações é escrito já compatível com Postgres (tipos simples, nada exclusivo do SQLite, `tenant_id` sempre presente e indexado) para que a troca custe dias.
+   - **Gatilho de início (vale o que ocorrer primeiro):**
+     - **G0 (padrão, calendário):** `STATUS.md` final do MVP publicado (item 14) → o item 12 começa em seguida, sem nova decisão.
+     - **G1:** segundo processo/instância da API.
+     - **G2:** mais de 50 eventos ativos **ou** mais de 20 GB de fotos.
+     - **G3:** exigência contratual ou da LGPD de isolamento comprovado em banco, ou incidente de isolamento entre tenants.
+     - **G4:** cliente nativo (lojas) exigir escrita concorrente.
+   - **Aceite do item 12 (ajustado):** Postgres com `tenant_id` em todas as tabelas e políticas RLS testadas (um tenant nunca lê outro, nem com SQL direto); migração **do SQLite** para Postgres (a migração do JSON → SQLite pertence ao item 3); fotos em armazenamento de objetos; job de retenção sobre o novo adaptador. Opção B (Postgres na VPS) é o ponto de partida; C (Supabase) só se o orçamento mudar.
 4. **Isolamento testado em dois níveis desde já:** teste de API (token de A nunca lê B, já existe) e teste do Repo (propriedade: para qualquer função do Repo chamada com `eventoId` X, nenhuma linha com `tenant_id` ≠ X é retornada). Quando vier o Postgres, o mesmo teste roda com `SET app.tenant_id` e SQL direto.
 
 ### Por que não ir direto para Postgres (B)?
-O item 12 é literal, e a recomendação **o adia de propósito**: com 1 vCPU/2 GB compartilhados e R$ 100 de teto, operar Postgres agora troca risco operacional por um benefício (RLS) que só vale com SQL direto exposto, o que não ocorre numa API de processo único. A interface `Repo` + SQL portável faz a troca custar dias, não semanas. **Isto é um desvio consciente do aceite literal do item 12; o orquestrador deve confirmar ou mandar ir direto para B.** Se mandar B, o restante do plano de fase 2 não muda (a interface é a mesma); só o adaptador e o CI.
+Com 1 vCPU/2 GB compartilhados e R$ 100 de teto, operar Postgres antes do MVP trocaria risco operacional por um benefício (RLS) que só vale com SQL direto exposto, o que não ocorre numa API de processo único. O orquestrador **aceitou esse sequenciamento**: o item 3 usa SQLite; o item 12 vem logo depois, pelo gatilho G0. A interface `Repo` garante que a troca não reescreva rotas; se alguém mandar ir direto para B, o plano da fase 2 não muda (muda só o adaptador e o CI).
 
 ## Consequências
 

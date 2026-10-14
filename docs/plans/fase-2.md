@@ -2,7 +2,7 @@
 
 - Autor: Planejador · Data: 2026-10-13
 - Nota de nome: o prompt do orquestrador chama de "Fase 2" o empacotamento para lojas. Aqui **Fase 2 = execução paralela das frentes Forja-\*** (código do MVP). As lojas ficam em `docs/lojas.md`.
-- Base: decisões `001-persistencia`, `002-auth-organizador`, `003-auth-master` (recomendadas, aguardando aceite).
+- Base: `001-persistencia` (**aceita**: SQLite no MVP; item 12 Postgres+RLS pós-MVP imediato, gatilho G0 = STATUS final), `002-auth-organizador`, `003-auth-master` e `004-recados-visibilidade` (recomendadas, aguardando aceite).
 
 ## 1. O problema do `server.js` (701 linhas)
 
@@ -93,12 +93,13 @@ Detalhes que não podem ser esquecidos:
 
 | Onda | PRs | Condição para a próxima |
 |---|---|---|
-| 0 | `docs/planejamento` (este) | aceite das decisões 001–003 |
+| 0 | `docs/planejamento` (este) | aceite das decisões 002–004 (001 já aceita) |
 | 1 | Testes+CI+gitleaks (base) → **Split** | CI verde na main; suíte passa idêntica antes/depois |
 | 2 | Dados (interface+adaptador JSON → SQLite → migração/backup) **em paralelo com** Obs, Push, CSS, Painel, Deploy-infra | isolamento testado no Repo; sem uso direto de `db` |
 | 3 | Auth (sessão → link mágico → contas/convites) → Org; Master (depois da sessão do Auth); LGPD; Revela | auditoria do Planejador em cada um |
 | 4 | Testes cruzados + QA visual completo + Lighthouse + hardening | checklist 1–14 verificado com evidência |
 | 5 | Deploy produção (**após aprovação humana do plano e custo**) | STATUS.md final |
+| 6 | **Item 12**: Postgres + RLS (gatilho G0 da decisão 001, ou antes por G1–G4) | isolamento provado com SQL direto |
 
 Regras de merge: CI verde + QA cruzado + Planejador (quando "sim" na tabela); autor traz a `main` por **merge** (sem force-push); 3 correções por problema, na 4ª simplificar ou cortar; PRs que mudam fotos incluem teste do bloqueio antes da revelação (rota, listagem, ZIP, miniatura, cache).
 
