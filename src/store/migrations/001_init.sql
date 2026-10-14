@@ -1,5 +1,7 @@
 -- Migração 001: esquema inicial persistente (SQLite/Postgres compatível).
 -- tenant_id = id do evento em todas as tabelas filhas. FKs ON DELETE CASCADE.
+-- Triggers garantem cascade mesmo quando foreign_keys está desligado (CLI/backup).
+
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
@@ -8,7 +10,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 
 CREATE TABLE IF NOT EXISTS events (
   id TEXT PRIMARY KEY,
-  host_token TEXT NOT NULL,
+  host_token_hash TEXT NOT NULL,
   titulo TEXT NOT NULL,
   reveal_at TEXT NOT NULL,
   fotos_por_convidado INTEGER NOT NULL DEFAULT 20,
@@ -24,25 +26,6 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS guests (
-  id TEXT PRIMARY KEY,
-  tenant_id TEXT NOT NULL,
-  nome TEXT NOT NULL,
-  entrou_em TEXT NOT NULL,
-  lista_id TEXT,
-  FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS photos (
-  id TEXT PRIMARY KEY,
-  tenant_id TEXT NOT NULL,
-  guest_id TEXT NOT NULL,
-  autor TEXT NOT NULL,
-  ext TEXT NOT NULL,
-  criada_em TEXT NOT NULL,
-  FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS lista (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
@@ -54,12 +37,33 @@ CREATE TABLE IF NOT EXISTS lista (
   FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS guests (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  nome TEXT NOT NULL,
+  entrou_em TEXT NOT NULL,
+  lista_id TEXT,
+  FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE,
+  FOREIGN KEY (lista_id) REFERENCES lista(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS photos (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  guest_id TEXT NOT NULL,
+  autor TEXT NOT NULL,
+  ext TEXT NOT NULL,
+  criada_em TEXT NOT NULL,
+  FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE,
+  FOREIGN KEY (guest_id) REFERENCES guests(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS equipe (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
   nome TEXT NOT NULL,
   papel TEXT NOT NULL,
-  token TEXT NOT NULL,
+  token_hash TEXT NOT NULL,
   FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
@@ -70,7 +74,8 @@ CREATE TABLE IF NOT EXISTS recados (
   autor TEXT NOT NULL,
   texto TEXT NOT NULL,
   criado_em TEXT NOT NULL,
-  FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE
+  FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE,
+  FOREIGN KEY (guest_id) REFERENCES guests(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS push_subscriptions (
@@ -81,7 +86,8 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
   p256dh TEXT NOT NULL,
   auth TEXT NOT NULL,
   criado_em TEXT NOT NULL,
-  FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE
+  FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE,
+  FOREIGN KEY (guest_id) REFERENCES guests(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS avisos (
@@ -97,10 +103,31 @@ CREATE TABLE IF NOT EXISTS avisos (
   FOREIGN KEY (tenant_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
+CREATE INDEX IF NOT EXISTS idx_lista_tenant ON lista(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_guests_tenant ON guests(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_photos_tenant ON photos(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_lista_tenant ON lista(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_equipe_tenant ON equipe(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_recados_tenant ON recados(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_push_tenant ON push_subscriptions(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_avisos_tenant ON avisos(tenant_id);
+
+CREATE TRIGGER IF NOT EXISTS trg_cascade_events_lista BEFORE DELETE ON events
+BEGIN DELETE FROM lista WHERE tenant_id = OLD.id; END;
+
+CREATE TRIGGER IF NOT EXISTS trg_cascade_events_guests BEFORE DELETE ON events
+BEGIN DELETE FROM guests WHERE tenant_id = OLD.id; END;
+
+CREATE TRIGGER IF NOT EXISTS trg_cascade_events_photos BEFORE DELETE ON events
+BEGIN DELETE FROM photos WHERE tenant_id = OLD.id; END;
+
+CREATE TRIGGER IF NOT EXISTS trg_cascade_events_equipe BEFORE DELETE ON events
+BEGIN DELETE FROM equipe WHERE tenant_id = OLD.id; END;
+
+CREATE TRIGGER IF NOT EXISTS trg_cascade_events_recados BEFORE DELETE ON events
+BEGIN DELETE FROM recados WHERE tenant_id = OLD.id; END;
+
+CREATE TRIGGER IF NOT EXISTS trg_cascade_events_push BEFORE DELETE ON events
+BEGIN DELETE FROM push_subscriptions WHERE tenant_id = OLD.id; END;
+
+CREATE TRIGGER IF NOT EXISTS trg_cascade_events_avisos BEFORE DELETE ON events
+BEGIN DELETE FROM avisos WHERE tenant_id = OLD.id; END;
