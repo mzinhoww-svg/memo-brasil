@@ -134,40 +134,47 @@ class SqliteStore extends Store {
       }
       for (const ev of Object.values(this._data.events)) {
         normalizeEvent(ev);
-        // reset children
-        this.conn.prepare('DELETE FROM events WHERE id = ?').run(ev.id);
-        this.conn.prepare(`INSERT INTO events (id, host_token, titulo, reveal_at, fotos_por_convidado, data_evento, local, endereco, mensagem, contato, suspenso, config_json, limites_json, reveal_notified, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
-          ev.id, ev.hostToken, ev.titulo, ev.revealAt, ev.fotosPorConvidado,
-          ev.dataEvento || null, ev.local || '', ev.endereco || '', ev.mensagem || '', ev.contato || '',
-          ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0, ev.createdAt
-        );
-        for (const g of ev.guests || []) {
-          this.conn.prepare('INSERT INTO guests (id, tenant_id, nome, entrou_em, lista_id) VALUES (?,?,?,?,?)').run(g.id, ev.id, g.nome, g.entrouEm, g.listaId || null);
+        const existing = this.conn.prepare('SELECT 1 FROM events WHERE id = ?').get(ev.id);
+        if (existing) {
+          this.conn.prepare(`UPDATE events SET host_token=?, titulo=?, reveal_at=?, fotos_por_convidado=?, data_evento=?, local=?, endereco=?, mensagem=?, contato=?, suspenso=?, config_json=?, limites_json=?, reveal_notified=?, created_at=? WHERE id=?`).run(
+            ev.hostToken, ev.titulo, ev.revealAt, ev.fotosPorConvidado,
+            ev.dataEvento || null, ev.local || '', ev.endereco || '', ev.mensagem || '', ev.contato || '',
+            ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0, ev.createdAt, ev.id
+          );
+        } else {
+          this.conn.prepare(`INSERT INTO events (id, host_token, titulo, reveal_at, fotos_por_convidado, data_evento, local, endereco, mensagem, contato, suspenso, config_json, limites_json, reveal_notified, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+            ev.id, ev.hostToken, ev.titulo, ev.revealAt, ev.fotosPorConvidado,
+            ev.dataEvento || null, ev.local || '', ev.endereco || '', ev.mensagem || '', ev.contato || '',
+            ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0, ev.createdAt
+          );
         }
-        for (const p of ev.photos || []) {
-          this.conn.prepare('INSERT INTO photos (id, tenant_id, guest_id, autor, ext, criada_em) VALUES (?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.autor, p.ext, p.criadaEm);
-        }
-        for (const l of ev.lista || []) {
-          this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, acompanhantes, rsvp, origem) VALUES (?,?,?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao');
-        }
-        for (const e of ev.equipe || []) {
-          this.conn.prepare('INSERT INTO equipe (id, tenant_id, nome, papel, token) VALUES (?,?,?,?,?)').run(e.id, ev.id, e.nome, e.papel, e.token);
-        }
-        for (const r of ev.recados || []) {
-          this.conn.prepare('INSERT INTO recados (id, tenant_id, guest_id, autor, texto, criado_em) VALUES (?,?,?,?,?,?)').run(r.id, ev.id, r.guestId, r.autor, r.texto, r.criadoEm);
-        }
-        for (const p of ev.push || []) {
-          this.conn.prepare('INSERT INTO push_subscriptions (id, tenant_id, guest_id, endpoint, p256dh, auth, criado_em) VALUES (?,?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.sub.endpoint, p.sub.keys.p256dh, p.sub.keys.auth, p.criadoEm);
-        }
-        for (const a of ev.avisos || []) {
-          this.conn.prepare('INSERT INTO avisos (id, tenant_id, titulo, corpo, enviado_em, por, alvos, entregues, falhas) VALUES (?,?,?,?,?,?,?,?,?)').run(a.id, ev.id, a.titulo, a.corpo, a.enviadoEm, a.por || '', a.alvos || 0, a.entregues || 0, a.falhas || 0);
-        }
+        this._syncChildren(ev.id, 'guests', ev.guests || [], (g) => [g.id, ev.id, g.nome, g.entrouEm, g.listaId || null], ['id','tenant_id','nome','entrou_em','lista_id']);
+        this._syncChildren(ev.id, 'photos', ev.photos || [], (p) => [p.id, ev.id, p.guestId, p.autor, p.ext, p.criadaEm], ['id','tenant_id','guest_id','autor','ext','criada_em']);
+        this._syncChildren(ev.id, 'lista', ev.lista || [], (l) => [l.id, ev.id, l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao'], ['id','tenant_id','nome','grupo','acompanhantes','rsvp','origem']);
+        this._syncChildren(ev.id, 'equipe', ev.equipe || [], (e) => [e.id, ev.id, e.nome, e.papel, e.token], ['id','tenant_id','nome','papel','token']);
+        this._syncChildren(ev.id, 'recados', ev.recados || [], (r) => [r.id, ev.id, r.guestId, r.autor, r.texto, r.criadoEm], ['id','tenant_id','guest_id','autor','texto','criado_em']);
+        this._syncChildren(ev.id, 'push_subscriptions', ev.push || [], (p) => [p.id, ev.id, p.guestId, p.sub.endpoint, p.sub.keys.p256dh, p.sub.keys.auth, p.criadoEm], ['id','tenant_id','guest_id','endpoint','p256dh','auth','criado_em']);
+        this._syncChildren(ev.id, 'avisos', ev.avisos || [], (a) => [a.id, ev.id, a.titulo, a.corpo, a.enviadoEm, a.por || '', a.alvos || 0, a.entregues || 0, a.falhas || 0], ['id','tenant_id','titulo','corpo','enviado_em','por','alvos','entregues','falhas']);
       }
       this.conn.exec('COMMIT');
     } catch (e) {
       try { this.conn.exec('ROLLBACK'); } catch {}
       throw e;
     }
+  }
+
+  _syncChildren(tenantId, table, rows, valuesFn, columns) {
+    const ids = rows.map((r) => r.id);
+    if (ids.length) {
+      const placeholders = ids.map(() => '?').join(',');
+      this.conn.prepare(`DELETE FROM ${table} WHERE tenant_id = ? AND id NOT IN (${placeholders})`).run(tenantId, ...ids);
+    } else {
+      this.conn.prepare(`DELETE FROM ${table} WHERE tenant_id = ?`).run(tenantId);
+    }
+    const cols = columns.join(',');
+    const ph = columns.map(() => '?').join(',');
+    const stmt = this.conn.prepare(`INSERT OR REPLACE INTO ${table} (${cols}) VALUES (${ph})`);
+    for (const row of rows) stmt.run(...valuesFn(row));
   }
 
   run(sql, ...params) {

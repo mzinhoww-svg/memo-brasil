@@ -51,19 +51,20 @@ function emailHashCurto(s) { return crypto.createHash('sha256').update(normEmail
 
 function hashToken(raw) { return crypto.createHash('sha256').update(String(raw)).digest('hex'); }
 
-function scryptHash(plain) {
+async function scryptHash(plain) {
   const salt = crypto.randomBytes(16);
-  const hash = crypto.scryptSync(String(plain), salt, 64);
-  return `scrypt$${salt.toString('hex')}$${hash.toString('hex')}`;
+  const hash = await scryptAsync(String(plain), salt, 64, { N: 131072, r: 8, p: 1, maxmem: 256 * 1024 * 1024 });
+  return `scrypt$131072$8$1$${salt.toString('hex')}$${hash.toString('hex')}`;
 }
-function scryptVerify(plain, stored) {
+async function scryptVerify(plain, stored) {
   if (typeof stored !== 'string' || !stored.startsWith('scrypt$')) return false;
   const parts = stored.split('$');
-  if (parts.length !== 3) return false;
-  const salt = Buffer.from(parts[1], 'hex');
-  const expected = Buffer.from(parts[2], 'hex');
+  if (parts.length !== 6) return false;
+  const N = parseInt(parts[1], 10), r = parseInt(parts[2], 10), p = parseInt(parts[3], 10);
+  const salt = Buffer.from(parts[4], 'hex');
+  const expected = Buffer.from(parts[5], 'hex');
   let actual;
-  try { actual = crypto.scryptSync(String(plain), salt, expected.length); } catch { return false; }
+  try { actual = await scryptAsync(String(plain), salt, expected.length, { N, r, p, maxmem: 256 * 1024 * 1024 }); } catch { return false; }
   if (actual.length !== expected.length) return false;
   return crypto.timingSafeEqual(actual, expected);
 }
@@ -131,13 +132,13 @@ function otpauthUrl(secret, conta, emissor = 'Memo Brasil') {
 }
 
 // Recuperação: hashes scrypt de strings aleatórias
-function genRecoveryCodes(n = 10) {
+async function genRecoveryCodes(n = 10) {
   const codes = [];
   const hashes = [];
   for (let i = 0; i < n; i++) {
     const code = crypto.randomBytes(5).toString('hex').toUpperCase(); // 10 hex chars
     codes.push(code);
-    hashes.push(scryptHash(code));
+    hashes.push(await scryptHash(code));
   }
   return { codes, hashes };
 }
@@ -145,6 +146,7 @@ function genRecoveryCodes(n = 10) {
 // Rate limiter simples em memória
 const rl = new Map();
 function rateLimit(key, max, windowMs) {
+  pruneRateLimit(rl, windowMs * 2);
   const now = Date.now();
   const entry = rl.get(key);
   if (!entry || now > entry.resetAt) {
@@ -160,10 +162,12 @@ function rlKey(req, suffix) {
   return `${suffix}:${ip}`;
 }
 
-function clientIp(req) {
-  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || req.connection?.remoteAddress || '';
-}
+function clientIp(req) { return req.ip || req.connection?.remoteAddress || ''; }
 function ipHash(req) { return crypto.createHash('sha256').update(clientIp(req)).digest('hex').slice(0, 16); }
+function pruneRateLimit(map, maxAgeMs) {
+  const now = Date.now();
+  for (const [k, v] of map.entries()) { if (v.resetAt + maxAgeMs < now) map.delete(k); }
+}
 
 // Sessões
 function criarSessaoOrganizador(organizadorId, req) {
@@ -252,10 +256,12 @@ function auditDb(req, atorTipo, atorId, eventoId, acao, alvo, detalhe, resultado
   } catch (e) { console.error('audit db fail', e.message); }
 }
 
-// substitui audit original para também gravar DB
-const _auditFileOrig = audit;
+// Audit unificado: arquivo legível + banco encadeado (só inserção).
+const AUDIT_FILE = path.join(DATA_DIR, 'audit.log');
 function audit(req, acao, detalhe = {}) {
-  _auditFileOrig(req, acao, detalhe);
+  const quem = req.admin ? `${req.admin.papel}:${req.admin.nome}` : 'anon';
+  const linha = JSON.stringify({ t: new Date().toISOString(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
+  fs.appendFile(AUDIT_FILE, linha + '\n', () => {});
   const org = organizadorDaSessao(req);
   const m = masterDaSessao(req);
   let atorTipo = 'anon', atorId = null;
@@ -269,6 +275,7 @@ function audit(req, acao, detalhe = {}) {
 // Rate limit criação de eventos
 const rlCriacao = new Map();
 function rateLimitCriacao(req) {
+  pruneRateLimit(rlCriacao, 30 * 60 * 1000);
   const ip = clientIp(req);
   const now = Date.now();
   const janela = 15 * 60 * 1000;
@@ -281,6 +288,7 @@ function rateLimitCriacao(req) {
 }
 const rlLogin = new Map();
 function rateLimitLogin(key, max, windowMs) {
+  pruneRateLimit(rlLogin, windowMs * 2);
   const now = Date.now();
   let e = rlLogin.get(key);
   if (!e || now > e.resetAt) { e = { count: 0, resetAt: now + windowMs }; rlLogin.set(key, e); }
@@ -290,27 +298,6 @@ function rateLimitLogin(key, max, windowMs) {
 }
 
 // Bootstrap master se ambiente configurar
-function ensureMasterBootstrap() {
-  const email = process.env.MASTER_BOOTSTRAP_EMAIL || process.env.MASTER_EMAIL;
-  const nome = process.env.MASTER_BOOTSTRAP_NOME || process.env.MASTER_NOME || 'Admin master';
-  const senha = process.env.MASTER_BOOTSTRAP_SENHA || process.env.MASTER_PASSWORD || process.env.MASTER_PASSWORD_BOOTSTRAP;
-  if (!email || !senha) return;
-  const norm = normEmail(email);
-  let m = store.get(`SELECT id FROM master_accounts WHERE email_norm = ?`, norm);
-  if (m) return;
-  const secret = process.env.MASTER_BOOTSTRAP_TOTP_SECRET || process.env.MASTER_TOTP_SECRET || totpSecretNew();
-  const { hashes } = genRecoveryCodes(10);
-  const id = newId(8);
-  store.run(`INSERT INTO master_accounts (id,email,email_norm,nome,senha_hash,totp_secret,totp_ultimo_passo,recuperacao_hashes,ativo,criado_em,falhas) VALUES (?,?,?,?,?,?,?,?,?,?,0)`,
-    id, email, norm, nome, scryptHash(senha), cipherSecret(secret), 0, JSON.stringify(hashes), 1, new Date().toISOString());
-  console.log(`Master bootstrap criado: ${email}`);
-  if (!process.env.MASTER_BOOTSTRAP_TOTP_SECRET && !process.env.MASTER_TOTP_SECRET) {
-    console.log(`TOTP secret (guarde): ${secret}`);
-    console.log(`otpauth: ${otpauthUrl(secret, email)}`);
-  }
-}
-ensureMasterBootstrap();
-
 // Segredo cifrado em repouso (opcional, se MASTER_TOTP_KEY)
 function cipherSecret(s) {
   if (!process.env.MASTER_TOTP_KEY) return s;
@@ -335,6 +322,30 @@ function decipherSecret(s) {
     return decipher.update(parts[3], 'base64', 'utf8') + decipher.final('utf8');
   } catch { return s; }
 }
+
+async function ensureMasterBootstrap() {
+  const email = process.env.MASTER_BOOTSTRAP_EMAIL || process.env.MASTER_EMAIL;
+  const nome = process.env.MASTER_BOOTSTRAP_NOME || process.env.MASTER_NOME || 'Admin master';
+  const senha = process.env.MASTER_BOOTSTRAP_SENHA || process.env.MASTER_PASSWORD || process.env.MASTER_PASSWORD_BOOTSTRAP;
+  if (!email || !senha) return;
+  const erro = validarSenhaForte(senha);
+  if (erro) { console.error('Bootstrap master:', erro); process.exit(1); }
+  const norm = normEmail(email);
+  let m = store.get(`SELECT id FROM master_accounts WHERE email_norm = ?`, norm);
+  if (m) return;
+  const secret = process.env.MASTER_BOOTSTRAP_TOTP_SECRET || process.env.MASTER_TOTP_SECRET || totpSecretNew();
+  const { hashes } = await genRecoveryCodes(10);
+  const id = newId(8);
+  store.run(`INSERT INTO master_accounts (id,email,email_norm,nome,senha_hash,totp_secret,totp_ultimo_passo,recuperacao_hashes,ativo,criado_em,falhas) VALUES (?,?,?,?,?,?,?,?,?,?,0)`,
+    id, email, norm, nome, await scryptHash(senha), cipherSecret(secret), 0, JSON.stringify(hashes), 1, new Date().toISOString());
+  console.log(`Master bootstrap criado: ${email}`);
+  if (isProd) return;
+  if (!process.env.MASTER_BOOTSTRAP_TOTP_SECRET && !process.env.MASTER_TOTP_SECRET) {
+    console.log(`TOTP secret (guarde): ${secret}`);
+    console.log(`otpauth: ${otpauthUrl(secret, email)}`);
+  }
+}
+
 // Variáveis da plataforma, editáveis pelo admin master.
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const DEFAULTS = {
@@ -359,13 +370,6 @@ try { vapid = JSON.parse(fs.readFileSync(VAPID_FILE, 'utf8')); } catch {
 }
 webpush.setVapidDetails(process.env.VAPID_CONTACT || 'mailto:contato@memobrasil.app', vapid.publicKey, vapid.privateKey);
 
-// Auditoria: só inserção.
-const AUDIT_FILE = path.join(DATA_DIR, 'audit.log');
-function audit(req, acao, detalhe = {}) {
-  const quem = req.admin ? `${req.admin.papel}:${req.admin.nome}` : 'anon';
-  const linha = JSON.stringify({ t: new Date().toISOString(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
-  fs.appendFile(AUDIT_FILE, linha + '\n', () => {});
-}
 const revealedAtBoot = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
 // Admin master: administra todos os casamentos (tenants). Token por ambiente ou gerado no primeiro uso.
 const MASTER_FILE = path.join(DATA_DIR, 'master.token');
@@ -405,6 +409,9 @@ function baseUrl(req) {
   if (/^(localhost|127\.0\.0\.1)(:|$)/.test(host) && lanIp()) return `http://${lanIp()}:${PORT}`;
   return `${req.protocol}://${host}`;
 }
+
+const util = require('util');
+const scryptAsync = util.promisify(crypto.scrypt);
 
 const app = express();
 app.set('trust proxy', 1);
@@ -448,12 +455,15 @@ function adminOnly(req, res, next) {
       return next();
     }
   }
-  // Token estático legado (compatibilidade de transição).
-  if (isMaster(token)) req.admin = { papel: 'master', nome: 'Admin master', dono: true, master: true };
-  else if (token && token === ev.hostToken) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
+  // Tokens legados do evento (hostToken / equipe) ainda funcionam para o painel local.
+  if (token && token === ev.hostToken) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
   else if (token) {
     const m = ev.equipe.find((e) => e.token === token);
     if (m) req.admin = { papel: m.papel, nome: m.nome, id: m.id };
+  }
+  // Transição: token master estático só vale se ainda não existe conta master.
+  if (!req.admin && isMaster(token) && (store.get(`SELECT COUNT(*) AS c FROM master_accounts`).c || 0) === 0) {
+    req.admin = { papel: 'master', nome: 'Admin master (legado)', dono: true, master: true };
   }
   if (!req.admin) return res.status(403).json({ erro: 'Acesso restrito à organização do casamento.' });
   next();
@@ -524,16 +534,14 @@ app.post('/api/events', (req, res) => {
 
 // ───── Autenticação organizador (magic link + sessão cookie)
 function magicLinkEnviar(email, tokenRaw, baseUrlStr) {
+  if (isProd) return; // nunca imprime link em produção
   const link = `${baseUrlStr}/api/auth/entrar?t=${encodeURIComponent(tokenRaw)}`;
-  // adaptador de e-mail plugável: modo dev imprime só o link no log local.
   const provider = process.env.EMAIL_PROVIDER || 'console';
   if (provider === 'console' || !process.env.EMAIL_API_KEY) {
-    console.log(`[email:dev] magic link para ${email}: ${link}`);
+    console.log(`[email:dev] magic link para ${emailHashCurto(email)}: ${link}`);
     try { fs.appendFileSync(path.join(DATA_DIR, 'auth.log'), `${new Date().toISOString()} ${emailHashCurto(email)} ${link}\n`); } catch {}
     return;
   }
-  // provedores reais (Brevo/SendGrid/etc.) plugáveis futuramente.
-  console.log(`[email:${provider}] (não implementado, imprimir link) ${link}`);
 }
 function magicTokenNovo(emailNorm, tipo, orgId, eventId, papel, expiraMs) {
   const raw = crypto.randomBytes(32).toString('base64url');
@@ -551,57 +559,47 @@ function consumirMagicToken(raw) {
   if (row.cancelado) return null;
   if (row.usado_em) return { reusado: true, row };
   if (Date.now() >= new Date(row.expira_em).getTime()) return { expirado: true, row };
-  // marcar usado
-  store.run(`UPDATE magic_tokens SET usado_em = ? WHERE token_hash = ?`, new Date().toISOString(), h);
+  const agora = new Date().toISOString();
+  const result = store.run(`UPDATE magic_tokens SET usado_em = ? WHERE token_hash = ? AND usado_em IS NULL`, agora, h);
+  if (!result.changes) return { reusado: true, row };
   return { ok: true, row };
 }
 
 async function handleLinkRequest(req, res) {
+  // Só POST JSON; rota pública nunca aceita eventoId/papel (evita escalada).
+  if (req.method !== 'POST') return res.status(405).json({ erro: 'Método não permitido.' });
   const rlim = rateLimit(rlKey(req, 'magiclink'), 10, 60 * 60 * 1000);
   if (!rlim.ok) {
     res.set('Retry-After', Math.ceil((rlim.resetAt - Date.now()) / 1000));
     return res.status(429).json({ erro: 'Muitas solicitações. Tente mais tarde.' });
   }
-  const email = normEmail(req.body?.email || req.query?.email);
+  const email = normEmail(req.body?.email);
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    // mesma resposta para não enumerar
     return res.status(202).json({ ok: true, mensagem: 'Se o e-mail for válido, enviamos um link de acesso.' });
   }
   const emailN = normEmail(email);
-  let org = store.get(`SELECT * FROM organizadores WHERE email_norm = ?`, emailN);
-  if (!org) {
-    const id = newId(8);
-    store.run(`INSERT INTO organizadores (id,email,email_norm,criado_em,consentimento_em,consentimento_versao) VALUES (?,?,?,?,?,?)`,
-      id, email, emailN, new Date().toISOString(), new Date().toISOString(), '1');
-    org = store.get(`SELECT * FROM organizadores WHERE id = ?`, id);
-  }
-  // rate limit por e-mail
+  // rate limit por e-mail (silencioso)
   const rl2 = rateLimit(`magiclink:email:${emailN}`, 5, 60 * 60 * 1000);
   if (!rl2.ok) {
     return res.status(202).json({ ok: true, mensagem: 'Se o e-mail for válido, enviamos um link de acesso.' });
   }
-  const tokenRaw = magicTokenNovo(emailN, 'login', org.id, req.body?.eventoId || null, req.body?.papel || null, MAGIC_TTL_MS);
+  // Não cria organizador nem vínculo aqui; isso só ocorre no consumo.
+  const tokenRaw = magicTokenNovo(emailN, 'login', null, null, null, MAGIC_TTL_MS);
   magicLinkEnviar(email, tokenRaw, baseUrl(req));
-  // não revela existência
   return res.status(202).json({ ok: true, mensagem: 'Se o e-mail for válido, enviamos um link de acesso.' });
 }
-const authLinkHandler = (req, res) => handleLinkRequest(req, res);
-app.post('/api/auth/link', authLinkHandler);
-app.post('/api/auth/magic-link', authLinkHandler);
-app.post('/api/auth/request-link', authLinkHandler);
+app.post('/api/auth/link', handleLinkRequest);
+
+const htmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Página intermediária com botão (POST) para evitar pré-fetch por scanner.
 app.get('/api/auth/entrar', (req, res) => {
   const t = req.query.t || '';
-  res.type('html').send(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Entrar — Memo Brasil</title>
+  res.set('Referrer-Policy', 'no-referrer').type('html').send(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Entrar — Memo Brasil</title>
   <style>body{font-family:system-ui,-apple-system,sans-serif;display:grid;place-items:center;height:100vh;margin:0;background:#f7f5f2;color:#1a1a1a}form{background:#fff;padding:2rem;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center;max-width:360px}button{margin-top:1rem;padding:.8rem 1.6rem;border:0;border-radius:10px;background:#1a1a1a;color:#fff;font-size:1rem;cursor:pointer}</style>
-  </head><body><form method="POST" action="/api/auth/entrar"><input type="hidden" name="token" value="${String(t).replace(/"/g, '&quot;')}">
+  </head><body><form method="POST" action="/api/auth/entrar"><input type="hidden" name="token" value="${htmlEsc(t)}">
   <h1>Entrar no Memo</h1><p>Clique para confirmar seu acesso.</p><button type="submit">Entrar</button></form></body></html>`);
 });
-// Alias de consumo
-app.get('/api/auth/verify', (req, res) => res.redirect(302, `/api/auth/entrar?t=${encodeURIComponent(req.query.t || '')}`));
-app.get('/api/auth/callback', (req, res) => res.redirect(302, `/api/auth/entrar?t=${encodeURIComponent(req.query.t || '')}`));
-
 async function handleEntrarConsumo(req, res) {
   const token = req.body?.token || req.body?.t || req.query?.token || req.query?.t;
   const r = consumirMagicToken(token);
@@ -633,9 +631,6 @@ async function handleEntrarConsumo(req, res) {
   return res.json({ ok: true, organizador: { id: org.id, email: org.email } });
 }
 app.post('/api/auth/entrar', (req, res) => handleEntrarConsumo(req, res));
-app.post('/api/auth/consume', (req, res) => handleEntrarConsumo(req, res));
-app.post('/api/auth/verify', (req, res) => handleEntrarConsumo(req, res));
-app.post('/api/auth/callback', (req, res) => handleEntrarConsumo(req, res));
 
 // ───── Organização
 app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
@@ -905,7 +900,10 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
 // O arquivo só sai depois da revelação — exceto para a organização (moderação).
 app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
   const token = req.get('x-host-token') || req.query.token;
-  const org = isMaster(token) || (token && (token === req.ev.hostToken || req.ev.equipe.some((m) => m.token === token)));
+  const masterSession = masterDaSessao(req);
+  const masterCount = (store.get(`SELECT COUNT(*) AS c FROM master_accounts`).c || 0);
+  const staticMaster = isMaster(token) && masterCount === 0;
+  const org = masterSession || staticMaster || (token && (token === req.ev.hostToken || req.ev.equipe.some((m) => m.token === token)));
   if (!revealed(req.ev) && !org) return res.status(403).json({ erro: 'Esta foto ainda não foi revelada.' });
   const p = req.ev.photos.find((x) => x.id === req.params.pid);
   if (!p) return res.status(404).end();
@@ -1096,8 +1094,6 @@ function handleSair(req, res) {
   res.json({ ok: true });
 }
 app.post('/api/auth/sair', handleSair);
-app.post('/api/auth/logout', handleSair);
-app.post('/api/auth/signout', handleSair);
 app.get('/api/auth/me', (req, res) => {
   const org = organizadorDaSessao(req);
   if (!org) return res.status(401).json({ erro: 'Não autenticado.' });
@@ -1112,19 +1108,9 @@ function validarSenhaForte(s) {
   if (COMMON_PASSWORDS.has(p.toLowerCase())) return 'Senha muito comum. Escolha outra.';
   return null;
 }
-function setMasterBlocked(m) {
-  const falhas = (m.falhas || 0) + 1;
-  let bloqueadoAte = null;
-  let espera = 0;
-  if (falhas >= 5) espera = Math.min(15, Math.pow(2, falhas - 4)) * 60 * 1000; // cresc.
-  if (espera > 0) bloqueadoAte = new Date(Date.now() + espera).toISOString();
-  store.run(`UPDATE master_accounts SET falhas = ?, bloqueado_ate = ? WHERE id = ?`, falhas, bloqueadoAte, m.id);
-  return { falhas, bloqueadoAte };
-}
-
-function handleMasterLogin(req, res) {
+async function handleMasterLogin(req, res) {
   const key = `masterlogin:${clientIp(req)}`;
-  const rl = rateLimitLogin(key, 20, 15 * 60 * 1000);
+  const rl = rateLimitLogin(key, 10, 15 * 60 * 1000);
   if (!rl.ok) {
     res.set('Retry-After', Math.ceil((rl.resetAt - Date.now()) / 1000));
     return res.status(429).json({ erro: 'Muitas tentativas. Tente mais tarde.' });
@@ -1136,26 +1122,21 @@ function handleMasterLogin(req, res) {
   if (!email || !senha) return res.status(400).json({ erro: 'Informe e-mail e senha.' });
   const m = store.get(`SELECT * FROM master_accounts WHERE email_norm = ?`, email);
   if (!m || !m.ativo) {
-    // resposta genérica
     return res.status(401).json({ erro: 'Credenciais inválidas.' });
   }
-  if (m.bloqueado_ate && Date.now() < new Date(m.bloqueado_ate).getTime()) {
-    return res.status(429).json({ erro: 'Conta temporariamente bloqueada. Tente mais tarde.' });
-  }
-  if (!scryptVerify(senha, m.senha_hash)) {
-    setMasterBlocked(m);
+  if (!await scryptVerify(senha, m.senha_hash)) {
+    store.run(`UPDATE master_accounts SET falhas = falhas + 1 WHERE id = ?`, m.id);
     auditDb(req, 'master', m.id, null, 'login.falha', m.id, { motivo: 'senha' }, 'falha');
     return res.status(401).json({ erro: 'Credenciais inválidas.' });
   }
   const secret = base32Decode(decipherSecret(m.totp_secret));
   let totpOk = false;
   let newLastStep = m.totp_ultimo_passo;
-  // recovery code path
   if (!code && recovery) {
     let hashes = [];
     try { hashes = JSON.parse(m.recuperacao_hashes || '[]'); } catch {}
     for (let i = 0; i < hashes.length; i++) {
-      if (scryptVerify(recovery, hashes[i])) {
+      if (await scryptVerify(recovery, hashes[i])) {
         totpOk = true;
         hashes.splice(i, 1);
         store.run(`UPDATE master_accounts SET recuperacao_hashes = ?, totp_ultimo_passo = ? WHERE id = ?`, JSON.stringify(hashes), m.totp_ultimo_passo, m.id);
@@ -1167,19 +1148,17 @@ function handleMasterLogin(req, res) {
     if (v.ok) { totpOk = true; newLastStep = v.step; }
   }
   if (!totpOk) {
-    setMasterBlocked(m);
+    store.run(`UPDATE master_accounts SET falhas = falhas + 1 WHERE id = ?`, m.id);
     auditDb(req, 'master', m.id, null, 'login.falha', m.id, { motivo: 'totp' }, 'falha');
     return res.status(401).json({ erro: 'Código 2FA inválido.' });
   }
-  store.run(`UPDATE master_accounts SET falhas = 0, bloqueado_ate = NULL, totp_ultimo_passo = ? WHERE id = ?`, newLastStep, m.id);
+  store.run(`UPDATE master_accounts SET falhas = 0, totp_ultimo_passo = ? WHERE id = ?`, newLastStep, m.id);
   const raw = criarSessaoMaster(m.id, req);
   setCookie(res, MASTER_COOKIE, raw, MASTER_SESSION_TTL_MS, true);
   auditDb(req, 'master', m.id, null, 'login.ok', m.id, {}, 'ok');
   res.json({ ok: true, master: { id: m.id, email: m.email, nome: m.nome } });
 }
 app.post('/api/master/login', handleMasterLogin);
-app.post('/api/master/auth/login', handleMasterLogin);
-app.post('/api/auth/master/login', handleMasterLogin);
 
 function handleMasterLogout(req, res) {
   const cookies = parseCookies(req);
@@ -1188,9 +1167,7 @@ function handleMasterLogout(req, res) {
   clearCookie(res, MASTER_COOKIE);
   res.json({ ok: true });
 }
-app.post('/api/master/logout', handleMasterLogout);
 app.post('/api/master/sair', handleMasterLogout);
-app.post('/api/master/signout', handleMasterLogout);
 
 app.get('/api/master/me', (req, res) => {
   const m = masterDaSessao(req);
@@ -1266,7 +1243,7 @@ app.get('/master', page('master.html'));
 app.get('/sw.js', (req, res) => res.set('Service-Worker-Allowed', '/').type('application/javascript').sendFile(path.join(__dirname, 'public', 'sw.js')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-function criarMasterConta({ email, nome, senha, totpSecret } = {}) {
+async function criarMasterConta({ email, nome, senha, totpSecret } = {}) {
   const erro = validarSenhaForte(senha);
   if (erro) throw new Error(erro);
   const emailN = normEmail(email);
@@ -1275,24 +1252,32 @@ function criarMasterConta({ email, nome, senha, totpSecret } = {}) {
   if (existente) throw new Error('já existe master com esse e-mail');
   const secret = totpSecret || totpSecretNew();
   const secretArmazenado = cipherSecret(secret);
-  const { codes, hashes } = genRecoveryCodes(10);
+  const { codes, hashes } = await genRecoveryCodes(10);
   const id = newId(8);
   store.run(`INSERT INTO master_accounts (id,email,email_norm,nome,senha_hash,totp_secret,totp_ultimo_passo,recuperacao_hashes,ativo,criado_em,falhas) VALUES (?,?,?,?,?,?,?,?,?,?,0)`,
-    id, email, emailN, nome || 'Admin master', scryptHash(senha), secretArmazenado, 0, JSON.stringify(hashes), 1, new Date().toISOString());
+    id, email, emailN, nome || 'Admin master', await scryptHash(senha), secretArmazenado, 0, JSON.stringify(hashes), 1, new Date().toISOString());
   return { id, email, nome: nome || 'Admin master', totpSecret: secret, recoveryCodes: codes, otpauth: otpauthUrl(secret, email) };
 }
 app.criarMaster = criarMasterConta;
 module.exports.criarMaster = criarMasterConta;
 
 if (require.main === module) {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Memo Brasil em http://localhost:${PORT}`);
-    console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
-    console.log(`Admin master: http://localhost:${PORT}/master`);
-    if (lanIp()) console.log(`Na mesma rede Wi-Fi (celular): http://${lanIp()}:${PORT}`);
-  });
+  (async () => {
+    if (isProd) {
+      if (!process.env.MASTER_TOTP_KEY) { console.error('Produção exige MASTER_TOTP_KEY'); process.exit(1); }
+      if (!process.env.EMAIL_PROVIDER || !process.env.EMAIL_API_KEY) { console.error('Produção exige provedor de e-mail configurado'); process.exit(1); }
+    }
+    await ensureMasterBootstrap();
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Memo Brasil em http://localhost:${PORT}`);
+      console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
+      console.log(`Admin master: http://localhost:${PORT}/master`);
+      if (lanIp()) console.log(`Na mesma rede Wi-Fi (celular): http://${lanIp()}:${PORT}`);
+    });
+  })();
 }
 app.store = store;
 module.exports = app;
 module.exports.store = store;
 module.exports.criarMaster = criarMasterConta;
+module.exports.clearRateLimits = () => { rl.clear(); rlCriacao.clear(); rlLogin.clear(); };
