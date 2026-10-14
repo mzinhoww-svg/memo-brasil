@@ -3,6 +3,12 @@
 
 Serve http://127.0.0.1:3300 (ou PAINEL_PORT) com visao geral do checklist,
 PRs, agentes, testes, gasto e bloqueios. Atualiza a cada 10s.
+
+Correcoes do QA:
+- Host header validado (127.0.0.1 ou localhost + PORTA).
+- Testes rodam por agendador interno, nao por requisicao.
+- Nao expoe caminhos locais (apenas branches e nomes de agentes).
+- Coleta de testes nao trava a thread de requisicoes.
 """
 import html as H
 import json
@@ -18,8 +24,21 @@ PORT = int(os.environ.get("PAINEL_PORT", "3300"))
 ROOT = Path(__file__).resolve().parent.parent
 CHECKLIST_PATH = ROOT / "docs" / "mvp-checklist.json"
 
-_lock = threading.Lock()
-_cache = {"state": None, "ts": 0.0, "tests": None, "tests_ts": 0.0}
+# DNS rebinding: so respondemos a estes hosts.
+ALLOWED_HOSTS = {f"127.0.0.1:{PORT}", f"localhost:{PORT}"}
+
+# Lock para cache de estado HTTP.
+_state_lock = threading.Lock()
+_state_cache = {"value": None, "ts": 0.0}
+
+# Testes rodam em thread propria para nao bloquear requisicoes.
+_tests_lock = threading.Lock()
+_tests_cache = {
+    "value": {"rc": None, "tests": None, "pass": None, "fail": None, "tail": ""},
+    "ts": 0.0,
+}
+_test_stop = threading.Event()
+TEST_INTERVAL = 15
 
 
 def _run(cmd, timeout=30, cwd=ROOT):
@@ -32,31 +51,50 @@ def _run(cmd, timeout=30, cwd=ROOT):
 
 def _pct_status(status):
     s = (status or "").strip().lower()
-    if s in ("concluido", "concluído", "done", "ok", "concluída"):
+    if s in ("concluido", "concluído", "done", "ok", "concluida", "concluída"):
         return 100
     if s in ("em_andamento", "em andamento", "in_progress", "andamento"):
         return 50
     return 0
 
 
+def _run_npm_test():
+    rc, out, err = _run(["npm", "test"], timeout=90)
+    combined = out + "\n" + err
+
+    def grab(key):
+        m = re.search(re.escape(key) + r"\s+(\d+)", combined, re.I)
+        return int(m.group(1)) if m else None
+
+    return {
+        "rc": rc,
+        "tests": grab("tests"),
+        "pass": grab("pass"),
+        "fail": grab("fail"),
+        "tail": combined[-700:],
+    }
+
+
+def _test_loop():
+    """Executa npm test periodicamente em thread daemon."""
+    while not _test_stop.is_set():
+        start = time.time()
+        result = _run_npm_test()
+        with _tests_lock:
+            _tests_cache["value"] = result
+            _tests_cache["ts"] = time.time()
+        elapsed = time.time() - start
+        _test_stop.wait(max(0.0, TEST_INTERVAL - elapsed))
+
+
+def start_test_runner():
+    t = threading.Thread(target=_test_loop, daemon=True)
+    t.start()
+
+
 def get_tests():
-    with _lock:
-        now = time.time()
-        if _cache["tests"] is None or now - _cache["tests_ts"] > 15:
-            rc, out, err = _run(["npm", "test"], timeout=90)
-            combined = out + "\n" + err
-            def grab(key):
-                m = re.search(re.escape(key) + r"\s+(\d+)", combined, re.I)
-                return int(m.group(1)) if m else None
-            _cache["tests"] = {
-                "rc": rc,
-                "tests": grab("tests"),
-                "pass": grab("pass"),
-                "fail": grab("fail"),
-                "tail": combined[-700:],
-            }
-            _cache["tests_ts"] = now
-        return _cache["tests"]
+    with _tests_lock:
+        return dict(_tests_cache["value"])
 
 
 def get_checklist():
@@ -95,29 +133,27 @@ def get_prs():
     return prs
 
 
-def get_worktrees():
+def get_worktree_branches():
+    """Retorna apenas os nomes das branches dos worktrees (sem caminhos)."""
     rc, out, _ = _run(["git", "worktree", "list", "--porcelain"])
-    trees = []
-    current = {}
+    branches = []
     for line in (out or "").splitlines():
-        if line.startswith("worktree "):
-            if current:
-                trees.append(current)
-            current = {"path": line[len("worktree "):]}
-        elif line.startswith("branch "):
-            current["branch"] = line[len("branch "):].replace("refs/heads/", "")
-        elif line == "":
-            if current:
-                trees.append(current)
-                current = {}
-    if current:
-        trees.append(current)
-    return trees
+        if line.startswith("branch "):
+            branch = line[len("branch "):].replace("refs/heads/", "")
+            if branch:
+                branches.append(branch)
+    return branches
 
 
-def get_maestri():
+def get_agentes():
+    """Extrai nome e papel dos agentes Maestri (sem caminhos locais)."""
     rc, out, _ = _run(["maestri", "list"], timeout=15)
-    return out or ("" if rc == 0 else "")
+    agentes = []
+    for line in (out or "").splitlines():
+        m = re.search(r'- name:\s*"([^"]+)"(?:.*role:\s*"([^"]+)")?', line)
+        if m:
+            agentes.append({"nome": m.group(1), "role": m.group(2) or ""})
+    return agentes
 
 
 def get_issues():
@@ -147,10 +183,10 @@ def read_status_blockers():
 
 
 def collect_state():
-    with _lock:
+    with _state_lock:
         now = time.time()
-        if _cache["state"] is not None and now - _cache["ts"] < 5:
-            return _cache["state"]
+        if _state_cache["value"] is not None and now - _state_cache["ts"] < 5:
+            return _state_cache["value"]
     checklist = get_checklist()
     total = len(checklist)
     done = sum(1 for it in checklist if _pct_status(it.get("status")) == 100)
@@ -166,17 +202,16 @@ def collect_state():
         "pendentes": pending,
         "percentual_geral": geral,
         "prs": get_prs(),
-        "worktrees": get_worktrees(),
-        "maestri": get_maestri(),
+        "worktrees": get_worktree_branches(),
+        "agentes": get_agentes(),
         "testes": get_tests(),
         "gasto_reais": os.environ.get("GASTO_REAIS", "0,00"),
         "teto_reais": os.environ.get("TETO_REAIS", "100,00"),
         "bloqueios": read_status_blockers(),
-        "repo": str(ROOT),
     }
-    with _lock:
-        _cache["state"] = state
-        _cache["ts"] = time.time()
+    with _state_lock:
+        _state_cache["value"] = state
+        _state_cache["ts"] = time.time()
     return state
 
 
@@ -189,7 +224,6 @@ PAGE = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="10">
 <title>Painel MVP — Memo Brasil</title>
 <style>
 *{box-sizing:border-box}
@@ -254,8 +288,8 @@ a:hover{text-decoration:underline}
     <div class="card col4">
       <div class="label">Agentes / worktrees</div>
       <div id="worktrees"></div>
-      <div class="label" style="margin-top:12px">Maestri</div>
-      <div class="pre" id="maestri"></div>
+      <div class="label" style="margin-top:12px">Agentes Maestri</div>
+      <div id="agentes"></div>
     </div>
 
     <div class="card col6">
@@ -274,16 +308,22 @@ a:hover{text-decoration:underline}
   </div>
 </div>
 <script>
+function pctFromStatus(s){
+  s=(s||'').toLowerCase();
+  if(s.indexOf('conclu')>=0) return 100;
+  if(s.indexOf('andamento')>=0) return 50;
+  return 0;
+}
 function statusClass(s){
   s=(s||'').toLowerCase();
-  if(s==='concluido'||s==='concluído') return 'done';
-  if(s==='em_andamento'||s==='em andamento') return 'doing';
+  if(s.indexOf('conclu')>=0) return 'done';
+  if(s.indexOf('andamento')>=0) return 'doing';
   return 'pend';
 }
 function statusLabel(s){
   s=(s||'').toLowerCase();
-  if(s==='concluido'||s==='concluído') return 'Concluído';
-  if(s==='em_andamento'||s==='em andamento') return 'Em andamento';
+  if(s.indexOf('conclu')>=0) return 'Concluido';
+  if(s.indexOf('andamento')>=0) return 'Em andamento';
   return 'Pendente';
 }
 async function refresh(){
@@ -308,8 +348,7 @@ async function refresh(){
     const cl=document.getElementById('checklist');
     cl.innerHTML='';
     (d.checklist||[]).forEach(function(it){
-      const pct = it.status && (it.status.toLowerCase()==='concluido'||it.status.toLowerCase()==='concluído')?100:
-                  (it.status && it.status.toLowerCase().indexOf('andamento')>=0?50:0);
+      const pct = pctFromStatus(it.status);
       const row=document.createElement('div');
       row.className='row';
       row.innerHTML='<div style="flex:1"><strong>'+esc(it.id)+'</strong> · '+esc(it.titulo)+ (it.evidencia? ' <span class="muted">('+esc(it.evidencia)+')</span>':'') +'</div>'+
@@ -320,14 +359,23 @@ async function refresh(){
 
     const wt=document.getElementById('worktrees');
     wt.innerHTML='';
-    (d.worktrees||[]).forEach(function(w){
+    (d.worktrees||[]).forEach(function(branch){
       const p=document.createElement('div');
       p.className='row';
-      p.innerHTML='<div class="mono">'+esc(w.path)+'</div><div class="muted">'+esc(w.branch||'')+'</div>';
+      p.innerHTML='<div class="mono">'+esc(branch)+'</div>';
       wt.appendChild(p);
     });
     if(!(d.worktrees||[]).length){ wt.innerHTML='<div class="muted">sem worktrees listados</div>'; }
-    document.getElementById('maestri').textContent=d.maestri||'(indisponivel)';
+
+    const ag=document.getElementById('agentes');
+    ag.innerHTML='';
+    (d.agentes||[]).forEach(function(a){
+      const p=document.createElement('div');
+      p.className='row';
+      p.innerHTML='<div style="flex:1">'+esc(a.nome)+'</div><div class="muted">'+esc(a.role)+'</div>';
+      ag.appendChild(p);
+    });
+    if(!(d.agentes||[]).length){ ag.innerHTML='<div class="muted">nenhum agente conectado</div>'; }
 
     const prs=document.getElementById('prs');
     prs.innerHTML='';
@@ -363,7 +411,20 @@ setInterval(refresh,10000);
 
 
 class Handler(BaseHTTPRequestHandler):
+    def _host_ok(self):
+        host = self.headers.get("Host", "")
+        return host in ALLOWED_HOSTS
+
+    def _send_403(self):
+        self.send_response(403)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(b"Host nao autorizado")
+
     def do_GET(self):
+        if not self._host_ok():
+            self._send_403()
+            return
         if self.path == "/" or self.path.startswith("/?"):
             body = PAGE.encode("utf-8")
             self.send_response(200)
@@ -389,8 +450,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    global PORT
-    # Permite PAINEL_PORT sem redefinir global via env ja lido
+    start_test_runner()
     httpd = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     print("Painel MVP: http://127.0.0.1:%d/" % PORT, flush=True)
     try:
@@ -398,6 +458,7 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
+        _test_stop.set()
         httpd.server_close()
 
 
