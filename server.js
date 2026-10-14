@@ -18,6 +18,302 @@ const RSVP = ['pendente', 'confirmado', 'recusado'];
 fs.mkdirSync(PHOTO_DIR, { recursive: true });
 const store = require(path.join(__dirname, 'src', 'store'))(DATA_DIR);
 const db = store.db;
+
+// ───── Autenticação (magic link, sessão por cookie, master com senha+TOTP)
+const SESSION_COOKIE = 'memo_sid';
+const MASTER_COOKIE = 'memo_m';
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 dias (rolante)
+const SESSION_ABSOLUTE_MS = 90 * 24 * 60 * 60 * 1000; // 90 dias teto
+const MASTER_SESSION_TTL_MS = 30 * 60 * 1000; // 30 min ocioso
+const MASTER_SESSION_ABSOLUTE_MS = 8 * 60 * 60 * 1000; // 8 h
+const MAGIC_TTL_MS = 15 * 60 * 1000;
+const isProd = !!process.env.PUBLIC_URL && /^https:\/\//i.test(process.env.PUBLIC_URL);
+
+function parseCookies(req) {
+  const out = {};
+  const raw = req.get && req.get('cookie');
+  if (!raw) return out;
+  for (const part of raw.split(';')) {
+    const i = part.indexOf('=');
+    if (i < 0) continue;
+    const k = part.slice(0, i).trim();
+    const v = part.slice(i + 1).trim();
+    try { out[k] = decodeURIComponent(v); } catch { out[k] = v; }
+  }
+  return out;
+}
+
+function normEmail(s) {
+  return String(s || '').trim().toLowerCase();
+}
+
+function emailHashCurto(s) { return crypto.createHash('sha256').update(normEmail(s)).digest('hex').slice(0, 16); }
+
+function hashToken(raw) { return crypto.createHash('sha256').update(String(raw)).digest('hex'); }
+
+function scryptHash(plain) {
+  const salt = crypto.randomBytes(16);
+  const hash = crypto.scryptSync(String(plain), salt, 64);
+  return `scrypt$${salt.toString('hex')}$${hash.toString('hex')}`;
+}
+function scryptVerify(plain, stored) {
+  if (typeof stored !== 'string' || !stored.startsWith('scrypt$')) return false;
+  const parts = stored.split('$');
+  if (parts.length !== 3) return false;
+  const salt = Buffer.from(parts[1], 'hex');
+  const expected = Buffer.from(parts[2], 'hex');
+  let actual;
+  try { actual = crypto.scryptSync(String(plain), salt, expected.length); } catch { return false; }
+  if (actual.length !== expected.length) return false;
+  return crypto.timingSafeEqual(actual, expected);
+}
+
+// base32 (RFC 4648)
+function base32Encode(buf) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0, value = 0, out = '';
+  for (let i = 0; i < buf.length; i++) {
+    value = (value << 8) | buf[i];
+    bits += 8;
+    while (bits >= 5) {
+      out += alphabet[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) out += alphabet[(value << (5 - bits)) & 31];
+  while (out.length % 8 !== 0) out += '=';
+  return out;
+}
+function base32Decode(str) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const s = String(str).replace(/=+$/g, '').toUpperCase().replace(/\s/g, '');
+  let bits = 0, value = 0, out = Buffer.alloc(0);
+  const bytes = [];
+  for (const c of s) {
+    const idx = alphabet.indexOf(c);
+    if (idx < 0) continue;
+    value = (value << 5) | idx;
+    bits += 5;
+    if (bits >= 8) {
+      bytes.push((value >>> (bits - 8)) & 255);
+      bits -= 8;
+    }
+  }
+  return Buffer.from(bytes);
+}
+
+// TOTP RFC 6238
+function hotp(secretBuf, counter) {
+  const buf = Buffer.alloc(8);
+  let c = counter;
+  for (let i = 7; i >= 0; i--) { buf[i] = c & 0xff; c = Math.floor(c / 256); }
+  const hmac = crypto.createHmac('sha1', secretBuf).update(buf).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const code = ((hmac[offset] & 0x7f) << 24) | ((hmac[offset + 1] & 0xff) << 16) | ((hmac[offset + 2] & 0xff) << 8) | (hmac[offset + 3] & 0xff);
+  return String(code % 1000000).padStart(6, '0');
+}
+function totpNow(secretBuf) { return hotp(secretBuf, Math.floor(Date.now() / 30000)); }
+function totpVerify(secretBuf, code, lastStep) {
+  const step = Math.floor(Date.now() / 30000);
+  const clean = String(code || '').replace(/\s/g, '');
+  if (!/^\d{6}$/.test(clean)) return { ok: false, step: null };
+  for (let w = -1; w <= 1; w++) {
+    const s = step + w;
+    if (s <= (lastStep || 0)) continue; // anti-replay
+    if (hotp(secretBuf, s) === clean) return { ok: true, step: s };
+  }
+  return { ok: false, step: null };
+}
+
+function totpSecretNew() { return base32Encode(crypto.randomBytes(20)); }
+function otpauthUrl(secret, conta, emissor = 'Memo Brasil') {
+  return `otpauth://totp/${encodeURIComponent(emissor)}:${encodeURIComponent(conta)}?secret=${secret}&issuer=${encodeURIComponent(emissor)}&algorithm=SHA1&digits=6&period=30`;
+}
+
+// Recuperação: hashes scrypt de strings aleatórias
+function genRecoveryCodes(n = 10) {
+  const codes = [];
+  const hashes = [];
+  for (let i = 0; i < n; i++) {
+    const code = crypto.randomBytes(5).toString('hex').toUpperCase(); // 10 hex chars
+    codes.push(code);
+    hashes.push(scryptHash(code));
+  }
+  return { codes, hashes };
+}
+
+// Rate limiter simples em memória
+const rl = new Map();
+function rateLimit(key, max, windowMs) {
+  const now = Date.now();
+  const entry = rl.get(key);
+  if (!entry || now > entry.resetAt) {
+    rl.set(key, { count: 1, resetAt: now + windowMs });
+    return { ok: true, remaining: max - 1, resetAt: now + windowMs };
+  }
+  if (entry.count >= max) return { ok: false, remaining: 0, resetAt: entry.resetAt };
+  entry.count++;
+  return { ok: true, remaining: max - entry.count, resetAt: entry.resetAt };
+}
+function rlKey(req, suffix) {
+  const ip = (req.ip || req.connection?.remoteAddress || 'unknown');
+  return `${suffix}:${ip}`;
+}
+
+function clientIp(req) {
+  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || req.connection?.remoteAddress || '';
+}
+function ipHash(req) { return crypto.createHash('sha256').update(clientIp(req)).digest('hex').slice(0, 16); }
+
+// Sessões
+function criarSessaoOrganizador(organizadorId, req) {
+  const raw = crypto.randomBytes(32).toString('base64url');
+  const idHash = hashToken(raw);
+  const now = new Date().toISOString();
+  const expiraAbs = new Date(Date.now() + SESSION_ABSOLUTE_MS).toISOString();
+  const expiraIdle = new Date(Date.now() + SESSION_TTL_MS).toISOString();
+  store.run(`INSERT INTO sessoes (id_hash, organizador_id, criada_em, ultimo_uso_em, expira_em, expira_absoluta_em, ua_resumo, revogada) VALUES (?,?,?,?,?,?,?,0)`,
+    idHash, organizadorId, now, now, expiraIdle, expiraAbs, String(req.get('user-agent') || '').slice(0, 120));
+  return raw;
+}
+function getSessaoOrganizador(req) {
+  const cookies = parseCookies(req);
+  const raw = cookies[SESSION_COOKIE];
+  if (!raw) return null;
+  const idHash = hashToken(raw);
+  const row = store.get(`SELECT * FROM sessoes WHERE id_hash = ?`, idHash);
+  if (!row || row.revogada) return null;
+  const now = Date.now();
+  if (now >= new Date(row.expira_em).getTime() || now >= new Date(row.expira_absoluta_em).getTime()) return null;
+  // rolante
+  const novoExpiraIdle = new Date(Math.min(new Date(row.expira_absoluta_em).getTime(), now + SESSION_TTL_MS)).toISOString();
+  store.run(`UPDATE sessoes SET ultimo_uso_em = ?, expira_em = ? WHERE id_hash = ?`, new Date().toISOString(), novoExpiraIdle, idHash);
+  return row;
+}
+function organizadorDaSessao(req) {
+  const s = getSessaoOrganizador(req);
+  if (!s) return null;
+  return store.get(`SELECT * FROM organizadores WHERE id = ?`, s.organizador_id);
+}
+function revogarSessao(req) {
+  const cookies = parseCookies(req);
+  const raw = cookies[SESSION_COOKIE];
+  if (!raw) return;
+  store.run(`UPDATE sessoes SET revogada = 1 WHERE id_hash = ?`, hashToken(raw));
+}
+
+function criarSessaoMaster(masterId, req) {
+  const raw = crypto.randomBytes(32).toString('base64url');
+  const idHash = hashToken(raw);
+  const now = new Date().toISOString();
+  const expiraIdle = new Date(Date.now() + MASTER_SESSION_TTL_MS).toISOString();
+  const expiraAbs = new Date(Date.now() + MASTER_SESSION_ABSOLUTE_MS).toISOString();
+  store.run(`INSERT INTO master_sessoes (id_hash, master_id, criada_em, ultimo_uso_em, expira_em, expira_absoluta_em, ua_resumo, revogada) VALUES (?,?,?,?,?,?,?,0)`,
+    idHash, masterId, now, now, expiraIdle, expiraAbs, String(req.get('user-agent') || '').slice(0, 120));
+  return raw;
+}
+function getMasterSessao(req) {
+  const cookies = parseCookies(req);
+  const raw = cookies[MASTER_COOKIE];
+  if (!raw) return null;
+  const idHash = hashToken(raw);
+  const row = store.get(`SELECT * FROM master_sessoes WHERE id_hash = ?`, idHash);
+  if (!row || row.revogada) return null;
+  const now = Date.now();
+  if (now >= new Date(row.expira_em).getTime() || now >= new Date(row.expira_absoluta_em).getTime()) return null;
+  const novoIdle = new Date(Math.min(new Date(row.expira_absoluta_em).getTime(), now + MASTER_SESSION_TTL_MS)).toISOString();
+  store.run(`UPDATE master_sessoes SET ultimo_uso_em = ?, expira_em = ? WHERE id_hash = ?`, new Date().toISOString(), novoIdle, idHash);
+  return row;
+}
+function masterDaSessao(req) {
+  const s = getMasterSessao(req);
+  if (!s) return null;
+  return store.get(`SELECT * FROM master_accounts WHERE id = ? AND ativo = 1`, s.master_id);
+}
+
+function setCookie(res, name, value, maxAgeMs, strict) {
+  const parts = [`${name}=${encodeURIComponent(value)}`, 'HttpOnly', 'Path=/', `Max-Age=${Math.floor(maxAgeMs / 1000)}`, 'SameSite=' + (strict ? 'Strict' : 'Lax')];
+  if (isProd) parts.push('Secure');
+  res.append('Set-Cookie', parts.join('; '));
+}
+function clearCookie(res, name) {
+  res.append('Set-Cookie', `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax`);
+}
+
+function auditDb(req, atorTipo, atorId, eventoId, acao, alvo, detalhe, resultado) {
+  try {
+    const prev = store.get(`SELECT hash_atual FROM auditoria ORDER BY id DESC LIMIT 1`);
+    const prevHash = prev ? prev.hash_atual : '';
+    const corpo = JSON.stringify({ t: new Date().toISOString(), atorTipo, atorId, eventoId, acao, alvo, detalhe, resultado, prevHash });
+    const hashAtual = crypto.createHash('sha256').update(corpo).digest('hex');
+    store.run(`INSERT INTO auditoria (quando, ator_tipo, ator_id, evento_id, acao, alvo, detalhe, ip_hash, resultado, hash_anterior, hash_atual) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+      new Date().toISOString(), atorTipo, atorId || null, eventoId || null, acao, alvo || null,
+      JSON.stringify(detalhe || {}), ipHash(req), resultado || 'ok', prevHash, hashAtual);
+  } catch (e) { console.error('audit db fail', e.message); }
+}
+
+// substitui audit original para também gravar DB
+const _auditFileOrig = audit;
+function audit(req, acao, detalhe = {}) {
+  _auditFileOrig(req, acao, detalhe);
+  const org = organizadorDaSessao(req);
+  const m = masterDaSessao(req);
+  let atorTipo = 'anon', atorId = null;
+  if (req.admin?.master || m) { atorTipo = 'master'; atorId = m?.id || req.admin?.id || null; }
+  else if (req.admin?.papel) { atorTipo = req.admin.papel; atorId = req.admin.id || null; }
+  else if (org) { atorTipo = 'organizador'; atorId = org.id; }
+  const eventoId = req.ev?.id || detalhe.evento || null;
+  auditDb(req, atorTipo, atorId, eventoId, acao, detalhe.alvo || null, detalhe, detalhe.resultado || 'ok');
+}
+
+// Rate limit criação de eventos
+const rlCriacao = new Map();
+function rateLimitCriacao(req) {
+  const ip = clientIp(req);
+  const now = Date.now();
+  const janela = 15 * 60 * 1000;
+  let e = rlCriacao.get(ip);
+  if (!e || now > e.resetAt) { e = { count: 0, resetAt: now + janela }; rlCriacao.set(ip, e); }
+  const maxIp = 20;
+  if (e.count >= maxIp) return { ok: false, retry: e.resetAt };
+  e.count++;
+  return { ok: true };
+}
+const rlLogin = new Map();
+function rateLimitLogin(key, max, windowMs) {
+  const now = Date.now();
+  let e = rlLogin.get(key);
+  if (!e || now > e.resetAt) { e = { count: 0, resetAt: now + windowMs }; rlLogin.set(key, e); }
+  if (e.count >= max) return { ok: false, retry: e.resetAt };
+  e.count++;
+  return { ok: true };
+}
+
+// Bootstrap master se ambiente configurar
+function ensureMasterBootstrap() {
+  const email = process.env.MASTER_BOOTSTRAP_EMAIL || process.env.MASTER_EMAIL;
+  const nome = process.env.MASTER_BOOTSTRAP_NOME || process.env.MASTER_NOME || 'Admin master';
+  const senha = process.env.MASTER_BOOTSTRAP_SENHA || process.env.MASTER_PASSWORD || process.env.MASTER_PASSWORD_BOOTSTRAP;
+  if (!email || !senha) return;
+  const norm = normEmail(email);
+  let m = store.get(`SELECT id FROM master_accounts WHERE email_norm = ?`, norm);
+  if (m) return;
+  const secret = process.env.MASTER_BOOTSTRAP_TOTP_SECRET || process.env.MASTER_TOTP_SECRET || totpSecretNew();
+  const { hashes } = genRecoveryCodes(10);
+  const id = newId(8);
+  store.run(`INSERT INTO master_accounts (id,email,email_norm,nome,senha_hash,totp_secret,totp_ultimo_passo,recuperacao_hashes,ativo,criado_em,falhas) VALUES (?,?,?,?,?,?,?,?,?,?,0)`,
+    id, email, norm, nome, scryptHash(senha), secret, 0, JSON.stringify(hashes), 1, new Date().toISOString());
+  console.log(`Master bootstrap criado: ${email}`);
+  if (!process.env.MASTER_BOOTSTRAP_TOTP_SECRET && !process.env.MASTER_TOTP_SECRET) {
+    console.log(`TOTP secret (guarde): ${secret}`);
+    console.log(`otpauth: ${otpauthUrl(secret, email)}`);
+  }
+}
+ensureMasterBootstrap();
+
+// Segredo cifrado em repouso (opcional, se MASTER_TOTP_KEY)
+function cipherSecret(s) { return s; } // simplificado: chave via env não disponível; guardar base32. (TODO: AES-GCM se chave presente)
+function decipherSecret(s) { return s; }
 // Variáveis da plataforma, editáveis pelo admin master.
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const DEFAULTS = {
@@ -90,7 +386,9 @@ function baseUrl(req) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 // Modo manutenção: só o admin master passa.
 app.use('/api', (req, res, next) => {
   if (!settings.manutencao) return next();
@@ -114,10 +412,26 @@ function getEvent(req, res, next) {
 function adminOnly(req, res, next) {
   const token = req.get('x-host-token') || req.query.token;
   const ev = req.ev;
+  // Sessão master.
+  const ms = masterDaSessao(req);
+  if (ms) {
+    const m = store.get(`SELECT * FROM master_accounts WHERE id = ? AND ativo = 1`, ms.master_id);
+    if (m) { req.admin = { papel: 'master', nome: m.nome, dono: true, master: true, id: m.id }; return next(); }
+  }
+  // Sessão do organizador com vínculo ao evento.
+  const org = organizadorDaSessao(req);
+  if (org) {
+    const membro = store.get(`SELECT * FROM organizador_membros WHERE organizador_id = ? AND evento_id = ?`, org.id, ev.id);
+    if (membro) {
+      req.admin = { papel: membro.papel, nome: org.email, dono: membro.papel === 'casal', id: org.id, organizadorId: org.id, master: false };
+      return next();
+    }
+  }
+  // Token estático legado (compatibilidade de transição).
   if (isMaster(token)) req.admin = { papel: 'master', nome: 'Admin master', dono: true, master: true };
   else if (token && token === ev.hostToken) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
-  else {
-    const m = token && ev.equipe.find((e) => e.token === token);
+  else if (token) {
+    const m = ev.equipe.find((e) => e.token === token);
     if (m) req.admin = { papel: m.papel, nome: m.nome, id: m.id };
   }
   if (!req.admin) return res.status(403).json({ erro: 'Acesso restrito à organização do casamento.' });
@@ -144,6 +458,22 @@ function parseCronograma(arr) {
 
 // ───── Criar evento (organização, em nome dos noivos)
 app.post('/api/events', (req, res) => {
+  // Rate limit por IP na criação (camada anti-spam). Configurável via variável se necessário.
+  const rl = rateLimitCriacao(req);
+  if (!rl.ok) {
+    res.set('Retry-After', Math.ceil((rl.retry - Date.now()) / 1000));
+    return res.status(429).json({ erro: 'Muitas criações de evento em pouco tempo. Tente mais tarde.' });
+  }
+  // por conta: se sessão de organizador presente, limita 3/dia
+  const org = organizadorDaSessao(req);
+  if (org) {
+    const k = `criacao:org:${org.id}`;
+    const r2 = rateLimit(k, 3, 24 * 60 * 60 * 1000);
+    if (!r2.ok) {
+      res.set('Retry-After', Math.ceil((r2.resetAt - Date.now()) / 1000));
+      return res.status(429).json({ erro: 'Você já criou eventos demais hoje. Tente amanhã.' });
+    }
+  }
   if (!settings.criacaoAberta) return res.status(403).json({ erro: 'O cadastro de novos casamentos está fechado no momento.' });
   const titulo = clean(req.body.titulo, 80);
   const revealAt = new Date(req.body.revealAt);
@@ -162,10 +492,129 @@ app.post('/api/events', (req, res) => {
   };
   db.events[ev.id] = ev;
   save();
+  // Vincula o evento à conta do organizador autenticado (se houver).
+  if (org) {
+    const membroId = newId(6);
+    const existe = store.get(`SELECT id FROM organizador_membros WHERE organizador_id = ? AND evento_id = ?`, org.id, ev.id);
+    if (!existe) store.run(`INSERT INTO organizador_membros (id, organizador_id, evento_id, papel, criado_em) VALUES (?,?,?,?,?)`, membroId, org.id, ev.id, 'casal', new Date().toISOString());
+  }
   res.status(201).json({ id: ev.id, hostToken: ev.hostToken });
 });
 
-app.get('/api/events/:id', getEvent, (req, res) => res.json(publicInfo(req.ev)));
+// ───── Autenticação organizador (magic link + sessão cookie)
+function magicLinkEnviar(email, tokenRaw, baseUrlStr) {
+  const link = `${baseUrlStr}/api/auth/entrar?t=${encodeURIComponent(tokenRaw)}`;
+  // adaptador de e-mail plugável: modo dev imprime só o link no log local.
+  const provider = process.env.EMAIL_PROVIDER || 'console';
+  if (provider === 'console' || !process.env.EMAIL_API_KEY) {
+    console.log(`[email:dev] magic link para ${email}: ${link}`);
+    try { fs.appendFileSync(path.join(DATA_DIR, 'auth.log'), `${new Date().toISOString()} ${emailHashCurto(email)} ${link}\n`); } catch {}
+    return;
+  }
+  // provedores reais (Brevo/SendGrid/etc.) plugáveis futuramente.
+  console.log(`[email:${provider}] (não implementado, imprimir link) ${link}`);
+}
+function magicTokenNovo(emailNorm, tipo, orgId, eventId, papel, expiraMs) {
+  const raw = crypto.randomBytes(32).toString('base64url');
+  const hash = hashToken(raw);
+  store.run(`INSERT INTO magic_tokens (token_hash, email_norm, organizador_id, evento_id, papel, tipo, criado_em, expira_em, usado_em) VALUES (?,?,?,?,?,?,?,?,NULL)`,
+    hash, emailNorm, orgId || null, eventId || null, papel || null, tipo, new Date().toISOString(),
+    new Date(Date.now() + (expiraMs || MAGIC_TTL_MS)).toISOString());
+  return raw;
+}
+function consumirMagicToken(raw) {
+  if (!raw) return null;
+  const h = hashToken(raw);
+  const row = store.get(`SELECT * FROM magic_tokens WHERE token_hash = ?`, h);
+  if (!row) return null;
+  if (row.cancelado) return null;
+  if (row.usado_em) return { reusado: true, row };
+  if (Date.now() >= new Date(row.expira_em).getTime()) return { expirado: true, row };
+  // marcar usado
+  store.run(`UPDATE magic_tokens SET usado_em = ? WHERE token_hash = ?`, new Date().toISOString(), h);
+  return { ok: true, row };
+}
+
+async function handleLinkRequest(req, res) {
+  const rlim = rateLimit(rlKey(req, 'magiclink'), 10, 60 * 60 * 1000);
+  if (!rlim.ok) {
+    res.set('Retry-After', Math.ceil((rlim.resetAt - Date.now()) / 1000));
+    return res.status(429).json({ erro: 'Muitas solicitações. Tente mais tarde.' });
+  }
+  const email = normEmail(req.body?.email || req.query?.email);
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    // mesma resposta para não enumerar
+    return res.status(202).json({ ok: true, mensagem: 'Se o e-mail for válido, enviamos um link de acesso.' });
+  }
+  const emailN = normEmail(email);
+  let org = store.get(`SELECT * FROM organizadores WHERE email_norm = ?`, emailN);
+  if (!org) {
+    const id = newId(8);
+    store.run(`INSERT INTO organizadores (id,email,email_norm,criado_em,consentimento_em,consentimento_versao) VALUES (?,?,?,?,?,?)`,
+      id, email, emailN, new Date().toISOString(), new Date().toISOString(), '1');
+    org = store.get(`SELECT * FROM organizadores WHERE id = ?`, id);
+  }
+  // rate limit por e-mail
+  const rl2 = rateLimit(`magiclink:email:${emailN}`, 5, 60 * 60 * 1000);
+  if (!rl2.ok) {
+    return res.status(202).json({ ok: true, mensagem: 'Se o e-mail for válido, enviamos um link de acesso.' });
+  }
+  const tokenRaw = magicTokenNovo(emailN, 'login', org.id, req.body?.eventoId || null, req.body?.papel || null, MAGIC_TTL_MS);
+  magicLinkEnviar(email, tokenRaw, baseUrl(req));
+  // não revela existência
+  return res.status(202).json({ ok: true, mensagem: 'Se o e-mail for válido, enviamos um link de acesso.' });
+}
+const authLinkHandler = (req, res) => handleLinkRequest(req, res);
+app.post('/api/auth/link', authLinkHandler);
+app.post('/api/auth/magic-link', authLinkHandler);
+app.post('/api/auth/request-link', authLinkHandler);
+
+// Página intermediária com botão (POST) para evitar pré-fetch por scanner.
+app.get('/api/auth/entrar', (req, res) => {
+  const t = req.query.t || '';
+  res.type('html').send(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Entrar — Memo Brasil</title>
+  <style>body{font-family:system-ui,-apple-system,sans-serif;display:grid;place-items:center;height:100vh;margin:0;background:#f7f5f2;color:#1a1a1a}form{background:#fff;padding:2rem;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center;max-width:360px}button{margin-top:1rem;padding:.8rem 1.6rem;border:0;border-radius:10px;background:#1a1a1a;color:#fff;font-size:1rem;cursor:pointer}</style>
+  </head><body><form method="POST" action="/api/auth/entrar"><input type="hidden" name="token" value="${String(t).replace(/"/g, '&quot;')}">
+  <h1>Entrar no Memo</h1><p>Clique para confirmar seu acesso.</p><button type="submit">Entrar</button></form></body></html>`);
+});
+// Alias de consumo
+app.get('/api/auth/verify', (req, res) => res.redirect(302, `/api/auth/entrar?t=${encodeURIComponent(req.query.t || '')}`));
+app.get('/api/auth/callback', (req, res) => res.redirect(302, `/api/auth/entrar?t=${encodeURIComponent(req.query.t || '')}`));
+
+async function handleEntrarConsumo(req, res) {
+  const token = req.body?.token || req.body?.t || req.query?.token || req.query?.t;
+  const r = consumirMagicToken(token);
+  if (!r) return res.status(400).json({ erro: 'Link inválido.' });
+  if (r.reusado) return res.status(410).json({ erro: 'Este link já foi usado.' });
+  if (r.expirado) return res.status(410).json({ erro: 'Este link expirou. Peça um novo.' });
+  const row = r.row;
+  let org = row.organizador_id ? store.get(`SELECT * FROM organizadores WHERE id = ?`, row.organizador_id) : null;
+  if (!org) {
+    const emailN = row.email_norm;
+    let existing = store.get(`SELECT * FROM organizadores WHERE email_norm = ?`, emailN);
+    if (!existing) {
+      const id = newId(8);
+      store.run(`INSERT INTO organizadores (id,email,email_norm,criado_em,consentimento_em,consentimento_versao) VALUES (?,?,?,?,?,?)`,
+        id, row.email_norm, emailN, new Date().toISOString(), new Date().toISOString(), '1');
+      existing = store.get(`SELECT * FROM organizadores WHERE id = ?`, id);
+    }
+    org = existing;
+    store.run(`UPDATE magic_tokens SET organizador_id = ? WHERE token_hash = ?`, org.id, hashToken(token));
+  }
+  // vínculo pré-aprovado ao evento
+  if (row.evento_id && row.papel) {
+    const existe = store.get(`SELECT id FROM organizador_membros WHERE organizador_id = ? AND evento_id = ?`, org.id, row.evento_id);
+    if (!existe) store.run(`INSERT INTO organizador_membros (id, organizador_id, evento_id, papel, criado_em) VALUES (?,?,?,?,?)`,
+      newId(6), org.id, row.evento_id, row.papel === 'casal' ? 'casal' : 'cerimonial', new Date().toISOString());
+  }
+  const rawSession = criarSessaoOrganizador(org.id, req);
+  setCookie(res, SESSION_COOKIE, rawSession, SESSION_TTL_MS, false);
+  return res.json({ ok: true, organizador: { id: org.id, email: org.email } });
+}
+app.post('/api/auth/entrar', (req, res) => handleEntrarConsumo(req, res));
+app.post('/api/auth/consume', (req, res) => handleEntrarConsumo(req, res));
+app.post('/api/auth/verify', (req, res) => handleEntrarConsumo(req, res));
+app.post('/api/auth/callback', (req, res) => handleEntrarConsumo(req, res));
 
 // ───── Organização
 app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
@@ -450,10 +899,21 @@ app.use((err, req, res, next) => {
 
 // ───── Admin master (todos os casamentos)
 function masterOnly(req, res, next) {
-  if (!isMaster(req.get('x-master-token') || req.get('x-host-token') || req.query.token))
-    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Memo.' });
-  req.admin = { papel: 'master', nome: 'Admin master', master: true, dono: true };
-  next();
+  const token = req.get('x-master-token') || req.get('x-host-token') || req.query.token;
+  const ms = getMasterSessao(req);
+  if (ms) {
+    const m = store.get(`SELECT * FROM master_accounts WHERE id = ? AND ativo = 1`, ms.master_id);
+    if (m) {
+      req.admin = { papel: 'master', nome: m.nome, master: true, dono: true, id: m.id, masterId: m.id };
+      return next();
+    }
+  }
+  const count = (store.get(`SELECT COUNT(*) AS c FROM master_accounts`).c || 0);
+  if (isMaster(token) && (count === 0 || process.env.MASTER_EMERGENCY === '1' || process.env.MASTER_TOKEN_COMPAT === '1')) {
+    req.admin = { papel: 'master', nome: 'Admin master (legado)', master: true, dono: true, id: null };
+    return next();
+  }
+  return res.status(403).json({ erro: 'Acesso restrito ao administrador do Memo.' });
 }
 const resumoEvento = (ev) => ({
   id: ev.id, titulo: ev.titulo, contato: ev.contato || '', criadoEm: ev.createdAt,
@@ -608,6 +1068,115 @@ app.get('/api/events/:id/fotos.zip', getEvent, adminOnly, (req, res) => {
   z.finalize();
 });
 
+// ───── Autenticação organizador: logout e info
+function handleSair(req, res) {
+  revogarSessao(req);
+  clearCookie(res, SESSION_COOKIE);
+  res.json({ ok: true });
+}
+app.post('/api/auth/sair', handleSair);
+app.post('/api/auth/logout', handleSair);
+app.post('/api/auth/signout', handleSair);
+app.get('/api/auth/me', (req, res) => {
+  const org = organizadorDaSessao(req);
+  if (!org) return res.status(401).json({ erro: 'Não autenticado.' });
+  res.json({ organizador: { id: org.id, email: org.email } });
+});
+
+// ───── Autenticação master: login, sessão, logout
+const COMMON_PASSWORDS = new Set(['123456789012', 'passwordpassword', 'qwertyuiopasdf', 'senha1234567', 'administrador12']);
+function validarSenhaForte(s) {
+  const p = String(s || '');
+  if (p.length < 12) return 'A senha precisa ter pelo menos 12 caracteres.';
+  if (COMMON_PASSWORDS.has(p.toLowerCase())) return 'Senha muito comum. Escolha outra.';
+  return null;
+}
+function setMasterBlocked(m) {
+  const falhas = (m.falhas || 0) + 1;
+  let bloqueadoAte = null;
+  let espera = 0;
+  if (falhas >= 5) espera = Math.min(15, Math.pow(2, falhas - 4)) * 60 * 1000; // cresc.
+  if (espera > 0) bloqueadoAte = new Date(Date.now() + espera).toISOString();
+  store.run(`UPDATE master_accounts SET falhas = ?, bloqueado_ate = ? WHERE id = ?`, falhas, bloqueadoAte, m.id);
+  return { falhas, bloqueadoAte };
+}
+
+function handleMasterLogin(req, res) {
+  const key = `masterlogin:${clientIp(req)}`;
+  const rl = rateLimitLogin(key, 20, 15 * 60 * 1000);
+  if (!rl.ok) {
+    res.set('Retry-After', Math.ceil((rl.resetAt - Date.now()) / 1000));
+    return res.status(429).json({ erro: 'Muitas tentativas. Tente mais tarde.' });
+  }
+  const email = normEmail(req.body?.email);
+  const senha = req.body?.senha || req.body?.password;
+  const code = req.body?.totp || req.body?.code || req.body?.otp || req.body?.twoFactor;
+  const recovery = req.body?.recoveryCode || req.body?.recovery;
+  if (!email || !senha) return res.status(400).json({ erro: 'Informe e-mail e senha.' });
+  const m = store.get(`SELECT * FROM master_accounts WHERE email_norm = ?`, email);
+  if (!m || !m.ativo) {
+    // resposta genérica
+    return res.status(401).json({ erro: 'Credenciais inválidas.' });
+  }
+  if (m.bloqueado_ate && Date.now() < new Date(m.bloqueado_ate).getTime()) {
+    return res.status(429).json({ erro: 'Conta temporariamente bloqueada. Tente mais tarde.' });
+  }
+  if (!scryptVerify(senha, m.senha_hash)) {
+    setMasterBlocked(m);
+    auditDb(req, 'master', m.id, null, 'login.falha', m.id, { motivo: 'senha' }, 'falha');
+    return res.status(401).json({ erro: 'Credenciais inválidas.' });
+  }
+  const secret = base32Decode(decipherSecret(m.totp_secret));
+  let totpOk = false;
+  let newLastStep = m.totp_ultimo_passo;
+  // recovery code path
+  if (!code && recovery) {
+    let hashes = [];
+    try { hashes = JSON.parse(m.recuperacao_hashes || '[]'); } catch {}
+    for (let i = 0; i < hashes.length; i++) {
+      if (scryptVerify(recovery, hashes[i])) {
+        totpOk = true;
+        hashes.splice(i, 1);
+        store.run(`UPDATE master_accounts SET recuperacao_hashes = ?, totp_ultimo_passo = ? WHERE id = ?`, JSON.stringify(hashes), m.totp_ultimo_passo, m.id);
+        break;
+      }
+    }
+  } else {
+    const v = totpVerify(secret, code, m.totp_ultimo_passo || 0);
+    if (v.ok) { totpOk = true; newLastStep = v.step; }
+  }
+  if (!totpOk) {
+    setMasterBlocked(m);
+    auditDb(req, 'master', m.id, null, 'login.falha', m.id, { motivo: 'totp' }, 'falha');
+    return res.status(401).json({ erro: 'Código 2FA inválido.' });
+  }
+  store.run(`UPDATE master_accounts SET falhas = 0, bloqueado_ate = NULL, totp_ultimo_passo = ? WHERE id = ?`, newLastStep, m.id);
+  const raw = criarSessaoMaster(m.id, req);
+  setCookie(res, MASTER_COOKIE, raw, MASTER_SESSION_TTL_MS, true);
+  auditDb(req, 'master', m.id, null, 'login.ok', m.id, {}, 'ok');
+  res.json({ ok: true, master: { id: m.id, email: m.email, nome: m.nome } });
+}
+app.post('/api/master/login', handleMasterLogin);
+app.post('/api/master/auth/login', handleMasterLogin);
+app.post('/api/auth/master/login', handleMasterLogin);
+
+function handleMasterLogout(req, res) {
+  const cookies = parseCookies(req);
+  const raw = cookies[MASTER_COOKIE];
+  if (raw) store.run(`UPDATE master_sessoes SET revogada = 1 WHERE id_hash = ?`, hashToken(raw));
+  clearCookie(res, MASTER_COOKIE);
+  res.json({ ok: true });
+}
+app.post('/api/master/logout', handleMasterLogout);
+app.post('/api/master/sair', handleMasterLogout);
+app.post('/api/master/signout', handleMasterLogout);
+
+app.get('/api/master/me', (req, res) => {
+  const m = masterDaSessao(req);
+  if (!m) return res.status(401).json({ erro: 'Não autenticado.' });
+  res.json({ master: { id: m.id, email: m.email, nome: m.nome } });
+});
+
 // ───── Master: variáveis da plataforma, auditoria e políticas
 app.get('/api/master/settings', masterOnly, (req, res) => res.json({ settings, padroes: DEFAULTS }));
 app.put('/api/master/settings', masterOnly, (req, res) => {
@@ -676,6 +1245,23 @@ app.get('/master', page('master.html'));
 app.get('/sw.js', (req, res) => res.set('Service-Worker-Allowed', '/').type('application/javascript').sendFile(path.join(__dirname, 'public', 'sw.js')));
 app.use(express.static(path.join(__dirname, 'public')));
 
+function criarMasterConta({ email, nome, senha, totpSecret } = {}) {
+  const erro = validarSenhaForte(senha);
+  if (erro) throw new Error(erro);
+  const emailN = normEmail(email);
+  if (!emailN || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailN)) throw new Error('e-mail inválido');
+  const existente = store.get(`SELECT id FROM master_accounts WHERE email_norm = ?`, emailN);
+  if (existente) throw new Error('já existe master com esse e-mail');
+  const secret = totpSecret || totpSecretNew();
+  const { codes, hashes } = genRecoveryCodes(10);
+  const id = newId(8);
+  store.run(`INSERT INTO master_accounts (id,email,email_norm,nome,senha_hash,totp_secret,totp_ultimo_passo,recuperacao_hashes,ativo,criado_em,falhas) VALUES (?,?,?,?,?,?,?,?,?,?,0)`,
+    id, email, emailN, nome || 'Admin master', scryptHash(senha), secret, 0, JSON.stringify(hashes), 1, new Date().toISOString());
+  return { id, email, nome: nome || 'Admin master', totpSecret: secret, recoveryCodes: codes, otpauth: otpauthUrl(secret, email) };
+}
+app.criarMaster = criarMasterConta;
+module.exports.criarMaster = criarMasterConta;
+
 if (require.main === module) {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Memo Brasil em http://localhost:${PORT}`);
@@ -684,4 +1270,7 @@ if (require.main === module) {
     if (lanIp()) console.log(`Na mesma rede Wi-Fi (celular): http://${lanIp()}:${PORT}`);
   });
 }
+app.store = store;
 module.exports = app;
+module.exports.store = store;
+module.exports.criarMaster = criarMasterConta;
