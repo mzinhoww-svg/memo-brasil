@@ -7,6 +7,18 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const { criarEmail, emailDesativado } = require('./src/email');
+const { processarRevelacoes } = require('./src/reveal/job');
+const { montarRetrospectiva } = require('./src/reveal/retrospectiva');
+
+// E-mail transacional: console por padrão; Resend com EMAIL_PROVEDOR=resend.
+let email;
+try {
+  email = criarEmail();
+} catch (e) {
+  email = emailDesativado(e);
+  console.error(`[email] envio de e-mail desativado: ${e.message}`);
+}
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -59,6 +71,8 @@ for (const ev of Object.values(db.events)) {
     equipe: ev.equipe || [], recados: ev.recados || [], limites: ev.limites || {},
     config: { ...CONFIG_PADRAO, ...(ev.config || {}) }, push: ev.push || [], avisos: ev.avisos || [],
     revealNotified: ev.revealNotified ?? revealedAtBoot(ev),
+    // Casamentos revelados em versões anteriores não recebem e-mail retroativo.
+    emailEnviado: ev.emailEnviado ?? (ev.revealNotified === true),
   });
 }
 
@@ -170,7 +184,7 @@ app.post('/api/events', (req, res) => {
     dataEvento: dataEvento && !isNaN(dataEvento) ? dataEvento.toISOString() : null,
     local: clean(req.body.local, 80), endereco: clean(req.body.endereco, 160), mensagem: '',
     contato: clean(req.body.contato, 80), suspenso: false, limites: {}, config: { ...CONFIG_PADRAO },
-    push: [], avisos: [], revealNotified: false,
+    push: [], avisos: [], revealNotified: false, emailEnviado: false,
     cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [],
     createdAt: new Date().toISOString(),
   };
@@ -446,6 +460,12 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
   res.json({ revelado: open, revealAt: ev.revealAt, agora: new Date().toISOString(), fotos: lista });
 });
 
+// Retrospectiva do casamento: só abre depois da revelação e só olha o próprio evento.
+app.get('/api/events/:id/retrospectiva', getEvent, (req, res) => {
+  if (!revealed(req.ev)) return res.status(403).json({ erro: 'A retrospectiva abre quando o álbum for revelado.' });
+  res.json(montarRetrospectiva(req.ev));
+});
+
 // O arquivo só sai depois da revelação — exceto para a organização (moderação).
 app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
   const token = req.get('x-host-token') || req.query.token;
@@ -572,16 +592,24 @@ app.post('/api/events/:id/avisos', getEvent, adminOnly, async (req, res) => {
   res.status(201).json({ ...r });
 });
 
-// Revelação automática: avisa quem instalou o app quando o álbum abre.
-setInterval(async () => {
-  for (const ev of Object.values(db.events)) {
-    if (ev.revealNotified || !revealed(ev)) continue;
-    ev.revealNotified = true;
-    const r = settings.pushAtivo && !ev.suspenso ? await enviarPush(ev, { titulo: 'As fotos foram reveladas! 🎉', corpo: `Veja o álbum de ${ev.titulo}.`, url: `/e/${ev.id}/album` }) : { alvos: 0, entregues: 0, falhas: 0 };
-    ev.avisos.push({ id: newId(5), titulo: 'As fotos foram reveladas! 🎉', corpo: `O álbum de ${ev.titulo} está aberto.`, enviadoEm: new Date().toISOString(), por: 'Sistema', ...r });
-    save();
-  }
-}, 30000).unref();
+// Revelação automática (relógio do servidor): e-mail à organização + push a quem instalou o app.
+// O job é idempotente: grava revealNotified/emailEnviado no evento, então restart não duplica.
+const urlPublica = () => (process.env.PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/+$/, '');
+const processarAgora = () =>
+  processarRevelacoes({
+    eventos: db.events,
+    email,
+    baseUrl: urlPublica(),
+    pushEnviar: (ev, payload) =>
+      settings.pushAtivo && !ev.suspenso ? enviarPush(ev, payload) : Promise.resolve({ alvos: 0, entregues: 0, falhas: 0 }),
+    persistir: save,
+    novoId: newId,
+    log: (m) => console.error(m),
+  }).catch((e) => console.error(`[revelacao] falhou: ${e.message}`));
+
+setInterval(processarAgora, 30000).unref();
+app.processarRevelacoes = processarAgora; // gancho de teste (o ciclo normal roda a cada 30s)
+app.emailParaTestes = email;
 
 app.get('/e/:id/manifest.webmanifest', getEvent, (req, res) => {
   const ev = req.ev;
