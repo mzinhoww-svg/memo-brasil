@@ -7,6 +7,7 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const { novoToken, autentica, sessaoDe, MENSAGENS } = require('./src/guest');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -358,21 +359,26 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   if (ev.config.apenasLista && !ev.lista.some((l) => norm(l.nome) === norm(nome)))
     return res.status(403).json({ erro: 'Este evento é só para convidados da lista. Use o nome exatamente como os noivos cadastraram.' });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
-  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: new Date().toISOString(), listaId: item?.id };
+  // O token volta uma única vez; guardamos só o hash. O id sozinho não autentica.
+  const { token, hash } = novoToken();
+  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: new Date().toISOString(), listaId: item?.id, tokenHash: hash };
   ev.guests.push(g);
   save();
-  res.status(201).json({ guestId: g.id, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null });
+  res.status(201).json({ guestId: g.id, guestToken: token, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null });
 });
 
+// Saldo do convidado: exige o token no cabeçalho x-guest-token.
 app.get('/api/events/:id/guests/:gid', getEvent, (req, res) => {
-  const g = req.ev.guests.find((x) => x.id === req.params.gid);
-  if (!g) return res.status(404).json({ erro: 'Convidado não encontrado.' });
-  const item = g.listaId && req.ev.lista.find((l) => l.id === g.listaId);
-  const usadas = req.ev.photos.filter((p) => p.guestId === g.id).length;
-  res.json({
-    nome: g.nome, rsvp: item?.rsvp || null, acompanhantes: item?.acompanhantes || 0,
-    fotosUsadas: usadas, fotosRestantes: Math.max(0, req.ev.fotosPorConvidado - usadas),
-  });
+  const g = autentica(req.ev, req.params.gid, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
+  res.json(sessaoDe(req.ev, g));
+});
+
+// Reentrada no mesmo aparelho: valida a sessão salva (id + token) e devolve o saldo.
+app.post('/api/events/:id/sessao', getEvent, (req, res) => {
+  const g = autentica(req.ev, req.body.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.sessaoInvalida });
+  res.json(sessaoDe(req.ev, g));
 });
 
 app.post('/api/events/:id/rsvp', getEvent, (req, res) => {
@@ -398,8 +404,8 @@ app.get('/api/events/:id/recados', getEvent, (req, res) => {
 });
 app.post('/api/events/:id/recados', getEvent, (req, res) => {
   if (!req.ev.config.recadosAtivos) return res.status(403).json({ erro: 'Os recados estão desativados neste evento.' });
-  const g = req.ev.guests.find((x) => x.id === req.body.guestId);
-  if (!g) return res.status(403).json({ erro: 'Entre no evento primeiro.' });
+  const g = autentica(req.ev, req.body.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
   const texto = clean(req.body.texto, 400);
   if (!texto) return res.status(400).json({ erro: 'Escreva seu recado.' });
   const mine = req.ev.recados.filter((r) => r.guestId === g.id).length;
@@ -415,7 +421,7 @@ app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) =
   const ev = req.ev;
   if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
   if (revealed(ev)) return res.status(409).json({ erro: 'O evento já terminou. As fotos foram reveladas.' });
-  const guest = ev.guests.find((g) => g.id === req.body.guestId);
+  const guest = autentica(ev, req.body.guestId, req.get('x-guest-token'));
   if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de fotografar.' });
   if (req.file && req.file.size > settings.tamanhoMaxFotoMB * 1024 * 1024)
     return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
@@ -688,6 +694,7 @@ app.get('/e/:id/presenca', page('presenca.html'));
 app.get('/painel/:id', page('painel.html'));
 app.get('/master', page('master.html'));
 app.get('/sw.js', (req, res) => res.set('Service-Worker-Allowed', '/').type('application/javascript').sendFile(path.join(__dirname, 'public', 'sw.js')));
+app.get('/embutido.js', (req, res) => res.type('application/javascript').sendFile(path.join(__dirname, 'src', 'embutido.js')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
