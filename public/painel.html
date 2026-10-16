@@ -15,14 +15,14 @@
     <div class="brand"><img src="/icons/logo.svg" alt="" width="32" height="32">Lume</div>
     <div class="who" id="who">Organização</div>
     <nav class="nav" id="nav">
-      <a href="#resumo" data-s="resumo">📊 Resumo</a>
-      <a href="#convidados" data-s="convidados">👥 Convidados</a>
-      <a href="#programacao" data-s="programacao">🗓️ Detalhes e programação</a>
-      <a href="#fotos" data-s="fotos">🖼️ Fotos e recados</a>
-      <a href="#avisos" data-s="avisos">🔔 Avisos aos convidados</a>
-      <a href="#convite" data-s="convite">🔗 Convite e QR Code</a>
-      <a href="#config" data-s="config">⚙️ Configurações</a>
-      <a href="#equipe" data-s="equipe" id="navEquipe">🤝 Equipe</a>
+      <a href="#resumo" data-s="resumo"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#resumo"/></svg>Resumo</a>
+      <a href="#convidados" data-s="convidados"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#pessoas"/></svg>Convidados</a>
+      <a href="#programacao" data-s="programacao"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#agenda"/></svg>Detalhes e programação</a>
+      <a href="#fotos" data-s="fotos"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#album"/></svg>Fotos e recados</a>
+      <a href="#avisos" data-s="avisos"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#aviso"/></svg>Avisos aos convidados</a>
+      <a href="#convite" data-s="convite"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#link"/></svg>Convite e QR Code</a>
+      <a href="#config" data-s="config"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#config"/></svg>Configurações</a>
+      <a href="#equipe" data-s="equipe" id="navEquipe"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#equipe"/></svg>Equipe</a>
     </nav>
   </aside>
   <div class="content">
@@ -124,7 +124,7 @@ async function rConvidados(v) {
     } }, 'Adicionar à lista'),
     el('span', { class: 'sub', style: 'margin:0' }, 'Dica: cole direto de uma planilha (colunas separadas por tab).')), out);
   v.append(add);
-  v.append(el('div', { class: 'row', style: 'margin-bottom:14px' }, el('button', { class: 'btn', onclick: () => baixar('/lista.csv', 'convidados.csv') }, '⬇ Exportar lista (CSV)')));
+  v.append(el('div', { class: 'row', style: 'margin-bottom:14px' }, el('button', { class: 'btn', onclick: () => baixar('/lista.csv', 'convidados.csv') }, 'Exportar lista (CSV)')));
   const painel = el('div', { class: 'panel' });
   v.append(painel);
   let filtro = 'todos', busca = '', itens = [];
@@ -150,7 +150,7 @@ async function rConvidados(v) {
         const sel = el('select', { onchange: async () => { await call(`/lista/${i.id}`, { method: 'PATCH', body: JSON.stringify({ rsvp: sel.value }) }); i.rsvp = sel.value; render(); } },
           ['pendente', 'confirmado', 'recusado'].map((o) => el('option', { value: o, ...(o === i.rsvp ? { selected: '' } : {}) }, { pendente: 'Sem resposta', confirmado: 'Confirmado', recusado: 'Recusou' }[o])));
         tb.append(el('tr', {}, el('td', {}, i.nome), el('td', {}, i.grupo || '—'), el('td', {}, String(i.acompanhantes || 0)), el('td', {}, sel),
-          el('td', {}, i.naCamera ? '✓' : '—'),
+          el('td', {}, i.naCamera ? 'Sim' : '—'),
           el('td', {}, el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover ${i.nome} da lista?`)) { await call(`/lista/${i.id}`, { method: 'DELETE' }); desenha(); } } }, 'Remover'))));
       });
       if (!vis.length) tb.append(el('tr', {}, el('td', { colspan: '6' }, 'Nenhum convidado aqui ainda.')));
@@ -186,7 +186,7 @@ async function rProgramacao(v) {
       const hora = el('input', { type: 'time', value: d.hora }); hora.oninput = () => (d.hora = hora.value);
       const tit = el('input', { value: d.titulo, placeholder: 'Ex.: Cerimônia', maxlength: '80' }); tit.oninput = () => (d.titulo = tit.value);
       const desc = el('input', { value: d.descricao, placeholder: 'Detalhe (opcional)', maxlength: '200' }); desc.oninput = () => (d.descricao = desc.value);
-      linhas.append(el('div', { class: 'sched' }, hora, tit, desc, el('button', { class: 'btn sm danger', onclick: () => { dados.splice(i, 1); desenha(); } }, '✕')));
+      linhas.append(el('div', { class: 'sched' }, hora, tit, desc, el('button', { class: 'btn sm danger', onclick: () => { dados.splice(i, 1); desenha(); } }, 'Remover')));
     });
   }
   desenha();
@@ -230,7 +230,7 @@ async function rFotos(v) {
   const outz = el('p', { class: 'msg' });
   v.append(el('div', { class: 'row' },
     el('button', { class: 'btn', onclick: mostrar }, revelado ? 'Ver fotos e recados' : 'Moderar fotos e recados (ver agora)'),
-    el('button', { class: 'btn primary', onclick: () => baixar('/fotos.zip', `album-${info.titulo}.zip`, outz) }, '⬇ Baixar álbum completo (ZIP)')), outz, area);
+    el('button', { class: 'btn primary', onclick: () => baixar('/fotos.zip', `album-${info.titulo}.zip`, outz) }, 'Baixar álbum completo (ZIP)')), outz, area);
 }
 
 // ── Avisos

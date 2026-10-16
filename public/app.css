@@ -99,3 +99,9 @@ textarea { width: 100%; padding: var(--esp-3); border-radius: var(--raio-md); bo
 .choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: var(--esp-4); }
 .choice .btn.on { background: var(--cor-papel); color: var(--cor-sobre-papel); border-color: var(--cor-papel); }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* Ícones SVG próprios (sprite em /icons/sprite.svg) */
+.ico { width: 1.25em; height: 1.25em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.25em; }
+.ico.lg { width: 32px; height: 32px; }
+.hubcard .ic .ico { width: 24px; height: 24px; }
+.btn .ico { margin-right: 6px; }
