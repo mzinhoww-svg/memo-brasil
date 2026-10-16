@@ -127,7 +127,8 @@ const ROTULOS = {
   maxListaPorEvento: ['Convidados na lista por evento', 'Padrão; cada casamento pode ter limite próprio.'],
   maxFotosPorEvento: ['Fotos por evento', 'Padrão; controla o uso de armazenamento.'],
   tamanhoMaxFotoMB: ['Tamanho máx. da foto (MB)', 'Acima disso o envio é recusado.'],
-  retencaoDiasAposRevelacao: ['Retenção (dias após a revelação)', 'Política registrada. A exclusão automática ainda não é executada.'],
+  retencaoDiasAposRevelacao: ['Retenção (dias após a revelação)', 'Depois desse prazo, scripts/retencao.js apaga o evento do casamento.'],
+  retencaoDiasSemRevelacao: ['Retenção (dias sem revelação)', 'Eventos que nunca foram revelados são apagados após esse prazo desde a criação.'],
 };
 async function plataforma() {
   const { settings, padroes } = await call('/settings');

@@ -213,10 +213,25 @@ async function rFotos(v) {
     const r = await call('/moderacao');
     const grid = el('div', { class: 'thumbs' });
     r.fotos.forEach((f) => {
+      const legenda = [el('span', {}, f.autor)];
+      if (f.denuncias) legenda.push(el('span', { class: 'sub', style: 'margin:0 0 0 8px' }, `⚑ ${f.denuncias}`));
+      if (f.oculta) legenda.push(el('span', { class: 'sub', style: 'margin:0 0 0 8px' }, 'oculta'));
       grid.append(el('div', { class: 'thumb' }, el('img', { src: `${f.url}?token=${encodeURIComponent(TOKEN)}`, alt: `Foto de ${f.autor}`, loading: 'lazy' }),
-        el('div', {}, el('span', {}, f.autor), el('button', { class: 'btn sm danger', onclick: async () => { if (confirm('Apagar esta foto para sempre?')) { await call(`/photos/${f.id}`, { method: 'DELETE' }); mostrar(); } } }, 'Apagar'))));
+        el('div', {}, ...legenda,
+          el('button', { class: 'btn sm', onclick: async () => { await call(`/photos/${f.id}`, { method: 'PATCH', body: JSON.stringify({ oculta: !f.oculta }) }); mostrar(); } }, f.oculta ? 'Mostrar' : 'Ocultar'),
+          el('button', { class: 'btn sm danger', onclick: async () => { if (confirm('Apagar esta foto para sempre?')) { await call(`/photos/${f.id}`, { method: 'DELETE' }); mostrar(); } } }, 'Apagar'))));
     });
     area.append(el('h2', {}, `Fotos (${r.fotos.length})`), r.fotos.length ? grid : el('p', { class: 'sub' }, 'Ninguém enviou fotos ainda.'));
+    if (r.denunciasAbertas) {
+      const dl = await call('/denuncias');
+      area.append(el('h2', { style: 'margin-top:22px' }, `Denúncias (${r.denunciasAbertas})`));
+      dl.denuncias.filter((d) => d.status === 'aberta').forEach((d) => area.append(el('div', { class: 'panel' },
+        el('p', { style: 'margin:0 0 6px' }, d.motivo ? `Uma foto foi denunciada: ${d.motivo}` : 'Uma foto foi denunciada.'),
+        el('div', { class: 'row' },
+          el('span', { class: 'sub', style: 'margin:0' }, `— foto de ${d.autor || 'autor removido'}`),
+          el('button', { class: 'btn sm', onclick: async () => { await call(`/photos/${d.fotoId}`, { method: 'PATCH', body: JSON.stringify({ oculta: true }) }); mostrar(); } }, 'Ocultar foto'),
+          el('button', { class: 'btn sm danger', onclick: async () => { if (confirm('Apagar esta foto para sempre?')) { await call(`/photos/${d.fotoId}`, { method: 'DELETE' }); mostrar(); } } }, 'Apagar foto')))));
+    }
     area.append(el('h2', { style: 'margin-top:22px' }, `Recados (${r.recados.length})`));
     r.recados.slice().reverse().forEach((x) => area.append(el('div', { class: 'panel' }, el('p', { style: 'margin:0 0 6px' }, x.texto),
       el('div', { class: 'row' }, el('span', { class: 'sub', style: 'margin:0' }, `— ${x.autor}`), el('button', { class: 'btn sm danger', onclick: async () => { await call(`/recados/${x.id}`, { method: 'DELETE' }); mostrar(); } }, 'Apagar')))));

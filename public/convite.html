@@ -21,7 +21,11 @@
     <input id="nome" maxlength="40" autocomplete="off" list="sugestoes" placeholder="Como os noivos te chamam?" required>
     <datalist id="sugestoes"></datalist>
     <p id="err" class="err"></p>
-    <button class="btn primary">Entrar no álbum</button>
+    <label id="boxconsent" for="consent" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.4">
+      <input id="consent" type="checkbox" style="width:auto;margin-top:2px">
+      <span id="textoconsent">Suas fotos serão vistas por todos os convidados quando o álbum for revelado, com o seu nome.</span>
+    </label>
+    <button id="entrar" class="btn primary" disabled>Entrar no álbum</button>
   </form>
   <a id="ver" class="btn" style="margin-top:10px;display:none">Ver álbum</a>
 </main>
@@ -44,8 +48,12 @@ prepararPwa(id);
     $('#ver').style.display = 'flex'; $('#ver').href = `/e/${id}/album`; $('#ver').classList.add('primary');
   } else {
     $('#regra').textContent = `Você tem ${info.fotosPorConvidado} fotos. Elas ficam escondidas e são reveladas para todos ao mesmo tempo, no fim da festa.`;
+    $('#textoconsent').textContent = info.config && info.config.mostrarAutor === false
+      ? 'Suas fotos serão vistas por todos os convidados quando o álbum for revelado. O nome de quem tirou não aparece.'
+      : 'Suas fotos serão vistas por todos os convidados quando o álbum for revelado, com o seu nome.';
   }
 })();
+$('#consent').addEventListener('change', () => { $('#entrar').disabled = !$('#consent').checked; });
 let tbusca;
 $('#nome').addEventListener('input', () => {
   clearTimeout(tbusca);
@@ -64,8 +72,9 @@ $('#f').addEventListener('submit', async (e) => {
   const nome = $('#nome').value.trim();
   const g = getGuest(id);
   if (g && g.nome === nome) return (location.href = `/e/${id}/inicio`);
+  if (!$('#consent').checked) { $('#err').textContent = 'Para entrar, precisamos do seu "de acordo". É rapidinho.'; return; }
   try {
-    const r = await api(`/api/events/${id}/guests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome }) });
+    const r = await api(`/api/events/${id}/guests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome, consentimento: { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false } }) });
     setGuest(id, { guestId: r.guestId, nome: r.nome });
     location.href = `/e/${id}/inicio`;
   } catch (er) { $('#err').textContent = er.message; }
