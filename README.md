@@ -5,9 +5,16 @@
 ## Rodar
     npm install
     npm start        # http://localhost:3210 (o endereço da rede Wi-Fi aparece no terminal)
-    npm test         # 10 testes de API e de isolamento entre casamentos
+    npm test         # testes de API, de isolamento entre casamentos e de moderação/LGPD
 
-Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push).
+Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push), `RETENCAO_DIAS_APOS_REVELACAO`, `RETENCAO_DIAS_SEM_REVELACAO` e `EXPORT_DIR`. Veja `.env.example`.
+
+## Moderação e privacidade (LGPD)
+- **Denúncia**: o convidado denuncia uma foto em `POST /api/events/:id/fotos/:pid/denunciar`; a organização vê em `GET /api/events/:id/denuncias` e pode **ocultar** (`PATCH /api/events/:id/photos/:pid`) ou **apagar** (`DELETE`). A foto oculta some do álbum e do ZIP, mas a organização continua vendo. Tudo fica em `data/audit.log`.
+- **Consentimento**: ao entrar, o convidado registra a versão do texto aceito e a data no próprio evento (`data.consentimentos`).
+- **Exportar um evento** (JSON sem tokens + fotos): `node scripts/exportar-evento.js <id> [--saida=arquivo.zip]`
+- **Apagar um evento** em cascata e auditado: `node scripts/apagar-evento.js <id> --confirmar=<id>` (sem a confirmação, nada é apagado).
+- **Retenção**: `node scripts/retencao.js` lista os eventos vencidos (dry-run); `node scripts/retencao.js --executar` apaga. Padrão: 365 dias após a revelação e 180 dias para eventos nunca revelados.
 
 ## Jornadas
 - **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos.
@@ -23,6 +30,6 @@ Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (dom
 ## Limitações conhecidas
 - Câmera ao vivo e push exigem HTTPS (ou localhost). iOS só recebe push com o app instalado na Tela de Início (16.4+).
 - Push implementado e validado só até a inscrição; a entrega real a aparelhos não foi testada.
-- Sem login real (acesso por token), sem e-mail, armazenamento em JSON + arquivos, retenção só registrada, sem RLS de banco (isolamento por middleware).
+- Sem login real (acesso por token), sem e-mail, armazenamento em JSON + arquivos, retenção por comando (`scripts/retencao.js`; agendamento do job fica para a infra), sem RLS de banco (isolamento por middleware).
 - Telas nunca validadas em navegador/celular pelo agente que as escreveu.
 - Não copiar marca, textos nem artes do app original (Memo - Capture momentos).
