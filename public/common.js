@@ -27,6 +27,8 @@ function relogio(agoraServidor) {
 const guestKey = (id) => `memo:${id}:guest`;
 const getGuest = (id) => { try { return JSON.parse(localStorage.getItem(guestKey(id))); } catch { return null; } };
 const setGuest = (id, g) => localStorage.setItem(guestKey(id), JSON.stringify(g));
+// Cabeçalho de autenticação do convidado: o id sozinho não basta, vai o token junto.
+const guestHdr = (id) => { const g = getGuest(id); return g && g.guestToken ? { 'x-guest-token': g.guestToken } : {}; };
 const hostKey = (id) => `memo:${id}:host`;
 
 // Trilha de navegação: crumbs([{t:'Início', href:'/'}, {t:'Câmera'}])
@@ -44,13 +46,27 @@ function crumbs(items, el = $('#crumbs')) {
 }
 
 // Páginas do convidado: carrega o evento e exige que a pessoa tenha entrado.
+// A reentrada pelo mesmo aparelho (localStorage) recupera a sessão e o saldo de fotos.
+async function reentrarConvidado(id, guest) {
+  try {
+    return await api(`/api/events/${id}/sessao`, {
+      method: 'POST', headers: { 'content-type': 'application/json', ...guestHdr(id) },
+      body: JSON.stringify({ guestId: guest.guestId }),
+    });
+  } catch { return null; }
+}
+
 async function carregaConvidado() {
   const id = eventId();
   const guest = getGuest(id);
-  if (!guest) { location.replace(`/e/${id}`); return new Promise(() => {}); }
+  if (!guest || !guest.guestToken) { location.replace(`/e/${id}`); return new Promise(() => {}); }
   prepararPwa(id);
-  const info = await api(`/api/events/${id}`);
-  return { id, guest, info };
+  let info;
+  try { info = await api(`/api/events/${id}`); }
+  catch { location.replace(`/e/${id}`); return new Promise(() => {}); }
+  const sessao = await reentrarConvidado(id, guest);
+  if (!sessao) { localStorage.removeItem(guestKey(id)); location.replace(`/e/${id}`); return new Promise(() => {}); }
+  return { id, guest, info, sessao };
 }
 const dataBr = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' }) : '';
 

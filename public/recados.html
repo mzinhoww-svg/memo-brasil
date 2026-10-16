@@ -35,7 +35,7 @@
   $('#enviar').onclick = async () => {
     $('#msg').textContent = '';
     try {
-      await api(`/api/events/${id}/recados`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ guestId: guest.guestId, texto: $('#t').value }) });
+      await api(`/api/events/${id}/recados`, { method: 'POST', headers: { 'content-type': 'application/json', ...guestHdr(id) }, body: JSON.stringify({ guestId: guest.guestId, texto: $('#t').value }) });
       $('#t').value = ''; carrega();
     } catch (e) { $('#msg').textContent = e.message; }
   };
