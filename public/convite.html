@@ -63,10 +63,10 @@ $('#f').addEventListener('submit', async (e) => {
   e.preventDefault(); $('#err').textContent = '';
   const nome = $('#nome').value.trim();
   const g = getGuest(id);
-  if (g && g.nome === nome) return (location.href = `/e/${id}/inicio`);
+  if (g && g.nome === nome && g.guestToken) return (location.href = `/e/${id}/inicio`);
   try {
     const r = await api(`/api/events/${id}/guests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome }) });
-    setGuest(id, { guestId: r.guestId, nome: r.nome });
+    setGuest(id, { guestId: r.guestId, guestToken: r.guestToken, nome: r.nome });
     location.href = `/e/${id}/inicio`;
   } catch (er) { $('#err').textContent = er.message; }
 });

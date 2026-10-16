@@ -7,6 +7,7 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const imagem = require('./src/image');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -60,6 +61,8 @@ for (const ev of Object.values(db.events)) {
     config: { ...CONFIG_PADRAO, ...(ev.config || {}) }, push: ev.push || [], avisos: ev.avisos || [],
     revealNotified: ev.revealNotified ?? revealedAtBoot(ev),
   });
+  // Convidados antigos ganham uma credencial (token) para o upload autenticado.
+  for (const g of ev.guests || []) if (!g.token) g.token = crypto.randomBytes(16).toString('base64url');
 }
 
 // Admin master: administra todos os casamentos (tenants). Token por ambiente ou gerado no primeiro uso.
@@ -116,7 +119,14 @@ app.get('/api/config', (req, res) => res.json({
   criacaoAberta: settings.criacaoAberta, manutencao: settings.manutencao, avisoGlobal: settings.avisoGlobal,
   pushAtivo: settings.pushAtivo, vapidPublicKey: vapid.publicKey, tamanhoMaxFotoMB: settings.tamanhoMaxFotoMB,
 }));
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_HARD_PHOTO_BYTES, files: 1 } });
+// Upload de foto: o limite real vem da configuração do evento e é aplicado em
+// tempo de requisição — assim o multer corta o corpo assim que passa do
+// tamanho permitido, em vez de bufferizar até o teto técnico.
+const uploadFoto = (req, res, next) => {
+  const limite = Math.min(Math.max(settings.tamanhoMaxFotoMB, 1) * imagem.MB, MAX_HARD_PHOTO_BYTES);
+  multer({ storage: multer.memoryStorage(), limits: { fileSize: limite, files: 1, fields: 4, parts: 8, fieldSize: 1024 } })
+    .single('foto')(req, res, next);
+};
 
 function getEvent(req, res, next) {
   const ev = db.events[req.params.id];
@@ -139,6 +149,34 @@ function adminOnly(req, res, next) {
 }
 const donoOnly = (req, res, next) =>
   req.admin.dono ? next() : res.status(403).json({ erro: 'Só o casal pode fazer isso.' });
+
+// Compara tokens sem vazar tempo. Evita que um palpite seja validado byte a byte.
+function mesmoToken(a, b) {
+  if (!a || !b) return false;
+  const x = Buffer.from(String(a));
+  const y = Buffer.from(String(b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+
+// Autentica o convidado ANTES de o multer ler o corpo: a credencial vai no
+// cabeçalho `x-guest-token` (nunca em campo do formulário, que só existe depois
+// de o corpo inteiro ser lido). Sem credencial válida, nada é bufferizado em RAM.
+// Também barra, aqui, o que não depende do arquivo: evento suspenso/revelado,
+// limite de fotos do evento e cota do próprio convidado autenticado.
+function guestAuth(req, res, next) {
+  const ev = req.ev;
+  if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
+  if (revealed(ev)) return res.status(409).json({ erro: 'O evento já terminou. As fotos foram reveladas.' });
+  const token = req.get('x-guest-token') || req.query.guestToken;
+  if (!token) return res.status(401).json({ erro: 'Entre no evento antes de fotografar.' });
+  const guest = ev.guests.find((g) => mesmoToken(g.token, token));
+  if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de fotografar.' });
+  if (ev.photos.length >= limFotos(ev)) return res.status(409).json({ erro: 'Este evento atingiu o limite de fotos.' });
+  const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
+  if (usadas >= ev.fotosPorConvidado) return res.status(409).json({ erro: `Você já usou suas ${ev.fotosPorConvidado} fotos.` });
+  req.guest = guest;
+  next();
+}
 
 function publicInfo(ev) {
   return {
@@ -358,10 +396,10 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   if (ev.config.apenasLista && !ev.lista.some((l) => norm(l.nome) === norm(nome)))
     return res.status(403).json({ erro: 'Este evento é só para convidados da lista. Use o nome exatamente como os noivos cadastraram.' });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
-  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: new Date().toISOString(), listaId: item?.id };
+  const g = { id: newId(8), token: newId(16), nome: item ? item.nome : nome, entrouEm: new Date().toISOString(), listaId: item?.id };
   ev.guests.push(g);
   save();
-  res.status(201).json({ guestId: g.id, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null });
+  res.status(201).json({ guestId: g.id, guestToken: g.token, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null });
 });
 
 app.get('/api/events/:id/guests/:gid', getEvent, (req, res) => {
@@ -411,27 +449,30 @@ app.post('/api/events/:id/recados', getEvent, (req, res) => {
 });
 
 // ───── Fotos
-app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) => {
+// A ordem importa: primeiro identificamos o evento e autenticamos o convidado
+// (guestAuth), e só então o multer começa a ler o corpo. O `guestId` do
+// formulário é ignorado — a autoria e a cota saem do convidado autenticado.
+app.post('/api/events/:id/photos', getEvent, guestAuth, uploadFoto, (req, res, next) => {
   const ev = req.ev;
-  if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
-  if (revealed(ev)) return res.status(409).json({ erro: 'O evento já terminou. As fotos foram reveladas.' });
-  const guest = ev.guests.find((g) => g.id === req.body.guestId);
-  if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de fotografar.' });
-  if (req.file && req.file.size > settings.tamanhoMaxFotoMB * 1024 * 1024)
-    return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
-  if (ev.photos.length >= limFotos(ev)) return res.status(409).json({ erro: 'Este evento atingiu o limite de fotos.' });
-  if (!req.file || !/^image\/(jpeg|png|webp)$/.test(req.file.mimetype))
-    return res.status(400).json({ erro: 'Envie uma imagem JPEG, PNG ou WebP.' });
-  const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
-  if (usadas >= ev.fotosPorConvidado) return res.status(409).json({ erro: `Você já usou suas ${ev.fotosPorConvidado} fotos.` });
-  const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[req.file.mimetype];
+  const guest = req.guest;
+  if (!req.file || !req.file.buffer || !req.file.buffer.length)
+    return res.status(400).json({ erro: 'Envie uma foto.' });
+  let img;
+  try { img = imagem.preparar(req.file.buffer); }
+  catch (e) {
+    if (e instanceof imagem.ErroImagem) return res.status(e.status).json({ erro: e.message });
+    return next(e);
+  }
+  // O nome do arquivo é sempre gerado pelo servidor; o nome enviado pelo
+  // cliente é descartado (evita path traversal, XSS em nome e colisão).
   const id = newId(8);
   const dir = path.join(PHOTO_DIR, ev.id);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, `${id}.${ext}`), req.file.buffer);
-  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: new Date().toISOString() });
+  fs.writeFileSync(path.join(dir, `${id}.${img.ext}`), img.buffer);
+  ev.photos.push({ id, ext: img.ext, guestId: guest.id, autor: guest.nome, criadaEm: new Date().toISOString() });
   save();
-  res.status(201).json({ id, restantes: ev.fotosPorConvidado - usadas - 1 });
+  const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
+  res.status(201).json({ id, restantes: Math.max(0, ev.fotosPorConvidado - usadas) });
 });
 
 app.get('/api/events/:id/photos', getEvent, (req, res) => {
@@ -458,6 +499,7 @@ app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
 
 app.use((err, req, res, next) => {
   if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
+  if (err.code && err.code.startsWith('LIMIT_')) return res.status(400).json({ erro: 'Envio inválido.' });
   console.error(err);
   res.status(500).json({ erro: 'Algo deu errado. Tente de novo.' });
 });

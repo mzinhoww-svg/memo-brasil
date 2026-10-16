@@ -29,7 +29,7 @@
 <script>
 const id = eventId();
 const g = getGuest(id);
-if (!g) location.replace(`/e/${id}`);
+if (!g || !g.guestToken) location.replace(`/e/${id}`);
 $('#voltar').href = `/e/${id}/inicio`;
 $('#album').href = `/e/${id}/album`;
 const v = $('#v');
@@ -52,10 +52,9 @@ async function enviar(blob) {
   if (enviando) return;
   enviando = true;
   const fd = new FormData();
-  fd.append('guestId', g.guestId);
   fd.append('foto', blob, 'foto.jpg');
   try {
-    const r = await api(`/api/events/${id}/photos`, { method: 'POST', body: fd });
+    const r = await api(`/api/events/${id}/photos`, { method: 'POST', headers: { 'x-guest-token': g.guestToken }, body: fd });
     restantes = r.restantes; pintaFotos();
     toast('Momento guardado ✓');
   } catch (e) { toast(e.message, 3500); }
