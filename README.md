@@ -7,12 +7,18 @@
     npm start        # http://localhost:3210 (o endereço da rede Wi-Fi aparece no terminal)
     npm test         # 10 testes de API e de isolamento entre casamentos
 
-Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push).
+Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push), `MAX_FOTOS_EVENTO` (teto de fotos por evento; padrão `3000`) e `SENTRY_DSN` (opcional; sem ele, a observabilidade de erros é no-op). Veja `.env.example`.
 
 ## Jornadas
 - **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos.
 - **Organização** (claro, desktop): `/` cria evento → `/painel/:id` com Resumo, Convidados (RSVP, CSV), Detalhes e programação, Fotos e recados (moderação, ZIP), Avisos (push), Convite e QR, Configurações, Equipe.
 - **Admin master**: `/master` com Casamentos, Fotos por casamento, Plataforma (variáveis), Avisos globais, Auditoria, Políticas.
+
+## Observabilidade e limites
+- **`GET /healthz`** responde `status` (`ok` ou `degradado`), `versao`, `uptimeS` e `gravacao` (teste real de escrita em `DATA_DIR`). Vai a `503` quando o disco não aceita gravação. Não devolve token, nome, e-mail nem caminho de disco.
+- **Logs**: uma linha JSON por requisição (`src/obs/logger.js`) com método, rota (sem query string), status, duração e o IP apenas como **hash curto**. Nunca registra corpo, cabeçalhos, e-mail, nome, token nem texto de recado.
+- **Teto de fotos por evento**: `MAX_FOTOS_EVENTO` (padrão `3000`). O limite por evento/plataforma só aperta esse teto, nunca o ultrapassa. Upload acima do teto responde **413** em pt-BR. Estimativa de disco (pior caso): `MAX_FOTOS_EVENTO × tamanhoMaxFotoMB`; com os padrões, `3000 × 10 MB ≈ 30 GB` por evento.
+- **Erros (Sentry, opcional)**: com `SENTRY_DSN` definido, erros não tratados vão para o endpoint de envelope do Sentry via `fetch` (`src/obs/sentry.js`), sem dependência nova e **sem enviar o corpo da requisição**. Sem `SENTRY_DSN`, é no-op.
 
 ## Regras que importam
 - O álbum é individual por casamento. Nenhuma rota devolve dados de um tenant com o token de outro (coberto por teste).
