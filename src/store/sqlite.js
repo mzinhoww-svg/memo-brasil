@@ -220,13 +220,13 @@ class SqliteStore extends Store {
 
     this._syncArray('guests', ev.guests, old.guests || [],
       (g) => this.conn.prepare('INSERT INTO guests (id, tenant_id, nome, entrou_em, lista_id) VALUES (?,?,?,?,?)').run(g.id, ev.id, g.nome, g.entrouEm, g.listaId || null),
-      (g) => this.conn.prepare('UPDATE guests SET nome=?, entrou_em=?, lista_id=? WHERE id=?').run(g.nome, g.entrouEm, g.listaId || null, g.id),
-      (id) => this.conn.prepare('DELETE FROM guests WHERE id=?').run(id));
+      (g) => this.conn.prepare('UPDATE guests SET nome=?, entrou_em=?, lista_id=? WHERE id=? AND tenant_id=?').run(g.nome, g.entrouEm, g.listaId || null, g.id, ev.id),
+      (id) => this.conn.prepare('DELETE FROM guests WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('lista', ev.lista, old.lista || [],
       (l) => this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, acompanhantes, rsvp, origem) VALUES (?,?,?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao'),
-      (l) => this.conn.prepare('UPDATE lista SET nome=?, grupo=?, acompanhantes=?, rsvp=?, origem=? WHERE id=?').run(l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao', l.id),
-      (id) => this.conn.prepare('DELETE FROM lista WHERE id=?').run(id));
+      (l) => this.conn.prepare('UPDATE lista SET nome=?, grupo=?, acompanhantes=?, rsvp=?, origem=? WHERE id=? AND tenant_id=?').run(l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao', l.id, ev.id),
+      (id) => this.conn.prepare('DELETE FROM lista WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('equipe', ev.equipe, old.equipe || [],
       (e) => {
@@ -235,29 +235,29 @@ class SqliteStore extends Store {
       },
       (e) => {
         const th = e.tokenHash || (e.token ? tokenHash(e.token) : old.equipe.find((x) => x.id === e.id)?.tokenHash || '');
-        this.conn.prepare('UPDATE equipe SET nome=?, papel=?, token_hash=? WHERE id=?').run(e.nome, e.papel, th, e.id);
+        this.conn.prepare('UPDATE equipe SET nome=?, papel=?, token_hash=? WHERE id=? AND tenant_id=?').run(e.nome, e.papel, th, e.id, ev.id);
       },
-      (id) => this.conn.prepare('DELETE FROM equipe WHERE id=?').run(id));
+      (id) => this.conn.prepare('DELETE FROM equipe WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('photos', ev.photos, old.photos || [],
       (p) => this.conn.prepare('INSERT INTO photos (id, tenant_id, guest_id, autor, ext, criada_em) VALUES (?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.autor, p.ext, p.criadaEm),
-      (p) => this.conn.prepare('UPDATE photos SET guest_id=?, autor=?, ext=?, criada_em=? WHERE id=?').run(p.guestId, p.autor, p.ext, p.criadaEm, p.id),
-      (id) => this.conn.prepare('DELETE FROM photos WHERE id=?').run(id));
+      (p) => this.conn.prepare('UPDATE photos SET guest_id=?, autor=?, ext=?, criada_em=? WHERE id=? AND tenant_id=?').run(p.guestId, p.autor, p.ext, p.criadaEm, p.id, ev.id),
+      (id) => this.conn.prepare('DELETE FROM photos WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('recados', ev.recados, old.recados || [],
       (r) => this.conn.prepare('INSERT INTO recados (id, tenant_id, guest_id, autor, texto, criado_em) VALUES (?,?,?,?,?,?)').run(r.id, ev.id, r.guestId, r.autor, r.texto, r.criadoEm),
-      (r) => this.conn.prepare('UPDATE recados SET guest_id=?, autor=?, texto=?, criado_em=? WHERE id=?').run(r.guestId, r.autor, r.texto, r.criadoEm, r.id),
-      (id) => this.conn.prepare('DELETE FROM recados WHERE id=?').run(id));
+      (r) => this.conn.prepare('UPDATE recados SET guest_id=?, autor=?, texto=?, criado_em=? WHERE id=? AND tenant_id=?').run(r.guestId, r.autor, r.texto, r.criadoEm, r.id, ev.id),
+      (id) => this.conn.prepare('DELETE FROM recados WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('push', ev.push, old.push || [],
       (p) => this.conn.prepare('INSERT INTO push_subscriptions (id, tenant_id, guest_id, endpoint, p256dh, auth, criado_em) VALUES (?,?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.sub.endpoint, p.sub.keys.p256dh, p.sub.keys.auth, p.criadoEm),
-      (p) => this.conn.prepare('UPDATE push_subscriptions SET guest_id=?, endpoint=?, p256dh=?, auth=?, criado_em=? WHERE id=?').run(p.guestId, p.sub.endpoint, p.sub.keys.p256dh, p.sub.keys.auth, p.criadoEm, p.id),
-      (id) => this.conn.prepare('DELETE FROM push_subscriptions WHERE id=?').run(id));
+      (p) => this.conn.prepare('UPDATE push_subscriptions SET guest_id=?, endpoint=?, p256dh=?, auth=?, criado_em=? WHERE id=? AND tenant_id=?').run(p.guestId, p.sub.endpoint, p.sub.keys.p256dh, p.sub.keys.auth, p.criadoEm, p.id, ev.id),
+      (id) => this.conn.prepare('DELETE FROM push_subscriptions WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('avisos', ev.avisos, old.avisos || [],
       (a) => this.conn.prepare('INSERT INTO avisos (id, tenant_id, titulo, corpo, enviado_em, por, alvos, entregues, falhas) VALUES (?,?,?,?,?,?,?,?,?)').run(a.id, ev.id, a.titulo, a.corpo, a.enviadoEm, a.por || '', a.alvos || 0, a.entregues || 0, a.falhas || 0),
-      (a) => this.conn.prepare('UPDATE avisos SET titulo=?, corpo=?, enviado_em=?, por=?, alvos=?, entregues=?, falhas=? WHERE id=?').run(a.titulo, a.corpo, a.enviadoEm, a.por || '', a.alvos || 0, a.entregues || 0, a.falhas || 0, a.id),
-      (id) => this.conn.prepare('DELETE FROM avisos WHERE id=?').run(id));
+      (a) => this.conn.prepare('UPDATE avisos SET titulo=?, corpo=?, enviado_em=?, por=?, alvos=?, entregues=?, falhas=? WHERE id=? AND tenant_id=?').run(a.titulo, a.corpo, a.enviadoEm, a.por || '', a.alvos || 0, a.entregues || 0, a.falhas || 0, a.id, ev.id),
+      (id) => this.conn.prepare('DELETE FROM avisos WHERE id=? AND tenant_id=?').run(id, ev.id));
   }
 
   _syncArray(name, current, previous, insertFn, updateFn, deleteFn) {

@@ -125,3 +125,36 @@ test('tokens de host e equipe são armazenados como hash', () => {
   assert.ok(verifyToken('rawtok', store2.db.events.e1.equipe[0].tokenHash));
   store2.close();
 });
+
+test('save() não altera nem apaga filho pertencente a outro tenant (WHERE tenant_id)', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-tenant-guard-'));
+  const store = createStore(dir);
+  const iso = () => new Date().toISOString();
+  const mkEvent = (id, guestId) => ({
+    id, hostToken: `tok-${id}`, hostTokenHash: tokenHash(`tok-${id}`), titulo: id,
+    revealAt: new Date(Date.now() + 3600e3).toISOString(), fotosPorConvidado: 5,
+    dataEvento: null, local: '', endereco: '', mensagem: '', contato: '', suspenso: false, limites: {},
+    config: { recadosAtivos: true, apenasLista: false, mostrarAutor: true }, revealNotified: false, createdAt: iso(),
+    guests: [{ id: guestId, nome: 'A', entrouEm: iso() }], photos: [], lista: [], equipe: [], recados: [], push: [], avisos: [],
+  });
+  store.db.events.evA = mkEvent('evA', 'g1');
+  store.db.events.evB = mkEvent('evB', 'g2');
+  store.save();
+
+  // Por fora do store, a linha do convidado g1 passa a pertencer ao evento B.
+  store.run("UPDATE guests SET tenant_id = 'evB' WHERE id = 'g1'");
+
+  // O evento A tenta atualizar o seu convidado g1: não pode alcançar a linha do evento B.
+  store.db.events.evA.guests[0].nome = 'ALTERADO';
+  store.save();
+  let row = store.get('SELECT tenant_id, nome FROM guests WHERE id=?', 'g1');
+  assert.equal(row.tenant_id, 'evB');
+  assert.equal(row.nome, 'A', 'UPDATE não pode alcançar linha de outro tenant');
+
+  // O evento A remove g1 da sua lista (sombra desatualizada): não pode apagar a linha do evento B.
+  store.db.events.evA.guests = [];
+  store.save();
+  row = store.get('SELECT nome FROM guests WHERE id=?', 'g1');
+  assert.ok(row, 'DELETE não pode alcançar linha de outro tenant');
+  store.close();
+});
