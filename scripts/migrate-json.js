@@ -46,10 +46,14 @@ for (const k of Object.keys(before)) {
   if (before[k] !== after[k]) { ok = false; console.error(`divergência em ${k}: json=${before[k]} sqlite=${after[k]}`); }
 }
 
+console.log('Contagens: json=', before, 'sqlite=', after);
+if (!ok) {
+  console.error('Verificação falhou: divergência entre JSON e SQLite. O JSON original foi preservado (nada foi renomeado).');
+  process.exit(1);
+}
+
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 fs.renameSync(jsonPath, `${jsonPath}.migrated-${stamp}`);
 
 console.log('Migração concluída:', jsonPath, '->', path.join(dataDir, 'memo.db'));
-console.log('Contagens:', after);
-if (!ok) process.exit(1);
 console.log('Verificação: OK');
