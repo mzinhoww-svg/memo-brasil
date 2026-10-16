@@ -1,0 +1,56 @@
+# Unidade systemd — ALTERNATIVA ao Docker (use uma ou outra, não as duas).
+# Roda o app direto com Node no host, atrás do Caddy local ou de um proxy já existente.
+#
+# Instalação (como root, na VPS):
+#   install -d -o lume -g lume /opt/lume /var/lib/lume
+#   rsync -a --delete --exclude data --exclude node_modules ./ /opt/lume/
+#   (cd /opt/lume && npm ci --omit=dev)
+#   install -m 640 -o root -g lume .env.example /etc/lume/lume.env   # depois editar os valores
+#   install -m 644 deploy/systemd/lume.service /etc/systemd/system/lume.service
+#   systemctl daemon-reload && systemctl enable --now lume
+#
+# Ver logs: journalctl -u lume -f
+
+[Unit]
+Description=Lume (Memo Brasil) — album colaborativo de casamento
+Documentation=file:/opt/lume/docs/deploy.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lume
+Group=lume
+WorkingDirectory=/opt/lume
+EnvironmentFile=/etc/lume/lume.env
+# DATA_DIR deve ser gravável pelo usuário lume e ficar fora do código.
+Environment=NODE_ENV=production
+Environment=PORT=3210
+Environment=DATA_DIR=/var/lib/lume
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=3
+# Encerramento limpo.
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+# ── Hardening ──
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+# Só os dados são graváveis.
+ReadWritePaths=/var/lib/lume
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target
