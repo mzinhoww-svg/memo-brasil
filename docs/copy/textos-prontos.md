@@ -1,12 +1,12 @@
 # Textos prontos para colar — `public/*.html`
 
-> **v0.1 · 13/10/2026 · Redator.** Base: `public/*.html` da `main` (commit 469792b).
+> **v0.2 · 16/10/2026 · Redator.** Base: `public/*.html` da `main` (commit 469792b).
 > Formato: **arquivo → elemento → texto atual → texto novo**. A coluna "Novo" é **texto puro**, pronto para `textContent`/atributo; **sem Markdown**. `{x}` é valor dinâmico já calculado pelo código.
-> `=` na coluna "Novo" = manter o atual. 🔧 = só entra quando a funcionalidade existir. ⚖️ = depende de revisão jurídica (ver `docs/copy/README.md` do PR #2).
+> `=` na coluna "Novo" = manter o atual. 🔧 `feature.<chave>` = promete algo que o código ainda não faz; só entra quando a chave estiver ligada em `docs/copy/features.json` (`node scripts/check-copy-features.js --publicar` barra o resto). 🔧 sem chave = elemento de interface novo, sem promessa de privacidade. ⚖️ = depende de revisão jurídica (ver `docs/copy/README.md`).
 > Tom acolhedor, pt-BR, "você". Nada copiado do app Memo. Textos legais e de consentimento completos ficam em `politica-privacidade.md`, `termos-de-uso.md` e `consentimento-convidado.md` (PR #2); aqui só as frases curtas das telas.
 > Texto de usuário (nome, título, recado) continua sempre como texto, nunca HTML.
 
-Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do projeto; o nome é provisório.
+Marca: o produto se chama **Lume**. Onde o código ainda mostrar o nome antigo, usar a constante de marca do projeto com o nome Lume. As colunas "Atual" continuam citando o texto antigo.
 
 ---
 
@@ -14,13 +14,14 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 
 | Elemento | Atual | Novo |
 |---|---|---|
-| `<title>` | Memo Brasil — cada convidado é seu fotógrafo | Memo Brasil · Cada convidado é seu fotógrafo |
-| Etiqueta (p) | MEMO BRASIL | MEMO BRASIL |
+| `<title>` | Memo Brasil — cada convidado é seu fotógrafo | Lume · Cada convidado é seu fotógrafo |
+| Etiqueta (p) | MEMO BRASIL | LUME |
 | h1 | Cada convidado é seu fotógrafo | = |
 | Parágrafo | Crie o álbum do casamento, compartilhe o QR Code e receba os melhores momentos sob o olhar de quem estava lá. As fotos ficam guardadas e só são reveladas na hora que você escolher. | Crie o álbum do seu casamento, compartilhe o QR Code e receba a festa pelos olhos de quem estava lá. As fotos ficam guardadas e só são reveladas na hora que você escolher. |
 | label `titulo` | Nome do evento | Nome do casamento |
 | placeholder `titulo` | Casamento Ana & Pedro | Ex.: Casamento de Ana & Pedro |
-| label `contato` | Seu e-mail ou WhatsApp (para o suporte falar com você) | Seu e-mail (para entrar depois e receber o aviso da revelação) |
+| label `contato` | Seu e-mail ou WhatsApp (para o suporte falar com você) | = |
+| label `contato` com login por e-mail 🔧 `feature.login_email` | — | Seu e-mail (para entrar depois e receber o aviso da revelação) |
 | label `dataEvento` | Data e hora do casamento | = |
 | label `local` | Local | = |
 | placeholder `local` | Ex.: Espaço Villa Jardim | = |
@@ -28,7 +29,7 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | ajuda abaixo de `revealAt` (novo p) | — | Dica: muita gente escolhe o dia seguinte, de manhã. Dá para mudar depois. |
 | label `fpg` | Fotos por convidado | = |
 | ajuda abaixo de `fpg` (novo p) | — | 20 fotos por convidado costuma ser um bom número. |
-| Aviso legal acima do botão (novo p) ⚖️🔧 | — | Ao criar o álbum, você concorda com os Termos de Uso e a Política de Privacidade e se compromete a avisar seus convidados de que as fotos serão vistas por todos. |
+| Aviso legal acima do botão (novo p) ⚖️🔧 | — | Ao criar o álbum, você declara ter lido os Termos de Uso e a Política de Privacidade e se compromete a avisar seus convidados de que as fotos serão vistas por todos. |
 | Botão `go` | Criar evento | Criar o álbum do casamento |
 | Rodapé | Área da organização (casal e cerimonial). Os convidados entram só pelo QR Code, em outra jornada. | Esta é a área da organização (casal e cerimonial). Os convidados entram só pelo QR Code. |
 | Erro: cadastro fechado | (mensagem do servidor) | Os novos casamentos estão em pausa por enquanto. Volte em breve ou escreva para o nosso suporte. |
@@ -49,11 +50,15 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | `#regra` (antes) | Você tem {n} fotos. Elas ficam escondidas e são reveladas para todos ao mesmo tempo, no fim da festa. | Você tem {n} fotos para registrar a festa. Elas ficam escondidas e são reveladas para todos juntos, em {data e hora}. |
 | `#regra` (revelado) | O evento terminou e as fotos já foram reveladas. | A festa acabou e as fotos já foram reveladas. Venha ver o que a galera registrou. |
 | label `nome` | Seu nome (aparece nas suas fotos) | Seu nome (os noivos vão ver ao lado das suas fotos) |
+| label `nome`, nomes ocultos (novo) | — | Seu nome (só os noivos vão ver; ele não aparece nas fotos) |
 | placeholder `nome` | Como os noivos te chamam? | = |
-| Aviso de consentimento (novo bloco) ⚖️🔧 | — | Suas fotos serão vistas por todos os convidados quando o álbum for revelado, com o seu nome. Os noivos e a equipe do Memo Brasil também podem ver as fotos para organizar e moderar. |
-| Link do aviso (novo) 🔧 | — | Saiba mais |
-| Caixa de aceite (novo) ⚖️🔧 | — | Li e concordo com o uso das minhas fotos como descrito. |
-| Erro: aceite não marcado 🔧 | — | Para entrar, precisamos do seu "de acordo". É rapidinho. |
+| Aviso de consentimento (novo bloco) ⚖️🔧 `feature.aceite_registrado` | — | Suas fotos serão vistas por todos os convidados quando o álbum for revelado, com o seu nome. Os noivos e a equipe do Lume também podem ver as fotos para organizar, dar suporte e moderar. |
+| Aviso de consentimento, nomes ocultos (novo) ⚖️🔧 `feature.aceite_registrado` | — | Suas fotos serão vistas por todos os convidados quando o álbum for revelado. O nome de quem tirou não aparece. |
+| Link do aviso (novo) 🔧 `feature.aceite_registrado` | — | Saiba mais |
+| Caixa 1, ciência (novo) ⚖️🔧 `feature.aceite_registrado` | — | Li os Termos de Uso e a Política de Privacidade. |
+| Caixa 2, consentimento (novo) ⚖️🔧 `feature.aceite_registrado` | — | Concordo que as minhas fotos sejam vistas por todos os convidados deste casamento, como descrito acima. |
+| Caixa 3, idade (novo) ⚖️🔧 `feature.aceite_registrado` | — | Tenho 18 anos ou estou com um responsável que sabe que estou aqui. |
+| Erro: aceite não marcado 🔧 `feature.aceite_registrado` | — | Para entrar, precisamos do seu "de acordo". É rapidinho. |
 | Botão submit | Entrar no álbum | Entrar no álbum |
 | Botão `ver` | Ver álbum | Ver o álbum |
 | Erro: nome vazio | (mensagem do servidor) | Diga seu nome para a gente te apresentar aos noivos. |
@@ -62,8 +67,8 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | Erro: convite inexistente — p | {erro} Confira o QR Code com os noivos. | O QR Code pode estar incompleto ou o endereço digitado errado. Peça aos noivos para conferir. |
 | Evento suspenso — h1 (novo) | — | Este álbum está em pausa |
 | Evento suspenso — p (novo) | — | Por enquanto não é possível entrar. Fale com os noivos. |
-| Evento apagado — h1 (novo) 🔧 | — | Este álbum não está mais disponível |
-| Evento apagado — p (novo) 🔧 | — | O prazo de guarda terminou e os arquivos foram apagados, como combinado. Se precisar, fale com os noivos. |
+| Evento apagado — h1 (novo) 🔧 `feature.retencao` | — | Este álbum não está mais disponível |
+| Evento apagado — p (novo) 🔧 `feature.retencao` | — | O prazo de guarda terminou e os arquivos foram apagados, como combinado. Se precisar, fale com os noivos. |
 
 ---
 
@@ -101,7 +106,7 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | PWA — texto (ativar avisos) | Receba um aviso quando as fotos forem reveladas e novidades dos noivos. | Quer saber quando o álbum abrir? A gente manda um aviso. |
 | Botão `pwaNotif` | 🔔 Ativar avisos | = |
 | Link `#sair` | Não sou essa pessoa — trocar de nome | Não é você? Trocar de nome |
-| Rodapé (novo link) ⚖️🔧 | — | Sobre suas fotos e seus dados |
+| Rodapé (novo link) ⚖️🔧 `feature.aceite_registrado` | — | Sobre suas fotos e seus dados |
 
 ---
 
@@ -166,8 +171,10 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | Compartilhar (novo botão) 🔧 | — | Compartilhar o álbum |
 | Compartilhar — texto 🔧 | — | Envie o link para quem estava lá. Quem receber vê as fotos de todos os convidados. |
 | Compartilhar — mensagem pronta 🔧 | — | O álbum de {titulo} abriu! 💛 As fotos da festa estão aqui: {link} |
-| Denunciar (novo link na foto aberta) 🔧 | — | Algo errado com esta foto? |
-| Denunciar — confirmação 🔧 | — | Obrigado. Os noivos vão olhar com cuidado. |
+| Pedir a retirada de uma foto em que aparece (novo) 🔧 `feature.denuncia` | — | Apareço nesta foto e quero que ela saia · Pedir a retirada |
+| Apagar a própria foto (novo) 🔧 `feature.apagar_proprio` | — | Apagar minha foto · Apagar esta foto para sempre? Não dá para desfazer. |
+| Denunciar (novo link na foto aberta) 🔧 `feature.denuncia` | — | Algo errado com esta foto? |
+| Denunciar — confirmação 🔧 `feature.denuncia` | — | Obrigado. Os noivos vão olhar com cuidado. |
 | Retrospectiva — abertura (novo) 🔧 | — | {titulo}. {n} momentos, {m} pessoas. Um dia para guardar. |
 | Retrospectiva — controles (novo) 🔧 | — | Pausar · Continuar · Próxima · Anterior · Fechar |
 | Retrospectiva — fim (novo) 🔧 | — | Fim da retrospectiva. Obrigado por fazer parte desse dia. |
@@ -211,14 +218,17 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | Label `t` | Seu recado | = |
 | Placeholder `t` | Deixe uma mensagem carinhosa… | Escreva algo que os noivos vão guardar para sempre… |
 | Contador (novo) | — | {n} de 400 caracteres |
-| Aviso de visibilidade (novo p) ⚖️ | — | Os recados aparecem para todos os convidados, com o seu nome. Escreva pensando que todo mundo vai ler. |
+| Aviso de visibilidade, padrão (novo p) ⚖️🔧 `feature.recados_privados` | — | Seu recado é só para os noivos. |
+| Caixa do mural, só com o mural ligado (novo) ⚖️🔧 `feature.recados_privados` | — | Mostrar para os outros convidados |
+| Aviso com a caixa marcada (novo) ⚖️🔧 `feature.recados_privados` | — | Este recado vai aparecer para todos os convidados, com o seu nome. |
+| Apagar o próprio recado (novo) 🔧 `feature.apagar_proprio` | — | Apagar meu recado |
 | Botão `enviar` | Enviar recado | = |
 | Lista vazia | Seja o primeiro a deixar um recado. | = |
 | Autor (`small`) | — {autor} | = |
 | Erro: recados desligados | (mensagem do servidor) | Os noivos desligaram os recados por enquanto. |
 | Erro: recado vazio | (mensagem do servidor) | Escreva uma mensagem antes de enviar. |
 
-*O aviso de visibilidade segue o comportamento atual (recados públicos entre convidados). Se o produto decidir tornar privados, trocar por: "Seu recado é só para os noivos."*
+*🔧 Decisão 004 (PR #5): recado privado ao casal por padrão, mural opt-in. Enquanto `feature.recados_privados` estiver desligada, a rota `/recados` mostra os recados, com nome, a qualquer pessoa com o link; nesse intervalo, o único aviso verdadeiro seria "Os recados aparecem para todos os convidados, com o seu nome", e o melhor é não publicar a tela de recados.*
 
 ---
 
@@ -228,7 +238,7 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 
 | Elemento | Atual | Novo |
 |---|---|---|
-| `<title>` | Organização — Memo Brasil | Organização · Memo Brasil |
+| `<title>` | Organização — Memo Brasil | Organização · Lume |
 | `#who` (padrão) | Organização | = |
 | `#who` (preenchido) | {nome} · Casal/Cerimonial | = |
 | Menu: Resumo | 📊 Resumo | Resumo |
@@ -240,7 +250,8 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | Menu: Config | ⚙️ Configurações | Configurações |
 | Menu: Equipe | 🤝 Equipe | Equipe |
 | Acesso negado — h1 | Acesso restrito | Não conseguimos abrir o painel |
-| Acesso negado — p | {erro} Abra o painel pelo link de acesso que o casal recebeu, ou peça um novo link na aba Equipe. | Entre pelo link que chegou no seu e-mail ou peça um novo à equipe do casamento. |
+| Acesso negado — p | {erro} Abra o painel pelo link de acesso que o casal recebeu, ou peça um novo link na aba Equipe. | Abra o painel pelo link de acesso que o casal recebeu ou peça um novo à equipe do casamento. |
+| Acesso negado — p, com login por e-mail 🔧 `feature.login_email` | — | Entre pelo link que chegou no seu e-mail ou peça um novo à equipe do casamento. |
 | Acesso negado — link | Voltar ao início | = |
 
 ### Resumo
@@ -272,7 +283,7 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | Adiar — confirmação 🔧 | — | Os convidados ganham mais tempo para fotografar. A revelação passa para {dia}, às {hora}. |
 | Encerrar câmera (novo) 🔧 | — | Encerrar a câmera. Ninguém mais envia fotos, mas o álbum continua escondido até a hora da revelação. |
 | Reabrir câmera (novo) 🔧 | — | Reabrir a câmera |
-| Aviso do master | Você está como admin master neste casamento.{ Contato: ...} | Você está neste casamento como administração do Memo Brasil. Seus acessos ficam registrados.{ Contato: ...} |
+| Aviso do master | Você está como admin master neste casamento.{ Contato: ...} | Você está neste casamento como administração do Lume. As ações da administração ficam registradas.{ Contato: ...} |
 
 ### Convidados
 
@@ -297,7 +308,7 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | Opção: confirmado | Confirmado | Confirmou |
 | Opção: recusado | Recusou | Não vai |
 | Botão linha | Remover | = |
-| Confirmação de remoção | Remover {nome} da lista? | Remover {nome} da lista? As fotos já enviadas por essa pessoa continuam no álbum. |
+| Confirmação de remoção | Remover {nome} da lista? | Remover {nome} da lista? As fotos já enviadas por essa pessoa continuam no álbum, e ela pode pedir a retirada delas. |
 | Vazio | Nenhum convidado aqui ainda. | Nenhum convidado aqui ainda. Cole uma lista acima para começar. |
 | Limite de linhas | Mostrando 300 de {n}. Use a busca para filtrar. | = |
 | Remover — opção 🔧 | — | Apagar também as fotos desta pessoa. Atenção: {n} fotos serão apagadas para sempre. |
@@ -340,10 +351,10 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | Confirmação apagar foto | Apagar esta foto para sempre? | Apagar esta foto para sempre? Não dá para desfazer. |
 | Apagar — sucesso (novo) | — | Foto apagada. |
 | Apagar — erro (novo) | — | Não foi possível apagar agora. Tente de novo. |
-| Ocultar (novo) 🔧 | — | Ocultar do álbum · Mostrar de novo |
+| Ocultar (novo) 🔧 `feature.ocultar` | — | Ocultar do álbum · Mostrar de novo |
 | Apagar em lote 🔧 | — | Apagar {n} fotos selecionadas? Não dá para desfazer. |
-| Denunciadas (novo) 🔧 | — | Fotos denunciadas ({n}) |
-| Prazo de guarda (novo) 🔧 | — | Guardamos o álbum por 12 meses depois da revelação. Baixe o ZIP antes de {data} para ficar com tudo. |
+| Denunciadas (novo) 🔧 `feature.denuncia` | — | Fotos denunciadas ({n}) |
+| Prazo de guarda (novo) 🔧 `feature.retencao` | — | Guardamos o álbum por {retencao_meses} meses depois da revelação. Baixe o ZIP antes de {data} para ficar com tudo. O que você baixa fica com você. |
 | Erro ZIP | Não foi possível baixar. | Não conseguimos montar o arquivo agora. Tente de novo em instantes. |
 
 ### Avisos
@@ -389,22 +400,25 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | h2 | Convidados | = |
 | Opção 1 | Só quem está na lista entra / O nome digitado precisa existir na aba Convidados. Evita penetras no álbum. | Só quem está na lista entra / O nome digitado precisa estar na aba Convidados. Evita penetras no álbum. |
 | Opção 2 | Permitir recados / Convidados podem deixar mensagens para os noivos. | Permitir recados / Os convidados podem deixar mensagens para vocês. |
-| Opção 3 | Mostrar o nome de quem tirou cada foto / Desligue se preferir um álbum sem identificação. | Mostrar o nome de quem tirou cada foto / Desligue se preferir um álbum sem identificação. Os convidados verão o aviso atualizado. |
+| Opção 3 | Mostrar o nome de quem tirou cada foto / Desligue se preferir um álbum sem identificação. | = |
+| Opção 3, regra de mudança (novo) 🔧 `feature.nome_travado` | — | Decida antes de compartilhar o convite: depois que os convidados entram, você pode ocultar os nomes quando quiser, mas não pode passar a mostrá-los. |
+| Mural de recados (novo) ⚖️🔧 `feature.recados_privados` | — | Mural de recados / Desligado, os recados são só para vocês. Ligado, cada convidado escolhe se o recado aparece para os outros. |
+| Acessos da administração (novo) 🔧 `feature.painel_acessos_admin` | — | Acessos da administração / Veja quando a nossa equipe abriu o seu álbum e por quê. |
 | Salvo | Salvo. | Salvo! |
 | h2 limites | Limites deste casamento | Limites do seu casamento |
 | Texto limites | Convidados na câmera: até {a} · Lista: até {b} · Fotos no evento: até {c}. Precisa de mais? Fale com o suporte do Memo. | Convidados na câmera: até {a} · Lista: até {b} · Fotos no evento: até {c}. Precisa de mais? Fale com o nosso suporte. |
-| Seção dados (novo) 🔧 | — | Seus dados |
-| Exportar tudo 🔧 | — | Baixar tudo do evento. Reunimos em um arquivo as fotos, os recados e a lista de convidados do casamento, para você guardar com carinho. |
-| Botão exportar 🔧 | — | Baixar tudo (ZIP) |
-| Exportar — preparando 🔧 | — | Preparando o arquivo… pode levar alguns minutos. |
-| Excluir — título 🔧 | — | Excluir este álbum? |
-| Excluir — texto 🔧 ⚖️ | — | Vamos apagar para sempre as fotos, os recados, a lista de convidados e os dados do evento. Os convidados deixam de ter acesso. Não dá para desfazer. Antes, que tal baixar tudo? |
-| Excluir — botões passo 1 🔧 | — | Baixar tudo primeiro · Continuar |
-| Excluir — confirmação 🔧 | — | Para confirmar, digite o nome do casamento: {titulo} |
-| Excluir — campo 🔧 | — | Digite o nome exato |
-| Excluir — erro 🔧 | — | O nome não confere. Digite exatamente como aparece acima. |
-| Excluir — botões passo 2 🔧 | — | Cancelar · Excluir para sempre |
-| Excluir — sucesso 🔧 | — | Álbum excluído. Obrigado por usar o Memo Brasil. |
+| Seção dados (novo) 🔧 `feature.excluir_evento` | — | Seus dados |
+| Exportar tudo 🔧 `feature.exportar_tudo` | — | Baixar tudo do evento. Reunimos em um arquivo as fotos, os recados e a lista de convidados do casamento, para você guardar com carinho. |
+| Botão exportar 🔧 `feature.exportar_tudo` | — | Baixar tudo (ZIP) |
+| Exportar — preparando 🔧 `feature.exportar_tudo` | — | Preparando o arquivo… pode levar alguns minutos. |
+| Excluir — título 🔧 `feature.excluir_evento` | — | Excluir este álbum? |
+| Excluir — texto 🔧 ⚖️ `feature.excluir_evento` | — | Vamos apagar para sempre as fotos, os recados, a lista de convidados e os dados do evento. Os convidados deixam de ter acesso. Não dá para desfazer. Antes, que tal baixar tudo? |
+| Excluir — botões passo 1 🔧 `feature.excluir_evento` | — | Baixar tudo primeiro · Continuar |
+| Excluir — confirmação 🔧 `feature.excluir_evento` | — | Para confirmar, digite o nome do casamento: {titulo} |
+| Excluir — campo 🔧 `feature.excluir_evento` | — | Digite o nome exato |
+| Excluir — erro 🔧 `feature.excluir_evento` | — | O nome não confere. Digite exatamente como aparece acima. |
+| Excluir — botões passo 2 🔧 `feature.excluir_evento` | — | Cancelar · Excluir para sempre |
+| Excluir — sucesso 🔧 `feature.excluir_evento` | — | Álbum excluído. Obrigado por usar o Lume. |
 
 ### Equipe
 
@@ -429,15 +443,16 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 
 | Elemento | Atual | Novo |
 |---|---|---|
-| `<title>` | Admin master — Memo Brasil | Administração · Memo Brasil |
-| Marca | MEMO BRASIL · ADMIN MASTER | MEMO BRASIL · ADMINISTRAÇÃO |
+| `<title>` | Admin master — Memo Brasil | Administração · Lume |
+| Marca | MEMO BRASIL · ADMIN MASTER | LUME · ADMINISTRAÇÃO |
 | Botão sair | Sair | = |
 | Login — h1 | Admin master | Administração |
-| Login — texto | Acesso a todos os casamentos e às variáveis da plataforma. Toda ação sensível fica registrada. | Acesso a todos os casamentos e às variáveis da plataforma. Toda ação fica registrada, inclusive o acesso a fotos. |
+| Login — texto | Acesso a todos os casamentos e às variáveis da plataforma. Toda ação sensível fica registrada. | = |
+| Login — texto, com registro de leitura (novo) 🔧 `feature.auditoria_motivo` | — | Acesso a todos os casamentos e às variáveis da plataforma. Toda ação fica registrada, inclusive o acesso a fotos. |
 | Login — placeholder | Senha do admin master | Senha da administração |
 | Login — botão | Entrar | = |
 | Login — erro | Senha inválida ou ausente. | Senha inválida. Confira e tente de novo. |
-| Login — 2º fator (novo) 🔧 | — | Código de 6 dígitos do aplicativo autenticador |
+| Login — 2º fator (novo) 🔧 `feature.mfa_master` | — | Código de 6 dígitos do aplicativo autenticador |
 | Login — bloqueio 🔧 | — | Muitas tentativas. Aguarde alguns minutos para tentar de novo. |
 | Abas | Casamentos · Fotos por casamento · Plataforma · Avisos globais · Auditoria · Políticas de acesso | Casamentos · Fotos por casamento · Plataforma · Avisos a todos · Registro de acessos · Quem pode o quê |
 | Totais | Casamentos · Pessoas na câmera · Fotos · Convidados nas listas | = |
@@ -451,14 +466,15 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 | Prompt novo link | Novo link do casal (copie e envie): | = |
 | Limites — prompts | Máximo de pessoas na câmera para "{titulo}" (atual {a}; vazio volta ao padrão da plataforma): / Máximo de convidados na lista (atual {b}): / Máximo de fotos no evento (atual {c}): | = |
 | Excluir — prompt | Excluir "{titulo}" e todas as {n} fotos para sempre? Digite o id do evento para confirmar: {id} | Excluir "{titulo}" e todas as {n} fotos para sempre? Esta ação fica registrada. Digite o id do evento para confirmar: {id} |
-| Acesso a conteúdo (novo, antes de abrir fotos) 🔧 ⚖️ | — | Este acesso será registrado. Informe o motivo: suporte, moderação, segurança ou ordem legal. |
-| Fotos — aviso | Álbuns separados por casamento. Mostrando as {n} fotos mais recentes de {total}. Os convidados e os noivos só veem na hora da revelação de cada evento; você vê agora. | Álbuns separados por casamento. Mostrando as {n} fotos mais recentes de {total}. Os convidados só veem na hora da revelação; você vê agora, e este acesso fica registrado. |
+| Acesso a conteúdo (novo, antes de abrir fotos) 🔧 `feature.auditoria_motivo` ⚖️ | — | Este acesso será registrado. Informe o motivo: suporte, moderação, segurança ou ordem legal. |
+| Fotos — aviso | Álbuns separados por casamento. Mostrando as {n} fotos mais recentes de {total}. Os convidados e os noivos só veem na hora da revelação de cada evento; você vê agora. | Álbuns separados por casamento. Mostrando as {n} fotos mais recentes de {total}. Os convidados só veem na hora da revelação; você vê agora. |
+| Fotos — registro do acesso (novo) 🔧 `feature.auditoria_motivo` | — | Este acesso fica registrado, com o motivo. |
 | Fotos — vazio | Ainda não há fotos. | = |
 | Fotos — botão | Moderar este álbum | = |
 | Plataforma — h2 | Variáveis da plataforma | = |
 | Plataforma — botão | Salvar variáveis | = |
 | Plataforma — sucesso | Variáveis salvas e já em vigor. | = |
-| Rótulos das variáveis | (ver `ROTULOS` em master.html) | = ; exceto retenção: "Retenção (dias após a revelação)" / "Prazo em dias. Quando a exclusão automática estiver ativa, o evento é apagado ao fim deste prazo." 🔧 |
+| Rótulos das variáveis | (ver `ROTULOS` em master.html) | = ; exceto retenção: "Retenção (dias após a revelação)" / "Prazo em dias. Quando a exclusão automática estiver ativa, o evento é apagado ao fim deste prazo." 🔧 `feature.retencao` |
 | Avisos — h2 | Aviso para todos os casamentos | Aviso a todos os casamentos |
 | Avisos — texto | Vai como notificação push para quem instalou o app em qualquer evento ativo. | = |
 | Avisos — placeholder | Título · Mensagem para todos os aparelhos com o app instalado | = |
@@ -493,6 +509,6 @@ Variável de marca: onde aparecer `MEMO BRASIL`, usar a constante de marca do pr
 
 1. Substituir por `=` não exige mudança. Linhas "(novo)" criam um elemento; combinar posição com o Designer.
 2. Itens 🔧 só entram quando a funcionalidade existir; não deixar texto de recurso ausente na tela.
-3. Itens ⚖️ aguardam revisão jurídica (PP, TU, CG, ES nos outros PRs).
+3. Itens ⚖️ aguardam revisão jurídica (PP, TU, CG, EM em `docs/copy`). Toda chave `feature.*` está em `docs/copy/features.json`; ligue a chave no mesmo PR do recurso.
 4. Mensagens do servidor ("mensagem do servidor") ficam em `server.js`; esta tabela dá o texto final desejado, para o autor do backend alinhar.
 5. As telas nunca foram abertas em navegador; revisar o encaixe de frases mais longas em 390 px.
