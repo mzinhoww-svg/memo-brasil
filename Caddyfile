@@ -1,0 +1,27 @@
+# Caddyfile — HTTPS automático (Let's Encrypt) para o domínio em {$DOMINIO}.
+# O valor de DOMINIO vem do .env (docker compose lê env_file). Não fixe domínio aqui.
+# Requisitos: DNS do domínio apontando para o IP da VPS e portas 80/443 abertas.
+{$DOMINIO} {
+	encode zstd gzip
+
+	# O app Node fala apenas na rede interna do compose.
+	reverse_proxy lume:3210
+
+	# Cabeçalhos de segurança (HTTPS é terminado aqui).
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Logs de acesso em JSON no volume do Caddy (sem corpo, sem segredo de app).
+	log {
+		output file /data/access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format json
+	}
+}
