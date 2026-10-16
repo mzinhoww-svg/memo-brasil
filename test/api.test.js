@@ -354,7 +354,7 @@ function subirServidor(dataDir) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['-e', boot], { stdio: ['ignore', 'pipe', 'pipe'] });
     let saida = '', erro = '';
-    const prazo = setTimeout(() => { child.kill('SIGKILL'); reject(new Error(`timeout subindo o servidor: ${erro}`)); }, 15000);
+    const prazo = setTimeout(() => { child.kill('SIGKILL'); reject(new Error(`timeout subindo o servidor: ${erro}`)); }, 30000);
     child.stdout.on('data', (d) => {
       saida += d;
       const m = saida.match(/PORTA (\d+)/);
