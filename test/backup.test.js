@@ -37,6 +37,38 @@ test('backup: PUBLIC_URL https também é produção e exige cifra', () => {
   assert.equal(fs.existsSync(path.join(dir, 'backups')), false);
 });
 
+test('backup: NODE_ENV=Production (maiúsculas) também é tratado como produção', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-backup-prod-case-'));
+  const r = runBackup({
+    DATA_DIR: dir, NODE_ENV: 'Production', PUBLIC_URL: '',
+    BACKUP_GPG_KEY: '', BACKUP_PASSPHRASE: '',
+  });
+  assert.notEqual(r.status, 0, 'NODE_ENV sem diferenciar maiúsculas');
+  assert.match(r.stderr, /BACKUP_GPG_KEY|BACKUP_PASSPHRASE/);
+  assert.equal(fs.existsSync(path.join(dir, 'backups')), false);
+});
+
+test('backup: PUBLIC_URL HTTPS:// (maiúsculas) também exige cifra', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-backup-url-case-'));
+  const r = runBackup({
+    DATA_DIR: dir, NODE_ENV: '', PUBLIC_URL: 'HTTPS://Memo.Exemplo.Test',
+    BACKUP_GPG_KEY: '', BACKUP_PASSPHRASE: '',
+  });
+  assert.notEqual(r.status, 0, 'PUBLIC_URL https sem diferenciar maiúsculas');
+  assert.match(r.stderr, /BACKUP_GPG_KEY|BACKUP_PASSPHRASE/);
+});
+
+test('backup: falha do gpg apaga o .tar.gz em claro e sai com erro', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-backup-gpgfail-'));
+  const r = runBackup({
+    DATA_DIR: dir, NODE_ENV: 'development', PUBLIC_URL: 'http://localhost:3210',
+    BACKUP_GPG_KEY: 'chave-que-nao-existe@exemplo.test', BACKUP_PASSPHRASE: '',
+  });
+  assert.notEqual(r.status, 0, 'gpg falhou, o script deve sair com erro');
+  const backups = fs.existsSync(path.join(dir, 'backups')) ? fs.readdirSync(path.join(dir, 'backups')) : [];
+  assert.equal(backups.filter((f) => f.endsWith('.tar.gz')).length, 0, 'não pode sobrar .tar.gz em claro');
+});
+
 test('backup: fora de produção não exige cifra e gera o arquivo', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-backup-dev-'));
   const r = runBackup({
