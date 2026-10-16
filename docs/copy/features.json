@@ -1,0 +1,22 @@
+{
+  "feature.aceite_registrado": { "ativo": false, "descricao": "Aceite do convidado gravado (id, versão do texto, data, caixas) antes de entrar" },
+  "feature.recados_privados": { "ativo": false, "descricao": "Decisão 004: recado privado ao casal por padrão; leitura exige credencial; mural opt-in" },
+  "feature.apagar_proprio": { "ativo": false, "descricao": "Convidado apaga as próprias fotos e recados até o fim da retenção" },
+  "feature.nome_travado": { "ativo": false, "descricao": "Casal pode ocultar nomes, mas não passar a exibi-los se o aceite foi sem identificar" },
+  "feature.exif": { "ativo": false, "descricao": "Remoção de EXIF/GPS e recompressão das fotos enviadas" },
+  "feature.mfa_master": { "ativo": false, "descricao": "Segundo fator na administração (PR #9 de auth, ainda fora da main)" },
+  "feature.auditoria_motivo": { "ativo": false, "descricao": "Auditoria com motivo e registro da leitura de fotos pela administração" },
+  "feature.painel_acessos_admin": { "ativo": false, "descricao": "Painel do organizador lista os acessos da administração (data, motivo)" },
+  "feature.validacao_arquivo": { "ativo": false, "descricao": "Validação do conteúdo real do arquivo enviado, não só o mimetype do cliente" },
+  "feature.https": { "ativo": false, "descricao": "Serviço publicado com HTTPS (deploy ainda não feito)" },
+  "feature.logs_sem_pii": { "ativo": false, "descricao": "Política de logs sem dados pessoais e IP protegido (hash)" },
+  "feature.retencao": { "ativo": false, "descricao": "Job que apaga o evento ao fim do prazo (revelado) e do teto (nunca revelado)" },
+  "feature.excluir_evento": { "ativo": false, "descricao": "Organizador exclui o evento inteiro em cascata (hoje só o master)" },
+  "feature.exportar_tudo": { "ativo": false, "descricao": "Exportar todos os dados do evento em um comando" },
+  "feature.backup_rotina": { "ativo": false, "descricao": "Rotina de backup com eliminação em até 30 dias" },
+  "feature.login_email": { "ativo": false, "descricao": "Conta e link mágico por e-mail (decisão 002)" },
+  "feature.email": { "ativo": false, "descricao": "Envio de e-mail transacional" },
+  "feature.fluxo_titular": { "ativo": false, "descricao": "Fluxo, protocolo e prazo para pedidos de titulares" },
+  "feature.denuncia": { "ativo": false, "descricao": "Denunciar foto dentro do álbum" },
+  "feature.ocultar": { "ativo": false, "descricao": "Ocultar foto do álbum sem apagar" }
+}
