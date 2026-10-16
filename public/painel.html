@@ -299,9 +299,11 @@ async function rEquipe(v) {
   if (!info.equipe.length) lista.append(el('p', { class: 'sub' }, 'Só você, por enquanto.'));
   info.equipe.forEach((m) => lista.append(el('div', { style: 'padding:10px 0;border-top:1px solid var(--a-line)' },
     el('div', { class: 'row' }, el('b', { class: 'grow' }, `${m.nome} · ${m.papel === 'casal' ? 'Casal' : 'Cerimonial'}`),
-      el('button', { class: 'btn sm', onclick: async () => { await navigator.clipboard.writeText(m.link); } }, 'Copiar link'),
+      m.link ? el('button', { class: 'btn sm', onclick: async () => { await navigator.clipboard.writeText(m.link); } }, 'Copiar link') : null,
       el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover o acesso de ${m.nome}?`)) { await call(`/equipe/${m.id}`, { method: 'DELETE' }); route(); } } }, 'Remover')),
-    el('div', { class: 'linkbox', style: 'margin-top:6px' }, m.link))));
+    m.link
+      ? el('div', { class: 'linkbox', style: 'margin-top:6px' }, m.link)
+      : el('p', { class: 'sub', style: 'margin:6px 0 0' }, 'O link só aparece na hora de gerar. Para reenviar, remova este acesso e crie outro.'))));
   v.append(lista);
 }
 

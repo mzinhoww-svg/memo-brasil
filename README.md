@@ -7,7 +7,7 @@
     npm start        # http://localhost:3210 (o endereço da rede Wi-Fi aparece no terminal)
     npm test         # 10 testes de API e de isolamento entre casamentos
 
-Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push).
+Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code e dos cookies `Secure`; em `NODE_ENV=production` precisa começar com `https://`), `TRUST_PROXY` (saltos de proxy confiáveis; padrão `0` — sem proxy na frente), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push).
 
 ## Jornadas
 - **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos.
