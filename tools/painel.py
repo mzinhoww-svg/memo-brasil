@@ -49,6 +49,117 @@ def _run(cmd, timeout=30, cwd=ROOT):
         return -1, "", str(e)
 
 
+# --- Resumo de testes: nunca expor stack trace nem caminhos absolutos -------
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+_SUM_RE = re.compile(
+    r"^\s*(?:#|\u2139)?\s*(tests|suites|pass|fail|cancelled|skipped|todo)\s+(\d+)\s*$",
+    re.I,
+)
+_FAIL_MARK = "\u2716\u2717\u2718\u00d7\u2715"  # ✖ ✗ ✘ × ✕
+_TAP_FAIL_RE = re.compile(r"^not ok\b\s*\d*\s*[-\u2013]?\s*(.+)$")
+_LOC_RE = re.compile(r"(?i)^(?:test|file)\s+at\s+")
+_ABS_PATH_RE = re.compile(r"(?<![\w~<>])/(?:[A-Za-z0-9._@+-]+/)+[A-Za-z0-9._@+-]*")
+
+
+def sanitiza_caminhos(texto):
+    """Troca caminhos absolutos por rotulos: home -> ~, /private/tmp -> <tmp>."""
+    if not texto:
+        return texto
+    t = str(texto)
+    t = t.replace(str(ROOT), "~")
+    try:
+        home = os.path.expanduser("~")
+    except Exception:  # noqa: BLE001
+        home = ""
+    if home and home not in ("/", ""):
+        t = t.replace(home, "~")
+    t = t.replace("/private/tmp", "<tmp>")
+    t = t.replace("/tmp", "<tmp>")
+    return _ABS_PATH_RE.sub("<path>", t)
+
+
+def _limpa_nome(nome):
+    """Extrai o nome do teste, sem duracao, localizacao ou caminho."""
+    n = nome.strip()
+    n = re.sub(r"\s*\([\d.]+\s*m?s\)\s*$", "", n)          # (133.78ms)
+    n = re.sub(r"\s*\([^()]*[/\\][^()]*\)\s*$", "", n)     # (caminho:linha)
+    n = re.sub(r"\s+at\s+.*$", "", n)
+    return sanitiza_caminhos(n).strip()
+
+
+def _nomes_falhas(linhas):
+    nomes = []
+    for ln in linhas:
+        s = ln.strip()
+        m = re.match(r"^[" + re.escape(_FAIL_MARK) + r"]\s*(.+)$", s)
+        if not m:
+            m = _TAP_FAIL_RE.match(s)
+        if not m:
+            continue
+        bruto = m.group(1).strip()
+        if bruto.lower().rstrip(":") in ("failing tests", "falhas", "tests"):
+            continue
+        nome = _limpa_nome(bruto)
+        if nome and nome not in nomes:
+            nomes.append(nome)
+    return nomes
+
+
+def _ultima_linha_util(linhas):
+    for ln in reversed(linhas):
+        s = ln.strip()
+        if not s or _LOC_RE.match(s) or s.startswith("at "):
+            continue
+        return sanitiza_caminhos(s)[:200]
+    return ""
+
+
+def resumo_testes(saida, limite_falhas=20, limite_linha=200):
+    """Resumo seguro da saida do `npm test`: contagem + nomes das falhas.
+
+    Nao devolve stack trace nem caminhos absolutos (home -> ~, /private/tmp -> <tmp>).
+    """
+    texto = _ANSI_RE.sub("", saida or "")
+    linhas = texto.splitlines()
+
+    contagem = {}
+    for ln in linhas:
+        m = _SUM_RE.match(ln.strip())
+        if m:
+            try:
+                contagem[m.group(1).lower()] = int(m.group(2))
+            except ValueError:
+                pass
+
+    partes = []
+    if any(k in contagem for k in ("tests", "pass", "fail")):
+        resumo = []
+        if "tests" in contagem:
+            resumo.append("%d testes" % contagem["tests"])
+        if "pass" in contagem:
+            resumo.append("%d passou" % contagem["pass"])
+        if "fail" in contagem:
+            resumo.append("%d falhou" % contagem["fail"])
+        partes.append("resumo: " + " \u00b7 ".join(resumo))
+    else:
+        partes.append("resumo: indisponivel (node:test sem resumo)")
+        ultima = _ultima_linha_util(linhas)
+        if ultima:
+            partes.append("ultima linha: " + ultima)
+
+    falhas = _nomes_falhas(linhas)
+    if falhas:
+        partes.append("falhas:")
+        for nome in falhas[:limite_falhas]:
+            partes.append("- " + nome[:limite_linha])
+        if len(falhas) > limite_falhas:
+            partes.append("(+%d omitidos)" % (len(falhas) - limite_falhas))
+    elif contagem.get("fail"):
+        partes.append("falhas: (nomes nao capturados na saida)")
+
+    return "\n".join(partes)
+
+
 def _pct_status(status):
     s = (status or "").strip().lower()
     if s in ("concluido", "concluído", "done", "ok", "concluida", "concluída"):
@@ -71,7 +182,7 @@ def _run_npm_test():
         "tests": grab("tests"),
         "pass": grab("pass"),
         "fail": grab("fail"),
-        "tail": combined[-700:],
+        "tail": resumo_testes(combined),
     }
 
 
