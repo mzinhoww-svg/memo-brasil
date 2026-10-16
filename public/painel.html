@@ -297,11 +297,19 @@ async function rEquipe(v) {
       } }, 'Gerar link de acesso')), out));
   const lista = el('div', { class: 'panel' }, el('h2', {}, 'Quem tem acesso'));
   if (!info.equipe.length) lista.append(el('p', { class: 'sub' }, 'Só você, por enquanto.'));
-  info.equipe.forEach((m) => lista.append(el('div', { style: 'padding:10px 0;border-top:1px solid var(--a-line)' },
-    el('div', { class: 'row' }, el('b', { class: 'grow' }, `${m.nome} · ${m.papel === 'casal' ? 'Casal' : 'Cerimonial'}`),
-      el('button', { class: 'btn sm', onclick: async () => { await navigator.clipboard.writeText(m.link); } }, 'Copiar link'),
-      el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover o acesso de ${m.nome}?`)) { await call(`/equipe/${m.id}`, { method: 'DELETE' }); route(); } } }, 'Remover')),
-    el('div', { class: 'linkbox', style: 'margin-top:6px' }, m.link))));
+  info.equipe.forEach((m) => {
+    const acoes = el('div', { class: 'row' }, el('b', { class: 'grow' }, `${m.nome} · ${m.papel === 'casal' ? 'Casal' : 'Cerimonial'}`),
+      m.link ? el('button', { class: 'btn sm', onclick: async () => { await navigator.clipboard.writeText(m.link); } }, 'Copiar link') : null,
+      el('button', { class: 'btn sm', onclick: async () => {
+        if (!confirm(`Gerar um novo link para ${m.nome}? O link anterior deixa de funcionar.`)) return;
+        try { const r = await call(`/equipe/${m.id}/rotacionar-link`, { method: 'POST' }); await navigator.clipboard.writeText(r.link).catch(() => {}); route(); } catch (e) { msg(out, e.message); }
+      } }, m.link ? 'Novo link' : 'Gerar novo link'),
+      el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover o acesso de ${m.nome}?`)) { await call(`/equipe/${m.id}`, { method: 'DELETE' }); route(); } } }, 'Remover'));
+    const rodape = m.link
+      ? el('div', { class: 'linkbox', style: 'margin-top:6px' }, m.link)
+      : el('p', { class: 'sub', style: 'margin-top:6px' }, 'Link de acesso já emitido. Por segurança ele não é exibido novamente — use “Gerar novo link” se precisar reenviar.');
+    lista.append(el('div', { style: 'padding:10px 0;border-top:1px solid var(--a-line)' }, acoes, rodape));
+  });
   v.append(lista);
 }
 

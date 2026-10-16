@@ -188,7 +188,12 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
     recados: ev.recados.length,
     equipe: req.admin.dono
-      ? ev.equipe.map((m) => ({ id: m.id, nome: m.nome, papel: m.papel, link: `${base}/painel/${ev.id}#t=${m.token}` }))
+      ? ev.equipe.map((m) => ({
+          id: m.id, nome: m.nome, papel: m.papel, linkEmitido: true,
+          // O token em claro só existe na criação (logo após o POST). Depois de
+          // um reinício o store carrega apenas o hash, então não há link para exibir.
+          link: m.token ? `${base}/painel/${ev.id}#t=${m.token}` : null,
+        }))
       : undefined,
   });
 });
@@ -301,6 +306,17 @@ app.delete('/api/events/:id/equipe/:eid', getEvent, adminOnly, donoOnly, (req, r
   audit(req, 'equipe.removida', { membro: req.params.eid });
   save();
   res.json({ ok: true });
+});
+// Rotaciona o link de um membro da equipe (o token em claro é irrecuperável).
+app.post('/api/events/:id/equipe/:eid/rotacionar-link', getEvent, adminOnly, donoOnly, (req, res) => {
+  const m = req.ev.equipe.find((x) => x.id === req.params.eid);
+  if (!m) return res.status(404).json({ erro: 'Membro não encontrado.' });
+  const token = newId(16);
+  m.token = token;
+  m.tokenHash = tokenHash(token);
+  audit(req, 'equipe.link.rotacionado', { membro: m.id });
+  save();
+  res.json({ id: m.id, link: `${baseUrl(req)}/painel/${req.ev.id}#t=${token}` });
 });
 
 // Moderação (organização vê as fotos antes da revelação só aqui, e de propósito)
@@ -438,7 +454,7 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
 // O arquivo só sai depois da revelação — exceto para a organização (moderação).
 app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
   const token = req.get('x-host-token') || req.query.token;
-  const org = isMaster(token) || (token && (token === req.ev.hostToken || req.ev.equipe.some((m) => m.token === token)));
+  const org = isMaster(token) || (token && (verifyToken(token, req.ev.hostTokenHash) || req.ev.equipe.some((m) => verifyToken(token, m.tokenHash))));
   if (!revealed(req.ev) && !org) return res.status(403).json({ erro: 'Esta foto ainda não foi revelada.' });
   const p = req.ev.photos.find((x) => x.id === req.params.pid);
   if (!p) return res.status(404).end();
