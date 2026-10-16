@@ -7,6 +7,31 @@ RETENTION_DIAS="${BACKUP_RETENTION_DIAS:-30}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 TMP_DIR="$(mktemp -d)"
 BACKUP_BASE="${DATA_DIR}/backups"
+
+# Em produção (NODE_ENV=production ou PUBLIC_URL https) o backup contém dados
+# pessoais e por isso exige cifra. Falha cedo, sem gerar cópia em claro.
+is_producao() {
+  case "${NODE_ENV:-}" in
+    production|prod) return 0 ;;
+  esac
+  case "${PUBLIC_URL:-}" in
+    https://*) return 0 ;;
+  esac
+  return 1
+}
+
+if is_producao; then
+  if [ -z "${BACKUP_GPG_KEY:-}" ] && [ -z "${BACKUP_PASSPHRASE:-}" ]; then
+    echo "Erro: em produção o backup deve ser cifrado. Defina BACKUP_GPG_KEY ou BACKUP_PASSPHRASE." >&2
+    echo "Backup abortado para não gravar dados pessoais sem cifra (LGPD)." >&2
+    exit 1
+  fi
+  if ! command -v gpg >/dev/null 2>&1; then
+    echo "Erro: gpg não encontrado e é obrigatório em produção (BACKUP_GPG_KEY/BACKUP_PASSPHRASE definidos)." >&2
+    exit 1
+  fi
+fi
+
 mkdir -p "${BACKUP_BASE}"
 
 cleanup() { rm -rf "${TMP_DIR}"; }
