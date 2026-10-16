@@ -7,6 +7,10 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const { createLogger } = require('./src/obs/logger');
+const { createHealthHandler } = require('./src/obs/health');
+const { limFotosEvento } = require('./src/obs/limites');
+const { createSentry } = require('./src/obs/sentry');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -29,7 +33,7 @@ try { if (fs.existsSync(SETTINGS_FILE)) settings = { ...DEFAULTS, ...JSON.parse(
 const saveSettings = () => fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
 const limGuests = (ev) => ev.limites?.maxConvidados ?? settings.maxConvidadosPorEvento;
 const limLista = (ev) => ev.limites?.maxLista ?? settings.maxListaPorEvento;
-const limFotos = (ev) => ev.limites?.maxFotos ?? settings.maxFotosPorEvento;
+const limFotos = (ev) => limFotosEvento(ev, settings);
 const CONFIG_PADRAO = { recadosAtivos: true, apenasLista: false, mostrarAutor: true };
 
 // Chaves VAPID para notificações push (geradas uma vez).
@@ -104,6 +108,11 @@ function baseUrl(req) {
 }
 
 const app = express();
+// Observabilidade: log estruturado por requisição (sem PII) e healthcheck.
+const logger = createLogger();
+const sentry = createSentry({ version: require('./package.json').version });
+app.use(logger.middleware);
+app.get('/healthz', createHealthHandler({ dataDir: DATA_DIR }));
 app.use(express.json({ limit: '1mb' }));
 // Modo manutenção: só o admin master passa.
 app.use('/api', (req, res, next) => {
@@ -419,7 +428,7 @@ app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) =
   if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de fotografar.' });
   if (req.file && req.file.size > settings.tamanhoMaxFotoMB * 1024 * 1024)
     return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
-  if (ev.photos.length >= limFotos(ev)) return res.status(409).json({ erro: 'Este evento atingiu o limite de fotos.' });
+  if (ev.photos.length >= limFotos(ev)) return res.status(413).json({ erro: 'Este evento atingiu o teto de fotos. Não é possível enviar mais fotos.' });
   if (!req.file || !/^image\/(jpeg|png|webp)$/.test(req.file.mimetype))
     return res.status(400).json({ erro: 'Envie uma imagem JPEG, PNG ou WebP.' });
   const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
@@ -458,6 +467,7 @@ app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
 
 app.use((err, req, res, next) => {
   if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
+  sentry.captureException(err); // no-op se SENTRY_DSN não estiver definido
   console.error(err);
   res.status(500).json({ erro: 'Algo deu errado. Tente de novo.' });
 });
@@ -691,6 +701,7 @@ app.get('/sw.js', (req, res) => res.set('Service-Worker-Allowed', '/').type('app
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
+  sentry.installProcessHooks(); // só com SENTRY_DSN; caso contrário, no-op
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Memo Brasil em http://localhost:${PORT}`);
     console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
