@@ -38,6 +38,18 @@ test('álbum é individual: fotos de um casamento não aparecem em outro', async
   assert.equal((await get(`/api/events/${b.id}/photos/${up.id}/file`, { 'x-host-token': b.tk })).status, 404);
 });
 
+test('convidado lê a ficha pública do evento sem vazar dados da organização', async () => {
+  const a = await criar('A');
+  const r = await get(`/api/events/${a.id}`);
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.titulo, 'A');
+  assert.equal(j.id, a.id);
+  assert.equal(j.hostToken, undefined);
+  assert.equal(j.lista, undefined);
+  assert.equal(JSON.stringify(j).includes('token'), false, 'nada de token na ficha pública');
+});
+
 test('convidado de um casamento não fotografa em outro', async () => {
   const a = await criar('A'), b = await criar('B');
   const fd = new FormData(); fd.append('guestId', a.guest); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');

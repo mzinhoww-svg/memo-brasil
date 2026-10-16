@@ -7,6 +7,7 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 'sqlite'));
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -389,6 +390,23 @@ function isMaster(token) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+// ───── Token master estático (legado) ─────
+// Vale só enquanto não existir conta master, ou pela válvula de emergência
+// (MASTER_EMERGENCY/MASTER_TOKEN_COMPAT) — que nunca vale com PUBLIC_URL https e
+// fica registrada na auditoria a cada uso. Nunca aceito por query string.
+function masterCount() { return (store.get(`SELECT COUNT(*) AS c FROM master_accounts`).c || 0); }
+function emergenciaAtiva() {
+  if (isProd) return false; // PUBLIC_URL https: a válvula fica desligada
+  return process.env.MASTER_EMERGENCY === '1' || process.env.MASTER_TOKEN_COMPAT === '1';
+}
+// Retorna 'bootstrap' (sem conta master), 'emergencia' (válvula) ou null (recusado).
+function aceitaTokenEstatico(token) {
+  if (!isMaster(token)) return null;
+  if (masterCount() === 0) return 'bootstrap';
+  if (emergenciaAtiva()) return 'emergencia';
+  return null;
+}
+
 function save() {
   store.save();
 }
@@ -414,14 +432,20 @@ const util = require('util');
 const scryptAsync = util.promisify(crypto.scrypt);
 
 const app = express();
-app.set('trust proxy', 1);
+// TRUST_PROXY: número de saltos de proxy confiáveis (padrão 0 — sem proxy na frente).
+// Com 0, req.ip é o socket e um X-Forwarded-For forjado pelo cliente é ignorado.
+const TRUST_PROXY_RAW = process.env.TRUST_PROXY;
+const TRUST_PROXY = TRUST_PROXY_RAW === undefined || TRUST_PROXY_RAW === ''
+  ? 0
+  : (/^\d+$/.test(TRUST_PROXY_RAW) ? parseInt(TRUST_PROXY_RAW, 10) : TRUST_PROXY_RAW);
+app.set('trust proxy', TRUST_PROXY);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 // Modo manutenção: só o admin master passa.
 app.use('/api', (req, res, next) => {
   if (!settings.manutencao) return next();
-  const t = req.get('x-master-token') || req.get('x-host-token') || req.query.token;
-  if (isMaster(t) || req.path.startsWith('/config')) return next();
+  const t = req.get('x-master-token') || req.get('x-host-token');
+  if (req.path.startsWith('/config') || masterDaSessao(req) || aceitaTokenEstatico(t)) return next();
   res.status(503).json({ erro: settings.avisoGlobal || 'O Memo está em manutenção. Volte em instantes.' });
 });
 app.get('/api/config', (req, res) => res.json({
@@ -455,14 +479,17 @@ function adminOnly(req, res, next) {
       return next();
     }
   }
-  // Tokens legados do evento (hostToken / equipe) ainda funcionam para o painel local.
-  if (token && token === ev.hostToken) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
-  else if (token) {
-    const m = ev.equipe.find((e) => e.token === token);
+  // Tokens legados do evento (hostToken / equipe) só valem por hash — nunca em texto puro.
+  if (token && verifyToken(token, ev.hostTokenHash)) {
+    req.admin = { papel: 'casal', nome: 'Casal', dono: true };
+  } else if (token) {
+    const m = ev.equipe.find((e) => verifyToken(token, e.tokenHash));
     if (m) req.admin = { papel: m.papel, nome: m.nome, id: m.id };
   }
-  // Transição: token master estático só vale se ainda não existe conta master.
-  if (!req.admin && isMaster(token) && (store.get(`SELECT COUNT(*) AS c FROM master_accounts`).c || 0) === 0) {
+  // Transição: token master estático só vale sem conta master ou com a válvula de emergência.
+  const modoEstatico = aceitaTokenEstatico(req.get('x-master-token') || req.get('x-host-token'));
+  if (!req.admin && modoEstatico) {
+    if (modoEstatico === 'emergencia') auditDb(req, 'master', null, ev.id, 'master.token_emergencia', 'adminOnly', {}, 'ok');
     req.admin = { papel: 'master', nome: 'Admin master (legado)', dono: true, master: true };
   }
   if (!req.admin) return res.status(403).json({ erro: 'Acesso restrito à organização do casamento.' });
@@ -486,6 +513,10 @@ function parseCronograma(arr) {
     hora: clean(c.hora, 8), titulo: clean(c.titulo, 80), descricao: clean(c.descricao, 200),
   })).filter((c) => c.titulo);
 }
+
+// ───── Ficha pública do evento (jornada do convidado)
+// Sem token, sem lista e sem fotos bloqueadas: só o que as telas do convidado usam.
+app.get('/api/events/:id', getEvent, (req, res) => res.json(publicInfo(req.ev)));
 
 // ───── Criar evento (organização, em nome dos noivos)
 app.post('/api/events', (req, res) => {
@@ -512,8 +543,9 @@ app.post('/api/events', (req, res) => {
   if (!titulo) return res.status(400).json({ erro: 'Informe o nome do evento.' });
   if (isNaN(revealAt)) return res.status(400).json({ erro: 'Informe quando as fotos serão reveladas.' });
   const dataEvento = req.body.dataEvento ? new Date(req.body.dataEvento) : null;
+  const hostToken = newId(16);
   const ev = {
-    id: newId(5), hostToken: newId(16), titulo, revealAt: revealAt.toISOString(), fotosPorConvidado,
+    id: newId(5), hostToken, hostTokenHash: tokenHash(hostToken), titulo, revealAt: revealAt.toISOString(), fotosPorConvidado,
     dataEvento: dataEvento && !isNaN(dataEvento) ? dataEvento.toISOString() : null,
     local: clean(req.body.local, 80), endereco: clean(req.body.endereco, 160), mensagem: '',
     contato: clean(req.body.contato, 80), suspenso: false, limites: {}, config: { ...CONFIG_PADRAO },
@@ -651,7 +683,9 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
     recados: ev.recados.length,
     equipe: req.admin.dono
-      ? ev.equipe.map((m) => ({ id: m.id, nome: m.nome, papel: m.papel, link: `${base}/painel/${ev.id}#t=${m.token}` }))
+      // O token bruto só existe na criação (guardamos apenas o hash); o painel
+      // mostra o link na hora de gerar e não consegue recuperá-lo depois.
+      ? ev.equipe.map((m) => ({ id: m.id, nome: m.nome, papel: m.papel, link: null }))
       : undefined,
   });
 });
@@ -752,11 +786,12 @@ app.post('/api/events/:id/equipe', getEvent, adminOnly, donoOnly, (req, res) => 
   const papel = req.body.papel === 'casal' ? 'casal' : 'cerimonial';
   if (!nome) return res.status(400).json({ erro: 'Informe o nome.' });
   if (req.ev.equipe.length >= 20) return res.status(409).json({ erro: 'Equipe cheia.' });
-  const m = { id: newId(5), nome, papel, token: newId(16) };
+  const token = newId(16);
+  const m = { id: newId(5), nome, papel, token, tokenHash: tokenHash(token) };
   req.ev.equipe.push(m);
-  audit(req, 'equipe.convidada', { nome, papel });
+  audit(req, 'equipe.convidada', { membro: m.id, papel });
   save();
-  res.status(201).json({ id: m.id, nome, papel, link: `${baseUrl(req)}/painel/${req.ev.id}#t=${m.token}` });
+  res.status(201).json({ id: m.id, nome, papel, link: `${baseUrl(req)}/painel/${req.ev.id}#t=${token}` });
 });
 app.delete('/api/events/:id/equipe/:eid', getEvent, adminOnly, donoOnly, (req, res) => {
   req.ev.equipe = req.ev.equipe.filter((m) => m.id !== req.params.eid);
@@ -780,7 +815,7 @@ app.delete('/api/events/:id/photos/:pid', getEvent, adminOnly, (req, res) => {
   const i = req.ev.photos.findIndex((p) => p.id === req.params.pid);
   if (i < 0) return res.status(404).json({ erro: 'Foto não encontrada.' });
   const [p] = req.ev.photos.splice(i, 1);
-  audit(req, 'foto.apagada', { foto: p.id, autor: p.autor });
+  audit(req, 'foto.apagada', { foto: p.id });
   fs.rmSync(path.join(PHOTO_DIR, req.ev.id, `${p.id}.${p.ext}`), { force: true });
   save();
   res.json({ ok: true });
@@ -900,14 +935,21 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
 // O arquivo só sai depois da revelação — exceto para a organização (moderação).
 app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
   const token = req.get('x-host-token') || req.query.token;
-  const masterSession = masterDaSessao(req);
-  const masterCount = (store.get(`SELECT COUNT(*) AS c FROM master_accounts`).c || 0);
-  const staticMaster = isMaster(token) && masterCount === 0;
-  const org = masterSession || staticMaster || (token && (token === req.ev.hostToken || req.ev.equipe.some((m) => m.token === token)));
-  if (!revealed(req.ev) && !org) return res.status(403).json({ erro: 'Esta foto ainda não foi revelada.' });
-  const p = req.ev.photos.find((x) => x.id === req.params.pid);
+  const ev = req.ev;
+  // Master por sessão; token estático só sem conta master (ou válvula, nunca em https e
+  // nunca pela query string).
+  const modoEstatico = aceitaTokenEstatico(req.get('x-master-token') || req.get('x-host-token'));
+  if (modoEstatico === 'emergencia') auditDb(req, 'master', null, ev.id, 'master.token_emergencia', 'photo.file', {}, 'ok');
+  const master = !!masterDaSessao(req) || !!modoEstatico;
+  // Sessão de organizador com vínculo ao evento, ou tokens legados (por hash).
+  let org = false;
+  const o = organizadorDaSessao(req);
+  if (o) org = !!store.get(`SELECT id FROM organizador_membros WHERE organizador_id = ? AND evento_id = ?`, o.id, ev.id);
+  if (!org && token) org = verifyToken(token, ev.hostTokenHash) || ev.equipe.some((m) => verifyToken(token, m.tokenHash));
+  if (!revealed(ev) && !master && !org) return res.status(403).json({ erro: 'Esta foto ainda não foi revelada.' });
+  const p = ev.photos.find((x) => x.id === req.params.pid);
   if (!p) return res.status(404).end();
-  res.sendFile(path.join(PHOTO_DIR, req.ev.id, `${p.id}.${p.ext}`));
+  res.sendFile(path.join(PHOTO_DIR, ev.id, `${p.id}.${p.ext}`));
 });
 
 app.use((err, req, res, next) => {
@@ -918,7 +960,7 @@ app.use((err, req, res, next) => {
 
 // ───── Admin master (todos os casamentos)
 function masterOnly(req, res, next) {
-  const token = req.get('x-master-token') || req.get('x-host-token') || req.query.token;
+  const token = req.get('x-master-token') || req.get('x-host-token');
   const ms = getMasterSessao(req);
   if (ms) {
     const m = store.get(`SELECT * FROM master_accounts WHERE id = ? AND ativo = 1`, ms.master_id);
@@ -927,8 +969,9 @@ function masterOnly(req, res, next) {
       return next();
     }
   }
-  const count = (store.get(`SELECT COUNT(*) AS c FROM master_accounts`).c || 0);
-  if (isMaster(token) && (count === 0 || process.env.MASTER_EMERGENCY === '1' || process.env.MASTER_TOKEN_COMPAT === '1')) {
+  const modoEstatico = aceitaTokenEstatico(token);
+  if (modoEstatico) {
+    if (modoEstatico === 'emergencia') auditDb(req, 'master', null, null, 'master.token_emergencia', 'masterOnly', { rota: req.path }, 'ok');
     req.admin = { papel: 'master', nome: 'Admin master (legado)', master: true, dono: true, id: null };
     return next();
   }
@@ -972,10 +1015,8 @@ app.patch('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
 });
 app.delete('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
   if (req.body?.confirmar !== req.ev.id) return res.status(400).json({ erro: 'Confirme enviando o id do evento.' });
-  audit(req, 'evento.excluido', { titulo: req.ev.titulo });
-  fs.rmSync(path.join(PHOTO_DIR, req.ev.id), { recursive: true, force: true });
-  delete db.events[req.ev.id];
-  save();
+  audit(req, 'evento.excluido', { evento: req.ev.id });
+  store.deleteEvent(req.ev.id);
   res.json({ ok: true });
 });
 // Fotos mais recentes de todos os casamentos, antes de qualquer revelação.
@@ -1199,10 +1240,12 @@ app.get('/api/master/audit', masterOnly, (req, res) => {
   res.json({ registros: linhas });
 });
 app.post('/api/master/events/:id/rotacionar-link', masterOnly, getEvent, (req, res) => {
-  req.ev.hostToken = newId(16);
+  const hostToken = newId(16);
+  req.ev.hostToken = hostToken;
+  req.ev.hostTokenHash = tokenHash(hostToken);
   audit(req, 'link.casal.rotacionado');
   save();
-  res.json({ link: `${baseUrl(req)}/painel/${req.ev.id}#t=${req.ev.hostToken}` });
+  res.json({ link: `${baseUrl(req)}/painel/${req.ev.id}#t=${hostToken}` });
 });
 app.post('/api/master/avisos', masterOnly, async (req, res) => {
   const titulo = clean(req.body.titulo, 60), corpo = clean(req.body.corpo, 200);
@@ -1263,6 +1306,12 @@ module.exports.criarMaster = criarMasterConta;
 
 if (require.main === module) {
   (async () => {
+    // Fail-closed: produção sem domínio https não sobe (cookie Secure, link mágico e 2FA
+    // dependem de PUBLIC_URL https; sem ela o servidor se comportaria como dev).
+    if (process.env.NODE_ENV === 'production' && !isProd) {
+      console.error('Produção (NODE_ENV=production) exige PUBLIC_URL começando com https:// (fail-closed).');
+      process.exit(1);
+    }
     if (isProd) {
       if (!process.env.MASTER_TOTP_KEY) { console.error('Produção exige MASTER_TOTP_KEY'); process.exit(1); }
       if (!process.env.EMAIL_PROVIDER || !process.env.EMAIL_API_KEY) { console.error('Produção exige provedor de e-mail configurado'); process.exit(1); }
@@ -1280,4 +1329,7 @@ app.store = store;
 module.exports = app;
 module.exports.store = store;
 module.exports.criarMaster = criarMasterConta;
+module.exports.isProd = isProd;
+module.exports.emergenciaAtiva = emergenciaAtiva;
+module.exports.aceitaTokenEstatico = aceitaTokenEstatico;
 module.exports.clearRateLimits = () => { rl.clear(); rlCriacao.clear(); rlLogin.clear(); };

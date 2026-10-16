@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 
 const dataDir = process.env.DATA_DIR || process.argv[2] || path.join(process.cwd(), 'data');
 const jsonPath = process.env.JSON_FILE || path.join(dataDir, 'db.json');
 const storeFactory = require(path.join(__dirname, '..', 'src', 'store'));
-const store = storeFactory(dataDir);
 
 function countsFromJson(raw) {
   const src = raw && raw.events ? raw.events : raw;
@@ -28,16 +26,34 @@ if (!fs.existsSync(jsonPath)) {
   console.error('Arquivo JSON não encontrado:', jsonPath);
   process.exit(1);
 }
+
 const raw = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 const before = countsFromJson(raw);
-const imported = store.importFromJson(jsonPath);
-const after = store.counts();
 
+const store = storeFactory(dataDir);
+if (store.counts().events === 0) {
+  try {
+    store.importFromJson(jsonPath);
+  } catch (e) {
+    console.error('Migração abortada:', e.message);
+    process.exit(1);
+  }
+}
+
+const after = store.counts();
 let ok = true;
 for (const k of Object.keys(before)) {
   if (before[k] !== after[k]) { ok = false; console.error(`divergência em ${k}: json=${before[k]} sqlite=${after[k]}`); }
 }
+
+console.log('Contagens: json=', before, 'sqlite=', after);
+if (!ok) {
+  console.error('Verificação falhou: divergência entre JSON e SQLite. O JSON original foi preservado (nada foi renomeado).');
+  process.exit(1);
+}
+
+const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+fs.renameSync(jsonPath, `${jsonPath}.migrated-${stamp}`);
+
 console.log('Migração concluída:', jsonPath, '->', path.join(dataDir, 'memo.db'));
-console.log('Contagens:', after);
-if (!ok) process.exit(1);
 console.log('Verificação: OK');
