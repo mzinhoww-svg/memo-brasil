@@ -1,26 +1,28 @@
-# Termos de Uso — Memo Brasil
+# Termos de Uso — Lume
 
-> **Rascunho v0.1 · 13/10/2026 · Redator.** Texto de produto, não parecer jurídico.
-> ⚖️ **TU-n** = ponto para revisão de advogado(a). 🔧 = depende de funcionalidade a construir. `[colchetes]` = dado a preencher.
+> **Rascunho v0.2 · 16/10/2026 · Redator.** Texto de produto, não parecer jurídico.
+> ⚖️ **TU-n** = ponto para revisão de advogado(a). 🔧 `feature.<chave>` = depende de funcionalidade a construir (ver `features.json`; texto com chave desligada não é publicado). `[colchetes]` e `{chaves}` = dado ou variável a preencher.
 > Leia junto com a [Política de Privacidade](politica-privacidade.md).
 
 ---
 
 ## Em poucas palavras
 
-- O Memo Brasil é um álbum de casamento feito por quem estava lá: **cada convidado é fotógrafo**.
+- O Lume é um álbum de casamento feito por quem estava lá: **cada convidado é fotógrafo**.
 - As fotos ficam **escondidas** até a hora que o casal escolheu e, então, **todos os convidados as veem**.
 - Seja gentil: nada de conteúdo ofensivo, íntimo sem permissão ou de crianças em situação inadequada.
 - A organização do casamento pode **apagar** fotos; a plataforma pode **acessar** o conteúdo para suporte e moderação.
-- Guardamos o álbum por **12 meses** depois da revelação.
+- Guardamos o álbum por **{retencao_meses} meses** depois da revelação. 🔧 `feature.retencao`
 
 ---
 
-## 1. Aceite
+## 1. Ciência
 
-Ao criar um evento, entrar em um álbum pelo QR Code ou usar qualquer parte do Memo Brasil, você declara ter lido e aceitado estes Termos e a Política de Privacidade. Se não concordar, por favor não use o serviço.
+Ao criar um evento, entrar em um álbum pelo QR Code ou usar qualquer parte do Lume, você declara que **leu** estes Termos e a Política de Privacidade. Se não concordar, por favor não use o serviço.
 
-## 2. O que é o Memo Brasil
+**Isto não é o seu consentimento para o uso das suas fotos.** Esse consentimento é um passo à parte, na entrada do álbum, e você pode retirá-lo (ver Política, seção 9).
+
+## 2. O que é o Lume
 
 Uma plataforma web em que:
 
@@ -35,13 +37,13 @@ A plataforma é um **serviço de apoio ao casamento**. Não somos parte do event
 ## 3. Quem pode usar
 
 - **Organização:** pessoa **maior de 18 anos** e capaz, ou pessoa jurídica de cerimonial devidamente representada, com contato válido.
-- **Convidados:** quem recebeu o convite. **Menores de 18 anos devem usar com o conhecimento de um responsável.**
+- **Convidados:** quem recebeu o convite. Ao entrar, o convidado declara que **tem 18 anos ou está com um responsável ciente**. 🔧 `feature.aceite_registrado`
 
-⚖️ **TU-2 — Idade mínima.** Validar a regra de idade para convidados e a necessidade de consentimento de responsável (ver **PP-7** na Política).
+⚖️ **TU-2 — Idade mínima.** Validar a regra de idade para convidados e a declaração sem verificação (ver **PP-7** na Política).
 
 ## 4. Conta e acesso da organização
 
-- O acesso ao painel é por **link enviado ao seu e-mail** e vale para você; **não o encaminhe**. 🔧 *(o link de uso único e a conta por e-mail dependem da decisão 002.)*
+- 🔧 `feature.login_email` O acesso ao painel é por **link enviado ao seu e-mail** e vale para você; **não o encaminhe**. *(Hoje o acesso é por link de organização; a conta por e-mail depende da decisão 002.)*
 - Quem tem o link de acesso pode agir no evento. Você é responsável pelas pessoas que adiciona à equipe.
 - O **casal** controla tudo do evento. O **cerimonial** gerencia lista, programação, fotos e avisos, mas não altera a equipe.
 
@@ -49,13 +51,14 @@ A plataforma é um **serviço de apoio ao casamento**. Não somos parte do event
 
 Ao criar o evento, você declara e se compromete a:
 
-1. **ter autorização** para tratar os nomes dos convidados que colocar na lista e para convidá-los;
-2. **avisar seus convidados** de que as fotos feitas ali serão vistas por todos os presentes, com o aviso que o próprio Memo Brasil mostra na entrada;
-3. **avisar os responsáveis** de crianças e adolescentes que estarão presentes;
+1. **ter autorização** para tratar os nomes dos convidados que colocar na lista e para convidá-los. Sobre essa lista, **o casal é o controlador** dos dados;
+2. **avisar seus convidados** de que as fotos feitas ali serão vistas por todos os presentes, com o aviso que o próprio Lume mostra na entrada;
+3. **avisar os responsáveis** de crianças e adolescentes que estarão presentes e **atender** os pedidos de retirada de foto que receber;
 4. **moderar** com cuidado o que aparece no álbum e apagar o que for impróprio;
-5. não usar o serviço para fins diferentes de um casamento e não tentar burlar limites ou o bloqueio das fotos.
+5. **respeitar a escolha de cada convidado sobre o nome nas fotos:** você pode ocultar os nomes a qualquer momento, mas não pode passar a exibi-los para quem entrou sem essa informação 🔧 `feature.nome_travado`;
+6. não usar o serviço para fins diferentes de um casamento e não tentar burlar limites ou o bloqueio das fotos.
 
-⚖️ **TU-3 — Responsabilidade do organizador.** Verificar se a transferência ao organizador do dever de informar e coletar autorização dos convidados é válida e suficiente, e se o produto precisa registrar a ciência (checkbox na criação do evento).
+⚖️ **TU-3 — Responsabilidade do organizador.** Verificar se a transferência ao organizador do dever de informar e coletar autorização dos convidados é válida e suficiente, e se o produto precisa registrar a ciência (caixa na criação do evento). Coerência com **PP-1** (co-controle do álbum).
 
 ## 6. Regras para convidados e conteúdo
 
@@ -74,19 +77,20 @@ A organização e a plataforma podem **ocultar ou apagar** qualquer conteúdo qu
 
 ## 7. Direitos sobre as fotos
 
-- **As fotos continuam sendo de quem as tirou.** O Memo Brasil não reivindica a propriedade de nenhum conteúdo.
-- Ao enviar uma foto ou recado, você **autoriza** o Memo Brasil a guardá-lo, processá-lo (por exemplo, reduzir o tamanho e remover metadados) e exibi-lo **no álbum daquele casamento**, para os convidados e para a organização, pelo prazo de retenção, e **somente para isso**.
+- **As fotos continuam sendo de quem as tirou.** O Lume não reivindica a propriedade de nenhum conteúdo.
+- Ao enviar uma foto ou recado, você **autoriza** o Lume a guardá-lo, processá-lo e exibi-lo **no álbum daquele casamento**, para os convidados e para a organização, pelo prazo de guarda, e **somente para isso**. 🔧 `feature.exif` *Quando existir, o processamento incluirá reduzir o tamanho e remover metadados.*
 - Você autoriza também o **casal** a baixar, guardar e usar o álbum **para fins pessoais** (por exemplo, memórias e compartilhar com família e amigos).
 - **Não usamos suas fotos** para publicidade, divulgação do serviço, venda ou treinamento de inteligência artificial.
-- Você declara que a foto é sua e que **respeita o direito de imagem** de quem aparece.
+- Você declara que a foto é sua e que **respeita o direito de imagem** de quem aparece. Quem aparece numa foto pode pedir a retirada (Política, seção 9).
 
 ⚖️ **TU-4 — Licença e direito de imagem.** Revisar o alcance da licença (limitada, não exclusiva, gratuita, só para operar o serviço), o uso pelo casal (inclusive publicação em redes sociais e por terceiros contratados, como fotógrafo e álbum impresso), e a cobertura do direito de imagem de terceiros fotografados (CC, art. 20; CF, art. 5º, X).
 
 ## 8. Revelação, prazos e disponibilidade
 
 - O álbum é **aberto na hora definida** pela organização, pelo relógio do nosso servidor. A organização pode alterar o horário antes da revelação.
-- As fotos ficam guardadas por **12 meses depois da revelação**. Depois, **apagamos** o evento e tudo o que ele contém. Avisamos o organizador por e-mail antes. 🔧
-- O organizador pode **baixar** o álbum em ZIP e a lista em CSV antes do prazo.
+- As fotos ficam guardadas por **{retencao_meses} meses depois da revelação**. Se o evento **nunca for revelado**, há um teto de **{teto_meses} meses** contados da data do casamento (ou da criação). Depois, **apagamos** o evento e tudo o que ele contém. 🔧 `feature.retencao` Avisamos o organizador por e-mail antes. 🔧 `feature.email`
+- Não prometemos prorrogar o prazo: guardar além do combinado com os convidados exigiria nova base legal.
+- O organizador pode **baixar** o álbum em ZIP e a lista em CSV antes do prazo. **O que for baixado fica com quem baixou e não é apagado por nós.**
 - Fazemos o possível para o serviço estar sempre no ar, mas **não garantimos disponibilidade ininterrupta**. Podem ocorrer manutenções e falhas. **Recomendamos baixar o álbum assim que for revelado.**
 - Há **limites** (fotos por convidado, convidados por evento, tamanho de foto, total do evento) para manter o serviço justo.
 
@@ -96,8 +100,8 @@ A organização e a plataforma podem **ocultar ou apagar** qualquer conteúdo qu
 
 **A plataforma pode acessar o conteúdo dos eventos** (fotos, recados, lista, dados cadastrais), inclusive antes da revelação, **para suporte, moderação e segurança**, ou para cumprir ordem legal. Esse acesso:
 
-- é feito apenas por pessoas autorizadas, com autenticação reforçada;
-- **fica registrado** em um histórico que não pode ser editado (quem, quando, qual evento, o quê);
+- é feito apenas por pessoas autorizadas, com credencial própria; 🔧 `feature.mfa_master` *com segundo fator;*
+- tem as ações da administração sobre o evento **registradas** em um histórico que não pode ser editado (quem, quando, qual evento); 🔧 `feature.auditoria_motivo` *a abertura de fotos e recados e o motivo também ficam registrados;*
 - **não é usado** para outro fim, como marketing.
 
 Detalhes e base legal estão na [Política de Privacidade](politica-privacidade.md), seção 5.
@@ -106,7 +110,7 @@ Detalhes e base legal estão na [Política de Privacidade](politica-privacidade.
 
 ## 10. Denúncias, moderação e suspensão
 
-- **Denunciar:** quem encontrar algo impróprio pode avisar a organização ou escrever para **[suporte@dominio.com.br]**. 🔧 *(denúncia dentro do álbum: a construir.)*
+- **Denunciar:** quem encontrar algo impróprio pode avisar a organização ou escrever para **[suporte@dominio.com.br]**. 🔧 `feature.denuncia` *Denúncia dentro do álbum.*
 - **Remoção:** a organização pode apagar fotos e recados. A plataforma pode remover conteúdo ou **suspender um evento** quando houver violação destes Termos, ordem legal, risco à segurança ou denúncia fundamentada.
 - Sempre que possível, **explicamos o motivo** ao organizador.
 - Podemos recusar ou encerrar o acesso de quem abusar do serviço (spam, tentativa de burlar limites, ataques).
@@ -115,11 +119,14 @@ Detalhes e base legal estão na [Política de Privacidade](politica-privacidade.
 
 ## 11. Privacidade
 
-O tratamento de dados pessoais é descrito na [Política de Privacidade](politica-privacidade.md). Para a organização, **exportar** e **apagar** os dados do evento são direitos garantidos por estes Termos.
+O tratamento de dados pessoais é descrito na [Política de Privacidade](politica-privacidade.md). Para a organização, **exportar** e **apagar** os dados do evento são direitos que você tem sobre o álbum:
+
+- Baixar o álbum (ZIP) e a lista (CSV) você já faz pelo painel. 🔧 `feature.exportar_tudo` *Baixar tudo de uma vez.*
+- Excluir o evento inteiro, hoje, é pedido ao nosso suporte. 🔧 `feature.excluir_evento` *Excluir direto no painel.*
 
 ## 12. Propriedade da plataforma
 
-O nome, a marca, o design e o código do Memo Brasil são de **[RAZÃO SOCIAL]**. Estes Termos não transferem nenhum desses direitos a você.
+O nome, a marca, o design e o código do Lume são de **[RAZÃO SOCIAL]**. Estes Termos não transferem nenhum desses direitos a você.
 
 ## 13. Limitação de responsabilidade
 
@@ -135,7 +142,7 @@ Nada nestes Termos exclui direitos que a lei garante ao consumidor.
 
 ## 14. Mudanças
 
-Podemos atualizar estes Termos. Avisaremos o organizador por e-mail e na página do evento **com pelo menos [15] dias de antecedência** quando a mudança for relevante. Se continuar usando o serviço depois, entendemos que concorda.
+Podemos atualizar estes Termos. Avisaremos o organizador e na página do evento **com pelo menos [15] dias de antecedência** quando a mudança for relevante. Uma mudança **não amplia** o que você já consentiu sobre as suas fotos: se for preciso, pediremos de novo.
 
 ## 15. Lei e foro
 
