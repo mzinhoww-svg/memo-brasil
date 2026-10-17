@@ -86,7 +86,6 @@ async function enviar(blob) {
   if (enviando) return;
   enviando = true;
   const fd = new FormData();
-  fd.append('guestId', g.guestId);
   fd.append('foto', blob, 'foto.jpg');
   try {
     const r = await api(`/api/events/${id}/photos`, { method: 'POST', headers: guestHdr(id), body: fd });

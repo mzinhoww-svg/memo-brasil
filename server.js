@@ -7,6 +7,7 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const imagem = require('./src/image');
 const { createLogger } = require('./src/obs/logger');
 const { createHealthHandler } = require('./src/obs/health');
 const { limFotosEvento } = require('./src/obs/limites');
@@ -20,6 +21,7 @@ const { registrarExclusao } = require('./src/lgpd/auditoria');
 const { enfileirarAviso } = require('./src/lgpd/outbox');
 const { novoToken, autentica, sessaoDe, MENSAGENS } = require('./src/guest');
 const { semSegredos } = require('./src/seguranca');
+const { criarLimite } = require('./src/limite');
 const { criarEmail, emailDesativado } = require('./src/email');
 const { processarRevelacoes } = require('./src/reveal/job');
 const { montarRetrospectiva } = require('./src/reveal/retrospectiva');
@@ -514,7 +516,15 @@ function guardaOrigem(req, res, next) {
   next();
 }
 app.use('/api', guardaOrigem);
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_HARD_PHOTO_BYTES, files: 1 } });
+
+// Upload de foto: o limite real vem da configuração do evento e é aplicado em
+// tempo de requisição — assim o multer corta o corpo assim que passa do
+// tamanho permitido, em vez de bufferizar até o teto técnico.
+const uploadFoto = (req, res, next) => {
+  const limite = Math.min(Math.max(settings.tamanhoMaxFotoMB, 1) * imagem.MB, MAX_HARD_PHOTO_BYTES);
+  multer({ storage: multer.memoryStorage(), limits: { fileSize: limite, files: 1, fields: 4, parts: 8, fieldSize: 1024 } })
+    .single('foto')(req, res, next);
+};
 
 function getEvent(req, res, next) {
   const ev = db.events[req.params.id];
@@ -577,6 +587,124 @@ function recadosVisiveis(ev, opts) {
       const mostraAutor = opts.organizacao || meu || (mural && mostrarAutor);
       return { id: r.id, texto: r.texto, criadoEm: r.criadoEm, meu, visibilidade: mural ? 'mural' : 'casal', autor: mostraAutor ? r.autor : '' };
     });
+}
+
+// Reserva de cota: o check e o incremento acontecem sem nenhum `await` no meio,
+// então dois uploads do mesmo convidado nunca passam juntos. A reserva é
+// liberada quando a resposta termina, com sucesso ou erro.
+const reservasFoto = new Map(); // evId -> { total, porConvidado: Map }
+function reservarFoto(ev, guest) {
+  const r = reservasFoto.get(ev.id) || { total: 0, porConvidado: new Map() };
+  reservasFoto.set(ev.id, r);
+  const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
+  const naFila = r.porConvidado.get(guest.id) || 0;
+  if (usadas + naFila >= ev.fotosPorConvidado) return 'cota';
+  if (ev.photos.length + r.total >= limFotos(ev)) return 'evento';
+  r.total += 1;
+  r.porConvidado.set(guest.id, naFila + 1);
+  return null;
+}
+function liberarFoto(ev, guest) {
+  const r = reservasFoto.get(ev.id);
+  if (!r) return;
+  r.total = Math.max(0, r.total - 1);
+  const n = (r.porConvidado.get(guest.id) || 0) - 1;
+  if (n > 0) r.porConvidado.set(guest.id, n); else r.porConvidado.delete(guest.id);
+  if (r.total === 0 && r.porConvidado.size === 0) reservasFoto.delete(ev.id);
+}
+
+// Limite das tentativas inválidas nos uploads (rota pública). A chave inclui
+// sempre o IP (req.ip, com `trust proxy` configurado na main), mas o evento e o
+// convidado delimitam o balde: o salão costuma estar todo no mesmo NAT e um
+// aparelho errando não pode derrubar os demais. Só as FALHAS contam — token
+// ausente/errado, imagem inválida ou envio acima do teto. Configurável por env
+// para os testes; o padrão é 20 falhas por 10 minutos, por chave.
+const limiteGuest = criarLimite({
+  max: parseInt(process.env.GUEST_MAX_TENTATIVAS, 10) > 0 ? parseInt(process.env.GUEST_MAX_TENTATIVAS, 10) : 20,
+  janelaMs: parseInt(process.env.GUEST_JANELA_MS, 10) > 0 ? parseInt(process.env.GUEST_JANELA_MS, 10) : 10 * 60 * 1000,
+});
+
+// Conta uma tentativa inválida no balde (IP, evento, convidado) do pedido e
+// devolve true quando o teto da janela foi atingido (aí a resposta é 429).
+function anotarFalha(req) {
+  if (!req.limiteChave) return false;
+  limiteGuest.falhou(req.limiteChave);
+  return limiteGuest.atingiu(req.limiteChave);
+}
+
+// Autentica o convidado antes de entregar o corpo ao multer quando a credencial
+// vem por cabeçalho (x-guest-id + x-guest-token), o caminho preferido: nada é
+// lido do corpo até a credencial ser validada. Quando o id não vem no cabeçalho,
+// a rota aceita o `guestId` do formulário (contrato do #13 herdado da main) e a
+// checagem acontece em guestAuthCorpo, logo após o multer — o token continua
+// exclusivamente no cabeçalho x-guest-token, nunca na URL/query.
+//
+// A autenticação é O(1) (busca pelo id e um único hash, via autentica()) e roda
+// ANTES do limite: uma credencial válida nunca é barrada por engano. O balde do
+// par (IP, evento, convidado) só é zerado quando a foto entra de fato (sucesso),
+// de modo que tentativas inválidas — token errado, imagem inválida ou envio
+// grande demais — se acumulam até o teto da janela.
+function autorizarConvidado(req, res, guestId) {
+  const ev = req.ev;
+  const token = req.get('x-guest-token');
+  const ip = req.ip || req.socket?.remoteAddress || 'desconhecido';
+  const chave = `${ip}:${ev.id}:${guestId || 'sem-id'}`;
+  req.limiteChave = chave;
+  const guest = guestId && token ? autentica(ev, guestId, token) : null;
+  if (!guest) {
+    limiteGuest.falhou(chave);
+    if (limiteGuest.atingiu(chave)) {
+      res.status(429).json({ erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' });
+      return null;
+    }
+    res.status(403).json({ erro: MENSAGENS.semToken });
+    return null;
+  }
+  const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
+  if (usadas >= ev.fotosPorConvidado) {
+    res.status(409).json({ erro: `Você já usou suas ${ev.fotosPorConvidado} fotos.` });
+    return null;
+  }
+  if (ev.photos.length >= limFotos(ev)) {
+    res.status(413).json({ erro: 'Este evento atingiu o teto de fotos. Não é possível enviar mais fotos.' });
+    return null;
+  }
+  const motivo = reservarFoto(ev, guest);
+  if (motivo === 'cota') {
+    res.status(409).json({ erro: `Você já usou suas ${ev.fotosPorConvidado} fotos.` });
+    return null;
+  }
+  if (motivo === 'evento') {
+    res.status(413).json({ erro: 'Este evento atingiu o teto de fotos. Não é possível enviar mais fotos.' });
+    return null;
+  }
+  // A reserva é liberada quando a resposta termina, com sucesso ou erro.
+  let liberado = false;
+  const liberar = () => { if (!liberado) { liberado = true; liberarFoto(ev, guest); } };
+  res.on('finish', liberar);
+  res.on('close', liberar);
+  req.guest = guest;
+  return guest;
+}
+
+// guestAuth roda ANTES do multer: valida o evento e, quando o id vem no cabeçalho
+// x-guest-id, autentica sem ler o corpo.
+function guestAuth(req, res, next) {
+  const ev = req.ev;
+  if (ev.suspenso) return res.status(403).json({ erro: MENSAGENS.eventoIndisponivel });
+  if (revealed(ev)) return res.status(409).json({ erro: MENSAGENS.eventoEncerrado });
+  const guestId = req.get('x-guest-id');
+  if (!guestId) return next(); // sem cabeçalho: resolve em guestAuthCorpo, com o id do corpo
+  if (!autorizarConvidado(req, res, guestId)) return;
+  next();
+}
+
+// Fallback pós-multer: id no formulário (guestId) e token no cabeçalho. Sai na
+// primeira linha quando guestAuth já autenticou.
+function guestAuthCorpo(req, res, next) {
+  if (req.guest) return next();
+  if (!autorizarConvidado(req, res, req.body && req.body.guestId)) return;
+  next();
 }
 
 function publicInfo(ev) {
@@ -997,6 +1125,7 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
   // C2: convidado criado antes do token (sem tokenHash) reivindica a própria sessão
   // na primeira entrada, para não perder a cota de fotos. A reivindicação vale uma vez.
+  // O token tem 32 bytes e o banco guarda só o hash (src/guest.js).
   const { token, hash } = novoToken();
   const orfao = ev.guests.find((x) => !x.tokenHash && norm(x.nome) === norm(nome));
   if (orfao) {
@@ -1061,27 +1190,40 @@ app.post('/api/events/:id/recados', getEvent, (req, res) => {
 });
 
 // ───── Fotos
-app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) => {
+// A ordem importa: identificamos o evento, autenticamos o convidado (guestAuth,
+// antes do multer quando o id vem no cabeçalho x-guest-id; senão guestAuthCorpo
+// usa o `guestId` do formulário) e só então lemos o corpo. A autoria e a cota
+// saem sempre do convidado autenticado, nunca do guestId não conferido.
+app.post('/api/events/:id/photos', getEvent, guestAuth, uploadFoto, guestAuthCorpo, (req, res, next) => {
   const ev = req.ev;
-  if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
-  if (revealed(ev)) return res.status(409).json({ erro: 'O evento já terminou. As fotos foram reveladas.' });
-  const guest = autentica(ev, req.body.guestId, req.get('x-guest-token'));
-  if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de fotografar.' });
-  if (req.file && req.file.size > settings.tamanhoMaxFotoMB * 1024 * 1024)
-    return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
-  if (ev.photos.length >= limFotos(ev)) return res.status(413).json({ erro: 'Este evento atingiu o teto de fotos. Não é possível enviar mais fotos.' });
-  if (!req.file || !/^image\/(jpeg|png|webp)$/.test(req.file.mimetype))
-    return res.status(400).json({ erro: 'Envie uma imagem JPEG, PNG ou WebP.' });
-  const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
-  if (usadas >= ev.fotosPorConvidado) return res.status(409).json({ erro: `Você já usou suas ${ev.fotosPorConvidado} fotos.` });
-  const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[req.file.mimetype];
+  const guest = req.guest;
+  if (!req.file || !req.file.buffer || !req.file.buffer.length) {
+    if (anotarFalha(req)) return res.status(429).json({ erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' });
+    return res.status(400).json({ erro: 'Envie uma foto.' });
+  }
+  let img;
+  try { img = imagem.preparar(req.file.buffer); }
+  catch (e) {
+    if (e instanceof imagem.ErroImagem) {
+      // Conteúdo/tipo inválido também alimenta o limite: varredura de formatos
+      // não vira porta aberta.
+      if (anotarFalha(req)) return res.status(429).json({ erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' });
+      return res.status(e.status).json({ erro: e.message });
+    }
+    return next(e);
+  }
+  // O nome do arquivo é sempre gerado pelo servidor; o nome enviado pelo
+  // cliente é descartado (evita path traversal, XSS em nome e colisão).
   const id = newId(8);
   const dir = path.join(PHOTO_DIR, ev.id);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, `${id}.${ext}`), req.file.buffer);
-  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: clock.iso() });
+  fs.writeFileSync(path.join(dir, `${id}.${img.ext}`), img.buffer);
+  ev.photos.push({ id, ext: img.ext, guestId: guest.id, autor: guest.nome, criadaEm: clock.iso() });
   save();
-  res.status(201).json({ id, restantes: ev.fotosPorConvidado - usadas - 1 });
+  // Upload que entrou de fato zera o balde de tentativas inválidas da chave.
+  if (req.limiteChave) limiteGuest.limpou(req.limiteChave);
+  const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
+  res.status(201).json({ id, restantes: Math.max(0, ev.fotosPorConvidado - usadas) });
 });
 
 app.get('/api/events/:id/photos', getEvent, (req, res) => {
@@ -1156,7 +1298,14 @@ app.use((err, req, res, next) => {
     return res.status(400).json({ erro: 'Corpo da requisição inválido.' });
   }
   if (err.type === 'entity.too.large') return res.status(413).json({ erro: 'Conteúdo grande demais.' });
-  if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    if (anotarFalha(req)) return res.status(429).json({ erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' });
+    return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
+  }
+  if (err.code && err.code.startsWith('LIMIT_')) {
+    if (anotarFalha(req)) return res.status(429).json({ erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' });
+    return res.status(400).json({ erro: 'Envio inválido.' });
+  }
   sentry.captureException(err); // no-op se SENTRY_DSN não estiver definido
   console.error(err);
   res.status(500).json({ erro: 'Algo deu errado. Tente de novo.' });

@@ -89,7 +89,7 @@ $('#f').addEventListener('submit', async (e) => {
   e.preventDefault(); $('#err').textContent = '';
   const nome = $('#nome').value.trim();
   const g = getGuest(id);
-  if (g && g.nome === nome) return (location.href = `/e/${id}/inicio`);
+  if (g && g.nome === nome && g.guestToken) return (location.href = `/e/${id}/inicio`);
   if (!$('#consent').checked) { $('#err').textContent = 'Para entrar, precisamos do seu "de acordo". É rapidinho.'; return; }
   try {
     const r = await api(`/api/events/${id}/guests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome, consentimento: { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false } }) });

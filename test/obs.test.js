@@ -29,11 +29,11 @@ const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: f
 async function criar(titulo) {
   const r = await (await post('/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 50 })).json();
   const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
-  return { id: r.id, tk: r.hostToken, guest: g.guestId, gt: g.guestToken };
+  return { id: r.id, tk: r.hostToken, guest: g.guestId, gtoken: g.guestToken };
 }
 async function foto(ev) {
-  const fd = new FormData(); fd.append('guestId', ev.guest); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  return fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers: { 'x-guest-token': ev.gt }, body: fd });
+  const fd = new FormData(); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  return fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers: { 'x-guest-id': ev.guest, 'x-guest-token': ev.gtoken }, body: fd });
 }
 
 // ───── (1) GET /healthz sem dados pessoais

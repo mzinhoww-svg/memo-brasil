@@ -30,8 +30,10 @@ async function criar(titulo, nome = 'Rafa') {
   return { id: r.id, tk: r.hostToken, guest: g.guestId, gt: g.guestToken, nome: g.nome };
 }
 async function foto(ev, token = ev.gt) {
-  const fd = new FormData(); fd.append('guestId', ev.guest); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  return fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers: token ? { 'x-guest-token': token } : {}, body: fd });
+  const fd = new FormData(); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  const headers = { 'x-guest-id': ev.guest };
+  if (token) headers['x-guest-token'] = token;
+  return fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers, body: fd });
 }
 const saldo = (ev, token = ev.gt) => get(`/api/events/${ev.id}/guests/${ev.guest}`, token ? { 'x-guest-token': token } : {});
 const recado = (ev, token = ev.gt) => post(`/api/events/${ev.id}/recados`, { guestId: ev.guest, texto: 'Oi, noivos!' }, token ? { 'x-guest-token': token } : {});

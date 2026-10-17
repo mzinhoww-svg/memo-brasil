@@ -36,9 +36,9 @@ const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: f
 async function novaFesta(base, titulo) {
   const r = await (await post(base, '/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 5 })).json();
   const g = await (await post(base, `/api/events/${r.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
-  const fd = new FormData(); fd.append('guestId', g.guestId); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  const up = await (await fetch(`${base}/api/events/${r.id}/photos`, { method: 'POST', headers: { 'x-guest-token': g.guestToken }, body: fd })).json();
-  return { id: r.id, tk: r.hostToken, photo: up.id };
+  const fd = new FormData(); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  const up = await (await fetch(`${base}/api/events/${r.id}/photos`, { method: 'POST', headers: { 'x-guest-id': g.guestId, 'x-guest-token': g.guestToken }, body: fd })).json();
+  return { id: r.id, tk: r.hostToken, gid: g.guestId, gtoken: g.guestToken, photo: up.id };
 }
 
 test('após restart, casal e equipe mantêm a moderação pré-revelação', async () => {
@@ -74,6 +74,26 @@ test('após restart, casal e equipe mantêm a moderação pré-revelação', asy
   assert.ok(novo && novo !== 'undefined');
   assert.equal((await get(second.base, `/api/events/${A.id}/moderacao`, { 'x-host-token': novo })).status, 200);
   assert.equal((await get(second.base, `/api/events/${A.id}/moderacao`, { 'x-host-token': equipeToken })).status, 403, 'o link antigo deixa de funcionar');
+
+  await stop(second.srv);
+});
+
+test('após restart, só o hash do token do convidado persiste e o upload segue válido', async () => {
+  const first = await start();
+  const A = await novaFesta(first.base, 'TokenConvidado');
+  await stop(first.srv);
+
+  const second = await start();
+  // O token em claro do convidado não aparece em nenhum lugar do banco.
+  const dbBytes = fs.readFileSync(path.join(process.env.DATA_DIR, 'memo.db'));
+  assert.equal(dbBytes.includes(Buffer.from(A.gtoken)), false, 'token do convidado não pode estar em claro no banco');
+
+  // E o convidado continua autenticando (só o hash é persistido).
+  const fd = new FormData(); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  const up = await fetch(`${second.base}/api/events/${A.id}/photos`, { method: 'POST', headers: { 'x-guest-id': A.gid, 'x-guest-token': A.gtoken }, body: fd });
+  assert.equal(up.status, 201, 'o token do convidado sobrevive ao restart');
+  const info = await (await get(second.base, `/api/events/${A.id}`)).json();
+  assert.equal(info.momentos, 2);
 
   await stop(second.srv);
 });

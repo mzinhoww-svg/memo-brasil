@@ -38,7 +38,7 @@ const guestKey = (id) => `memo:${id}:guest`;
 const getGuest = (id) => { try { return JSON.parse(localStorage.getItem(guestKey(id))); } catch { return null; } };
 const setGuest = (id, g) => localStorage.setItem(guestKey(id), JSON.stringify(g));
 // Cabeçalho de autenticação do convidado: o id sozinho não basta, vai o token junto.
-const guestHdr = (id) => { const g = getGuest(id); return g && g.guestToken ? { 'x-guest-token': g.guestToken } : {}; };
+const guestHdr = (id) => { const g = getGuest(id); return g && g.guestId && g.guestToken ? { 'x-guest-id': g.guestId, 'x-guest-token': g.guestToken } : {}; };
 const hostKey = (id) => `memo:${id}:host`;
 
 // Trilha de navegação: crumbs([{t:'Início', href:'/'}, {t:'Câmera'}])

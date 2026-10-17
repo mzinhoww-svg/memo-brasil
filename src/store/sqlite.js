@@ -452,6 +452,11 @@ class SqliteStore extends Store {
       for (const m of ev.equipe || []) {
         if (!m.tokenHash && m.token) m.tokenHash = tokenHash(m.token);
       }
+      // Convidados de dados antigos: guarda só o hash, descarta o token em claro.
+      for (const g of ev.guests || []) {
+        if (!g.tokenHash && g.token) g.tokenHash = tokenHash(g.token);
+        delete g.token;
+      }
       this._data.events[id] = ev;
     }
     this.save();
