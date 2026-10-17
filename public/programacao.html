@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Programação</title>
+<link rel="icon" href="/icons/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/Fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
@@ -11,12 +14,12 @@
   <nav id="crumbs" class="crumbs"></nav>
   <h1 id="titulo">Programação</h1>
   <p id="quando"></p>
-  <p id="msg" style="color:var(--text)"></p>
+  <p id="msg" style="color:var(--cor-texto)"></p>
   <ul class="timeline" id="tl"></ul>
   <p id="vazio" style="display:none">Os noivos ainda não publicaram a programação.</p>
   <div id="local" style="display:none">
     <h2>Local</h2>
-    <p style="color:var(--text);margin:8px 0 2px" id="lnome"></p>
+    <p style="color:var(--cor-texto);margin:8px 0 2px" id="lnome"></p>
     <p style="margin:0" id="lend"></p>
     <a class="btn" id="mapa" style="margin-top:12px" target="_blank" rel="noopener">Abrir no mapa</a>
   </div>
@@ -34,7 +37,7 @@
     const t = document.createElement('time'); t.textContent = c.hora;
     const b = document.createElement('b'); b.textContent = c.titulo;
     li.append(t, b);
-    if (c.descricao) { const p = document.createElement('span'); p.style.color = 'var(--muted)'; p.textContent = c.descricao; li.append(p); }
+    if (c.descricao) { const p = document.createElement('span'); p.style.color = 'var(--cor-texto-suave)'; p.textContent = c.descricao; li.append(p); }
     tl.append(li);
   }
   $('#vazio').style.display = info.cronograma.length ? 'none' : 'block';

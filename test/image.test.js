@@ -1,9 +1,13 @@
 // Testes unitários da validação por conteúdo e da remoção de metadados. Rodar: npm test
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('fs');
+const path = require('path');
 const { preparar, sniff, limparJpeg, limparPng, limparWebp, ErroImagem } = require('../src/image.js');
 
 const JPG = Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
+// JPEG REAL (gerado por encoder) com EXIF e IFD de GPS (23°33'5"S 46°38'0"W).
+const JPG_GPS = fs.readFileSync(path.join(__dirname, 'fixtures', 'foto-gps.jpg'));
 
 function chunkPng(tipo, dados) {
   const len = Buffer.alloc(4); len.writeUInt32BE(dados.length);
@@ -14,6 +18,7 @@ const PNG = Buffer.concat([
   chunkPng('IHDR', Buffer.alloc(13)),
   chunkPng('tEXt', Buffer.from('Comment\0GPSLatitude=-23.5505')),
   chunkPng('eXIf', Buffer.from('GPSLatitude=-23.5505')),
+  chunkPng('tIME', Buffer.from([0x07, 0xe9, 0, 1, 0, 0, 0])),
   chunkPng('IDAT', Buffer.alloc(4)),
   chunkPng('IEND', Buffer.alloc(0)),
 ]);
@@ -39,6 +44,7 @@ const captura = (fn) => { try { fn(); return null; } catch (e) { return e; } };
 
 test('sniff reconhece o tipo pelo conteúdo e ignora bytes desconhecidos', () => {
   assert.equal(sniff(JPG), 'jpeg');
+  assert.equal(sniff(JPG_GPS), 'jpeg');
   assert.equal(sniff(PNG), 'png');
   assert.equal(sniff(WEBP), 'webp');
   assert.equal(sniff(HEIC), 'heic');
@@ -63,37 +69,45 @@ test('preparar recusa HEIC (415) e conteúdo não-imagem (400)', () => {
   assert.equal(falso.status, 400);
 });
 
-test('limparJpeg remove APPn (EXIF/GPS) e preserva o fluxo da imagem', () => {
-  const payload = Buffer.concat([Buffer.from('Exif\0\0', 'latin1'), Buffer.from('GPSLatitude=-23.5505', 'latin1')]);
-  const seg = Buffer.alloc(4 + payload.length);
-  seg[0] = 0xff; seg[1] = 0xe1;
-  seg.writeUInt16BE(2 + payload.length, 2);
-  payload.copy(seg, 4);
-  const comGps = Buffer.concat([JPG.subarray(0, 2), seg, JPG.subarray(2)]);
-  const limpo = limparJpeg(comGps);
+test('limparJpeg remove EXIF/GPS de um JPEG real e corta no EOI', () => {
+  const tagGps = Buffer.from([0x88, 0x25]); // tag do IFD de GPS no TIFF/EXIF
+  assert.ok(JPG_GPS.includes(Buffer.from('Exif')), 'a fixture precisa ter EXIF');
+  assert.ok(JPG_GPS.includes(tagGps), 'a fixture precisa ter o IFD de GPS');
+  const limpo = limparJpeg(JPG_GPS);
   assert.ok(!limpo.includes(Buffer.from('Exif')));
-  assert.ok(!limpo.includes(Buffer.from('GPS')));
-  assert.ok(limpo.length < comGps.length);
-  assert.deepEqual(limpo.subarray(-20), comGps.subarray(-20));
+  assert.ok(!limpo.includes(tagGps), 'o IFD de GPS deve sumir');
+  assert.ok(limpo.length < JPG_GPS.length);
   assert.equal(limpo[0], 0xff); assert.equal(limpo[1], 0xd8);
-  assert.equal(limpo[limpo.length - 1], 0xd9);
+  assert.equal(limpo[limpo.length - 2], 0xff); assert.equal(limpo[limpo.length - 1], 0xd9);
+  assert.deepEqual(limpo.subarray(-30), JPG_GPS.subarray(-30), 'o fluxo da imagem fica intacto');
+});
+
+test('limparJpeg descarta lixo depois do EOI (nada de metadado escondido no fim)', () => {
+  const comLixo = Buffer.concat([JPG, Buffer.from('LIXO-ESCONDIDO-COM-GPS')]);
+  const limpo = limparJpeg(comLixo);
+  assert.ok(!limpo.includes(Buffer.from('LIXO-ESCONDIDO')));
+  assert.ok(!limpo.includes(Buffer.from('GPS')));
+  assert.equal(limpo[limpo.length - 2], 0xff); assert.equal(limpo[limpo.length - 1], 0xd9);
+  assert.deepEqual(limpo, limparJpeg(JPG));
 });
 
 test('limparPng descarta tEXt/eXIf/tIME e mantém os blocos estruturais', () => {
   const out = limparPng(PNG);
   assert.ok(!out.includes(Buffer.from('tEXt')));
   assert.ok(!out.includes(Buffer.from('eXIf')));
+  assert.ok(!out.includes(Buffer.from('tIME')));
   assert.ok(!out.includes(Buffer.from('GPS')));
   assert.ok(out.includes(Buffer.from('IHDR')));
   assert.ok(out.includes(Buffer.from('IDAT')));
   assert.ok(out.includes(Buffer.from('IEND')));
 });
 
-test('limparWebp descarta EXIF/XMP, mantém os chunks de imagem e recalcula o RIFF', () => {
-  const out = limparWebp(WEBP);
+test('limparWebp descarta EXIF/XMP, recalcula o RIFF e ignora bytes após o RIFF', () => {
+  const out = limparWebp(Buffer.concat([WEBP, Buffer.from('LIXO')]));
   assert.ok(!out.includes(Buffer.from('EXIF')));
   assert.ok(!out.includes(Buffer.from('XMP ')));
   assert.ok(!out.includes(Buffer.from('GPS')));
+  assert.ok(!out.includes(Buffer.from('LIXO')));
   assert.ok(out.includes(Buffer.from('VP8X')));
   assert.ok(out.includes(Buffer.from('VP8L')));
   assert.equal(out.toString('latin1', 0, 4), 'RIFF');

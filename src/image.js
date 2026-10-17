@@ -59,7 +59,16 @@ function limparJpeg(buf) {
     let m = buf[i + 1];
     while (m === 0xff && i + 2 < buf.length) { i += 1; m = buf[i + 1]; } // preenchimento
     if (m === 0xd9) { saida.push(buf.subarray(i, i + 2)); i += 2; break; } // EOI
-    if (m === 0xda) { saida.push(buf.subarray(i)); achouVarredura = true; i = buf.length; break; } // SOS: resto literal
+    if (m === 0xda) {
+      // SOS: os dados da imagem vêm a seguir. Copiamos até o primeiro EOI e
+      // descartamos qualquer lixo depois dele (nada de metadado escondido no fim).
+      const eoi = buf.indexOf(Buffer.from([0xff, 0xd9]), i + 2);
+      if (eoi < 0) throw new ErroImagem('JPEG truncado.');
+      saida.push(buf.subarray(i, eoi + 2));
+      achouVarredura = true;
+      i = buf.length;
+      break;
+    }
     if (m === 0x01 || (m >= 0xd0 && m <= 0xd7)) { // marcadores sem comprimento
       saida.push(buf.subarray(i, i + 2)); i += 2; continue;
     }
@@ -104,20 +113,22 @@ const WEBP_DESCARTAR = new Set(['EXIF', 'XMP ']);
 function limparWebp(buf) {
   if (buf.toString('latin1', 0, 4) !== 'RIFF' || buf.toString('latin1', 8, 12) !== 'WEBP') throw new ErroImagem('WebP inválido.');
   const saida = [buf.subarray(0, 12)];
+  // Respeita o tamanho declarado no RIFF: ignora qualquer byte depois dele.
+  const fimRiff = Math.min(buf.length, 8 + buf.readUInt32LE(4));
   let i = 12;
   let achouImagem = false;
-  while (i + 8 <= buf.length) {
+  while (i + 8 <= fimRiff) {
     const tipo = buf.toString('latin1', i, i + 4);
     const tam = buf.readUInt32LE(i + 4);
     const fim = i + 8 + tam + (tam % 2); // chunks são alinhados em 2 bytes
-    if (fim > buf.length) throw new ErroImagem('WebP truncado.');
+    if (fim > fimRiff) throw new ErroImagem('WebP truncado.');
     if (tipo === 'VP8 ' || tipo === 'VP8L' || tipo === 'VP8X') achouImagem = true;
     if (!WEBP_DESCARTAR.has(tipo)) saida.push(buf.subarray(i, fim));
     i = fim;
   }
   if (!achouImagem) throw new ErroImagem('WebP sem dados de imagem.');
   const out = Buffer.concat(saida);
-  out.writeUInt32LE(out.length - 8, 4);
+  out.writeUInt32LE(out.length - 8, 4); // novo tamanho do RIFF
   return out;
 }
 
