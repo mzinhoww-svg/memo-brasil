@@ -104,9 +104,6 @@ function baseUrl(req) {
 }
 
 const app = express();
-// Atrás do proxy (Caddy/Nginx) confiamos em um salto para o rate limit por IP
-// enxergar o cliente real; sem proxy, req.ip já é o socket. Ajuste com TRUST_PROXY.
-app.set('trust proxy', process.env.TRUST_PROXY ? Number(process.env.TRUST_PROXY) : 1);
 // Observabilidade: log estruturado por requisição (sem PII) e healthcheck.
 const logger = createLogger();
 const sentry = createSentry({ version: require('./package.json').version });
@@ -160,7 +157,7 @@ const donoOnly = (req, res, next) =>
 // Organização pelo token, sem exigir acesso (usado na leitura dos recados).
 function ehOrganizacao(req) {
   const ev = req.ev;
-  const token = req.get('x-host-token') || req.get('x-master-token') || req.query.token;
+  const token = req.get('x-host-token') || req.get('x-master-token');
   if (!token) return null;
   if (isMaster(token)) return { papel: 'master', nome: 'Admin master', dono: true, master: true };
   if (verifyToken(token, ev.hostTokenHash)) return { papel: 'casal', nome: 'Casal', dono: true };
@@ -206,8 +203,9 @@ function liberarFoto(ev, guest) {
   if (r.total === 0 && r.porConvidado.size === 0) reservasFoto.delete(ev.id);
 }
 
-// Limite por IP das tentativas inválidas de credencial (rota pública).
-// Configurável por env para os testes; o padrão é 20 falhas por 10 minutos.
+// Limite das tentativas inválidas de credencial de convidado (rota pública).
+// A chave é o par (IP, evento, convidado) e só as FALHAS contam. Configurável
+// por env para os testes; o padrão é 20 falhas por 10 minutos, por par.
 const limiteGuest = criarLimite({
   max: parseInt(process.env.GUEST_MAX_TENTATIVAS, 10) > 0 ? parseInt(process.env.GUEST_MAX_TENTATIVAS, 10) : 20,
   janelaMs: parseInt(process.env.GUEST_JANELA_MS, 10) > 0 ? parseInt(process.env.GUEST_JANELA_MS, 10) : 10 * 60 * 1000,
@@ -216,21 +214,26 @@ const limiteGuest = criarLimite({
 // Autentica o convidado ANTES de o multer ler o corpo: a credencial é a dupla
 // id + token, sempre por cabeçalho (x-guest-id e x-guest-token) — nunca na URL,
 // que vaza em log/Referer, e nunca em campo do formulário, que só existe depois
-// de o corpo inteiro ser lido. Autenticamos UM convidado (busca pelo id e um
-// único cálculo de hash, via autentica()) e limitamos por IP as tentativas
-// inválidas. Sem credencial válida, nada é bufferizado em RAM.
+// de o corpo inteiro ser lido. A autenticação é O(1) (busca pelo id e um único
+// hash, via autentica()), então rodamos ela ANTES do limite: assim uma
+// credencial válida nunca é barrada — o salão costuma estar todo no mesmo Wi-Fi
+// (ou NAT da operadora), e um aparelho errando não pode derrubar os demais. O
+// limite vale só para o par (IP, evento, convidado) que está errando.
 function guestAuth(req, res, next) {
   const ev = req.ev;
   if (ev.suspenso) return res.status(403).json({ erro: MENSAGENS.eventoIndisponivel });
   if (revealed(ev)) return res.status(409).json({ erro: MENSAGENS.eventoEncerrado });
-  const ip = req.ip || req.socket?.remoteAddress || 'desconhecido';
-  if (limiteGuest.atingiu(ip)) return res.status(429).json({ erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' });
   const guestId = req.get('x-guest-id');
   const token = req.get('x-guest-token');
-  if (!guestId || !token) { limiteGuest.falhou(ip); return res.status(403).json({ erro: MENSAGENS.semToken }); }
-  const guest = autentica(ev, guestId, token);
-  if (!guest) { limiteGuest.falhou(ip); return res.status(403).json({ erro: MENSAGENS.semToken }); }
-  limiteGuest.limpou(ip);
+  const ip = req.ip || req.socket?.remoteAddress || 'desconhecido';
+  const chave = `${ip}:${ev.id}:${guestId || 'sem-id'}`;
+  const guest = guestId && token ? autentica(ev, guestId, token) : null;
+  if (!guest) {
+    limiteGuest.falhou(chave);
+    if (limiteGuest.atingiu(chave)) return res.status(429).json({ erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' });
+    return res.status(403).json({ erro: MENSAGENS.semToken });
+  }
+  limiteGuest.limpou(chave);
   const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
   if (usadas >= ev.fotosPorConvidado) return res.status(409).json({ erro: `Você já usou suas ${ev.fotosPorConvidado} fotos.` });
   if (ev.photos.length >= limFotos(ev)) return res.status(413).json({ erro: 'Este evento atingiu o teto de fotos. Não é possível enviar mais fotos.' });

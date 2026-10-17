@@ -1,4 +1,4 @@
-// Limite por IP das tentativas inválidas de credencial no upload (rota pública).
+// Limite das tentativas inválidas de credencial no upload (rota pública).
 // Arquivo próprio para nascer com um teto pequeno (GUEST_MAX_TENTATIVAS), sem
 // afetar os outros arquivos (o runner isola cada arquivo em um processo).
 const test = require('node:test');
@@ -10,7 +10,7 @@ const path = require('path');
 process.env.NODE_ENV = 'test';
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-limite-'));
 process.env.MASTER_TOKEN = 'master-de-teste';
-process.env.GUEST_MAX_TENTATIVAS = '2';
+process.env.GUEST_MAX_TENTATIVAS = '5';
 process.env.GUEST_JANELA_MS = '60000'; // janela longa: não expira no teste
 const app = require('../server.js');
 
@@ -26,20 +26,32 @@ async function criar(titulo) {
   const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
   return { id: r.id, guest: g.guestId, gtoken: g.guestToken };
 }
-function enviar(ev, token) {
+function enviar(ev, guestId, token) {
   const fd = new FormData();
   fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  const headers = { 'x-guest-id': ev.guest };
+  const headers = {};
+  if (guestId) headers['x-guest-id'] = guestId;
   if (token) headers['x-guest-token'] = token;
   return fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers, body: fd });
 }
 
-test('tentativas inválidas em sequência bloqueiam o IP com 429 e nada é gravado', async () => {
-  const a = await criar('Limite de tentativas');
-  assert.equal((await enviar(a, 'token-errado-1')).status, 403);
-  assert.equal((await enviar(a, 'token-errado-2')).status, 403);
-  // A partir do limite, o IP é bloqueado antes de autenticar — 429 até para válido.
-  assert.equal((await enviar(a, 'token-errado-3')).status, 429);
-  assert.equal((await enviar(a, a.gtoken)).status, 429);
-  assert.equal((await (await get(`/api/events/${a.id}/photos`)).json()).fotos.length, 0);
+test('falhas de um convidado não bloqueiam os outros nem a credencial válida (mesmo IP)', async () => {
+  const ev = await criar('Limite de tentativas');
+  const bia = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Bia' })).json();
+
+  // 5 falhas do par (IP, evento, convidado) do Rafa com token errado: as 4
+  // primeiras são 403, a que estoura o teto vira 429.
+  const status = [];
+  for (let i = 0; i < 5; i++) status.push((await enviar(ev, ev.guest, 'token-errado')).status);
+  assert.deepEqual(status, [403, 403, 403, 403, 429]);
+
+  // Outro convidado no MESMO IP continua entrando (chave diferente): 201.
+  assert.equal((await enviar(ev, bia.guestId, bia.guestToken)).status, 201);
+
+  // E a credencial VÁLIDA do próprio Rafa também passa: autenticamos antes do
+  // limite, então credencial correta nunca recebe 429 (e ainda zera o balde).
+  assert.equal((await enviar(ev, ev.guest, ev.gtoken)).status, 201);
+
+  const lista = await (await get(`/api/events/${ev.id}/photos`)).json();
+  assert.equal(lista.fotos.length, 2, 'só as duas credenciais válidas gravaram');
 });
