@@ -9,6 +9,16 @@ async function api(path, opts = {}) {
   return data;
 }
 
+// Imagem que exige credencial: o token vai no cabeçalho, nunca na URL (log,
+// histórico e Referer não devem guardar a credencial). Devolve um object URL.
+async function imgAutenticada(url, headers) {
+  try {
+    const r = await fetch(url, { headers });
+    if (!r.ok) return null;
+    return URL.createObjectURL(await r.blob());
+  } catch { return null; }
+}
+
 function duracao(ms) {
   if (ms <= 0) return '0m';
   const m = Math.floor(ms / 60000);
