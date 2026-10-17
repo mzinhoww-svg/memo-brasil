@@ -178,16 +178,24 @@ Só marcar depois de conferir, com evidência (saída de comando ou captura):
 - [ ] Bloqueio de foto antes da revelação: `GET .../photos/<id>/file` devolve **403** (coberto por teste e por smoke no container).
 - [ ] Backup gerado e copiado para fora do host; **restauração testada** em ambiente de ensaio.
 - [ ] `npm test` verde na VPS (`node --test`).
-- [ ] Log do Caddy sem token (B2): `docker compose logs caddy` não mostra `?token=`.
+- [ ] Log do Caddy sem token nem IP (B2): `docker compose logs caddy` / `access.log` não mostra
+      `X-*-Token`, `Authorization`, `Cookie`, `?token=` nem IP completo (só a rede /24).
 - [ ] Containers do Caddy só com `DOMINIO` (B3): `docker compose exec caddy env` não lista segredos.
 - [ ] Rotacionar a senha inicial da VPS e confirmar login por chave SSH.
 - [ ] Monitoramento/healthcheck externo apontando para `/api/config`.
 
 ## Segredos na borda (B2 e B3)
 
-- **B2 — log do Caddy sem token.** O `Caddyfile` usa `format filter` e apaga da URI registrada os
-  parâmetros `token`, `key`, `host_token`, `hostToken` e `master`. Sem isso, um acesso com
-  `?token=...` gravaria o segredo em texto puro no log de acesso.
+- **B2 — log do Caddy sem segredo e sem IP completo.** O `Caddyfile` usa `format filter` e:
+  - apaga da URI os parâmetros `token`, `key`, `host_token`, `hostToken` e `master`;
+  - **apaga os cabeçalhos de token** `X-Host-Token`, `X-Master-Token`, `X-Guest-Token`, além de
+    `Authorization` e `Cookie` (os tokens trafegam em cabeçalho, não só na query);
+  - **mascara o IP** com `ip_mask` (`ipv4 24` / `ipv6 48`) em `request>remote_ip` e
+    `request>client_ip` — guarda a rede, não o endereço do convidado.
+
+  Verificado com o `Caddyfile` real rodando: requisição com `X-Host-Token`, `X-Master-Token`,
+  `X-Guest-Token`, `Authorization`, `Cookie` e `?token=&key=` grava no log só `User-Agent`,
+  `Accept` e `?manter=ok`, com `remote_ip`/`client_ip` reduzidos a `192.168.65.0`.
 - **B3 — o Caddy só recebe `DOMINIO`.** Antes o serviço do Caddy usava `env_file: .env` e recebia
   *todas* as variáveis (incluindo `MASTER_TOKEN`, chaves de e-mail e de backup) num container
   exposto na 80/443. Agora o compose injeta apenas `DOMINIO: ${DOMINIO:?…}`. Só o serviço `lume`
@@ -257,6 +265,13 @@ $ DOMINIO=exemplo.test PUBLIC_URL=https://exemplo.test docker compose config   #
 $ docker run --rm -e DOMINIO=exemplo.test -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" \
     caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
   -> "Valid configuration"   (HTTPS automático + redireciona HTTP->HTTPS; log com filtro)
+
+$ # smoke do log com o Caddyfile REAL (DOMINIO apontando para um http local):
+$ curl -H 'X-Host-Token: …' -H 'X-Master-Token: …' -H 'X-Guest-Token: …' \
+       -H 'Authorization: …' -H 'Cookie: …' '…/api/config?token=…&key=…&manter=ok'
+$ cat /data/access.log
+  -> headers só User-Agent/Accept; uri "?manter=ok"; remote_ip/client_ip 192.168.65.0 (/24)
+     nenhum token/Authorization/Cookie no log                                  # B2 fechado
 $ npm test                     -> 65 testes, 0 falhas
 ```
 

@@ -106,11 +106,36 @@ test('Caddyfile usa HTTPS automático para o domínio vindo do ambiente', () => 
   assert.doesNotMatch(c, /https?:\/\//, 'não deve fixar URL/domínio literal');
 });
 
-test('log do Caddy não grava token em query string (B2)', () => {
+test('log do Caddy não grava token (header e query) nem IP completo (B2)', () => {
   const c = read('Caddyfile');
   assert.match(c, /format\s+filter/, 'deve usar format filter no log');
-  assert.match(c, /query\s*\{/, 'deve filtrar a query string');
+  // Query string: parâmetros de token apagados.
+  assert.match(c, /request>uri query\s*\{/, 'deve filtrar a query string');
   assert.match(c, /delete\s+token/, 'deve apagar o parâmetro token do log');
+  // Cabeçalhos: os tokens trafegam em X-*-Token (após #7/#9/#12/#13/#15).
+  for (const h of ['X-Host-Token', 'X-Master-Token', 'X-Guest-Token']) {
+    assert.match(c, new RegExp(`request>headers>${h}\\s+delete`, 'i'), `deve apagar o cabeçalho ${h} do log`);
+  }
+  for (const h of ['Authorization', 'Cookie']) {
+    assert.match(c, new RegExp(`request>headers>${h}\\s+delete`, 'i'), `deve apagar o cabeçalho ${h} do log`);
+  }
+  // IP: mascarado (ip_mask) ou apagado — nunca em claro (campo fica em request>).
+  assert.match(c, /request>remote_ip\s+(ip_mask|hash|delete)\b/, 'deve mascarar/apagar remote_ip');
+  assert.match(c, /request>client_ip\s+(ip_mask|hash|delete)\b/, 'deve mascarar/apagar client_ip');
+});
+
+test('scripts falham com mensagem (não silêncio) quando falta o valor de uma opção', () => {
+  const casos = [
+    ['scripts/restore.sh', '--backup'],
+    ['scripts/restore.sh', '--data-dir'],
+    ['scripts/deploy.sh', '--env-file'],
+    ['scripts/deploy.sh', '--state-dir'],
+  ];
+  for (const [f, opt] of casos) {
+    const r = comBash([f, opt], { env: { PATH: process.env.PATH, HOME: os.tmpdir() } });
+    assert.notEqual(r.status, 0, `${f} ${opt}: opção sem valor deve falhar (sem silêncio)`);
+    assert.ok((r.stderr + r.stdout).trim().length > 0, `${f} ${opt}: deve imprimir mensagem`);
+  }
 });
 
 // ─────────────────────────── systemd ───────────────────────────
