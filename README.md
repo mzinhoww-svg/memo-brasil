@@ -7,7 +7,7 @@ Lume: o álbum de casamento que se revela aos poucos, com as fotos de todos os c
     npm start        # http://localhost:3210 (o endereço da rede Wi-Fi aparece no terminal)
     npm test         # testes de API, isolamento, relógio, restart e moderação/LGPD
 
-Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push), `RETENCAO_DIAS_APOS_REVELACAO`, `RETENCAO_DIAS_SEM_REVELACAO`, `EXPORT_DIR` e `BACKUP_RETENTION_DIAS`. Veja `.env.example`. Só em teste (`NODE_ENV=test`): `TEST_NOW` fixa o "agora" do servidor (`src/clock.js`) para exercitar a revelação sem esperar; em produção é ignorado.
+Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push), `MAX_FOTOS_EVENTO` (teto de fotos por evento; padrão `3000`), `SENTRY_DSN` (opcional; sem ele, a observabilidade de erros é no-op), `RETENCAO_DIAS_APOS_REVELACAO`, `RETENCAO_DIAS_SEM_REVELACAO`, `EXPORT_DIR` e `BACKUP_RETENTION_DIAS`. Veja `.env.example`. Só em teste (`NODE_ENV=test`): `TEST_NOW` fixa o "agora" do servidor (`src/clock.js`) para exercitar a revelação sem esperar; em produção é ignorado.
 
 ## Moderação e privacidade (LGPD)
 - **Denúncia**: o convidado autenticado (id + token do convidado no header `x-guest-token`) denuncia em `POST /api/events/:id/fotos/:pid/denunciar`; a organização vê em `GET /api/events/:id/denuncias` e pode **ocultar** (`PATCH /api/events/:id/photos/:pid`) ou **apagar** (`DELETE`). A foto oculta some do álbum, do ZIP e das contagens, mas a organização continua vendo. Tudo fica em `data/audit.log`.
@@ -21,6 +21,13 @@ Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (dom
 - **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos.
 - **Organização** (claro, desktop): `/` cria evento → `/painel/:id` com Resumo, Convidados (RSVP, CSV), Detalhes e programação, Fotos e recados (moderação, ZIP), Avisos (push), Convite e QR, Configurações, Equipe.
 - **Admin master**: `/master` com Casamentos, Fotos por casamento, Plataforma (variáveis), Avisos globais, Auditoria, Políticas.
+
+## Observabilidade e limites
+- **`GET /healthz`** responde `status` (`ok` ou `degradado`), `versao`, `uptimeS` e `gravacao` (teste real de escrita em `DATA_DIR`). Vai a `503` quando o disco não aceita gravação. Não devolve token, nome, e-mail nem caminho de disco.
+- **Logs**: uma linha JSON por requisição (`src/obs/logger.js`) com método, rota (sem query string; tokens no caminho são redigidos), status, duração e o IP apenas como **hash curto**. Nunca registra corpo, cabeçalhos, e-mail, nome, token nem texto de recado. Corpo JSON malformado responde 400 sem ecoar nem logar o conteúdo.
+- **Retenção do hash de IP**: o IP nunca é guardado em claro; só o hash curto e não reversível, retido por `LOG_RETENCAO_DIAS` (padrão **30**) dias. Documentado em `/api/master/politicas`.
+- **Teto de fotos por evento**: `MAX_FOTOS_EVENTO` (padrão `3000`). O limite por evento/plataforma só aperta esse teto, nunca o ultrapassa. Upload acima do teto responde **413** em pt-BR. Estimativa de disco (pior caso): `MAX_FOTOS_EVENTO × tamanhoMaxFotoMB`; com os padrões, `3000 × 10 MB ≈ 30 GB` por evento.
+- **Erros (Sentry, opcional)**: com `SENTRY_DSN` definido, erros não tratados vão para o endpoint de envelope do Sentry via `fetch` (`src/obs/sentry.js`), sem dependência nova e **sem enviar o corpo da requisição**. Sem `SENTRY_DSN`, é no-op.
 
 ## Regras que importam
 - O álbum é individual por casamento. Nenhuma rota devolve dados de um tenant com o token de outro (coberto por teste).
