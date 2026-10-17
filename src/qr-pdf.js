@@ -35,6 +35,10 @@ const escapar = (s) => soWinAnsi(s).replace(/\\/g, '\\\\').replace(/\(/g, '\\(')
 const texto = (x, y, str, { tamanho = 11, negrito = false } = {}) =>
   `BT /${negrito ? 'F1' : 'F2'} ${tamanho} Tf 0 g 1 0 0 1 ${x} ${y} Tm (${escapar(str)}) Tj ET`;
 
+// Moldura de placa: traço externo mais grosso e um fio interno.
+const retangulo = (x, y, w, h, linha) => `${linha} w 0 G ${x} ${y} ${w} ${h} re S`;
+const fioHorizontal = (y) => `0.5 w 0 G ${MARGEM} ${y} m ${A5.largura - MARGEM} ${y} l S`;
+
 function streamQr(link, { x, y, tamanho }) {
   const qr = QRCode.create(link, { errorCorrectionLevel: 'M' });
   const n = qr.modules.size;
@@ -68,10 +72,14 @@ function montarPdf(corpos) {
 }
 
 function criarQrPdf({ titulo, link, instrucoes = [] }) {
-  const cmds = [];
+  const cmds = [
+    retangulo(16, 16, A5.largura - 32, A5.altura - 32, 1.2),
+    retangulo(23, 23, A5.largura - 46, A5.altura - 46, 0.5),
+  ];
   let y = A5.altura - 70;
   for (const l of quebrar(titulo, 19, true, LARGURA_TEXTO, 2)) { cmds.push(texto(MARGEM, y, l, { tamanho: 19, negrito: true })); y -= 24; }
   cmds.push(texto(MARGEM, y, 'Aponte a câmera do celular para o QR Code e entre no convite.', { tamanho: 11 }));
+  cmds.push(fioHorizontal(y - 12));
 
   const qrTamanho = 250;
   const qrY = 175;

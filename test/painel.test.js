@@ -5,9 +5,12 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const zlib = require('node:zlib');
+const QRCode = require('qrcode');
 
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-painel-test-'));
 process.env.MASTER_TOKEN = 'master-de-teste';
+process.env.PUBLIC_URL = 'https://convite.test';
 const app = require('../server.js');
 
 const JPG = Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
@@ -44,6 +47,21 @@ async function cerimonial(ev, nome = 'Carla') {
   const m = await (await post(`/api/events/${ev.id}/equipe`, { nome, papel: 'cerimonial' }, { 'x-host-token': ev.tk })).json();
   return m.link.split('#t=')[1];
 }
+// Lê o PNG em escala de cinza gerado pelo servidor (filtro 0) e dá acesso aos pixels.
+function lerPngCinza(buf) {
+  const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
+  assert.equal(buf[24], 8, 'PNG de 8 bits');
+  assert.equal(buf[25], 0, 'PNG em escala de cinza');
+  let off = 8; const partes = [];
+  while (off < buf.length) {
+    const len = buf.readUInt32BE(off);
+    const tipo = buf.toString('ascii', off + 4, off + 8);
+    if (tipo === 'IDAT') partes.push(buf.subarray(off + 8, off + 8 + len));
+    off += 12 + len;
+  }
+  const raw = zlib.inflateSync(Buffer.concat(partes));
+  return { w, h, px: (x, y) => raw[y * (w + 1) + 1 + x] };
+}
 
 // ───── QR Code
 test('QR PNG do convite só sai para a organização do próprio casamento', async () => {
@@ -55,6 +73,23 @@ test('QR PNG do convite só sai para a organização do próprio casamento', asy
   assert.match(ok.headers.get('content-type') || '', /image\/png/);
   const buf = Buffer.from(await ok.arrayBuffer());
   assert.equal(buf.slice(0, 4).toString('hex'), '89504e47');
+  const { w, h, px } = lerPngCinza(buf);
+  assert.equal(w, h, 'PNG quadrado');
+  assert.ok(w >= 400, `PNG grande o suficiente para imprimir (${w}px)`);
+  assert.equal(px(17, 17), 0, 'moldura de placa escura no canto');
+  const meio = Math.floor(w / 2);
+  let escuros = 0;
+  for (let y = meio - 60; y < meio + 60; y++) for (let x = meio - 60; x < meio + 60; x++) if (px(x, y) === 0) escuros++;
+  assert.ok(escuros > 200, 'QR presente no centro da placa');
+  // Os módulos desenhados têm de bater com o QR do link do convite.
+  const qr = QRCode.create(`https://convite.test/e/${a.id}`, { errorCorrectionLevel: 'M' });
+  const n = qr.modules.size, esc = 16, off = 5 * esc;
+  let iguais = 0;
+  for (let lin = 0; lin < n; lin++) for (let col = 0; col < n; col++) {
+    const escuro = px(off + col * esc + esc / 2, off + lin * esc + esc / 2) === 0;
+    if (escuro === !!qr.modules.data[lin * n + col]) iguais++;
+  }
+  assert.equal(iguais, n * n, 'os módulos do QR batem com o link do convite');
   assert.equal((await get(`/api/events/${a.id}/qr.png`, { 'x-host-token': 'master-de-teste' })).status, 200);
 });
 
@@ -69,6 +104,8 @@ test('QR PDF é A5 válido, com o título do evento e instruções em pt-BR', as
   assert.equal(txt.slice(0, 5), '%PDF-');
   assert.ok(txt.trimEnd().endsWith('%%EOF'), 'PDF deve terminar em %%EOF');
   assert.match(txt, /\/MediaBox \[0 0 420 595\]/); // A5 em pontos
+  assert.match(txt, /re S/, 'moldura de placa no PDF');
+  assert.ok(pdf.length > 4000, `PDF com conteúdo (${pdf.length} bytes)`);
   assert.ok(txt.includes('Casamento José e Ana'), 'título do evento no PDF');
   assert.ok(/c[aâ]mera/i.test(txt) && /revela/i.test(txt), 'instruções curtas em pt-BR');
   assert.ok(txt.includes(`/e/${a.id}`), 'o link do convite aparece no PDF');
@@ -121,12 +158,15 @@ test('estender a revelação é só do casal, exige data futura e fica auditado'
   assert.ok(await auditaram('revelacao.estendida'));
 });
 
-test('o PATCH geral não muda mais a revelação (só o endpoint do casal)', async () => {
+test('o PATCH geral só muda a revelação para o casal e fica auditado', async () => {
   const a = await criar('A');
+  const ct = await cerimonial(a);
   const antes = (await (await get(`/api/events/${a.id}/host`, { 'x-host-token': a.tk })).json()).revealAt;
-  assert.equal((await patch(`/api/events/${a.id}`, { revealAt: futuro(9999e3) }, { 'x-host-token': a.tk })).status, 400);
-  const depois = (await (await get(`/api/events/${a.id}/host`, { 'x-host-token': a.tk })).json()).revealAt;
-  assert.equal(depois, antes);
+  assert.equal((await patch(`/api/events/${a.id}`, { revealAt: futuro(9999e3) }, { 'x-host-token': ct })).status, 403);
+  assert.equal((await (await get(`/api/events/${a.id}/host`, { 'x-host-token': a.tk })).json()).revealAt, antes);
+  assert.equal((await patch(`/api/events/${a.id}`, { revealAt: 'nada' }, { 'x-host-token': a.tk })).status, 400);
+  assert.equal((await patch(`/api/events/${a.id}`, { revealAt: futuro(9999e3) }, { 'x-host-token': a.tk })).status, 200);
+  assert.ok(await auditaram('revelacao.alterada'));
 });
 
 test('encerrar a revelação revela agora, é só do casal, auditado e idempotente', async () => {

@@ -1,11 +1,11 @@
 'use strict';
-// Rotas novas do painel (item 6): QR do convite (PNG e cartaz A5 em PDF),
-// remoção de convidado e controle da revelação. Ficam isoladas aqui para o
-// server.js mudar o mínimo possível; as dependências vêm do próprio server.
+// Rotas novas do painel (item 6): QR do convite (PNG com moldura e cartaz A5 em
+// PDF), remoção de convidado e controle da revelação. Ficam isoladas aqui para
+// o server.js mudar o mínimo possível; as dependências vêm do próprio server.
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const QRCode = require('qrcode');
+const { criarQrPng } = require('./qr-placa');
 const { criarQrPdf } = require('./qr-pdf');
 
 const INSTRUCOES = [
@@ -15,16 +15,16 @@ const INSTRUCOES = [
 ];
 
 module.exports = function criarRotasPainel(deps) {
-  const { getEvent, adminOnly, donoOnly, save, audit, baseUrl, publicInfo, revealed, photoDir } = deps;
+  const { getEvent, adminOnly, donoOnly, save, audit, baseUrl, publicInfo, revealed, photoDir, clock } = deps;
   const r = express.Router();
 
-  // QR Code do link do convidado — só a organização (imprimir e baixar).
-  r.get('/:id/qr.png', getEvent, adminOnly, async (req, res) => {
-    const png = await QRCode.toBuffer(`${baseUrl(req)}/e/${req.ev.id}`, { width: 800, margin: 2 });
+  // QR Code do link do convidado, com moldura de placa — só a organização.
+  r.get('/:id/qr.png', getEvent, adminOnly, (req, res) => {
+    const png = criarQrPng(`${baseUrl(req)}/e/${req.ev.id}`);
     res.type('png').send(png);
   });
 
-  // Cartaz A5 pronto para imprimir: título, QR grande e instruções curtas.
+  // Cartaz A5 pronto para imprimir: moldura, título, QR grande e instruções.
   r.get('/:id/qr.pdf', getEvent, adminOnly, (req, res) => {
     const pdf = criarQrPdf({ titulo: req.ev.titulo, link: `${baseUrl(req)}/e/${req.ev.id}`, instrucoes: INSTRUCOES });
     audit(req, 'qr.impresso', { formato: 'pdf' });
@@ -57,7 +57,7 @@ module.exports = function criarRotasPainel(deps) {
     if (revealed(ev)) return res.status(409).json({ erro: 'O álbum já foi revelado. Não dá para voltar atrás.' });
     const d = new Date(req.body.revealAt);
     if (isNaN(d)) return res.status(400).json({ erro: 'Informe a nova data da revelação.' });
-    if (d.getTime() <= Date.now()) return res.status(400).json({ erro: 'A nova revelação precisa estar no futuro. Para revelar agora, use "Encerrar revelação".' });
+    if (d.getTime() <= clock.nowMs()) return res.status(400).json({ erro: 'A nova revelação precisa estar no futuro. Para revelar agora, use "Encerrar revelação".' });
     ev.revealAt = d.toISOString();
     ev.revealNotified = false;
     audit(req, 'revelacao.estendida', { revealAt: ev.revealAt });
@@ -65,11 +65,11 @@ module.exports = function criarRotasPainel(deps) {
     res.json(publicInfo(ev));
   });
 
-  // Encerrar = revelar agora. Só o casal; o aviso automático sai na próxima checagem.
+  // Encerrar = revelar agora. Só o casal; o aviso automático sai depois.
   r.post('/:id/revelacao/encerrar', getEvent, adminOnly, donoOnly, (req, res) => {
     const ev = req.ev;
     if (revealed(ev)) return res.status(409).json({ erro: 'O álbum já está revelado.' });
-    ev.revealAt = new Date().toISOString();
+    ev.revealAt = clock.iso();
     ev.revealNotified = false;
     audit(req, 'revelacao.encerrada');
     save();
