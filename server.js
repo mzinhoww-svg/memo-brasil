@@ -1,12 +1,12 @@
 const express = require('express');
 const multer = require('multer');
-const QRCode = require('qrcode');
 const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const criarRotasPainel = require('./src/painel');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -197,7 +197,7 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     linkConvite: `${base}/e/${ev.id}`,
     totalLista: ev.lista.length, rsvp, pushInscritos: ev.push.length,
     limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
-    fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
+    fotosPorPessoa: ev.guests.map((g) => ({ id: g.id, nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
     recados: ev.recados.length,
     equipe: req.admin.dono
       ? ev.equipe.map((m) => ({ id: m.id, nome: m.nome, papel: m.papel, link: `${base}/painel/${ev.id}#t=${m.token}` }))
@@ -207,11 +207,7 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
 
 app.patch('/api/events/:id', getEvent, adminOnly, (req, res) => {
   const ev = req.ev, b = req.body;
-  if (b.revealAt !== undefined) {
-    const d = new Date(b.revealAt);
-    if (isNaN(d)) return res.status(400).json({ erro: 'Data de revelação inválida.' });
-    ev.revealAt = d.toISOString();
-  }
+  if (b.revealAt !== undefined) return res.status(400).json({ erro: 'A revelação muda na aba "Hora da revelação", e só o casal pode.' });
   if (b.titulo !== undefined) ev.titulo = clean(b.titulo, 80) || ev.titulo;
   if (b.dataEvento !== undefined) {
     const d = b.dataEvento ? new Date(b.dataEvento) : null;
@@ -235,10 +231,8 @@ app.patch('/api/events/:id', getEvent, adminOnly, (req, res) => {
   res.json(publicInfo(ev));
 });
 
-app.get('/api/events/:id/qr.png', getEvent, async (req, res) => {
-  const png = await QRCode.toBuffer(`${baseUrl(req)}/e/${req.ev.id}`, { width: 800, margin: 2 });
-  res.type('png').send(png);
-});
+// ───── Painel: QR do convite, remoção de convidado e controle da revelação (src/painel.js)
+app.use('/api/events', criarRotasPainel({ getEvent, adminOnly, donoOnly, save, audit, baseUrl, publicInfo, revealed, photoDir: PHOTO_DIR }));
 
 // Lista de convidados do casamento (RSVP) — separada de quem usa a câmera.
 app.get('/api/events/:id/lista', getEvent, adminOnly, (req, res) => {
