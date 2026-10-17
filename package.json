@@ -7,7 +7,9 @@
     "start": "node server.js",
     "test": "NODE_ENV=test node --test test/*.test.js",
     "migrate": "node scripts/migrate-json.js",
-    "backup": "bash scripts/backup.sh"
+    "backup": "bash scripts/backup.sh",
+    "deploy": "bash scripts/deploy.sh",
+    "restore": "bash scripts/restore.sh"
   },
   "engines": {
     "node": ">=22.5.0"

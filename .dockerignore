@@ -1,0 +1,19 @@
+# O que NÃO entra na imagem de produção.
+.git
+.gitignore
+.maestri
+node_modules
+data
+backups
+.deploy
+test
+docs
+deploy
+*.log
+.env
+.env.*
+!.env.example
+Dockerfile
+docker-compose.yml
+Caddyfile
+README.md

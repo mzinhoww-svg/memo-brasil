@@ -308,11 +308,13 @@ async function criarEvento(titulo, revealAt, contato) {
 }
 async function entrar(id, nome) {
   const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
-  return (await (await json(`/api/events/${id}/guests`, { nome, consentimento: CONSENT })).json());
+  const g = await (await json(`/api/events/${id}/guests`, { nome, consentimento: CONSENT })).json();
+  return { id: g.guestId, token: g.guestToken };
 }
+// O upload exige o token do convidado no cabeçalho (item 7): o id sozinho não basta.
 async function subirFoto(id, guest) {
-  const fd = new FormData(); fd.append('guestId', guest.guestId); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  return fetch(`${B}/api/events/${id}/photos`, { method: 'POST', headers: { 'x-guest-token': guest.guestToken }, body: fd });
+  const fd = new FormData(); fd.append('guestId', guest.id); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  return fetch(`${B}/api/events/${id}/photos`, { method: 'POST', headers: { 'x-guest-token': guest.token }, body: fd });
 }
 // A organização adianta a revelação: é assim que o relógio do servidor passa a hora marcada.
 async function revelarAgora(ev) {
@@ -353,8 +355,8 @@ test('retrospectiva só abre depois da revelação e não vaza outro casamento',
 
 test('Atlas ponta a ponta: revelação só manda e-mail para contato verificado, e o estado fica no banco', async () => {
   const ev = await criarEvento('Casamento Verificado', new Date(Date.now() + 3600e3).toISOString(), 'noivos@exemplo.com');
-  const gid = await entrar(ev.id, 'Rafa');
-  assert.equal((await subirFoto(ev.id, gid)).status, 201);
+  const g = await entrar(ev.id, 'Rafa');
+  assert.equal((await subirFoto(ev.id, g)).status, 201);
   assert.equal((await revelarAgora(ev)).status, 200);
 
   await app.processarRevelacoes();
@@ -383,8 +385,8 @@ test('Atlas ponta a ponta: revelação só manda e-mail para contato verificado,
 
 test('reenvio manual do operador libera um novo aviso e o painel mostra o estado', async () => {
   const ev = await criarEvento('Casamento Reenvio', new Date(Date.now() + 3600e3).toISOString(), 'noivos@exemplo.com');
-  const gid = await entrar(ev.id, 'Rafa');
-  assert.equal((await subirFoto(ev.id, gid)).status, 201);
+  const g = await entrar(ev.id, 'Rafa');
+  assert.equal((await subirFoto(ev.id, g)).status, 201);
   assert.equal((await verificarContato(ev.id, true)).status, 200);
   assert.equal((await revelarAgora(ev)).status, 200);
 

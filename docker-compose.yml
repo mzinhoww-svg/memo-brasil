@@ -1,0 +1,96 @@
+# Lume (Memo Brasil) em produção: app Node atrás do Caddy (HTTPS automático).
+# Uso: ver docs/deploy.md. Prefira sempre scripts/deploy.sh (dry-run por padrão).
+# Variáveis vêm de .env (veja .env.example) — nenhum segredo mora neste arquivo.
+services:
+  lume:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: memo-brasil:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3210"
+      DATA_DIR: /data
+      # #9: atrás do Caddy (um proxy), req.ip precisa ser o do cliente. Sem isto o
+      # rate limit do login e o hash de IP do log (#12) enxergam o IP do proxy.
+      TRUST_PROXY: "1"
+    volumes:
+      # Dados que precisam sobreviver a deploys: memo.db (SQLite), fotos, tokens,
+      # chaves VAPID, tombstones (excluidos.log) e a pasta backups/.
+      - lume-data:/data
+    expose:
+      - "3210"
+    # Sem portas publicadas no host: só o Caddy fala com o app, pela rede interna.
+    networks:
+      - lume
+    # Hardening: o código fica somente-leitura; só o volume /data é gravável.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3210/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      lume:
+        condition: service_healthy
+    # B3: o Caddy só recebe o domínio; jamais o .env inteiro (nada de MASTER_TOKEN,
+    # chaves de e-mail, backup etc. chegando ao container que fica exposto na 80/443).
+    environment:
+      DOMINIO: ${DOMINIO:?defina DOMINIO no .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    # Hardening: sistema de arquivos somente-leitura; escrita só nos volumes e /tmp.
+    # NET_BIND_SERVICE é o mínimo para abrir 80/443 depois do cap_drop ALL.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 256m
+    networks:
+      - lume
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  lume-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  lume:

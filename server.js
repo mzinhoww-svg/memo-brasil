@@ -40,7 +40,6 @@ const PHOTO_DIR = path.join(DATA_DIR, 'photos');
 const MAX_HARD_PHOTO_BYTES = 25 * 1024 * 1024; // teto técnico; o limite configurável fica em settings
 // Retenção do hash de IP nos logs (política de privacidade).
 const LOG_RETENCAO_DIAS = Math.max(1, parseInt(process.env.LOG_RETENCAO_DIAS, 10) || 30);
-const RSVP = ['pendente', 'confirmado', 'recusado'];
 
 fs.mkdirSync(PHOTO_DIR, { recursive: true });
 const store = require(path.join(__dirname, 'src', 'store'))(DATA_DIR);
@@ -523,70 +522,48 @@ function getEvent(req, res, next) {
   req.ev = ev;
   next();
 }
-// Organização do casamento: casal (dono) ou cerimonial (equipe). O convidado nunca passa por aqui.
-function adminOnly(req, res, next) {
-  // Credencial só por cabeçalho (nunca na URL: log, histórico e Referer).
-  const token = req.get('x-host-token');
-  const ev = req.ev;
-  // Sessão master (masterDaSessao devolve a própria conta ativa; não há segunda consulta).
-  const ms = masterDaSessao(req);
-  if (ms) { req.admin = { papel: 'master', nome: ms.nome, dono: true, master: true, id: ms.id }; return next(); }
-  // Sessão do organizador com vínculo ao evento.
-  const org = organizadorDaSessao(req);
-  if (org) {
-    const membro = store.get(`SELECT * FROM organizador_membros WHERE organizador_id = ? AND evento_id = ?`, org.id, ev.id);
-    if (membro) {
-      req.admin = { papel: membro.papel, nome: org.email, dono: membro.papel === 'casal', id: org.id, organizadorId: org.id, master: false };
-      return next();
-    }
-  }
-  // Tokens legados do evento (hostToken / equipe) só valem por hash — nunca em texto puro.
-  if (token && verifyToken(token, ev.hostTokenHash)) {
-    req.admin = { papel: 'casal', nome: 'Casal', dono: true };
-  } else if (token) {
-    const m = ev.equipe.find((e) => verifyToken(token, e.tokenHash));
-    if (m) req.admin = { papel: m.papel, nome: m.nome, id: m.id };
-  }
-  // Transição: token master estático só vale sem conta master ou com a válvula de emergência.
-  const modoEstatico = aceitaTokenEstatico(req.get('x-master-token') || req.get('x-host-token'));
-  if (!req.admin && modoEstatico) {
-    if (modoEstatico === 'emergencia') auditDb(req, 'master', null, ev.id, 'master.token_emergencia', 'adminOnly', {}, 'ok');
-    req.admin = { papel: 'master', nome: 'Admin master (legado)', dono: true, master: true };
-  }
-  if (!req.admin) return res.status(403).json({ erro: 'Acesso restrito à organização do casamento.' });
-  next();
-}
-const donoOnly = (req, res, next) =>
-  req.admin.dono ? next() : res.status(403).json({ erro: 'Só o casal pode fazer isso.' });
-
-// Organização/master da requisição, sem responder 403 (mesma regra do adminOnly do #9:
-// sessão de organizador/master, token estático e tokens legados só por hash).
-// Usado nas leituras que precisam saber se quem pede é a organização (fotos e recados).
+// Identifica a organização do evento: sessão master/organizador ou tokens legados
+// (host/equipe) por hash. Credencial só por cabeçalho, nunca na URL. Devolve o
+// admin ou null. É a única porta de entrada da organização — adminOnly e a
+// leitura de recados usam a mesma regra.
 function adminDaRequisicao(req) {
   const ev = req.ev;
+  const token = req.get('x-host-token');
+  // Sessão master (masterDaSessao devolve a própria conta ativa; não há segunda consulta).
   const ms = masterDaSessao(req);
   if (ms) return { papel: 'master', nome: ms.nome, dono: true, master: true, id: ms.id };
+  // Sessão do organizador com vínculo ao evento.
   const org = organizadorDaSessao(req);
   if (org) {
     const membro = store.get(`SELECT * FROM organizador_membros WHERE organizador_id = ? AND evento_id = ?`, org.id, ev.id);
     if (membro) return { papel: membro.papel, nome: org.email, dono: membro.papel === 'casal', id: org.id, organizadorId: org.id, master: false };
   }
-  const token = req.get('x-host-token');
+  // Tokens legados do evento (hostToken / equipe) só valem por hash — nunca em texto puro.
   if (token && verifyToken(token, ev.hostTokenHash)) return { papel: 'casal', nome: 'Casal', dono: true };
   if (token) {
     const m = ev.equipe.find((e) => verifyToken(token, e.tokenHash));
     if (m) return { papel: m.papel, nome: m.nome, id: m.id };
   }
-  if (aceitaTokenEstatico(req.get('x-master-token') || req.get('x-host-token')))
-    return { papel: 'master', nome: 'Admin master (legado)', dono: true, master: true };
+  // Transição: token master estático só vale sem conta master ou com a válvula de emergência.
+  const modoEstatico = aceitaTokenEstatico(req.get('x-master-token') || req.get('x-host-token'));
+  if (modoEstatico) return { papel: 'master', nome: 'Admin master (legado)', dono: true, master: true, modoEstatico };
   return null;
 }
 
-// A organização (casal, cerimonial ou master) pode ver as fotos antes da revelação e as ocultas.
-function ehOrg(req) { return !!adminDaRequisicao(req); }
+// Organização do casamento: casal (dono) ou cerimonial (equipe). O convidado nunca passa por aqui.
+function adminOnly(req, res, next) {
+  const admin = adminDaRequisicao(req);
+  if (!admin) return res.status(403).json({ erro: 'Acesso restrito à organização do casamento.' });
+  req.admin = admin;
+  if (admin.modoEstatico === 'emergencia') auditDb(req, 'master', null, req.ev.id, 'master.token_emergencia', 'adminOnly', {}, 'ok');
+  next();
+}
+const donoOnly = (req, res, next) =>
+  req.admin.dono ? next() : res.status(403).json({ erro: 'Só o casal pode fazer isso.' });
 
-// Organização pelo token/sessão, sem exigir acesso (usado na leitura dos recados).
-function ehOrganizacao(req) { return adminDaRequisicao(req); }
+// Organização/master da requisição, sem responder 403 (mesma regra do adminOnly):
+// usada nas leituras que precisam saber se quem pede é a organização (fotos e recados).
+function ehOrg(req) { return !!adminDaRequisicao(req); }
 
 // Decisão 004: recado privado ao casal por padrão; mural só quando ligado e marcado.
 function recadosVisiveis(ev, opts) {
@@ -795,11 +772,6 @@ app.post('/api/auth/entrar', (req, res) => handleEntrarConsumo(req, res));
 // ───── Organização
 app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
-  const rsvp = { confirmado: 0, recusado: 0, pendente: 0, pessoasConfirmadas: 0 };
-  for (const l of ev.lista) {
-    rsvp[l.rsvp]++;
-    if (l.rsvp === 'confirmado') rsvp.pessoasConfirmadas += 1 + (l.acompanhantes || 0);
-  }
   const base = baseUrl(req);
   const visiveis = ev.photos.filter((p) => !p.oculta);
   const expira = expiraEmMs(ev, configRetencao({ settings }));
@@ -809,7 +781,7 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     contato: req.admin.master ? req.ev.contato : undefined,
     contatoVerificado: !!req.ev.contatoVerificado,
     linkConvite: `${base}/e/${ev.id}`,
-    totalLista: ev.lista.length, rsvp, pushInscritos: ev.push.length,
+    totalLista: ev.lista.length, pushInscritos: ev.push.length,
     limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
     fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: visiveis.filter((p) => p.guestId === g.id).length })),
     retencao: expira ? { apagaEm: new Date(expira).toISOString(), diasRestantes: Math.ceil((expira - clock.nowMs()) / 86400000), avisoEm: ev.retencaoAvisoEm || null } : null,
@@ -870,7 +842,7 @@ app.get('/api/events/:id/qr.png', getEvent, async (req, res) => {
   res.type('png').send(png);
 });
 
-// Lista de convidados do casamento (RSVP) — separada de quem usa a câmera.
+// Lista de convidados do casamento — separada de quem usa a câmera.
 app.get('/api/events/:id/lista', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
   const naCamera = new Set(ev.guests.map((g) => g.listaId).filter(Boolean));
@@ -878,12 +850,12 @@ app.get('/api/events/:id/lista', getEvent, adminOnly, (req, res) => {
 });
 app.post('/api/events/:id/lista', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
-  // Aceita lista colada (uma pessoa por linha: "Nome; grupo; acompanhantes") ou itens em JSON.
+  // Aceita lista colada (uma pessoa por linha: "Nome; grupo") ou itens em JSON.
   let itens = req.body.itens;
   if (!itens && typeof req.body.texto === 'string') {
     itens = req.body.texto.split(/\r?\n/).map((linha) => {
-      const [nome, grupo, ac] = linha.split(/[;\t]/).map((s) => s.trim());
-      return { nome, grupo, acompanhantes: ac };
+      const [nome, grupo] = linha.split(/[;\t]/).map((s) => s.trim());
+      return { nome, grupo };
     });
   }
   if (!Array.isArray(itens)) return res.status(400).json({ erro: 'Envie a lista de convidados.' });
@@ -894,11 +866,7 @@ app.post('/api/events/:id/lista', getEvent, adminOnly, (req, res) => {
     if (!nome) continue;
     if (existentes.has(norm(nome))) { repetidos++; continue; }
     if (ev.lista.length >= limLista(ev)) return res.status(409).json({ erro: `Limite de ${limLista(ev)} convidados na lista.` });
-    ev.lista.push({
-      id: newId(6), nome, grupo: clean(it.grupo, 40),
-      acompanhantes: Math.min(Math.max(parseInt(it.acompanhantes, 10) || 0, 0), 10),
-      rsvp: 'pendente', origem: 'organizacao',
-    });
+    ev.lista.push({ id: newId(6), nome, grupo: clean(it.grupo, 40), origem: 'organizacao' });
     existentes.add(norm(nome));
     adicionados++;
   }
@@ -909,10 +877,8 @@ app.patch('/api/events/:id/lista/:lid', getEvent, adminOnly, (req, res) => {
   const l = req.ev.lista.find((x) => x.id === req.params.lid);
   if (!l) return res.status(404).json({ erro: 'Convidado não encontrado.' });
   const b = req.body;
-  if (b.rsvp !== undefined) { if (!RSVP.includes(b.rsvp)) return res.status(400).json({ erro: 'Status inválido.' }); l.rsvp = b.rsvp; }
   if (b.nome !== undefined) l.nome = clean(b.nome, 60) || l.nome;
   if (b.grupo !== undefined) l.grupo = clean(b.grupo, 40);
-  if (b.acompanhantes !== undefined) l.acompanhantes = Math.min(Math.max(parseInt(b.acompanhantes, 10) || 0, 0), 10);
   save();
   res.json(l);
 });
@@ -1039,7 +1005,7 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
     save();
     const li = orfao.listaId && ev.lista.find((l) => l.id === orfao.listaId);
     return res.status(201).json({
-      guestId: orfao.id, guestToken: token, nome: orfao.nome, naLista: !!li, rsvp: li?.rsvp || null, reivindicado: true,
+      guestId: orfao.id, guestToken: token, nome: orfao.nome, naLista: !!li, reivindicado: true,
       consentimento: { versao: c.versao, em: c.em },
     });
   }
@@ -1049,7 +1015,7 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   const consentimento = registrarConsentimento(ev, g, consent.valor);
   save();
   res.status(201).json({
-    guestId: g.id, guestToken: token, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null,
+    guestId: g.id, guestToken: token, nome: g.nome, naLista: !!item,
     consentimento: { versao: consentimento.versao, em: consentimento.em },
   });
 });
@@ -1068,28 +1034,12 @@ app.post('/api/events/:id/sessao', getEvent, (req, res) => {
   res.json(sessaoDe(req.ev, g));
 });
 
-app.post('/api/events/:id/rsvp', getEvent, (req, res) => {
-  const ev = req.ev;
-  const g = autentica(ev, req.body.guestId, req.get('x-guest-token'));
-  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
-  if (!['confirmado', 'recusado'].includes(req.body.status)) return res.status(400).json({ erro: 'Resposta inválida.' });
-  let item = g.listaId && ev.lista.find((l) => l.id === g.listaId);
-  if (!item) {
-    if (ev.lista.length >= limLista(ev)) return res.status(409).json({ erro: 'Lista cheia.' });
-    item = { id: newId(6), nome: g.nome, grupo: '', acompanhantes: 0, rsvp: 'pendente', origem: 'convidado' };
-    ev.lista.push(item);
-    g.listaId = item.id;
-  }
-  item.rsvp = req.body.status;
-  item.acompanhantes = Math.min(Math.max(parseInt(req.body.acompanhantes, 10) || 0, 0), 10);
-  save();
-  res.json({ rsvp: item.rsvp, acompanhantes: item.acompanhantes });
-});
-
 app.get('/api/events/:id/recados', getEvent, (req, res) => {
   const ev = req.ev;
-  // C4: sem credencial não lê. Organização vê todos; convidado vê os seus + o mural.
-  if (ehOrganizacao(req)) return res.json({ recados: recadosVisiveis(ev, { organizacao: true }), organizacao: true });
+  // C4: sem credencial não lê. A organização (mesma identificação do adminOnly,
+  // sessão + hash) vê todos; o convidado vê os seus + o mural.
+  const admin = adminDaRequisicao(req);
+  if (admin) { req.admin = admin; return res.json({ recados: recadosVisiveis(ev, { organizacao: true }), organizacao: true }); }
   const g = autentica(ev, req.query.guestId, req.get('x-guest-token'));
   if (!g) return res.status(403).json({ erro: MENSAGENS.recadoSemCredencial });
   res.json({ recados: recadosVisiveis(ev, { guestId: g.id }) });
@@ -1235,7 +1185,7 @@ const resumoEvento = (ev) => ({
   id: ev.id, titulo: ev.titulo, contato: ev.contato || '', criadoEm: ev.createdAt,
   dataEvento: ev.dataEvento, revealAt: ev.revealAt, revelado: revealed(ev), suspenso: !!ev.suspenso,
   fotos: ev.photos.filter((p) => !p.oculta).length, camera: ev.guests.length, lista: ev.lista.length, recados: ev.recados.length,
-  confirmados: ev.lista.filter((l) => l.rsvp === 'confirmado').length, equipe: ev.equipe.length,
+  equipe: ev.equipe.length,
   push: ev.push.length, avisos: ev.avisos.length, limites: ev.limites, config: ev.config,
   // Estado do aviso de revelação: o operador usa isso para liberar um reenvio manual.
   email: {
@@ -1397,8 +1347,8 @@ app.get('/e/:id/manifest.webmanifest', getEvent, (req, res) => {
 // ───── Exportações da organização
 app.get('/api/events/:id/lista.csv', getEvent, adminOnly, (req, res) => {
   const cel = (v) => `"${String(v ?? '').replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"`;
-  const linhas = [['Nome', 'Grupo', 'Acompanhantes', 'Resposta'].map(cel).join(',')];
-  req.ev.lista.forEach((l) => linhas.push([l.nome, l.grupo, l.acompanhantes, l.rsvp].map(cel).join(',')));
+  const linhas = [['Nome', 'Grupo'].map(cel).join(',')];
+  req.ev.lista.forEach((l) => linhas.push([l.nome, l.grupo].map(cel).join(',')));
   audit(req, 'lista.exportada', { total: req.ev.lista.length });
   res.type('text/csv; charset=utf-8').set('Content-Disposition', 'attachment; filename="convidados.csv"').send('﻿' + linhas.join('\r\n'));
 });
@@ -1587,7 +1537,6 @@ app.get('/e/:id/camera', page('camera.html'));
 app.get('/e/:id/album', page('album.html'));
 app.get('/e/:id/programacao', page('programacao.html'));
 app.get('/e/:id/recados', page('recados.html'));
-app.get('/e/:id/presenca', page('presenca.html'));
 app.get('/painel/:id', page('painel.html'));
 app.get('/master', page('master.html'));
 app.get('/sw.js', (req, res) => res.set('Service-Worker-Allowed', '/').type('application/javascript').sendFile(path.join(__dirname, 'public', 'sw.js')));

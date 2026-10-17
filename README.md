@@ -18,8 +18,8 @@ Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (dom
 - Os comandos operam no SQLite (`memo.db`) via `Store` e **recusam rodar com o servidor ativo** (lock em `DATA_DIR/server.lock`). Procedimentos, prazos e restauração em `docs/lgpd.md`.
 
 ## Jornadas
-- **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos. Depois da revelação, o álbum abre com autor em cada foto e a retrospectiva do dia.
-- **Organização** (claro, desktop): `/` cria evento → `/painel/:id` com Resumo, Convidados (RSVP, CSV), Detalhes e programação, Fotos e recados (moderação, ZIP), Avisos (push), Convite e QR, Configurações, Equipe.
+- **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, recados. Pode instalar o app (PWA) e ativar avisos. Depois da revelação, o álbum abre com autor em cada foto e a retrospectiva do dia.
+- **Organização** (claro, desktop): `/` cria evento → `/painel/:id` com Resumo, Convidados (CSV), Detalhes e programação, Fotos e recados (moderação, ZIP), Avisos (push), Convite e QR, Configurações, Equipe.
 - **Admin master**: `/master` com Casamentos, Fotos por casamento, Plataforma (variáveis), Avisos globais, Auditoria, Políticas. Entra por **sessão** (e-mail + senha + código do app autenticador), com cookie `httpOnly`; o token estático é só legado de desenvolvimento. Primeira conta: `node scripts/master-criar.js <email> <nome>` com a senha em `MASTER_SENHA` ou no prompt (nunca por argumento).
 
 ## Observabilidade e limites
@@ -44,6 +44,7 @@ Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (dom
 - Excluir um evento remove o banco e as fotos do host, mas **não** apaga backups já gerados. Eles deixam de existir apenas quando expiram pela retenção (ou por remoção manual). Ou seja, o apagamento de dados pessoais alcança backups já feitos em até `BACKUP_RETENTION_DIAS` dias.
 
 ## Limitações conhecidas
+- Sem confirmação de presença (RSVP): fora do escopo do produto (decisão `docs/decisions/005-rsvp-fora-do-escopo.md`). A lista de convidados serve para identificar quem fotografa e escreve recados.
 - Câmera ao vivo e push exigem HTTPS (ou localhost). iOS só recebe push com o app instalado na Tela de Início (16.4+).
 - Push implementado e validado só até a inscrição; a entrega real a aparelhos não foi testada.
 - Sem login real (acesso por token), e-mail por SMTP (Brevo) ou console no dev (sem fila; até 5 tentativas por revelação; só para endereço verificado), armazenamento em SQLite + arquivos, retenção por comando (`scripts/retencao.js`; agendamento do job fica para a infra), sem RLS de banco (isolamento por middleware).

@@ -94,8 +94,6 @@ async function rResumo(v) {
   v.append(el('h1', {}, info.titulo), el('p', { class: 'sub' }, [dataBr(info.dataEvento), info.local].filter(Boolean).join(' · ') || 'Complete os detalhes do casamento na aba "Detalhes e programação".'));
   v.append(el('div', { class: 'cards' },
     stat(info.totalLista, 'Convidados na lista'),
-    stat(info.rsvp.pessoasConfirmadas, 'Pessoas confirmadas'),
-    stat(info.rsvp.pendente, 'Sem resposta'),
     stat(info.pessoas, 'Entraram na câmera'),
     stat(info.momentos, 'Fotos enviadas'),
     stat(info.pushInscritos ?? 0, 'Com avisos ativos'),
@@ -117,9 +115,9 @@ async function rResumo(v) {
 
 // ── Convidados (lista do casamento)
 async function rConvidados(v) {
-  v.append(el('h1', {}, 'Convidados'), el('p', { class: 'sub' }, 'A lista do casamento: quem foi convidado e quem confirmou. Aceita milhares de nomes.'));
+  v.append(el('h1', {}, 'Convidados'), el('p', { class: 'sub' }, 'A lista do casamento: quem foi convidado. Aceita milhares de nomes.'));
   const add = el('div', { class: 'panel' }, el('h2', {}, 'Adicionar convidados'));
-  const ta = el('textarea', { placeholder: 'Um por linha. Opcional: Nome; Grupo; Acompanhantes\nMaria Silva; Família da noiva; 1\nJoão Souza; Amigos do noivo' });
+  const ta = el('textarea', { placeholder: 'Um por linha. Opcional: Nome; Grupo\nMaria Silva; Família da noiva\nJoão Souza; Amigos do noivo' });
   const out = el('p', { class: 'msg' });
   add.append(ta, el('div', { class: 'row', style: 'margin-top:10px' },
     el('button', { class: 'btn primary', onclick: async () => {
@@ -130,34 +128,28 @@ async function rConvidados(v) {
   v.append(el('div', { class: 'row', style: 'margin-bottom:14px' }, el('button', { class: 'btn', onclick: () => baixar('/lista.csv', 'convidados.csv') }, 'Exportar lista (CSV)')));
   const painel = el('div', { class: 'panel' });
   v.append(painel);
-  let filtro = 'todos', busca = '', itens = [];
+  let busca = '', itens = [];
   async function desenha() {
     itens = (await call('/lista')).itens;
     render();
   }
   function render() {
     painel.textContent = '';
-    const cont = { todos: itens.length, pendente: 0, confirmado: 0, recusado: 0 };
-    itens.forEach((i) => cont[i.rsvp]++);
-    painel.append(el('div', { class: 'filters' },
-      ['todos', 'confirmado', 'pendente', 'recusado'].map((f) => el('button', { class: 'chip' + (filtro === f ? ' on' : ''), onclick: () => { filtro = f; render(); } }, `${{ todos: 'Todos', confirmado: 'Confirmados', pendente: 'Sem resposta', recusado: 'Recusaram' }[f]} (${cont[f]})`))));
     const b = el('input', { placeholder: 'Buscar por nome ou grupo', value: busca });
     b.oninput = () => { busca = b.value; renderLinhas(); };
     painel.append(b);
-    const tb = el('tbody'); painel.append(el('div', { style: 'overflow-x:auto;margin-top:10px' }, el('table', {}, el('thead', {}, el('tr', {}, ['Nome', 'Grupo', '+', 'Resposta', 'Câmera', ''].map((t) => el('th', {}, t)))), tb)));
+    const tb = el('tbody'); painel.append(el('div', { style: 'overflow-x:auto;margin-top:10px' }, el('table', {}, el('thead', {}, el('tr', {}, ['Nome', 'Grupo', 'Câmera', ''].map((t) => el('th', {}, t)))), tb)));
     function renderLinhas() {
       tb.textContent = '';
       const q = busca.toLowerCase();
-      const vis = itens.filter((i) => (filtro === 'todos' || i.rsvp === filtro) && (!q || (i.nome + ' ' + i.grupo).toLowerCase().includes(q)));
+      const vis = itens.filter((i) => !q || (i.nome + ' ' + (i.grupo || '')).toLowerCase().includes(q));
       vis.slice(0, 300).forEach((i) => {
-        const sel = el('select', { onchange: async () => { await call(`/lista/${i.id}`, { method: 'PATCH', body: JSON.stringify({ rsvp: sel.value }) }); i.rsvp = sel.value; render(); } },
-          ['pendente', 'confirmado', 'recusado'].map((o) => el('option', { value: o, ...(o === i.rsvp ? { selected: '' } : {}) }, { pendente: 'Sem resposta', confirmado: 'Confirmado', recusado: 'Recusou' }[o])));
-        tb.append(el('tr', {}, el('td', {}, i.nome), el('td', {}, i.grupo || '—'), el('td', {}, String(i.acompanhantes || 0)), el('td', {}, sel),
+        tb.append(el('tr', {}, el('td', {}, i.nome), el('td', {}, i.grupo || '—'),
           el('td', {}, i.naCamera ? 'Sim' : '—'),
           el('td', {}, el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover ${i.nome} da lista?`)) { await call(`/lista/${i.id}`, { method: 'DELETE' }); desenha(); } } }, 'Remover'))));
       });
-      if (!vis.length) tb.append(el('tr', {}, el('td', { colspan: '6' }, 'Nenhum convidado aqui ainda.')));
-      if (vis.length > 300) tb.append(el('tr', {}, el('td', { colspan: '6' }, `Mostrando 300 de ${vis.length}. Use a busca para filtrar.`)));
+      if (!vis.length) tb.append(el('tr', {}, el('td', { colspan: '4' }, 'Nenhum convidado aqui ainda.')));
+      if (vis.length > 300) tb.append(el('tr', {}, el('td', { colspan: '4' }, `Mostrando 300 de ${vis.length}. Use a busca para filtrar.`)));
     }
     renderLinhas();
   }

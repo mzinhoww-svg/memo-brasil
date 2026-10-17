@@ -2,7 +2,7 @@
 
 Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial). Nunca colar segredos aqui; registrar só o nome da variável. Atualizado em 2026-10-17.
 
-> Nota: este arquivo vive em `docs/status`; esta cópia foi trazida para o PR #9 apenas para registrar as variáveis novas (proxy e válvulas do master). Ao mergear, manter a versão de `docs/status` e somar estas linhas.
+> Nota: este arquivo vive em `docs/status`. Esta cópia foi trazida para os PRs #9 (proxy e válvulas do master) e de publicação (item 4, ações humanas do deploy). Ao mergear, manter a versão de `docs/status` e somar estas linhas e a seção **Publicação (item 4)**.
 
 ## Decisões
 | # | Ação | Por quê | Bloqueia |
@@ -27,6 +27,27 @@ Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial).
 ## Infraestrutura
 - VPS `reinerscloud`: 1 vCPU, 2 GB, 50 GB, SAO2, IP existente, **compartilhada com outro serviço**. Senha inicial devolvida pela API do provedor: nunca imprimir nem commitar; trocar por chave SSH.
 - Confirmar que o teto de fotos por evento cabe nos 50 GB (limite atual 20.000 fotos × 10 MB).
+
+## Publicação (item 4) — só uma pessoa faz
+
+Preparação de deploy pronta (`Dockerfile`, `docker-compose.yml`, `Caddyfile`, `deploy/systemd/lume.service`, `scripts/deploy.sh`, `scripts/restore.sh`, `docs/deploy.md`). **Nada foi publicado**; o primeiro deploy em produção depende dos itens abaixo.
+
+| # | Ação (humana) | Como / onde | Bloqueia |
+|---|---|---|---|
+| P1 | Escolher o **domínio** definitivo e criar o registro DNS **A** (e AAAA, se houver) apontando para o IP da VPS | Painel do provedor de DNS / Registro.br | HTTPS, QR Code, `PUBLIC_URL` |
+| P2 | **Liberar as portas 80 e 443** no firewall do provedor (nuvem) além do firewall da VPS | Painel do provedor LetsCloud (não é por SSH) | Let's Encrypt (HTTPS) |
+| P3 | Gerar **par de chaves SSH**, instalar a pública na VPS e confirmar login sem senha; **rotacionar a senha inicial** | `ssh-keygen` local + painel da VPS | Acesso seguro, deploy |
+| P4 | Criar **conta de e-mail transacional** (Brevo via SMTP) e verificar o domínio (SPF/DKIM/DMARC); obter `SMTP_USER`, `SMTP_PASS` e `EMAIL_FROM` | Provedor de e-mail (faixa gratuita) | Link mágico, aviso de revelação (#16) |
+| P5 | Criar **bucket de backup externo** e obter `BACKUP_BUCKET`, `BACKUP_ACCESS_KEY`, `BACKUP_SECRET_KEY` | Armazenamento de objetos | Restauração fora do host |
+| P5b | Definir `BACKUP_PASSPHRASE` (senha longa) **ou** `BACKUP_GPG_KEY` (chave pública gpg) no `.env` | Senha gerada localmente / `gpg --gen-key` | Backup cifrado (obrigatório em produção; o deploy aborta sem isso) |
+| P6 | Definir `MASTER_TOTP_KEY` (32 bytes aleatórios) e criar a conta master com `scripts/master-criar.js <email> <nome>` (senha em `MASTER_SENHA` ou no prompt — nunca por argumento) | Local → `.env` na VPS + script no container | Admin master (em `https` o `MASTER_TOKEN` estático não vale) |
+| P7 | **Aprovar o custo** estimado (≈ R$ 3,70/mês; cenário pior ≈ R$ 54) contra o teto de R$ 100 | Aqui / orçamento | Primeiro deploy |
+| P8 | Autorizar o **primeiro deploy em produção** (`bash scripts/deploy.sh --apply`) | Decisão | Item 4 |
+| P9 | Após publicar, **testar a restauração** de backup em ambiente de ensaio (incluindo a reapresentação do `excluidos.log`) e guardar a evidência | VPS + bucket | Go-live |
+| P10 | Definir a **região da VPS** (mais perto dos convidados) e **ativar a cifra de disco em repouso** | Painel do provedor (LUKS/volume cifrado) | Fotos de pessoas e menores |
+| P11 | Fixar `BACKUP_RETENTION_DIAS` (≤ o prazo de retenção da plataforma) e apagar as cópias externas no mesmo prazo | `.env` + bucket | LGPD |
+
+Nenhuma ação humana é necessária para o **certificado TLS**: o Caddy emite e renova via Let's Encrypt automaticamente, desde que P1 e P2 estejam feitos.
 
 ## Proxy, IP e limites (PR #9)
 - `TRUST_PROXY` — número de saltos de proxy confiáveis, **padrão `0`** (sem proxy na frente). Com `0`, `req.ip` é o endereço do socket e um `X-Forwarded-For` forjado pelo cliente é ignorado; os limites por IP (criação de evento, pedido de link, login master) não podem ser contornados por cabeçalho.

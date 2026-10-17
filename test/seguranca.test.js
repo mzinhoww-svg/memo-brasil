@@ -45,11 +45,12 @@ async function criarEvento(cookie) {
   assert.equal(r.status, 201);
   return r.json();
 }
+// O upload exige o token do convidado no cabeçalho (item 7): o id sozinho não basta.
 async function subirFoto(id, guestId, guestToken) {
   const fd = new FormData();
   fd.append('guestId', guestId);
   fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  const r = await fetch(`${B}/api/events/${id}/photos`, { method: 'POST', headers: guestToken ? { 'x-guest-token': guestToken } : {}, body: fd });
+  const r = await fetch(`${B}/api/events/${id}/photos`, { method: 'POST', headers: { 'x-guest-token': guestToken }, body: fd });
   assert.equal(r.status, 201);
   return r.json();
 }
