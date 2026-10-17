@@ -38,6 +38,18 @@ test('Dockerfile copia src/ e scripts/ para a imagem (B1)', () => {
   assert.match(df, /apk add[^\n]*\bgnupg\b/, 'deve instalar o gpg (gnupg)');
 });
 
+test('Dockerfile deixa /app fora do alcance do usuário da app e usa /healthz', () => {
+  const df = read('Dockerfile');
+  // Só instruções (sem comentários) importam aqui.
+  const codigo = df.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+  const chown = codigo.split('\n').filter((l) => /chown/.test(l)).join('\n');
+  assert.match(chown, /\/data/, '/data deve ser gravável pelo usuário da app');
+  assert.doesNotMatch(chown, /\/app/, 'o código (/app) não deve pertencer ao usuário da app');
+  // adduser -h /app chownaria /app para o usuário da app (home = /app).
+  assert.doesNotMatch(codigo, /adduser[^\n]*-h\s+\/app\b/, 'adduser não pode usar /app como home');
+  assert.match(codigo, /\/healthz/, 'o HEALTHCHECK deve usar /healthz');
+});
+
 test('Dockerfile instala só dependências de produção e expõe DATA_DIR em volume', () => {
   const df = read('Dockerfile');
   assert.match(df, /npm ci[^\n]*--omit=dev|npm ci[^\n]*--production/, 'deve instalar apenas deps de produção');
@@ -98,6 +110,41 @@ test('Caddy recebe só DOMINIO, nunca o .env inteiro (B3)', () => {
   }
 });
 
+// Extrai o bloco YAML de um serviço (linhas entre "  nome:" e o próximo top-level).
+function blocoServico(yml, nome) {
+  const linhas = yml.split('\n');
+  const i = linhas.findIndex((l) => l === `  ${nome}:`);
+  if (i < 0) return '';
+  const out = [];
+  for (let j = i + 1; j < linhas.length; j++) {
+    if (/^ {2}[A-Za-z0-9_-]+:/.test(linhas[j]) || /^[A-Za-z]/.test(linhas[j])) break;
+    out.push(linhas[j]);
+  }
+  return out.join('\n');
+}
+
+test('compose define TRUST_PROXY e endurece os containers (read-only, caps, tmpfs)', () => {
+  const yml = read('docker-compose.yml');
+  const lume = blocoServico(yml, 'lume');
+  const caddy = blocoServico(yml, 'caddy');
+  assert.ok(lume && caddy, 'serviços lume e caddy devem existir');
+
+  // Atrás do Caddy, req.ip precisa ser o do cliente: TRUST_PROXY=1.
+  assert.match(lume, /TRUST_PROXY:\s*"1"/, 'lume deve definir TRUST_PROXY=1');
+
+  for (const [nome, b] of [['lume', lume], ['caddy', caddy]]) {
+    assert.match(b, /read_only:\s*true/, `${nome}: deve ter read_only: true`);
+    assert.match(b, /cap_drop:[\s\S]*?ALL/, `${nome}: deve ter cap_drop ALL`);
+    assert.match(b, /no-new-privileges:true/, `${nome}: deve ter no-new-privileges`);
+    assert.match(b, /tmpfs:/, `${nome}: deve ter tmpfs (para o que precisa de escrita)`);
+    assert.match(b, /pids_limit:/, `${nome}: deve ter pids_limit`);
+    assert.match(b, /mem_limit:/, `${nome}: deve ter mem_limit`);
+  }
+  // Caddy precisa da capacidade de abrir 80/443 depois do cap_drop ALL.
+  assert.match(caddy, /cap_add:[\s\S]*NET_BIND_SERVICE/, 'caddy precisa de NET_BIND_SERVICE');
+  assert.match(lume, /\/healthz/, 'healthcheck do lume deve usar /healthz');
+});
+
 test('Caddyfile usa HTTPS automático para o domínio vindo do ambiente', () => {
   assert.ok(exists('Caddyfile'), 'Caddyfile ausente');
   const c = read('Caddyfile');
@@ -112,11 +159,15 @@ test('log do Caddy não grava token (header e query) nem IP completo (B2)', () =
   // Query string: parâmetros de token apagados.
   assert.match(c, /request>uri query\s*\{/, 'deve filtrar a query string');
   assert.match(c, /delete\s+token/, 'deve apagar o parâmetro token do log');
+  // Outros parâmetros sensíveis na query: link mágico (t), busca (q), guestId.
+  for (const p of ['t', 'q', 'guestId']) {
+    assert.match(c, new RegExp(`delete\\s+${p}\\b`), `deve apagar o parâmetro ${p} do log`);
+  }
   // Cabeçalhos: os tokens trafegam em X-*-Token (após #7/#9/#12/#13/#15).
   for (const h of ['X-Host-Token', 'X-Master-Token', 'X-Guest-Token']) {
     assert.match(c, new RegExp(`request>headers>${h}\\s+delete`, 'i'), `deve apagar o cabeçalho ${h} do log`);
   }
-  for (const h of ['Authorization', 'Cookie']) {
+  for (const h of ['Authorization', 'Cookie', 'X-Forwarded-For', 'X-Real-Ip']) {
     assert.match(c, new RegExp(`request>headers>${h}\\s+delete`, 'i'), `deve apagar o cabeçalho ${h} do log`);
   }
   // IP: mascarado (ip_mask) ou apagado — nunca em claro (campo fica em request>).
@@ -335,6 +386,69 @@ test('scripts/restore.sh trata backup cifrado (.gpg)', () => {
     assert.equal(ok.status, 0, `com senha deve sair 0:\n${ok.stderr}`);
     assert.match(ok.stdout, /DRY-RUN/i);
   }
+});
+
+// ─────────────────────────── LGPD no restore ───────────────────────────
+const temSqlite = (() => {
+  try { execFileSync('sqlite3', ['--version'], { stdio: 'ignore' }); return true; } catch { return false; }
+})();
+const eventosDoBanco = (db) =>
+  execFileSync('sqlite3', [db, 'SELECT id FROM events ORDER BY id;']).toString().trim().split('\n').filter(Boolean);
+
+test('scripts/restore.sh reaplica excluidos.log e não ressuscita evento apagado (LGPD)', { skip: !temSqlite }, () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lume-lgpd-'));
+  const origem = path.join(tmp, 'origem');
+  fs.mkdirSync(path.join(origem, 'photos', 'evento-fora'), { recursive: true });
+  fs.mkdirSync(path.join(origem, 'photos', 'evento-fica'), { recursive: true });
+  fs.writeFileSync(path.join(origem, 'photos', 'evento-fora', 'a.jpg'), 'x');
+  fs.writeFileSync(path.join(origem, 'photos', 'evento-fica', 'b.jpg'), 'y');
+  execFileSync('sqlite3', [path.join(origem, 'memo.db'),
+    "CREATE TABLE events(id TEXT PRIMARY KEY); INSERT INTO events(id) VALUES('evento-fora'),('evento-fica');"]);
+  const tar = path.join(tmp, 'backup.tar.gz');
+  execFileSync('tar', ['-czf', tar, '-C', origem, '.']);
+
+  // destino já tem o túmulo da exclusão (LGPD) e um banco vazio
+  const destino = path.join(tmp, 'data');
+  fs.mkdirSync(destino, { recursive: true });
+  fs.writeFileSync(path.join(destino, 'excluidos.log'),
+    JSON.stringify({ id: 'evento-fora', motivo: 'lgpd', em: '2026-10-01T00:00:00.000Z' }) + '\n');
+  execFileSync('sqlite3', [path.join(destino, 'memo.db'), 'CREATE TABLE events(id TEXT PRIMARY KEY);']);
+
+  // dry-run lista o id e não altera nada
+  const dry = comBash(['scripts/restore.sh', '--backup', tar, '--data-dir', destino], { env: { PATH: process.env.PATH } });
+  assert.equal(dry.status, 0, `dry-run deve sair 0:\n${dry.stderr}`);
+  assert.match(dry.stdout, /evento-fora/, 'dry-run deve listar o id excluído');
+  assert.deepEqual(eventosDoBanco(path.join(destino, 'memo.db')), [], 'dry-run não altera o banco');
+
+  const r = comBash(['scripts/restore.sh', '--backup', tar, '--data-dir', destino, '--apply', '--yes', '--no-restart'], {
+    env: { PATH: process.env.PATH },
+  });
+  assert.equal(r.status, 0, `apply deve sair 0:\n${r.stderr}`);
+  assert.deepEqual(eventosDoBanco(path.join(destino, 'memo.db')), ['evento-fica'], 'o evento excluído não pode voltar');
+  assert.ok(!fs.existsSync(path.join(destino, 'photos', 'evento-fora')), 'as fotos do evento excluído devem sumir');
+  assert.ok(fs.existsSync(path.join(destino, 'photos', 'evento-fica', 'b.jpg')), 'as fotos do evento mantido ficam');
+  assert.match(fs.readFileSync(path.join(destino, 'excluidos.log'), 'utf8'), /evento-fora/, 'excluidos.log deve ser preservado');
+});
+
+test('scripts/deploy.sh exige TRUST_PROXY coerente quando PUBLIC_URL é https', () => {
+  const base = {
+    PATH: process.env.PATH, DEPLOY_ENV_FILE: '/nao-existe', HOME: os.tmpdir(),
+    DOMINIO: 'exemplo.test', PUBLIC_URL: 'https://exemplo.test',
+  };
+
+  // TRUST_PROXY=0 atrás do proxy é perigoso (todos os clientes viram um IP) -> recusa
+  const zero = comBash(['scripts/deploy.sh', '--apply'], { env: { ...base, TRUST_PROXY: '0' } });
+  assert.notEqual(zero.status, 0, 'TRUST_PROXY=0 com https deve recusar');
+  assert.match(zero.stderr + zero.stdout, /TRUST_PROXY/);
+
+  // Vazio com https: só passa porque o compose fixa TRUST_PROXY=1; deve avisar de onde vem
+  const vazio = comBash(['scripts/deploy.sh'], { env: base });
+  assert.equal(vazio.status, 0, vazio.stderr);
+  assert.match(vazio.stdout, /TRUST_PROXY/);
+
+  // Sem proxy (http) o vazio é aceitável
+  const http = comBash(['scripts/deploy.sh'], { env: { ...base, PUBLIC_URL: 'http://exemplo.test' } });
+  assert.equal(http.status, 0, http.stderr);
 });
 
 // ─────────────────────────── docs ───────────────────────────
