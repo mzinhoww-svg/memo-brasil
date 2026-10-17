@@ -28,19 +28,16 @@
 <script src="/common.js"></script>
 <script>
 (async () => {
-  const { id, guest, info } = await carregaConvidado();
+  const { id, guest, info, sessao } = await carregaConvidado();
   crumbs([{ t: info.titulo }, { t: 'Início', href: `/e/${id}/inicio` }, { t: 'Confirmar presença' }]);
   let status = null;
   const marca = (v) => { status = v; document.querySelectorAll('.choice .btn').forEach((b) => b.classList.toggle('on', b.dataset.v === v)); $('#ac').style.display = v === 'confirmado' ? 'block' : 'none'; $('#salvar').disabled = false; };
   document.querySelectorAll('.choice .btn').forEach((b) => (b.onclick = () => marca(b.dataset.v)));
-  try {
-    const me = await api(`/api/events/${id}/guests/${guest.guestId}`);
-    if (me.rsvp && me.rsvp !== 'pendente') { marca(me.rsvp); $('#n').value = me.acompanhantes; }
-  } catch {}
+  if (sessao.rsvp && sessao.rsvp !== 'pendente') { marca(sessao.rsvp); $('#n').value = sessao.acompanhantes; }
   $('#salvar').onclick = async () => {
     $('#msg').textContent = '';
     try {
-      await api(`/api/events/${id}/rsvp`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ guestId: guest.guestId, status, acompanhantes: $('#n').value }) });
+      await api(`/api/events/${id}/rsvp`, { method: 'POST', headers: { 'content-type': 'application/json', ...guestHdr(id) }, body: JSON.stringify({ guestId: guest.guestId, status, acompanhantes: $('#n').value }) });
       location.href = `/e/${id}/inicio`;
     } catch (e) { $('#msg').textContent = e.message; }
   };

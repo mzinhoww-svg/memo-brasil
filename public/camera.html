@@ -20,6 +20,13 @@
       <h2>Toque para fotografar</h2>
       <p>Seu navegador abre a câmera do celular direto no botão abaixo.</p>
     </div>
+    <div id="embutido" class="center" style="display:none;padding:24px">
+      <h2>Abra no navegador do celular</h2>
+      <p>Você está dentro do <b id="embNome">aplicativo</b>, que não deixa a câmera abrir aqui. Para fotografar ao vivo, abra este mesmo link no Chrome ou no Safari.</p>
+      <p id="embDica" style="display:none">No iPhone: toque em <b>⋯</b> (ou em Compartilhar) e escolha <b>Abrir no Safari</b>.</p>
+      <a class="btn primary" id="embAbrir" style="margin-bottom:8px">Abrir no navegador</a>
+      <button class="btn" id="embGaleria">Enviar uma foto da galeria</button>
+    </div>
   </div>
   <div class="bottom">
     <button class="side" id="virar" aria-label="Virar câmera">⟳</button>
@@ -28,11 +35,12 @@
   </div>
 </div>
 <input id="arq" type="file" accept="image/*" capture="environment" hidden>
+<script src="/embutido.js"></script>
 <script src="/common.js"></script>
 <script>
 const id = eventId();
 const g = getGuest(id);
-if (!g) location.replace(`/e/${id}`);
+if (!g || !g.guestToken) location.replace(`/e/${id}`);
 $('#voltar').href = `/e/${id}/inicio`;
 $('#album').href = `/e/${id}/album`;
 const v = $('#v');
@@ -51,6 +59,28 @@ async function startCam() {
 }
 function fallback() { semStream = true; v.style.display = 'none'; $('#semcam').style.display = 'block'; $('#virar').style.display = 'none'; }
 
+// Navegador embutido (Instagram, WhatsApp, Facebook…): avisa e oferece abrir fora,
+// com o envio de foto da galeria como caminho garantido.
+function avisaEmbutido() {
+  if (typeof MemoEmbutido === 'undefined') return false;
+  const app = MemoEmbutido.appEmbutido(navigator.userAgent);
+  if (!app) return false;
+  $('#embNome').textContent = app;
+  $('#embutido').style.display = 'block';
+  $('#semcam').style.display = 'none';
+  $('#virar').style.display = 'none';
+  v.style.display = 'none';
+  $('#embGaleria').onclick = () => $('#arq').click();
+  if (/android/i.test(navigator.userAgent)) {
+    const alvo = location.host + location.pathname; // C5: sem query nem hash
+    $('#embAbrir').href = `intent://${alvo}#Intent;scheme=${location.protocol.replace(':', '')};package=com.android.chrome;end`;
+  } else {
+    $('#embAbrir').style.display = 'none';
+    $('#embDica').style.display = 'block';
+  }
+  return true;
+}
+
 async function enviar(blob) {
   if (enviando) return;
   enviando = true;
@@ -58,7 +88,7 @@ async function enviar(blob) {
   fd.append('guestId', g.guestId);
   fd.append('foto', blob, 'foto.jpg');
   try {
-    const r = await api(`/api/events/${id}/photos`, { method: 'POST', body: fd });
+    const r = await api(`/api/events/${id}/photos`, { method: 'POST', headers: guestHdr(id), body: fd });
     restantes = r.restantes; pintaFotos();
     toast('Momento guardado ✓');
   } catch (e) { toast(e.message, 3500); }
@@ -103,16 +133,19 @@ function tick() {
   $('#resta').textContent = ms > 0 ? `${duracao(ms)} restantes` : 'Evento encerrado';
 }
 (async () => {
+  let s;
   try {
     info = await api(`/api/events/${id}`);
     now = relogio(info.agora);
     if (info.revelado) return (location.replace(`/e/${id}/album`));
-    restantes = info.fotosPorConvidado; // refinado após a primeira foto
-    const lista = await api(`/api/events/${id}/photos?guestId=${encodeURIComponent(g.guestId)}`);
-    restantes = Math.max(0, info.fotosPorConvidado - lista.fotos.filter((f) => f.minha).length);
-    pintaFotos(); tick(); setInterval(tick, 30000);
-  } catch (e) { toast(e.message, 4000); }
-  startCam();
+    s = await api(`/api/events/${id}/sessao`, {
+      method: 'POST', headers: { 'content-type': 'application/json', ...guestHdr(id) },
+      body: JSON.stringify({ guestId: g.guestId }),
+    });
+  } catch { localStorage.removeItem(guestKey(id)); location.replace(`/e/${id}`); return; }
+  restantes = s.fotosRestantes;
+  pintaFotos(); tick(); setInterval(tick, 30000);
+  if (!avisaEmbutido()) startCam();
 })();
 </script>
 </body>

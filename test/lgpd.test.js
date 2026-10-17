@@ -44,7 +44,7 @@ async function criar(titulo = 'C') {
 }
 async function upload(ev, guestId) {
   const fd = new FormData(); fd.append('guestId', guestId); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  const r = await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', body: fd });
+  const r = await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers: { 'x-guest-token': ev.guestToken }, body: fd });
   return (await r.json()).id;
 }
 

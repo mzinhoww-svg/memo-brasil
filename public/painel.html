@@ -294,6 +294,7 @@ async function rConfig(v) {
   v.append(el('div', { class: 'panel' }, el('h2', {}, 'Convidados'),
     opt('apenasLista', 'Só quem está na lista entra', 'O nome digitado precisa existir na aba Convidados. Evita penetras no álbum.'),
     opt('recadosAtivos', 'Permitir recados', 'Convidados podem deixar mensagens para os noivos.'),
+    opt('recadosMural', 'Mural de recados entre convidados', 'Desligado, cada recado é só para vocês e para quem escreveu. Ligado, o convidado pode escolher mostrar o recado no mural.'),
     opt('mostrarAutor', 'Mostrar o nome de quem tirou cada foto', 'Desligue se preferir um álbum sem identificação.'), out));
   v.append(el('div', { class: 'panel' }, el('h2', {}, 'Limites deste casamento'),
     el('p', { class: 'sub', style: 'margin:0' }, `Convidados na câmera: até ${info.limitesEfetivos.maxConvidados} · Lista: até ${info.limitesEfetivos.maxLista} · Fotos no evento: até ${info.limitesEfetivos.maxFotos}. Precisa de mais? Fale com o suporte do Lume.`)));

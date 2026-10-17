@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
 const Store = require('./interface');
 
-const CONFIG_PADRAO = { recadosAtivos: true, apenasLista: false, mostrarAutor: true };
+const CONFIG_PADRAO = { recadosAtivos: true, apenasLista: false, mostrarAutor: true, recadosMural: false };
 
 function normalizeEvent(ev) {
   Object.assign(ev, {
@@ -154,7 +154,7 @@ class SqliteStore extends Store {
       const equipe = this.conn.prepare('SELECT * FROM equipe WHERE tenant_id = ? ORDER BY rowid').all(tid);
       for (const e of equipe) ev.equipe.push({ id: e.id, nome: e.nome, papel: e.papel, tokenHash: e.token_hash });
       const recados = this.conn.prepare('SELECT * FROM recados WHERE tenant_id = ? ORDER BY rowid').all(tid);
-      for (const r2 of recados) ev.recados.push({ id: r2.id, guestId: r2.guest_id, autor: r2.autor, texto: r2.texto, criadoEm: r2.criado_em });
+      for (const r2 of recados) ev.recados.push({ id: r2.id, guestId: r2.guest_id, autor: r2.autor, texto: r2.texto, visibilidade: r2.visibilidade || 'casal', criadoEm: r2.criado_em });
       const push = this.conn.prepare('SELECT * FROM push_subscriptions WHERE tenant_id = ? ORDER BY rowid').all(tid);
       for (const p of push) ev.push.push({ id: p.id, guestId: p.guest_id, sub: { endpoint: p.endpoint, keys: { p256dh: p.p256dh, auth: p.auth } }, criadoEm: p.criado_em });
       const avisos = this.conn.prepare('SELECT * FROM avisos WHERE tenant_id = ? ORDER BY rowid').all(tid);
@@ -197,7 +197,7 @@ class SqliteStore extends Store {
       this.conn.prepare('INSERT INTO photos (id, tenant_id, guest_id, autor, ext, criada_em, oculta) VALUES (?,?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.autor, p.ext, p.criadaEm, p.oculta ? 1 : 0);
     }
     for (const r of ev.recados || []) {
-      this.conn.prepare('INSERT INTO recados (id, tenant_id, guest_id, autor, texto, criado_em) VALUES (?,?,?,?,?,?)').run(r.id, ev.id, r.guestId, r.autor, r.texto, r.criadoEm);
+      this.conn.prepare('INSERT INTO recados (id, tenant_id, guest_id, autor, texto, visibilidade, criado_em) VALUES (?,?,?,?,?,?,?)').run(r.id, ev.id, r.guestId, r.autor, r.texto, r.visibilidade || 'casal', r.criadoEm);
     }
     for (const p of ev.push || []) {
       this.conn.prepare('INSERT INTO push_subscriptions (id, tenant_id, guest_id, endpoint, p256dh, auth, criado_em) VALUES (?,?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.sub.endpoint, p.sub.keys.p256dh, p.sub.keys.auth, p.criadoEm);
@@ -270,8 +270,8 @@ class SqliteStore extends Store {
       (id) => this.conn.prepare('DELETE FROM photos WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('recados', ev.recados, old.recados || [],
-      (r) => this.conn.prepare('INSERT INTO recados (id, tenant_id, guest_id, autor, texto, criado_em) VALUES (?,?,?,?,?,?)').run(r.id, ev.id, r.guestId, r.autor, r.texto, r.criadoEm),
-      (r) => this.conn.prepare('UPDATE recados SET guest_id=?, autor=?, texto=?, criado_em=? WHERE id=? AND tenant_id=?').run(r.guestId, r.autor, r.texto, r.criadoEm, r.id, ev.id),
+      (r) => this.conn.prepare('INSERT INTO recados (id, tenant_id, guest_id, autor, texto, visibilidade, criado_em) VALUES (?,?,?,?,?,?,?)').run(r.id, ev.id, r.guestId, r.autor, r.texto, r.visibilidade || 'casal', r.criadoEm),
+      (r) => this.conn.prepare('UPDATE recados SET guest_id=?, autor=?, texto=?, visibilidade=?, criado_em=? WHERE id=? AND tenant_id=?').run(r.guestId, r.autor, r.texto, r.visibilidade || 'casal', r.criadoEm, r.id, ev.id),
       (id) => this.conn.prepare('DELETE FROM recados WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('push', ev.push, old.push || [],
