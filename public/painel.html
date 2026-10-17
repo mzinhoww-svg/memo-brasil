@@ -106,9 +106,15 @@ async function rResumo(v) {
   const rev = el('div', { class: 'panel' }, el('h2', {}, 'Hora da revelação'));
   const inp = el('input', { type: 'datetime-local', value: local(info.revealAt) });
   const out = el('p', { class: 'msg' });
-  rev.append(inp, el('div', { class: 'row', style: 'margin-top:10px' }, el('button', { class: 'btn primary', onclick: async () => {
-    try { await call('', { method: 'PATCH', body: JSON.stringify({ revealAt: new Date(inp.value).toISOString() }) }); msg(out, 'Horário atualizado.', true); } catch (e) { msg(out, e.message); }
-  } }, 'Salvar')), out);
+  rev.append(el('p', { class: 'sub', style: 'margin:0 0 10px' }, 'Só o casal muda a revelação. Encerrar abre o álbum para todos agora, sem volta.'));
+  rev.append(inp, el('div', { class: 'row', style: 'margin-top:10px' },
+    el('button', { class: 'btn primary', onclick: async () => {
+      try { await call('/revelacao', { method: 'PATCH', body: JSON.stringify({ revealAt: new Date(inp.value).toISOString() }) }); msg(out, 'Novo horário salvo.', true); } catch (e) { msg(out, e.message); }
+    } }, 'Salvar novo horário'),
+    info.dono && !info.revelado ? el('button', { class: 'btn danger', onclick: async () => {
+      if (!confirm('Revelar todas as fotos agora? Isso não tem volta.')) return;
+      try { await call('/revelacao/encerrar', { method: 'POST', body: '{}' }); msg(out, 'Álbum revelado para todos.', true); route(); } catch (e) { msg(out, e.message); }
+    } }, 'Encerrar revelação agora') : null), out);
   v.append(rev);
 }
 
@@ -224,10 +230,17 @@ async function rFotos(v) {
     r.recados.slice().reverse().forEach((x) => area.append(el('div', { class: 'panel' }, el('p', { style: 'margin:0 0 6px' }, x.texto),
       el('div', { class: 'row' }, el('span', { class: 'sub', style: 'margin:0' }, `— ${x.autor}`), el('button', { class: 'btn sm danger', onclick: async () => { await call(`/recados/${x.id}`, { method: 'DELETE' }); mostrar(); } }, 'Apagar')))));
   };
-  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Resumo por pessoa'), info.fotosPorPessoa.length
-    ? el('table', {}, el('tbody', {}, info.fotosPorPessoa.map((p) => el('tr', {}, el('td', {}, p.nome), el('td', {}, `${p.fotos} foto${p.fotos === 1 ? '' : 's'}`)))))
-    : el('p', { class: 'sub' }, 'Ninguém entrou na câmera ainda.')));
   const outz = el('p', { class: 'msg' });
+  v.append(el('div', { class: 'panel' }, el('h2', {}, 'Resumo por pessoa'), info.fotosPorPessoa.length
+    ? el('table', {}, el('tbody', {}, info.fotosPorPessoa.map((p) => el('tr', {},
+        el('td', {}, p.nome),
+        el('td', {}, `${p.fotos} foto${p.fotos === 1 ? '' : 's'}`),
+        el('td', {}, el('button', { class: 'btn sm danger', onclick: async () => {
+          if (!confirm(`Remover o acesso de ${p.nome} à câmera?`)) return;
+          const apagar = p.fotos > 0 && confirm(`${p.nome} enviou ${p.fotos} foto(s). Apagar essas fotos também? (Cancelar mantém no álbum.)`);
+          try { await call(`/convidados/${p.id}${apagar ? '?apagarFotos=1' : ''}`, { method: 'DELETE' }); msg(outz, `${p.nome} não tem mais acesso à câmera.`, true); route(); } catch (e) { msg(outz, e.message); }
+        } }, 'Remover acesso'))))))
+    : el('p', { class: 'sub' }, 'Ninguém entrou na câmera ainda.')));
   v.append(el('div', { class: 'row' },
     el('button', { class: 'btn', onclick: mostrar }, revelado ? 'Ver fotos e recados' : 'Moderar fotos e recados (ver agora)'),
     el('button', { class: 'btn primary', onclick: () => baixar('/fotos.zip', `album-${info.titulo}.zip`, outz) }, 'Baixar álbum completo (ZIP)')), outz, area);
@@ -277,12 +290,13 @@ async function rConvite(v) {
   const out = el('p', { class: 'msg' });
   v.append(el('div', { class: 'panel' },
     el('div', { class: 'row', style: 'align-items:flex-start;gap:24px' },
-      el('img', { class: 'qr', src: `/api/events/${id}/qr.png`, alt: 'QR Code do convite' }),
+      el('img', { class: 'qr', src: `/api/events/${id}/qr.png?token=${encodeURIComponent(TOKEN)}`, alt: 'QR Code do convite' }),
       el('div', { class: 'grow' },
         el('div', { class: 'linkbox' }, info.linkConvite),
         el('div', { class: 'row', style: 'margin-top:10px' },
           el('button', { class: 'btn', onclick: async () => { await navigator.clipboard.writeText(info.linkConvite); msg(out, 'Link copiado.', true); } }, 'Copiar link'),
-          el('a', { class: 'btn', href: `/api/events/${id}/qr.png`, download: 'qrcode-convite.png' }, 'Baixar QR Code'),
+          el('a', { class: 'btn', href: `/api/events/${id}/qr.png?token=${encodeURIComponent(TOKEN)}`, download: 'qrcode-convite.png' }, 'Baixar QR Code (PNG)'),
+          el('button', { class: 'btn primary', onclick: () => baixar('/qr.pdf', 'placa-qrcode-a5.pdf', out) }, 'Baixar placa A5 (PDF)'),
           el('a', { class: 'btn', href: info.linkConvite, target: '_blank', rel: 'noopener' }, 'Ver como convidado')), out))));
   v.append(el('div', { class: 'warn' }, 'Para a câmera ao vivo funcionar no celular dos convidados, o endereço precisa ser HTTPS. Em rede local (HTTP) o app usa a câmera nativa do celular.'));
 }
