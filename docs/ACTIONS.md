@@ -15,7 +15,7 @@ Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial).
 ## Credenciais e contas (não presentes)
 | Variável / recurso | Uso | Observação |
 |---|---|---|
-| `EMAIL_PROVIDER`, `EMAIL_API_KEY` | E-mail transacional (link mágico, revelação) | Sem isto o link cai em log (B5 do #9); produção deve recusar subir |
+| `EMAIL_PROVIDER`, `EMAIL_API_KEY` | E-mail transacional (link mágico, revelação) | Sem isto o link cai em log (B5 do #9); produção deve recusar subir. Até o módulo do #16 entrar, `/api/auth/link` responde 503 fora de dev/teste |
 | `MASTER_TOTP_KEY` (32 bytes aleatórios) | Cifrar segredo TOTP do master | Exigir em produção (B6 do #9) |
 | `MASTER_BOOTSTRAP_*` | Criar o primeiro master | Preferir `scripts/master-criar.js` interativo, não argv |
 | Google OAuth (client id/secret) | Só se a decisão 002 for a opção C | Opcional |
@@ -33,7 +33,12 @@ Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial).
   - **Quem preenche**: quem opera o deploy, ao colocar o app atrás do proxy reverso.
   - **Valor**: `1` atrás de um único proxy que anexa `X-Forwarded-For` (nginx/Caddy na mesma máquina); `2` se houver dois saltos confiáveis; `true` só se o proxy for totalmente confiável e inacessível de fora.
   - **Nunca** deixar o padrão `0` com o app publicado atrás de proxy (todos os acessos passam a contar como um único IP e os limites bloqueiam usuários legítimos); **nunca** usar valor maior que a quantidade real de saltos (o cliente volta a poder forjar o IP).
-- `MASTER_EMERGENCY`, `MASTER_TOKEN_COMPAT` — válvulas que reativam o `MASTER_TOKEN` estático mesmo com conta master criada. Padrão: desligadas. **São recusadas quando `PUBLIC_URL` é `https://`** e cada uso é gravado na auditoria (`master.token_emergencia`). Só ligar para recuperar acesso em ambiente de desenvolvimento/emergência; desligar em seguida.
+- `MASTER_EMERGENCY`, `MASTER_TOKEN_COMPAT` — válvulas que reativam o `MASTER_TOKEN` estático mesmo com conta master criada. Padrão: desligadas. **Com `PUBLIC_URL` `https://` o token estático nunca vale — nem a válvula, nem a janela de bootstrap** — e cada uso da válvula (fora de https) é gravado na auditoria (`master.token_emergencia`). Só ligar para recuperar acesso em ambiente de desenvolvimento; desligar em seguida.
+  - Consequência em produção: o primeiro master **tem** que vir de `MASTER_BOOTSTRAP_*` (ou de `scripts/master-criar.js` antes de subir). Sem isso não há como entrar em `/master` — é fail-closed de propósito.
+
+## Pendências técnicas (não bloqueiam o deploy)
+- **Bloqueio por conta no login master.** `master_accounts.falhas`/`bloqueado_ate` existem mas não são usados; hoje o único freio é 10 tentativas/15 min **por IP**. Precisa de decisão: um bloqueio por conta é vetor de DoS por terceiro (o Planejador levantou no #9). Opções: atraso progressivo por conta (não bloqueia) ou lockout com desbloqueio por e-mail. Enquanto não houver decisão, mantém-se só o limite por IP.
+- **Envio real do link mágico (#16).** Enquanto o módulo de e-mail não existir, `/api/auth/link` responde **503 fora de desenvolvimento/teste** (em dev/teste o link sai no console e em `DATA_DIR/auth.log`). Não respondemos mais 202 "enviamos" quando ninguém receberia nada.
 - **Credencial nunca na URL.** O painel e o master mandam o token só no cabeçalho (`x-host-token`/`x-master-token`); a rota do arquivo de foto e o painel **não** aceitam `?token=`. As miniaturas são buscadas com `fetch` e viram `blob:` (helper `imgAutenticada` em `public/common.js`), para o token não cair em log, histórico do navegador ou `Referer`.
 
 ## CI
