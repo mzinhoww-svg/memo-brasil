@@ -95,6 +95,6 @@ async function ativarPush(id, guestId) {
   if (!cfg.pushAtivo) throw new Error('As notificações estão desativadas no momento.');
   let sub = await reg.pushManager.getSubscription();
   if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64(cfg.vapidPublicKey) });
-  await api(`/api/events/${id}/push/subscribe`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ guestId, subscription: sub.toJSON() }) });
+  await api(`/api/events/${id}/push/subscribe`, { method: 'POST', headers: { 'content-type': 'application/json', ...guestHdr(id) }, body: JSON.stringify({ guestId, subscription: sub.toJSON() }) });
   localStorage.setItem(`memo:${id}:push`, '1');
 }

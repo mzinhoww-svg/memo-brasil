@@ -72,7 +72,7 @@ function avisaEmbutido() {
   v.style.display = 'none';
   $('#embGaleria').onclick = () => $('#arq').click();
   if (/android/i.test(navigator.userAgent)) {
-    const alvo = location.href.replace(/^https?:\/\//, '');
+    const alvo = location.host + location.pathname; // C5: sem query nem hash
     $('#embAbrir').href = `intent://${alvo}#Intent;scheme=${location.protocol.replace(':', '')};package=com.android.chrome;end`;
   } else {
     $('#embAbrir').style.display = 'none';

@@ -12,6 +12,7 @@ const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 
 // valem com NODE_ENV=test. Todo "agora" da revelação passa por aqui.
 const clock = require('./src/clock');
 const { novoToken, autentica, sessaoDe, MENSAGENS } = require('./src/guest');
+const { semSegredos } = require('./src/seguranca');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -36,7 +37,7 @@ const saveSettings = () => fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settin
 const limGuests = (ev) => ev.limites?.maxConvidados ?? settings.maxConvidadosPorEvento;
 const limLista = (ev) => ev.limites?.maxLista ?? settings.maxListaPorEvento;
 const limFotos = (ev) => ev.limites?.maxFotos ?? settings.maxFotosPorEvento;
-const CONFIG_PADRAO = { recadosAtivos: true, apenasLista: false, mostrarAutor: true };
+const CONFIG_PADRAO = { recadosAtivos: true, apenasLista: false, mostrarAutor: true, recadosMural: false };
 
 // Chaves VAPID para notificações push (geradas uma vez).
 const VAPID_FILE = path.join(DATA_DIR, 'vapid.json');
@@ -96,6 +97,8 @@ function baseUrl(req) {
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
+// C3: nenhum hash de token (host, equipe ou convidado) pode sair numa resposta.
+app.use(semSegredos);
 // Modo manutenção: só o admin master passa.
 app.use('/api', (req, res, next) => {
   if (!settings.manutencao) return next();
@@ -131,13 +134,40 @@ function adminOnly(req, res, next) {
 const donoOnly = (req, res, next) =>
   req.admin.dono ? next() : res.status(403).json({ erro: 'Só o casal pode fazer isso.' });
 
+// Organização pelo token, sem exigir acesso (usado na leitura dos recados).
+function ehOrganizacao(req) {
+  const ev = req.ev;
+  const token = req.get('x-host-token') || req.get('x-master-token') || req.query.token;
+  if (!token) return null;
+  if (isMaster(token)) return { papel: 'master', nome: 'Admin master', dono: true, master: true };
+  if (verifyToken(token, ev.hostTokenHash)) return { papel: 'casal', nome: 'Casal', dono: true };
+  const m = ev.equipe.find((e) => verifyToken(token, e.tokenHash));
+  return m ? { papel: m.papel, nome: m.nome, id: m.id } : null;
+}
+
+// Decisão 004: recado privado ao casal por padrão; mural só quando ligado e marcado.
+function recadosVisiveis(ev, opts) {
+  const mostrarAutor = ev.config.mostrarAutor;
+  return ev.recados
+    .filter((r) => opts.organizacao || r.guestId === opts.guestId || (r.visibilidade === 'mural' && ev.config.recadosMural))
+    .slice(-200).reverse()
+    .map((r) => {
+      const meu = r.guestId === opts.guestId;
+      const mural = r.visibilidade === 'mural';
+      const mostraAutor = opts.organizacao || meu || (mural && mostrarAutor);
+      return { id: r.id, texto: r.texto, criadoEm: r.criadoEm, meu, visibilidade: mural ? 'mural' : 'casal', autor: mostraAutor ? r.autor : '' };
+    });
+}
+
 function publicInfo(ev) {
   return {
     id: ev.id, titulo: ev.titulo, revealAt: ev.revealAt, revelado: revealed(ev),
     agora: clock.iso(), fotosPorConvidado: ev.fotosPorConvidado,
     momentos: ev.photos.length, pessoas: ev.guests.length,
     dataEvento: ev.dataEvento, local: ev.local, endereco: ev.endereco, mensagem: ev.mensagem,
-    cronograma: ev.cronograma, suspenso: !!ev.suspenso, config: ev.config,
+    cronograma: ev.cronograma, suspenso: !!ev.suspenso,
+    // `recadosMural` é o nome do campo; `muralRecados` fica como apelido da decisão 004.
+    config: { ...ev.config, recadosMural: !!ev.config.recadosMural, muralRecados: !!ev.config.recadosMural },
   };
 }
 function parseCronograma(arr) {
@@ -220,7 +250,11 @@ app.patch('/api/events/:id', getEvent, adminOnly, (req, res) => {
   if (b.fotosPorConvidado !== undefined)
     ev.fotosPorConvidado = Math.min(Math.max(parseInt(b.fotosPorConvidado, 10) || ev.fotosPorConvidado, 1), settings.maxFotosPorConvidado);
   if (b.config && typeof b.config === 'object') {
-    for (const k of Object.keys(CONFIG_PADRAO)) if (typeof b.config[k] === 'boolean') ev.config[k] = b.config[k];
+    // `muralRecados` (decisão 004) e `recadosMural` (item 7) são o mesmo campo.
+    const cc = { ...b.config };
+    if (cc.recadosMural !== undefined && cc.muralRecados === undefined) cc.muralRecados = cc.recadosMural;
+    if (cc.muralRecados !== undefined && cc.recadosMural === undefined) cc.recadosMural = cc.muralRecados;
+    for (const k of Object.keys(CONFIG_PADRAO)) if (typeof cc[k] === 'boolean') ev.config[k] = cc[k];
     audit(req, 'config.alterada', { config: ev.config });
   }
   if (b.cronograma !== undefined) {
@@ -363,12 +397,20 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   const nome = clean(req.body.nome, 40);
   if (!nome) return res.status(400).json({ erro: 'Diga seu nome para entrar.' });
   if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
-  if (ev.guests.length >= limGuests(ev)) return res.status(409).json({ erro: 'Evento lotado.' });
   if (ev.config.apenasLista && !ev.lista.some((l) => norm(l.nome) === norm(nome)))
     return res.status(403).json({ erro: 'Este evento é só para convidados da lista. Use o nome exatamente como os noivos cadastraram.' });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
-  // O token volta uma única vez; guardamos só o hash. O id sozinho não autentica.
+  // C2: convidado criado antes do token (sem tokenHash) reivindica a própria sessão
+  // na primeira entrada, para não perder a cota de fotos. A reivindicação vale uma vez.
   const { token, hash } = novoToken();
+  const orfao = ev.guests.find((x) => !x.tokenHash && norm(x.nome) === norm(nome));
+  if (orfao) {
+    orfao.tokenHash = hash;
+    save();
+    const li = orfao.listaId && ev.lista.find((l) => l.id === orfao.listaId);
+    return res.status(201).json({ guestId: orfao.id, guestToken: token, nome: orfao.nome, naLista: !!li, rsvp: li?.rsvp || null, reivindicado: true });
+  }
+  if (ev.guests.length >= limGuests(ev)) return res.status(409).json({ erro: 'Evento lotado.' });
   const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: clock.iso(), listaId: item?.id, tokenHash: hash };
   ev.guests.push(g);
   save();
@@ -391,8 +433,8 @@ app.post('/api/events/:id/sessao', getEvent, (req, res) => {
 
 app.post('/api/events/:id/rsvp', getEvent, (req, res) => {
   const ev = req.ev;
-  const g = ev.guests.find((x) => x.id === req.body.guestId);
-  if (!g) return res.status(403).json({ erro: 'Entre no evento primeiro.' });
+  const g = autentica(ev, req.body.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
   if (!['confirmado', 'recusado'].includes(req.body.status)) return res.status(400).json({ erro: 'Resposta inválida.' });
   let item = g.listaId && ev.lista.find((l) => l.id === g.listaId);
   if (!item) {
@@ -408,7 +450,12 @@ app.post('/api/events/:id/rsvp', getEvent, (req, res) => {
 });
 
 app.get('/api/events/:id/recados', getEvent, (req, res) => {
-  res.json({ recados: req.ev.recados.slice(-200).reverse().map((r) => ({ id: r.id, autor: r.autor, texto: r.texto, criadoEm: r.criadoEm })) });
+  const ev = req.ev;
+  // C4: sem credencial não lê. Organização vê todos; convidado vê os seus + o mural.
+  if (ehOrganizacao(req)) return res.json({ recados: recadosVisiveis(ev, { organizacao: true }), organizacao: true });
+  const g = autentica(ev, req.query.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.recadoSemCredencial });
+  res.json({ recados: recadosVisiveis(ev, { guestId: g.id }) });
 });
 app.post('/api/events/:id/recados', getEvent, (req, res) => {
   if (!req.ev.config.recadosAtivos) return res.status(403).json({ erro: 'Os recados estão desativados neste evento.' });
@@ -418,10 +465,12 @@ app.post('/api/events/:id/recados', getEvent, (req, res) => {
   if (!texto) return res.status(400).json({ erro: 'Escreva seu recado.' });
   const mine = req.ev.recados.filter((r) => r.guestId === g.id).length;
   if (mine >= 5) return res.status(409).json({ erro: 'Você já deixou 5 recados.' });
-  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: clock.iso() };
+  // Mural só se o casal ligou e o convidado marcou; por padrão é privado ao casal.
+  const mural = !!req.ev.config.recadosMural && req.body.mural === true;
+  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, visibilidade: mural ? 'mural' : 'casal', criadoEm: clock.iso() };
   req.ev.recados.push(r);
   save();
-  res.status(201).json({ id: r.id });
+  res.status(201).json({ id: r.id, visibilidade: r.visibilidade, aviso: mural ? MENSAGENS.recadoMural : MENSAGENS.recadoSoNoivos });
 });
 
 // ───── Fotos
@@ -539,8 +588,8 @@ app.get('/api/master/photos', masterOnly, (req, res) => {
 const subscriptionOk = (s) => s && typeof s.endpoint === 'string' && /^https:\/\//.test(s.endpoint) && s.keys && s.keys.p256dh && s.keys.auth;
 app.post('/api/events/:id/push/subscribe', getEvent, (req, res) => {
   if (!settings.pushAtivo) return res.status(403).json({ erro: 'Notificações desativadas na plataforma.' });
-  const g = req.ev.guests.find((x) => x.id === req.body.guestId);
-  if (!g) return res.status(403).json({ erro: 'Entre no evento primeiro.' });
+  const g = autentica(req.ev, req.body.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
   const sub = req.body.subscription;
   if (!subscriptionOk(sub)) return res.status(400).json({ erro: 'Inscrição inválida.' });
   if (req.ev.push.length >= 6000) return res.status(409).json({ erro: 'Limite de notificações atingido.' });

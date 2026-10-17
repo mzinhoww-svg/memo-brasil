@@ -37,7 +37,7 @@
   $('#salvar').onclick = async () => {
     $('#msg').textContent = '';
     try {
-      await api(`/api/events/${id}/rsvp`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ guestId: guest.guestId, status, acompanhantes: $('#n').value }) });
+      await api(`/api/events/${id}/rsvp`, { method: 'POST', headers: { 'content-type': 'application/json', ...guestHdr(id) }, body: JSON.stringify({ guestId: guest.guestId, status, acompanhantes: $('#n').value }) });
       location.href = `/e/${id}/inicio`;
     } catch (e) { $('#msg').textContent = e.message; }
   };

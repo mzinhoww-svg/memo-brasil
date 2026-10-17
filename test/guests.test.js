@@ -3,7 +3,6 @@
 // Rodar: npm test
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -21,7 +20,8 @@ test.after(() => server.close());
 const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
 const get = (p, h = {}) => fetch(B + p, { headers: h });
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
-const sha256 = (s) => crypto.createHash('sha256').update(String(s)).digest('hex');
+const { tokenHash } = require('../src/store/sqlite');
+const abrirBanco = () => { const { DatabaseSync } = require('node:sqlite'); return new DatabaseSync(path.join(DATA_DIR, 'memo.db')); };
 
 async function criar(titulo, nome = 'Rafa') {
   const r = await (await post('/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 2 })).json();
@@ -35,24 +35,33 @@ async function foto(ev, token = ev.gt) {
 const saldo = (ev, token = ev.gt) => get(`/api/events/${ev.id}/guests/${ev.guest}`, token ? { 'x-guest-token': token } : {});
 const recado = (ev, token = ev.gt) => post(`/api/events/${ev.id}/recados`, { guestId: ev.guest, texto: 'Oi, noivos!' }, token ? { 'x-guest-token': token } : {});
 const reentrar = (ev, token = ev.gt) => post(`/api/events/${ev.id}/sessao`, { guestId: ev.guest }, token ? { 'x-guest-token': token } : {});
+const rsvp = (ev, token = ev.gt) => post(`/api/events/${ev.id}/rsvp`, { guestId: ev.guest, status: 'confirmado' }, token ? { 'x-guest-token': token } : {});
+const push = (ev, token = ev.gt) => post(`/api/events/${ev.id}/push/subscribe`, { guestId: ev.guest, subscription: { endpoint: 'https://push.example/x', keys: { p256dh: 'p', auth: 'a' } } }, token ? { 'x-guest-token': token } : {});
 
 test('a entrada devolve um token de 32 bytes e o servidor guarda só o hash', async () => {
   const ev = await criar('Token');
   assert.equal(typeof ev.gt, 'string');
   assert.equal(Buffer.from(ev.gt, 'base64url').length, 32);
-  const disco = fs.readFileSync(path.join(DATA_DIR, 'db.json'), 'utf8');
-  assert.ok(!disco.includes(ev.gt), 'o token cru não pode ficar salvo no disco');
-  const salvo = JSON.parse(disco).events[ev.id].guests.find((g) => g.id === ev.guest);
-  assert.equal(salvo.tokenHash, sha256(ev.gt));
-  assert.equal(salvo.token, undefined);
+  // Nada de token em claro nos arquivos do banco (memo.db e WAL).
+  for (const f of fs.readdirSync(DATA_DIR)) {
+    if (!f.startsWith('memo.db')) continue;
+    assert.equal(fs.readFileSync(path.join(DATA_DIR, f)).includes(ev.gt), false, `token cru em ${f}`);
+  }
+  const conn = abrirBanco();
+  const linha = conn.prepare('SELECT token_hash FROM guests WHERE id = ?').get(ev.guest);
+  conn.close();
+  assert.equal(linha.token_hash, tokenHash(ev.gt), 'o banco guarda o hash (base64url), igual a host e equipe');
+  assert.equal(linha.token, undefined);
 });
 
-test('id adivinhado sem token não passa em saldo, upload nem recados', async () => {
+test('id adivinhado sem token não passa em saldo, upload, recados, rsvp nem push', async () => {
   const ev = await criar('So o id');
   assert.equal((await saldo(ev, null)).status, 403);
   assert.equal((await foto(ev, null)).status, 403);
   assert.equal((await recado(ev, null)).status, 403);
   assert.equal((await reentrar(ev, null)).status, 403);
+  assert.equal((await rsvp(ev, null)).status, 403);
+  assert.equal((await push(ev, null)).status, 403);
 });
 
 test('token de outro evento não passa (nem id nem token sozinhos bastam)', async () => {
@@ -61,6 +70,8 @@ test('token de outro evento não passa (nem id nem token sozinhos bastam)', asyn
   assert.equal((await foto(a, b.gt)).status, 403);
   assert.equal((await recado(a, b.gt)).status, 403);
   assert.equal((await reentrar(a, b.gt)).status, 403);
+  assert.equal((await rsvp(a, b.gt)).status, 403);
+  assert.equal((await push(a, b.gt)).status, 403);
 });
 
 test('token de outro convidado do mesmo evento não passa', async () => {
@@ -86,4 +97,28 @@ test('token inválido é recusado com 403', async () => {
   const ev = await criar('Invasor');
   assert.equal((await saldo(ev, 'token-de-mentira')).status, 403);
   assert.equal((await reentrar(ev, '')).status, 403);
+});
+
+// C3: nenhuma resposta pode expor o hash do token (host, equipe ou convidado).
+test('nenhuma resposta expõe tokenHash nem hostTokenHash', async () => {
+  const ev = await criar('Sem vazar');
+  const H = { 'x-host-token': ev.tk };
+  const membro = await (await post(`/api/events/${ev.id}/equipe`, { nome: 'Carla', papel: 'cerimonial' }, H)).json();
+  const respostas = [
+    await get(`/api/events/${ev.id}`),
+    await get(`/api/events/${ev.id}/host`, H),
+    await get(`/api/events/${ev.id}/moderacao`, H),
+    await get(`/api/events/${ev.id}/guests/${ev.guest}`, { 'x-guest-token': ev.gt }),
+    await get('/api/master/events', { 'x-master-token': 'master-de-teste' }),
+  ];
+  for (const r of respostas) {
+    const corpo = await r.text();
+    assert.equal(corpo.includes('tokenHash'), false, `tokenHash vazou em ${r.url}`);
+    assert.equal(corpo.includes('hostTokenHash'), false, `hostTokenHash vazou em ${r.url}`);
+  }
+  // Sanidade: o hash continua no servidor (a limpeza só vale para a resposta).
+  const conn = abrirBanco();
+  const th = conn.prepare('SELECT token_hash FROM equipe WHERE id = ?').get(membro.id);
+  conn.close();
+  assert.ok(th.token_hash, 'o hash da equipe segue gravado');
 });
