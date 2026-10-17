@@ -28,11 +28,11 @@ const futuro = () => new Date(Date.now() + 3600e3).toISOString();
 async function criar(titulo) {
   const r = await (await post('/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 50 })).json();
   const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
-  return { id: r.id, tk: r.hostToken, guest: g.guestId };
+  return { id: r.id, tk: r.hostToken, guest: g.guestId, gt: g.guestToken };
 }
 async function foto(ev) {
   const fd = new FormData(); fd.append('guestId', ev.guest); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  return fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', body: fd });
+  return fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers: { 'x-guest-token': ev.gt }, body: fd });
 }
 
 // ───── (1) GET /healthz sem dados pessoais

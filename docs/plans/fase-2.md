@@ -31,7 +31,7 @@ src/routes/
   org/equipe.js               # equipe
   org/moderacao.js            # moderação, apagar foto/recado
   org/exportacoes.js          # lista.csv, fotos.zip                ← Forja-Revela/LGPD
-  guests.js                   # buscar, guests, rsvp, recados
+  guests.js                   # buscar, guests, recados            ← decisão 005: sem rsvp
   photos.js                   # upload, listagem, arquivo           ← Forja-Dados/Revela
   push.js                     # subscribe, avisos, manifest         ← Forja-Push
   master/{index,events,photos,settings,audit,avisos,politicas}.js   ← Forja-Master

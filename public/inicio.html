@@ -32,7 +32,6 @@
     <a class="hubcard main" id="cCamera"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#camera"/></svg></span><span><b>Abrir câmera</b><small id="sCamera"></small></span></a>
     <a class="hubcard" id="cAlbum"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#album"/></svg></span><span><b>Álbum do evento</b><small id="sAlbum"></small></span></a>
     <a class="hubcard" id="cProg"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#agenda"/></svg></span><span><b>Programação e local</b><small>Horários, endereço e como chegar</small></span></a>
-    <a class="hubcard" id="cPres"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#presenca"/></svg></span><span><b>Confirmar presença</b><small id="sPres">Avise os noivos se você vai</small></span></a>
     <a class="hubcard" id="cRec"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#recado"/></svg></span><span><b>Deixar um recado</b><small>Uma mensagem para os noivos</small></span></a>
   </div>
   <p class="center" style="font-size:13px;margin-top:28px"><a href="#" id="sair" class="tap">Não sou essa pessoa — trocar de nome</a></p>
@@ -40,14 +39,14 @@
 <script src="/common.js"></script>
 <script>
 (async () => {
-  const { id, guest, info } = await carregaConvidado();
+  const { id, guest, info, sessao } = await carregaConvidado();
   document.title = info.titulo;
   crumbs([{ t: info.titulo }, { t: 'Início' }]);
   $('#saud').textContent = `OLÁ, ${guest.nome.toUpperCase()}`;
   $('#titulo').textContent = info.titulo;
   $('#quando').textContent = [dataBr(info.dataEvento), info.local].filter(Boolean).join(' · ');
   $('#cCamera').href = `/e/${id}/camera`; $('#cAlbum').href = `/e/${id}/album`;
-  $('#cProg').href = `/e/${id}/programacao`; $('#cPres').href = `/e/${id}/presenca`; $('#cRec').href = `/e/${id}/recados`;
+  $('#cProg').href = `/e/${id}/programacao`; $('#cRec').href = `/e/${id}/recados`;
   $('#momentos').textContent = info.momentos;
   const now = relogio(info.agora);
   const tick = () => {
@@ -56,12 +55,8 @@
     $('#restamLbl').textContent = ms > 0 ? 'Para revelar' : 'Álbum aberto';
   };
   tick(); setInterval(tick, 30000);
-  try {
-    const me = await api(`/api/events/${id}/guests/${guest.guestId}`);
-    $('#fotos').textContent = me.fotosRestantes;
-    $('#sCamera').textContent = info.revelado ? 'O evento terminou' : `${me.fotosRestantes} de ${info.fotosPorConvidado} fotos disponíveis`;
-    if (me.rsvp && me.rsvp !== 'pendente') $('#sPres').textContent = me.rsvp === 'confirmado' ? 'Você confirmou presença ✓' : 'Você respondeu que não vai';
-  } catch { $('#fotos').textContent = '—'; }
+  $('#fotos').textContent = sessao.fotosRestantes;
+  $('#sCamera').textContent = info.revelado ? 'O evento terminou' : `${sessao.fotosRestantes} de ${info.fotosPorConvidado} fotos disponíveis`;
   $('#sAlbum').textContent = info.revelado ? 'As fotos foram reveladas — veja o que a galera viu' : 'Fotos escondidas até a revelação';
   // Aviso mais recente da organização
   try {

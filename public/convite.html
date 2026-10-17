@@ -20,6 +20,7 @@
     <p>Capture as melhores memórias. Seus cliques viram parte do álbum dos noivos.</p>
   </div>
   <p class="center" id="regra"></p>
+  <a id="continuar" class="btn primary" style="display:none;margin-bottom:12px"></a>
   <form id="f">
     <label for="nome">Seu nome (aparece nas suas fotos)</label>
     <input id="nome" maxlength="40" autocomplete="off" list="sugestoes" placeholder="Como os noivos te chamam?" required>
@@ -42,6 +43,15 @@ prepararPwa(id);
   crumbs([{ t: info.titulo }, { t: 'Convite' }]);
   const g = getGuest(id);
   if (g) $('#nome').value = g.nome;
+  // Reentrada pelo mesmo aparelho: se a sessão salva ainda vale, continua sem digitar de novo.
+  if (g && g.guestToken) {
+    const s = await reentrarConvidado(id, g);
+    if (s) {
+      const a = $('#continuar');
+      a.textContent = `Continuar como ${s.nome} · ${s.fotosRestantes} foto${s.fotosRestantes === 1 ? '' : 's'} restante${s.fotosRestantes === 1 ? '' : 's'}`;
+      a.href = `/e/${id}/inicio`; a.style.display = 'flex';
+    } else { localStorage.removeItem(guestKey(id)); }
+  }
   if (info.revelado) {
     $('#regra').textContent = 'O evento terminou e as fotos já foram reveladas.';
     $('#f').style.display = 'none';
@@ -70,7 +80,7 @@ $('#f').addEventListener('submit', async (e) => {
   if (g && g.nome === nome) return (location.href = `/e/${id}/inicio`);
   try {
     const r = await api(`/api/events/${id}/guests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome }) });
-    setGuest(id, { guestId: r.guestId, nome: r.nome });
+    setGuest(id, { guestId: r.guestId, guestToken: r.guestToken, nome: r.nome });
     location.href = `/e/${id}/inicio`;
   } catch (er) { $('#err').textContent = er.message; }
 });

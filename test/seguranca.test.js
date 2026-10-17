@@ -43,11 +43,12 @@ async function criarEvento(cookie) {
   assert.equal(r.status, 201);
   return r.json();
 }
-async function subirFoto(id, guestId) {
+// O upload exige o token do convidado no cabeçalho (item 7): o id sozinho não basta.
+async function subirFoto(id, guestId, guestToken) {
   const fd = new FormData();
   fd.append('guestId', guestId);
   fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  const r = await fetch(`${B}/api/events/${id}/photos`, { method: 'POST', body: fd });
+  const r = await fetch(`${B}/api/events/${id}/photos`, { method: 'POST', headers: { 'x-guest-token': guestToken }, body: fd });
   assert.equal(r.status, 201);
   return r.json();
 }
@@ -56,7 +57,7 @@ test('organizador lê a foto antes da revelação pela sessão; outro vínculo n
   const cookieA = await organizadorAutenticado('dona@exemplo.com');
   const ev = await criarEvento(cookieA); // cria já vinculado como casal
   const g = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Rafa' })).json();
-  const foto = await subirFoto(ev.id, g.guestId);
+  const foto = await subirFoto(ev.id, g.guestId, g.guestToken);
   const url = `/api/events/${ev.id}/photos/${foto.id}/file`;
 
   assert.equal((await get(url)).status, 403, 'sem credencial continua bloqueada');
@@ -96,7 +97,7 @@ test('MASTER_EMERGENCY vale com conta master e fica auditada; desligada, recusa'
   // na leitura de foto antes da revelação (B4 em todos os caminhos).
   const ev = await criarEvento();
   const g = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Rafa' })).json();
-  const foto = await subirFoto(ev.id, g.guestId);
+  const foto = await subirFoto(ev.id, g.guestId, g.guestToken);
   const estatico = { 'x-host-token': process.env.MASTER_TOKEN };
   assert.equal((await get(`/api/events/${ev.id}/host`, estatico)).status, 403, 'static master não abre o painel');
   assert.equal((await get(`/api/events/${ev.id}/moderacao`, estatico)).status, 403, 'static master não modera');

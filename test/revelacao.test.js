@@ -307,11 +307,13 @@ async function criarEvento(titulo, revealAt, contato) {
   return (await json('/api/events', { titulo, revealAt, contato, fotosPorConvidado: 5 })).json();
 }
 async function entrar(id, nome) {
-  return (await (await json(`/api/events/${id}/guests`, { nome })).json()).guestId;
+  const g = await (await json(`/api/events/${id}/guests`, { nome })).json();
+  return { id: g.guestId, token: g.guestToken };
 }
-async function subirFoto(id, guestId) {
-  const fd = new FormData(); fd.append('guestId', guestId); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  return fetch(`${B}/api/events/${id}/photos`, { method: 'POST', body: fd });
+// O upload exige o token do convidado no cabeçalho (item 7): o id sozinho não basta.
+async function subirFoto(id, guest) {
+  const fd = new FormData(); fd.append('guestId', guest.id); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  return fetch(`${B}/api/events/${id}/photos`, { method: 'POST', headers: { 'x-guest-token': guest.token }, body: fd });
 }
 // A organização adianta a revelação: é assim que o relógio do servidor passa a hora marcada.
 async function revelarAgora(ev) {
@@ -352,8 +354,8 @@ test('retrospectiva só abre depois da revelação e não vaza outro casamento',
 
 test('Atlas ponta a ponta: revelação só manda e-mail para contato verificado, e o estado fica no banco', async () => {
   const ev = await criarEvento('Casamento Verificado', new Date(Date.now() + 3600e3).toISOString(), 'noivos@exemplo.com');
-  const gid = await entrar(ev.id, 'Rafa');
-  assert.equal((await subirFoto(ev.id, gid)).status, 201);
+  const g = await entrar(ev.id, 'Rafa');
+  assert.equal((await subirFoto(ev.id, g)).status, 201);
   assert.equal((await revelarAgora(ev)).status, 200);
 
   await app.processarRevelacoes();
@@ -382,8 +384,8 @@ test('Atlas ponta a ponta: revelação só manda e-mail para contato verificado,
 
 test('reenvio manual do operador libera um novo aviso e o painel mostra o estado', async () => {
   const ev = await criarEvento('Casamento Reenvio', new Date(Date.now() + 3600e3).toISOString(), 'noivos@exemplo.com');
-  const gid = await entrar(ev.id, 'Rafa');
-  assert.equal((await subirFoto(ev.id, gid)).status, 201);
+  const g = await entrar(ev.id, 'Rafa');
+  assert.equal((await subirFoto(ev.id, g)).status, 201);
   assert.equal((await verificarContato(ev.id, true)).status, 200);
   assert.equal((await revelarAgora(ev)).status, 200);
 

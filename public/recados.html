@@ -14,8 +14,10 @@
 <main>
   <nav id="crumbs" class="crumbs"></nav>
   <h1>Recados para os noivos</h1>
+  <p id="consent" class="center">Seu recado é só para os noivos.</p>
   <label for="t">Seu recado</label>
   <textarea id="t" maxlength="400" placeholder="Deixe uma mensagem carinhosa…"></textarea>
+  <label id="muralBox" style="display:none;margin-top:10px"><input type="checkbox" id="mural"> Mostrar para os outros convidados</label>
   <p id="msg" class="err"></p>
   <button class="btn primary" id="enviar">Enviar recado</button>
   <div id="lista"></div>
@@ -25,22 +27,48 @@
 (async () => {
   const { id, guest, info } = await carregaConvidado();
   crumbs([{ t: info.titulo }, { t: 'Início', href: `/e/${id}/inicio` }, { t: 'Recados' }]);
+  // Decisão 004: por padrão o recado é privado ao casal. O mural (opt-in do casal)
+  // só aparece quando ligado; aí cada recado pode escolher ir para o mural.
+  const muralLigado = !!info.config.recadosMural;
+  if (muralLigado) $('#muralBox').style.display = 'block';
+  $('#mural').addEventListener('change', () => {
+    $('#consent').textContent = $('#mural').checked
+      ? 'Este recado vai aparecer para todos os convidados, com o seu nome.'
+      : 'Seu recado é só para os noivos.';
+  });
   async function carrega() {
-    const r = await api(`/api/events/${id}/recados`);
+    const r = await api(`/api/events/${id}/recados?guestId=${encodeURIComponent(guest.guestId)}`, { headers: guestHdr(id) });
     const el = $('#lista'); el.textContent = '';
-    if (!r.recados.length) { const p = document.createElement('p'); p.textContent = 'Seja o primeiro a deixar um recado.'; el.append(p); }
-    for (const x of r.recados) {
-      const d = document.createElement('div'); d.className = 'recado';
-      const p = document.createElement('p'); p.textContent = x.texto;
-      const s = document.createElement('small'); s.textContent = `— ${x.autor}`;
-      d.append(p, s); el.append(d);
+    if (!r.recados.length) {
+      const p = document.createElement('p');
+      p.textContent = 'Seus recados aparecem aqui. Os noivos recebem cada um com carinho.';
+      el.append(p); return;
     }
+    const secao = (titulo, itens, comAutor) => {
+      if (!itens.length) return;
+      const h = document.createElement('h2'); h.textContent = titulo; el.append(h);
+      for (const x of itens) {
+        const d = document.createElement('div'); d.className = 'recado';
+        const p = document.createElement('p'); p.textContent = x.texto;
+        d.append(p);
+        if (comAutor && x.autor) { const s = document.createElement('small'); s.textContent = `— ${x.autor}`; d.append(s); }
+        el.append(d);
+      }
+    };
+    secao('Seus recados', r.recados.filter((x) => x.meu), false);
+    secao('Mural dos convidados', r.recados.filter((x) => !x.meu), true);
   }
   $('#enviar').onclick = async () => {
     $('#msg').textContent = '';
     try {
-      await api(`/api/events/${id}/recados`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ guestId: guest.guestId, texto: $('#t').value }) });
-      $('#t').value = ''; carrega();
+      const r = await api(`/api/events/${id}/recados`, {
+        method: 'POST', headers: { 'content-type': 'application/json', ...guestHdr(id) },
+        body: JSON.stringify({ guestId: guest.guestId, texto: $('#t').value, mural: $('#mural').checked }),
+      });
+      $('#t').value = ''; $('#mural').checked = false;
+      $('#consent').textContent = 'Seu recado é só para os noivos.';
+      if (r.aviso) $('#msg').textContent = r.aviso;
+      carrega();
     } catch (e) { $('#msg').textContent = e.message; }
   };
   carrega();
