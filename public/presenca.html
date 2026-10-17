@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Confirmar presença</title>
+<link rel="icon" href="/icons/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/Fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
@@ -12,7 +15,7 @@
   <h1>Você vai?</h1>
   <p>Avise os noivos para eles se organizarem. Dá para mudar a resposta depois.</p>
   <div class="choice">
-    <button class="btn" data-v="confirmado">Vou, sim 🎉</button>
+    <button class="btn" data-v="confirmado"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#festa"/></svg> Vou, sim</button>
     <button class="btn" data-v="recusado">Não consigo ir</button>
   </div>
   <div id="ac" style="display:none">

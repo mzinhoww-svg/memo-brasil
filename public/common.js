@@ -74,7 +74,7 @@ const dataBr = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { weekday: '
 function prepararPwa(id) {
   if (!document.querySelector('link[rel=manifest]')) {
     const m = document.createElement('link'); m.rel = 'manifest'; m.href = `/e/${id}/manifest.webmanifest`; document.head.append(m);
-    const t = document.createElement('meta'); t.name = 'theme-color'; t.content = '#0e0d0c'; document.head.append(t);
+    const t = document.createElement('meta'); t.name = 'theme-color'; t.content = '#14110E'; document.head.append(t);
     const a = document.createElement('link'); a.rel = 'apple-touch-icon'; a.href = '/icons/apple-touch-icon.png'; document.head.append(a);
   }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
