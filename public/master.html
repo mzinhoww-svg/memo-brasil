@@ -1,15 +1,18 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="tema-claro">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin master — Memo Brasil</title>
+<title>Admin master — Lume</title>
+<link rel="icon" href="/icons/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/Fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/admin.css">
 <style>.wide{max-width:1200px;margin:0 auto;padding:24px 20px 60px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}</style>
 </head>
 <body>
 <div class="wide">
-  <div class="top"><div><div class="brand" style="padding:0">MEMO BRASIL · ADMIN MASTER</div></div><button class="btn sm" id="sair" style="display:none">Sair</button></div>
+  <div class="top"><div><div class="brand" style="padding:0"><img src="/icons/logo.svg" alt="" width="32" height="32">Lume · Admin master</div></div><button class="btn sm" id="sair" style="display:none">Sair</button></div>
   <nav class="crumbs" id="crumbs"></nav>
   <div id="view"></div>
 </div>
@@ -111,7 +114,11 @@ async function fotos() {
   if (!por.size) v.append(el('p', { class: 'sub' }, 'Ainda não há fotos.'));
   for (const [eid, g] of por) {
     const grid = el('div', { class: 'thumbs' });
-    g.fotos.forEach((f) => grid.append(el('div', { class: 'thumb' }, el('img', { src: `${f.url}?token=${encodeURIComponent(TOKEN)}`, alt: `Foto de ${f.autor}`, loading: 'lazy' }), el('div', {}, el('span', {}, f.autor)))));
+    g.fotos.forEach((f) => {
+      const img = el('img', { alt: `Foto de ${f.autor}`, loading: 'lazy' });
+      imgAutenticada(f.url, { 'x-master-token': TOKEN }).then((s) => { if (s) img.src = s; });
+      grid.append(el('div', { class: 'thumb' }, img, el('div', {}, el('span', {}, f.autor))));
+    });
     v.append(el('div', { class: 'panel' }, el('div', { class: 'row' }, el('h2', { class: 'grow', style: 'margin:0' }, `${g.nome} (${g.fotos.length})`),
       el('a', { class: 'btn sm primary', href: `/painel/${eid}#fotos` }, 'Moderar este álbum')), el('div', { style: 'margin-top:12px' }, grid)));
   }
@@ -162,7 +169,7 @@ async function avisos() {
 async function auditoria() {
   const r = await call('/audit?limit=200');
   const tb = el('tbody');
-  r.registros.forEach((x) => { const { t, quem, evento, acao, ...resto } = x; tb.append(el('tr', {}, el('td', {}, fmt(t)), el('td', {}, quem), el('td', {}, evento || '—'), el('td', {}, el('b', {}, acao)), el('td', { style: 'font-size:12px;color:var(--a-muted)' }, JSON.stringify(resto)))); });
+  r.registros.forEach((x) => { const { t, quem, evento, acao, ...resto } = x; tb.append(el('tr', {}, el('td', {}, fmt(t)), el('td', {}, quem), el('td', {}, evento || '—'), el('td', {}, el('b', {}, acao)), el('td', { style: 'font-size:12px;color:var(--cor-texto-suave)' }, JSON.stringify(resto)))); });
   if (!r.registros.length) tb.append(el('tr', {}, el('td', { colspan: '5' }, 'Nenhuma ação registrada ainda.')));
   v.append(el('div', { class: 'panel' }, el('h2', {}, 'Auditoria (só inserção)'), el('div', { style: 'overflow-x:auto' }, el('table', {},
     el('thead', {}, el('tr', {}, ['Quando', 'Quem', 'Evento', 'Ação', 'Detalhe'].map((x) => el('th', {}, x)))), tb))));

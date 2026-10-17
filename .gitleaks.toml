@@ -1,0 +1,12 @@
+# Configuração do gitleaks (CI e scripts/ci.sh).
+# Sem isto o vetor de teste da RFC 6238 é lido como "segredo": ele é o exemplo
+# público do apêndice B da RFC, usado só para conferir hotp/totp nos testes.
+# Nunca coloque valor real aqui.
+title = "memo-brasil"
+
+[allowlist]
+description = "Vetores públicos de teste (RFC 6238) e senhas de exemplo dos testes"
+regexTarget = "match"
+regexes = [
+  '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
+]

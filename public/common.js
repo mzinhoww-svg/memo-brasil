@@ -9,6 +9,16 @@ async function api(path, opts = {}) {
   return data;
 }
 
+// Imagem que exige credencial: o token vai no cabeçalho, nunca na URL (log,
+// histórico e Referer não devem guardar a credencial). Devolve um object URL.
+async function imgAutenticada(url, headers) {
+  try {
+    const r = await fetch(url, { headers });
+    if (!r.ok) return null;
+    return URL.createObjectURL(await r.blob());
+  } catch { return null; }
+}
+
 function duracao(ms) {
   if (ms <= 0) return '0m';
   const m = Math.floor(ms / 60000);
@@ -58,7 +68,7 @@ const dataBr = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { weekday: '
 function prepararPwa(id) {
   if (!document.querySelector('link[rel=manifest]')) {
     const m = document.createElement('link'); m.rel = 'manifest'; m.href = `/e/${id}/manifest.webmanifest`; document.head.append(m);
-    const t = document.createElement('meta'); t.name = 'theme-color'; t.content = '#0e0d0c'; document.head.append(t);
+    const t = document.createElement('meta'); t.name = 'theme-color'; t.content = '#14110E'; document.head.append(t);
     const a = document.createElement('link'); a.rel = 'apple-touch-icon'; a.href = '/icons/apple-touch-icon.png'; document.head.append(a);
   }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});

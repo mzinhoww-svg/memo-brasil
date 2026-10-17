@@ -8,6 +8,9 @@ const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
 const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 'sqlite'));
+// Relógio injetável: em produção é sempre o relógio real; TEST_NOW/advance só
+// valem com NODE_ENV=test. Todo "agora" da revelação passa por aqui.
+const clock = require('./src/clock');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -261,7 +264,7 @@ function auditDb(req, atorTipo, atorId, eventoId, acao, alvo, detalhe, resultado
 const AUDIT_FILE = path.join(DATA_DIR, 'audit.log');
 function audit(req, acao, detalhe = {}) {
   const quem = req.admin ? `${req.admin.papel}:${req.admin.nome}` : 'anon';
-  const linha = JSON.stringify({ t: new Date().toISOString(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
+  const linha = JSON.stringify({ t: clock.iso(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
   fs.appendFile(AUDIT_FILE, linha + '\n', () => {});
   const org = organizadorDaSessao(req);
   const m = masterDaSessao(req);
@@ -371,7 +374,8 @@ try { vapid = JSON.parse(fs.readFileSync(VAPID_FILE, 'utf8')); } catch {
 }
 webpush.setVapidDetails(process.env.VAPID_CONTACT || 'mailto:contato@memobrasil.app', vapid.publicKey, vapid.privateKey);
 
-const revealedAtBoot = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
+// `audit()`/`auditDb()` são definidos acima (arquivo + banco encadeado).
+const revealedAtBoot = (ev) => clock.nowMs() >= new Date(ev.revealAt).getTime();
 // Admin master: administra todos os casamentos (tenants). Token por ambiente ou gerado no primeiro uso.
 const MASTER_FILE = path.join(DATA_DIR, 'master.token');
 let MASTER_TOKEN = process.env.MASTER_TOKEN || '';
@@ -411,7 +415,7 @@ function save() {
   store.save();
 }
 const newId = (n = 6) => crypto.randomBytes(n).toString('base64url');
-const revealed = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
+const revealed = (ev) => clock.nowMs() >= new Date(ev.revealAt).getTime();
 const clean = (s, max) => String(s ?? '').trim().slice(0, max);
 const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -446,7 +450,7 @@ app.use('/api', (req, res, next) => {
   if (!settings.manutencao) return next();
   const t = req.get('x-master-token') || req.get('x-host-token');
   if (req.path.startsWith('/config') || masterDaSessao(req) || aceitaTokenEstatico(t)) return next();
-  res.status(503).json({ erro: settings.avisoGlobal || 'O Memo está em manutenção. Volte em instantes.' });
+  res.status(503).json({ erro: settings.avisoGlobal || 'O Lume está em manutenção. Volte em instantes.' });
 });
 app.get('/api/config', (req, res) => res.json({
   criacaoAberta: settings.criacaoAberta, manutencao: settings.manutencao, avisoGlobal: settings.avisoGlobal,
@@ -462,7 +466,8 @@ function getEvent(req, res, next) {
 }
 // Organização do casamento: casal (dono) ou cerimonial (equipe). O convidado nunca passa por aqui.
 function adminOnly(req, res, next) {
-  const token = req.get('x-host-token') || req.query.token;
+  // Credencial só por cabeçalho (nunca na URL: log, histórico e Referer).
+  const token = req.get('x-host-token');
   const ev = req.ev;
   // Sessão master.
   const ms = masterDaSessao(req);
@@ -501,7 +506,7 @@ const donoOnly = (req, res, next) =>
 function publicInfo(ev) {
   return {
     id: ev.id, titulo: ev.titulo, revealAt: ev.revealAt, revelado: revealed(ev),
-    agora: new Date().toISOString(), fotosPorConvidado: ev.fotosPorConvidado,
+    agora: clock.iso(), fotosPorConvidado: ev.fotosPorConvidado,
     momentos: ev.photos.length, pessoas: ev.guests.length,
     dataEvento: ev.dataEvento, local: ev.local, endereco: ev.endereco, mensagem: ev.mensagem,
     cronograma: ev.cronograma, suspenso: !!ev.suspenso, config: ev.config,
@@ -551,7 +556,7 @@ app.post('/api/events', (req, res) => {
     contato: clean(req.body.contato, 80), suspenso: false, limites: {}, config: { ...CONFIG_PADRAO },
     push: [], avisos: [], revealNotified: false,
     cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [],
-    createdAt: new Date().toISOString(),
+    createdAt: clock.iso(),
   };
   db.events[ev.id] = ev;
   save();
@@ -683,9 +688,12 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
     recados: ev.recados.length,
     equipe: req.admin.dono
-      // O token bruto só existe na criação (guardamos apenas o hash); o painel
-      // mostra o link na hora de gerar e não consegue recuperá-lo depois.
-      ? ev.equipe.map((m) => ({ id: m.id, nome: m.nome, papel: m.papel, link: null }))
+      ? ev.equipe.map((m) => ({
+          id: m.id, nome: m.nome, papel: m.papel, linkEmitido: true,
+          // O token em claro só existe na criação (logo após o POST). Depois de
+          // um reinício o store carrega apenas o hash, então não há link para exibir.
+          link: m.token ? `${base}/painel/${ev.id}#t=${m.token}` : null,
+        }))
       : undefined,
   });
 });
@@ -799,6 +807,17 @@ app.delete('/api/events/:id/equipe/:eid', getEvent, adminOnly, donoOnly, (req, r
   save();
   res.json({ ok: true });
 });
+// Rotaciona o link de um membro da equipe (o token em claro é irrecuperável).
+app.post('/api/events/:id/equipe/:eid/rotacionar-link', getEvent, adminOnly, donoOnly, (req, res) => {
+  const m = req.ev.equipe.find((x) => x.id === req.params.eid);
+  if (!m) return res.status(404).json({ erro: 'Membro não encontrado.' });
+  const token = newId(16);
+  m.token = token;
+  m.tokenHash = tokenHash(token);
+  audit(req, 'equipe.link.rotacionado', { membro: m.id });
+  save();
+  res.json({ id: m.id, link: `${baseUrl(req)}/painel/${req.ev.id}#t=${token}` });
+});
 
 // Moderação (organização vê as fotos antes da revelação só aqui, e de propósito)
 app.get('/api/events/:id/moderacao', getEvent, adminOnly, (req, res) => {
@@ -844,7 +863,7 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   if (ev.config.apenasLista && !ev.lista.some((l) => norm(l.nome) === norm(nome)))
     return res.status(403).json({ erro: 'Este evento é só para convidados da lista. Use o nome exatamente como os noivos cadastraram.' });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
-  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: new Date().toISOString(), listaId: item?.id };
+  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: clock.iso(), listaId: item?.id };
   ev.guests.push(g);
   save();
   res.status(201).json({ guestId: g.id, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null });
@@ -890,7 +909,7 @@ app.post('/api/events/:id/recados', getEvent, (req, res) => {
   if (!texto) return res.status(400).json({ erro: 'Escreva seu recado.' });
   const mine = req.ev.recados.filter((r) => r.guestId === g.id).length;
   if (mine >= 5) return res.status(409).json({ erro: 'Você já deixou 5 recados.' });
-  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: new Date().toISOString() };
+  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: clock.iso() };
   req.ev.recados.push(r);
   save();
   res.status(201).json({ id: r.id });
@@ -915,7 +934,7 @@ app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) =
   const dir = path.join(PHOTO_DIR, ev.id);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, `${id}.${ext}`), req.file.buffer);
-  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: new Date().toISOString() });
+  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: clock.iso() });
   save();
   res.status(201).json({ id, restantes: ev.fotosPorConvidado - usadas - 1 });
 });
@@ -929,15 +948,15 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
       ? { id: p.id, autor: ev.config.mostrarAutor ? p.autor : '', criadaEm: p.criadaEm, minha: p.guestId === guestId, url: `/api/events/${ev.id}/photos/${p.id}/file` }
       : { id: p.id, bloqueada: true, minha: p.guestId === guestId }
   );
-  res.json({ revelado: open, revealAt: ev.revealAt, agora: new Date().toISOString(), fotos: lista });
+  res.json({ revelado: open, revealAt: ev.revealAt, agora: clock.iso(), fotos: lista });
 });
 
 // O arquivo só sai depois da revelação — exceto para a organização (moderação).
 app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
-  const token = req.get('x-host-token') || req.query.token;
+  // A credencial nunca vem na URL (fica em log, histórico e Referer): só por cabeçalho.
+  const token = req.get('x-host-token');
   const ev = req.ev;
-  // Master por sessão; token estático só sem conta master (ou válvula, nunca em https e
-  // nunca pela query string).
+  // Master por sessão; token estático só sem conta master (ou válvula, nunca em https).
   const modoEstatico = aceitaTokenEstatico(req.get('x-master-token') || req.get('x-host-token'));
   if (modoEstatico === 'emergencia') auditDb(req, 'master', null, ev.id, 'master.token_emergencia', 'photo.file', {}, 'ok');
   const master = !!masterDaSessao(req) || !!modoEstatico;
@@ -975,7 +994,7 @@ function masterOnly(req, res, next) {
     req.admin = { papel: 'master', nome: 'Admin master (legado)', master: true, dono: true, id: null };
     return next();
   }
-  return res.status(403).json({ erro: 'Acesso restrito ao administrador do Memo.' });
+  return res.status(403).json({ erro: 'Acesso restrito ao administrador do Lume.' });
 }
 const resumoEvento = (ev) => ({
   id: ev.id, titulo: ev.titulo, contato: ev.contato || '', criadoEm: ev.createdAt,
@@ -1039,7 +1058,7 @@ app.post('/api/events/:id/push/subscribe', getEvent, (req, res) => {
   if (!subscriptionOk(sub)) return res.status(400).json({ erro: 'Inscrição inválida.' });
   if (req.ev.push.length >= 6000) return res.status(409).json({ erro: 'Limite de notificações atingido.' });
   const i = req.ev.push.findIndex((p) => p.sub.endpoint === sub.endpoint);
-  const reg = { id: newId(6), guestId: g.id, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, criadoEm: new Date().toISOString() };
+  const reg = { id: newId(6), guestId: g.id, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, criadoEm: clock.iso() };
   if (i >= 0) req.ev.push[i] = { ...reg, id: req.ev.push[i].id }; else req.ev.push.push(reg);
   save();
   res.status(201).json({ ok: true });
@@ -1068,9 +1087,9 @@ app.post('/api/events/:id/avisos', getEvent, adminOnly, async (req, res) => {
   const ev = req.ev;
   const titulo = clean(req.body.titulo, 60), corpo = clean(req.body.corpo, 200);
   if (!titulo || !corpo) return res.status(400).json({ erro: 'Escreva o título e a mensagem do aviso.' });
-  const recentes = ev.avisos.filter((a) => Date.now() - new Date(a.enviadoEm).getTime() < 3600e3).length;
+  const recentes = ev.avisos.filter((a) => clock.nowMs() - new Date(a.enviadoEm).getTime() < 3600e3).length;
   if (recentes >= 5 && !req.admin.master) return res.status(429).json({ erro: 'Limite de 5 avisos por hora. Tente mais tarde.' });
-  const aviso = { id: newId(5), titulo, corpo, enviadoEm: new Date().toISOString(), por: req.admin.nome };
+  const aviso = { id: newId(5), titulo, corpo, enviadoEm: clock.iso(), por: req.admin.nome };
   const r = settings.pushAtivo ? await enviarPush(ev, { titulo, corpo }) : { alvos: 0, entregues: 0, falhas: 0 };
   ev.avisos.push({ ...aviso, ...r });
   audit(req, 'aviso.enviado', { titulo, ...r });
@@ -1084,7 +1103,7 @@ setInterval(async () => {
     if (ev.revealNotified || !revealed(ev)) continue;
     ev.revealNotified = true;
     const r = settings.pushAtivo && !ev.suspenso ? await enviarPush(ev, { titulo: 'As fotos foram reveladas! 🎉', corpo: `Veja o álbum de ${ev.titulo}.`, url: `/e/${ev.id}/album` }) : { alvos: 0, entregues: 0, falhas: 0 };
-    ev.avisos.push({ id: newId(5), titulo: 'As fotos foram reveladas! 🎉', corpo: `O álbum de ${ev.titulo} está aberto.`, enviadoEm: new Date().toISOString(), por: 'Sistema', ...r });
+    ev.avisos.push({ id: newId(5), titulo: 'As fotos foram reveladas! 🎉', corpo: `O álbum de ${ev.titulo} está aberto.`, enviadoEm: clock.iso(), por: 'Sistema', ...r });
     save();
   }
 }, 30000).unref();
@@ -1094,7 +1113,7 @@ app.get('/e/:id/manifest.webmanifest', getEvent, (req, res) => {
   res.type('application/manifest+json').json({
     name: ev.titulo, short_name: ev.titulo.slice(0, 12), lang: 'pt-BR', id: `/e/${ev.id}/`,
     start_url: `/e/${ev.id}/inicio`, scope: `/e/${ev.id}/`, display: 'standalone',
-    background_color: '#0e0d0c', theme_color: '#0e0d0c',
+    background_color: '#14110E', theme_color: '#14110E',
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

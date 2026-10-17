@@ -4,14 +4,22 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { spawn } = require('child_process');
 
+// NODE_ENV=test liga o relógio injetável (src/clock.js). Em produção ele é
+// ignorado por completo: a revelação volta a depender só do relógio real.
+process.env.NODE_ENV = 'test';
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-test-'));
 process.env.MASTER_TOKEN = 'master-de-teste';
+const clock = require('../src/clock');
 const app = require('../server.js');
 
 const JPG = Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
 let server, B;
 test.before(async () => { await new Promise((r) => { server = app.listen(0, r); }); B = `http://127.0.0.1:${server.address().port}`; });
+// Cada caso começa com os limitadores zerados: a suíte cria muitos eventos do
+// mesmo IP e o limite de criação (20/15 min) é por IP, de propósito.
+test.beforeEach(() => app.clearRateLimits());
 test.after(() => server.close());
 
 const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
@@ -129,3 +137,308 @@ test('ZIP do álbum só depois da revelação e só do próprio casamento', asyn
   const b = await criar('B');
   assert.equal((await get(`/api/events/${a.id}/fotos.zip`, { 'x-host-token': b.tk })).status, 403);
 });
+
+// helpers adicionais para os cenários do item 1
+async function criarComReveal(titulo, revealAtISO) {
+  const r = await (await post('/api/events', { titulo, revealAt: revealAtISO, fotosPorConvidado: 2 })).json();
+  const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
+  return { id: r.id, tk: r.hostToken, guest: g.guestId };
+}
+const passado = () => new Date(Date.now() - 3600e3).toISOString();
+
+test('criação de evento: valida campos e devolve id e token do organizador', async () => {
+  await fetch(`${B}/api/master/settings`, { method: 'PUT', headers: { 'content-type': 'application/json', 'x-master-token': 'master-de-teste' }, body: JSON.stringify({ criacaoAberta: true }) });
+  const ok = await post('/api/events', { titulo: 'Casamento Teste', revealAt: futuro() });
+  assert.equal(ok.status, 201);
+  const j = await ok.json();
+  assert.match(j.id, /^[A-Za-z0-9_-]+$/);
+  assert.match(j.hostToken, /^[A-Za-z0-9_-]+$/);
+  const pub = await (await get(`/api/events/${j.id}`)).json();
+  assert.equal(pub.titulo, 'Casamento Teste');
+  assert.equal((await post('/api/events', { titulo: '', revealAt: futuro() })).status, 400);
+  assert.equal((await post('/api/events', { titulo: 'X' })).status, 400);
+  assert.equal((await post('/api/events', { titulo: 'X', revealAt: 'nao-e-data' })).status, 400);
+});
+
+test('entrada de convidado: cria convidado e consulta saldo; id inexistente', async () => {
+  const ev = await criar('Entrada');
+  const r = await post(`/api/events/${ev.id}/guests`, { nome: 'Maria' });
+  assert.equal(r.status, 201);
+  const j = await r.json();
+  assert.ok(j.guestId);
+  const info = await (await get(`/api/events/${ev.id}/guests/${j.guestId}`)).json();
+  assert.equal(info.nome, 'Maria');
+  assert.equal(info.fotosRestantes, 2);
+  assert.equal((await get(`/api/events/${ev.id}/guests/inexistente`)).status, 404);
+});
+
+test('upload de foto: funciona antes da revelação e valida tipo e guest', async () => {
+  const ev = await criar('Upload');
+  const r = await foto(ev);
+  assert.equal(r.status, 201);
+  const j = await r.json();
+  assert.ok(j.id);
+  assert.equal(j.restantes, 1);
+  const fd = new FormData();
+  fd.append('guestId', ev.guest);
+  fd.append('foto', new Blob(['x'], { type: 'text/plain' }), 'x.txt');
+  const bad = await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', body: fd });
+  assert.equal(bad.status, 400);
+  const fd2 = new FormData();
+  fd2.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  const noGuest = await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', body: fd2 });
+  assert.equal(noGuest.status, 403);
+});
+
+test('limite por convidado bloqueia upload excedente', async () => {
+  const ev = await criar('Limite');
+  assert.equal((await foto(ev)).status, 201);
+  assert.equal((await foto(ev)).status, 201);
+  assert.equal((await foto(ev)).status, 409);
+});
+
+test('foto bloqueada antes da revelação e liberada depois; token do organizador acessa antes', async () => {
+  const ev = await criar('Bloqueio');
+  const up = await (await foto(ev)).json();
+  const id = up.id;
+  assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`)).status, 403);
+  assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`, { 'x-host-token': 'token-invalido' })).status, 403);
+  assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`, { 'x-host-token': ev.tk })).status, 200);
+  const p = await fetch(`${B}/api/events/${ev.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json', 'x-host-token': ev.tk }, body: JSON.stringify({ revealAt: new Date(Date.now() - 1000).toISOString() }) });
+  assert.equal(p.status, 200);
+  assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`)).status, 200);
+  const lista = await (await get(`/api/events/${ev.id}/photos`)).json();
+  assert.equal(lista.revelado, true);
+  assert.ok(lista.fotos[0].url);
+});
+
+test('upload após revelação é bloqueado', async () => {
+  const ev = await criarComReveal('Depois', passado());
+  assert.equal((await foto(ev)).status, 409);
+});
+
+test('token do organizador: inválido não acessa; master acessa todos', async () => {
+  const a = await criar('TokenOrg');
+  const b = await criar('TokenOrg2');
+  assert.equal((await get(`/api/events/${b.id}/host`, { 'x-host-token': a.tk })).status, 403);
+  assert.equal((await get(`/api/events/${b.id}/host`, { 'x-host-token': 'qualquer' })).status, 403);
+  assert.equal((await get(`/api/events/${b.id}/host`, { 'x-host-token': 'master-de-teste' })).status, 200);
+});
+
+test('ids inexistentes retornam 404', async () => {
+  assert.equal((await get('/api/events/naoexiste')).status, 404);
+  assert.equal((await get('/api/events/naoexiste/photos')).status, 404);
+  assert.equal((await get('/api/events/naoexiste/photos/x/file')).status, 404);
+  assert.equal((await get('/api/events/naoexiste/guests/y')).status, 404);
+  assert.equal((await post('/api/events/naoexiste/guests', { nome: 'X' })).status, 404);
+});
+
+test('master: token inválido não lista casamentos', async () => {
+  assert.equal((await get('/api/master/events', { 'x-master-token': 'errado' })).status, 403);
+  assert.equal((await get('/api/master/events', { 'x-master-token': 'master-de-teste' })).status, 200);
+});
+
+test('listagem pré-revelação não expõe nenhuma foto (sem url, miniatura ou autor)', async () => {
+  const a = await criar('ListaPre');
+  const bia = await (await post(`/api/events/${a.id}/guests`, { nome: 'Bia' })).json();
+  const f1 = await (await foto(a)).json();
+  const f2 = await (await foto({ ...a, guest: bia.guestId })).json();
+
+  const r = await get(`/api/events/${a.id}/photos`);
+  assert.equal(r.status, 200); // o álbum precisa responder para desenhar os cadeados
+  const lista = await r.json();
+  assert.equal(lista.revelado, false);
+  assert.equal(lista.fotos.length, 2);
+
+  // Nada de foto no corpo: sem url/miniatura, sem autor, sem caminho de arquivo.
+  const corpo = JSON.stringify(lista);
+  assert.equal(corpo.includes('/file'), false);
+  assert.equal(corpo.includes('Rafa'), false);
+  assert.equal(corpo.includes('Bia'), false);
+
+  for (const p of lista.fotos) {
+    assert.deepEqual(Object.keys(p).sort(), ['bloqueada', 'id', 'minha']);
+    assert.equal(p.bloqueada, true);
+    // Mesmo sabendo o id, o arquivo (que é também a miniatura do álbum) não sai.
+    assert.equal((await get(`/api/events/${a.id}/photos/${p.id}/file`)).status, 403);
+  }
+  assert.equal((await get(`/api/events/${a.id}/photos/${f1.id}/file`)).status, 403);
+  assert.equal((await get(`/api/events/${a.id}/photos/${f2.id}/file`)).status, 403);
+  // ZIP do casal antes da revelação: 409; sem token: 403.
+  assert.equal((await get(`/api/events/${a.id}/fotos.zip`, { 'x-host-token': a.tk })).status, 409);
+  assert.equal((await get(`/api/events/${a.id}/fotos.zip`)).status, 403);
+
+  // Depois da revelação, a mesma listagem expõe url e autor de propósito.
+  await fetch(`${B}/api/events/${a.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json', 'x-host-token': a.tk }, body: JSON.stringify({ revealAt: passado() }) });
+  const depois = await (await get(`/api/events/${a.id}/photos`)).json();
+  assert.equal(depois.revelado, true);
+  assert.equal(depois.fotos.length, 2);
+  for (const p of depois.fotos) assert.equal(p.url, `/api/events/${a.id}/photos/${p.id}/file`);
+});
+
+test('nome vazio é recusado na entrada de convidado; saldo decresce após upload', async () => {
+  const ev = await criar('Saldo');
+  assert.equal((await post(`/api/events/${ev.id}/guests`, { nome: '' })).status, 400);
+  const antes = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`)).json();
+  assert.equal(antes.fotosRestantes, 2);
+  await foto(ev);
+  const depois = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`)).json();
+  assert.equal(depois.fotosUsadas, 1);
+  assert.equal(depois.fotosRestantes, 1);
+});
+
+test('evento suspenso bloqueia upload de fotos', async () => {
+  const ev = await criar('Suspenso');
+  await fetch(`${B}/api/master/events/${ev.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json', 'x-master-token': 'master-de-teste' }, body: JSON.stringify({ suspenso: true }) });
+  assert.equal((await foto(ev)).status, 403);
+});
+
+// ───── Relógio injetável (src/clock.js) ─────────────────────────────────────
+// O bloqueio da revelação é decidido pelo "agora" do servidor. Estes testes
+// trocam esse "agora" sem esperar horas: só valem com NODE_ENV=test.
+
+test('ponta a ponta: criar, entrar, fotografar — bloqueado antes da revelação e aberto depois', async () => {
+  clock.setNow('2026-11-20T20:00:00.000Z');
+  try {
+    // criar evento -> entrar -> fotografar
+    const r = await (await post('/api/events', { titulo: 'Revelacao com relogio', revealAt: new Date(clock.nowMs() + 3600e3).toISOString(), fotosPorConvidado: 2 })).json();
+    const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
+    const ev = { id: r.id, tk: r.hostToken, guest: g.guestId };
+    const up = await foto(ev);
+    assert.equal(up.status, 201);
+    const { id } = await up.json();
+    const H = { 'x-host-token': ev.tk };
+
+    // ANTES da revelação, para quem não é a organização: tudo bloqueado.
+    // URL do arquivo (e miniatura, que é a mesma rota usada como img src):
+    assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`)).status, 403);
+    assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file?token=invalido`)).status, 403);
+    // Listagem: responde 200 (o álbum precisa mostrar os cadeados), mas sem
+    // vazar miniatura, url ou autor.
+    const antes = await (await get(`/api/events/${ev.id}/photos`)).json();
+    assert.equal(antes.revelado, false);
+    assert.equal(antes.fotos.length, 1);
+    assert.equal(antes.fotos[0].bloqueada, true);
+    assert.equal('url' in antes.fotos[0], false);
+    assert.equal('autor' in antes.fotos[0], false);
+    // ZIP: nem sem token (403) nem com o link do casal (409, "só depois da revelação").
+    assert.equal((await get(`/api/events/${ev.id}/fotos.zip`)).status, 403);
+    assert.equal((await get(`/api/events/${ev.id}/fotos.zip`, H)).status, 409);
+
+    // Avança o relógio para depois da revelação.
+    clock.advance(2 * 3600e3);
+
+    // DEPOIS: o mesmo fluxo devolve 200.
+    assert.equal((await get(`/api/events/${ev.id}/photos/${id}/file`)).status, 200);
+    const depois = await (await get(`/api/events/${ev.id}/photos`)).json();
+    assert.equal(depois.revelado, true);
+    assert.equal(depois.fotos[0].bloqueada, undefined);
+    assert.equal(depois.fotos[0].url, `/api/events/${ev.id}/photos/${id}/file`);
+    const zip = await get(`/api/events/${ev.id}/fotos.zip`, H);
+    assert.equal(zip.status, 200);
+    const buf = Buffer.from(await zip.arrayBuffer());
+    assert.equal(buf.slice(0, 2).toString(), 'PK');
+  } finally {
+    clock.reset(); // devolve o relógio real para os outros testes
+  }
+});
+
+test('TEST_NOW é o instante em que o relógio do servidor começa', async () => {
+  assert.equal(clock.emTeste(), true);
+  const base = clock.setNow('2030-05-05T12:00:00.000Z');
+  const inicio = Date.parse('2030-05-05T12:00:00.000Z');
+  const tolerancia = 10e3; // o relógio injetado começa em TEST_NOW e segue andando
+  try {
+    assert.ok(base.getTime() >= inicio);
+    assert.ok(clock.nowMs() >= inicio && clock.nowMs() < inicio + tolerancia, `agora=${clock.iso()}`);
+    // O relógio injetado governa o que o servidor publica como "agora".
+    const a = await (await post('/api/events', { titulo: 'Relogio', revealAt: new Date(clock.nowMs() + 3600e3).toISOString() })).json();
+    const info = await (await get(`/api/events/${a.id}`)).json();
+    assert.equal(info.revelado, false);
+    const agora = Date.parse(info.agora);
+    assert.ok(agora >= inicio && agora < inicio + tolerancia, `agora=${info.agora}`);
+  } finally {
+    clock.reset();
+  }
+});
+
+// ───── Concorrência no limite por convidado ─────────────────────────────────
+test('dois uploads simultâneos do mesmo convidado no limite: só um passa', async () => {
+  const r = await (await post('/api/events', { titulo: 'Corrida no limite', revealAt: futuro(), fotosPorConvidado: 1 })).json();
+  const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Corredor' })).json();
+  const ev = { id: r.id, tk: r.hostToken, guest: g.guestId };
+
+  const [a, b] = await Promise.all([foto(ev), foto(ev)]);
+  assert.deepEqual([a.status, b.status].sort(), [201, 409]); // exatamente um passa
+
+  const lista = await (await get(`/api/events/${ev.id}/photos`)).json();
+  assert.equal(lista.fotos.length, 1);
+  const info = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`)).json();
+  assert.equal(info.fotosUsadas, 1);
+  assert.equal(info.fotosRestantes, 0);
+  const host = await (await get(`/api/events/${ev.id}/host`, { 'x-host-token': ev.tk })).json();
+  assert.equal(host.momentos, 1);
+});
+
+// ───── Reexecução (restart do servidor) sem perda ───────────────────────────
+// Sobe o servidor de verdade em outro processo, aponta DATA_DIR para uma pasta
+// nova, mata o processo e sobe de novo sobre a mesma pasta.
+function subirServidor(dataDir) {
+  const boot = [
+    "process.env.NODE_ENV = 'test';",
+    `process.env.DATA_DIR = ${JSON.stringify(dataDir)};`,
+    "process.env.MASTER_TOKEN = 'master-de-teste';",
+    `const app = require(${JSON.stringify(path.join(__dirname, '..', 'server.js'))});`,
+    "const s = app.listen(0, () => console.log('PORTA ' + s.address().port));",
+  ].join('\n');
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ['-e', boot], { stdio: ['ignore', 'pipe', 'pipe'] });
+    let saida = '', erro = '';
+    const prazo = setTimeout(() => { child.kill('SIGKILL'); reject(new Error(`timeout subindo o servidor: ${erro}`)); }, 30000);
+    child.stdout.on('data', (d) => {
+      saida += d;
+      const m = saida.match(/PORTA (\d+)/);
+      if (m) { clearTimeout(prazo); resolve({ child, base: `http://127.0.0.1:${m[1]}` }); }
+    });
+    child.stderr.on('data', (d) => { erro += d; });
+    child.on('exit', (c) => { clearTimeout(prazo); reject(new Error(`servidor saiu (código ${c}): ${erro}`)); });
+  });
+}
+const encerrar = (child) => new Promise((resolve) => { child.once('exit', resolve); child.kill('SIGTERM'); });
+
+test('restart do servidor não perde evento, convidado nem foto', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-restart-'));
+  let srv;
+  try {
+    srv = await subirServidor(dir);
+    const r = await (await fetch(`${srv.base}/api/events`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ titulo: 'Sobrevive ao restart', revealAt: futuro(), fotosPorConvidado: 2 }) })).json();
+    const g = await (await fetch(`${srv.base}/api/events/${r.id}/guests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome: 'Rafa' }) })).json();
+    const fd = new FormData(); fd.append('guestId', g.guestId); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+    const up = await fetch(`${srv.base}/api/events/${r.id}/photos`, { method: 'POST', body: fd });
+    assert.equal(up.status, 201);
+    const { id: fotoId } = await up.json();
+
+    // Reexecução: mata o processo e sobe outro sobre a mesma DATA_DIR.
+    await encerrar(srv.child);
+    srv = await subirServidor(dir);
+
+    const info = await (await fetch(`${srv.base}/api/events/${r.id}`)).json();
+    assert.equal(info.titulo, 'Sobrevive ao restart');
+    assert.equal(info.momentos, 1);
+    const lista = await (await fetch(`${srv.base}/api/events/${r.id}/photos`)).json();
+    assert.equal(lista.fotos.length, 1);
+    assert.equal(lista.fotos[0].id, fotoId);
+    const saldo = await (await fetch(`${srv.base}/api/events/${r.id}/guests/${g.guestId}`)).json();
+    assert.equal(saldo.fotosUsadas, 1);
+    assert.equal(saldo.fotosRestantes, 1);
+    // A foto continua no disco e continua protegida antes da revelação.
+    assert.equal((await fetch(`${srv.base}/api/events/${r.id}/photos/${fotoId}/file`)).status, 403);
+    const file = await fetch(`${srv.base}/api/events/${r.id}/photos/${fotoId}/file`, { headers: { 'x-host-token': r.hostToken } });
+    assert.equal(file.status, 200);
+    assert.deepEqual(Buffer.from(await file.arrayBuffer()), JPG);
+  } finally {
+    if (srv?.child) srv.child.kill('SIGKILL');
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+

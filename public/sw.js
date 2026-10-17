@@ -1,12 +1,12 @@
-// Service worker do Memo Brasil: habilita instalação (PWA) e recebe notificações push.
+// Service worker do Lume: habilita instalação (PWA) e recebe notificações push.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch', () => {}); // sem cache offline no MVP: tudo vem do servidor
 
 self.addEventListener('push', (event) => {
   let d = {};
-  try { d = event.data ? event.data.json() : {}; } catch { d = { titulo: 'Memo Brasil', corpo: event.data ? event.data.text() : '' }; }
-  event.waitUntil(self.registration.showNotification(d.titulo || 'Memo Brasil', {
+  try { d = event.data ? event.data.json() : {}; } catch { d = { titulo: 'Lume', corpo: event.data ? event.data.text() : '' }; }
+  event.waitUntil(self.registration.showNotification(d.titulo || 'Lume', {
     body: d.corpo || '', icon: '/icons/icon-192.png', badge: '/icons/icon-192.png', data: { url: d.url || '/' },
   }));
 });

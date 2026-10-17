@@ -36,6 +36,12 @@ test('PUBLIC_URL https sem MASTER_TOTP_KEY não sobe', () => {
   assert.match(r.stderr, /MASTER_TOTP_KEY/);
 });
 
+test('PUBLIC_URL https sem provedor de e-mail não sobe', () => {
+  const r = subir({ PUBLIC_URL: 'https://memo.exemplo.com', MASTER_TOTP_KEY: 'chave-de-teste' });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /provedor de e-mail/);
+});
+
 test('com PUBLIC_URL https a válvula de token estático é recusada', async () => {
   const dir = tmp();
   process.env.DATA_DIR = dir;
