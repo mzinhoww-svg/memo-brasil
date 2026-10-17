@@ -1,6 +1,6 @@
 # ACTIONS — pendências humanas
 
-Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial). Nunca colar segredos aqui; registrar só o nome da variável. Atualizado em 2026-10-16.
+Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial). Nunca colar segredos aqui; registrar só o nome da variável. Atualizado em 2026-10-17.
 
 > Nota: este arquivo vive em `docs/status`; esta cópia foi trazida para o PR #9 apenas para registrar as variáveis novas (proxy e válvulas do master). Ao mergear, manter a versão de `docs/status` e somar estas linhas.
 
@@ -15,7 +15,7 @@ Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial).
 ## Credenciais e contas (não presentes)
 | Variável / recurso | Uso | Observação |
 |---|---|---|
-| `EMAIL_PROVIDER`, `EMAIL_API_KEY` | E-mail transacional (link mágico, revelação) | Sem isto o link cai em log (B5 do #9); produção deve recusar subir. Até o módulo do #16 entrar, `/api/auth/link` responde 503 fora de dev/teste |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` (ou `EMAIL_API_KEY` para `resend`) | E-mail transacional (link mágico e aviso de revelação) | Módulo do #16 já na main. Em `PUBLIC_URL` https o servidor exige provedor **real** (`smtp`/`resend`) para subir; sem ele `/api/auth/link` responde 503 (console só em dev/teste ou com `EMAIL_CONSOLE_PERMITIDO=sim`) |
 | `MASTER_TOTP_KEY` (32 bytes aleatórios) | Cifrar segredo TOTP do master | Exigir em produção (B6 do #9) |
 | `MASTER_BOOTSTRAP_*` | Criar o primeiro master | Em https é o **único** caminho (token estático não vale). Preferir `scripts/master-criar.js <email> <nome>` com a senha em `MASTER_SENHA` ou no prompt — nunca como argumento |
 | Google OAuth (client id/secret) | Só se a decisão 002 for a opção C | Opcional |
@@ -38,7 +38,7 @@ Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial).
 
 ## Pendências técnicas (não bloqueiam o deploy)
 - **Bloqueio por conta no login master.** `master_accounts.falhas`/`bloqueado_ate` existem mas não são usados; hoje o único freio é 10 tentativas/15 min **por IP**. Precisa de decisão: um bloqueio por conta é vetor de DoS por terceiro (o Planejador levantou no #9). Opções: atraso progressivo por conta (não bloqueia) ou lockout com desbloqueio por e-mail. Enquanto não houver decisão, mantém-se só o limite por IP.
-- **Envio real do link mágico (#16).** Enquanto o módulo de e-mail não existir, `/api/auth/link` responde **503 fora de desenvolvimento/teste** (em dev/teste o link sai no console e em `DATA_DIR/auth.log`). Não respondemos mais 202 "enviamos" quando ninguém receberia nada.
+- **Envio do link mágico pelo módulo do #16** (`src/email`): em produção o link sai por `smtp`/`resend`; console só em dev/teste (e o link aí também vai para `DATA_DIR/auth.log`, nunca em produção). Sem provedor real fora de dev/teste, `/api/auth/link` responde **503** — não prometemos "enviamos" quando ninguém receberia nada.
 - **Credencial nunca na URL.** O painel e o master mandam o token só no cabeçalho (`x-host-token`/`x-master-token`); a rota do arquivo de foto e o painel **não** aceitam `?token=`. As miniaturas são buscadas com `fetch` e viram `blob:` (helper `imgAutenticada` em `public/common.js`), para o token não cair em log, histórico do navegador ou `Referer`.
 
 ## CI
