@@ -61,18 +61,6 @@ function el(tag, props = {}, ...kids) {
 function msg(node, text, ok) { node.textContent = text; node.className = 'msg' + (ok ? ' ok' : ''); }
 const stat = (n, l) => el('div', { class: 'card stat' }, el('b', {}, String(n)), el('span', {}, l));
 
-// Imagem autenticada sem token na URL: baixa com o header e usa um blob local.
-async function fotoComToken(url, alt) {
-  const img = el('img', { alt, loading: 'lazy' });
-  try {
-    const r = await fetch(url, { headers: { 'x-host-token': TOKEN } });
-    if (!r.ok) throw new Error('indisponível');
-    img.src = URL.createObjectURL(await r.blob());
-    img.onload = () => setTimeout(() => URL.revokeObjectURL(img.src), 15000);
-  } catch { img.alt = `${alt} (indisponível)`; }
-  return img;
-}
-
 const SECOES = {
   resumo: ['Resumo', rResumo], convidados: ['Convidados', rConvidados], programacao: ['Detalhes e programação', rProgramacao],
   fotos: ['Fotos e recados', rFotos], avisos: ['Avisos aos convidados', rAvisos], convite: ['Convite e QR Code', rConvite],
@@ -232,7 +220,9 @@ async function rFotos(v) {
       const legenda = [el('span', {}, f.autor)];
       if (f.denuncias) legenda.push(el('span', { class: 'sub', style: 'margin:0 0 0 8px' }, `⚑ ${f.denuncias}`));
       if (f.oculta) legenda.push(el('span', { class: 'sub', style: 'margin:0 0 0 8px' }, 'oculta'));
-      grid.append(el('div', { class: 'thumb' }, await fotoComToken(f.url, `Foto de ${f.autor}`),
+      const img = el('img', { alt: `Foto de ${f.autor}`, loading: 'lazy' });
+      imgAutenticada(f.url, { 'x-host-token': TOKEN }).then((s) => { if (s) img.src = s; });
+      grid.append(el('div', { class: 'thumb' }, img,
         el('div', {}, ...legenda,
           el('button', { class: 'btn sm', onclick: async () => { await call(`/photos/${f.id}`, { method: 'PATCH', body: JSON.stringify({ oculta: !f.oculta }) }); mostrar(); } }, f.oculta ? 'Mostrar' : 'Ocultar'),
           el('button', { class: 'btn sm danger', onclick: async () => { if (confirm('Apagar esta foto para sempre?')) { await call(`/photos/${f.id}`, { method: 'DELETE' }); mostrar(); } } }, 'Apagar'))));

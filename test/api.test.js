@@ -17,6 +17,9 @@ const app = require('../server.js');
 const JPG = Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
 let server, B;
 test.before(async () => { await new Promise((r) => { server = app.listen(0, r); }); B = `http://127.0.0.1:${server.address().port}`; });
+// Cada caso começa com os limitadores zerados: a suíte cria muitos eventos do
+// mesmo IP e o limite de criação (20/15 min) é por IP, de propósito.
+test.beforeEach(() => app.clearRateLimits());
 test.after(() => server.close());
 
 const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
@@ -43,6 +46,18 @@ test('álbum é individual: fotos de um casamento não aparecem em outro', async
   assert.equal(la.fotos.length, 1);
   assert.equal(lb.fotos.length, 0);
   assert.equal((await get(`/api/events/${b.id}/photos/${up.id}/file`, { 'x-host-token': b.tk })).status, 404);
+});
+
+test('convidado lê a ficha pública do evento sem vazar dados da organização', async () => {
+  const a = await criar('A');
+  const r = await get(`/api/events/${a.id}`);
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.titulo, 'A');
+  assert.equal(j.id, a.id);
+  assert.equal(j.hostToken, undefined);
+  assert.equal(j.lista, undefined);
+  assert.equal(JSON.stringify(j).includes('token'), false, 'nada de token na ficha pública');
 });
 
 test('convidado de um casamento não fotografa em outro', async () => {
