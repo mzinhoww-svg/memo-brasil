@@ -63,7 +63,7 @@ async function exportarEvento({ ev, dataDir, destino, agora = new Date() }) {
   const entradas = ['dados.json', 'LEIA-ME.txt'];
   await new Promise((resolve, reject) => {
     const z = new ZipArchive({ store: true });
-    const saida = fs.createWriteStream(destino);
+    const saida = fs.createWriteStream(destino, { mode: 0o600 });
     z.on('error', reject);
     saida.on('error', reject);
     saida.on('close', resolve);
@@ -73,6 +73,8 @@ async function exportarEvento({ ev, dataDir, destino, agora = new Date() }) {
     for (const f of fotos) if (f.existe) { z.file(f.origem, { name: f.nome }); entradas.push(f.nome); }
     z.finalize();
   });
+  // O zip contém dados pessoais: só o dono lê/escreve.
+  try { fs.chmodSync(destino, 0o600); } catch {}
   return { arquivo: destino, entradas, dados };
 }
 

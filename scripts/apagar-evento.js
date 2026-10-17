@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 'use strict';
-// Exclui um evento em cascata (arquivos de foto + registro no banco), de forma auditada.
-// NUNCA roda sem --confirmar=<id> e a confirmação precisa bater com o id. Não imprime PII.
+// Exclui um evento em cascata pelo Store/SQLite (banco + fotos), de forma auditada.
+// NUNCA roda sem --confirmar=<id> e exige o servidor PARADO (lock em DATA_DIR/server.lock).
 // Uso: node scripts/apagar-evento.js <id> --confirmar=<id>
 const path = require('path');
-const { carregarDb, salvarDb, registrarAuditoria } = require('../src/lgpd/db-json');
+const createStore = require('../src/store');
 const { apagarEvento } = require('../src/lgpd/apagar');
+const { registrarAuditoria, registrarExclusao } = require('../src/lgpd/auditoria');
+const { exigirServidorParado } = require('../src/lgpd/servidor');
 
-const dirDados = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
+const dirDados = path.resolve(process.env.DATA_DIR || path.join(__dirname, '..', 'data'));
 
 function uso(msg) {
   if (msg) console.error(msg);
@@ -21,13 +23,20 @@ const confirmar = (args.find((a) => a.startsWith('--confirmar=')) || '').slice('
 if (!id) uso('Informe o id do evento.');
 if (!confirmar) uso('Falta --confirmar=<id>. Sem essa confirmação nada é apagado.');
 
-const db = carregarDb(dirDados);
-const r = apagarEvento({ db, dataDir: dirDados, id, confirmar });
-if (!r.ok) {
-  if (r.motivo === 'confirmacao-invalida') uso('A confirmação não bate com o id. Nada foi apagado.');
-  console.error(`Evento ${id} não encontrado.`);
-  process.exit(1);
+try { exigirServidorParado(dirDados); } catch (e) { console.error(e.message); process.exit(3); }
+
+const store = createStore(dirDados);
+try {
+  const r = apagarEvento({ store, id, confirmar });
+  if (!r.ok) {
+    if (r.motivo === 'confirmacao-invalida') uso('A confirmação não bate com o id. Nada foi apagado.');
+    console.error(`Evento ${id} não encontrado.`);
+    process.exit(1);
+  }
+  const em = new Date().toISOString();
+  registrarAuditoria(dirDados, { quem: 'cli', evento: id, acao: 'evento.excluido', detalhe: { origem: 'script', resumo: r.resumo } });
+  registrarExclusao(dirDados, { id, motivo: 'apagar-evento', em });
+  console.log(`Evento ${id} excluído. Fotos: ${r.resumo.fotos}, convidados: ${r.resumo.convidados}, denúncias: ${r.resumo.denuncias}, registros de consentimento: ${r.resumo.consentimentos}.`);
+} finally {
+  store.close();
 }
-salvarDb(dirDados, db);
-registrarAuditoria(dirDados, { quem: 'cli', evento: id, acao: 'evento.excluido', detalhe: { origem: 'script', resumo: r.resumo } });
-console.log(`Evento ${id} excluído. Fotos: ${r.resumo.fotos}, convidados: ${r.resumo.convidados}, denúncias: ${r.resumo.denuncias}, registros de consentimento: ${r.resumo.consentimentos}.`);

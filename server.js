@@ -7,18 +7,23 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
-const { registrarConsentimento } = require('./src/lgpd/consentimento');
+const { tokenHash, verifyToken } = require('./src/store/sqlite');
+const clock = require('./src/clock');
+const { registrarConsentimento, validarConsentimento } = require('./src/lgpd/consentimento');
 const { registrarDenuncia, resolverDenunciasDaFoto } = require('./src/lgpd/denuncia');
+const { configRetencao, expiraEmMs } = require('./src/lgpd/retencao');
+const { registrarExclusao } = require('./src/lgpd/auditoria');
+const { enfileirarAviso } = require('./src/lgpd/outbox');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const PHOTO_DIR = path.join(DATA_DIR, 'photos');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
 const MAX_HARD_PHOTO_BYTES = 25 * 1024 * 1024; // teto técnico; o limite configurável fica em settings
 const RSVP = ['pendente', 'confirmado', 'recusado'];
 
 fs.mkdirSync(PHOTO_DIR, { recursive: true });
-
+const store = require(path.join(__dirname, 'src', 'store'))(DATA_DIR);
+const db = store.db;
 // Variáveis da plataforma, editáveis pelo admin master.
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const DEFAULTS = {
@@ -48,24 +53,9 @@ webpush.setVapidDetails(process.env.VAPID_CONTACT || 'mailto:contato@memobrasil.
 const AUDIT_FILE = path.join(DATA_DIR, 'audit.log');
 function audit(req, acao, detalhe = {}) {
   const quem = req.admin ? `${req.admin.papel}:${req.admin.nome}` : 'anon';
-  const linha = JSON.stringify({ t: new Date().toISOString(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
+  const linha = JSON.stringify({ t: clock.iso(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
   fs.appendFile(AUDIT_FILE, linha + '\n', () => {});
 }
-const db = fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) : { events: {} };
-
-const revealedAtBoot = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
-// Eventos criados em versões anteriores ganham os campos novos.
-for (const ev of Object.values(db.events)) {
-  Object.assign(ev, {
-    dataEvento: ev.dataEvento || null, local: ev.local || '', endereco: ev.endereco || '',
-    mensagem: ev.mensagem || '', cronograma: ev.cronograma || [], lista: ev.lista || [],
-    equipe: ev.equipe || [], recados: ev.recados || [], limites: ev.limites || {},
-    config: { ...CONFIG_PADRAO, ...(ev.config || {}) }, push: ev.push || [], avisos: ev.avisos || [],
-    denuncias: ev.denuncias || [], consentimentos: ev.consentimentos || [],
-    revealNotified: ev.revealNotified ?? revealedAtBoot(ev),
-  });
-}
-
 // Admin master: administra todos os casamentos (tenants). Token por ambiente ou gerado no primeiro uso.
 const MASTER_FILE = path.join(DATA_DIR, 'master.token');
 let MASTER_TOKEN = process.env.MASTER_TOKEN || '';
@@ -85,12 +75,10 @@ function isMaster(token) {
 }
 
 function save() {
-  const tmp = DB_FILE + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(db));
-  fs.renameSync(tmp, DB_FILE);
+  store.save();
 }
 const newId = (n = 6) => crypto.randomBytes(n).toString('base64url');
-const revealed = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
+const revealed = (ev) => clock.nowMs() >= new Date(ev.revealAt).getTime();
 const clean = (s, max) => String(s ?? '').trim().slice(0, max);
 const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -112,9 +100,9 @@ app.use(express.json({ limit: '1mb' }));
 // Modo manutenção: só o admin master passa.
 app.use('/api', (req, res, next) => {
   if (!settings.manutencao) return next();
-  const t = req.get('x-master-token') || req.get('x-host-token') || req.query.token;
+  const t = req.get('x-master-token') || req.get('x-host-token');
   if (isMaster(t) || req.path.startsWith('/config')) return next();
-  res.status(503).json({ erro: settings.avisoGlobal || 'O Memo está em manutenção. Volte em instantes.' });
+  res.status(503).json({ erro: settings.avisoGlobal || 'O Lume está em manutenção. Volte em instantes.' });
 });
 app.get('/api/config', (req, res) => res.json({
   criacaoAberta: settings.criacaoAberta, manutencao: settings.manutencao, avisoGlobal: settings.avisoGlobal,
@@ -130,12 +118,12 @@ function getEvent(req, res, next) {
 }
 // Organização do casamento: casal (dono) ou cerimonial (equipe). O convidado nunca passa por aqui.
 function adminOnly(req, res, next) {
-  const token = req.get('x-host-token') || req.query.token;
+  const token = req.get('x-host-token');
   const ev = req.ev;
   if (isMaster(token)) req.admin = { papel: 'master', nome: 'Admin master', dono: true, master: true };
-  else if (token && token === ev.hostToken) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
+  else if (token && verifyToken(token, ev.hostTokenHash)) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
   else {
-    const m = token && ev.equipe.find((e) => e.token === token);
+    const m = token && ev.equipe.find((e) => verifyToken(token, e.tokenHash));
     if (m) req.admin = { papel: m.papel, nome: m.nome, id: m.id };
   }
   if (!req.admin) return res.status(403).json({ erro: 'Acesso restrito à organização do casamento.' });
@@ -145,16 +133,26 @@ const donoOnly = (req, res, next) =>
   req.admin.dono ? next() : res.status(403).json({ erro: 'Só o casal pode fazer isso.' });
 
 // A organização (casal, cerimonial ou master) pode ver as fotos antes da revelação e as ocultas.
+// O token vai só no header — nunca em ?token=, que vaza em log e Referer — e é comparado por hash.
 function ehOrg(req) {
-  const token = req.get('x-master-token') || req.get('x-host-token') || req.query.token;
-  return !!token && (isMaster(token) || token === req.ev.hostToken || req.ev.equipe.some((m) => m.token === token));
+  if (isMaster(req.get('x-master-token') || req.get('x-host-token'))) return true;
+  const token = req.get('x-host-token');
+  return !!token && (verifyToken(token, req.ev.hostTokenHash) || req.ev.equipe.some((m) => verifyToken(token, m.tokenHash)));
+}
+
+// Convidado autenticado: id + token entregue na entrada (guardamos só o hash).
+function autenticaConvidado(ev, guestId, token) {
+  if (!guestId || !token) return null;
+  const g = ev.guests.find((x) => x.id === guestId);
+  if (!g || !verifyToken(token, g.tokenHash)) return null;
+  return g;
 }
 
 function publicInfo(ev) {
   return {
     id: ev.id, titulo: ev.titulo, revealAt: ev.revealAt, revelado: revealed(ev),
-    agora: new Date().toISOString(), fotosPorConvidado: ev.fotosPorConvidado,
-    momentos: ev.photos.length, pessoas: ev.guests.length,
+    agora: clock.iso(), fotosPorConvidado: ev.fotosPorConvidado,
+    momentos: ev.photos.filter((p) => !p.oculta).length, pessoas: ev.guests.length,
     dataEvento: ev.dataEvento, local: ev.local, endereco: ev.endereco, mensagem: ev.mensagem,
     cronograma: ev.cronograma, suspenso: !!ev.suspenso, config: ev.config,
   };
@@ -175,14 +173,15 @@ app.post('/api/events', (req, res) => {
   if (!titulo) return res.status(400).json({ erro: 'Informe o nome do evento.' });
   if (isNaN(revealAt)) return res.status(400).json({ erro: 'Informe quando as fotos serão reveladas.' });
   const dataEvento = req.body.dataEvento ? new Date(req.body.dataEvento) : null;
+  const hostToken = newId(16);
   const ev = {
-    id: newId(5), hostToken: newId(16), titulo, revealAt: revealAt.toISOString(), fotosPorConvidado,
+    id: newId(5), hostToken, hostTokenHash: tokenHash(hostToken), titulo, revealAt: revealAt.toISOString(), fotosPorConvidado,
     dataEvento: dataEvento && !isNaN(dataEvento) ? dataEvento.toISOString() : null,
     local: clean(req.body.local, 80), endereco: clean(req.body.endereco, 160), mensagem: '',
     contato: clean(req.body.contato, 80), suspenso: false, limites: {}, config: { ...CONFIG_PADRAO },
     push: [], avisos: [], revealNotified: false, denuncias: [], consentimentos: [],
     cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [],
-    createdAt: new Date().toISOString(),
+    createdAt: clock.iso(),
   };
   db.events[ev.id] = ev;
   save();
@@ -200,6 +199,8 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     if (l.rsvp === 'confirmado') rsvp.pessoasConfirmadas += 1 + (l.acompanhantes || 0);
   }
   const base = baseUrl(req);
+  const visiveis = ev.photos.filter((p) => !p.oculta);
+  const expira = expiraEmMs(ev, configRetencao({ settings }));
   res.json({
     ...publicInfo(ev),
     papel: req.admin.papel, nome: req.admin.nome, dono: !!req.admin.dono, master: !!req.admin.master,
@@ -207,10 +208,16 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     linkConvite: `${base}/e/${ev.id}`,
     totalLista: ev.lista.length, rsvp, pushInscritos: ev.push.length,
     limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
-    fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
+    fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: visiveis.filter((p) => p.guestId === g.id).length })),
+    retencao: expira ? { apagaEm: new Date(expira).toISOString(), diasRestantes: Math.ceil((expira - clock.nowMs()) / 86400000), avisoEm: ev.retencaoAvisoEm || null } : null,
     recados: ev.recados.length,
     equipe: req.admin.dono
-      ? ev.equipe.map((m) => ({ id: m.id, nome: m.nome, papel: m.papel, link: `${base}/painel/${ev.id}#t=${m.token}` }))
+      ? ev.equipe.map((m) => ({
+          id: m.id, nome: m.nome, papel: m.papel, linkEmitido: true,
+          // O token em claro só existe na criação (logo após o POST). Depois de
+          // um reinício o store carrega apenas o hash, então não há link para exibir.
+          link: m.token ? `${base}/painel/${ev.id}#t=${m.token}` : null,
+        }))
       : undefined,
   });
 });
@@ -311,9 +318,10 @@ app.post('/api/events/:id/equipe', getEvent, adminOnly, donoOnly, (req, res) => 
   const papel = req.body.papel === 'casal' ? 'casal' : 'cerimonial';
   if (!nome) return res.status(400).json({ erro: 'Informe o nome.' });
   if (req.ev.equipe.length >= 20) return res.status(409).json({ erro: 'Equipe cheia.' });
-  const m = { id: newId(5), nome, papel, token: newId(16) };
+  const token = newId(16);
+  const m = { id: newId(5), nome, papel, token, tokenHash: tokenHash(token) };
   req.ev.equipe.push(m);
-  audit(req, 'equipe.convidada', { nome, papel });
+  audit(req, 'equipe.convidada', { membro: m.id, papel });
   save();
   res.status(201).json({ id: m.id, nome, papel, link: `${baseUrl(req)}/painel/${req.ev.id}#t=${m.token}` });
 });
@@ -322,6 +330,17 @@ app.delete('/api/events/:id/equipe/:eid', getEvent, adminOnly, donoOnly, (req, r
   audit(req, 'equipe.removida', { membro: req.params.eid });
   save();
   res.json({ ok: true });
+});
+// Rotaciona o link de um membro da equipe (o token em claro é irrecuperável).
+app.post('/api/events/:id/equipe/:eid/rotacionar-link', getEvent, adminOnly, donoOnly, (req, res) => {
+  const m = req.ev.equipe.find((x) => x.id === req.params.eid);
+  if (!m) return res.status(404).json({ erro: 'Membro não encontrado.' });
+  const token = newId(16);
+  m.token = token;
+  m.tokenHash = tokenHash(token);
+  audit(req, 'equipe.link.rotacionado', { membro: m.id });
+  save();
+  res.json({ id: m.id, link: `${baseUrl(req)}/painel/${req.ev.id}#t=${token}` });
 });
 
 // Moderação (organização vê as fotos antes da revelação só aqui, e de propósito)
@@ -353,7 +372,7 @@ app.delete('/api/events/:id/photos/:pid', getEvent, adminOnly, (req, res) => {
   if (i < 0) return res.status(404).json({ erro: 'Foto não encontrada.' });
   const [p] = req.ev.photos.splice(i, 1);
   resolverDenunciasDaFoto(req.ev, p.id, 'foto-apagada');
-  audit(req, 'foto.apagada', { foto: p.id, autor: p.autor });
+  audit(req, 'foto.apagada', { foto: p.id });
   fs.rmSync(path.join(PHOTO_DIR, req.ev.id, `${p.id}.${p.ext}`), { force: true });
   save();
   res.json({ ok: true });
@@ -395,14 +414,16 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   if (ev.guests.length >= limGuests(ev)) return res.status(409).json({ erro: 'Evento lotado.' });
   if (ev.config.apenasLista && !ev.lista.some((l) => norm(l.nome) === norm(nome)))
     return res.status(403).json({ erro: 'Este evento é só para convidados da lista. Use o nome exatamente como os noivos cadastraram.' });
+  const consent = validarConsentimento(req.body.consentimento);
+  if (!consent.ok) return res.status(400).json({ erro: consent.erro });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
-  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: new Date().toISOString(), listaId: item?.id };
+  const guestToken = newId(16);
+  const g = { id: newId(8), tokenHash: tokenHash(guestToken), nome: item ? item.nome : nome, entrouEm: clock.iso(), listaId: item?.id };
   ev.guests.push(g);
-  // Registra o consentimento na entrada (versão do texto e data), mesmo se o cliente não enviar nada.
-  const consentimento = registrarConsentimento(ev, g, req.body.consentimento);
+  const consentimento = registrarConsentimento(ev, g, consent.valor);
   save();
   res.status(201).json({
-    guestId: g.id, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null,
+    guestId: g.id, guestToken, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null,
     consentimento: { versao: consentimento.versao, em: consentimento.em },
   });
 });
@@ -447,7 +468,7 @@ app.post('/api/events/:id/recados', getEvent, (req, res) => {
   if (!texto) return res.status(400).json({ erro: 'Escreva seu recado.' });
   const mine = req.ev.recados.filter((r) => r.guestId === g.id).length;
   if (mine >= 5) return res.status(409).json({ erro: 'Você já deixou 5 recados.' });
-  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: new Date().toISOString() };
+  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: clock.iso() };
   req.ev.recados.push(r);
   save();
   res.status(201).json({ id: r.id });
@@ -472,7 +493,7 @@ app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) =
   const dir = path.join(PHOTO_DIR, ev.id);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, `${id}.${ext}`), req.file.buffer);
-  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: new Date().toISOString() });
+  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: clock.iso() });
   save();
   res.status(201).json({ id, restantes: ev.fotosPorConvidado - usadas - 1 });
 });
@@ -489,7 +510,7 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
       ? { id: p.id, autor: ev.config.mostrarAutor ? p.autor : '', criadaEm: p.criadaEm, minha: p.guestId === guestId, oculta: !!p.oculta, url: `/api/events/${ev.id}/photos/${p.id}/file` }
       : { id: p.id, bloqueada: true, minha: p.guestId === guestId }
   );
-  res.json({ revelado: open, revealAt: ev.revealAt, agora: new Date().toISOString(), fotos: lista });
+  res.json({ revelado: open, revealAt: ev.revealAt, agora: clock.iso(), fotos: lista });
 });
 
 // O arquivo só sai depois da revelação — exceto para a organização (moderação) — e nunca se estiver oculto.
@@ -504,11 +525,22 @@ app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
 
 // Convidado autenticado denuncia uma foto. A organização é avisada e modera.
 app.post('/api/events/:id/fotos/:pid/denunciar', getEvent, (req, res) => {
-  const r = registrarDenuncia(req.ev, { fotoId: req.params.pid, guestId: req.body?.guestId, motivo: req.body?.motivo });
+  const guest = autenticaConvidado(req.ev, req.body?.guestId, req.get('x-guest-token'));
+  if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de denunciar.' });
+  const r = registrarDenuncia(req.ev, { fotoId: req.params.pid, guest, motivo: req.body?.motivo });
   if (r.erro) return res.status(r.status).json({ erro: r.erro });
   if (!r.repetida) {
     audit(req, 'foto.denunciada', { foto: req.params.pid, denunciante: 'convidado' });
     save();
+    // Aviso ao casal em fila de e-mail (sem copiar a imagem nem o motivo).
+    try {
+      enfileirarAviso(DATA_DIR, `denuncia-${r.denuncia.id}.json`, {
+        para: req.ev.contato || '',
+        assunto: 'Uma foto foi denunciada no seu álbum',
+        texto: `A foto ${r.denuncia.fotoId} foi denunciada. Revise no painel, em Fotos e recados, e responda em até 48 horas.`,
+        criadoEm: clock.iso(),
+      });
+    } catch {}
   }
   res.status(r.repetida ? 200 : 201).json({ id: r.denuncia.id, repetida: !!r.repetida });
 });
@@ -521,15 +553,15 @@ app.use((err, req, res, next) => {
 
 // ───── Admin master (todos os casamentos)
 function masterOnly(req, res, next) {
-  if (!isMaster(req.get('x-master-token') || req.get('x-host-token') || req.query.token))
-    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Memo.' });
+  if (!isMaster(req.get('x-master-token') || req.get('x-host-token')))
+    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Lume.' });
   req.admin = { papel: 'master', nome: 'Admin master', master: true, dono: true };
   next();
 }
 const resumoEvento = (ev) => ({
   id: ev.id, titulo: ev.titulo, contato: ev.contato || '', criadoEm: ev.createdAt,
   dataEvento: ev.dataEvento, revealAt: ev.revealAt, revelado: revealed(ev), suspenso: !!ev.suspenso,
-  fotos: ev.photos.length, camera: ev.guests.length, lista: ev.lista.length, recados: ev.recados.length,
+  fotos: ev.photos.filter((p) => !p.oculta).length, camera: ev.guests.length, lista: ev.lista.length, recados: ev.recados.length,
   confirmados: ev.lista.filter((l) => l.rsvp === 'confirmado').length, equipe: ev.equipe.length,
   push: ev.push.length, avisos: ev.avisos.length, limites: ev.limites, config: ev.config,
   limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
@@ -564,10 +596,9 @@ app.patch('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
 });
 app.delete('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
   if (req.body?.confirmar !== req.ev.id) return res.status(400).json({ erro: 'Confirme enviando o id do evento.' });
-  audit(req, 'evento.excluido', { titulo: req.ev.titulo });
-  fs.rmSync(path.join(PHOTO_DIR, req.ev.id), { recursive: true, force: true });
-  delete db.events[req.ev.id];
-  save();
+  audit(req, 'evento.excluido', { evento: req.ev.id });
+  store.deleteEvent(req.ev.id);
+  registrarExclusao(DATA_DIR, { id: req.ev.id, motivo: 'master', em: clock.iso() });
   res.json({ ok: true });
 });
 // Fotos mais recentes de todos os casamentos, antes de qualquer revelação.
@@ -590,7 +621,7 @@ app.post('/api/events/:id/push/subscribe', getEvent, (req, res) => {
   if (!subscriptionOk(sub)) return res.status(400).json({ erro: 'Inscrição inválida.' });
   if (req.ev.push.length >= 6000) return res.status(409).json({ erro: 'Limite de notificações atingido.' });
   const i = req.ev.push.findIndex((p) => p.sub.endpoint === sub.endpoint);
-  const reg = { id: newId(6), guestId: g.id, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, criadoEm: new Date().toISOString() };
+  const reg = { id: newId(6), guestId: g.id, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, criadoEm: clock.iso() };
   if (i >= 0) req.ev.push[i] = { ...reg, id: req.ev.push[i].id }; else req.ev.push.push(reg);
   save();
   res.status(201).json({ ok: true });
@@ -619,9 +650,9 @@ app.post('/api/events/:id/avisos', getEvent, adminOnly, async (req, res) => {
   const ev = req.ev;
   const titulo = clean(req.body.titulo, 60), corpo = clean(req.body.corpo, 200);
   if (!titulo || !corpo) return res.status(400).json({ erro: 'Escreva o título e a mensagem do aviso.' });
-  const recentes = ev.avisos.filter((a) => Date.now() - new Date(a.enviadoEm).getTime() < 3600e3).length;
+  const recentes = ev.avisos.filter((a) => clock.nowMs() - new Date(a.enviadoEm).getTime() < 3600e3).length;
   if (recentes >= 5 && !req.admin.master) return res.status(429).json({ erro: 'Limite de 5 avisos por hora. Tente mais tarde.' });
-  const aviso = { id: newId(5), titulo, corpo, enviadoEm: new Date().toISOString(), por: req.admin.nome };
+  const aviso = { id: newId(5), titulo, corpo, enviadoEm: clock.iso(), por: req.admin.nome };
   const r = settings.pushAtivo ? await enviarPush(ev, { titulo, corpo }) : { alvos: 0, entregues: 0, falhas: 0 };
   ev.avisos.push({ ...aviso, ...r });
   audit(req, 'aviso.enviado', { titulo, ...r });
@@ -635,7 +666,7 @@ setInterval(async () => {
     if (ev.revealNotified || !revealed(ev)) continue;
     ev.revealNotified = true;
     const r = settings.pushAtivo && !ev.suspenso ? await enviarPush(ev, { titulo: 'As fotos foram reveladas! 🎉', corpo: `Veja o álbum de ${ev.titulo}.`, url: `/e/${ev.id}/album` }) : { alvos: 0, entregues: 0, falhas: 0 };
-    ev.avisos.push({ id: newId(5), titulo: 'As fotos foram reveladas! 🎉', corpo: `O álbum de ${ev.titulo} está aberto.`, enviadoEm: new Date().toISOString(), por: 'Sistema', ...r });
+    ev.avisos.push({ id: newId(5), titulo: 'As fotos foram reveladas! 🎉', corpo: `O álbum de ${ev.titulo} está aberto.`, enviadoEm: clock.iso(), por: 'Sistema', ...r });
     save();
   }
 }, 30000).unref();
@@ -645,7 +676,7 @@ app.get('/e/:id/manifest.webmanifest', getEvent, (req, res) => {
   res.type('application/manifest+json').json({
     name: ev.titulo, short_name: ev.titulo.slice(0, 12), lang: 'pt-BR', id: `/e/${ev.id}/`,
     start_url: `/e/${ev.id}/inicio`, scope: `/e/${ev.id}/`, display: 'standalone',
-    background_color: '#0e0d0c', theme_color: '#0e0d0c',
+    background_color: '#14110E', theme_color: '#14110E',
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -665,7 +696,8 @@ app.get('/api/events/:id/lista.csv', getEvent, adminOnly, (req, res) => {
 app.get('/api/events/:id/fotos.zip', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
   if (!revealed(ev) && !req.admin.master) return res.status(409).json({ erro: 'O álbum só pode ser baixado depois da revelação.' });
-  audit(req, 'fotos.baixadas', { total: ev.photos.length });
+  const visiveis = ev.photos.filter((p) => !p.oculta);
+  audit(req, 'fotos.baixadas', { total: visiveis.length });
   res.type('application/zip').set('Content-Disposition', `attachment; filename="album-${ev.id}.zip"`);
   const z = new ZipArchive({ store: true });
   z.on('error', () => res.end());
@@ -704,10 +736,12 @@ app.get('/api/master/audit', masterOnly, (req, res) => {
   res.json({ registros: linhas });
 });
 app.post('/api/master/events/:id/rotacionar-link', masterOnly, getEvent, (req, res) => {
-  req.ev.hostToken = newId(16);
+  const hostToken = newId(16);
+  req.ev.hostToken = hostToken;
+  req.ev.hostTokenHash = tokenHash(hostToken);
   audit(req, 'link.casal.rotacionado');
   save();
-  res.json({ link: `${baseUrl(req)}/painel/${req.ev.id}#t=${req.ev.hostToken}` });
+  res.json({ link: `${baseUrl(req)}/painel/${req.ev.id}#t=${hostToken}` });
 });
 app.post('/api/master/avisos', masterOnly, async (req, res) => {
   const titulo = clean(req.body.titulo, 60), corpo = clean(req.body.corpo, 200);
@@ -749,11 +783,20 @@ app.get('/sw.js', (req, res) => res.set('Service-Worker-Allowed', '/').type('app
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
+  const { escreverLock, removerLock } = require('./src/lgpd/servidor');
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  escreverLock(DATA_DIR);
+  const encerrar = () => { removerLock(DATA_DIR); process.exit(0); };
+  process.once('SIGINT', encerrar);
+  process.once('SIGTERM', encerrar);
+  process.once('exit', () => removerLock(DATA_DIR));
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Memo Brasil em http://localhost:${PORT}`);
+    console.log(`Lume em http://localhost:${PORT}`);
     console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
     console.log(`Admin master: http://localhost:${PORT}/master`);
     if (lanIp()) console.log(`Na mesma rede Wi-Fi (celular): http://${lanIp()}:${PORT}`);
   });
 }
 module.exports = app;
+// Exposto para testes de integração (o Store é a fonte da verdade em memória).
+module.exports.store = store;

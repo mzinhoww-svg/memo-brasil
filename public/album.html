@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Álbum</title>
+<link rel="icon" href="/icons/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/Fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
@@ -15,15 +18,15 @@
     <div><b id="restam">—</b><span id="restamLbl">Restantes</span></div>
     <div><b id="pessoas">0</b><span>Pessoas</span></div>
   </div>
-  <button class="btn primary" id="retro" style="display:none">✨ Ver retrospectiva</button>
+  <button class="btn primary" id="retro" style="display:none"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#brilho"/></svg> Ver retrospectiva</button>
   <div class="row" style="margin-top:10px">
-    <a class="btn" id="camera">📷 Abrir câmera</a>
+    <a class="btn" id="camera"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#camera"/></svg> Abrir câmera</a>
     <a class="btn" id="convidar">Convidar</a>
   </div>
   <div class="grid" id="grid"></div>
   <p id="vazio" class="center" style="display:none">Ainda não há momentos. Abra a câmera e faça o primeiro.</p>
 </main>
-<div class="retro" id="overlay"><button class="close" id="fechar">Fechar</button><img id="rimg" alt=""><div class="autor" id="rautor"></div></div>
+<div class="retro" id="overlay"><button class="close" id="fechar">Fechar</button><img id="rimg" alt=""><div class="autor" id="rautor"></div><button class="btn" id="denunciar" style="margin-top:12px;display:none">Denunciar foto</button></div>
 <script src="/common.js"></script>
 <script>
 const id = eventId();
@@ -55,7 +58,7 @@ function render() {
     const t = document.createElement('div');
     if (f.bloqueada) {
       t.className = 'tile locked';
-      const lock = document.createElement('span'); lock.textContent = '🔒';
+      const lock = document.createElement('span'); lock.innerHTML = '<svg class="ico lg" aria-hidden="true"><use href="/icons/sprite.svg#cadeado"/></svg>';
       const p = document.createElement('span'); p.className = 'pill'; p.dataset.rev = '1';
       t.append(lock, p);
     } else {
@@ -76,7 +79,22 @@ function tick() {
   $('#restamLbl').textContent = revelado ? 'Álbum aberto' : 'Restantes';
   document.querySelectorAll('[data-rev]').forEach((el) => (el.textContent = `Revela em ${duracao(ms)}`));
 }
-function abre(f) { $('#rimg').src = f.url; $('#rautor').textContent = f.autor; $('#overlay').classList.add('on'); }
+let atual = null;
+function abre(f) {
+  atual = f;
+  $('#rimg').src = f.url; $('#rautor').textContent = f.autor;
+  $('#denunciar').style.display = g && g.guestToken ? 'inline-flex' : 'none';
+  $('#overlay').classList.add('on');
+}
+$('#denunciar').onclick = async () => {
+  const f = atual;
+  if (!f || !g || !g.guestToken) return;
+  const motivo = prompt('Por que esta foto deve ser revista? (opcional)') ?? '';
+  try {
+    await api(`/api/events/${id}/fotos/${f.id}/denunciar`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-guest-token': g.guestToken }, body: JSON.stringify({ guestId: g.guestId, motivo }) });
+    alert('Denúncia enviada. A organização vai revisar.');
+  } catch (e) { alert(e.message); }
+};
 let timer = null;
 $('#retro').onclick = () => {
   let i = 0; const lista = [...fotos].sort(() => Math.random() - 0.5);

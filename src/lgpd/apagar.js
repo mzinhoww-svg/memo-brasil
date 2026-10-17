@@ -1,17 +1,16 @@
-// Exclusão de um evento em cascata: arquivos de foto e o registro no banco.
+// Exclusão de um evento em cascata pelo Store (SQLite): banco + arquivos de foto.
 // Exige confirmação pelo próprio id (feita pelo script) e nunca toca em outro evento.
-const fs = require('fs');
-const { caminhoFotos, resumoEvento } = require('./dados');
+const { resumoEvento } = require('./dados');
 
-function apagarEvento({ db, dataDir, id, confirmar }) {
+function apagarEvento({ store, id, confirmar }) {
   if (!id) return { ok: false, motivo: 'sem-id' };
   if (confirmar !== id) return { ok: false, motivo: 'confirmacao-invalida' };
-  const eventos = db.events || {};
-  const alvo = eventos[id];
-  if (!alvo) return { ok: false, motivo: 'nao-encontrado' };
-  const resumo = resumoEvento(alvo);
-  fs.rmSync(caminhoFotos(dataDir, id), { recursive: true, force: true });
-  delete eventos[id];
+  const ev = store.db.events[id];
+  if (!ev) return { ok: false, motivo: 'nao-encontrado' };
+  const resumo = resumoEvento(ev);
+  // deleteEvent faz o DELETE no SQLite (FK/trigger em cascata nas linhas filhas)
+  // e remove o diretório de fotos do evento.
+  if (!store.deleteEvent(id)) return { ok: false, motivo: 'nao-encontrado' };
   return { ok: true, resumo };
 }
 

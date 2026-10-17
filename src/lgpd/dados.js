@@ -5,8 +5,9 @@ const path = require('path');
 // Chaves que nunca podem sair em uma exportação nem entrar em log.
 // hostToken e o token da equipe dão acesso ao painel; push/sub/keys são inscrições do aparelho.
 const CHAVES_SENSIVEIS = new Set([
-  'hostToken', 'token', 'push', 'sub', 'subscription', 'keys', 'p256dh', 'auth',
-  'endpoint', 'privateKey', 'senha', 'password',
+  'hostToken', 'hostTokenHash', 'token', 'tokenHash', 'guestToken', 'guestTokenHash',
+  'push', 'sub', 'subscription', 'keys', 'p256dh', 'auth',
+  'endpoint', 'privateKey', 'senha', 'password', 'session',
 ]);
 
 // Eventos gravados por versões antigas ganham os campos novos antes de qualquer uso.
