@@ -58,7 +58,7 @@ test('redigir mascara token= e #t= sem mexer no resto do texto', () => {
   assert.equal(redigir('sem token aqui'), 'sem token aqui');
 });
 
-test('SMTP (Brevo) envia com STARTTLS na 587 e credenciais próprias', async () => {
+test('SMTP (Brevo) envia com STARTTLS na 587, credenciais próprias e Message-ID', async () => {
   const chamadas = [];
   let opcoesTransporte = null;
   const env = {
@@ -78,10 +78,13 @@ test('SMTP (Brevo) envia com STARTTLS na 587 e credenciais próprias', async () 
   assert.equal(opcoesTransporte.requireTLS, true);
   assert.deepEqual(opcoesTransporte.auth, { user: 'usuario-de-teste', pass: 'senha-de-teste' });
 
-  const r = await email.enviar({ para: 'noivos@exemplo.com', assunto: 'Seu álbum', texto: 't', html: '<p>t</p>' });
+  const r = await email.enviar({ para: 'noivos@exemplo.com', assunto: 'Seu álbum', texto: 't', html: '<p>t</p>', messageId: '<revelacao-abc@lume.app>' });
   assert.equal(r.id, 'smtp-1');
   assert.equal(r.provedor, 'smtp');
-  assert.deepEqual(chamadas[0], { from: 'Lume <ola@exemplo.com>', to: 'noivos@exemplo.com', subject: 'Seu álbum', text: 't', html: '<p>t</p>' });
+  assert.deepEqual(chamadas[0], {
+    from: 'Lume <ola@exemplo.com>', to: 'noivos@exemplo.com', subject: 'Seu álbum', text: 't', html: '<p>t</p>',
+    messageId: '<revelacao-abc@lume.app>',
+  });
 });
 
 test('SMTP aceita MAIL_FROM, host/porta por variável e 465 como TLS direto', async () => {
@@ -126,11 +129,14 @@ test('Resend (alternativa HTTP) envia com EMAIL_API_KEY e EMAIL_FROM', async () 
     { httpPost: async (url, init) => { chamadas.push({ url, init }); return { ok: true, status: 200, json: async () => ({ id: 'msg_1' }) }; } },
   );
   assert.equal(email.nome, 'resend');
-  const r = await email.enviar({ para: 'noivos@exemplo.com', assunto: 'Seu álbum', texto: 't', html: '<p>t</p>' });
+  const r = await email.enviar({ para: 'noivos@exemplo.com', assunto: 'Seu álbum', texto: 't', html: '<p>t</p>', messageId: '<revelacao-abc@lume.app>' });
   assert.equal(r.id, 'msg_1');
   const { url, init } = chamadas[0];
   assert.equal(url, 'https://api.resend.com/emails');
   assert.equal(init.headers.authorization, 'Bearer chave-de-teste');
+  // Idempotência no provedor: repetir o mesmo Message-ID não duplica a entrega.
+  assert.equal(init.headers['Idempotency-Key'], '<revelacao-abc@lume.app>');
+  assert.equal(init.headers['Message-ID'], '<revelacao-abc@lume.app>');
   const corpo = JSON.parse(init.body);
   assert.deepEqual(corpo.to, ['noivos@exemplo.com']);
   assert.equal(corpo.from, 'Lume <ola@lume.app>');

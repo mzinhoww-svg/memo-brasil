@@ -13,7 +13,7 @@ process.env.EMAIL_PROVIDER = 'console';
 
 const app = require('../server.js');
 const createStore = require('../src/store');
-const { processarRevelacoes } = require('../src/reveal/job');
+const { processarRevelacoes, mensagemIdRevelacao } = require('../src/reveal/job');
 const { montarRetrospectiva } = require('../src/reveal/retrospectiva');
 const { fotoVisivel } = require('../src/util/fotos');
 
@@ -135,10 +135,56 @@ test('timeout: provedor que não responde não trava o job', async () => {
   const eventos = { ev1: evento() };
   const email = { nome: 'travado', enviar: () => new Promise(() => {}) };
   const r = await processarRevelacoes({ eventos, agora: relogio('2026-06-01T02:00:00.000Z'), email, pushEnviar: fakePush().pushEnviar, persistir: () => {}, timeoutMs: 20 });
-  assert.equal(r.emailsFalhos, 1);
+  assert.equal(r.emailsIncerto, 1);
   assert.match(eventos.ev1.emailErro, /tempo esgotado/);
+  assert.equal(eventos.ev1.emailIncerto, true);
   assert.equal(eventos.ev1.emailEnviado, false);
   assert.equal(eventos.ev1.revealNotified, true, 'o push não depende do e-mail');
+});
+
+// Condição pós-merge do QA: o timeout abandona a espera, mas o envio pode ter
+// chegado. Marcar como incerto e NÃO reenviar automaticamente (no máximo 1 cópia).
+test('timeout deixa o envio incerto e não reenvia sozinho (no máximo um e-mail)', async () => {
+  const eventos = { ev1: evento() };
+  let entregues = 0;
+  const email = {
+    nome: 'lento',
+    // Provedor mais lento que o timeout: entrega depois e conta como incerto.
+    enviar: async () => { await new Promise((r) => setTimeout(r, 60)); entregues++; return { id: 'lento-1' }; },
+  };
+  const deps = { agora: relogio('2026-06-01T02:00:00.000Z'), email, pushEnviar: fakePush().pushEnviar, persistir: () => {}, timeoutMs: 10 };
+  const r1 = await processarRevelacoes({ eventos, ...deps });
+  assert.equal(r1.emailsIncerto, 1);
+  assert.equal(eventos.ev1.emailIncerto, true);
+
+  // Cinco ciclos depois: nenhum reenvio automático (antes eram até 5 cópias).
+  for (let i = 0; i < 5; i++) {
+    const r = await processarRevelacoes({ eventos, ...deps });
+    assert.equal(r.emailsEnviados + r.emailsFalhos + r.emailsIncerto, 0);
+  }
+  // A entrega "atrasada" do provedor termina depois do timeout: deixa concluir.
+  await new Promise((r) => setTimeout(r, 100));
+  assert.equal(entregues, 1, 'só uma entrega, mesmo com o timeout');
+
+  // O operador libera um reenvio manual: aí sim sai uma nova tentativa.
+  eventos.ev1.emailIncerto = false;
+  eventos.ev1.emailErro = null;
+  eventos.ev1.emailTentativas = 0;
+  const r3 = await processarRevelacoes({ eventos, agora: relogio('2026-06-01T03:00:00.000Z'), ...deps, timeoutMs: 500 });
+  assert.equal(r3.emailsEnviados, 1);
+  assert.equal(eventos.ev1.emailEnviado, true);
+  assert.equal(eventos.ev1.emailIncerto, false);
+});
+
+test('cada evento leva um Message-ID estável, para o destino reconhecer repetição', async () => {
+  const eventos = { ev1: evento() };
+  const email = fakeEmail();
+  const baseUrl = 'https://lume.app';
+  await processarRevelacoes({ eventos, agora: relogio('2026-06-01T02:00:00.000Z'), email, pushEnviar: fakePush().pushEnviar, baseUrl, persistir: () => {} });
+  assert.equal(email.enviados[0].messageId, '<revelacao-ev1@lume.app>');
+  assert.equal(mensagemIdRevelacao(eventos.ev1, baseUrl), '<revelacao-ev1@lume.app>');
+  assert.equal(mensagemIdRevelacao({ id: 'outro' }, baseUrl), '<revelacao-outro@lume.app>');
+  assert.equal(mensagemIdRevelacao(eventos.ev1, ''), '<revelacao-ev1@lume.local>');
 });
 
 test('falha no e-mail não derruba o push e é retentada com teto de 5', async () => {
@@ -332,6 +378,38 @@ test('Atlas ponta a ponta: revelação só manda e-mail para contato verificado,
   assert.equal(r2.emailsEnviados, 0);
   assert.equal(lerEvento(ev.id).emailEnviadoEm, antes);
   assert.equal(lerEvento(ev.id).avisos.length, 1);
+});
+
+test('reenvio manual do operador libera um novo aviso e o painel mostra o estado', async () => {
+  const ev = await criarEvento('Casamento Reenvio', new Date(Date.now() + 3600e3).toISOString(), 'noivos@exemplo.com');
+  const gid = await entrar(ev.id, 'Rafa');
+  assert.equal((await subirFoto(ev.id, gid)).status, 201);
+  assert.equal((await verificarContato(ev.id, true)).status, 200);
+  assert.equal((await revelarAgora(ev)).status, 200);
+
+  await app.processarRevelacoes();
+  const primeiro = lerEvento(ev.id).emailEnviadoEm;
+  assert.ok(primeiro);
+
+  const lista = await (await fetch(`${B}/api/master/events`, { headers: { 'x-master-token': 'master-de-teste' } })).json();
+  const resumo = lista.eventos.find((e) => e.id === ev.id);
+  assert.deepEqual(resumo.email, { enviado: true, enviadoEm: primeiro, incerto: false, tentativas: 0, erro: null, contatoVerificado: true });
+
+  // Sem liberar reenvio, nada sai.
+  let r = await app.processarRevelacoes();
+  assert.equal(r.emailsEnviados, 0);
+
+  // Com o reenvio liberado, sai um aviso novo (o operador decidiu reenviar).
+  const patch = await fetch(`${B}/api/master/events/${ev.id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json', 'x-master-token': 'master-de-teste' },
+    body: JSON.stringify({ reenviarRevelacao: true }),
+  });
+  assert.equal(patch.status, 200);
+  assert.equal(lerEvento(ev.id).emailEnviado, false, 'libera uma nova tentativa');
+  r = await app.processarRevelacoes();
+  assert.equal(r.emailsEnviados, 1);
+  assert.notEqual(lerEvento(ev.id).emailEnviadoEm, primeiro);
 });
 
 test('trocar o contato do evento derruba a verificação', async () => {

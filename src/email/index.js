@@ -51,9 +51,9 @@ function provedorConsole({ log = console.log, agora = () => new Date() } = {}) {
   return {
     nome: 'console',
     enviados,
-    async enviar({ para, assunto, texto, html } = {}) {
+    async enviar({ para, assunto, texto, html, messageId } = {}) {
       if (!para || !assunto) throw new ErroEmail('E-mail sem destinatário ou assunto.');
-      const msg = { para, assunto, texto: String(texto ?? ''), html: html || '', enviadoEm: agora().toISOString() };
+      const msg = { para, assunto, texto: String(texto ?? ''), html: html || '', messageId: messageId || null, enviadoEm: agora().toISOString() };
       enviados.push(msg);
       log(`[email:console] para=${mascararEmail(para)} assunto=${redigir(assunto)}\n${redigir(msg.texto)}`);
       return { ok: true, id: `console-${enviados.length}`, provedor: 'console' };
@@ -89,11 +89,13 @@ function provedorSmtp({
   return {
     nome: 'smtp',
     transporte,
-    async enviar({ para, assunto, texto, html } = {}) {
+    async enviar({ para, assunto, texto, html, messageId } = {}) {
       if (!para || !assunto) throw new ErroEmail('E-mail sem destinatário ou assunto.');
       try {
         const r = await transporte.sendMail({
           from, to: para, subject: assunto, text: String(texto ?? ''), ...(html ? { html } : {}),
+          // Message-ID estável: o servidor de destino reconhece e descarta repetição.
+          ...(messageId ? { messageId } : {}),
         });
         return { ok: true, id: r?.messageId || null, provedor: 'smtp' };
       } catch (e) {
@@ -113,11 +115,15 @@ function provedorResend({
   if (!from) throw new ErroEmail('EMAIL_FROM ausente: o envio de e-mail não pode iniciar.');
   return {
     nome: 'resend',
-    async enviar({ para, assunto, texto, html } = {}) {
+    async enviar({ para, assunto, texto, html, messageId } = {}) {
       if (!para || !assunto) throw new ErroEmail('E-mail sem destinatário ou assunto.');
       const r = await httpPost(endpoint, {
         method: 'POST',
-        headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+        headers: {
+          authorization: `Bearer ${apiKey}`, 'content-type': 'application/json',
+          // Idempotência no provedor + Message-ID estável para o destino.
+          ...(messageId ? { 'Idempotency-Key': messageId, 'Message-ID': messageId } : {}),
+        },
         body: JSON.stringify({ from, to: [para], subject: assunto, text: String(texto ?? ''), ...(html ? { html } : {}) }),
       });
       if (!r.ok) {

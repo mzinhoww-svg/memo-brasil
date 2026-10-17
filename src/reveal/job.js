@@ -22,9 +22,18 @@ const TIMEOUT_ENVIO_PADRAO_MS = 10000;
 // Trava do processo: evita dois ciclos ao mesmo tempo (setInterval + gancho de teste).
 let emAndamento = false;
 
-const RESUMO_VAZIO = { avaliados: 0, revelados: 0, emailsEnviados: 0, emailsFalhos: 0, emailsNaoVerificados: 0, pushes: 0 };
+const RESUMO_VAZIO = { avaliados: 0, revelados: 0, emailsEnviados: 0, emailsFalhos: 0, emailsNaoVerificados: 0, emailsIncerto: 0, pushes: 0 };
 
 const linkDoAlbum = (ev, baseUrl) => `${String(baseUrl || '').replace(/\/+$/, '')}/e/${ev.id}/album`;
+
+// Message-ID estável por evento e por tipo de aviso: se por algum motivo o mesmo
+// e-mail for enviado duas vezes, o servidor de destino (e o provedor, via
+// Idempotency-Key) consegue reconhecer e descartar a repetição.
+function mensagemIdRevelacao(ev, baseUrl = '') {
+  let dominio = 'lume.local';
+  try { dominio = new URL(baseUrl).hostname || dominio; } catch {}
+  return `<revelacao-${ev.id}@${dominio}>`;
+}
 
 // Texto pt-BR, acolhedor e próprio do Lume (nada copiado de outros apps).
 function montarEmailRevelacao(ev, { baseUrl = '' } = {}) {
@@ -76,7 +85,11 @@ function comTimeout(promessa, ms, rotulo) {
   if (!ms || ms <= 0) return promessa;
   let timer;
   const limite = new Promise((_, rejeitar) => {
-    timer = setTimeout(() => rejeitar(new Error(`tempo esgotado (${ms}ms) em ${rotulo}`)), ms);
+    timer = setTimeout(() => {
+      const e = new Error(`tempo esgotado (${ms}ms) em ${rotulo}`);
+      e.tempoEsgotado = true; // o envio pode ter chegado: não dá para saber
+      rejeitar(e);
+    }, ms);
     if (timer.unref) timer.unref();
   });
   return Promise.race([promessa, limite]).finally(() => clearTimeout(timer));
@@ -104,7 +117,9 @@ async function rodarCiclo({
     if (t < new Date(ev.revealAt).getTime()) continue;
 
     const tentativas = ev.emailTentativas || 0;
-    const emailPendente = !ev.emailEnviado && tentativas < MAX_TENTATIVAS_EMAIL;
+    // `emailIncerto`: o envio estourou o timeout e pode ter chegado. Não reenvia
+    // sozinho (evita duplicata); o operador libera um reenvio manual se quiser.
+    const emailPendente = !ev.emailEnviado && !ev.emailIncerto && tentativas < MAX_TENTATIVAS_EMAIL;
     if (ev.revealNotified && !emailPendente) continue;
 
     let mudou = false;
@@ -123,17 +138,25 @@ async function rodarCiclo({
         resumo.emailsNaoVerificados++;
       } else {
         try {
-          const r = await comTimeout(email.enviar(montarEmailRevelacao(ev, { baseUrl })), timeoutMs, 'envio de e-mail');
+          const mensagem = { ...montarEmailRevelacao(ev, { baseUrl }), messageId: mensagemIdRevelacao(ev, baseUrl) };
+          const r = await comTimeout(email.enviar(mensagem), timeoutMs, 'envio de e-mail');
           ev.emailEnviado = true;
           ev.emailEnviadoEm = agora().toISOString();
           ev.emailId = r?.id ? String(r.id) : null;
           delete ev.emailErro;
           resumo.emailsEnviados++;
         } catch (e) {
-          ev.emailTentativas = tentativas + 1;
-          ev.emailErro = String(e?.message || e).slice(0, 200);
-          resumo.emailsFalhos++;
-          log(`[revelacao] e-mail do evento ${ev.id} falhou (tentativa ${ev.emailTentativas}/${MAX_TENTATIVAS_EMAIL}): ${ev.emailErro}`);
+          if (e?.tempoEsgotado) {
+            // O e-mail pode ter sido entregue: marca como incerto e para de tentar.
+            ev.emailIncerto = true;
+            ev.emailErro = 'tempo esgotado: envio incerto (não reenvia sozinho)';
+            resumo.emailsIncerto++;
+          } else {
+            ev.emailTentativas = tentativas + 1;
+            ev.emailErro = String(e?.message || e).slice(0, 200);
+            resumo.emailsFalhos++;
+          }
+          log(`[revelacao] e-mail do evento ${ev.id} não confirmado (tentativa ${ev.emailTentativas}/${MAX_TENTATIVAS_EMAIL}): ${ev.emailErro}`);
         }
       }
     }
@@ -174,6 +197,6 @@ async function processarRevelacoes(opts = {}) {
 }
 
 module.exports = {
-  processarRevelacoes, rodarCiclo, montarEmailRevelacao, destinoVerificado,
+  processarRevelacoes, rodarCiclo, montarEmailRevelacao, destinoVerificado, mensagemIdRevelacao,
   MAX_TENTATIVAS_EMAIL, TITULO_PUSH, TIMEOUT_ENVIO_PADRAO_MS,
 };
