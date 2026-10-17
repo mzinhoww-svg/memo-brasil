@@ -16,12 +16,25 @@
 		-Server
 	}
 
-	# Logs de acesso em JSON no volume do Caddy (sem corpo, sem segredo de app).
+	# Logs de acesso em JSON no volume do Caddy.
+	# B2: token nunca aparece no log — o parâmetro é apagado da URI registrada.
+	# O app também aceita token em ?token=/&key=/&host_token=; tudo é filtrado.
 	log {
 		output file /data/access.log {
 			roll_size 10mb
 			roll_keep 5
 		}
-		format json
+		format filter {
+			wrap json
+			fields {
+				request>uri query {
+					delete token
+					delete key
+					delete host_token
+					delete hostToken
+					delete master
+				}
+			}
+		}
 	}
 }

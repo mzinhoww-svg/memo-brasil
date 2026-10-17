@@ -8,7 +8,6 @@ backups
 .deploy
 test
 docs
-scripts
 deploy
 *.log
 .env

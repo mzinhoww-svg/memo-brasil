@@ -12,17 +12,22 @@ RUN npm ci --omit=dev --no-audit --no-fund
 FROM node:24-alpine
 ENV NODE_ENV=production \
     PORT=3210 \
-    DATA_DIR=/data
+    DATA_DIR=/data \
+    GNUPGHOME=/data/.gnupg
 WORKDIR /app
 
 # Código e dependências (nada de devDeps, nada de fonte).
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json server.js ./
 COPY public ./public
+COPY src ./src
+COPY scripts ./scripts
 
 # Usuário sem privilégios e diretório de dados gravável por ele.
 # uid/gid fixos (10001) para casar permissões de volume em qualquer host.
-RUN addgroup -S -g 10001 lume \
+# bash + sqlite3 + gnupg: os scripts (backup/restore) rodam dentro do container.
+RUN apk add --no-cache bash sqlite gnupg \
+ && addgroup -S -g 10001 lume \
  && adduser -S -u 10001 -G lume -h /app lume \
  && mkdir -p /data \
  && chown -R lume:lume /data /app

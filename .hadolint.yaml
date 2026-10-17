@@ -1,0 +1,6 @@
+# Regras do hadolint ignoradas, com justificativa.
+ignored:
+  # DL3018 (pin versions in apk add): o repositório do Alpine remove versões
+  # antigas dos pacotes, então fixar a versão quebra o build logo depois.
+  # A imagem é reconstruída a cada deploy e o app é testado antes de publicar.
+  - DL3018

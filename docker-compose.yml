@@ -15,10 +15,9 @@ services:
       PORT: "3210"
       DATA_DIR: /data
     volumes:
-      # Dados que precisam sobreviver a deploys: banco JSON, fotos, tokens, chaves VAPID.
+      # Dados que precisam sobreviver a deploys: memo.db (SQLite), fotos, tokens,
+      # chaves VAPID e a pasta backups/ (cópia externa sai daqui).
       - lume-data:/data
-      # Destino local dos backups (o backup externo sobe daqui; ver docs/deploy.md).
-      - ./backups:/backups
     expose:
       - "3210"
     # Sem portas publicadas no host: só o Caddy fala com o app, pela rede interna.
@@ -42,8 +41,10 @@ services:
     depends_on:
       lume:
         condition: service_healthy
-    env_file:
-      - .env
+    # B3: o Caddy só recebe o domínio; jamais o .env inteiro (nada de MASTER_TOKEN,
+    # chaves de e-mail, backup etc. chegando ao container que fica exposto na 80/443).
+    environment:
+      DOMINIO: ${DOMINIO:?defina DOMINIO no .env}
     ports:
       - "80:80"
       - "443:443"
