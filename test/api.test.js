@@ -223,17 +223,42 @@ test('master: token inválido não lista casamentos', async () => {
   assert.equal((await get('/api/master/events', { 'x-master-token': 'master-de-teste' })).status, 200);
 });
 
-test('listagem pré-revelação não vaza url, autor nem marca como revelado', async () => {
-  const ev = await criar('ListaPre');
-  await foto(ev);
-  const lista = await (await get(`/api/events/${ev.id}/photos`)).json();
+test('listagem pré-revelação não expõe nenhuma foto (sem url, miniatura ou autor)', async () => {
+  const a = await criar('ListaPre');
+  const bia = await (await post(`/api/events/${a.id}/guests`, { nome: 'Bia' })).json();
+  const f1 = await (await foto(a)).json();
+  const f2 = await (await foto({ ...a, guest: bia.guestId })).json();
+
+  const r = await get(`/api/events/${a.id}/photos`);
+  assert.equal(r.status, 200); // o álbum precisa responder para desenhar os cadeados
+  const lista = await r.json();
   assert.equal(lista.revelado, false);
-  assert.ok(lista.fotos.length >= 1);
+  assert.equal(lista.fotos.length, 2);
+
+  // Nada de foto no corpo: sem url/miniatura, sem autor, sem caminho de arquivo.
+  const corpo = JSON.stringify(lista);
+  assert.equal(corpo.includes('/file'), false);
+  assert.equal(corpo.includes('Rafa'), false);
+  assert.equal(corpo.includes('Bia'), false);
+
   for (const p of lista.fotos) {
+    assert.deepEqual(Object.keys(p).sort(), ['bloqueada', 'id', 'minha']);
     assert.equal(p.bloqueada, true);
-    assert.equal('url' in p, false);
-    assert.equal('autor' in p, false);
+    // Mesmo sabendo o id, o arquivo (que é também a miniatura do álbum) não sai.
+    assert.equal((await get(`/api/events/${a.id}/photos/${p.id}/file`)).status, 403);
   }
+  assert.equal((await get(`/api/events/${a.id}/photos/${f1.id}/file`)).status, 403);
+  assert.equal((await get(`/api/events/${a.id}/photos/${f2.id}/file`)).status, 403);
+  // ZIP do casal antes da revelação: 409; sem token: 403.
+  assert.equal((await get(`/api/events/${a.id}/fotos.zip`, { 'x-host-token': a.tk })).status, 409);
+  assert.equal((await get(`/api/events/${a.id}/fotos.zip`)).status, 403);
+
+  // Depois da revelação, a mesma listagem expõe url e autor de propósito.
+  await fetch(`${B}/api/events/${a.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json', 'x-host-token': a.tk }, body: JSON.stringify({ revealAt: passado() }) });
+  const depois = await (await get(`/api/events/${a.id}/photos`)).json();
+  assert.equal(depois.revelado, true);
+  assert.equal(depois.fotos.length, 2);
+  for (const p of depois.fotos) assert.equal(p.url, `/api/events/${a.id}/photos/${p.id}/file`);
 });
 
 test('nome vazio é recusado na entrada de convidado; saldo decresce após upload', async () => {
