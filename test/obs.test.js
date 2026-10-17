@@ -11,10 +11,10 @@ process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'memo-obs-'));
 process.env.MASTER_TOKEN = 'master-de-teste';
 process.env.MAX_FOTOS_EVENTO = '3'; // teto pequeno para o teste do 413
 
-const { createLogger, hashIp } = require('../src/obs/logger.js');
+const { createLogger, hashIp, setDefaultSink } = require('../src/obs/logger.js');
 const { createHealthHandler, checarGravacao } = require('../src/obs/health.js');
 const { tetoFotosEvento, limFotosEvento, estimativaDiscoBytes, TETO_PADRAO_FOTOS_EVENTO } = require('../src/obs/limites.js');
-const { createSentry, parseDsn, buildEnvelope } = require('../src/obs/sentry.js');
+const { createSentry, parseDsn, buildEnvelope, mensagemSegura } = require('../src/obs/sentry.js');
 const app = require('../server.js');
 
 const JPG = Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
@@ -112,27 +112,39 @@ test('logger: hashIp é estável por sal e curto, e nunca devolve o IP puro', ()
   assert.equal(hashIp('', 'sal'), null);
 });
 
+test('logger: token em caminho (path) é redigido', () => {
+  const registros = [];
+  const logger = createLogger({ sink: (l) => registros.push(l), salt: 'sal' });
+  const token = 'TOKENMUITOLONGOABCDEFGHIJ0123456789';
+  const req = { method: 'GET', path: `/painel/abc123/acesso/${token}`, url: `/painel/abc123/acesso/${token}`, ip: '203.0.113.9' };
+  const res = { statusCode: 200, on: (e, cb) => { if (e === 'finish') cb(); } };
+  logger.middleware(req, res, () => {});
+  const texto = JSON.stringify(registros[0]);
+  assert.ok(!texto.includes(token), 'token no caminho não pode aparecer no log');
+  assert.ok(registros[0].rota.includes(':segredo'));
+  assert.equal(registros[0].rota, '/painel/abc123/acesso/:segredo');
+});
+
 test('logs reais de requisição não contêm token, e-mail, nome, texto nem IP puro', async () => {
   const ev = await criar('Log');
-  const original = process.stdout.write;
   const capturado = [];
-  process.stdout.write = (chunk) => { capturado.push(String(chunk)); return true; };
+  setDefaultSink((linha) => capturado.push(linha));
   try {
     await post(`/api/events/${ev.id}/recados`, { guestId: ev.guest, texto: 'segredo-do-recado' }, { 'x-host-token': 'TOKEN-SECRETO' });
     await get(`/healthz?token=TOKEN-SECRETO`);
     await new Promise((r) => setTimeout(r, 60));
-  } finally { process.stdout.write = original; }
+  } finally { setDefaultSink(null); }
 
-  const saida = capturado.join('');
-  assert.ok(saida.includes('"msg":"http"'), 'o middleware de log deve estar instalado no servidor');
-  assert.ok(saida.includes(`/api/events/${ev.id}/recados`), 'o caminho (sem query) deve aparecer');
+  assert.ok(capturado.some((l) => l.msg === 'http'), 'o middleware de log deve estar instalado no servidor');
+  assert.ok(capturado.some((l) => l.rota === `/api/events/${ev.id}/recados`), 'o caminho (sem query) deve aparecer');
+  const texto = JSON.stringify(capturado);
   for (const proibido of ['segredo-do-recado', 'TOKEN-SECRETO', '127.0.0.1', '::ffff']) {
-    assert.ok(!saida.includes(proibido), `saída de log vazou: ${proibido}`);
+    assert.ok(!texto.includes(proibido), `saída de log vazou: ${proibido}`);
   }
-  // Toda linha de log http deve ser JSON válido com um ipH, nunca o IP cru.
-  const linhas = saida.split('\n').filter((l) => l.includes('"msg":"http"'));
+  // Toda linha de log http deve ter um ipH curto, nunca o IP cru.
+  const linhas = capturado.filter((l) => l.msg === 'http');
   assert.ok(linhas.length >= 1);
-  for (const l of linhas) { const o = JSON.parse(l); assert.equal(typeof o.ipH, 'string'); assert.equal(o.ipH.length, 12); }
+  for (const o of linhas) { assert.equal(typeof o.ipH, 'string'); assert.equal(o.ipH.length, 12); }
 });
 
 // ───── (3) teto de fotos por evento (MAX_FOTOS_EVENTO)
@@ -227,4 +239,43 @@ test('sentry: buildEnvelope tem cabeçalho com dsn e event_id e um item do tipo 
   assert.equal(h.event_id, 'e1');
   assert.equal(JSON.parse(item).type, 'event');
   assert.equal(JSON.parse(payload).event_id, 'e1');
+});
+
+// ───── Ajustes do parecer
+
+test('sentry: filtra a mensagem de JSON malformado e não vaza o corpo da requisição', async () => {
+  const chamadas = [];
+  const s = createSentry({ dsn: 'https://k@host/1', version: '1', fetchImpl: async (url, opts) => { chamadas.push(opts); return {}; } });
+  const err = new SyntaxError('Unexpected token \'N\', "SEGREDO-DO-CORPO-123" is not valid JSON');
+  err.type = 'entity.parse.failed';
+  err.body = '{"segredo":"SEGREDO-DO-CORPO-123"';
+  await s.captureException(err);
+  const corpo = chamadas[0].body;
+  assert.ok(!corpo.includes('SEGREDO-DO-CORPO-123'), 'o corpo malformado não pode ir ao Sentry');
+  assert.ok(corpo.includes('JSON malformado'));
+  assert.equal(mensagemSegura({ type: 'entity.parse.failed', message: 'x SEGREDO' }), 'Corpo da requisição inválido (JSON malformado).');
+});
+
+test('corpo JSON malformado responde 400 e não vaza o conteúdo nos logs', async () => {
+  const capturado = [];
+  setDefaultSink((linha) => capturado.push(linha));
+  let r;
+  try {
+    r = await fetch(`${B}/api/events`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"titulo":"x","segredo":"NAO-VAZAR-123"' });
+    await new Promise((res) => setTimeout(res, 50));
+  } finally { setDefaultSink(null); }
+  assert.equal(r.status, 400);
+  const corpo = await r.json();
+  assert.ok(typeof corpo.erro === 'string');
+  assert.ok(!JSON.stringify(capturado).includes('NAO-VAZAR-123'), 'o corpo malformado não pode aparecer no log');
+});
+
+test('política de privacidade documenta a retenção do hash de IP', async () => {
+  const r = await get('/api/master/politicas', { 'x-master-token': 'master-de-teste' });
+  assert.equal(r.status, 200);
+  const p = await r.json();
+  const texto = JSON.stringify(p);
+  assert.ok(/hash/i.test(texto), 'a política explica que o IP vira hash');
+  assert.ok(/reten(ç|c)/i.test(texto), 'a política informa a retenção');
+  assert.ok(/30 dias/i.test(texto), 'retenção padrão documentada');
 });

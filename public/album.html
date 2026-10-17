@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Álbum</title>
+<link rel="icon" href="/icons/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/Fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
@@ -15,9 +18,9 @@
     <div><b id="restam">—</b><span id="restamLbl">Restantes</span></div>
     <div><b id="pessoas">0</b><span>Pessoas</span></div>
   </div>
-  <button class="btn primary" id="retro" style="display:none">✨ Ver retrospectiva</button>
+  <button class="btn primary" id="retro" style="display:none"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#brilho"/></svg> Ver retrospectiva</button>
   <div class="row" style="margin-top:10px">
-    <a class="btn" id="camera">📷 Abrir câmera</a>
+    <a class="btn" id="camera"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#camera"/></svg> Abrir câmera</a>
     <a class="btn" id="convidar">Convidar</a>
   </div>
   <div class="grid" id="grid"></div>
@@ -55,7 +58,7 @@ function render() {
     const t = document.createElement('div');
     if (f.bloqueada) {
       t.className = 'tile locked';
-      const lock = document.createElement('span'); lock.textContent = '🔒';
+      const lock = document.createElement('span'); lock.innerHTML = '<svg class="ico lg" aria-hidden="true"><use href="/icons/sprite.svg#cadeado"/></svg>';
       const p = document.createElement('span'); p.className = 'pill'; p.dataset.rev = '1';
       t.append(lock, p);
     } else {

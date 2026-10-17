@@ -1,13 +1,13 @@
 # Memo Brasil (MVP web)
 
-Álbum colaborativo de casamento: cada convidado é fotógrafo. Qualquer pessoa cadastra o seu casamento (tenant); a organização (casal e cerimonial) gere tudo em um painel; os convidados entram pelo QR Code e fotografam. As fotos ficam bloqueadas até a hora da revelação. Um admin master administra todos os casamentos e as variáveis da plataforma.
+Lume: o álbum de casamento que se revela aos poucos, com as fotos de todos os convidados guardadas até a hora certa. Qualquer pessoa cadastra o seu casamento (tenant); a organização (casal e cerimonial) gere tudo em um painel; os convidados entram pelo QR Code e fotografam. As fotos ficam bloqueadas até a hora da revelação. Um admin master administra todos os casamentos e as variáveis da plataforma.
 
 ## Rodar
     npm install
     npm start        # http://localhost:3210 (o endereço da rede Wi-Fi aparece no terminal)
-    npm test         # 10 testes de API e de isolamento entre casamentos
+    npm test         # 63 testes: API, isolamento entre casamentos, persistência, observabilidade e limites
 
-Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push), `MAX_FOTOS_EVENTO` (teto de fotos por evento; padrão `3000`) e `SENTRY_DSN` (opcional; sem ele, a observabilidade de erros é no-op). Veja `.env.example`.
+Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push), `MAX_FOTOS_EVENTO` (teto de fotos por evento; padrão `3000`) e `SENTRY_DSN` (opcional; sem ele, a observabilidade de erros é no-op). Veja `.env.example`. Só em teste (`NODE_ENV=test`): `TEST_NOW` fixa o "agora" do servidor (`src/clock.js`) para exercitar a revelação sem esperar; em produção é ignorado.
 
 ## Jornadas
 - **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos.
@@ -16,7 +16,8 @@ Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (dom
 
 ## Observabilidade e limites
 - **`GET /healthz`** responde `status` (`ok` ou `degradado`), `versao`, `uptimeS` e `gravacao` (teste real de escrita em `DATA_DIR`). Vai a `503` quando o disco não aceita gravação. Não devolve token, nome, e-mail nem caminho de disco.
-- **Logs**: uma linha JSON por requisição (`src/obs/logger.js`) com método, rota (sem query string), status, duração e o IP apenas como **hash curto**. Nunca registra corpo, cabeçalhos, e-mail, nome, token nem texto de recado.
+- **Logs**: uma linha JSON por requisição (`src/obs/logger.js`) com método, rota (sem query string; tokens no caminho são redigidos), status, duração e o IP apenas como **hash curto**. Nunca registra corpo, cabeçalhos, e-mail, nome, token nem texto de recado. Corpo JSON malformado responde 400 sem ecoar nem logar o conteúdo.
+- **Retenção do hash de IP**: o IP nunca é guardado em claro; só o hash curto e não reversível, retido por `LOG_RETENCAO_DIAS` (padrão **30**) dias. Documentado em `/api/master/politicas`.
 - **Teto de fotos por evento**: `MAX_FOTOS_EVENTO` (padrão `3000`). O limite por evento/plataforma só aperta esse teto, nunca o ultrapassa. Upload acima do teto responde **413** em pt-BR. Estimativa de disco (pior caso): `MAX_FOTOS_EVENTO × tamanhoMaxFotoMB`; com os padrões, `3000 × 10 MB ≈ 30 GB` por evento.
 - **Erros (Sentry, opcional)**: com `SENTRY_DSN` definido, erros não tratados vão para o endpoint de envelope do Sentry via `fetch` (`src/obs/sentry.js`), sem dependência nova e **sem enviar o corpo da requisição**. Sem `SENTRY_DSN`, é no-op.
 
@@ -25,6 +26,12 @@ Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (dom
 - O bloqueio das fotos é do servidor: o arquivo devolve 403 antes da revelação, exceto para a organização (moderação) e o master.
 - Ações sensíveis vão para `data/audit.log` (só inserção).
 - Papéis: casal (tudo do evento), cerimonial (tudo, menos equipe), master (tudo, todos os eventos).
+
+## Backup e retenção (LGPD): exclusão de evento não alcança backups já feitos
+- `npm run backup` gera `DATA_DIR/backups/memo-<data>.tar.gz` com banco, fotos, auditoria e configurações (sem diretório solto).
+- Retenção: `BACKUP_RETENTION_DIAS` (padrão **30**). Arquivos mais antigos que isso são removidos do host. Copie sempre o arquivo para fora do host (offsite).
+- Em produção (`NODE_ENV=production` ou `PUBLIC_URL` começando com `https://`) o backup é obrigatoriamente cifrado: defina `BACKUP_GPG_KEY` (chave pública) ou `BACKUP_PASSPHRASE`. Sem isso o script falha e não gera cópia em claro. Fora de produção a cifra é opcional (avisada, não exigida).
+- Excluir um evento remove o banco e as fotos do host, mas **não** apaga backups já gerados. Eles deixam de existir apenas quando expiram pela retenção (ou por remoção manual). Ou seja, o apagamento de dados pessoais alcança backups já feitos em até `BACKUP_RETENTION_DIAS` dias.
 
 ## Limitações conhecidas
 - Câmera ao vivo e push exigem HTTPS (ou localhost). iOS só recebe push com o app instalado na Tela de Início (16.4+).

@@ -18,9 +18,14 @@ function hashIp(ip, salt) {
 }
 
 // Só o caminho, sem query string (onde podem ir tokens) e com tamanho limitado.
+// Segmentos longos (tokens em caminho) são redigidos.
+const SEGMENTO_SECRETO = /^[A-Za-z0-9_-]{20,}$/;
 function rotaSegura(req) {
   const bruto = req.path || (req.url ? String(req.url) : '/');
-  const rota = String(bruto).split('?')[0];
+  const rota = String(bruto).split('?')[0]
+    .split('/')
+    .map((seg) => (SEGMENTO_SECRETO.test(seg) ? ':segredo' : seg))
+    .join('/');
   return rota.length > 200 ? rota.slice(0, 200) : rota;
 }
 
@@ -29,9 +34,16 @@ function semPII(registro) {
   return registro;
 }
 
+// Sink padrão: uma linha JSON por evento em stdout. Pode ser trocado
+// (setDefaultSink) — usado pelos testes para capturar sem sequestrar stdout.
+let sinkPadrao = (linha) => process.stdout.write(`${JSON.stringify(linha)}\n`);
+function setDefaultSink(fn) {
+  sinkPadrao = typeof fn === 'function' ? fn : (linha) => process.stdout.write(`${JSON.stringify(linha)}\n`);
+}
+
 function createLogger({ sink, salt, now = () => Date.now() } = {}) {
   const segredo = salt || crypto.randomBytes(16).toString('hex');
-  const escrever = sink || ((linha) => process.stdout.write(`${JSON.stringify(linha)}\n`));
+  const escrever = sink || ((linha) => sinkPadrao(linha));
 
   function log(campos) {
     const linha = semPII({ t: new Date(now()).toISOString(), nivel: 'info', ...campos });
@@ -55,4 +67,4 @@ function createLogger({ sink, salt, now = () => Date.now() } = {}) {
   return { middleware, log, hashIp: (ip) => hashIp(ip, segredo) };
 }
 
-module.exports = { createLogger, hashIp, rotaSegura, semPII, CHAVES_PROIBIDAS };
+module.exports = { createLogger, hashIp, rotaSegura, semPII, setDefaultSink, CHAVES_PROIBIDAS };

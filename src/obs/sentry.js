@@ -33,9 +33,21 @@ function framesDaPilha(stack) {
   return frames.length ? { frames: frames.reverse() } : undefined;
 }
 
+// Nunca enviamos o corpo da requisição. Erros de parsing do corpo (JSON
+// malformado) carregam o conteúdo bruto em err.message/err.body — nesses casos
+// usamos uma mensagem genérica para não vazar dado pessoal ao Sentry.
+function ehErroDeCorpo(err) {
+  return !!err && (err.type === 'entity.parse.failed' || err.type === 'entity.too.large'
+    || Object.prototype.hasOwnProperty.call(err, 'body'));
+}
+function mensagemSegura(err) {
+  if (ehErroDeCorpo(err)) return 'Corpo da requisição inválido (JSON malformado).';
+  return String(err && err.message != null ? err.message : (err ?? '')).slice(0, 500);
+}
+
 function erroParaEvento(err, { eventId, version, ambiente, tags } = {}) {
   const e = err instanceof Error ? err : new Error(err && err.message ? String(err.message) : String(err));
-  const values = [{ type: e.name || 'Error', value: String(e.message || '').slice(0, 500) }];
+  const values = [{ type: e.name || 'Error', value: mensagemSegura(e) }];
   const stacktrace = framesDaPilha(e.stack);
   if (stacktrace) values[0].stacktrace = stacktrace;
   return {
@@ -103,4 +115,4 @@ function createSentry({
   return { enabled, captureException, installProcessHooks };
 }
 
-module.exports = { createSentry, parseDsn, buildEnvelope, erroParaEvento };
+module.exports = { createSentry, parseDsn, buildEnvelope, erroParaEvento, mensagemSegura, ehErroDeCorpo };

@@ -1,25 +1,28 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="tema-claro">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Organização — Memo Brasil</title>
+<title>Organização — Lume</title>
+<link rel="icon" href="/icons/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/Fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/admin.css">
 </head>
 <body>
 <div class="shell">
   <aside class="side">
-    <div class="brand">MEMO BRASIL</div>
+    <div class="brand"><img src="/icons/logo.svg" alt="" width="32" height="32">Lume</div>
     <div class="who" id="who">Organização</div>
     <nav class="nav" id="nav">
-      <a href="#resumo" data-s="resumo">📊 Resumo</a>
-      <a href="#convidados" data-s="convidados">👥 Convidados</a>
-      <a href="#programacao" data-s="programacao">🗓️ Detalhes e programação</a>
-      <a href="#fotos" data-s="fotos">🖼️ Fotos e recados</a>
-      <a href="#avisos" data-s="avisos">🔔 Avisos aos convidados</a>
-      <a href="#convite" data-s="convite">🔗 Convite e QR Code</a>
-      <a href="#config" data-s="config">⚙️ Configurações</a>
-      <a href="#equipe" data-s="equipe" id="navEquipe">🤝 Equipe</a>
+      <a href="#resumo" data-s="resumo"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#resumo"/></svg>Resumo</a>
+      <a href="#convidados" data-s="convidados"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#pessoas"/></svg>Convidados</a>
+      <a href="#programacao" data-s="programacao"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#agenda"/></svg>Detalhes e programação</a>
+      <a href="#fotos" data-s="fotos"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#album"/></svg>Fotos e recados</a>
+      <a href="#avisos" data-s="avisos"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#aviso"/></svg>Avisos aos convidados</a>
+      <a href="#convite" data-s="convite"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#link"/></svg>Convite e QR Code</a>
+      <a href="#config" data-s="config"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#config"/></svg>Configurações</a>
+      <a href="#equipe" data-s="equipe" id="navEquipe"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#equipe"/></svg>Equipe</a>
     </nav>
   </aside>
   <div class="content">
@@ -121,7 +124,7 @@ async function rConvidados(v) {
     } }, 'Adicionar à lista'),
     el('span', { class: 'sub', style: 'margin:0' }, 'Dica: cole direto de uma planilha (colunas separadas por tab).')), out);
   v.append(add);
-  v.append(el('div', { class: 'row', style: 'margin-bottom:14px' }, el('button', { class: 'btn', onclick: () => baixar('/lista.csv', 'convidados.csv') }, '⬇ Exportar lista (CSV)')));
+  v.append(el('div', { class: 'row', style: 'margin-bottom:14px' }, el('button', { class: 'btn', onclick: () => baixar('/lista.csv', 'convidados.csv') }, 'Exportar lista (CSV)')));
   const painel = el('div', { class: 'panel' });
   v.append(painel);
   let filtro = 'todos', busca = '', itens = [];
@@ -147,7 +150,7 @@ async function rConvidados(v) {
         const sel = el('select', { onchange: async () => { await call(`/lista/${i.id}`, { method: 'PATCH', body: JSON.stringify({ rsvp: sel.value }) }); i.rsvp = sel.value; render(); } },
           ['pendente', 'confirmado', 'recusado'].map((o) => el('option', { value: o, ...(o === i.rsvp ? { selected: '' } : {}) }, { pendente: 'Sem resposta', confirmado: 'Confirmado', recusado: 'Recusou' }[o])));
         tb.append(el('tr', {}, el('td', {}, i.nome), el('td', {}, i.grupo || '—'), el('td', {}, String(i.acompanhantes || 0)), el('td', {}, sel),
-          el('td', {}, i.naCamera ? '✓' : '—'),
+          el('td', {}, i.naCamera ? 'Sim' : '—'),
           el('td', {}, el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover ${i.nome} da lista?`)) { await call(`/lista/${i.id}`, { method: 'DELETE' }); desenha(); } } }, 'Remover'))));
       });
       if (!vis.length) tb.append(el('tr', {}, el('td', { colspan: '6' }, 'Nenhum convidado aqui ainda.')));
@@ -183,7 +186,7 @@ async function rProgramacao(v) {
       const hora = el('input', { type: 'time', value: d.hora }); hora.oninput = () => (d.hora = hora.value);
       const tit = el('input', { value: d.titulo, placeholder: 'Ex.: Cerimônia', maxlength: '80' }); tit.oninput = () => (d.titulo = tit.value);
       const desc = el('input', { value: d.descricao, placeholder: 'Detalhe (opcional)', maxlength: '200' }); desc.oninput = () => (d.descricao = desc.value);
-      linhas.append(el('div', { class: 'sched' }, hora, tit, desc, el('button', { class: 'btn sm danger', onclick: () => { dados.splice(i, 1); desenha(); } }, '✕')));
+      linhas.append(el('div', { class: 'sched' }, hora, tit, desc, el('button', { class: 'btn sm danger', onclick: () => { dados.splice(i, 1); desenha(); } }, 'Remover')));
     });
   }
   desenha();
@@ -227,7 +230,7 @@ async function rFotos(v) {
   const outz = el('p', { class: 'msg' });
   v.append(el('div', { class: 'row' },
     el('button', { class: 'btn', onclick: mostrar }, revelado ? 'Ver fotos e recados' : 'Moderar fotos e recados (ver agora)'),
-    el('button', { class: 'btn primary', onclick: () => baixar('/fotos.zip', `album-${info.titulo}.zip`, outz) }, '⬇ Baixar álbum completo (ZIP)')), outz, area);
+    el('button', { class: 'btn primary', onclick: () => baixar('/fotos.zip', `album-${info.titulo}.zip`, outz) }, 'Baixar álbum completo (ZIP)')), outz, area);
 }
 
 // ── Avisos
@@ -252,20 +255,20 @@ async function rAvisos(v) {
 
 // ── Configurações do casamento
 async function rConfig(v) {
-  v.append(el('h1', {}, 'Configurações'), el('p', { class: 'sub' }, 'Regras do seu casamento. O que a plataforma limita fica com o administrador do Memo.'));
+  v.append(el('h1', {}, 'Configurações'), el('p', { class: 'sub' }, 'Regras do seu casamento. O que a plataforma limita fica com o administrador do Lume.'));
   const cfg = info.config;
   const out = el('p', { class: 'msg' });
   const opt = (k, titulo, ajuda) => {
     const cb = el('input', { type: 'checkbox', style: 'width:auto', ...(cfg[k] ? { checked: '' } : {}) });
     cb.onchange = async () => { try { await call('', { method: 'PATCH', body: JSON.stringify({ config: { [k]: cb.checked } }) }); msg(out, 'Salvo.', true); } catch (e) { msg(out, e.message); cb.checked = !cb.checked; } };
-    return el('label', { style: 'display:flex;gap:12px;align-items:flex-start;color:var(--a-text);font-size:15px;margin:14px 0' }, cb, el('span', {}, el('b', {}, titulo), el('div', { class: 'sub', style: 'margin:2px 0 0' }, ajuda)));
+    return el('label', { style: 'display:flex;gap:12px;align-items:flex-start;color:var(--cor-texto);font-size:15px;margin:14px 0' }, cb, el('span', {}, el('b', {}, titulo), el('div', { class: 'sub', style: 'margin:2px 0 0' }, ajuda)));
   };
   v.append(el('div', { class: 'panel' }, el('h2', {}, 'Convidados'),
     opt('apenasLista', 'Só quem está na lista entra', 'O nome digitado precisa existir na aba Convidados. Evita penetras no álbum.'),
     opt('recadosAtivos', 'Permitir recados', 'Convidados podem deixar mensagens para os noivos.'),
     opt('mostrarAutor', 'Mostrar o nome de quem tirou cada foto', 'Desligue se preferir um álbum sem identificação.'), out));
   v.append(el('div', { class: 'panel' }, el('h2', {}, 'Limites deste casamento'),
-    el('p', { class: 'sub', style: 'margin:0' }, `Convidados na câmera: até ${info.limitesEfetivos.maxConvidados} · Lista: até ${info.limitesEfetivos.maxLista} · Fotos no evento: até ${info.limitesEfetivos.maxFotos}. Precisa de mais? Fale com o suporte do Memo.`)));
+    el('p', { class: 'sub', style: 'margin:0' }, `Convidados na câmera: até ${info.limitesEfetivos.maxConvidados} · Lista: até ${info.limitesEfetivos.maxLista} · Fotos no evento: até ${info.limitesEfetivos.maxFotos}. Precisa de mais? Fale com o suporte do Lume.`)));
 }
 
 // ── Convite e QR
@@ -297,11 +300,19 @@ async function rEquipe(v) {
       } }, 'Gerar link de acesso')), out));
   const lista = el('div', { class: 'panel' }, el('h2', {}, 'Quem tem acesso'));
   if (!info.equipe.length) lista.append(el('p', { class: 'sub' }, 'Só você, por enquanto.'));
-  info.equipe.forEach((m) => lista.append(el('div', { style: 'padding:10px 0;border-top:1px solid var(--a-line)' },
-    el('div', { class: 'row' }, el('b', { class: 'grow' }, `${m.nome} · ${m.papel === 'casal' ? 'Casal' : 'Cerimonial'}`),
-      el('button', { class: 'btn sm', onclick: async () => { await navigator.clipboard.writeText(m.link); } }, 'Copiar link'),
-      el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover o acesso de ${m.nome}?`)) { await call(`/equipe/${m.id}`, { method: 'DELETE' }); route(); } } }, 'Remover')),
-    el('div', { class: 'linkbox', style: 'margin-top:6px' }, m.link))));
+  info.equipe.forEach((m) => {
+    const acoes = el('div', { class: 'row' }, el('b', { class: 'grow' }, `${m.nome} · ${m.papel === 'casal' ? 'Casal' : 'Cerimonial'}`),
+      m.link ? el('button', { class: 'btn sm', onclick: async () => { await navigator.clipboard.writeText(m.link); } }, 'Copiar link') : null,
+      el('button', { class: 'btn sm', onclick: async () => {
+        if (!confirm(`Gerar um novo link para ${m.nome}? O link anterior deixa de funcionar.`)) return;
+        try { const r = await call(`/equipe/${m.id}/rotacionar-link`, { method: 'POST' }); await navigator.clipboard.writeText(r.link).catch(() => {}); route(); } catch (e) { msg(out, e.message); }
+      } }, m.link ? 'Novo link' : 'Gerar novo link'),
+      el('button', { class: 'btn sm danger', onclick: async () => { if (confirm(`Remover o acesso de ${m.nome}?`)) { await call(`/equipe/${m.id}`, { method: 'DELETE' }); route(); } } }, 'Remover'));
+    const rodape = m.link
+      ? el('div', { class: 'linkbox', style: 'margin-top:6px' }, m.link)
+      : el('p', { class: 'sub', style: 'margin-top:6px' }, 'Link de acesso já emitido. Por segurança ele não é exibido novamente — use “Gerar novo link” se precisar reenviar.');
+    lista.append(el('div', { style: 'padding:10px 0;border-top:1px solid var(--cor-borda)' }, acoes, rodape));
+  });
   v.append(lista);
 }
 
