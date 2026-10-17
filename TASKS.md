@@ -19,12 +19,15 @@ Atualizado em 2026-10-17. Dono = papel. "Bloqueia" = o que impede o merge/aceite
 - [ ] **#13 convidado** — C1 unificar esquema com o #14; C2 convidados antigos; C3 `tokenHash` fora das respostas; C4 leitura sem token; C5 `intent://` sem query/hash.
 - [ ] **#12 observabilidade** — filtrar `err.message` no Sentry (JSON malformado traz corpo); teste de token em caminho; retenção do hash de IP na política.
 - [ ] **#9** — reauditar o head db94646 inteiro; remover `?token=` da rota de arquivo de foto.
-- [ ] **#15 LGPD, #16 revelação, #17 deploy** — aguardam parecer do Planejador.
+- [ ] **#15 LGPD** (dono: Forja-LGPD) — **devolvido** (17/10): B1 retenção sem revelação a partir de `revealAt`; B2 scripts com servidor parado ou via `Store`; B3 `verifyToken` do #9 e sem `?token=`; B4 servidor exige consentimento; B5 denúncia com token do #13; condições 6–11 no PR.
+- [ ] **#16 revelação** (dono: Forja-Revelacao) — com condições: e-mail só ao endereço verificado, trava e timeout no job, console fail-closed em produção, filtrar ocultas, operador no exterior na política.
+- [ ] **#17 deploy** (dono: Forja-Deploy) — com condições: B1 copiar `src/` e `scripts/`; B2 filtrar log do Caddy; B3 só `DOMINIO` no Caddy; restore reaplica exclusões; backup antes do deploy.
+- [ ] **#8 painel** — aprovado; observações menores no PR.
 
-## Aceites formais pendentes (Orquestrador)
-- [ ] Decisão 002 — auth do organizador (recomendada: link mágico por e-mail)
-- [ ] Decisão 003 — auth do master (recomendada: senha + TOTP; scrypt aceito se o doc for atualizado)
-- [ ] Decisão 004 — recados (recomendada: opção B, privados ao casal por padrão)
+## Aceites formais
+- [x] Decisão 002 — auth do organizador (link mágico), **aceita pelo Orquestrador em 2026-10-17**
+- [x] Decisão 003 — auth do master (senha + TOTP), **aceita em 2026-10-17**
+- [x] Decisão 004 — recados (opção B, privados ao casal por padrão), **aceita em 2026-10-17** — o `GET /recados` sem credencial segue aberto: fecha no #13 (condição C4) ou em PR próprio
 
 ## Itens do checklist sem dono ativo
 - [ ] Item 4 publicação HTTPS (bloqueado por plano/custo e credenciais)
