@@ -52,6 +52,13 @@ test('com PUBLIC_URL https a válvula de token estático é recusada', async () 
   const app = require('../server.js');
   assert.equal(app.isProd, true);
   assert.equal(app.emergenciaAtiva(), false, 'https desliga a válvula');
+  // Sem conta master, em https o token estático também não vale: o primeiro master
+  // entra por MASTER_BOOTSTRAP_*/scripts/master-criar.js, não pelo token legado.
+  assert.equal(app.aceitaTokenEstatico(process.env.MASTER_TOKEN), null, 'nem a janela de bootstrap em https');
+  const bootstrap = await new Promise((r) => { const s = app.listen(0, '127.0.0.1', () => r(s)); });
+  const respBoot = await fetch(`http://127.0.0.1:${bootstrap.address().port}/api/master/events`, { headers: { 'x-master-token': process.env.MASTER_TOKEN } });
+  assert.equal(respBoot.status, 403, 'token estático recusado no primeiro boot em https');
+  bootstrap.close();
   const m = await app.criarMaster({ email: 'root@exemplo.com', nome: 'Root', senha: 'senha-muito-forte-123', totpSecret: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ' });
   assert.ok(m.id);
   assert.equal(app.aceitaTokenEstatico(process.env.MASTER_TOKEN), null);

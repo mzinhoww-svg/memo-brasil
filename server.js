@@ -403,9 +403,12 @@ function emergenciaAtiva() {
   if (isProd) return false; // PUBLIC_URL https: a válvula fica desligada
   return process.env.MASTER_EMERGENCY === '1' || process.env.MASTER_TOKEN_COMPAT === '1';
 }
-// Retorna 'bootstrap' (sem conta master), 'emergencia' (válvula) ou null (recusado).
+// Retorna 'bootstrap' (sem conta master, só fora de https), 'emergencia' (válvula)
+// ou null (recusado). Em https a credencial legada nunca vale, nem na primeira
+// subida: o primeiro master entra por MASTER_BOOTSTRAP_* ou scripts/master-criar.js.
 function aceitaTokenEstatico(token) {
   if (!isMaster(token)) return null;
+  if (isProd) return null;
   if (masterCount() === 0) return 'bootstrap';
   if (emergenciaAtiva()) return 'emergencia';
   return null;
@@ -469,12 +472,9 @@ function adminOnly(req, res, next) {
   // Credencial só por cabeçalho (nunca na URL: log, histórico e Referer).
   const token = req.get('x-host-token');
   const ev = req.ev;
-  // Sessão master.
+  // Sessão master (masterDaSessao devolve a própria conta ativa; não há segunda consulta).
   const ms = masterDaSessao(req);
-  if (ms) {
-    const m = store.get(`SELECT * FROM master_accounts WHERE id = ? AND ativo = 1`, ms.master_id);
-    if (m) { req.admin = { papel: 'master', nome: m.nome, dono: true, master: true, id: m.id }; return next(); }
-  }
+  if (ms) { req.admin = { papel: 'master', nome: ms.nome, dono: true, master: true, id: ms.id }; return next(); }
   // Sessão do organizador com vínculo ao evento.
   const org = organizadorDaSessao(req);
   if (org) {
@@ -570,15 +570,20 @@ app.post('/api/events', (req, res) => {
 });
 
 // ───── Autenticação organizador (magic link + sessão cookie)
+// Provedor real de e-mail ainda não integrado (módulo do #16). Enquanto ele não
+// existe, o link só puder sair no console, e só em desenvolvimento/teste.
+const provedorEmailConfigurado = () => !!(process.env.EMAIL_PROVIDER && process.env.EMAIL_PROVIDER !== 'console' && process.env.EMAIL_API_KEY);
+const modoDesenvolvimento = () => !process.env.NODE_ENV || ['development', 'test'].includes(process.env.NODE_ENV);
+// O link só é enviado de verdade quando o #16 entrar; até lá, em dev/teste ele
+// aparece no console e em DATA_DIR/auth.log (nunca em ambiente publicado).
+const linkEntregavel = () => modoDesenvolvimento();
+
 function magicLinkEnviar(email, tokenRaw, baseUrlStr) {
-  if (isProd) return; // nunca imprime link em produção
   const link = `${baseUrlStr}/api/auth/entrar?t=${encodeURIComponent(tokenRaw)}`;
-  const provider = process.env.EMAIL_PROVIDER || 'console';
-  if (provider === 'console' || !process.env.EMAIL_API_KEY) {
-    console.log(`[email:dev] magic link para ${emailHashCurto(email)}: ${link}`);
-    try { fs.appendFileSync(path.join(DATA_DIR, 'auth.log'), `${new Date().toISOString()} ${emailHashCurto(email)} ${link}\n`); } catch {}
-    return;
-  }
+  if (provedorEmailConfigurado()) return; // #16: nada de imprimir; o envio real ainda não existe
+  if (isProd || !modoDesenvolvimento()) return; // nunca imprime link fora de dev/teste
+  console.log(`[email:dev] magic link para ${emailHashCurto(email)}: ${link}`);
+  try { fs.appendFileSync(path.join(DATA_DIR, 'auth.log'), `${new Date().toISOString()} ${emailHashCurto(email)} ${link}\n`); } catch {}
 }
 function magicTokenNovo(emailNorm, tipo, orgId, eventId, papel, expiraMs) {
   const raw = crypto.randomBytes(32).toString('base64url');
@@ -605,6 +610,11 @@ function consumirMagicToken(raw) {
 async function handleLinkRequest(req, res) {
   // Só POST JSON; rota pública nunca aceita eventoId/papel (evita escalada).
   if (req.method !== 'POST') return res.status(405).json({ erro: 'Método não permitido.' });
+  // Sem envio de verdade, não prometa envio (202 "enviamos"). Em dev/teste o link
+  // aparece no console; fora disso responde 503 até o módulo de e-mail (#16) entrar.
+  if (!linkEntregavel()) {
+    return res.status(503).json({ erro: 'O envio de link por e-mail está indisponível no momento. Tente mais tarde.' });
+  }
   const rlim = rateLimit(rlKey(req, 'magiclink'), 10, 60 * 60 * 1000);
   if (!rlim.ok) {
     res.set('Retry-After', Math.ceil((rlim.resetAt - Date.now()) / 1000));
@@ -1191,28 +1201,38 @@ async function handleMasterLogin(req, res) {
   }
   const secret = base32Decode(decipherSecret(m.totp_secret));
   let totpOk = false;
-  let newLastStep = m.totp_ultimo_passo;
   if (!code && recovery) {
+    // Código de recuperação: de uso único. O consumo é atômico (compare-and-swap na
+    // própria lista de hashes lida), senão dois logins simultâneos usam o mesmo código.
     let hashes = [];
     try { hashes = JSON.parse(m.recuperacao_hashes || '[]'); } catch {}
+    const lido = String(m.recuperacao_hashes || '[]');
     for (let i = 0; i < hashes.length; i++) {
       if (await scryptVerify(recovery, hashes[i])) {
-        totpOk = true;
-        hashes.splice(i, 1);
-        store.run(`UPDATE master_accounts SET recuperacao_hashes = ?, totp_ultimo_passo = ? WHERE id = ?`, JSON.stringify(hashes), m.totp_ultimo_passo, m.id);
+        const restantes = hashes.slice();
+        restantes.splice(i, 1);
+        const r = store.run(
+          `UPDATE master_accounts SET recuperacao_hashes = ?, falhas = 0 WHERE id = ? AND recuperacao_hashes = ?`,
+          JSON.stringify(restantes), m.id, lido);
+        if (r.changes === 1) totpOk = true;
         break;
       }
     }
   } else {
     const v = totpVerify(secret, code, m.totp_ultimo_passo || 0);
-    if (v.ok) { totpOk = true; newLastStep = v.step; }
+    if (v.ok) {
+      // Compare-and-swap do passo: só um login consome o mesmo código TOTP.
+      const r = store.run(
+        `UPDATE master_accounts SET totp_ultimo_passo = ?, falhas = 0 WHERE id = ? AND totp_ultimo_passo < ?`,
+        v.step, m.id, v.step);
+      if (r.changes === 1) totpOk = true;
+    }
   }
   if (!totpOk) {
     store.run(`UPDATE master_accounts SET falhas = falhas + 1 WHERE id = ?`, m.id);
     auditDb(req, 'master', m.id, null, 'login.falha', m.id, { motivo: 'totp' }, 'falha');
     return res.status(401).json({ erro: 'Código 2FA inválido.' });
   }
-  store.run(`UPDATE master_accounts SET falhas = 0, totp_ultimo_passo = ? WHERE id = ?`, newLastStep, m.id);
   const raw = criarSessaoMaster(m.id, req);
   setCookie(res, MASTER_COOKIE, raw, MASTER_SESSION_TTL_MS, true);
   auditDb(req, 'master', m.id, null, 'login.ok', m.id, {}, 'ok');

@@ -62,6 +62,24 @@ async function criarEvento(titulo = 'Evento', cookie = '') {
   return { status: r.status, json: await r.json().catch(() => ({})) };
 }
 
+const JPG = Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
+async function subirFoto(eventoId, guestId) {
+  const fd = new FormData();
+  fd.append('guestId', guestId);
+  fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  const r = await fetch(`${B}/api/events/${eventoId}/photos`, { method: 'POST', body: fd });
+  assert.equal(r.status, 201);
+  return r.json();
+}
+
+async function criarMasterLogado(email) {
+  const senha = 'senha-muito-forte-123';
+  const m = await app.criarMaster({ email, nome: 'Master', senha, totpSecret: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ' });
+  const login = await post('/api/master/login', { email, senha, totp: totpNow(m.totpSecret) });
+  assert.equal(login.status, 200);
+  return { cookie: cookieHeader(extractCookies(login.headers.get('set-cookie'))), master: m, senha };
+}
+
 async function ultimoTokenDoLog() {
   const log = path.join(process.env.DATA_DIR, 'auth.log');
   if (!fs.existsSync(log)) return null;
@@ -202,4 +220,55 @@ test('exclusão de evento gera linha de auditoria encadeada', async () => {
   assert.ok(last);
   assert.equal(last.hash_anterior, before ? before.hash_atual : '');
   assert.ok(last.hash_atual);
+});
+
+test('master por sessão abre painel, moderação, arquivo e ZIP (não 500)', async () => {
+  const { cookie } = await criarMasterLogado('painel-master@exemplo.com');
+  const ev = await criarEvento('Painel do master');
+  assert.equal(ev.status, 201);
+  const g = await (await post(`/api/events/${ev.json.id}/guests`, { nome: 'Rafa' })).json();
+  const foto = await subirFoto(ev.json.id, g.guestId);
+  const H = { cookie };
+
+  assert.equal((await get(`/api/events/${ev.json.id}/host`, H)).status, 200, '/host');
+  assert.equal((await get(`/api/events/${ev.json.id}/lista`, H)).status, 200, '/lista');
+  assert.equal((await get(`/api/events/${ev.json.id}/moderacao`, H)).status, 200, '/moderacao');
+  assert.equal((await get(`/api/events/${ev.json.id}/photos/${foto.id}/file`, H)).status, 200, 'arquivo antes da revelação');
+  const zip = await get(`/api/events/${ev.json.id}/fotos.zip`, H);
+  assert.equal(zip.status, 200, '/fotos.zip antes da revelação');
+  assert.equal((await get(`/api/events/${ev.json.id}/lista.csv`, H)).status, 200, '/lista.csv');
+  const patch = await fetch(`${B}/api/events/${ev.json.id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json', cookie },
+    body: JSON.stringify({ titulo: 'Renomeado pelo master' }),
+  });
+  assert.equal(patch.status, 200, 'PATCH do evento');
+  assert.equal((await patch.json()).titulo, 'Renomeado pelo master');
+});
+
+test('TOTP: dois logins concorrentes com o mesmo código — só um consome', async () => {
+  const senha = 'senha-muito-forte-123';
+  const m = await app.criarMaster({ email: 'conc-totp@exemplo.com', nome: 'M', senha, totpSecret: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ' });
+  const body = { email: 'conc-totp@exemplo.com', senha, totp: totpNow(m.totpSecret) };
+  const [a, b] = await Promise.all([post('/api/master/login', body), post('/api/master/login', body)]);
+  assert.deepEqual([a.status, b.status].sort(), [200, 401], 'um entra, o outro não');
+});
+
+test('recuperação: dois logins concorrentes com o mesmo código — só um consome', async () => {
+  const senha = 'senha-muito-forte-123';
+  const m = await app.criarMaster({ email: 'conc-rec@exemplo.com', nome: 'M', senha, totpSecret: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ' });
+  const body = { email: 'conc-rec@exemplo.com', senha, recoveryCode: m.recoveryCodes[0] };
+  const [a, b] = await Promise.all([post('/api/master/login', body), post('/api/master/login', body)]);
+  assert.deepEqual([a.status, b.status].sort(), [200, 401], 'código de recuperação é de uso único');
+  // E o mesmo código não vale de novo depois.
+  assert.equal((await post('/api/master/login', body)).status, 401);
+});
+
+test('sem provedor de e-mail fora de dev/teste, o pedido de link não promete envio', async () => {
+  const antigo = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'staging';
+  try {
+    const r = await post('/api/auth/link', { email: 'staging@exemplo.com' });
+    assert.equal(r.status, 503);
+  } finally { process.env.NODE_ENV = antigo; }
 });
