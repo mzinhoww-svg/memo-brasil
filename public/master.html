@@ -18,10 +18,10 @@
 </div>
 <script src="/common.js"></script>
 <script>
-const KEY = 'memo:master';
-let TOKEN = localStorage.getItem(KEY) || '';
-const H = () => ({ 'x-master-token': TOKEN, 'content-type': 'application/json' });
-const call = (p, o = {}) => api(`/api/master${p}`, { ...o, headers: H() });
+// Acesso do master por sessão (cookie httpOnly) + senha e código do app. O token
+// estático saiu de cena: em domínio https ele nem é aceito, e o painel não precisa dele.
+localStorage.removeItem('memo:master'); // limpa token legado de instalações antigas
+const call = (p, o = {}) => api(`/api/master${p}`, { ...o, headers: { 'content-type': 'application/json', ...(o.headers || {}) } });
 function el(tag, props = {}, ...kids) {
   const n = document.createElement(tag);
   for (const [k, v] of Object.entries(props)) { if (k.startsWith('on')) n[k] = v; else if (k === 'class') n.className = v; else if (v !== undefined && v !== null && v !== false) n.setAttribute(k, v); }
@@ -38,22 +38,36 @@ function login(erro) {
   $('#sair').style.display = 'none';
   crumbs([{ t: 'Admin master' }, { t: 'Entrar' }]);
   v.textContent = '';
-  const inp = el('input', { type: 'password', placeholder: 'Senha do admin master', autocomplete: 'off' });
+  const email = el('input', { type: 'email', placeholder: 'E-mail do master', autocomplete: 'username', style: 'width:100%' });
+  const senha = el('input', { type: 'password', placeholder: 'Senha', autocomplete: 'current-password', style: 'width:100%;margin-top:8px' });
+  const totp = el('input', { inputmode: 'numeric', maxlength: '6', placeholder: 'Código do app autenticador', autocomplete: 'one-time-code', style: 'width:100%;margin-top:8px' });
+  const rec = el('input', { placeholder: 'Ou um código de recuperação', autocomplete: 'one-time-code', style: 'width:100%;margin-top:8px' });
   const out = el('p', { class: 'msg' }, erro || '');
+  let entrando = false;
   const entrar = async () => {
-    TOKEN = inp.value.trim();
-    try { await call('/ping'); localStorage.setItem(KEY, TOKEN); carrega(); } catch (e) { out.textContent = e.message; }
+    if (entrando) return;
+    entrando = true;
+    out.textContent = '';
+    try {
+      const corpo = { email: email.value.trim(), senha: senha.value };
+      if (rec.value.trim()) corpo.recoveryCode = rec.value.trim(); else corpo.totp = totp.value.trim();
+      await api('/api/master/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(corpo) });
+      senha.value = ''; totp.value = ''; rec.value = '';
+      await carrega();
+    } catch (e) { out.textContent = e.message; } finally { entrando = false; }
   };
-  inp.onkeydown = (e) => { if (e.key === 'Enter') entrar(); };
-  v.append(el('div', { class: 'panel', style: 'max-width:420px' }, el('h1', {}, 'Admin master'),
-    el('p', { class: 'sub' }, 'Acesso a todos os casamentos e às variáveis da plataforma. Toda ação sensível fica registrada.'),
-    inp, el('button', { class: 'btn primary', style: 'margin-top:12px', onclick: entrar }, 'Entrar'), out));
+  [email, senha, totp, rec].forEach((i) => { i.onkeydown = (e) => { if (e.key === 'Enter') entrar(); }; });
+  v.append(el('div', { class: 'panel', style: 'max-width:440px' }, el('h1', {}, 'Admin master'),
+    el('p', { class: 'sub' }, 'Entre com a conta do master: e-mail, senha e o código do app autenticador. A sessão fica em cookie httpOnly e expira sozinha; toda ação sensível fica registrada.'),
+    email, senha, totp, rec,
+    el('button', { class: 'btn primary', style: 'margin-top:14px', onclick: entrar }, 'Entrar'), out));
 }
 
 async function carrega() {
   let dados;
-  try { dados = await call('/events'); } catch { return login('Senha inválida ou ausente.'); }
-  $('#sair').style.display = ''; $('#sair').onclick = () => { localStorage.removeItem(KEY); TOKEN = ''; login(); };
+  try { dados = await call('/events'); } catch { return login('Sessão expirada. Entre de novo.'); }
+  $('#sair').style.display = '';
+  $('#sair').onclick = async () => { try { await call('/sair', { method: 'POST' }); } catch {} login(); };
   crumbs([{ t: 'Admin master' }, { t: ABAS.find((x) => x[0] === aba)[1] }]);
   v.textContent = '';
   const t = dados.totais;
@@ -114,7 +128,11 @@ async function fotos() {
   if (!por.size) v.append(el('p', { class: 'sub' }, 'Ainda não há fotos.'));
   for (const [eid, g] of por) {
     const grid = el('div', { class: 'thumbs' });
-    g.fotos.forEach((f) => grid.append(el('div', { class: 'thumb' }, el('img', { src: `${f.url}?token=${encodeURIComponent(TOKEN)}`, alt: `Foto de ${f.autor}`, loading: 'lazy' }), el('div', {}, el('span', {}, f.autor)))));
+    g.fotos.forEach((f) => {
+      const img = el('img', { alt: `Foto de ${f.autor}`, loading: 'lazy' });
+      imgAutenticada(f.url).then((s) => { if (s) img.src = s; }); // sessão vai no cookie
+      grid.append(el('div', { class: 'thumb' }, img, el('div', {}, el('span', {}, f.autor))));
+    });
     v.append(el('div', { class: 'panel' }, el('div', { class: 'row' }, el('h2', { class: 'grow', style: 'margin:0' }, `${g.nome} (${g.fotos.length})`),
       el('a', { class: 'btn sm primary', href: `/painel/${eid}#fotos` }, 'Moderar este álbum')), el('div', { style: 'margin-top:12px' }, grid)));
   }
@@ -178,7 +196,10 @@ async function politicas() {
     el('tbody', {}, r.papeis.map((p) => el('tr', {}, el('td', {}, el('b', {}, p.papel)), el('td', {}, p.acessa), el('td', {}, p.nao)))))));
   v.append(el('div', { class: 'warn' }, r.rls));
 }
-TOKEN ? carrega() : login();
+(async () => {
+  try { await api('/api/master/me'); await carrega(); }
+  catch { login(); }
+})();
 </script>
 </body>
 </html>

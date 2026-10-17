@@ -26,6 +26,16 @@ function normalizeEvent(ev) {
     limites: ev.limites || {},
     config: { ...CONFIG_PADRAO, ...(ev.config || {}) },
     createdAt: ev.createdAt || new Date().toISOString(),
+    // Migração 006: e-mail de revelação só sai para endereço verificado e o estado
+    // do envio fica no evento (idempotente mesmo após restart). `emailIncerto` marca
+    // envio que passou do timeout: não reenvia sozinho, precisa de reenvio manual.
+    contatoVerificado: !!ev.contatoVerificado,
+    emailEnviado: !!ev.emailEnviado,
+    emailEnviadoEm: ev.emailEnviadoEm || null,
+    emailId: ev.emailId || null,
+    emailTentativas: Number(ev.emailTentativas) || 0,
+    emailErro: ev.emailErro || null,
+    emailIncerto: !!ev.emailIncerto,
   });
   return ev;
 }
@@ -134,6 +144,13 @@ class SqliteStore extends Store {
         config: JSON.parse(r.config_json || '{}'),
         limites: JSON.parse(r.limites_json || '{}'),
         revealNotified: !!r.reveal_notified,
+        contatoVerificado: !!r.contato_verificado,
+        emailEnviado: !!r.email_enviado,
+        emailEnviadoEm: r.email_enviado_em,
+        emailId: r.email_id,
+        emailTentativas: r.email_tentativas,
+        emailErro: r.email_erro,
+        emailIncerto: !!r.email_incerto,
         createdAt: r.created_at,
         cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [], push: [], avisos: [],
       });
@@ -166,10 +183,12 @@ class SqliteStore extends Store {
 
   _insertEvent(ev) {
     this._hashIfNeeded(ev);
-    this.conn.prepare(`INSERT INTO events (id, host_token_hash, titulo, reveal_at, fotos_por_convidado, data_evento, local, endereco, mensagem, contato, suspenso, config_json, limites_json, reveal_notified, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    this.conn.prepare(`INSERT INTO events (id, host_token_hash, titulo, reveal_at, fotos_por_convidado, data_evento, local, endereco, mensagem, contato, suspenso, config_json, limites_json, reveal_notified, contato_verificado, email_enviado, email_enviado_em, email_id, email_tentativas, email_erro, email_incerto, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       ev.id, ev.hostTokenHash, ev.titulo, ev.revealAt, ev.fotosPorConvidado,
       ev.dataEvento || null, ev.local || '', ev.endereco || '', ev.mensagem || '', ev.contato || '',
-      ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0, ev.createdAt
+      ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0,
+      ev.contatoVerificado ? 1 : 0, ev.emailEnviado ? 1 : 0, ev.emailEnviadoEm || null, ev.emailId || null,
+      Number(ev.emailTentativas) || 0, ev.emailErro || null, ev.emailIncerto ? 1 : 0, ev.createdAt
     );
     for (const g of ev.guests || []) {
       this.conn.prepare('INSERT INTO guests (id, tenant_id, nome, entrou_em, lista_id, token_hash) VALUES (?,?,?,?,?,?)').run(g.id, ev.id, g.nome, g.entrouEm, g.listaId || null, g.tokenHash || null);
@@ -210,12 +229,21 @@ class SqliteStore extends Store {
       !!ev.suspenso !== !!old.suspenso ||
       JSON.stringify(ev.config) !== JSON.stringify(old.config) ||
       JSON.stringify(ev.limites) !== JSON.stringify(old.limites) ||
-      !!ev.revealNotified !== !!old.revealNotified
+      !!ev.revealNotified !== !!old.revealNotified ||
+      !!ev.contatoVerificado !== !!old.contatoVerificado ||
+      !!ev.emailEnviado !== !!old.emailEnviado ||
+      (ev.emailEnviadoEm || null) !== (old.emailEnviadoEm || null) ||
+      (ev.emailId || null) !== (old.emailId || null) ||
+      (Number(ev.emailTentativas) || 0) !== (Number(old.emailTentativas) || 0) ||
+      (ev.emailErro || null) !== (old.emailErro || null) ||
+      !!ev.emailIncerto !== !!old.emailIncerto
     ) {
-      this.conn.prepare(`UPDATE events SET host_token_hash=?, titulo=?, reveal_at=?, fotos_por_convidado=?, data_evento=?, local=?, endereco=?, mensagem=?, contato=?, suspenso=?, config_json=?, limites_json=?, reveal_notified=? WHERE id=?`).run(
+      this.conn.prepare(`UPDATE events SET host_token_hash=?, titulo=?, reveal_at=?, fotos_por_convidado=?, data_evento=?, local=?, endereco=?, mensagem=?, contato=?, suspenso=?, config_json=?, limites_json=?, reveal_notified=?, contato_verificado=?, email_enviado=?, email_enviado_em=?, email_id=?, email_tentativas=?, email_erro=?, email_incerto=? WHERE id=?`).run(
         ev.hostTokenHash, ev.titulo, ev.revealAt, ev.fotosPorConvidado,
         ev.dataEvento || null, ev.local || '', ev.endereco || '', ev.mensagem || '', ev.contato || '',
-        ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0, ev.id
+        ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0,
+        ev.contatoVerificado ? 1 : 0, ev.emailEnviado ? 1 : 0, ev.emailEnviadoEm || null, ev.emailId || null,
+        Number(ev.emailTentativas) || 0, ev.emailErro || null, ev.emailIncerto ? 1 : 0, ev.id
       );
     }
 
