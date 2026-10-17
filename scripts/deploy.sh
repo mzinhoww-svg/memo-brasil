@@ -91,13 +91,13 @@ while [[ $# -gt 0 ]]; do
     --rollback)     ACAO="rollback" ;;
     --skip-backup)  FAZER_BACKUP="nao" ;;
     --no-cache)     NO_CACHE="--no-cache" ;;
-    --env-file)     shift; ENV_FILE="${1:-}" ;;
-    --state-dir)    shift; STATE_DIR="${1:-}" ;;
-    --current-tag)  shift; CURRENT_TAG_OVERRIDE="${1:-}" ;;
+    --env-file)     shift; ENV_FILE="${1:-}";       [[ -n "$ENV_FILE" ]] || die "--env-file exige um caminho." ;;
+    --state-dir)    shift; STATE_DIR="${1:-}";      [[ -n "$STATE_DIR" ]] || die "--state-dir exige um caminho." ;;
+    --current-tag)  shift; CURRENT_TAG_OVERRIDE="${1:-}"; [[ -n "$CURRENT_TAG_OVERRIDE" ]] || die "--current-tag exige um valor." ;;
     -h|--help)      uso; exit 0 ;;
     *)              die "opção desconhecida: $1 (use --help)" ;;
   esac
-  shift
+  shift || true
 done
 
 # ── Variáveis do app (sem source; só as chaves usadas aqui) ─────────────────

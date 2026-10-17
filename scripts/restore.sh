@@ -52,8 +52,8 @@ die()  { printf 'ERRO: %s\n' "$*" >&2; exit 2; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --backup)     shift; BACKUP="${1:-}" ;;
-    --data-dir)   shift; DATA_DIR="${1:-}" ;;
+    --backup)     shift; BACKUP="${1:-}";   [[ -n "$BACKUP" ]]   || { uso; die "informe --backup ARQUIVO"; } ;;
+    --data-dir)   shift; DATA_DIR="${1:-}"; [[ -n "$DATA_DIR" ]] || { uso; die "informe --data-dir DIR"; } ;;
     --apply)      MODO="apply" ;;
     --dry-run)    MODO="dry-run" ;;
     --yes)        ASSUMIR="sim" ;;
@@ -61,7 +61,7 @@ while [[ $# -gt 0 ]]; do
     -h|--help)    uso; exit 0 ;;
     *)            uso; die "opção desconhecida: $1" ;;
   esac
-  shift
+  shift || true
 done
 
 [[ -n "$BACKUP" ]] || { uso; die "informe --backup ARQUIVO"; }

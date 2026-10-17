@@ -17,8 +17,10 @@
 	}
 
 	# Logs de acesso em JSON no volume do Caddy.
-	# B2: token nunca aparece no log — o parâmetro é apagado da URI registrada.
-	# O app também aceita token em ?token=/&key=/&host_token=; tudo é filtrado.
+	# B2: nenhum segredo e nenhum IP completo no log.
+	#  - tokens trafegam em query (?token=&key=) e em cabeçalhos (X-*-Token);
+	#  - Authorization/Cookie também são apagados;
+	#  - remote_ip/client_ip mascarados (ip_mask): guarda a rede, não o IP.
 	log {
 		output file /data/access.log {
 			roll_size 10mb
@@ -27,12 +29,25 @@
 		format filter {
 			wrap json
 			fields {
+				request>headers>X-Host-Token delete
+				request>headers>X-Master-Token delete
+				request>headers>X-Guest-Token delete
+				request>headers>Authorization delete
+				request>headers>Cookie delete
 				request>uri query {
 					delete token
 					delete key
 					delete host_token
 					delete hostToken
 					delete master
+				}
+				request>remote_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+				request>client_ip ip_mask {
+					ipv4 24
+					ipv6 48
 				}
 			}
 		}
