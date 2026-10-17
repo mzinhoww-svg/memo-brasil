@@ -39,6 +39,7 @@ Preparação de deploy pronta (`Dockerfile`, `docker-compose.yml`, `Caddyfile`, 
 | P3 | Gerar **par de chaves SSH**, instalar a pública na VPS e confirmar login sem senha; **rotacionar a senha inicial** | `ssh-keygen` local + painel da VPS | Acesso seguro, deploy |
 | P4 | Criar **conta de e-mail transacional** e verificar o domínio (SPF/DKIM/DMARC); obter `EMAIL_PROVIDER` e `EMAIL_API_KEY` | Provedor de e-mail (faixa gratuita) | Link mágico, aviso de revelação (#9) |
 | P5 | Criar **bucket de backup externo** e obter `BACKUP_BUCKET`, `BACKUP_ACCESS_KEY`, `BACKUP_SECRET_KEY` | Armazenamento de objetos | Restauração fora do host |
+| P5b | Definir `BACKUP_PASSPHRASE` (senha longa) **ou** `BACKUP_GPG_KEY` (chave pública gpg) no `.env` | Senha gerada localmente / `gpg --gen-key` | Backup cifrado (obrigatório em produção; o deploy aborta sem isso) |
 | P6 | Gerar `MASTER_TOKEN` forte e colar no `.env` do servidor (sem imprimir/commitar) | Local → `.env` na VPS | Admin master |
 | P7 | **Aprovar o custo** estimado (≈ R$ 3,70/mês; cenário pior ≈ R$ 54) contra o teto de R$ 100 | Aqui / orçamento | Primeiro deploy |
 | P8 | Autorizar o **primeiro deploy em produção** (`bash scripts/deploy.sh --apply`) | Decisão | Item 4 |
