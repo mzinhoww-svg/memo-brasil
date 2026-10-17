@@ -1,0 +1,72 @@
+/* Lume — camada mobile (360–430px). Carregada depois de app.css/admin.css; usa os tokens de /tokens.css.
+   Regras: alvos >= 44px, campos >= 16px (sem zoom no iOS), safe-area, sem rolagem horizontal da página. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); overflow-wrap: anywhere; }
+img, video, svg { max-width: 100%; }
+
+/* campos: 16px em qualquer largura (iOS dá zoom abaixo disso) */
+input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]), select, textarea { font-size: 16px; font-family: inherit; }
+
+/* caixas de marcar com área de toque de 44px e marca de 24px */
+input[type=checkbox], input[type=radio] { -webkit-appearance: none; appearance: none; position: relative; width: 44px; height: 44px; min-height: 44px; margin: 0; padding: 0; border: 0; background: none; display: inline-block; vertical-align: middle; flex: none; cursor: pointer; }
+input[type=checkbox]::before, input[type=radio]::before { content: ""; position: absolute; left: 10px; top: 10px; width: 24px; height: 24px; border: 2px solid var(--cor-texto-suave); border-radius: 6px; background: var(--cor-superficie); }
+input[type=radio]::before { border-radius: 50%; }
+input[type=checkbox]:checked::before, input[type=radio]:checked::before { background: var(--cor-acento); border-color: var(--cor-acento); }
+input[type=checkbox]:checked::after { content: ""; position: absolute; left: 18px; top: 13px; width: 7px; height: 13px; border: solid var(--cor-sobre-acento); border-width: 0 3px 3px 0; transform: rotate(45deg); }
+input[type=radio]:checked::after { content: ""; position: absolute; left: 17px; top: 17px; width: 10px; height: 10px; border-radius: 50%; background: var(--cor-sobre-acento); }
+input[type=checkbox]:focus-visible, input[type=radio]:focus-visible { outline: 2px solid var(--cor-foco); outline-offset: -2px; border-radius: 8px; }
+
+/* alvos de toque (links soltos, migalhas, marca) */
+.tap, .crumbs a, .marca { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; }
+.crumbs [aria-current] { display: inline-flex; align-items: center; min-height: 44px; }
+.marca { justify-content: center; align-self: center; }
+.center .tap, p.center .tap { justify-content: center; }
+.hubcard, .btn { min-height: 44px; }
+.panel li > a:only-child { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* câmera: topo e rodapé respeitam entalhe e barra do sistema; ações ao alcance do polegar */
+.cam .top { padding-top: max(14px, env(safe-area-inset-top)); padding-left: max(var(--esp-4), env(safe-area-inset-left)); padding-right: max(var(--esp-4), env(safe-area-inset-right)); }
+.cam .top a, .cam .top #voltar { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 8px; }
+.cam .bottom { padding-bottom: max(34px, calc(env(safe-area-inset-bottom) + 20px)); }
+.retro .close { min-height: 44px; min-width: 44px; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); }
+.toast { max-width: calc(100% - 32px); white-space: normal; text-align: center; }
+.qr { width: min(100%, 360px); max-width: 360px; height: auto; display: block; margin-left: auto; margin-right: auto; }
+
+@media (max-width: 760px) {
+  main { padding-left: var(--esp-4); padding-right: var(--esp-4); }
+  /* organização e master */
+  .wide { padding: 16px var(--esp-4) 50px !important; }
+  .top { flex-wrap: wrap; gap: 8px; }
+  .side { position: sticky; top: 0; z-index: 5; padding: 12px var(--esp-3) 8px; padding-top: max(12px, env(safe-area-inset-top)); }
+  .nav { scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .nav a { min-height: 44px; scroll-snap-align: start; }
+  .content { padding-bottom: calc(50px + env(safe-area-inset-bottom)); }
+  .btn, .btn.sm, .chip, button.chip { min-height: 44px; padding-top: 10px; padding-bottom: 10px; }
+  .filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin-right: calc(-1 * var(--esp-4)); padding-right: var(--esp-4); }
+  .filters .chip { flex: none; }
+  .row > .btn { flex: 1 1 auto; }
+  .row .grow { flex: 1 1 100%; }
+  input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]), select, textarea { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--cor-borda); border-radius: var(--raio-md); background: var(--cor-superficie); color: var(--cor-texto); }
+  textarea { min-height: 120px; }
+  .panel { padding: var(--esp-4); }
+  .cards { grid-template-columns: 1fr 1fr; }
+  .sched { grid-template-columns: 76px 1fr 44px; align-items: center; }
+  .sched .btn { padding: 0; }
+  .thumbs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .thumb div .btn { flex: none; }
+  .qr { width: min(100%, 360px); }
+  /* tabelas viram cartões (rótulos vêm de /mobile.js) */
+  table.cartoes, table.cartoes tbody { display: block; width: 100%; }
+  table.cartoes thead { display: none; }
+  table.cartoes tr { display: block; margin: 0 0 10px; padding: 8px 12px; border: 1px solid var(--cor-borda); border-radius: var(--raio-md); background: var(--cor-superficie); }
+  table.cartoes td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border: 0; text-align: right; }
+  table.cartoes td[data-label]::before { content: attr(data-label); flex: none; text-align: left; font-size: var(--texto-xs); letter-spacing: .04em; text-transform: uppercase; color: var(--cor-texto-suave); }
+  table.cartoes td[colspan] { display: block; text-align: left; }
+  table.cartoes td > .row { justify-content: flex-end; width: 100%; }
+  table { font-size: var(--texto-sm); }
+}
+@media (max-width: 400px) {
+  h1 { font-size: 28px; }
+  .envelope h1 { font-size: 34px; }
+  .cards { grid-template-columns: 1fr; }
+}
