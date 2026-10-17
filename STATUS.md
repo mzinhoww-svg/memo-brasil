@@ -1,6 +1,6 @@
 # STATUS — Memo Brasil
 
-> Atualizado em 2026-10-17 pelo Planejador. Estado real **da `main`** e dos PRs abertos; nada abaixo conta como "feito" se não estiver mergeado. Fonte do checklist: `docs/prompt-orquestrador.md`.
+> Atualizado em 2026-10-17 (reauditoria dos heads pós-merge da main) pelo Planejador. Estado real **da `main`** e dos PRs abertos; nada abaixo conta como "feito" se não estiver mergeado. Fonte do checklist: `docs/prompt-orquestrador.md`.
 
 **Resumo:** `main` ainda é o protótipo funcional do convidado + painel básico (JSON em disco, token estático). Há 17 PRs abertos (#1–#17); **nenhum mergeado**. Nada publicado. Em 17/10: auditei #12, #13 e #14 (todos com condições) e o item 1 do #9; #15, #16, #17 e #8 auditados no mesmo dia (#15 devolvido). Decisões 002, 003 e 004 aceitas pelo Orquestrador em 17/10 (forma recomendada). Bloqueios de merge: #2 devolvido, #7 com ajustes, #9 a reauditar por inteiro, #14 devolvido (B1–B4), CI do #1 falhando.
 
@@ -55,3 +55,17 @@ Ordem de merge sugerida: #5 → #4 → #6 → #1 (com CI verde) → #7 (corrigid
 - Mimetype de upload confiado ao cliente; EXIF/GPS não removido (tratado no #14, ainda devolvido).
 - `save()` síncrono reescreve o JSON inteiro a cada mutação.
 - Sem HTTPS, sem e-mail transacional, sem backup externo, sem job de retenção.
+
+## Reauditoria de 17/10 (heads pós-merge da main; suítes verdes)
+
+| PR | Veredito | Pendência |
+|---|---|---|
+| #9 (82670ab) | **Aprovado** | go-live: e-mail do link mágico (#16), e-mail no `audit.log`, `TRUST_PROXY`, Origin |
+| #12 (7eb4d12) | **Aprovado** | rotação do log; cache do healthz |
+| #13 (5fabcb3) | **Devolvido** | `?token=` em `ehOrganizacao`; migração 002 duplicada |
+| #14 (88538bf) | **Devolvido** | `guestAuth` varre convidados (CPU antes da auth); migração 002 duplicada |
+| #15 (c6cc094) | **Aprovado** | migração 002 duplicada; reconciliar com #9 |
+| #16 (638e6bd) | **Aprovado** | link mágico em produção; timeout não cancela o SMTP |
+| #17 (c136fa0) | **Devolvido** | log do Caddy com cabeçalhos de token e IP; `restore.sh` sem `excluidos.log`; `TRUST_PROXY` |
+
+Risco transversal: quatro migrações usam o número 002 e o runner só olha o número; a segunda a entrar é ignorada em silêncio. Renumerar na ordem de merge.
