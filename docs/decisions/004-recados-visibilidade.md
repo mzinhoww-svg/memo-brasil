@@ -1,6 +1,6 @@
 # 004 — Visibilidade dos recados (CG-3)
 
-- Status: **recomendada**
+- Status: **aceita** (2026-10-17, pelo Orquestrador, na forma recomendada; antes: recomendada, 2026-10-13)
 - Autor: Planejador · Data: 2026-10-13
 - Origem: `docs/copy/consentimento-convidado.md` §5.2 (CG-3), auditoria do PR #2.
 

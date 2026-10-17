@@ -1,6 +1,6 @@
 # 002 — Autenticação do organizador (casal e cerimonial)
 
-- Status: **recomendada**
+- Status: **aceita** (2026-10-17, pelo Orquestrador, na forma recomendada; antes: recomendada, 2026-10-13)
 - Autor: Planejador · Data: 2026-10-13
 - Cobre o item 5 do checklist.
 

@@ -1,6 +1,6 @@
 # 003 — Autenticação do admin master e proteção da criação aberta
 
-- Status: **recomendada**
+- Status: **aceita** (2026-10-17, pelo Orquestrador, na forma recomendada; antes: recomendada, 2026-10-13)
 - Autor: Planejador · Data: 2026-10-13
 - Cobre o item 13 do checklist.
 
