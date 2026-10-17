@@ -18,6 +18,7 @@ const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'con
 const patch = (p, body, h = {}) => fetch(B + p, { method: 'PATCH', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
 const get = (p, h = {}) => fetch(B + p, { headers: h });
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 const H = (g) => ({ 'x-guest-token': g.guestToken });
 const ler = async (ev, g, tk) => (await (await get(`/api/events/${ev.id}/recados?guestId=${encodeURIComponent(g.guestId)}`, tk ? { 'x-guest-token': tk } : H(g))).json()).recados;
 const escrever = (ev, g, texto, extra = {}) => post(`/api/events/${ev.id}/recados`, { guestId: g.guestId, texto, ...extra }, H(g));
@@ -25,8 +26,8 @@ const config = (ev, cfg) => patch(`/api/events/${ev.id}`, { config: cfg }, { 'x-
 
 async function festa(titulo = 'Festa') {
   const r = await (await post('/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 2 })).json();
-  const a = await (await post(`/api/events/${r.id}/guests`, { nome: 'Ana' })).json();
-  const b = await (await post(`/api/events/${r.id}/guests`, { nome: 'Bia' })).json();
+  const a = await (await post(`/api/events/${r.id}/guests`, { nome: 'Ana', consentimento: CONSENT })).json();
+  const b = await (await post(`/api/events/${r.id}/guests`, { nome: 'Bia', consentimento: CONSENT })).json();
   return { id: r.id, tk: r.hostToken, a, b };
 }
 
@@ -35,6 +36,16 @@ test('sem credencial o mural não é lido (403)', async () => {
   assert.equal((await get(`/api/events/${ev.id}/recados`)).status, 403);
   // guestId sozinho também não basta.
   assert.equal((await get(`/api/events/${ev.id}/recados?guestId=${ev.a.guestId}`)).status, 403);
+});
+
+test('credencial de organização não vale pela URL: só no cabeçalho', async () => {
+  const ev = await festa('URL');
+  await escrever(ev, ev.a, 'recado');
+  // token do casal na query não lê (decisão 002 §8: credencial nunca na URL).
+  assert.equal((await get(`/api/events/${ev.id}/recados?token=${ev.tk}`)).status, 403);
+  assert.equal((await get(`/api/events/${ev.id}/recados?token=master-de-teste`)).status, 403);
+  // Pelo cabeçalho, funciona.
+  assert.equal((await get(`/api/events/${ev.id}/recados`, { 'x-host-token': ev.tk })).status, 200);
 });
 
 test('convidado vê só os próprios recados; recado privado do outro não aparece', async () => {

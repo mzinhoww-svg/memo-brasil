@@ -4,8 +4,17 @@ set -euo pipefail
 DATA_DIR="${DATA_DIR:-./data}"
 DB="${DATA_DIR}/memo.db"
 RETENTION_DIAS="${BACKUP_RETENTION_DIAS:-30}"
+case "${RETENTION_DIAS}" in ''|*[!0-9]*) RETENTION_DIAS=30 ;; esac
 STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_BASE="${DATA_DIR}/backups"
+
+# A retenção do backup nunca pode passar do prazo da política de retenção do produto.
+POLITICA_DIAS="$(node -e 'try{const s=require(process.argv[1]);const n=parseInt(s.retencaoDiasAposRevelacao,10);process.stdout.write(String(Number.isFinite(n)&&n>0?n:365))}catch(e){process.stdout.write("365")}' "${DATA_DIR}/settings.json" 2>/dev/null || printf 365)"
+case "${POLITICA_DIAS}" in ''|*[!0-9]*) POLITICA_DIAS=365 ;; esac
+if [ "${RETENTION_DIAS}" -gt "${POLITICA_DIAS}" ]; then
+  echo "Aviso: BACKUP_RETENTION_DIAS=${RETENTION_DIAS} excede a política (${POLITICA_DIAS} dias). Ajustando para ${POLITICA_DIAS}." >&2
+  RETENTION_DIAS="${POLITICA_DIAS}"
+fi
 
 # Compara sem diferenciar maiúsculas (bash 3.2 não tem ${var,,}).
 lc() { printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]'; }
@@ -62,6 +71,8 @@ if [ -d "${DATA_DIR}/photos" ]; then
   cp -R "${DATA_DIR}/photos" "${TMP_DIR}/photos"
 fi
 [ -f "${DATA_DIR}/audit.log" ] && cp "${DATA_DIR}/audit.log" "${TMP_DIR}/audit.log" || true
+[ -f "${DATA_DIR}/excluidos.log" ] && cp "${DATA_DIR}/excluidos.log" "${TMP_DIR}/excluidos.log" || true
+[ -d "${DATA_DIR}/outbox" ] && cp -R "${DATA_DIR}/outbox" "${TMP_DIR}/outbox" || true
 [ -f "${DATA_DIR}/settings.json" ] && cp "${DATA_DIR}/settings.json" "${TMP_DIR}/settings.json" || true
 [ -f "${DATA_DIR}/vapid.json" ] && cp "${DATA_DIR}/vapid.json" "${TMP_DIR}/vapid.json" || true
 

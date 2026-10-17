@@ -25,9 +25,10 @@ test.after(() => server.close());
 const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
 const get = (p, h = {}) => fetch(B + p, { headers: h });
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 async function criar(titulo) {
   const r = await (await post('/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 50 })).json();
-  const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
+  const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
   return { id: r.id, tk: r.hostToken, guest: g.guestId, gtoken: g.guestToken };
 }
 async function foto(ev) {

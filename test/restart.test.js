@@ -31,10 +31,11 @@ test.after(async () => { for (const srv of [...abertos]) await stop(srv); });
 const post = (base, p, body, h = {}) => fetch(base + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
 const get = (base, p, h = {}) => fetch(base + p, { headers: h });
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 
 async function novaFesta(base, titulo) {
   const r = await (await post(base, '/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 5 })).json();
-  const g = await (await post(base, `/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
+  const g = await (await post(base, `/api/events/${r.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
   const fd = new FormData(); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
   const up = await (await fetch(`${base}/api/events/${r.id}/photos`, { method: 'POST', headers: { 'x-guest-id': g.guestId, 'x-guest-token': g.guestToken }, body: fd })).json();
   return { id: r.id, tk: r.hostToken, gid: g.guestId, gtoken: g.guestToken, photo: up.id };
@@ -103,7 +104,7 @@ test('C2: convidado antigo sem tokenHash reivindica a sessão pelo nome uma vez'
   const { DatabaseSync } = require('node:sqlite');
   const first = await start();
   const r = await (await post(first.base, '/api/events', { titulo: 'Legado', revealAt: futuro(), fotosPorConvidado: 3 })).json();
-  const g = await (await post(first.base, `/api/events/${r.id}/guests`, { nome: 'Antiga' })).json();
+  const g = await (await post(first.base, `/api/events/${r.id}/guests`, { nome: 'Antiga', consentimento: CONSENT })).json();
   await stop(first.srv);
 
   // Simula a migração do JSON: convidado sem token (hash apagado no banco).
@@ -112,7 +113,7 @@ test('C2: convidado antigo sem tokenHash reivindica a sessão pelo nome uma vez'
   conn.close();
 
   const again = await start();
-  const claim = await post(again.base, `/api/events/${r.id}/guests`, { nome: 'Antiga' });
+  const claim = await post(again.base, `/api/events/${r.id}/guests`, { nome: 'Antiga', consentimento: CONSENT });
   assert.equal(claim.status, 201);
   const c = await claim.json();
   assert.equal(c.reivindicado, true);
@@ -120,7 +121,44 @@ test('C2: convidado antigo sem tokenHash reivindica a sessão pelo nome uma vez'
   assert.equal((await get(again.base, `/api/events/${r.id}/guests/${c.guestId}`, { 'x-guest-token': c.guestToken })).status, 200);
 
   // A reivindicação vale uma vez: a próxima entrada com o mesmo nome cria outro convidado.
-  const outra = await (await post(again.base, `/api/events/${r.id}/guests`, { nome: 'Antiga' })).json();
+  const outra = await (await post(again.base, `/api/events/${r.id}/guests`, { nome: 'Antiga', consentimento: CONSENT })).json();
   assert.notEqual(outra.guestId, c.guestId);
+  await stop(again.srv);
+});
+
+// RSVP fora do escopo: evento com rsvp/acompanhantes legados carrega, ignora os
+// campos (sem migração destrutiva) e a rota /rsvp não existe mais.
+test('evento com rsvp legado carrega, não exporta RSVP e /rsvp responde 404', async () => {
+  const { DatabaseSync } = require('node:sqlite');
+  const first = await start();
+  const r = await (await post(first.base, '/api/events', { titulo: 'Com RSVP antigo', revealAt: futuro(), fotosPorConvidado: 2 })).json();
+  await post(first.base, `/api/events/${r.id}/lista`, { texto: 'Maria Silva; Família da noiva' }, { 'x-host-token': r.hostToken });
+  await stop(first.srv);
+
+  // Simula dados anteriores à mudança: rsvp e acompanhantes gravados no banco.
+  const conn = new DatabaseSync(path.join(process.env.DATA_DIR, 'memo.db'));
+  conn.prepare('UPDATE lista SET rsvp = ?, acompanhantes = ? WHERE tenant_id = ?').run('confirmado', 3, r.id);
+  conn.close();
+
+  const again = await start();
+  const H = { 'x-host-token': r.hostToken };
+  const host = await get(again.base, `/api/events/${r.id}/host`, H);
+  assert.equal(host.status, 200, 'evento com rsvp legado não pode quebrar');
+  const hj = await host.json();
+  assert.equal('rsvp' in hj, false);
+  assert.equal('confirmados' in hj, false);
+
+  const lista = await (await get(again.base, `/api/events/${r.id}/lista`, H)).json();
+  assert.equal(lista.itens.length, 1);
+  assert.equal('rsvp' in lista.itens[0], false);
+  assert.equal('acompanhantes' in lista.itens[0], false);
+
+  const csv = await (await get(again.base, `/api/events/${r.id}/lista.csv`, H)).text();
+  assert.match(csv, /"Nome","Grupo"/);
+  assert.equal(csv.includes('Resposta'), false);
+  assert.equal(csv.includes('Acompanhantes'), false);
+  assert.equal(csv.includes('confirmado'), false);
+
+  assert.equal((await post(again.base, `/api/events/${r.id}/rsvp`, { guestId: 'x', status: 'confirmado' }, H)).status, 404);
   await stop(again.srv);
 });

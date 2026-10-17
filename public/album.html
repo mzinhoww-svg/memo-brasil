@@ -2,12 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Álbum</title>
 <link rel="icon" href="/icons/logo.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/Fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/mobile.css">
 </head>
 <body>
 <main>
@@ -26,7 +27,7 @@
   <div class="grid" id="grid"></div>
   <p id="vazio" class="center" style="display:none">Ainda não há momentos. Abra a câmera e faça o primeiro.</p>
 </main>
-<div class="retro" id="overlay"><button class="close" id="fechar">Fechar</button><img id="rimg" alt=""><div class="autor" id="rautor"></div></div>
+<div class="retro" id="overlay"><button class="close" id="fechar">Fechar</button><img id="rimg" alt=""><div class="autor" id="rautor"></div><button class="btn" id="denunciar" style="margin-top:12px;display:none">Denunciar foto</button></div>
 <script src="/common.js"></script>
 <script>
 const id = eventId();
@@ -79,7 +80,22 @@ function tick() {
   $('#restamLbl').textContent = revelado ? 'Álbum aberto' : 'Restantes';
   document.querySelectorAll('[data-rev]').forEach((el) => (el.textContent = `Revela em ${duracao(ms)}`));
 }
-function abre(f) { $('#rimg').src = f.url; $('#rautor').textContent = f.autor; $('#overlay').classList.add('on'); }
+let atual = null;
+function abre(f) {
+  atual = f;
+  $('#rimg').src = f.url; $('#rautor').textContent = f.autor;
+  $('#denunciar').style.display = g && g.guestToken ? 'inline-flex' : 'none';
+  $('#overlay').classList.add('on');
+}
+$('#denunciar').onclick = async () => {
+  const f = atual;
+  if (!f || !g || !g.guestToken) return;
+  const motivo = prompt('Por que esta foto deve ser revista? (opcional)') ?? '';
+  try {
+    await api(`/api/events/${id}/fotos/${f.id}/denunciar`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-guest-token': g.guestToken }, body: JSON.stringify({ guestId: g.guestId, motivo }) });
+    alert('Denúncia enviada. A organização vai revisar.');
+  } catch (e) { alert(e.message); }
+};
 let timer = null;
 $('#retro').onclick = () => {
   let i = 0; const lista = [...fotos].sort(() => Math.random() - 0.5);

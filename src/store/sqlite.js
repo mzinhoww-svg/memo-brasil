@@ -22,11 +22,27 @@ function normalizeEvent(ev) {
     photos: ev.photos || [],
     push: ev.push || [],
     avisos: ev.avisos || [],
+    denuncias: ev.denuncias || [],
+    consentimentos: ev.consentimentos || [],
+    retencaoAvisoEm: ev.retencaoAvisoEm || null,
     revealNotified: ev.revealNotified ?? (Date.now() >= new Date(ev.revealAt).getTime()),
     limites: ev.limites || {},
     config: { ...CONFIG_PADRAO, ...(ev.config || {}) },
     createdAt: ev.createdAt || new Date().toISOString(),
+    // Migração 006: e-mail de revelação só sai para endereço verificado e o estado
+    // do envio fica no evento (idempotente mesmo após restart). `emailIncerto` marca
+    // envio que passou do timeout: não reenvia sozinho, precisa de reenvio manual.
+    contatoVerificado: !!ev.contatoVerificado,
+    emailEnviado: !!ev.emailEnviado,
+    emailEnviadoEm: ev.emailEnviadoEm || null,
+    emailId: ev.emailId || null,
+    emailTentativas: Number(ev.emailTentativas) || 0,
+    emailErro: ev.emailErro || null,
+    emailIncerto: !!ev.emailIncerto,
   });
+  // Registros antigos (ou importados do JSON) podem não ter id; a sincronização exige.
+  for (const d of ev.denuncias) if (!d.id) d.id = crypto.randomBytes(6).toString('base64url');
+  for (const c of ev.consentimentos) if (!c.id) c.id = crypto.randomBytes(6).toString('base64url');
   return ev;
 }
 
@@ -134,16 +150,25 @@ class SqliteStore extends Store {
         config: JSON.parse(r.config_json || '{}'),
         limites: JSON.parse(r.limites_json || '{}'),
         revealNotified: !!r.reveal_notified,
+        retencaoAvisoEm: r.retencao_aviso_em || null,
+        contatoVerificado: !!r.contato_verificado,
+        emailEnviado: !!r.email_enviado,
+        emailEnviadoEm: r.email_enviado_em,
+        emailId: r.email_id,
+        emailTentativas: r.email_tentativas,
+        emailErro: r.email_erro,
+        emailIncerto: !!r.email_incerto,
         createdAt: r.created_at,
-        cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [], push: [], avisos: [],
+        cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [], push: [], avisos: [], denuncias: [], consentimentos: [],
       });
       const tid = ev.id;
       const guests = this.conn.prepare('SELECT * FROM guests WHERE tenant_id = ? ORDER BY rowid').all(tid);
-      for (const g of guests) ev.guests.push({ id: g.id, nome: g.nome, entrouEm: g.entrou_em, listaId: g.lista_id || undefined, tokenHash: g.token_hash || undefined });
+      for (const g of guests) ev.guests.push({ id: g.id, nome: g.nome, entrouEm: g.entrou_em, listaId: g.lista_id || undefined, tokenHash: g.token_hash || undefined, consentimento: g.consentimento_json ? JSON.parse(g.consentimento_json) : null });
       const photos = this.conn.prepare('SELECT * FROM photos WHERE tenant_id = ? ORDER BY rowid').all(tid);
-      for (const p of photos) ev.photos.push({ id: p.id, ext: p.ext, guestId: p.guest_id, autor: p.autor, criadaEm: p.criada_em });
+      for (const p of photos) ev.photos.push({ id: p.id, ext: p.ext, guestId: p.guest_id, autor: p.autor, criadaEm: p.criada_em, oculta: !!p.oculta });
       const lista = this.conn.prepare('SELECT * FROM lista WHERE tenant_id = ? ORDER BY rowid').all(tid);
-      for (const l of lista) ev.lista.push({ id: l.id, nome: l.nome, grupo: l.grupo, acompanhantes: l.acompanhantes, rsvp: l.rsvp, origem: l.origem });
+      // rsvp/acompanhantes são legado (fora do escopo): ignorados na leitura e nunca reescritos.
+      for (const l of lista) ev.lista.push({ id: l.id, nome: l.nome, grupo: l.grupo, origem: l.origem });
       const equipe = this.conn.prepare('SELECT * FROM equipe WHERE tenant_id = ? ORDER BY rowid').all(tid);
       for (const e of equipe) ev.equipe.push({ id: e.id, nome: e.nome, papel: e.papel, tokenHash: e.token_hash });
       const recados = this.conn.prepare('SELECT * FROM recados WHERE tenant_id = ? ORDER BY rowid').all(tid);
@@ -152,6 +177,10 @@ class SqliteStore extends Store {
       for (const p of push) ev.push.push({ id: p.id, guestId: p.guest_id, sub: { endpoint: p.endpoint, keys: { p256dh: p.p256dh, auth: p.auth } }, criadoEm: p.criado_em });
       const avisos = this.conn.prepare('SELECT * FROM avisos WHERE tenant_id = ? ORDER BY rowid').all(tid);
       for (const a of avisos) ev.avisos.push({ id: a.id, titulo: a.titulo, corpo: a.corpo, enviadoEm: a.enviado_em, por: a.por, alvos: a.alvos, entregues: a.entregues, falhas: a.falhas });
+      const denuncias = this.conn.prepare('SELECT * FROM denuncias WHERE tenant_id = ? ORDER BY rowid').all(tid);
+      for (const d of denuncias) ev.denuncias.push({ id: d.id, fotoId: d.foto_id, guestId: d.guest_id, motivo: d.motivo, criadoEm: d.criado_em, status: d.status, resolvidaEm: d.resolvida_em || undefined });
+      const consentimentos = this.conn.prepare('SELECT * FROM consentimentos WHERE tenant_id = ? ORDER BY rowid').all(tid);
+      for (const c of consentimentos) ev.consentimentos.push({ id: c.id, guestId: c.guest_id, versao: c.versao, fotos: c.fotos === null ? null : !!c.fotos, avisos: c.avisos === null ? null : !!c.avisos, em: c.em });
       this._data.events[ev.id] = ev;
     }
     this._shadow = deepClone(this._data.events);
@@ -165,23 +194,27 @@ class SqliteStore extends Store {
 
   _insertEvent(ev) {
     this._hashIfNeeded(ev);
-    this.conn.prepare(`INSERT INTO events (id, host_token_hash, titulo, reveal_at, fotos_por_convidado, data_evento, local, endereco, mensagem, contato, suspenso, config_json, limites_json, reveal_notified, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    this.conn.prepare(`INSERT INTO events (id, host_token_hash, titulo, reveal_at, fotos_por_convidado, data_evento, local, endereco, mensagem, contato, suspenso, config_json, limites_json, reveal_notified, retencao_aviso_em, contato_verificado, email_enviado, email_enviado_em, email_id, email_tentativas, email_erro, email_incerto, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       ev.id, ev.hostTokenHash, ev.titulo, ev.revealAt, ev.fotosPorConvidado,
       ev.dataEvento || null, ev.local || '', ev.endereco || '', ev.mensagem || '', ev.contato || '',
-      ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0, ev.createdAt
+      ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0,
+      ev.retencaoAvisoEm || null,
+      ev.contatoVerificado ? 1 : 0, ev.emailEnviado ? 1 : 0, ev.emailEnviadoEm || null, ev.emailId || null,
+      Number(ev.emailTentativas) || 0, ev.emailErro || null, ev.emailIncerto ? 1 : 0, ev.createdAt
     );
     for (const g of ev.guests || []) {
-      this.conn.prepare('INSERT INTO guests (id, tenant_id, nome, entrou_em, lista_id, token_hash) VALUES (?,?,?,?,?,?)').run(g.id, ev.id, g.nome, g.entrouEm, g.listaId || null, g.tokenHash || null);
+      this.conn.prepare('INSERT INTO guests (id, tenant_id, nome, entrou_em, lista_id, token_hash, consentimento_json) VALUES (?,?,?,?,?,?,?)').run(
+        g.id, ev.id, g.nome, g.entrouEm, g.listaId || null, g.tokenHash || null, g.consentimento ? JSON.stringify(g.consentimento) : null);
     }
     for (const l of ev.lista || []) {
-      this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, acompanhantes, rsvp, origem) VALUES (?,?,?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao');
+      this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, origem) VALUES (?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.origem || 'organizacao');
     }
     for (const e of ev.equipe || []) {
       const th = e.tokenHash || (e.token ? tokenHash(e.token) : '');
       this.conn.prepare('INSERT INTO equipe (id, tenant_id, nome, papel, token_hash) VALUES (?,?,?,?,?)').run(e.id, ev.id, e.nome, e.papel, th);
     }
     for (const p of ev.photos || []) {
-      this.conn.prepare('INSERT INTO photos (id, tenant_id, guest_id, autor, ext, criada_em) VALUES (?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.autor, p.ext, p.criadaEm);
+      this.conn.prepare('INSERT INTO photos (id, tenant_id, guest_id, autor, ext, criada_em, oculta) VALUES (?,?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.autor, p.ext, p.criadaEm, p.oculta ? 1 : 0);
     }
     for (const r of ev.recados || []) {
       this.conn.prepare('INSERT INTO recados (id, tenant_id, guest_id, autor, texto, visibilidade, criado_em) VALUES (?,?,?,?,?,?,?)').run(r.id, ev.id, r.guestId, r.autor, r.texto, r.visibilidade || 'casal', r.criadoEm);
@@ -191,6 +224,14 @@ class SqliteStore extends Store {
     }
     for (const a of ev.avisos || []) {
       this.conn.prepare('INSERT INTO avisos (id, tenant_id, titulo, corpo, enviado_em, por, alvos, entregues, falhas) VALUES (?,?,?,?,?,?,?,?,?)').run(a.id, ev.id, a.titulo, a.corpo, a.enviadoEm, a.por || '', a.alvos || 0, a.entregues || 0, a.falhas || 0);
+    }
+    for (const d of ev.denuncias || []) {
+      this.conn.prepare('INSERT INTO denuncias (id, tenant_id, foto_id, guest_id, motivo, criado_em, status, resolvida_em) VALUES (?,?,?,?,?,?,?,?)').run(
+        d.id, ev.id, d.fotoId, d.guestId, d.motivo || '', d.criadoEm, d.status || 'aberta', d.resolvidaEm || null);
+    }
+    for (const c of ev.consentimentos || []) {
+      this.conn.prepare('INSERT INTO consentimentos (id, tenant_id, guest_id, versao, fotos, avisos, em) VALUES (?,?,?,?,?,?,?)').run(
+        c.id, ev.id, c.guestId, c.versao, c.fotos === null || c.fotos === undefined ? null : (c.fotos ? 1 : 0), c.avisos === null || c.avisos === undefined ? null : (c.avisos ? 1 : 0), c.em);
     }
   }
 
@@ -209,23 +250,36 @@ class SqliteStore extends Store {
       !!ev.suspenso !== !!old.suspenso ||
       JSON.stringify(ev.config) !== JSON.stringify(old.config) ||
       JSON.stringify(ev.limites) !== JSON.stringify(old.limites) ||
-      !!ev.revealNotified !== !!old.revealNotified
+      !!ev.revealNotified !== !!old.revealNotified ||
+      (ev.retencaoAvisoEm || null) !== (old.retencaoAvisoEm || null) ||
+      !!ev.contatoVerificado !== !!old.contatoVerificado ||
+      !!ev.emailEnviado !== !!old.emailEnviado ||
+      (ev.emailEnviadoEm || null) !== (old.emailEnviadoEm || null) ||
+      (ev.emailId || null) !== (old.emailId || null) ||
+      (Number(ev.emailTentativas) || 0) !== (Number(old.emailTentativas) || 0) ||
+      (ev.emailErro || null) !== (old.emailErro || null) ||
+      !!ev.emailIncerto !== !!old.emailIncerto
     ) {
-      this.conn.prepare(`UPDATE events SET host_token_hash=?, titulo=?, reveal_at=?, fotos_por_convidado=?, data_evento=?, local=?, endereco=?, mensagem=?, contato=?, suspenso=?, config_json=?, limites_json=?, reveal_notified=? WHERE id=?`).run(
+      this.conn.prepare(`UPDATE events SET host_token_hash=?, titulo=?, reveal_at=?, fotos_por_convidado=?, data_evento=?, local=?, endereco=?, mensagem=?, contato=?, suspenso=?, config_json=?, limites_json=?, reveal_notified=?, retencao_aviso_em=?, contato_verificado=?, email_enviado=?, email_enviado_em=?, email_id=?, email_tentativas=?, email_erro=?, email_incerto=? WHERE id=?`).run(
         ev.hostTokenHash, ev.titulo, ev.revealAt, ev.fotosPorConvidado,
         ev.dataEvento || null, ev.local || '', ev.endereco || '', ev.mensagem || '', ev.contato || '',
-        ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0, ev.id
+        ev.suspenso ? 1 : 0, JSON.stringify(ev.config || {}), JSON.stringify(ev.limites || {}), ev.revealNotified ? 1 : 0,
+        ev.retencaoAvisoEm || null,
+        ev.contatoVerificado ? 1 : 0, ev.emailEnviado ? 1 : 0, ev.emailEnviadoEm || null, ev.emailId || null,
+        Number(ev.emailTentativas) || 0, ev.emailErro || null, ev.emailIncerto ? 1 : 0, ev.id
       );
     }
 
     this._syncArray('guests', ev.guests, old.guests || [],
-      (g) => this.conn.prepare('INSERT INTO guests (id, tenant_id, nome, entrou_em, lista_id, token_hash) VALUES (?,?,?,?,?,?)').run(g.id, ev.id, g.nome, g.entrouEm, g.listaId || null, g.tokenHash || null),
-      (g) => this.conn.prepare('UPDATE guests SET nome=?, entrou_em=?, lista_id=?, token_hash=? WHERE id=? AND tenant_id=?').run(g.nome, g.entrouEm, g.listaId || null, g.tokenHash || null, g.id, ev.id),
+      (g) => this.conn.prepare('INSERT INTO guests (id, tenant_id, nome, entrou_em, lista_id, token_hash, consentimento_json) VALUES (?,?,?,?,?,?,?)').run(
+        g.id, ev.id, g.nome, g.entrouEm, g.listaId || null, g.tokenHash || null, g.consentimento ? JSON.stringify(g.consentimento) : null),
+      (g) => this.conn.prepare('UPDATE guests SET nome=?, entrou_em=?, lista_id=?, token_hash=?, consentimento_json=? WHERE id=? AND tenant_id=?').run(
+        g.nome, g.entrouEm, g.listaId || null, g.tokenHash || null, g.consentimento ? JSON.stringify(g.consentimento) : null, g.id, ev.id),
       (id) => this.conn.prepare('DELETE FROM guests WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('lista', ev.lista, old.lista || [],
-      (l) => this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, acompanhantes, rsvp, origem) VALUES (?,?,?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao'),
-      (l) => this.conn.prepare('UPDATE lista SET nome=?, grupo=?, acompanhantes=?, rsvp=?, origem=? WHERE id=? AND tenant_id=?').run(l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao', l.id, ev.id),
+      (l) => this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, origem) VALUES (?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.origem || 'organizacao'),
+      (l) => this.conn.prepare('UPDATE lista SET nome=?, grupo=?, origem=? WHERE id=? AND tenant_id=?').run(l.nome, l.grupo || '', l.origem || 'organizacao', l.id, ev.id),
       (id) => this.conn.prepare('DELETE FROM lista WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('equipe', ev.equipe, old.equipe || [],
@@ -240,8 +294,8 @@ class SqliteStore extends Store {
       (id) => this.conn.prepare('DELETE FROM equipe WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('photos', ev.photos, old.photos || [],
-      (p) => this.conn.prepare('INSERT INTO photos (id, tenant_id, guest_id, autor, ext, criada_em) VALUES (?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.autor, p.ext, p.criadaEm),
-      (p) => this.conn.prepare('UPDATE photos SET guest_id=?, autor=?, ext=?, criada_em=? WHERE id=? AND tenant_id=?').run(p.guestId, p.autor, p.ext, p.criadaEm, p.id, ev.id),
+      (p) => this.conn.prepare('INSERT INTO photos (id, tenant_id, guest_id, autor, ext, criada_em, oculta) VALUES (?,?,?,?,?,?,?)').run(p.id, ev.id, p.guestId, p.autor, p.ext, p.criadaEm, p.oculta ? 1 : 0),
+      (p) => this.conn.prepare('UPDATE photos SET guest_id=?, autor=?, ext=?, criada_em=?, oculta=? WHERE id=? AND tenant_id=?').run(p.guestId, p.autor, p.ext, p.criadaEm, p.oculta ? 1 : 0, p.id, ev.id),
       (id) => this.conn.prepare('DELETE FROM photos WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('recados', ev.recados, old.recados || [],
@@ -258,6 +312,20 @@ class SqliteStore extends Store {
       (a) => this.conn.prepare('INSERT INTO avisos (id, tenant_id, titulo, corpo, enviado_em, por, alvos, entregues, falhas) VALUES (?,?,?,?,?,?,?,?,?)').run(a.id, ev.id, a.titulo, a.corpo, a.enviadoEm, a.por || '', a.alvos || 0, a.entregues || 0, a.falhas || 0),
       (a) => this.conn.prepare('UPDATE avisos SET titulo=?, corpo=?, enviado_em=?, por=?, alvos=?, entregues=?, falhas=? WHERE id=? AND tenant_id=?').run(a.titulo, a.corpo, a.enviadoEm, a.por || '', a.alvos || 0, a.entregues || 0, a.falhas || 0, a.id, ev.id),
       (id) => this.conn.prepare('DELETE FROM avisos WHERE id=? AND tenant_id=?').run(id, ev.id));
+
+    this._syncArray('denuncias', ev.denuncias, old.denuncias || [],
+      (d) => this.conn.prepare('INSERT INTO denuncias (id, tenant_id, foto_id, guest_id, motivo, criado_em, status, resolvida_em) VALUES (?,?,?,?,?,?,?,?)').run(
+        d.id, ev.id, d.fotoId, d.guestId, d.motivo || '', d.criadoEm, d.status || 'aberta', d.resolvidaEm || null),
+      (d) => this.conn.prepare('UPDATE denuncias SET foto_id=?, guest_id=?, motivo=?, criado_em=?, status=?, resolvida_em=? WHERE id=? AND tenant_id=?').run(
+        d.fotoId, d.guestId, d.motivo || '', d.criadoEm, d.status || 'aberta', d.resolvidaEm || null, d.id, ev.id),
+      (id) => this.conn.prepare('DELETE FROM denuncias WHERE id=? AND tenant_id=?').run(id, ev.id));
+
+    this._syncArray('consentimentos', ev.consentimentos, old.consentimentos || [],
+      (c) => this.conn.prepare('INSERT INTO consentimentos (id, tenant_id, guest_id, versao, fotos, avisos, em) VALUES (?,?,?,?,?,?,?)').run(
+        c.id, ev.id, c.guestId, c.versao, c.fotos === null || c.fotos === undefined ? null : (c.fotos ? 1 : 0), c.avisos === null || c.avisos === undefined ? null : (c.avisos ? 1 : 0), c.em),
+      (c) => this.conn.prepare('UPDATE consentimentos SET guest_id=?, versao=?, fotos=?, avisos=?, em=? WHERE id=? AND tenant_id=?').run(
+        c.guestId, c.versao, c.fotos === null || c.fotos === undefined ? null : (c.fotos ? 1 : 0), c.avisos === null || c.avisos === undefined ? null : (c.avisos ? 1 : 0), c.em, c.id, ev.id),
+      (id) => this.conn.prepare('DELETE FROM consentimentos WHERE id=? AND tenant_id=?').run(id, ev.id));
   }
 
   _syncArray(name, current, previous, insertFn, updateFn, deleteFn) {
@@ -367,6 +435,8 @@ class SqliteStore extends Store {
       equipe: events.reduce((s, e) => s + (e.equipe || []).length, 0),
       push: events.reduce((s, e) => s + (e.push || []).length, 0),
       avisos: events.reduce((s, e) => s + (e.avisos || []).length, 0),
+      denuncias: events.reduce((s, e) => s + (e.denuncias || []).length, 0),
+      consentimentos: events.reduce((s, e) => s + (e.consentimentos || []).length, 0),
     };
   }
 

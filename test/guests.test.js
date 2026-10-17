@@ -20,12 +20,13 @@ test.after(() => server.close());
 const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
 const get = (p, h = {}) => fetch(B + p, { headers: h });
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 const { tokenHash } = require('../src/store/sqlite');
 const abrirBanco = () => { const { DatabaseSync } = require('node:sqlite'); return new DatabaseSync(path.join(DATA_DIR, 'memo.db')); };
 
 async function criar(titulo, nome = 'Rafa') {
   const r = await (await post('/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 2 })).json();
-  const g = await (await post(`/api/events/${r.id}/guests`, { nome })).json();
+  const g = await (await post(`/api/events/${r.id}/guests`, { nome, consentimento: CONSENT })).json();
   return { id: r.id, tk: r.hostToken, guest: g.guestId, gt: g.guestToken, nome: g.nome };
 }
 async function foto(ev, token = ev.gt) {
@@ -37,7 +38,6 @@ async function foto(ev, token = ev.gt) {
 const saldo = (ev, token = ev.gt) => get(`/api/events/${ev.id}/guests/${ev.guest}`, token ? { 'x-guest-token': token } : {});
 const recado = (ev, token = ev.gt) => post(`/api/events/${ev.id}/recados`, { guestId: ev.guest, texto: 'Oi, noivos!' }, token ? { 'x-guest-token': token } : {});
 const reentrar = (ev, token = ev.gt) => post(`/api/events/${ev.id}/sessao`, { guestId: ev.guest }, token ? { 'x-guest-token': token } : {});
-const rsvp = (ev, token = ev.gt) => post(`/api/events/${ev.id}/rsvp`, { guestId: ev.guest, status: 'confirmado' }, token ? { 'x-guest-token': token } : {});
 const push = (ev, token = ev.gt) => post(`/api/events/${ev.id}/push/subscribe`, { guestId: ev.guest, subscription: { endpoint: 'https://push.example/x', keys: { p256dh: 'p', auth: 'a' } } }, token ? { 'x-guest-token': token } : {});
 
 test('a entrada devolve um token de 32 bytes e o servidor guarda só o hash', async () => {
@@ -56,13 +56,12 @@ test('a entrada devolve um token de 32 bytes e o servidor guarda só o hash', as
   assert.equal(linha.token, undefined);
 });
 
-test('id adivinhado sem token não passa em saldo, upload, recados, rsvp nem push', async () => {
+test('id adivinhado sem token não passa em saldo, upload, recados nem push', async () => {
   const ev = await criar('So o id');
   assert.equal((await saldo(ev, null)).status, 403);
   assert.equal((await foto(ev, null)).status, 403);
   assert.equal((await recado(ev, null)).status, 403);
   assert.equal((await reentrar(ev, null)).status, 403);
-  assert.equal((await rsvp(ev, null)).status, 403);
   assert.equal((await push(ev, null)).status, 403);
 });
 
@@ -72,13 +71,21 @@ test('token de outro evento não passa (nem id nem token sozinhos bastam)', asyn
   assert.equal((await foto(a, b.gt)).status, 403);
   assert.equal((await recado(a, b.gt)).status, 403);
   assert.equal((await reentrar(a, b.gt)).status, 403);
-  assert.equal((await rsvp(a, b.gt)).status, 403);
   assert.equal((await push(a, b.gt)).status, 403);
+});
+
+test('RSVP está fora do escopo: POST /rsvp não existe mais (404)', async () => {
+  const ev = await criar('Sem RSVP');
+  assert.equal((await post(`/api/events/${ev.id}/rsvp`, { guestId: ev.guest, status: 'confirmado' }, { 'x-guest-token': ev.gt })).status, 404);
+  // A sessão do convidado não carrega mais rsvp/acompanhantes; mantém naLista.
+  const s = await (await saldo(ev)).json();
+  assert.equal('rsvp' in s, false);
+  assert.equal('acompanhantes' in s, false);
 });
 
 test('token de outro convidado do mesmo evento não passa', async () => {
   const ev = await criar('Dupla');
-  const outro = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Bia' })).json();
+  const outro = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Bia', consentimento: CONSENT })).json();
   assert.equal((await saldo(ev, outro.guestToken)).status, 403);
 });
 
@@ -99,6 +106,18 @@ test('token inválido é recusado com 403', async () => {
   const ev = await criar('Invasor');
   assert.equal((await saldo(ev, 'token-de-mentira')).status, 403);
   assert.equal((await reentrar(ev, '')).status, 403);
+});
+
+// Migração 003: as colunas do item 7 / decisão 004 existem (uma só ALTER de token_hash).
+test('migração 003 aplicada: token_hash em guests e visibilidade em recados', () => {
+  const conn = abrirBanco();
+  const colunas = (t) => conn.prepare(`PRAGMA table_info(${t})`).all().map((c) => c.name);
+  const guests = colunas('guests'), recados = colunas('recados');
+  const versao = conn.prepare('SELECT MAX(version) AS v FROM schema_migrations WHERE version > 0').get().v;
+  conn.close();
+  assert.ok(guests.includes('token_hash'));
+  assert.ok(recados.includes('visibilidade'));
+  assert.ok(versao >= 3, `versão de esquema ${versao}`);
 });
 
 // C3: nenhuma resposta pode expor o hash do token (host, equipe ou convidado).

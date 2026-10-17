@@ -1,6 +1,13 @@
 node_modules
 data
+
+# Segredos e artefatos de deploy (nunca commitar)
 .env
 .env.*
 !.env.example
+exportacoes
+backups/
+.deploy/
+*.log
 scripts/ci-output.txt
+.maestri/

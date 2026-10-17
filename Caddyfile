@@ -1,0 +1,60 @@
+# Caddyfile — HTTPS automático (Let's Encrypt) para o domínio em {$DOMINIO}.
+# O valor de DOMINIO vem do .env (docker compose lê env_file). Não fixe domínio aqui.
+# Requisitos: DNS do domínio apontando para o IP da VPS e portas 80/443 abertas.
+{$DOMINIO} {
+	encode zstd gzip
+
+	# O app Node fala apenas na rede interna do compose.
+	reverse_proxy lume:3210
+
+	# Cabeçalhos de segurança (HTTPS é terminado aqui).
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Logs de acesso em JSON no volume do Caddy.
+	# B2: nenhum segredo e nenhum IP completo no log.
+	#  - tokens trafegam em query (?token=&key=) e em cabeçalhos (X-*-Token);
+	#  - Authorization/Cookie também são apagados;
+	#  - remote_ip/client_ip mascarados (ip_mask): guarda a rede, não o IP.
+	log {
+		output file /data/access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format filter {
+			wrap json
+			fields {
+				request>headers>X-Host-Token delete
+				request>headers>X-Master-Token delete
+				request>headers>X-Guest-Token delete
+				request>headers>Authorization delete
+				request>headers>Cookie delete
+				request>headers>X-Forwarded-For delete
+				request>headers>X-Real-Ip delete
+				request>uri query {
+					delete token
+					delete key
+					delete host_token
+					delete hostToken
+					delete master
+					delete t
+					delete q
+					delete guestId
+				}
+				request>remote_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+				request>client_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+			}
+		}
+	}
+}

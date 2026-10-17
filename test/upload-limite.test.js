@@ -21,9 +21,10 @@ test.after(() => server.close());
 
 const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
 const get = (p, h = {}) => fetch(B + p, { headers: h });
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 async function criar(titulo) {
   const r = await (await post('/api/events', { titulo, revealAt: new Date(Date.now() + 3600e3).toISOString(), fotosPorConvidado: 5 })).json();
-  const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
+  const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
   return { id: r.id, guest: g.guestId, gtoken: g.guestToken };
 }
 function enviar(ev, guestId, token) {
@@ -37,7 +38,7 @@ function enviar(ev, guestId, token) {
 
 test('falhas de um convidado não bloqueiam os outros nem a credencial válida (mesmo IP)', async () => {
   const ev = await criar('Limite de tentativas');
-  const bia = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Bia' })).json();
+  const bia = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Bia', consentimento: CONSENT })).json();
 
   // 5 falhas do par (IP, evento, convidado) do Rafa com token errado: as 4
   // primeiras são 403, a que estoura o teto vira 429.
@@ -54,4 +55,37 @@ test('falhas de um convidado não bloqueiam os outros nem a credencial válida (
 
   const lista = await (await get(`/api/events/${ev.id}/photos`)).json();
   assert.equal(lista.fotos.length, 2, 'só as duas credenciais válidas gravaram');
+});
+
+// O id do convidado pode vir no formulário (contrato do #13), mas o token é
+// SEMPRE de cabeçalho: nunca na query string, onde vaza em log/Referer.
+test('token de convidado na query string não autentica o upload', async () => {
+  const ev = await criar('Token só no cabeçalho');
+  const fd = new FormData();
+  fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
+  const url = `${B}/api/events/${ev.id}/photos?guestId=${ev.guest}&token=${ev.gtoken}`;
+
+  const r = await fetch(url, { method: 'POST', body: fd });
+  assert.equal(r.status, 403, 'token na query é ignorado');
+  const lista = await (await get(`/api/events/${ev.id}/photos`)).json();
+  assert.equal(lista.fotos.length, 0, 'nada foi gravado');
+
+  // O mesmo envio pelo cabeçalho funciona.
+  assert.equal((await enviar(ev, ev.guest, ev.gtoken)).status, 201);
+});
+
+// Teto de falhas "de tipo": conteúdo que não é imagem também conta no balde e
+// vira 429 depois de N tentativas na janela. Um upload válido continua passando.
+test('falhas de tipo no upload também contam e viram 429 depois de N tentativas', async () => {
+  const ev = await criar('Limite por tipo');
+  const status = [];
+  for (let i = 0; i < 5; i++) {
+    const fd = new FormData();
+    fd.append('foto', new Blob([Buffer.from('não sou uma imagem')], { type: 'image/jpeg' }), 'x.jpg');
+    status.push((await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers: { 'x-guest-id': ev.guest, 'x-guest-token': ev.gtoken }, body: fd })).status);
+  }
+  assert.deepEqual(status, [400, 400, 400, 400, 429]);
+
+  // Credencial válida com imagem válida segue entrando (e zera o balde).
+  assert.equal((await enviar(ev, ev.guest, ev.gtoken)).status, 201);
 });
