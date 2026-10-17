@@ -17,7 +17,7 @@ Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial).
 |---|---|---|
 | `EMAIL_PROVIDER`, `EMAIL_API_KEY` | E-mail transacional (link mágico, revelação) | Sem isto o link cai em log (B5 do #9); produção deve recusar subir. Até o módulo do #16 entrar, `/api/auth/link` responde 503 fora de dev/teste |
 | `MASTER_TOTP_KEY` (32 bytes aleatórios) | Cifrar segredo TOTP do master | Exigir em produção (B6 do #9) |
-| `MASTER_BOOTSTRAP_*` | Criar o primeiro master | Preferir `scripts/master-criar.js` interativo, não argv |
+| `MASTER_BOOTSTRAP_*` | Criar o primeiro master | Em https é o **único** caminho (token estático não vale). Preferir `scripts/master-criar.js <email> <nome>` com a senha em `MASTER_SENHA` ou no prompt — nunca como argumento |
 | Google OAuth (client id/secret) | Só se a decisão 002 for a opção C | Opcional |
 | Turnstile (site/secret) | Anti-spam na criação aberta (item 13) | Pendente |
 | Sentry DSN | Alerta de erro (item 11) | Plano gratuito |
