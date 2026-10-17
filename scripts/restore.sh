@@ -76,7 +76,9 @@ ARQUIVO_TAR="$BACKUP"
 if [[ "$BACKUP" == *.gpg ]]; then
   command -v gpg >/dev/null 2>&1 || die "backup .gpg exige o gpg instalado."
   if [[ -n "${BACKUP_PASSPHRASE:-}" ]]; then
-    gpg --batch --yes --quiet --passphrase "$BACKUP_PASSPHRASE" --decrypt "$BACKUP" > "$TMP/arquivo/backup.tar.gz" \
+    # --passphrase-fd 0: a senha não aparece na linha de comando (não vaza no ps).
+    printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --yes --quiet --pinentry-mode loopback \
+      --passphrase-fd 0 --decrypt "$BACKUP" > "$TMP/arquivo/backup.tar.gz" \
       || die "falha ao decifrar com BACKUP_PASSPHRASE."
   elif [[ -n "${BACKUP_GPG_KEY:-}" ]]; then
     gpg --batch --yes --quiet --decrypt "$BACKUP" > "$TMP/arquivo/backup.tar.gz" \
@@ -124,10 +126,36 @@ podar_extracao() {
   rm -f "$TMP/extraido"/*.tar.gz "$TMP/extraido"/*.gpg
 }
 
+tar -xzf "$ARQUIVO_TAR" -C "$TMP/extraido" --strip-components="$STRIP"
+podar_extracao
+
+# ── LGPD: exclusões registradas em excluidos.log (#15) não podem ressuscitar ──
+# Lê o túmulo ATUAL (host/volume, fora do backup) e também o que veio no backup,
+# porque o backup pode ter um excluidos.log mais antigo.
+TUMP_HOST="$TMP/excluidos.host.log"
+TUMP_BACKUP="$TMP/excluidos.backup.log"
+[[ -f "$DATA_DIR/excluidos.log" ]] && cp -p "$DATA_DIR/excluidos.log" "$TUMP_HOST" || true
+[[ -f "$TMP/extraido/excluidos.log" ]] && cp -p "$TMP/extraido/excluidos.log" "$TUMP_BACKUP" || true
+IDS_EXCLUIDOS="$(cat "$TUMP_HOST" "$TUMP_BACKUP" 2>/dev/null \
+  | grep -oE '"id"[[:space:]]*:[[:space:]]*"[^"]+"' \
+  | sed -E 's/.*"([^"]+)"[[:space:]]*$/\1/' | sort -u || true)"
+
+if [[ -n "$IDS_EXCLUIDOS" ]]; then
+  for id in $IDS_EXCLUIDOS; do
+    [[ "$id" =~ ^[A-Za-z0-9_-]+$ ]] || die "id inválido em excluidos.log: '$id'"
+  done
+  log "LGPD           : ${IDS_EXCLUIDOS//$'\n'/ } (o restore reapaga estes ids)"
+fi
+
 if [[ "$MODO" != "apply" ]]; then
   log "DRY-RUN: nada foi alterado."
   log "Aplicaria: tar -xzf \"$ARQUIVO_TAR\" -C \"$DATA_DIR\" --strip-components=$STRIP"
   log "Depois podaria backups/ e *.wal/*.shm/*.journal/*.tmp (exclusões do backup)."
+  if [[ -n "$IDS_EXCLUIDOS" ]]; then
+    log "LGPD: reapagaria (excluidos.log) os ids:"
+    for id in $IDS_EXCLUIDOS; do log "  - $id"; done
+    log "  (DELETE FROM events WHERE id=? e rm -rf photos/<id>)"
+  fi
   log "Para aplicar de verdade: bash scripts/restore.sh --backup \"$BACKUP\" --data-dir \"$DATA_DIR\" --apply"
   exit 0
 fi
@@ -140,9 +168,6 @@ if [[ -z "$ASSUMIR" ]]; then
   [[ "$resp" == "s" || "$resp" == "S" || "$resp" == "sim" ]] || die "cancelado."
 fi
 
-tar -xzf "$ARQUIVO_TAR" -C "$TMP/extraido" --strip-components="$STRIP"
-podar_extracao
-
 STAMP="$(date +%Y%m%d%H%M%S)"
 # Preserva os bancos atuais antes de sobrescrever.
 [[ -f "$DATA_DIR/db.json" ]] && cp -p "$DATA_DIR/db.json" "$DATA_DIR/db.json.pre-restore.$STAMP"
@@ -154,6 +179,31 @@ if [[ -f "$TMP/extraido/memo.db" ]]; then
 fi
 
 cp -a "$TMP/extraido"/. "$DATA_DIR"/
+
+# Reaplica as exclusões no banco restaurado e apaga as fotos do evento excluído.
+if [[ -n "$IDS_EXCLUIDOS" ]]; then
+  # Preserva a união dos túmulos (host + backup) para que nada se perca.
+  cat "$TUMP_HOST" "$TUMP_BACKUP" 2>/dev/null | sort -u > "$DATA_DIR/excluidos.log" || true
+  DB_SQLITE="$DATA_DIR/memo.db"
+  DB_JSON="$DATA_DIR/db.json"
+  if [[ -f "$DB_SQLITE" ]]; then
+    command -v sqlite3 >/dev/null 2>&1 \
+      || die "há exclusões por LGPD e o sqlite3 não está no PATH; reapague os ids de excluidos.log antes de subir (ver docs/lgpd.md)."
+    for id in $IDS_EXCLUIDOS; do
+      sqlite3 "$DB_SQLITE" "DELETE FROM events WHERE id = '$id';"
+      rm -rf "$DATA_DIR/photos/$id"
+    done
+    log "LGPD: ${IDS_EXCLUIDOS//$'\n'/ } reapagado(s) do banco restaurado."
+  elif [[ -f "$DB_JSON" ]]; then
+    command -v node >/dev/null 2>&1 \
+      || die "há exclusões por LGPD e o node não está no PATH; reapague os ids de excluidos.log antes de subir."
+    for id in $IDS_EXCLUIDOS; do
+      node -e "const fs=require('fs');const f=process.argv[1],id=process.argv[2];const d=JSON.parse(fs.readFileSync(f,'utf8'));if(d.events)delete d.events[id];fs.writeFileSync(f,JSON.stringify(d));" "$DB_JSON" "$id"
+      rm -rf "$DATA_DIR/photos/$id"
+    done
+    log "LGPD: ${IDS_EXCLUIDOS//$'\n'/ } reapagado(s) do db.json restaurado."
+  fi
+fi
 
 # Ajusta dono quando pedido (ex.: RESTORE_UID_GID=10001:10001) sem falhar se não for root.
 if [[ -n "${RESTORE_UID_GID:-}" ]]; then

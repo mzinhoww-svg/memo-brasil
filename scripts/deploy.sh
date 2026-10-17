@@ -108,7 +108,16 @@ else
 fi
 [[ -n "${DOMINIO:-}" ]]    || DOMINIO="$(ler_env DOMINIO "$ENV_FILE")"
 [[ -n "${PUBLIC_URL:-}" ]] || PUBLIC_URL="$(ler_env PUBLIC_URL "$ENV_FILE")"
-export DOMINIO PUBLIC_URL
+[[ -n "${TRUST_PROXY:-}" ]] || TRUST_PROXY="$(ler_env TRUST_PROXY "$ENV_FILE")"
+export DOMINIO PUBLIC_URL TRUST_PROXY
+
+# TRUST_PROXY também pode vir do compose (environment do serviço lume).
+COMPOSE_TRUST_PROXY=""
+if [[ -f "$ROOT/docker-compose.yml" ]]; then
+  COMPOSE_TRUST_PROXY="$(grep -E "^[[:space:]]+TRUST_PROXY:" "$ROOT/docker-compose.yml" | head -1 \
+    | sed -E 's/.*TRUST_PROXY:[[:space:]]*"?([^"#[:space:]]*)"?.*/\1/' || true)"
+fi
+TRUST_PROXY_EFETIVO="${TRUST_PROXY:-$COMPOSE_TRUST_PROXY}"
 
 # Repassa o mesmo .env ao compose (que também lê ./.env por padrão).
 COMPOSE_ENV=""
@@ -123,6 +132,16 @@ if [[ "$MODO" == "apply" && ${#faltando[@]} -gt 0 ]]; then
 fi
 if [[ ${#faltando[@]} -gt 0 ]]; then
   warn "no --apply estas variáveis serão exigidas: ${faltando[*]}"
+fi
+
+# Atrás do Caddy (PUBLIC_URL https), req.ip precisa ser o do cliente.
+if [[ "${PUBLIC_URL:-}" == https://* ]]; then
+  if [[ -z "$TRUST_PROXY_EFETIVO" ]]; then
+    die "TRUST_PROXY vazio com PUBLIC_URL https: atrás do Caddy defina TRUST_PROXY=1 (ou fixe no docker-compose.yml)."
+  fi
+  if [[ "$TRUST_PROXY_EFETIVO" == "0" ]]; then
+    die "TRUST_PROXY=0 com PUBLIC_URL https: todos os clientes viram o IP do Caddy (rate limit do login #9 e hash de IP do log #12). Use TRUST_PROXY=1."
+  fi
 fi
 
 # ── Ferramentas ──────────────────────────────────────────────────────────────
@@ -146,6 +165,14 @@ log "Imagem        : ${IMAGE_BASE}:${TAG}"
 log "Compose       : $COMPOSE"
 log "Variáveis     : $ENV_FILE"
 log "Estado        : $STATE_DIR"
+if [[ -n "${TRUST_PROXY:-}" ]]; then
+  TRUST_PROXY_FONTE="$ENV_FILE"
+elif [[ -n "$COMPOSE_TRUST_PROXY" ]]; then
+  TRUST_PROXY_FONTE="docker-compose.yml"
+else
+  TRUST_PROXY_FONTE="(não definido)"
+fi
+log "TRUST_PROXY   : ${TRUST_PROXY_EFETIVO:-<vazio>} ($TRUST_PROXY_FONTE)"
 log "Healthcheck   : ${PUBLIC_URL:-<PUBLIC_URL>}${HEALTH_PATH}"
 log "===================================================="
 log ""
