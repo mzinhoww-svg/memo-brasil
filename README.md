@@ -5,14 +5,20 @@ Lume: o álbum de casamento que se revela aos poucos, com as fotos de todos os c
 ## Rodar
     npm install
     npm start        # http://localhost:3210 (o endereço da rede Wi-Fi aparece no terminal)
-    npm test         # 29 testes de API, isolamento entre casamentos, relógio e restart
+    npm test         # 56 testes: API, isolamento entre casamentos, persistência, relógio e anti-spam
 
-Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push). Só em teste (`NODE_ENV=test`): `TEST_NOW` fixa o "agora" do servidor (`src/clock.js`) para exercitar a revelação sem esperar; em produção é ignorado.
+Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push), `TRUST_PROXY` (nº de proxies confiáveis na frente; padrão `0`), `TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET` (anti-robô no cadastro; sem elas, desligado) e os tetos do anti-spam (`ANTISPAM_MAX_IP`, `ANTISPAM_MAX_EMAIL`, `ANTISPAM_MAX_DIA_IP`, `ANTISPAM_JANELA_MIN`). Só em teste (`NODE_ENV=test`): `TEST_NOW` fixa o "agora" do servidor (`src/clock.js`) para exercitar a revelação sem esperar; em produção é ignorado.
 
 ## Jornadas
 - **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos.
 - **Organização** (claro, desktop): `/` cria evento → `/painel/:id` com Resumo, Convidados (RSVP, CSV), Detalhes e programação, Fotos e recados (moderação, ZIP), Avisos (push), Convite e QR, Configurações, Equipe.
 - **Admin master**: `/master` com Casamentos, Fotos por casamento, Plataforma (variáveis), Avisos globais, Auditoria, Políticas.
+
+## Anti-spam no cadastro aberto (item 13)
+- **Turnstile opcional**: com `TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET` o cadastro exige um token validado no servidor (`POST` ao endpoint do Cloudflare com **timeout**; sem chaves, desligado). Em produção (`NODE_ENV=production` ou `PUBLIC_URL` https) a configuração é **exigida** e o endpoint precisa ser **https** — sem isso o servidor falha ao subir. A verificação é *fail-closed*.
+- A site key é exposta em `GET /api/config` (`turnstileSiteKey`); o formulário de criação deve enviar o campo `turnstileToken`.
+- **Rate limit**: por hash curto de IP (nunca o IP puro) e por e-mail (campo `contato`), com **teto diário por IP**; respeita `TRUST_PROXY` (padrão `0`). Excedido, responde **429** com mensagem em pt-BR.
+- Em `NODE_ENV=test` os tetos não configurados são infinitos (para as suítes); os testes do anti-spam usam um verificador falso e tetos explícitos.
 
 ## Regras que importam
 - O álbum é individual por casamento. Nenhuma rota devolve dados de um tenant com o token de outro (coberto por teste).

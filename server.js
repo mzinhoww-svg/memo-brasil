@@ -7,6 +7,7 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const { createAntispam } = require('./src/antispam');
 const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 'sqlite'));
 // Relógio injetável: em produção é sempre o relógio real; TEST_NOW/advance só
 // valem com NODE_ENV=test. Todo "agora" da revelação passa por aqui.
@@ -94,6 +95,17 @@ function baseUrl(req) {
 }
 
 const app = express();
+// TRUST_PROXY: nº de proxies confiáveis na frente (padrão 0). Define o req.ip
+// usado no rate limit. Ex.: "1" atrás de um proxy reverso; "true" confia em todos.
+const TRUST_PROXY = (() => {
+  const v = process.env.TRUST_PROXY;
+  if (v === undefined || v === '' || v === '0') return 0;
+  if (v === 'true') return true;
+  if (v === 'false') return false;
+  return /^\d+$/.test(v) ? parseInt(v, 10) : v;
+})();
+app.set('trust proxy', TRUST_PROXY);
+const antispam = createAntispam();
 app.use(express.json({ limit: '1mb' }));
 // Modo manutenção: só o admin master passa.
 app.use('/api', (req, res, next) => {
@@ -105,6 +117,7 @@ app.use('/api', (req, res, next) => {
 app.get('/api/config', (req, res) => res.json({
   criacaoAberta: settings.criacaoAberta, manutencao: settings.manutencao, avisoGlobal: settings.avisoGlobal,
   pushAtivo: settings.pushAtivo, vapidPublicKey: vapid.publicKey, tamanhoMaxFotoMB: settings.tamanhoMaxFotoMB,
+  turnstileSiteKey: antispam.siteKey,
 }));
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_HARD_PHOTO_BYTES, files: 1 } });
 
@@ -147,8 +160,14 @@ function parseCronograma(arr) {
 }
 
 // ───── Criar evento (organização, em nome dos noivos)
-app.post('/api/events', (req, res) => {
+app.post('/api/events', async (req, res) => {
   if (!settings.criacaoAberta) return res.status(403).json({ erro: 'O cadastro de novos casamentos está fechado no momento.' });
+  // Anti-spam: rate limit por hash de IP e por e-mail.
+  const limite = antispam.checar(req, req.body);
+  if (!limite.ok) return res.status(limite.status).json({ erro: limite.erro });
+  // Anti-spam: Turnstile (no-op quando não configurado).
+  const captcha = await antispam.verificarToken(req.body.turnstileToken, req.ip);
+  if (!captcha.ok) return res.status(403).json({ erro: captcha.erro });
   const titulo = clean(req.body.titulo, 80);
   const revealAt = new Date(req.body.revealAt);
   const fotosPorConvidado = Math.min(Math.max(parseInt(req.body.fotosPorConvidado, 10) || 20, 1), settings.maxFotosPorConvidado);
@@ -167,6 +186,7 @@ app.post('/api/events', (req, res) => {
   };
   db.events[ev.id] = ev;
   save();
+  antispam.registrar(limite.chaves);
   res.status(201).json({ id: ev.id, hostToken: ev.hostToken });
 });
 
@@ -699,6 +719,7 @@ app.get('/sw.js', (req, res) => res.set('Service-Worker-Allowed', '/').type('app
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
+  antispam.exigirConfigProducao(); // em produção, exige Turnstile configurado (falha ao subir sem)
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Lume em http://localhost:${PORT}`);
     console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
