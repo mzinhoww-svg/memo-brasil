@@ -2,6 +2,8 @@
 // Lê apenas o evento recebido, então não há como misturar dados de outro casamento.
 'use strict';
 
+const { fotosVisiveis } = require('../util/fotos');
+
 const inicioDaHora = (iso) => {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return null;
@@ -10,7 +12,8 @@ const inicioDaHora = (iso) => {
 };
 
 function montarRetrospectiva(ev, { agora = () => new Date(), top = 5 } = {}) {
-  const fotos = Array.isArray(ev.photos) ? ev.photos : [];
+  // Foto oculta pela moderação não entra na retrospectiva do convidado.
+  const fotos = fotosVisiveis(ev);
   const mostrarAutor = ev.config?.mostrarAutor !== false;
   const porFotografo = new Map();
   const porHora = new Map();

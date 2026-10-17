@@ -1,14 +1,28 @@
-// Job de revelação: quando chega a hora marcada, avisa os convidados (push que já existe)
-// e manda um e-mail para a organização. Roda de tempos em tempos e é idempotente:
-// grava revealNotified/emailEnviado no evento, então nem repetir o ciclo nem reiniciar
-// o servidor duplicam o aviso.
+// Job de revelação: quando chega a hora marcada, avisa os convidados (push que já
+// existe) e manda um e-mail para a organização. Roda de tempos em tempos.
+//
+// Garantias:
+//   - idempotente: grava revealNotified/emailEnviado no evento, então repetir o
+//     ciclo ou reiniciar o servidor não duplica o aviso;
+//   - trava: um ciclo por vez no processo (o setInterval não empilha execuções);
+//   - timeout: cada envio tem limite de tempo, para um provedor lento não travar o job;
+//   - fail-closed no destino: e-mail só para endereço verificado (contatoVerificado
+//     ou lista de confiança), nunca para um endereço qualquer digitado no evento;
+//   - fotos ocultas pela moderação não entram nas contagens.
 'use strict';
 
 const crypto = require('crypto');
 const { escaparHtml } = require('../util/escapar');
+const { fotosVisiveis } = require('../util/fotos');
 
 const MAX_TENTATIVAS_EMAIL = 5;
 const TITULO_PUSH = 'As fotos foram reveladas! 🎉';
+const TIMEOUT_ENVIO_PADRAO_MS = 10000;
+
+// Trava do processo: evita dois ciclos ao mesmo tempo (setInterval + gancho de teste).
+let emAndamento = false;
+
+const RESUMO_VAZIO = { avaliados: 0, revelados: 0, emailsEnviados: 0, emailsFalhos: 0, emailsNaoVerificados: 0, pushes: 0 };
 
 const linkDoAlbum = (ev, baseUrl) => `${String(baseUrl || '').replace(/\/+$/, '')}/e/${ev.id}/album`;
 
@@ -16,7 +30,7 @@ const linkDoAlbum = (ev, baseUrl) => `${String(baseUrl || '').replace(/\/+$/, ''
 function montarEmailRevelacao(ev, { baseUrl = '' } = {}) {
   const titulo = String(ev.titulo || 'o seu casamento');
   const link = linkDoAlbum(ev, baseUrl);
-  const fotos = Array.isArray(ev.photos) ? ev.photos.length : 0;
+  const fotos = fotosVisiveis(ev).length;
   const recados = Array.isArray(ev.recados) ? ev.recados.length : 0;
   const contarFotos = fotos === 1 ? 'o álbum de vocês já tem 1 foto registrada' : `o álbum de vocês já tem ${fotos} fotos registradas`;
   const doMural = recados ? (recados === 1 ? ' e 1 recado no mural' : ` e ${recados} recados no mural`) : '';
@@ -52,9 +66,23 @@ function montarEmailRevelacao(ev, { baseUrl = '' } = {}) {
 
 const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Processa todos os eventos que passaram da hora da revelação.
-// Dependências são injetadas (e-mail, push, persistência, relógio) para dar testes determinísticos.
-async function processarRevelacoes({
+// Só endereço verificado recebe aviso de revelação (Atlas): o contato do evento é
+// texto livre, então sem verificação a plataforma não pode ser usada como disparador.
+const destinoVerificado = (ev, verificados = []) =>
+  ev.contatoVerificado === true || verificados.includes(String(ev.contato || '').trim().toLowerCase());
+
+// Limite de tempo real (não usa o relógio injetável) para um envio não travar o job.
+function comTimeout(promessa, ms, rotulo) {
+  if (!ms || ms <= 0) return promessa;
+  let timer;
+  const limite = new Promise((_, rejeitar) => {
+    timer = setTimeout(() => rejeitar(new Error(`tempo esgotado (${ms}ms) em ${rotulo}`)), ms);
+    if (timer.unref) timer.unref();
+  });
+  return Promise.race([promessa, limite]).finally(() => clearTimeout(timer));
+}
+
+async function rodarCiclo({
   eventos = {},
   agora = () => new Date(),
   email,
@@ -63,9 +91,11 @@ async function processarRevelacoes({
   persistir = () => {},
   novoId = (n = 5) => crypto.randomBytes(n).toString('base64url'),
   log = () => {},
+  timeoutMs = TIMEOUT_ENVIO_PADRAO_MS,
+  verificados = [],
 } = {}) {
   if (!email || typeof email.enviar !== 'function') throw new Error('processarRevelacoes precisa de um provedor de e-mail.');
-  const resumo = { avaliados: 0, revelados: 0, emailsEnviados: 0, emailsFalhos: 0, pushes: 0 };
+  const resumo = { ...RESUMO_VAZIO };
   const t = agora().getTime();
 
   for (const ev of Object.values(eventos)) {
@@ -82,18 +112,18 @@ async function processarRevelacoes({
     if (emailPendente) {
       mudou = true;
       const para = String(ev.contato || '').trim();
-      if (!para) {
+      if (!EMAIL_OK.test(para)) {
         ev.emailTentativas = tentativas + 1;
-        ev.emailErro = 'organização sem e-mail de contato cadastrado';
+        ev.emailErro = para ? 'contato da organização não parece um e-mail' : 'organização sem e-mail de contato cadastrado';
         resumo.emailsFalhos++;
-      } else if (!EMAIL_OK.test(para)) {
-        ev.emailTentativas = tentativas + 1;
-        ev.emailErro = 'contato da organização não parece um e-mail';
-        resumo.emailsFalhos++;
-        log(`[revelacao] evento ${ev.id} sem e-mail válido para avisar a revelação.`);
+      } else if (!destinoVerificado(ev, verificados)) {
+        // Não consome tentativa: quando a organização confirmar o endereço (ou o
+        // operador liberar em EMAIL_VERIFICADOS), o aviso sai no próximo ciclo.
+        ev.emailErro = 'destino não verificado: confirme o e-mail da organização';
+        resumo.emailsNaoVerificados++;
       } else {
         try {
-          const r = await email.enviar(montarEmailRevelacao(ev, { baseUrl }));
+          const r = await comTimeout(email.enviar(montarEmailRevelacao(ev, { baseUrl })), timeoutMs, 'envio de e-mail');
           ev.emailEnviado = true;
           ev.emailEnviadoEm = agora().toISOString();
           ev.emailId = r?.id ? String(r.id) : null;
@@ -113,7 +143,7 @@ async function processarRevelacoes({
       const corpo = `O álbum de ${ev.titulo} está aberto.`;
       let r = { alvos: 0, entregues: 0, falhas: 0 };
       try {
-        r = (await pushEnviar(ev, { titulo: TITULO_PUSH, corpo, url: `/e/${ev.id}/album` })) || r;
+        r = (await comTimeout(pushEnviar(ev, { titulo: TITULO_PUSH, corpo, url: `/e/${ev.id}/album` }), timeoutMs, 'envio de push')) || r;
       } catch (e) {
         r = { alvos: 0, entregues: 0, falhas: 0, erro: String(e?.message || e).slice(0, 200) };
         log(`[revelacao] push do evento ${ev.id} falhou: ${r.erro}`);
@@ -132,4 +162,18 @@ async function processarRevelacoes({
   return resumo;
 }
 
-module.exports = { processarRevelacoes, montarEmailRevelacao, MAX_TENTATIVAS_EMAIL, TITULO_PUSH };
+// Porta de entrada do job (com a trava). Chamadas concorrentes devolvem `ocupado: true`.
+async function processarRevelacoes(opts = {}) {
+  if (emAndamento) return { ...RESUMO_VAZIO, ocupado: true };
+  emAndamento = true;
+  try {
+    return { ...(await rodarCiclo(opts)), ocupado: false };
+  } finally {
+    emAndamento = false;
+  }
+}
+
+module.exports = {
+  processarRevelacoes, rodarCiclo, montarEmailRevelacao, destinoVerificado,
+  MAX_TENTATIVAS_EMAIL, TITULO_PUSH, TIMEOUT_ENVIO_PADRAO_MS,
+};

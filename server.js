@@ -7,11 +7,16 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 'sqlite'));
+// Relógio injetável: em produção é sempre o relógio real; TEST_NOW/advance só
+// valem com NODE_ENV=test. Todo "agora" da revelação passa por aqui.
+const clock = require('./src/clock');
 const { criarEmail, emailDesativado } = require('./src/email');
 const { processarRevelacoes } = require('./src/reveal/job');
 const { montarRetrospectiva } = require('./src/reveal/retrospectiva');
 
-// E-mail transacional: console por padrão; Resend com EMAIL_PROVEDOR=resend.
+// E-mail transacional (Brevo via SMTP em produção). Console só em dev/teste:
+// em produção o provedor de console é recusado (fail-closed).
 let email;
 try {
   email = criarEmail();
@@ -28,7 +33,8 @@ const MAX_HARD_PHOTO_BYTES = 25 * 1024 * 1024; // teto técnico; o limite config
 const RSVP = ['pendente', 'confirmado', 'recusado'];
 
 fs.mkdirSync(PHOTO_DIR, { recursive: true });
-
+const store = require(path.join(__dirname, 'src', 'store'))(DATA_DIR);
+const db = store.db;
 // Variáveis da plataforma, editáveis pelo admin master.
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const DEFAULTS = {
@@ -57,24 +63,10 @@ webpush.setVapidDetails(process.env.VAPID_CONTACT || 'mailto:contato@memobrasil.
 const AUDIT_FILE = path.join(DATA_DIR, 'audit.log');
 function audit(req, acao, detalhe = {}) {
   const quem = req.admin ? `${req.admin.papel}:${req.admin.nome}` : 'anon';
-  const linha = JSON.stringify({ t: new Date().toISOString(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
+  const linha = JSON.stringify({ t: clock.iso(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
   fs.appendFile(AUDIT_FILE, linha + '\n', () => {});
 }
-const db = fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) : { events: {} };
-
-const revealedAtBoot = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
-// Eventos criados em versões anteriores ganham os campos novos.
-for (const ev of Object.values(db.events)) {
-  Object.assign(ev, {
-    dataEvento: ev.dataEvento || null, local: ev.local || '', endereco: ev.endereco || '',
-    mensagem: ev.mensagem || '', cronograma: ev.cronograma || [], lista: ev.lista || [],
-    equipe: ev.equipe || [], recados: ev.recados || [], limites: ev.limites || {},
-    config: { ...CONFIG_PADRAO, ...(ev.config || {}) }, push: ev.push || [], avisos: ev.avisos || [],
-    revealNotified: ev.revealNotified ?? revealedAtBoot(ev),
-    // Casamentos revelados em versões anteriores não recebem e-mail retroativo.
-    emailEnviado: ev.emailEnviado ?? (ev.revealNotified === true),
-  });
-}
+const revealedAtBoot = (ev) => clock.nowMs() >= new Date(ev.revealAt).getTime();
 
 // Admin master: administra todos os casamentos (tenants). Token por ambiente ou gerado no primeiro uso.
 const MASTER_FILE = path.join(DATA_DIR, 'master.token');
@@ -95,12 +87,10 @@ function isMaster(token) {
 }
 
 function save() {
-  const tmp = DB_FILE + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(db));
-  fs.renameSync(tmp, DB_FILE);
+  store.save();
 }
 const newId = (n = 6) => crypto.randomBytes(n).toString('base64url');
-const revealed = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
+const revealed = (ev) => clock.nowMs() >= new Date(ev.revealAt).getTime();
 const clean = (s, max) => String(s ?? '').trim().slice(0, max);
 const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -124,7 +114,7 @@ app.use('/api', (req, res, next) => {
   if (!settings.manutencao) return next();
   const t = req.get('x-master-token') || req.get('x-host-token') || req.query.token;
   if (isMaster(t) || req.path.startsWith('/config')) return next();
-  res.status(503).json({ erro: settings.avisoGlobal || 'O Memo está em manutenção. Volte em instantes.' });
+  res.status(503).json({ erro: settings.avisoGlobal || 'O Lume está em manutenção. Volte em instantes.' });
 });
 app.get('/api/config', (req, res) => res.json({
   criacaoAberta: settings.criacaoAberta, manutencao: settings.manutencao, avisoGlobal: settings.avisoGlobal,
@@ -143,9 +133,9 @@ function adminOnly(req, res, next) {
   const token = req.get('x-host-token') || req.query.token;
   const ev = req.ev;
   if (isMaster(token)) req.admin = { papel: 'master', nome: 'Admin master', dono: true, master: true };
-  else if (token && token === ev.hostToken) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
+  else if (token && verifyToken(token, ev.hostTokenHash)) req.admin = { papel: 'casal', nome: 'Casal', dono: true };
   else {
-    const m = token && ev.equipe.find((e) => e.token === token);
+    const m = token && ev.equipe.find((e) => verifyToken(token, e.tokenHash));
     if (m) req.admin = { papel: m.papel, nome: m.nome, id: m.id };
   }
   if (!req.admin) return res.status(403).json({ erro: 'Acesso restrito à organização do casamento.' });
@@ -157,7 +147,7 @@ const donoOnly = (req, res, next) =>
 function publicInfo(ev) {
   return {
     id: ev.id, titulo: ev.titulo, revealAt: ev.revealAt, revelado: revealed(ev),
-    agora: new Date().toISOString(), fotosPorConvidado: ev.fotosPorConvidado,
+    agora: clock.iso(), fotosPorConvidado: ev.fotosPorConvidado,
     momentos: ev.photos.length, pessoas: ev.guests.length,
     dataEvento: ev.dataEvento, local: ev.local, endereco: ev.endereco, mensagem: ev.mensagem,
     cronograma: ev.cronograma, suspenso: !!ev.suspenso, config: ev.config,
@@ -179,14 +169,15 @@ app.post('/api/events', (req, res) => {
   if (!titulo) return res.status(400).json({ erro: 'Informe o nome do evento.' });
   if (isNaN(revealAt)) return res.status(400).json({ erro: 'Informe quando as fotos serão reveladas.' });
   const dataEvento = req.body.dataEvento ? new Date(req.body.dataEvento) : null;
+  const hostToken = newId(16);
   const ev = {
-    id: newId(5), hostToken: newId(16), titulo, revealAt: revealAt.toISOString(), fotosPorConvidado,
+    id: newId(5), hostToken, hostTokenHash: tokenHash(hostToken), titulo, revealAt: revealAt.toISOString(), fotosPorConvidado,
     dataEvento: dataEvento && !isNaN(dataEvento) ? dataEvento.toISOString() : null,
     local: clean(req.body.local, 80), endereco: clean(req.body.endereco, 160), mensagem: '',
     contato: clean(req.body.contato, 80), suspenso: false, limites: {}, config: { ...CONFIG_PADRAO },
-    push: [], avisos: [], revealNotified: false, emailEnviado: false,
+    push: [], avisos: [], revealNotified: false, emailEnviado: false, contatoVerificado: false,
     cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [],
-    createdAt: new Date().toISOString(),
+    createdAt: clock.iso(),
   };
   db.events[ev.id] = ev;
   save();
@@ -208,13 +199,19 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     ...publicInfo(ev),
     papel: req.admin.papel, nome: req.admin.nome, dono: !!req.admin.dono, master: !!req.admin.master,
     contato: req.admin.master ? req.ev.contato : undefined,
+    contatoVerificado: !!req.ev.contatoVerificado,
     linkConvite: `${base}/e/${ev.id}`,
     totalLista: ev.lista.length, rsvp, pushInscritos: ev.push.length,
     limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
     fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
     recados: ev.recados.length,
     equipe: req.admin.dono
-      ? ev.equipe.map((m) => ({ id: m.id, nome: m.nome, papel: m.papel, link: `${base}/painel/${ev.id}#t=${m.token}` }))
+      ? ev.equipe.map((m) => ({
+          id: m.id, nome: m.nome, papel: m.papel, linkEmitido: true,
+          // O token em claro só existe na criação (logo após o POST). Depois de
+          // um reinício o store carrega apenas o hash, então não há link para exibir.
+          link: m.token ? `${base}/painel/${ev.id}#t=${m.token}` : null,
+        }))
       : undefined,
   });
 });
@@ -234,6 +231,12 @@ app.patch('/api/events/:id', getEvent, adminOnly, (req, res) => {
   if (b.local !== undefined) ev.local = clean(b.local, 80);
   if (b.endereco !== undefined) ev.endereco = clean(b.endereco, 160);
   if (b.mensagem !== undefined) ev.mensagem = clean(b.mensagem, 500);
+  // Trocar o contato derruba a verificação: o e-mail de revelação só sai para
+  // endereço verificado, então um endereço novo precisa ser confirmado de novo.
+  if (b.contato !== undefined && clean(b.contato, 80) !== ev.contato) {
+    ev.contato = clean(b.contato, 80);
+    ev.contatoVerificado = false;
+  }
   if (b.fotosPorConvidado !== undefined)
     ev.fotosPorConvidado = Math.min(Math.max(parseInt(b.fotosPorConvidado, 10) || ev.fotosPorConvidado, 1), settings.maxFotosPorConvidado);
   if (b.config && typeof b.config === 'object') {
@@ -315,9 +318,10 @@ app.post('/api/events/:id/equipe', getEvent, adminOnly, donoOnly, (req, res) => 
   const papel = req.body.papel === 'casal' ? 'casal' : 'cerimonial';
   if (!nome) return res.status(400).json({ erro: 'Informe o nome.' });
   if (req.ev.equipe.length >= 20) return res.status(409).json({ erro: 'Equipe cheia.' });
-  const m = { id: newId(5), nome, papel, token: newId(16) };
+  const token = newId(16);
+  const m = { id: newId(5), nome, papel, token, tokenHash: tokenHash(token) };
   req.ev.equipe.push(m);
-  audit(req, 'equipe.convidada', { nome, papel });
+  audit(req, 'equipe.convidada', { membro: m.id, papel });
   save();
   res.status(201).json({ id: m.id, nome, papel, link: `${baseUrl(req)}/painel/${req.ev.id}#t=${m.token}` });
 });
@@ -326,6 +330,17 @@ app.delete('/api/events/:id/equipe/:eid', getEvent, adminOnly, donoOnly, (req, r
   audit(req, 'equipe.removida', { membro: req.params.eid });
   save();
   res.json({ ok: true });
+});
+// Rotaciona o link de um membro da equipe (o token em claro é irrecuperável).
+app.post('/api/events/:id/equipe/:eid/rotacionar-link', getEvent, adminOnly, donoOnly, (req, res) => {
+  const m = req.ev.equipe.find((x) => x.id === req.params.eid);
+  if (!m) return res.status(404).json({ erro: 'Membro não encontrado.' });
+  const token = newId(16);
+  m.token = token;
+  m.tokenHash = tokenHash(token);
+  audit(req, 'equipe.link.rotacionado', { membro: m.id });
+  save();
+  res.json({ id: m.id, link: `${baseUrl(req)}/painel/${req.ev.id}#t=${token}` });
 });
 
 // Moderação (organização vê as fotos antes da revelação só aqui, e de propósito)
@@ -343,7 +358,7 @@ app.delete('/api/events/:id/photos/:pid', getEvent, adminOnly, (req, res) => {
   const i = req.ev.photos.findIndex((p) => p.id === req.params.pid);
   if (i < 0) return res.status(404).json({ erro: 'Foto não encontrada.' });
   const [p] = req.ev.photos.splice(i, 1);
-  audit(req, 'foto.apagada', { foto: p.id, autor: p.autor });
+  audit(req, 'foto.apagada', { foto: p.id });
   fs.rmSync(path.join(PHOTO_DIR, req.ev.id, `${p.id}.${p.ext}`), { force: true });
   save();
   res.json({ ok: true });
@@ -372,7 +387,7 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   if (ev.config.apenasLista && !ev.lista.some((l) => norm(l.nome) === norm(nome)))
     return res.status(403).json({ erro: 'Este evento é só para convidados da lista. Use o nome exatamente como os noivos cadastraram.' });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
-  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: new Date().toISOString(), listaId: item?.id };
+  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: clock.iso(), listaId: item?.id };
   ev.guests.push(g);
   save();
   res.status(201).json({ guestId: g.id, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null });
@@ -418,7 +433,7 @@ app.post('/api/events/:id/recados', getEvent, (req, res) => {
   if (!texto) return res.status(400).json({ erro: 'Escreva seu recado.' });
   const mine = req.ev.recados.filter((r) => r.guestId === g.id).length;
   if (mine >= 5) return res.status(409).json({ erro: 'Você já deixou 5 recados.' });
-  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: new Date().toISOString() };
+  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: clock.iso() };
   req.ev.recados.push(r);
   save();
   res.status(201).json({ id: r.id });
@@ -443,7 +458,7 @@ app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) =
   const dir = path.join(PHOTO_DIR, ev.id);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, `${id}.${ext}`), req.file.buffer);
-  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: new Date().toISOString() });
+  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: clock.iso() });
   save();
   res.status(201).json({ id, restantes: ev.fotosPorConvidado - usadas - 1 });
 });
@@ -457,7 +472,7 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
       ? { id: p.id, autor: ev.config.mostrarAutor ? p.autor : '', criadaEm: p.criadaEm, minha: p.guestId === guestId, url: `/api/events/${ev.id}/photos/${p.id}/file` }
       : { id: p.id, bloqueada: true, minha: p.guestId === guestId }
   );
-  res.json({ revelado: open, revealAt: ev.revealAt, agora: new Date().toISOString(), fotos: lista });
+  res.json({ revelado: open, revealAt: ev.revealAt, agora: clock.iso(), fotos: lista });
 });
 
 // Retrospectiva do casamento: só abre depois da revelação e só olha o próprio evento.
@@ -469,7 +484,7 @@ app.get('/api/events/:id/retrospectiva', getEvent, (req, res) => {
 // O arquivo só sai depois da revelação — exceto para a organização (moderação).
 app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
   const token = req.get('x-host-token') || req.query.token;
-  const org = isMaster(token) || (token && (token === req.ev.hostToken || req.ev.equipe.some((m) => m.token === token)));
+  const org = isMaster(token) || (token && (verifyToken(token, req.ev.hostTokenHash) || req.ev.equipe.some((m) => verifyToken(token, m.tokenHash))));
   if (!revealed(req.ev) && !org) return res.status(403).json({ erro: 'Esta foto ainda não foi revelada.' });
   const p = req.ev.photos.find((x) => x.id === req.params.pid);
   if (!p) return res.status(404).end();
@@ -485,7 +500,7 @@ app.use((err, req, res, next) => {
 // ───── Admin master (todos os casamentos)
 function masterOnly(req, res, next) {
   if (!isMaster(req.get('x-master-token') || req.get('x-host-token') || req.query.token))
-    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Memo.' });
+    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Lume.' });
   req.admin = { papel: 'master', nome: 'Admin master', master: true, dono: true };
   next();
 }
@@ -521,16 +536,19 @@ app.patch('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
     for (const k of Object.keys(CONFIG_PADRAO)) if (typeof b.config[k] === 'boolean') req.ev.config[k] = b.config[k];
     audit(req, 'config.alterada', { config: req.ev.config });
   }
+  // O operador confirma (ou revoga) o endereço que pode receber o e-mail de revelação.
+  if (b.contatoVerificado !== undefined) {
+    req.ev.contatoVerificado = !!b.contatoVerificado;
+    audit(req, 'contato.verificacao', { contatoVerificado: req.ev.contatoVerificado });
+  }
   if (b.revealAt) { const d = new Date(b.revealAt); if (!isNaN(d)) { req.ev.revealAt = d.toISOString(); req.ev.revealNotified = revealed(req.ev); audit(req, 'revelacao.alterada', { revealAt: req.ev.revealAt }); } }
   save();
   res.json(resumoEvento(req.ev));
 });
 app.delete('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
   if (req.body?.confirmar !== req.ev.id) return res.status(400).json({ erro: 'Confirme enviando o id do evento.' });
-  audit(req, 'evento.excluido', { titulo: req.ev.titulo });
-  fs.rmSync(path.join(PHOTO_DIR, req.ev.id), { recursive: true, force: true });
-  delete db.events[req.ev.id];
-  save();
+  audit(req, 'evento.excluido', { evento: req.ev.id });
+  store.deleteEvent(req.ev.id);
   res.json({ ok: true });
 });
 // Fotos mais recentes de todos os casamentos, antes de qualquer revelação.
@@ -553,7 +571,7 @@ app.post('/api/events/:id/push/subscribe', getEvent, (req, res) => {
   if (!subscriptionOk(sub)) return res.status(400).json({ erro: 'Inscrição inválida.' });
   if (req.ev.push.length >= 6000) return res.status(409).json({ erro: 'Limite de notificações atingido.' });
   const i = req.ev.push.findIndex((p) => p.sub.endpoint === sub.endpoint);
-  const reg = { id: newId(6), guestId: g.id, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, criadoEm: new Date().toISOString() };
+  const reg = { id: newId(6), guestId: g.id, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, criadoEm: clock.iso() };
   if (i >= 0) req.ev.push[i] = { ...reg, id: req.ev.push[i].id }; else req.ev.push.push(reg);
   save();
   res.status(201).json({ ok: true });
@@ -582,9 +600,9 @@ app.post('/api/events/:id/avisos', getEvent, adminOnly, async (req, res) => {
   const ev = req.ev;
   const titulo = clean(req.body.titulo, 60), corpo = clean(req.body.corpo, 200);
   if (!titulo || !corpo) return res.status(400).json({ erro: 'Escreva o título e a mensagem do aviso.' });
-  const recentes = ev.avisos.filter((a) => Date.now() - new Date(a.enviadoEm).getTime() < 3600e3).length;
+  const recentes = ev.avisos.filter((a) => clock.nowMs() - new Date(a.enviadoEm).getTime() < 3600e3).length;
   if (recentes >= 5 && !req.admin.master) return res.status(429).json({ erro: 'Limite de 5 avisos por hora. Tente mais tarde.' });
-  const aviso = { id: newId(5), titulo, corpo, enviadoEm: new Date().toISOString(), por: req.admin.nome };
+  const aviso = { id: newId(5), titulo, corpo, enviadoEm: clock.iso(), por: req.admin.nome };
   const r = settings.pushAtivo ? await enviarPush(ev, { titulo, corpo }) : { alvos: 0, entregues: 0, falhas: 0 };
   ev.avisos.push({ ...aviso, ...r });
   audit(req, 'aviso.enviado', { titulo, ...r });
@@ -593,11 +611,17 @@ app.post('/api/events/:id/avisos', getEvent, adminOnly, async (req, res) => {
 });
 
 // Revelação automática (relógio do servidor): e-mail à organização + push a quem instalou o app.
-// O job é idempotente: grava revealNotified/emailEnviado no evento, então restart não duplica.
+// O job tem trava (um ciclo por vez) e timeout por envio; grava o estado no evento
+// (revealNotified/emailEnviado), então repetir o ciclo ou reiniciar não duplica.
 const urlPublica = () => (process.env.PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/+$/, '');
+// Endereços liberados manualmente pelo operador (lista separada por vírgula) enquanto
+// a confirmação por link mágico (#9) não chega; o resto depende de contatoVerificado.
+const destinosVerificados = () =>
+  String(process.env.EMAIL_VERIFICADOS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 const processarAgora = () =>
   processarRevelacoes({
     eventos: db.events,
+    agora: clock.now,
     email,
     baseUrl: urlPublica(),
     pushEnviar: (ev, payload) =>
@@ -605,18 +629,21 @@ const processarAgora = () =>
     persistir: save,
     novoId: newId,
     log: (m) => console.error(m),
+    timeoutMs: Number(process.env.EMAIL_TIMEOUT_MS) || undefined,
+    verificados: destinosVerificados(),
   }).catch((e) => console.error(`[revelacao] falhou: ${e.message}`));
 
 setInterval(processarAgora, 30000).unref();
 app.processarRevelacoes = processarAgora; // gancho de teste (o ciclo normal roda a cada 30s)
 app.emailParaTestes = email;
 
+
 app.get('/e/:id/manifest.webmanifest', getEvent, (req, res) => {
   const ev = req.ev;
   res.type('application/manifest+json').json({
     name: ev.titulo, short_name: ev.titulo.slice(0, 12), lang: 'pt-BR', id: `/e/${ev.id}/`,
     start_url: `/e/${ev.id}/inicio`, scope: `/e/${ev.id}/`, display: 'standalone',
-    background_color: '#0e0d0c', theme_color: '#0e0d0c',
+    background_color: '#14110E', theme_color: '#14110E',
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -674,10 +701,12 @@ app.get('/api/master/audit', masterOnly, (req, res) => {
   res.json({ registros: linhas });
 });
 app.post('/api/master/events/:id/rotacionar-link', masterOnly, getEvent, (req, res) => {
-  req.ev.hostToken = newId(16);
+  const hostToken = newId(16);
+  req.ev.hostToken = hostToken;
+  req.ev.hostTokenHash = tokenHash(hostToken);
   audit(req, 'link.casal.rotacionado');
   save();
-  res.json({ link: `${baseUrl(req)}/painel/${req.ev.id}#t=${req.ev.hostToken}` });
+  res.json({ link: `${baseUrl(req)}/painel/${req.ev.id}#t=${hostToken}` });
 });
 app.post('/api/master/avisos', masterOnly, async (req, res) => {
   const titulo = clean(req.body.titulo, 60), corpo = clean(req.body.corpo, 200);
@@ -702,6 +731,8 @@ app.get('/api/master/politicas', masterOnly, (req, res) => res.json({
     { papel: 'Admin master', acessa: 'Todos os casamentos, fotos antes da revelação, limites, suspensão, exclusão, variáveis da plataforma, auditoria.', nao: 'Toda ação sensível fica registrada na auditoria.' },
   ],
   rls: 'Ainda não há banco relacional: o isolamento é imposto pelo servidor (middleware). Ao migrar para Postgres/Supabase, estas regras viram políticas RLS por tenant_id.',
+  operadorExterior: 'O operador da plataforma fica no exterior: dados pessoais (nome, e-mail da organização, recados e fotos) podem ser transferidos para fora do Brasil (LGPD, arts. 33 a 36) para hospedagem, envio de e-mail transacional e suporte, com cláusulas contratuais e acesso restrito a quem precisa.',
+  emailRevelacao: 'O e-mail de revelação vai somente para endereço verificado da organização (contatoVerificado ou lista EMAIL_VERIFICADOS do operador). Endereço não verificado não recebe nada.',
 }));
 
 // ───── Páginas
@@ -720,7 +751,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Memo Brasil em http://localhost:${PORT}`);
+    console.log(`Lume em http://localhost:${PORT}`);
     console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
     console.log(`Admin master: http://localhost:${PORT}/master`);
     if (lanIp()) console.log(`Na mesma rede Wi-Fi (celular): http://${lanIp()}:${PORT}`);

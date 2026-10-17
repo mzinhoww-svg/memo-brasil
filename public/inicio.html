@@ -4,12 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Início</title>
+<link rel="icon" href="/icons/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/Fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
 <main>
   <nav id="crumbs" class="crumbs"></nav>
-  <p class="center" style="letter-spacing:.2em;font-size:12px" id="saud"></p>
+  <p class="center rotulo" id="saud"></p>
   <h1 class="center" id="titulo">…</h1>
   <p class="center" id="quando"></p>
   <div class="stats">
@@ -20,16 +23,16 @@
   <div id="aviso" class="recado" style="display:none"><p id="avTit" style="font-weight:700"></p><p id="avCorpo" style="margin:0"></p></div>
   <div id="pwa" class="recado" style="display:none">
     <p style="font-weight:700;margin:0 0 4px">Instale o app deste casamento</p>
-    <p id="pwaTxt" style="margin:0 0 10px"></p>
-    <div class="row"><button class="btn primary" id="pwaInstalar" style="display:none">Instalar app</button><button class="btn" id="pwaNotif" style="display:none">🔔 Ativar avisos</button></div>
+    <p id="pwaTxt" class="suave" style="margin:0 0 10px"></p>
+    <div class="row"><button class="btn primary" id="pwaInstalar" style="display:none">Instalar app</button><button class="btn" id="pwaNotif" style="display:none"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#aviso"/></svg> Ativar avisos</button></div>
     <p id="pwaMsg" class="err" style="margin:8px 0 0"></p>
   </div>
   <div class="hub">
-    <a class="hubcard main" id="cCamera"><span class="ic">📷</span><span><b>Abrir câmera</b><small id="sCamera"></small></span></a>
-    <a class="hubcard" id="cAlbum"><span class="ic">🖼️</span><span><b>Álbum do evento</b><small id="sAlbum"></small></span></a>
-    <a class="hubcard" id="cProg"><span class="ic">🗓️</span><span><b>Programação e local</b><small>Horários, endereço e como chegar</small></span></a>
-    <a class="hubcard" id="cPres"><span class="ic">💌</span><span><b>Confirmar presença</b><small id="sPres">Avise os noivos se você vai</small></span></a>
-    <a class="hubcard" id="cRec"><span class="ic">✍️</span><span><b>Deixar um recado</b><small>Uma mensagem para os noivos</small></span></a>
+    <a class="hubcard main" id="cCamera"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#camera"/></svg></span><span><b>Abrir câmera</b><small id="sCamera"></small></span></a>
+    <a class="hubcard" id="cAlbum"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#album"/></svg></span><span><b>Álbum do evento</b><small id="sAlbum"></small></span></a>
+    <a class="hubcard" id="cProg"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#agenda"/></svg></span><span><b>Programação e local</b><small>Horários, endereço e como chegar</small></span></a>
+    <a class="hubcard" id="cPres"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#presenca"/></svg></span><span><b>Confirmar presença</b><small id="sPres">Avise os noivos se você vai</small></span></a>
+    <a class="hubcard" id="cRec"><span class="ic"><svg class="ico" aria-hidden="true"><use href="/icons/sprite.svg#recado"/></svg></span><span><b>Deixar um recado</b><small>Uma mensagem para os noivos</small></span></a>
   </div>
   <p class="center" style="font-size:13px;margin-top:28px"><a href="#" id="sair">Não sou essa pessoa — trocar de nome</a></p>
 </main>
