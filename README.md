@@ -5,12 +5,12 @@ Lume: o álbum de casamento que se revela aos poucos, com as fotos de todos os c
 ## Rodar
     npm install
     npm start        # http://localhost:3210 (o endereço da rede Wi-Fi aparece no terminal)
-    npm test         # 63 testes: API, isolamento entre casamentos, persistência, observabilidade e limites
+    npm test         # suíte: API, isolamento entre casamentos, persistência, relógio, restart, observabilidade, limites, e-mail e revelação
 
-Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code e dos cookies `Secure`; em `NODE_ENV=production` precisa começar com `https://`), `TRUST_PROXY` (saltos de proxy confiáveis; padrão `0` — sem proxy na frente), `MASTER_TOKEN` (token do master legado; sem ela, `data/master.token`; em `PUBLIC_URL` https não vale), `VAPID_CONTACT` (contato das notificações push), `MAX_FOTOS_EVENTO` (teto de fotos por evento; padrão `3000`) e `SENTRY_DSN` (opcional; sem ele, a observabilidade de erros é no-op). Veja `.env.example`. Só em teste (`NODE_ENV=test`): `TEST_NOW` fixa o "agora" do servidor (`src/clock.js`) para exercitar a revelação sem esperar; em produção é ignorado.
+Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code, dos links e dos cookies `Secure`; em `NODE_ENV=production` precisa começar com `https://`), `TRUST_PROXY` (saltos de proxy confiáveis; padrão `0` — sem proxy na frente), `MASTER_TOKEN` (token do master legado; sem ela, `data/master.token`; em `PUBLIC_URL` https não vale), `VAPID_CONTACT` (contato das notificações push), `MAX_FOTOS_EVENTO` (teto de fotos por evento; padrão `3000`), `SENTRY_DSN` (opcional; sem ele, a observabilidade de erros é no-op) e `LOG_RETENCAO_DIAS` (retenção do hash de IP nos logs). E-mail: `EMAIL_PROVIDER` (`smtp` = Brevo em produção; `console` só em dev/teste, recusado em produção), `SMTP_HOST` (padrão `smtp-relay.brevo.com`), `SMTP_PORT` (padrão `587` com STARTTLS), `SMTP_USER`, `SMTP_PASS` (segredo), `EMAIL_FROM` (ou `MAIL_FROM`), `EMAIL_VERIFICADOS` (endereços liberados para o aviso de revelação) e `EMAIL_TIMEOUT_MS`/`SMTP_TIMEOUT_MS`. Veja `.env.example` e `docs/deploy.md`. Só em teste (`NODE_ENV=test`): `TEST_NOW` fixa o "agora" do servidor (`src/clock.js`) para exercitar a revelação sem esperar; em produção é ignorado.
 
 ## Jornadas
-- **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos.
+- **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos. Depois da revelação, o álbum abre com autor em cada foto e a retrospectiva do dia.
 - **Organização** (claro, desktop): `/` cria evento → `/painel/:id` com Resumo, Convidados (RSVP, CSV), Detalhes e programação, Fotos e recados (moderação, ZIP), Avisos (push), Convite e QR, Configurações, Equipe.
 - **Admin master**: `/master` com Casamentos, Fotos por casamento, Plataforma (variáveis), Avisos globais, Auditoria, Políticas. Entra por **sessão** (e-mail + senha + código do app autenticador), com cookie `httpOnly`; o token estático é só legado de desenvolvimento. Primeira conta: `node scripts/master-criar.js <email> <nome>` com a senha em `MASTER_SENHA` ou no prompt (nunca por argumento).
 
@@ -25,6 +25,7 @@ Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (dom
 - O álbum é individual por casamento. Nenhuma rota devolve dados de um tenant com o token de outro (coberto por teste).
 - O bloqueio das fotos é do servidor: o arquivo devolve 403 antes da revelação, exceto para a organização (moderação) e o master.
 - Ações sensíveis vão para `data/audit.log` (só inserção).
+- A revelação é do relógio do servidor: na hora marcada, o job manda push a quem instalou o app e e-mail à organização — uma vez só, marcado no evento (`revealNotified`/`emailEnviado`), então repetir o ciclo ou reiniciar não duplica. O job tem trava (um ciclo por vez) e timeout por envio, e o e-mail só sai para endereço verificado da organização. A retrospectiva (`GET /api/events/:id/retrospectiva`, totais, top fotógrafos e linha do tempo por hora) só responde depois da revelação, só olha o próprio casamento e não conta foto oculta pela moderação.
 - Papéis: casal (tudo do evento), cerimonial (tudo, menos equipe), master (tudo, todos os eventos).
 - Ação que muda estado com **cookie de sessão** exige `Origin` do próprio domínio (anti-CSRF); quem usa token em cabeçalho não é afetado e `GET` continua livre.
 
@@ -37,6 +38,6 @@ Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (dom
 ## Limitações conhecidas
 - Câmera ao vivo e push exigem HTTPS (ou localhost). iOS só recebe push com o app instalado na Tela de Início (16.4+).
 - Push implementado e validado só até a inscrição; a entrega real a aparelhos não foi testada.
-- Sem login real (acesso por token), sem e-mail, armazenamento em JSON + arquivos, retenção só registrada, sem RLS de banco (isolamento por middleware).
+- Sem login real (acesso por token), e-mail por SMTP (Brevo) ou console no dev (sem fila; até 5 tentativas por revelação; só para endereço verificado), armazenamento em SQLite, retenção só registrada, sem RLS de banco (isolamento por middleware).
 - Telas nunca validadas em navegador/celular pelo agente que as escreveu.
 - Não copiar marca, textos nem artes do app original (Memo - Capture momentos).
