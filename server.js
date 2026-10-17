@@ -20,6 +20,19 @@ const { registrarExclusao } = require('./src/lgpd/auditoria');
 const { enfileirarAviso } = require('./src/lgpd/outbox');
 const { novoToken, autentica, sessaoDe, MENSAGENS } = require('./src/guest');
 const { semSegredos } = require('./src/seguranca');
+const { criarEmail, emailDesativado } = require('./src/email');
+const { processarRevelacoes } = require('./src/reveal/job');
+const { montarRetrospectiva } = require('./src/reveal/retrospectiva');
+
+// E-mail transacional (Brevo via SMTP em produção). Console só em dev/teste:
+// em produção o provedor de console é recusado (fail-closed).
+let email;
+try {
+  email = criarEmail();
+} catch (e) {
+  email = emailDesativado(e);
+  console.error(`[email] envio de e-mail desativado: ${e.message}`);
+}
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -64,6 +77,8 @@ function audit(req, acao, detalhe = {}) {
   const linha = JSON.stringify({ t: clock.iso(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
   fs.appendFile(AUDIT_FILE, linha + '\n', () => {});
 }
+const revealedAtBoot = (ev) => clock.nowMs() >= new Date(ev.revealAt).getTime();
+
 // Admin master: administra todos os casamentos (tenants). Token por ambiente ou gerado no primeiro uso.
 const MASTER_FILE = path.join(DATA_DIR, 'master.token');
 let MASTER_TOKEN = process.env.MASTER_TOKEN || '';
@@ -215,7 +230,8 @@ app.post('/api/events', (req, res) => {
     dataEvento: dataEvento && !isNaN(dataEvento) ? dataEvento.toISOString() : null,
     local: clean(req.body.local, 80), endereco: clean(req.body.endereco, 160), mensagem: '',
     contato: clean(req.body.contato, 80), suspenso: false, limites: {}, config: { ...CONFIG_PADRAO },
-    push: [], avisos: [], revealNotified: false, denuncias: [], consentimentos: [],
+    push: [], avisos: [], revealNotified: false, emailEnviado: false, contatoVerificado: false,
+    denuncias: [], consentimentos: [],
     cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [],
     createdAt: clock.iso(),
   };
@@ -241,6 +257,7 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     ...publicInfo(ev),
     papel: req.admin.papel, nome: req.admin.nome, dono: !!req.admin.dono, master: !!req.admin.master,
     contato: req.admin.master ? req.ev.contato : undefined,
+    contatoVerificado: !!req.ev.contatoVerificado,
     linkConvite: `${base}/e/${ev.id}`,
     totalLista: ev.lista.length, rsvp, pushInscritos: ev.push.length,
     limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
@@ -273,6 +290,12 @@ app.patch('/api/events/:id', getEvent, adminOnly, (req, res) => {
   if (b.local !== undefined) ev.local = clean(b.local, 80);
   if (b.endereco !== undefined) ev.endereco = clean(b.endereco, 160);
   if (b.mensagem !== undefined) ev.mensagem = clean(b.mensagem, 500);
+  // Trocar o contato derruba a verificação: o e-mail de revelação só sai para
+  // endereço verificado, então um endereço novo precisa ser confirmado de novo.
+  if (b.contato !== undefined && clean(b.contato, 80) !== ev.contato) {
+    ev.contato = clean(b.contato, 80);
+    ev.contatoVerificado = false;
+  }
   if (b.fotosPorConvidado !== undefined)
     ev.fotosPorConvidado = Math.min(Math.max(parseInt(b.fotosPorConvidado, 10) || ev.fotosPorConvidado, 1), settings.maxFotosPorConvidado);
   if (b.config && typeof b.config === 'object') {
@@ -576,6 +599,12 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
   res.json({ revelado: open, revealAt: ev.revealAt, agora: clock.iso(), fotos: lista });
 });
 
+// Retrospectiva do casamento: só abre depois da revelação e só olha o próprio evento.
+app.get('/api/events/:id/retrospectiva', getEvent, (req, res) => {
+  if (!revealed(req.ev)) return res.status(403).json({ erro: 'A retrospectiva abre quando o álbum for revelado.' });
+  res.json(montarRetrospectiva(req.ev));
+});
+
 // O arquivo só sai depois da revelação — exceto para a organização (moderação) — e nunca se estiver oculto.
 app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
   const org = ehOrg(req);
@@ -634,6 +663,11 @@ const resumoEvento = (ev) => ({
   fotos: ev.photos.filter((p) => !p.oculta).length, camera: ev.guests.length, lista: ev.lista.length, recados: ev.recados.length,
   confirmados: ev.lista.filter((l) => l.rsvp === 'confirmado').length, equipe: ev.equipe.length,
   push: ev.push.length, avisos: ev.avisos.length, limites: ev.limites, config: ev.config,
+  // Estado do aviso de revelação: o operador usa isso para liberar um reenvio manual.
+  email: {
+    enviado: !!ev.emailEnviado, enviadoEm: ev.emailEnviadoEm || null, incerto: !!ev.emailIncerto,
+    tentativas: Number(ev.emailTentativas) || 0, erro: ev.emailErro || null, contatoVerificado: !!ev.contatoVerificado,
+  },
   limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
   bytes: dirSize(path.join(PHOTO_DIR, ev.id)),
 });
@@ -659,6 +693,20 @@ app.patch('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
   if (b.config && typeof b.config === 'object') {
     for (const k of Object.keys(CONFIG_PADRAO)) if (typeof b.config[k] === 'boolean') req.ev.config[k] = b.config[k];
     audit(req, 'config.alterada', { config: req.ev.config });
+  }
+  // O operador confirma (ou revoga) o endereço que pode receber o e-mail de revelação.
+  if (b.contatoVerificado !== undefined) {
+    req.ev.contatoVerificado = !!b.contatoVerificado;
+    audit(req, 'contato.verificacao', { contatoVerificado: req.ev.contatoVerificado });
+  }
+  // Reenvio manual do aviso de revelação: libera um ciclo novo quando o envio ficou
+  // incerto (timeout) ou quando o endereço só foi confirmado depois das tentativas.
+  if (b.reenviarRevelacao) {
+    req.ev.emailIncerto = false;
+    req.ev.emailTentativas = 0;
+    req.ev.emailErro = null;
+    req.ev.emailEnviado = false;
+    audit(req, 'revelacao.reenvio-liberado', { contatoVerificado: !!req.ev.contatoVerificado });
   }
   if (b.revealAt) { const d = new Date(b.revealAt); if (!isNaN(d)) { req.ev.revealAt = d.toISOString(); req.ev.revealNotified = revealed(req.ev); audit(req, 'revelacao.alterada', { revealAt: req.ev.revealAt }); } }
   save();
@@ -730,16 +778,33 @@ app.post('/api/events/:id/avisos', getEvent, adminOnly, async (req, res) => {
   res.status(201).json({ ...r });
 });
 
-// Revelação automática: avisa quem instalou o app quando o álbum abre.
-setInterval(async () => {
-  for (const ev of Object.values(db.events)) {
-    if (ev.revealNotified || !revealed(ev)) continue;
-    ev.revealNotified = true;
-    const r = settings.pushAtivo && !ev.suspenso ? await enviarPush(ev, { titulo: 'As fotos foram reveladas! 🎉', corpo: `Veja o álbum de ${ev.titulo}.`, url: `/e/${ev.id}/album` }) : { alvos: 0, entregues: 0, falhas: 0 };
-    ev.avisos.push({ id: newId(5), titulo: 'As fotos foram reveladas! 🎉', corpo: `O álbum de ${ev.titulo} está aberto.`, enviadoEm: clock.iso(), por: 'Sistema', ...r });
-    save();
-  }
-}, 30000).unref();
+// Revelação automática (relógio do servidor): e-mail à organização + push a quem instalou o app.
+// O job tem trava (um ciclo por vez) e timeout por envio; grava o estado no evento
+// (revealNotified/emailEnviado), então repetir o ciclo ou reiniciar não duplica.
+const urlPublica = () => (process.env.PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/+$/, '');
+// Endereços liberados manualmente pelo operador (lista separada por vírgula) enquanto
+// a confirmação por link mágico (#9) não chega; o resto depende de contatoVerificado.
+const destinosVerificados = () =>
+  String(process.env.EMAIL_VERIFICADOS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+const processarAgora = () =>
+  processarRevelacoes({
+    eventos: db.events,
+    agora: clock.now,
+    email,
+    baseUrl: urlPublica(),
+    pushEnviar: (ev, payload) =>
+      settings.pushAtivo && !ev.suspenso ? enviarPush(ev, payload) : Promise.resolve({ alvos: 0, entregues: 0, falhas: 0 }),
+    persistir: save,
+    novoId: newId,
+    log: (m) => console.error(m),
+    timeoutMs: Number(process.env.EMAIL_TIMEOUT_MS) || undefined,
+    verificados: destinosVerificados(),
+  }).catch((e) => console.error(`[revelacao] falhou: ${e.message}`));
+
+setInterval(processarAgora, 30000).unref();
+app.processarRevelacoes = processarAgora; // gancho de teste (o ciclo normal roda a cada 30s)
+app.emailParaTestes = email;
+
 
 app.get('/e/:id/manifest.webmanifest', getEvent, (req, res) => {
   const ev = req.ev;
@@ -836,6 +901,8 @@ app.get('/api/master/politicas', masterOnly, (req, res) => res.json({
     { papel: 'Admin master', acessa: 'Todos os casamentos, fotos antes da revelação, limites, suspensão, exclusão, variáveis da plataforma, auditoria.', nao: 'Toda ação sensível fica registrada na auditoria.' },
   ],
   rls: 'Ainda não há banco relacional: o isolamento é imposto pelo servidor (middleware). Ao migrar para Postgres/Supabase, estas regras viram políticas RLS por tenant_id.',
+  operadorExterior: 'O operador da plataforma fica no exterior: dados pessoais (nome, e-mail da organização, recados e fotos) podem ser transferidos para fora do Brasil (LGPD, arts. 33 a 36) para hospedagem, envio de e-mail transacional e suporte, com cláusulas contratuais e acesso restrito a quem precisa.',
+  emailRevelacao: 'O e-mail de revelação vai somente para endereço verificado da organização (contatoVerificado ou lista EMAIL_VERIFICADOS do operador). Endereço não verificado não recebe nada.',
   logs: 'O servidor registra uma linha JSON por requisição sem dado pessoal (sem e-mail, nome, token nem texto de recado). O IP nunca é guardado em claro: só um hash curto e não reversível (com sal por processo), usado apenas para segurança e rate limit.',
   retencaoLogs: `O hash de IP dos logs é retido por até ${LOG_RETENCAO_DIAS} dias (LOG_RETENCAO_DIAS) e depois descartado; por si só não permite reidentificar a pessoa.`,
 }));

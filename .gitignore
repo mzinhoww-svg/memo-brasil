@@ -6,3 +6,4 @@ data
 exportacoes
 .maestri
 scripts/ci-output.txt
+.maestri/
