@@ -5,7 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/api.test.js"
+    "test": "NODE_ENV=test node --test test/*.test.js",
+    "migrate": "node scripts/migrate-json.js",
+    "backup": "bash scripts/backup.sh"
+  },
+  "engines": {
+    "node": ">=22.5.0"
   },
   "keywords": [],
   "author": "",
