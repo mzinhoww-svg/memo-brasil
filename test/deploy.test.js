@@ -25,6 +25,19 @@ test('Dockerfile usa Node 24 e roda como usuário não-root', () => {
   assert.doesNotMatch(df, /^\s*USER\s+root\s*$/im, 'não pode usar USER root');
 });
 
+test('Dockerfile copia src/ e scripts/ para a imagem (B1)', () => {
+  const df = read('Dockerfile');
+  assert.match(df, /^COPY\s+.*\bsrc\b.*\bsrc\b\s*$/m, 'deve copiar src/');
+  assert.match(df, /^COPY\s+.*\bscripts\b.*\bscripts\b\s*$/m, 'deve copiar scripts/');
+  const di = read('.dockerignore');
+  assert.doesNotMatch(di, /^scripts\s*$/m, '.dockerignore não pode excluir scripts/ (B1)');
+  assert.doesNotMatch(di, /^src\s*$/m, '.dockerignore não pode excluir src/');
+  // scripts/backup.sh precisa de bash, sqlite3 e gpg dentro do container (backup antes do deploy).
+  assert.match(df, /apk add[^\n]*\bbash\b/, 'deve instalar o bash');
+  assert.match(df, /apk add[^\n]*\bsqlite\b/, 'deve instalar o CLI sqlite3');
+  assert.match(df, /apk add[^\n]*\bgnupg\b/, 'deve instalar o gpg (gnupg)');
+});
+
 test('Dockerfile instala só dependências de produção e expõe DATA_DIR em volume', () => {
   const df = read('Dockerfile');
   assert.match(df, /npm ci[^\n]*--omit=dev|npm ci[^\n]*--production/, 'deve instalar apenas deps de produção');
@@ -71,12 +84,33 @@ test('docker-compose sobe o app e o Caddy com dados em volume e sem segredo embu
   }
 });
 
+test('Caddy recebe só DOMINIO, nunca o .env inteiro (B3)', () => {
+  const yml = read('docker-compose.yml');
+  // Só o serviço lume pode usar env_file; o Caddy recebe apenas o domínio.
+  const envFiles = yml.match(/env_file:/g) || [];
+  assert.equal(envFiles.length, 1, 'apenas o serviço lume deve usar env_file');
+  assert.match(yml, /DOMINIO:\s*\$\{DOMINIO/, 'Caddy deve receber DOMINIO por interpolação');
+  // O bloco do Caddy não pode referenciar segredos (ignorando comentários).
+  const bloco = yml.slice(yml.indexOf('  caddy:'))
+    .split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+  for (const segredo of ['MASTER_TOKEN', 'EMAIL_API_KEY', 'API_KEY', 'SESSION_SECRET', 'BACKUP_']) {
+    assert.doesNotMatch(bloco, new RegExp(segredo), `o serviço caddy não pode ver ${segredo}`);
+  }
+});
+
 test('Caddyfile usa HTTPS automático para o domínio vindo do ambiente', () => {
   assert.ok(exists('Caddyfile'), 'Caddyfile ausente');
   const c = read('Caddyfile');
   assert.match(c, /\{\$DOMINIO\}/, 'deve usar {$DOMINIO} (substituição de ambiente do Caddy)');
   assert.match(c, /reverse_proxy\s+lume:3210/, 'deve encaminhar para o serviço lume:3210');
   assert.doesNotMatch(c, /https?:\/\//, 'não deve fixar URL/domínio literal');
+});
+
+test('log do Caddy não grava token em query string (B2)', () => {
+  const c = read('Caddyfile');
+  assert.match(c, /format\s+filter/, 'deve usar format filter no log');
+  assert.match(c, /query\s*\{/, 'deve filtrar a query string');
+  assert.match(c, /delete\s+token/, 'deve apagar o parâmetro token do log');
 });
 
 // ─────────────────────────── systemd ───────────────────────────
@@ -157,6 +191,125 @@ test('scripts/restore.sh exige backup, é dry-run por padrão e não altera dado
   assert.equal(r.status, 0, `restore dry-run deve sair 0:\n${r.stderr}`);
   assert.match(r.stdout, /DRY-RUN/i);
   assert.equal(fs.readFileSync(path.join(destino, 'db.json'), 'utf8'), '{"events":{"antigo":{}}}', 'dry-run não pode alterar dados');
+});
+
+test('scripts/deploy.sh lê o .env sem fazer source (não vaza nem executa valores)', () => {
+  const sh = read('scripts/deploy.sh');
+  assert.doesNotMatch(sh, /^\s*(source|\.)\s+.*ENV_FILE/m, 'não pode dar source no .env');
+
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lume-env-'));
+  const envf = path.join(tmp, '.env');
+  fs.writeFileSync(envf, [
+    'DOMINIO=exemplo.test',
+    'PUBLIC_URL=https://exemplo.test',
+    'MASTER_TOKEN=valor-que-nao-pode-vazar',
+    'EMAIL_API_KEY=outro-valor-secreto',
+  ].join('\n'));
+  const r = comBash(['scripts/deploy.sh'], {
+    env: { PATH: process.env.PATH, DEPLOY_ENV_FILE: envf, HOME: tmp },
+  });
+  assert.equal(r.status, 0, r.stderr);
+  assert.doesNotMatch(r.stdout + r.stderr, /valor-que-nao-pode-vazar|outro-valor-secreto/, 'não pode imprimir valores do .env');
+  assert.match(r.stdout, /https:\/\/exemplo\.test\/api\/config/, 'deve ler PUBLIC_URL do .env para o healthcheck');
+});
+
+test('scripts/deploy.sh faz backup antes de subir e preserva o rollback', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lume-state-'));
+  const state = path.join(tmp, 'state');
+  fs.mkdirSync(state);
+  fs.writeFileSync(path.join(state, 'previous-tag'), 'aaa111\n');
+  const env = {
+    PATH: process.env.PATH, DEPLOY_ENV_FILE: '/nao-existe', HOME: tmp,
+    DOMINIO: 'exemplo.test', PUBLIC_URL: 'https://exemplo.test',
+  };
+
+  const r = comBash(['scripts/deploy.sh', '--state-dir', state, '--current-tag', 'deadbee'], { env });
+  assert.equal(r.status, 0, r.stderr);
+  const out = r.stdout;
+  const iBackup = out.toLowerCase().indexOf('backup');
+  const iUp = out.indexOf('up -d');
+  assert.ok(iBackup !== -1, 'deve haver uma etapa de backup');
+  assert.ok(iUp !== -1, 'deve haver up -d');
+  assert.ok(iBackup < iUp, 'o backup deve vir antes do up -d');
+  assert.match(out, /previous-tag[^\n]*deadbee/i, 'dry-run deve mostrar o rollback que registraria');
+  assert.equal(fs.readFileSync(path.join(state, 'previous-tag'), 'utf8').trim(), 'aaa111', 'dry-run não pode alterar o state');
+
+  const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  const r2 = comBash(['scripts/deploy.sh', '--state-dir', state, '--current-tag', head], { env });
+  assert.equal(r2.status, 0, r2.stderr);
+  assert.match(r2.stdout, /preserv/i, 'mesma versão deve preservar o previous-tag');
+  assert.equal(fs.readFileSync(path.join(state, 'previous-tag'), 'utf8').trim(), 'aaa111', 'não pode sobrescrever o rollback');
+});
+
+test('scripts/restore.sh restaura SQLite e reaplica as exclusões do backup', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lume-sqlite-'));
+  const origem = path.join(tmp, 'origem');
+  fs.mkdirSync(path.join(origem, 'photos'), { recursive: true });
+  fs.mkdirSync(path.join(origem, 'backups'), { recursive: true });
+  fs.writeFileSync(path.join(origem, 'memo.db'), 'SQLITE-NOVO');
+  fs.writeFileSync(path.join(origem, 'memo.db-wal'), 'wal');
+  fs.writeFileSync(path.join(origem, 'memo.db-shm'), 'shm');
+  fs.writeFileSync(path.join(origem, 'backups', 'antigo.tar.gz'), 'lixo');
+  fs.writeFileSync(path.join(origem, 'photos', 'a.jpg'), 'x');
+  const tar = path.join(tmp, 'backup.tar.gz');
+  execFileSync('tar', ['-czf', tar, '-C', origem, '.']);
+
+  const destino = path.join(tmp, 'data');
+  fs.mkdirSync(path.join(destino, 'photos'), { recursive: true });
+  fs.writeFileSync(path.join(destino, 'memo.db'), 'SQLITE-ANTIGO');
+  fs.writeFileSync(path.join(destino, 'master.token'), 'token-do-host');
+  fs.writeFileSync(path.join(destino, 'backups-marcador'), 'fica');
+
+  // dry-run aceita backup sem db.json (só SQLite)
+  const dry = comBash(['scripts/restore.sh', '--backup', tar, '--data-dir', destino], { env: { PATH: process.env.PATH } });
+  assert.equal(dry.status, 0, `dry-run com SQLite deve sair 0:\n${dry.stderr}`);
+  assert.equal(fs.readFileSync(path.join(destino, 'memo.db'), 'utf8'), 'SQLITE-ANTIGO', 'dry-run não altera');
+
+  const r = comBash(['scripts/restore.sh', '--backup', tar, '--data-dir', destino, '--apply', '--yes', '--no-restart'], {
+    env: { PATH: process.env.PATH },
+  });
+  assert.equal(r.status, 0, `apply deve sair 0:\n${r.stderr}`);
+  assert.equal(fs.readFileSync(path.join(destino, 'memo.db'), 'utf8'), 'SQLITE-NOVO', 'deve restaurar o SQLite');
+  assert.ok(!fs.existsSync(path.join(destino, 'memo.db-wal')), 'não pode restaurar -wal');
+  assert.ok(!fs.existsSync(path.join(destino, 'memo.db-shm')), 'não pode restaurar -shm');
+  assert.ok(!fs.existsSync(path.join(destino, 'backups', 'antigo.tar.gz')), 'não pode restaurar a pasta backups/');
+  assert.equal(fs.readFileSync(path.join(destino, 'master.token'), 'utf8'), 'token-do-host', 'não pode apagar o master.token do host');
+  assert.equal(fs.readFileSync(path.join(destino, 'photos', 'a.jpg'), 'utf8'), 'x', 'deve restaurar as fotos');
+});
+
+test('scripts/restore.sh trata backup cifrado (.gpg)', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lume-gpg-'));
+  const origem = path.join(tmp, 'origem');
+  fs.mkdirSync(origem, { recursive: true });
+  fs.writeFileSync(path.join(origem, 'memo.db'), 'SQLITE');
+  const tar = path.join(tmp, 'backup.tar.gz');
+  execFileSync('tar', ['-czf', tar, '-C', origem, '.']);
+
+  let temGpg = true;
+  try { execFileSync('gpg', ['--version'], { stdio: 'ignore' }); } catch { temGpg = false; }
+
+  const gpgarq = tar + '.gpg';
+  if (temGpg) {
+    execFileSync('gpg', ['--batch', '--yes', '--passphrase', 'senha-de-teste', '--symmetric', '--cipher-algo', 'AES256', tar]);
+  } else {
+    fs.writeFileSync(gpgarq, 'nao-e-gpg-de-verdade');
+  }
+
+  const destino = path.join(tmp, 'data');
+  fs.mkdirSync(destino, { recursive: true });
+
+  // sem chave/senha: erro claro
+  const semChave = comBash(['scripts/restore.sh', '--backup', gpgarq, '--data-dir', destino], { env: { PATH: process.env.PATH } });
+  assert.notEqual(semChave.status, 0, 'sem senha/chave deve falhar');
+  assert.match(semChave.stderr + semChave.stdout, /BACKUP_PASSPHRASE|BACKUP_GPG_KEY/, 'deve citar a variável que resolve');
+
+  if (temGpg) {
+    const ok = comBash(['scripts/restore.sh', '--backup', gpgarq, '--data-dir', destino], {
+      env: { PATH: process.env.PATH, BACKUP_PASSPHRASE: 'senha-de-teste' },
+    });
+    assert.equal(ok.status, 0, `com senha deve sair 0:\n${ok.stderr}`);
+    assert.match(ok.stdout, /DRY-RUN/i);
+  }
 });
 
 // ─────────────────────────── docs ───────────────────────────
