@@ -104,6 +104,9 @@ function baseUrl(req) {
 }
 
 const app = express();
+// Atrás do proxy (Caddy/Nginx) confiamos em um salto para o rate limit por IP
+// enxergar o cliente real; sem proxy, req.ip já é o socket. Ajuste com TRUST_PROXY.
+app.set('trust proxy', process.env.TRUST_PROXY ? Number(process.env.TRUST_PROXY) : 1);
 // Observabilidade: log estruturado por requisição (sem PII) e healthcheck.
 const logger = createLogger();
 const sentry = createSentry({ version: require('./package.json').version });
