@@ -37,6 +37,16 @@ test('sem credencial o mural não é lido (403)', async () => {
   assert.equal((await get(`/api/events/${ev.id}/recados?guestId=${ev.a.guestId}`)).status, 403);
 });
 
+test('credencial de organização não vale pela URL: só no cabeçalho', async () => {
+  const ev = await festa('URL');
+  await escrever(ev, ev.a, 'recado');
+  // token do casal na query não lê (decisão 002 §8: credencial nunca na URL).
+  assert.equal((await get(`/api/events/${ev.id}/recados?token=${ev.tk}`)).status, 403);
+  assert.equal((await get(`/api/events/${ev.id}/recados?token=master-de-teste`)).status, 403);
+  // Pelo cabeçalho, funciona.
+  assert.equal((await get(`/api/events/${ev.id}/recados`, { 'x-host-token': ev.tk })).status, 200);
+});
+
 test('convidado vê só os próprios recados; recado privado do outro não aparece', async () => {
   const ev = await festa('Privado');
   assert.equal((await escrever(ev, ev.a, 'segredo da Ana')).status, 201);

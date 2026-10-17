@@ -146,9 +146,11 @@ const donoOnly = (req, res, next) =>
   req.admin.dono ? next() : res.status(403).json({ erro: 'Só o casal pode fazer isso.' });
 
 // Organização pelo token, sem exigir acesso (usado na leitura dos recados).
+// Credencial nunca pela URL (decisão 002 §8): só cabeçalho. No rebase sobre o #9
+// este corpo vira o adminOnly (sessão + hash).
 function ehOrganizacao(req) {
   const ev = req.ev;
-  const token = req.get('x-host-token') || req.get('x-master-token') || req.query.token;
+  const token = req.get('x-host-token') || req.get('x-master-token');
   if (!token) return null;
   if (isMaster(token)) return { papel: 'master', nome: 'Admin master', dono: true, master: true };
   if (verifyToken(token, ev.hostTokenHash)) return { papel: 'casal', nome: 'Casal', dono: true };

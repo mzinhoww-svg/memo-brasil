@@ -99,6 +99,18 @@ test('token inválido é recusado com 403', async () => {
   assert.equal((await reentrar(ev, '')).status, 403);
 });
 
+// Migração 003: as colunas do item 7 / decisão 004 existem (uma só ALTER de token_hash).
+test('migração 003 aplicada: token_hash em guests e visibilidade em recados', () => {
+  const conn = abrirBanco();
+  const colunas = (t) => conn.prepare(`PRAGMA table_info(${t})`).all().map((c) => c.name);
+  const guests = colunas('guests'), recados = colunas('recados');
+  const versao = conn.prepare('SELECT MAX(version) AS v FROM schema_migrations WHERE version > 0').get().v;
+  conn.close();
+  assert.ok(guests.includes('token_hash'));
+  assert.ok(recados.includes('visibilidade'));
+  assert.ok(versao >= 3, `versão de esquema ${versao}`);
+});
+
 // C3: nenhuma resposta pode expor o hash do token (host, equipe ou convidado).
 test('nenhuma resposta expõe tokenHash nem hostTokenHash', async () => {
   const ev = await criar('Sem vazar');
