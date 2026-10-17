@@ -29,8 +29,7 @@ function sessaoDe(ev, g) {
   const item = g.listaId && ev.lista.find((l) => l.id === g.listaId);
   const usadas = ev.photos.filter((p) => p.guestId === g.id).length;
   return {
-    guestId: g.id, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null,
-    acompanhantes: item?.acompanhantes || 0,
+    guestId: g.id, nome: g.nome, naLista: !!item,
     fotosUsadas: usadas, fotosRestantes: Math.max(0, ev.fotosPorConvidado - usadas),
   };
 }

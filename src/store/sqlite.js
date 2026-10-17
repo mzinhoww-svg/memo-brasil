@@ -143,7 +143,8 @@ class SqliteStore extends Store {
       const photos = this.conn.prepare('SELECT * FROM photos WHERE tenant_id = ? ORDER BY rowid').all(tid);
       for (const p of photos) ev.photos.push({ id: p.id, ext: p.ext, guestId: p.guest_id, autor: p.autor, criadaEm: p.criada_em });
       const lista = this.conn.prepare('SELECT * FROM lista WHERE tenant_id = ? ORDER BY rowid').all(tid);
-      for (const l of lista) ev.lista.push({ id: l.id, nome: l.nome, grupo: l.grupo, acompanhantes: l.acompanhantes, rsvp: l.rsvp, origem: l.origem });
+      // rsvp/acompanhantes são legado (fora do escopo): ignorados na leitura e nunca reescritos.
+      for (const l of lista) ev.lista.push({ id: l.id, nome: l.nome, grupo: l.grupo, origem: l.origem });
       const equipe = this.conn.prepare('SELECT * FROM equipe WHERE tenant_id = ? ORDER BY rowid').all(tid);
       for (const e of equipe) ev.equipe.push({ id: e.id, nome: e.nome, papel: e.papel, tokenHash: e.token_hash });
       const recados = this.conn.prepare('SELECT * FROM recados WHERE tenant_id = ? ORDER BY rowid').all(tid);
@@ -174,7 +175,7 @@ class SqliteStore extends Store {
       this.conn.prepare('INSERT INTO guests (id, tenant_id, nome, entrou_em, lista_id, token_hash) VALUES (?,?,?,?,?,?)').run(g.id, ev.id, g.nome, g.entrouEm, g.listaId || null, g.tokenHash || null);
     }
     for (const l of ev.lista || []) {
-      this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, acompanhantes, rsvp, origem) VALUES (?,?,?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao');
+      this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, origem) VALUES (?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.origem || 'organizacao');
     }
     for (const e of ev.equipe || []) {
       const th = e.tokenHash || (e.token ? tokenHash(e.token) : '');
@@ -224,8 +225,8 @@ class SqliteStore extends Store {
       (id) => this.conn.prepare('DELETE FROM guests WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('lista', ev.lista, old.lista || [],
-      (l) => this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, acompanhantes, rsvp, origem) VALUES (?,?,?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao'),
-      (l) => this.conn.prepare('UPDATE lista SET nome=?, grupo=?, acompanhantes=?, rsvp=?, origem=? WHERE id=? AND tenant_id=?').run(l.nome, l.grupo || '', l.acompanhantes || 0, l.rsvp || 'pendente', l.origem || 'organizacao', l.id, ev.id),
+      (l) => this.conn.prepare('INSERT INTO lista (id, tenant_id, nome, grupo, origem) VALUES (?,?,?,?,?)').run(l.id, ev.id, l.nome, l.grupo || '', l.origem || 'organizacao'),
+      (l) => this.conn.prepare('UPDATE lista SET nome=?, grupo=?, origem=? WHERE id=? AND tenant_id=?').run(l.nome, l.grupo || '', l.origem || 'organizacao', l.id, ev.id),
       (id) => this.conn.prepare('DELETE FROM lista WHERE id=? AND tenant_id=?').run(id, ev.id));
 
     this._syncArray('equipe', ev.equipe, old.equipe || [],

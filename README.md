@@ -5,13 +5,13 @@ Lume: o álbum de casamento que se revela aos poucos, com as fotos de todos os c
 ## Rodar
     npm install
     npm start        # http://localhost:3210 (o endereço da rede Wi-Fi aparece no terminal)
-    npm test         # 63 testes: API, isolamento entre casamentos, persistência, observabilidade e limites
+    npm test         # 88 testes: API, isolamento entre casamentos, persistência, observabilidade e limites
 
 Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (domínio público do QR Code), `MASTER_TOKEN` (senha do master; sem ela, `data/master.token`), `VAPID_CONTACT` (contato das notificações push), `MAX_FOTOS_EVENTO` (teto de fotos por evento; padrão `3000`) e `SENTRY_DSN` (opcional; sem ele, a observabilidade de erros é no-op). Veja `.env.example`. Só em teste (`NODE_ENV=test`): `TEST_NOW` fixa o "agora" do servidor (`src/clock.js`) para exercitar a revelação sem esperar; em produção é ignorado.
 
 ## Jornadas
-- **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, presença, recados. Pode instalar o app (PWA) e ativar avisos.
-- **Organização** (claro, desktop): `/` cria evento → `/painel/:id` com Resumo, Convidados (RSVP, CSV), Detalhes e programação, Fotos e recados (moderação, ZIP), Avisos (push), Convite e QR, Configurações, Equipe.
+- **Convidado** (escuro, mobile): `/e/:id` convite → `/e/:id/inicio` hub → câmera, álbum, programação e local, recados. Pode instalar o app (PWA) e ativar avisos.
+- **Organização** (claro, desktop): `/` cria evento → `/painel/:id` com Resumo, Convidados (CSV), Detalhes e programação, Fotos e recados (moderação, ZIP), Avisos (push), Convite e QR, Configurações, Equipe.
 - **Admin master**: `/master` com Casamentos, Fotos por casamento, Plataforma (variáveis), Avisos globais, Auditoria, Políticas.
 
 ## Observabilidade e limites
@@ -34,6 +34,7 @@ Variáveis de ambiente: `PORT`, `DATA_DIR` (padrão `./data`), `PUBLIC_URL` (dom
 - Excluir um evento remove o banco e as fotos do host, mas **não** apaga backups já gerados. Eles deixam de existir apenas quando expiram pela retenção (ou por remoção manual). Ou seja, o apagamento de dados pessoais alcança backups já feitos em até `BACKUP_RETENTION_DIAS` dias.
 
 ## Limitações conhecidas
+- Sem confirmação de presença (RSVP): fora do escopo do produto (decisão `docs/decisions/005-rsvp-fora-do-escopo.md`). A lista de convidados serve para identificar quem fotografa e escreve recados.
 - Câmera ao vivo e push exigem HTTPS (ou localhost). iOS só recebe push com o app instalado na Tela de Início (16.4+).
 - Push implementado e validado só até a inscrição; a entrega real a aparelhos não foi testada.
 - Sem login real (acesso por token), sem e-mail, armazenamento em JSON + arquivos, retenção só registrada, sem RLS de banco (isolamento por middleware).

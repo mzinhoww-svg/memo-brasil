@@ -199,7 +199,7 @@ Estado atual: o painel permite alterar o horário (`PATCH revealAt`). Botões de
 
 - **Botão:** `Remover`
 - **Título:** Remover {nome} da lista?
-- **Texto:** `{nome} sai da lista e deixa de ser contado nas confirmações. As fotos que essa pessoa já enviou continuam no álbum.`
+- **Texto:** `{nome} sai da lista. As fotos que essa pessoa já enviou continuam no álbum.`
 - **Botões:** [Cancelar] · [Remover da lista]
 - **Se já entrou na câmera:** `{nome} já entrou na câmera. Ao remover, o acesso é encerrado neste aparelho.` 🔧
 - **Opção avançada 🔧:** `Apagar também as fotos desta pessoa` — `Atenção: {n} fotos serão apagadas para sempre.`

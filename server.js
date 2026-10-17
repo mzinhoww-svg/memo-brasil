@@ -25,7 +25,6 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 const MAX_HARD_PHOTO_BYTES = 25 * 1024 * 1024; // teto técnico; o limite configurável fica em settings
 // Retenção do hash de IP nos logs (política de privacidade).
 const LOG_RETENCAO_DIAS = Math.max(1, parseInt(process.env.LOG_RETENCAO_DIAS, 10) || 30);
-const RSVP = ['pendente', 'confirmado', 'recusado'];
 
 fs.mkdirSync(PHOTO_DIR, { recursive: true });
 const store = require(path.join(__dirname, 'src', 'store'))(DATA_DIR);
@@ -219,18 +218,13 @@ app.get('/api/events/:id', getEvent, (req, res) => res.json(publicInfo(req.ev)))
 // ───── Organização
 app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
-  const rsvp = { confirmado: 0, recusado: 0, pendente: 0, pessoasConfirmadas: 0 };
-  for (const l of ev.lista) {
-    rsvp[l.rsvp]++;
-    if (l.rsvp === 'confirmado') rsvp.pessoasConfirmadas += 1 + (l.acompanhantes || 0);
-  }
   const base = baseUrl(req);
   res.json({
     ...publicInfo(ev),
     papel: req.admin.papel, nome: req.admin.nome, dono: !!req.admin.dono, master: !!req.admin.master,
     contato: req.admin.master ? req.ev.contato : undefined,
     linkConvite: `${base}/e/${ev.id}`,
-    totalLista: ev.lista.length, rsvp, pushInscritos: ev.push.length,
+    totalLista: ev.lista.length, pushInscritos: ev.push.length,
     limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
     fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
     recados: ev.recados.length,
@@ -284,7 +278,7 @@ app.get('/api/events/:id/qr.png', getEvent, async (req, res) => {
   res.type('png').send(png);
 });
 
-// Lista de convidados do casamento (RSVP) — separada de quem usa a câmera.
+// Lista de convidados do casamento — separada de quem usa a câmera.
 app.get('/api/events/:id/lista', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
   const naCamera = new Set(ev.guests.map((g) => g.listaId).filter(Boolean));
@@ -292,12 +286,12 @@ app.get('/api/events/:id/lista', getEvent, adminOnly, (req, res) => {
 });
 app.post('/api/events/:id/lista', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
-  // Aceita lista colada (uma pessoa por linha: "Nome; grupo; acompanhantes") ou itens em JSON.
+  // Aceita lista colada (uma pessoa por linha: "Nome; grupo") ou itens em JSON.
   let itens = req.body.itens;
   if (!itens && typeof req.body.texto === 'string') {
     itens = req.body.texto.split(/\r?\n/).map((linha) => {
-      const [nome, grupo, ac] = linha.split(/[;\t]/).map((s) => s.trim());
-      return { nome, grupo, acompanhantes: ac };
+      const [nome, grupo] = linha.split(/[;\t]/).map((s) => s.trim());
+      return { nome, grupo };
     });
   }
   if (!Array.isArray(itens)) return res.status(400).json({ erro: 'Envie a lista de convidados.' });
@@ -308,11 +302,7 @@ app.post('/api/events/:id/lista', getEvent, adminOnly, (req, res) => {
     if (!nome) continue;
     if (existentes.has(norm(nome))) { repetidos++; continue; }
     if (ev.lista.length >= limLista(ev)) return res.status(409).json({ erro: `Limite de ${limLista(ev)} convidados na lista.` });
-    ev.lista.push({
-      id: newId(6), nome, grupo: clean(it.grupo, 40),
-      acompanhantes: Math.min(Math.max(parseInt(it.acompanhantes, 10) || 0, 0), 10),
-      rsvp: 'pendente', origem: 'organizacao',
-    });
+    ev.lista.push({ id: newId(6), nome, grupo: clean(it.grupo, 40), origem: 'organizacao' });
     existentes.add(norm(nome));
     adicionados++;
   }
@@ -323,10 +313,8 @@ app.patch('/api/events/:id/lista/:lid', getEvent, adminOnly, (req, res) => {
   const l = req.ev.lista.find((x) => x.id === req.params.lid);
   if (!l) return res.status(404).json({ erro: 'Convidado não encontrado.' });
   const b = req.body;
-  if (b.rsvp !== undefined) { if (!RSVP.includes(b.rsvp)) return res.status(400).json({ erro: 'Status inválido.' }); l.rsvp = b.rsvp; }
   if (b.nome !== undefined) l.nome = clean(b.nome, 60) || l.nome;
   if (b.grupo !== undefined) l.grupo = clean(b.grupo, 40);
-  if (b.acompanhantes !== undefined) l.acompanhantes = Math.min(Math.max(parseInt(b.acompanhantes, 10) || 0, 0), 10);
   save();
   res.json(l);
 });
@@ -421,13 +409,13 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
     orfao.tokenHash = hash;
     save();
     const li = orfao.listaId && ev.lista.find((l) => l.id === orfao.listaId);
-    return res.status(201).json({ guestId: orfao.id, guestToken: token, nome: orfao.nome, naLista: !!li, rsvp: li?.rsvp || null, reivindicado: true });
+    return res.status(201).json({ guestId: orfao.id, guestToken: token, nome: orfao.nome, naLista: !!li, reivindicado: true });
   }
   if (ev.guests.length >= limGuests(ev)) return res.status(409).json({ erro: 'Evento lotado.' });
   const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: clock.iso(), listaId: item?.id, tokenHash: hash };
   ev.guests.push(g);
   save();
-  res.status(201).json({ guestId: g.id, guestToken: token, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null });
+  res.status(201).json({ guestId: g.id, guestToken: token, nome: g.nome, naLista: !!item });
 });
 
 // Saldo do convidado: exige o token no cabeçalho x-guest-token.
@@ -442,24 +430,6 @@ app.post('/api/events/:id/sessao', getEvent, (req, res) => {
   const g = autentica(req.ev, req.body.guestId, req.get('x-guest-token'));
   if (!g) return res.status(403).json({ erro: MENSAGENS.sessaoInvalida });
   res.json(sessaoDe(req.ev, g));
-});
-
-app.post('/api/events/:id/rsvp', getEvent, (req, res) => {
-  const ev = req.ev;
-  const g = autentica(ev, req.body.guestId, req.get('x-guest-token'));
-  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
-  if (!['confirmado', 'recusado'].includes(req.body.status)) return res.status(400).json({ erro: 'Resposta inválida.' });
-  let item = g.listaId && ev.lista.find((l) => l.id === g.listaId);
-  if (!item) {
-    if (ev.lista.length >= limLista(ev)) return res.status(409).json({ erro: 'Lista cheia.' });
-    item = { id: newId(6), nome: g.nome, grupo: '', acompanhantes: 0, rsvp: 'pendente', origem: 'convidado' };
-    ev.lista.push(item);
-    g.listaId = item.id;
-  }
-  item.rsvp = req.body.status;
-  item.acompanhantes = Math.min(Math.max(parseInt(req.body.acompanhantes, 10) || 0, 0), 10);
-  save();
-  res.json({ rsvp: item.rsvp, acompanhantes: item.acompanhantes });
 });
 
 app.get('/api/events/:id/recados', getEvent, (req, res) => {
@@ -556,7 +526,7 @@ const resumoEvento = (ev) => ({
   id: ev.id, titulo: ev.titulo, contato: ev.contato || '', criadoEm: ev.createdAt,
   dataEvento: ev.dataEvento, revealAt: ev.revealAt, revelado: revealed(ev), suspenso: !!ev.suspenso,
   fotos: ev.photos.length, camera: ev.guests.length, lista: ev.lista.length, recados: ev.recados.length,
-  confirmados: ev.lista.filter((l) => l.rsvp === 'confirmado').length, equipe: ev.equipe.length,
+  equipe: ev.equipe.length,
   push: ev.push.length, avisos: ev.avisos.length, limites: ev.limites, config: ev.config,
   limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
   bytes: dirSize(path.join(PHOTO_DIR, ev.id)),
@@ -681,8 +651,8 @@ app.get('/e/:id/manifest.webmanifest', getEvent, (req, res) => {
 // ───── Exportações da organização
 app.get('/api/events/:id/lista.csv', getEvent, adminOnly, (req, res) => {
   const cel = (v) => `"${String(v ?? '').replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"`;
-  const linhas = [['Nome', 'Grupo', 'Acompanhantes', 'Resposta'].map(cel).join(',')];
-  req.ev.lista.forEach((l) => linhas.push([l.nome, l.grupo, l.acompanhantes, l.rsvp].map(cel).join(',')));
+  const linhas = [['Nome', 'Grupo'].map(cel).join(',')];
+  req.ev.lista.forEach((l) => linhas.push([l.nome, l.grupo].map(cel).join(',')));
   audit(req, 'lista.exportada', { total: req.ev.lista.length });
   res.type('text/csv; charset=utf-8').set('Content-Disposition', 'attachment; filename="convidados.csv"').send('﻿' + linhas.join('\r\n'));
 });
@@ -769,7 +739,6 @@ app.get('/e/:id/camera', page('camera.html'));
 app.get('/e/:id/album', page('album.html'));
 app.get('/e/:id/programacao', page('programacao.html'));
 app.get('/e/:id/recados', page('recados.html'));
-app.get('/e/:id/presenca', page('presenca.html'));
 app.get('/painel/:id', page('painel.html'));
 app.get('/master', page('master.html'));
 app.get('/sw.js', (req, res) => res.set('Service-Worker-Allowed', '/').type('application/javascript').sendFile(path.join(__dirname, 'public', 'sw.js')));

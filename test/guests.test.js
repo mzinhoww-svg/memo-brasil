@@ -35,7 +35,6 @@ async function foto(ev, token = ev.gt) {
 const saldo = (ev, token = ev.gt) => get(`/api/events/${ev.id}/guests/${ev.guest}`, token ? { 'x-guest-token': token } : {});
 const recado = (ev, token = ev.gt) => post(`/api/events/${ev.id}/recados`, { guestId: ev.guest, texto: 'Oi, noivos!' }, token ? { 'x-guest-token': token } : {});
 const reentrar = (ev, token = ev.gt) => post(`/api/events/${ev.id}/sessao`, { guestId: ev.guest }, token ? { 'x-guest-token': token } : {});
-const rsvp = (ev, token = ev.gt) => post(`/api/events/${ev.id}/rsvp`, { guestId: ev.guest, status: 'confirmado' }, token ? { 'x-guest-token': token } : {});
 const push = (ev, token = ev.gt) => post(`/api/events/${ev.id}/push/subscribe`, { guestId: ev.guest, subscription: { endpoint: 'https://push.example/x', keys: { p256dh: 'p', auth: 'a' } } }, token ? { 'x-guest-token': token } : {});
 
 test('a entrada devolve um token de 32 bytes e o servidor guarda só o hash', async () => {
@@ -54,13 +53,12 @@ test('a entrada devolve um token de 32 bytes e o servidor guarda só o hash', as
   assert.equal(linha.token, undefined);
 });
 
-test('id adivinhado sem token não passa em saldo, upload, recados, rsvp nem push', async () => {
+test('id adivinhado sem token não passa em saldo, upload, recados nem push', async () => {
   const ev = await criar('So o id');
   assert.equal((await saldo(ev, null)).status, 403);
   assert.equal((await foto(ev, null)).status, 403);
   assert.equal((await recado(ev, null)).status, 403);
   assert.equal((await reentrar(ev, null)).status, 403);
-  assert.equal((await rsvp(ev, null)).status, 403);
   assert.equal((await push(ev, null)).status, 403);
 });
 
@@ -70,8 +68,16 @@ test('token de outro evento não passa (nem id nem token sozinhos bastam)', asyn
   assert.equal((await foto(a, b.gt)).status, 403);
   assert.equal((await recado(a, b.gt)).status, 403);
   assert.equal((await reentrar(a, b.gt)).status, 403);
-  assert.equal((await rsvp(a, b.gt)).status, 403);
   assert.equal((await push(a, b.gt)).status, 403);
+});
+
+test('RSVP está fora do escopo: POST /rsvp não existe mais (404)', async () => {
+  const ev = await criar('Sem RSVP');
+  assert.equal((await post(`/api/events/${ev.id}/rsvp`, { guestId: ev.guest, status: 'confirmado' }, { 'x-guest-token': ev.gt })).status, 404);
+  // A sessão do convidado não carrega mais rsvp/acompanhantes; mantém naLista.
+  const s = await (await saldo(ev)).json();
+  assert.equal('rsvp' in s, false);
+  assert.equal('acompanhantes' in s, false);
 });
 
 test('token de outro convidado do mesmo evento não passa', async () => {

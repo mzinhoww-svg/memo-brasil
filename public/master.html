@@ -74,7 +74,7 @@ function casamentos(dados) {
     lista.forEach((e) => tb.append(el('tr', {},
       el('td', {}, el('b', {}, e.titulo), el('div', { class: 'sub', style: 'margin:0;font-size:12px' }, e.contato || 'sem contato')),
       el('td', {}, fmt(e.criadoEm)), el('td', {}, fmt(e.revealAt)),
-      el('td', {}, `${e.confirmados}/${e.lista}`), el('td', {}, String(e.camera)), el('td', {}, `${e.fotos} · ${bytes(e.bytes)}`), el('td', {}, String(e.push)),
+      el('td', {}, String(e.camera)), el('td', {}, `${e.fotos} · ${bytes(e.bytes)}`), el('td', {}, String(e.push)),
       el('td', {}, e.suspenso ? el('span', { class: 'tag recusado' }, 'Suspenso') : e.revelado ? el('span', { class: 'tag confirmado' }, 'Revelado') : el('span', { class: 'tag pendente' }, 'Em andamento')),
       el('td', {}, el('div', { class: 'row' },
         el('a', { class: 'btn sm primary', href: `/painel/${e.id}#resumo` }, 'Abrir'),
@@ -88,11 +88,11 @@ function casamentos(dados) {
         el('button', { class: 'btn sm danger', onclick: async () => {
           if (prompt(`Excluir "${e.titulo}" e todas as ${e.fotos} fotos para sempre?\nDigite o id do evento para confirmar: ${e.id}`) === e.id) { await call(`/events/${e.id}`, { method: 'DELETE', body: JSON.stringify({ confirmar: e.id }) }); carrega(); }
         } }, 'Excluir'))))));
-    if (!lista.length) tb.append(el('tr', {}, el('td', { colspan: '9' }, 'Nenhum casamento encontrado.')));
+    if (!lista.length) tb.append(el('tr', {}, el('td', { colspan: '8' }, 'Nenhum casamento encontrado.')));
   };
   busca.oninput = pinta; pinta();
   v.append(el('div', { class: 'panel' }, busca, el('div', { style: 'overflow-x:auto;margin-top:12px' }, el('table', {},
-    el('thead', {}, el('tr', {}, ['Casamento', 'Criado', 'Revelação', 'Confirmados', 'Câmera', 'Fotos · espaço', 'Push', 'Status', ''].map((x) => el('th', {}, x)))), tb))));
+    el('thead', {}, el('tr', {}, ['Casamento', 'Criado', 'Revelação', 'Câmera', 'Fotos · espaço', 'Push', 'Status', ''].map((x) => el('th', {}, x)))), tb))));
 }
 function limites(e) {
   const ef = e.limitesEfetivos;
