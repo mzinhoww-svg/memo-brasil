@@ -34,9 +34,11 @@ Itens que **só uma pessoa** pode resolver (conta, pagamento, nome, credencial).
   - **Valor**: `1` atrás de um único proxy que anexa `X-Forwarded-For` (nginx/Caddy na mesma máquina); `2` se houver dois saltos confiáveis; `true` só se o proxy for totalmente confiável e inacessível de fora.
   - **Nunca** deixar o padrão `0` com o app publicado atrás de proxy (todos os acessos passam a contar como um único IP e os limites bloqueiam usuários legítimos); **nunca** usar valor maior que a quantidade real de saltos (o cliente volta a poder forjar o IP).
 - `MASTER_EMERGENCY`, `MASTER_TOKEN_COMPAT` — válvulas que reativam o `MASTER_TOKEN` estático mesmo com conta master criada. Padrão: desligadas. **São recusadas quando `PUBLIC_URL` é `https://`** e cada uso é gravado na auditoria (`master.token_emergencia`). Só ligar para recuperar acesso em ambiente de desenvolvimento/emergência; desligar em seguida.
+- **Credencial nunca na URL.** O painel e o master mandam o token só no cabeçalho (`x-host-token`/`x-master-token`); a rota do arquivo de foto e o painel **não** aceitam `?token=`. As miniaturas são buscadas com `fetch` e viram `blob:` (helper `imgAutenticada` em `public/common.js`), para o token não cair em log, histórico do navegador ou `Referer`.
 
 ## CI
 - #1: o job `test` falha em ~2 s sem log; o QA cruzado atribui a cobrança/Actions. Regularizar o faturamento do GitHub Actions (ação humana) ou rodar a suíte localmente como evidência até lá.
+- `.gitleaks.toml` libera **apenas** o vetor de teste público da RFC 6238 (`GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ`, apêndice B) usado nos testes de TOTP. Qualquer outro candidato a segredo continua falhando o scan; nada de valor real deve ser acrescentado a esse allowlist.
 
 ## Conferir antes de usar
 - Valores e prazos das lojas (Apple US$ 99/ano, Google US$ 25) estão em `docs/lojas.md` (#5) e devem ser reconferidos no momento da conta.
