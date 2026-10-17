@@ -7,6 +7,10 @@ const os = require('os');
 const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
+const { createLogger } = require('./src/obs/logger');
+const { createHealthHandler } = require('./src/obs/health');
+const { limFotosEvento } = require('./src/obs/limites');
+const { createSentry } = require('./src/obs/sentry');
 const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 'sqlite'));
 // Relógio injetável: em produção é sempre o relógio real; TEST_NOW/advance só
 // valem com NODE_ENV=test. Todo "agora" da revelação passa por aqui.
@@ -19,6 +23,8 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const PHOTO_DIR = path.join(DATA_DIR, 'photos');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const MAX_HARD_PHOTO_BYTES = 25 * 1024 * 1024; // teto técnico; o limite configurável fica em settings
+// Retenção do hash de IP nos logs (política de privacidade).
+const LOG_RETENCAO_DIAS = Math.max(1, parseInt(process.env.LOG_RETENCAO_DIAS, 10) || 30);
 const RSVP = ['pendente', 'confirmado', 'recusado'];
 
 fs.mkdirSync(PHOTO_DIR, { recursive: true });
@@ -36,7 +42,7 @@ try { if (fs.existsSync(SETTINGS_FILE)) settings = { ...DEFAULTS, ...JSON.parse(
 const saveSettings = () => fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
 const limGuests = (ev) => ev.limites?.maxConvidados ?? settings.maxConvidadosPorEvento;
 const limLista = (ev) => ev.limites?.maxLista ?? settings.maxListaPorEvento;
-const limFotos = (ev) => ev.limites?.maxFotos ?? settings.maxFotosPorEvento;
+const limFotos = (ev) => limFotosEvento(ev, settings);
 const CONFIG_PADRAO = { recadosAtivos: true, apenasLista: false, mostrarAutor: true, recadosMural: false };
 
 // Chaves VAPID para notificações push (geradas uma vez).
@@ -96,6 +102,11 @@ function baseUrl(req) {
 }
 
 const app = express();
+// Observabilidade: log estruturado por requisição (sem PII) e healthcheck.
+const logger = createLogger();
+const sentry = createSentry({ version: require('./package.json').version });
+app.use(logger.middleware);
+app.get('/healthz', createHealthHandler({ dataDir: DATA_DIR }));
 app.use(express.json({ limit: '1mb' }));
 // C3: nenhum hash de token (host, equipe ou convidado) pode sair numa resposta.
 app.use(semSegredos);
@@ -482,7 +493,7 @@ app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) =
   if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de fotografar.' });
   if (req.file && req.file.size > settings.tamanhoMaxFotoMB * 1024 * 1024)
     return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
-  if (ev.photos.length >= limFotos(ev)) return res.status(409).json({ erro: 'Este evento atingiu o limite de fotos.' });
+  if (ev.photos.length >= limFotos(ev)) return res.status(413).json({ erro: 'Este evento atingiu o teto de fotos. Não é possível enviar mais fotos.' });
   if (!req.file || !/^image\/(jpeg|png|webp)$/.test(req.file.mimetype))
     return res.status(400).json({ erro: 'Envie uma imagem JPEG, PNG ou WebP.' });
   const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
@@ -520,7 +531,14 @@ app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  // Corpo JSON malformado: responde 400, padroniza a mensagem e NUNCA loga/ecoa o corpo.
+  if (err.type === 'entity.parse.failed') {
+    sentry.captureException(err); // mensagem filtrada em src/obs/sentry.js (sem corpo)
+    return res.status(400).json({ erro: 'Corpo da requisição inválido.' });
+  }
+  if (err.type === 'entity.too.large') return res.status(413).json({ erro: 'Conteúdo grande demais.' });
   if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ erro: `Foto muito grande (máx. ${settings.tamanhoMaxFotoMB} MB).` });
+  sentry.captureException(err); // no-op se SENTRY_DSN não estiver definido
   console.error(err);
   res.status(500).json({ erro: 'Algo deu errado. Tente de novo.' });
 });
@@ -737,6 +755,8 @@ app.get('/api/master/politicas', masterOnly, (req, res) => res.json({
     { papel: 'Admin master', acessa: 'Todos os casamentos, fotos antes da revelação, limites, suspensão, exclusão, variáveis da plataforma, auditoria.', nao: 'Toda ação sensível fica registrada na auditoria.' },
   ],
   rls: 'Ainda não há banco relacional: o isolamento é imposto pelo servidor (middleware). Ao migrar para Postgres/Supabase, estas regras viram políticas RLS por tenant_id.',
+  logs: 'O servidor registra uma linha JSON por requisição sem dado pessoal (sem e-mail, nome, token nem texto de recado). O IP nunca é guardado em claro: só um hash curto e não reversível (com sal por processo), usado apenas para segurança e rate limit.',
+  retencaoLogs: `O hash de IP dos logs é retido por até ${LOG_RETENCAO_DIAS} dias (LOG_RETENCAO_DIAS) e depois descartado; por si só não permite reidentificar a pessoa.`,
 }));
 
 // ───── Páginas
@@ -755,6 +775,7 @@ app.get('/embutido.js', (req, res) => res.type('application/javascript').sendFil
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
+  sentry.installProcessHooks(); // só com SENTRY_DSN; caso contrário, no-op
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Lume em http://localhost:${PORT}`);
     console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
