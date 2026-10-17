@@ -34,12 +34,17 @@
 				request>headers>X-Guest-Token delete
 				request>headers>Authorization delete
 				request>headers>Cookie delete
+				request>headers>X-Forwarded-For delete
+				request>headers>X-Real-Ip delete
 				request>uri query {
 					delete token
 					delete key
 					delete host_token
 					delete hostToken
 					delete master
+					delete t
+					delete q
+					delete guestId
 				}
 				request>remote_ip ip_mask {
 					ipv4 24

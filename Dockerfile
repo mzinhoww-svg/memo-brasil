@@ -23,14 +23,16 @@ COPY public ./public
 COPY src ./src
 COPY scripts ./scripts
 
-# Usuário sem privilégios e diretório de dados gravável por ele.
+# Usuário sem privilégios. Só /data é gravável (o código em /app fica root:root).
 # uid/gid fixos (10001) para casar permissões de volume em qualquer host.
+# -h /data: o adduser chowna o home para o usuário; /app NUNCA deve ser o home
+# (senão o código fica gravável pela própria app).
 # bash + sqlite3 + gnupg: os scripts (backup/restore) rodam dentro do container.
 RUN apk add --no-cache bash sqlite gnupg \
- && addgroup -S -g 10001 lume \
- && adduser -S -u 10001 -G lume -h /app lume \
  && mkdir -p /data \
- && chown -R lume:lume /data /app
+ && addgroup -S -g 10001 lume \
+ && adduser -S -u 10001 -G lume -h /data lume \
+ && chown -R lume:lume /data
 
 USER 10001:10001
 
@@ -39,8 +41,8 @@ VOLUME ["/data"]
 
 EXPOSE 3210
 
-# Healthcheck sem curl/wget: usa o próprio Node.
+# Healthcheck sem curl/wget: usa o próprio Node (/healthz do #12).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD ["node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||3210)+'/api/config').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+  CMD ["node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||3210)+'/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
 
 CMD ["node", "server.js"]
