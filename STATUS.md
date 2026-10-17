@@ -69,3 +69,15 @@ Ordem de merge sugerida: #5 → #4 → #6 → #1 (com CI verde) → #7 (corrigid
 | #17 (c136fa0) | **Devolvido** | log do Caddy com cabeçalhos de token e IP; `restore.sh` sem `excluidos.log`; `TRUST_PROXY` |
 
 Risco transversal: quatro migrações usam o número 002 e o runner só olha o número; a segunda a entrar é ignorada em silêncio. Renumerar na ordem de merge.
+
+## Rodada de 17/10 (tarde): #9 na main; #13, #14, #15, #17
+
+| PR | Veredito | Pendência |
+|---|---|---|
+| #9 (na main) | **Aprovado** (delta cb91570..6294030: Origin, login do master por sessão, `master-criar`, e-mail do #16) | Turnstile antes de abrir a criação ao público |
+| #17 (4e54118) | **Aprovado** | ensaiar `restore` real e subir com `read_only` |
+| #13 (a7fc24a) | **Aprovado** | ao trazer a main: trocar `isMaster` estático por sessão/`aceitaTokenEstatico` em `ehOrganizacao` |
+| #15 (e06e29d) | **Aprovado** | idem em `ehOrg`/`ehOrganizacao`; `imgAutenticada` do #9 |
+| #14 (6fab922) | **Devolvido** | limite de tentativas com chave controlada pelo cliente (memória/CPU sem autenticação) |
+
+Testes: falhas isoladas de `TEST_NOW` e `master-criar` são carga da máquina (load ~170), passam sozinhas.
