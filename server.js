@@ -8,6 +8,9 @@ const path = require('path');
 const webpush = require('web-push');
 const { ZipArchive } = require('archiver');
 const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 'sqlite'));
+// Relógio injetável: em produção é sempre o relógio real; TEST_NOW/advance só
+// valem com NODE_ENV=test. Todo "agora" da revelação passa por aqui.
+const clock = require('./src/clock');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -47,10 +50,10 @@ webpush.setVapidDetails(process.env.VAPID_CONTACT || 'mailto:contato@memobrasil.
 const AUDIT_FILE = path.join(DATA_DIR, 'audit.log');
 function audit(req, acao, detalhe = {}) {
   const quem = req.admin ? `${req.admin.papel}:${req.admin.nome}` : 'anon';
-  const linha = JSON.stringify({ t: new Date().toISOString(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
+  const linha = JSON.stringify({ t: clock.iso(), quem, evento: req.ev?.id || detalhe.evento || null, acao, ...detalhe });
   fs.appendFile(AUDIT_FILE, linha + '\n', () => {});
 }
-const revealedAtBoot = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
+const revealedAtBoot = (ev) => clock.nowMs() >= new Date(ev.revealAt).getTime();
 // Admin master: administra todos os casamentos (tenants). Token por ambiente ou gerado no primeiro uso.
 const MASTER_FILE = path.join(DATA_DIR, 'master.token');
 let MASTER_TOKEN = process.env.MASTER_TOKEN || '';
@@ -73,7 +76,7 @@ function save() {
   store.save();
 }
 const newId = (n = 6) => crypto.randomBytes(n).toString('base64url');
-const revealed = (ev) => Date.now() >= new Date(ev.revealAt).getTime();
+const revealed = (ev) => clock.nowMs() >= new Date(ev.revealAt).getTime();
 const clean = (s, max) => String(s ?? '').trim().slice(0, max);
 const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -97,7 +100,7 @@ app.use('/api', (req, res, next) => {
   if (!settings.manutencao) return next();
   const t = req.get('x-master-token') || req.get('x-host-token') || req.query.token;
   if (isMaster(t) || req.path.startsWith('/config')) return next();
-  res.status(503).json({ erro: settings.avisoGlobal || 'O Memo está em manutenção. Volte em instantes.' });
+  res.status(503).json({ erro: settings.avisoGlobal || 'O Lume está em manutenção. Volte em instantes.' });
 });
 app.get('/api/config', (req, res) => res.json({
   criacaoAberta: settings.criacaoAberta, manutencao: settings.manutencao, avisoGlobal: settings.avisoGlobal,
@@ -130,7 +133,7 @@ const donoOnly = (req, res, next) =>
 function publicInfo(ev) {
   return {
     id: ev.id, titulo: ev.titulo, revealAt: ev.revealAt, revelado: revealed(ev),
-    agora: new Date().toISOString(), fotosPorConvidado: ev.fotosPorConvidado,
+    agora: clock.iso(), fotosPorConvidado: ev.fotosPorConvidado,
     momentos: ev.photos.length, pessoas: ev.guests.length,
     dataEvento: ev.dataEvento, local: ev.local, endereco: ev.endereco, mensagem: ev.mensagem,
     cronograma: ev.cronograma, suspenso: !!ev.suspenso, config: ev.config,
@@ -160,7 +163,7 @@ app.post('/api/events', (req, res) => {
     contato: clean(req.body.contato, 80), suspenso: false, limites: {}, config: { ...CONFIG_PADRAO },
     push: [], avisos: [], revealNotified: false,
     cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [],
-    createdAt: new Date().toISOString(),
+    createdAt: clock.iso(),
   };
   db.events[ev.id] = ev;
   save();
@@ -363,7 +366,7 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   if (ev.config.apenasLista && !ev.lista.some((l) => norm(l.nome) === norm(nome)))
     return res.status(403).json({ erro: 'Este evento é só para convidados da lista. Use o nome exatamente como os noivos cadastraram.' });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
-  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: new Date().toISOString(), listaId: item?.id };
+  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: clock.iso(), listaId: item?.id };
   ev.guests.push(g);
   save();
   res.status(201).json({ guestId: g.id, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null });
@@ -409,7 +412,7 @@ app.post('/api/events/:id/recados', getEvent, (req, res) => {
   if (!texto) return res.status(400).json({ erro: 'Escreva seu recado.' });
   const mine = req.ev.recados.filter((r) => r.guestId === g.id).length;
   if (mine >= 5) return res.status(409).json({ erro: 'Você já deixou 5 recados.' });
-  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: new Date().toISOString() };
+  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: clock.iso() };
   req.ev.recados.push(r);
   save();
   res.status(201).json({ id: r.id });
@@ -434,7 +437,7 @@ app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) =
   const dir = path.join(PHOTO_DIR, ev.id);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, `${id}.${ext}`), req.file.buffer);
-  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: new Date().toISOString() });
+  ev.photos.push({ id, ext, guestId: guest.id, autor: guest.nome, criadaEm: clock.iso() });
   save();
   res.status(201).json({ id, restantes: ev.fotosPorConvidado - usadas - 1 });
 });
@@ -448,7 +451,7 @@ app.get('/api/events/:id/photos', getEvent, (req, res) => {
       ? { id: p.id, autor: ev.config.mostrarAutor ? p.autor : '', criadaEm: p.criadaEm, minha: p.guestId === guestId, url: `/api/events/${ev.id}/photos/${p.id}/file` }
       : { id: p.id, bloqueada: true, minha: p.guestId === guestId }
   );
-  res.json({ revelado: open, revealAt: ev.revealAt, agora: new Date().toISOString(), fotos: lista });
+  res.json({ revelado: open, revealAt: ev.revealAt, agora: clock.iso(), fotos: lista });
 });
 
 // O arquivo só sai depois da revelação — exceto para a organização (moderação).
@@ -470,7 +473,7 @@ app.use((err, req, res, next) => {
 // ───── Admin master (todos os casamentos)
 function masterOnly(req, res, next) {
   if (!isMaster(req.get('x-master-token') || req.get('x-host-token') || req.query.token))
-    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Memo.' });
+    return res.status(403).json({ erro: 'Acesso restrito ao administrador do Lume.' });
   req.admin = { papel: 'master', nome: 'Admin master', master: true, dono: true };
   next();
 }
@@ -536,7 +539,7 @@ app.post('/api/events/:id/push/subscribe', getEvent, (req, res) => {
   if (!subscriptionOk(sub)) return res.status(400).json({ erro: 'Inscrição inválida.' });
   if (req.ev.push.length >= 6000) return res.status(409).json({ erro: 'Limite de notificações atingido.' });
   const i = req.ev.push.findIndex((p) => p.sub.endpoint === sub.endpoint);
-  const reg = { id: newId(6), guestId: g.id, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, criadoEm: new Date().toISOString() };
+  const reg = { id: newId(6), guestId: g.id, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, criadoEm: clock.iso() };
   if (i >= 0) req.ev.push[i] = { ...reg, id: req.ev.push[i].id }; else req.ev.push.push(reg);
   save();
   res.status(201).json({ ok: true });
@@ -565,9 +568,9 @@ app.post('/api/events/:id/avisos', getEvent, adminOnly, async (req, res) => {
   const ev = req.ev;
   const titulo = clean(req.body.titulo, 60), corpo = clean(req.body.corpo, 200);
   if (!titulo || !corpo) return res.status(400).json({ erro: 'Escreva o título e a mensagem do aviso.' });
-  const recentes = ev.avisos.filter((a) => Date.now() - new Date(a.enviadoEm).getTime() < 3600e3).length;
+  const recentes = ev.avisos.filter((a) => clock.nowMs() - new Date(a.enviadoEm).getTime() < 3600e3).length;
   if (recentes >= 5 && !req.admin.master) return res.status(429).json({ erro: 'Limite de 5 avisos por hora. Tente mais tarde.' });
-  const aviso = { id: newId(5), titulo, corpo, enviadoEm: new Date().toISOString(), por: req.admin.nome };
+  const aviso = { id: newId(5), titulo, corpo, enviadoEm: clock.iso(), por: req.admin.nome };
   const r = settings.pushAtivo ? await enviarPush(ev, { titulo, corpo }) : { alvos: 0, entregues: 0, falhas: 0 };
   ev.avisos.push({ ...aviso, ...r });
   audit(req, 'aviso.enviado', { titulo, ...r });
@@ -581,7 +584,7 @@ setInterval(async () => {
     if (ev.revealNotified || !revealed(ev)) continue;
     ev.revealNotified = true;
     const r = settings.pushAtivo && !ev.suspenso ? await enviarPush(ev, { titulo: 'As fotos foram reveladas! 🎉', corpo: `Veja o álbum de ${ev.titulo}.`, url: `/e/${ev.id}/album` }) : { alvos: 0, entregues: 0, falhas: 0 };
-    ev.avisos.push({ id: newId(5), titulo: 'As fotos foram reveladas! 🎉', corpo: `O álbum de ${ev.titulo} está aberto.`, enviadoEm: new Date().toISOString(), por: 'Sistema', ...r });
+    ev.avisos.push({ id: newId(5), titulo: 'As fotos foram reveladas! 🎉', corpo: `O álbum de ${ev.titulo} está aberto.`, enviadoEm: clock.iso(), por: 'Sistema', ...r });
     save();
   }
 }, 30000).unref();
@@ -591,7 +594,7 @@ app.get('/e/:id/manifest.webmanifest', getEvent, (req, res) => {
   res.type('application/manifest+json').json({
     name: ev.titulo, short_name: ev.titulo.slice(0, 12), lang: 'pt-BR', id: `/e/${ev.id}/`,
     start_url: `/e/${ev.id}/inicio`, scope: `/e/${ev.id}/`, display: 'standalone',
-    background_color: '#0e0d0c', theme_color: '#0e0d0c',
+    background_color: '#14110E', theme_color: '#14110E',
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -697,7 +700,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Memo Brasil em http://localhost:${PORT}`);
+    console.log(`Lume em http://localhost:${PORT}`);
     console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
     console.log(`Admin master: http://localhost:${PORT}/master`);
     if (lanIp()) console.log(`Na mesma rede Wi-Fi (celular): http://${lanIp()}:${PORT}`);
