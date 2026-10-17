@@ -1,6 +1,6 @@
 # TASKS — Memo Brasil
 
-Atualizado em 2026-10-13. Dono = papel. "Bloqueia" = o que impede o merge/aceite. Estado vem de `STATUS.md`.
+Atualizado em 2026-10-17. Dono = papel. "Bloqueia" = o que impede o merge/aceite. Estado vem de `STATUS.md`.
 
 ## Prontos para mergear (humano)
 - [ ] #5 docs: decisões 001–004, fase 2, lojas — **aprovado** (Planejador)
@@ -14,6 +14,13 @@ Atualizado em 2026-10-13. Dono = papel. "Bloqueia" = o que impede o merge/aceite
 - [ ] **#1 testes/CI** (dono: QA/Forja-Testes) — teste da listagem pré-revelação; resolver a cobrança/Actions para o CI rodar e deixar a `main` verde.
 - [ ] **#10 textos por tela** (dono: Redator) — revisar depois das correções do #2; Planejador audita antes do merge.
 
+## Auditados em 17/10 (com condições)
+- [ ] **#14 uploads** (dono: Forja) — **devolvido**: B1 rebasear no #13 e usar só hash; B2 remover `?guestToken=`; B3 cortar JPEG no EOI e respeitar tamanho do RIFF no WebP; B4 teste com JPEG real com GPS.
+- [ ] **#13 convidado** — C1 unificar esquema com o #14; C2 convidados antigos; C3 `tokenHash` fora das respostas; C4 leitura sem token; C5 `intent://` sem query/hash.
+- [ ] **#12 observabilidade** — filtrar `err.message` no Sentry (JSON malformado traz corpo); teste de token em caminho; retenção do hash de IP na política.
+- [ ] **#9** — reauditar o head db94646 inteiro; remover `?token=` da rota de arquivo de foto.
+- [ ] **#15 LGPD, #16 revelação, #17 deploy** — aguardam parecer do Planejador.
+
 ## Aceites formais pendentes (Orquestrador)
 - [ ] Decisão 002 — auth do organizador (recomendada: link mágico por e-mail)
 - [ ] Decisão 003 — auth do master (recomendada: senha + TOTP; scrypt aceito se o doc for atualizado)
@@ -22,9 +29,6 @@ Atualizado em 2026-10-13. Dono = papel. "Bloqueia" = o que impede o merge/aceite
 ## Itens do checklist sem dono ativo
 - [ ] Item 4 publicação HTTPS (bloqueado por plano/custo e credenciais)
 - [ ] Item 6 painel: QR PNG/PDF A5, remover convidado
-- [ ] Item 7 `guestId` com segredo; teste em navegador embutido
-- [ ] Item 9 em código: exportar/apagar em um comando, retenção, denúncia
-- [ ] Item 11 log sem PII, healthcheck, teto por evento, Sentry
 - [ ] Item 14 STATUS final (depois dos demais)
 
 ## Pós-MVP imediato
