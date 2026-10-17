@@ -391,7 +391,7 @@ $ curl -H 'X-Host-Token: …' -H 'X-Master-Token: …' -H 'X-Guest-Token: …' \
 $ cat /data/access.log
   -> headers só User-Agent/Accept; uri "/api/auth/entrar?manter=ok";
      remote_ip/client_ip 192.168.65.0 (/24); nada de token/PII/Authorization/Cookie
-$ npm test                     -> 154 testes, 0 falhas
+$ npm test                     -> 158 testes, 0 falhas
 ```
 
 `hadolint` foi rodado via imagem Docker (o binário local não está instalado). Sem Docker no
