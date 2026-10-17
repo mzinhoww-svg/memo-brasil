@@ -8,3 +8,4 @@ data
 backups/
 .deploy/
 *.log
+scripts/ci-output.txt

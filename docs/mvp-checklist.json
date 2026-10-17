@@ -1,0 +1,17 @@
+[
+  { "id": 1, "titulo": "Testes automatizados da API e CI verde", "status": "em_andamento", "evidencia": "Forja QI · #1 (feat/testes) — CI vermelho; baseline em #3" },
+  { "id": 2, "titulo": "QA visual e funcional das telas em navegador real", "status": "em_andamento", "evidencia": "Forja QA · baseline #3/#4 e painel #8; falta fluxo completo na main" },
+  { "id": 3, "titulo": "Persistência de produção", "status": "em_andamento", "evidencia": "Forja Dados · #7 (feat/dados) — ajustes A1–A3" },
+  { "id": 4, "titulo": "Publicação com HTTPS", "status": "em_andamento", "evidencia": "Forja-Deploy (feat/deploy); depende de 3, 5 e 13" },
+  { "id": 5, "titulo": "Conta do organizador", "status": "em_andamento", "evidencia": "Forja Auth · #9 (feat/auth) — devolvido B1–B5" },
+  { "id": 6, "titulo": "Painel completo", "status": "em_andamento", "evidencia": "Forja-QR (feat/painel-qr); parcial na main — falta QR PNG/PDF A5" },
+  { "id": 7, "titulo": "Convidado sem fricção", "status": "em_andamento", "evidencia": "Forja-Convidado (feat/convidado), Forja-Upload (feat/upload); parcial na main" },
+  { "id": 8, "titulo": "Revelação e retrospectiva", "status": "em_andamento", "evidencia": "Forja-Revelacao (feat/revelacao); parcial na main" },
+  { "id": 9, "titulo": "Moderação e privacidade (LGPD)", "status": "em_andamento", "evidencia": "Forja-LGPD (feat/lgpd); textos #2/#6 — devolvido B1–B6" },
+  { "id": 10, "titulo": "Identidade pt-BR própria", "status": "em_andamento", "evidencia": "#4 aprovado — nome Lume; domínio e INPI pendentes" },
+  { "id": 11, "titulo": "Observabilidade e limites", "status": "em_andamento", "evidencia": "Forja-Obs (feat/obs); rate limit parcial em #9 (B8)" },
+  { "id": 12, "titulo": "Banco e RLS", "status": "pendente", "evidencia": "decisão 001 (#5); pós-MVP imediato" },
+  { "id": "12b", "titulo": "Plano das lojas", "status": "em_andamento", "evidencia": "#5 — docs/lojas.md aprovado" },
+  { "id": 13, "titulo": "Admin master seguro", "status": "em_andamento", "evidencia": "#9 — devolvido B3, B4, B6; captcha pendente" },
+  { "id": 14, "titulo": "Painel ao vivo e STATUS.md final", "status": "em_andamento", "evidencia": "#8 (feat/painel); STATUS final só após os demais itens" }
+]
