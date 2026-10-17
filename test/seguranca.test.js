@@ -20,6 +20,8 @@ test.beforeEach(() => app.clearRateLimits());
 test.after(() => server.close());
 
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
+// A entrada do convidado exige o aceite do texto vigente (LGPD, #15).
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 const get = (p, h = {}) => fetch(B + p, { headers: h });
 // Ações com cookie de sessão exigem Origin do próprio host (CSRF), então os
 // helpers que usam cookie mandam o cabeçalho — como o navegador faria.
@@ -43,11 +45,11 @@ async function criarEvento(cookie) {
   assert.equal(r.status, 201);
   return r.json();
 }
-async function subirFoto(id, guestId) {
+async function subirFoto(id, guestId, guestToken) {
   const fd = new FormData();
   fd.append('guestId', guestId);
   fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  const r = await fetch(`${B}/api/events/${id}/photos`, { method: 'POST', body: fd });
+  const r = await fetch(`${B}/api/events/${id}/photos`, { method: 'POST', headers: guestToken ? { 'x-guest-token': guestToken } : {}, body: fd });
   assert.equal(r.status, 201);
   return r.json();
 }
@@ -55,8 +57,8 @@ async function subirFoto(id, guestId) {
 test('organizador lê a foto antes da revelação pela sessão; outro vínculo não', async () => {
   const cookieA = await organizadorAutenticado('dona@exemplo.com');
   const ev = await criarEvento(cookieA); // cria já vinculado como casal
-  const g = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Rafa' })).json();
-  const foto = await subirFoto(ev.id, g.guestId);
+  const g = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
+  const foto = await subirFoto(ev.id, g.guestId, g.guestToken);
   const url = `/api/events/${ev.id}/photos/${foto.id}/file`;
 
   assert.equal((await get(url)).status, 403, 'sem credencial continua bloqueada');
@@ -95,8 +97,8 @@ test('MASTER_EMERGENCY vale com conta master e fica auditada; desligada, recusa'
   // Com conta master, o token estático também não vale no painel do casamento nem
   // na leitura de foto antes da revelação (B4 em todos os caminhos).
   const ev = await criarEvento();
-  const g = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Rafa' })).json();
-  const foto = await subirFoto(ev.id, g.guestId);
+  const g = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
+  const foto = await subirFoto(ev.id, g.guestId, g.guestToken);
   const estatico = { 'x-host-token': process.env.MASTER_TOKEN };
   assert.equal((await get(`/api/events/${ev.id}/host`, estatico)).status, 403, 'static master não abre o painel');
   assert.equal((await get(`/api/events/${ev.id}/moderacao`, estatico)).status, 403, 'static master não modera');

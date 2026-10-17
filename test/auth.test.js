@@ -65,11 +65,13 @@ async function criarEvento(titulo = 'Evento', cookie = '') {
 }
 
 const JPG = Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
-async function subirFoto(eventoId, guestId) {
+// A entrada do convidado exige o aceite do texto vigente (LGPD, #15).
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
+async function subirFoto(eventoId, guestId, guestToken) {
   const fd = new FormData();
   fd.append('guestId', guestId);
   fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  const r = await fetch(`${B}/api/events/${eventoId}/photos`, { method: 'POST', body: fd });
+  const r = await fetch(`${B}/api/events/${eventoId}/photos`, { method: 'POST', headers: guestToken ? { 'x-guest-token': guestToken } : {}, body: fd });
   assert.equal(r.status, 201);
   return r.json();
 }
@@ -228,8 +230,8 @@ test('master por sessão abre painel, moderação, arquivo e ZIP (não 500)', as
   const { cookie } = await criarMasterLogado('painel-master@exemplo.com');
   const ev = await criarEvento('Painel do master');
   assert.equal(ev.status, 201);
-  const g = await (await post(`/api/events/${ev.json.id}/guests`, { nome: 'Rafa' })).json();
-  const foto = await subirFoto(ev.json.id, g.guestId);
+  const g = await (await post(`/api/events/${ev.json.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
+  const foto = await subirFoto(ev.json.id, g.guestId, g.guestToken);
   const H = { cookie };
 
   assert.equal((await get(`/api/events/${ev.json.id}/host`, H)).status, 200, '/host');
