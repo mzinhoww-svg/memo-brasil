@@ -5,6 +5,7 @@ data
 .env
 .env.*
 !.env.example
+exportacoes
 backups/
 .deploy/
 *.log

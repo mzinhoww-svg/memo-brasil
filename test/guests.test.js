@@ -20,12 +20,13 @@ test.after(() => server.close());
 const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
 const get = (p, h = {}) => fetch(B + p, { headers: h });
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 const { tokenHash } = require('../src/store/sqlite');
 const abrirBanco = () => { const { DatabaseSync } = require('node:sqlite'); return new DatabaseSync(path.join(DATA_DIR, 'memo.db')); };
 
 async function criar(titulo, nome = 'Rafa') {
   const r = await (await post('/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 2 })).json();
-  const g = await (await post(`/api/events/${r.id}/guests`, { nome })).json();
+  const g = await (await post(`/api/events/${r.id}/guests`, { nome, consentimento: CONSENT })).json();
   return { id: r.id, tk: r.hostToken, guest: g.guestId, gt: g.guestToken, nome: g.nome };
 }
 async function foto(ev, token = ev.gt) {
@@ -82,7 +83,7 @@ test('RSVP está fora do escopo: POST /rsvp não existe mais (404)', async () =>
 
 test('token de outro convidado do mesmo evento não passa', async () => {
   const ev = await criar('Dupla');
-  const outro = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Bia' })).json();
+  const outro = await (await post(`/api/events/${ev.id}/guests`, { nome: 'Bia', consentimento: CONSENT })).json();
   assert.equal((await saldo(ev, outro.guestToken)).status, 403);
 });
 

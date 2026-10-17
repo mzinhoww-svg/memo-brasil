@@ -11,10 +11,13 @@ const { createLogger } = require('./src/obs/logger');
 const { createHealthHandler } = require('./src/obs/health');
 const { limFotosEvento } = require('./src/obs/limites');
 const { createSentry } = require('./src/obs/sentry');
-const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 'sqlite'));
-// Relógio injetável: em produção é sempre o relógio real; TEST_NOW/advance só
-// valem com NODE_ENV=test. Todo "agora" da revelação passa por aqui.
+const { tokenHash, verifyToken } = require('./src/store/sqlite');
 const clock = require('./src/clock');
+const { registrarConsentimento, validarConsentimento } = require('./src/lgpd/consentimento');
+const { registrarDenuncia, resolverDenunciasDaFoto } = require('./src/lgpd/denuncia');
+const { configRetencao, expiraEmMs } = require('./src/lgpd/retencao');
+const { registrarExclusao } = require('./src/lgpd/auditoria');
+const { enfileirarAviso } = require('./src/lgpd/outbox');
 const { novoToken, autentica, sessaoDe, MENSAGENS } = require('./src/guest');
 const { semSegredos } = require('./src/seguranca');
 const { criarEmail, emailDesativado } = require('./src/email');
@@ -34,7 +37,6 @@ try {
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const PHOTO_DIR = path.join(DATA_DIR, 'photos');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
 const MAX_HARD_PHOTO_BYTES = 25 * 1024 * 1024; // teto técnico; o limite configurável fica em settings
 // Retenção do hash de IP nos logs (política de privacidade).
 const LOG_RETENCAO_DIAS = Math.max(1, parseInt(process.env.LOG_RETENCAO_DIAS, 10) || 30);
@@ -376,6 +378,7 @@ const DEFAULTS = {
   criacaoAberta: true, manutencao: false, avisoGlobal: '', pushAtivo: true,
   maxFotosPorConvidado: 200, maxConvidadosPorEvento: 5000, maxListaPorEvento: 5000,
   maxFotosPorEvento: 20000, tamanhoMaxFotoMB: 10, retencaoDiasAposRevelacao: 365,
+  retencaoDiasSemRevelacao: 180,
 };
 let settings = { ...DEFAULTS };
 try { if (fs.existsSync(SETTINGS_FILE)) settings = { ...DEFAULTS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; } catch {}
@@ -558,6 +561,10 @@ function adminOnly(req, res, next) {
 const donoOnly = (req, res, next) =>
   req.admin.dono ? next() : res.status(403).json({ erro: 'Só o casal pode fazer isso.' });
 
+// Organização/master da requisição, sem responder 403 (mesma regra do adminOnly):
+// usada nas leituras que precisam saber se quem pede é a organização (fotos e recados).
+function ehOrg(req) { return !!adminDaRequisicao(req); }
+
 // Decisão 004: recado privado ao casal por padrão; mural só quando ligado e marcado.
 function recadosVisiveis(ev, opts) {
   const mostrarAutor = ev.config.mostrarAutor;
@@ -576,7 +583,7 @@ function publicInfo(ev) {
   return {
     id: ev.id, titulo: ev.titulo, revealAt: ev.revealAt, revelado: revealed(ev),
     agora: clock.iso(), fotosPorConvidado: ev.fotosPorConvidado,
-    momentos: ev.photos.length, pessoas: ev.guests.length,
+    momentos: ev.photos.filter((p) => !p.oculta).length, pessoas: ev.guests.length,
     dataEvento: ev.dataEvento, local: ev.local, endereco: ev.endereco, mensagem: ev.mensagem,
     cronograma: ev.cronograma, suspenso: !!ev.suspenso,
     // `recadosMural` é o nome do campo; `muralRecados` fica como apelido da decisão 004.
@@ -626,6 +633,7 @@ app.post('/api/events', (req, res) => {
     local: clean(req.body.local, 80), endereco: clean(req.body.endereco, 160), mensagem: '',
     contato: clean(req.body.contato, 80), suspenso: false, limites: {}, config: { ...CONFIG_PADRAO },
     push: [], avisos: [], revealNotified: false, emailEnviado: false, contatoVerificado: false,
+    denuncias: [], consentimentos: [],
     cronograma: [], lista: [], equipe: [], recados: [], guests: [], photos: [],
     createdAt: clock.iso(),
   };
@@ -765,6 +773,8 @@ app.post('/api/auth/entrar', (req, res) => handleEntrarConsumo(req, res));
 app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
   const base = baseUrl(req);
+  const visiveis = ev.photos.filter((p) => !p.oculta);
+  const expira = expiraEmMs(ev, configRetencao({ settings }));
   res.json({
     ...publicInfo(ev),
     papel: req.admin.papel, nome: req.admin.nome, dono: !!req.admin.dono, master: !!req.admin.master,
@@ -773,7 +783,8 @@ app.get('/api/events/:id/host', getEvent, adminOnly, (req, res) => {
     linkConvite: `${base}/e/${ev.id}`,
     totalLista: ev.lista.length, pushInscritos: ev.push.length,
     limitesEfetivos: { maxConvidados: limGuests(ev), maxLista: limLista(ev), maxFotos: limFotos(ev) },
-    fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: ev.photos.filter((p) => p.guestId === g.id).length })),
+    fotosPorPessoa: ev.guests.map((g) => ({ nome: g.nome, fotos: visiveis.filter((p) => p.guestId === g.id).length })),
+    retencao: expira ? { apagaEm: new Date(expira).toISOString(), diasRestantes: Math.ceil((expira - clock.nowMs()) / 86400000), avisoEm: ev.retencaoAvisoEm || null } : null,
     recados: ev.recados.length,
     equipe: req.admin.dono
       ? ev.equipe.map((m) => ({
@@ -914,22 +925,50 @@ app.post('/api/events/:id/equipe/:eid/rotacionar-link', getEvent, adminOnly, don
 // Moderação (organização vê as fotos antes da revelação só aqui, e de propósito)
 app.get('/api/events/:id/moderacao', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
+  const abertas = (id) => (ev.denuncias || []).filter((d) => d.fotoId === id && d.status === 'aberta').length;
   res.json({
     fotos: ev.photos.map((p) => ({
-      id: p.id, autor: p.autor, criadaEm: p.criadaEm,
+      id: p.id, autor: p.autor, criadaEm: p.criadaEm, oculta: !!p.oculta, denuncias: abertas(p.id),
       url: `/api/events/${ev.id}/photos/${p.id}/file`,
     })),
     recados: ev.recados,
+    denunciasAbertas: (ev.denuncias || []).filter((d) => d.status === 'aberta').length,
   });
+});
+// Ocultar/mostrar: a foto oculta some do álbum e do ZIP dos convidados, mas a organização continua vendo.
+app.patch('/api/events/:id/photos/:pid', getEvent, adminOnly, (req, res) => {
+  const p = req.ev.photos.find((x) => x.id === req.params.pid);
+  if (!p) return res.status(404).json({ erro: 'Foto não encontrada.' });
+  if (typeof req.body?.oculta !== 'boolean') return res.status(400).json({ erro: 'Informe se a foto fica oculta.' });
+  p.oculta = req.body.oculta;
+  if (p.oculta) resolverDenunciasDaFoto(req.ev, p.id);
+  audit(req, p.oculta ? 'foto.ocultada' : 'foto.exibida', { foto: p.id });
+  save();
+  res.json({ id: p.id, oculta: p.oculta });
 });
 app.delete('/api/events/:id/photos/:pid', getEvent, adminOnly, (req, res) => {
   const i = req.ev.photos.findIndex((p) => p.id === req.params.pid);
   if (i < 0) return res.status(404).json({ erro: 'Foto não encontrada.' });
   const [p] = req.ev.photos.splice(i, 1);
+  resolverDenunciasDaFoto(req.ev, p.id, 'foto-apagada');
   audit(req, 'foto.apagada', { foto: p.id });
   fs.rmSync(path.join(PHOTO_DIR, req.ev.id, `${p.id}.${p.ext}`), { force: true });
   save();
   res.json({ ok: true });
+});
+// A organização vê as denúncias e decide ocultar ou apagar a foto; tudo fica auditado.
+app.get('/api/events/:id/denuncias', getEvent, adminOnly, (req, res) => {
+  const ev = req.ev;
+  res.json({
+    denuncias: (ev.denuncias || []).slice().reverse().map((d) => {
+      const f = ev.photos.find((p) => p.id === d.fotoId);
+      return {
+        id: d.id, fotoId: d.fotoId, motivo: d.motivo, criadoEm: d.criadoEm, status: d.status,
+        resolvidaEm: d.resolvidaEm || null, autor: f ? f.autor : null, fotoOculta: f ? !!f.oculta : null,
+        url: `/api/events/${ev.id}/photos/${d.fotoId}/file`,
+      };
+    }),
+  });
 });
 app.delete('/api/events/:id/recados/:rid', getEvent, adminOnly, (req, res) => {
   req.ev.recados = req.ev.recados.filter((r) => r.id !== req.params.rid);
@@ -953,6 +992,8 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
   if (ev.config.apenasLista && !ev.lista.some((l) => norm(l.nome) === norm(nome)))
     return res.status(403).json({ erro: 'Este evento é só para convidados da lista. Use o nome exatamente como os noivos cadastraram.' });
+  const consent = validarConsentimento(req.body.consentimento);
+  if (!consent.ok) return res.status(400).json({ erro: consent.erro });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
   // C2: convidado criado antes do token (sem tokenHash) reivindica a própria sessão
   // na primeira entrada, para não perder a cota de fotos. A reivindicação vale uma vez.
@@ -960,15 +1001,23 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   const orfao = ev.guests.find((x) => !x.tokenHash && norm(x.nome) === norm(nome));
   if (orfao) {
     orfao.tokenHash = hash;
+    const c = registrarConsentimento(ev, orfao, consent.valor);
     save();
     const li = orfao.listaId && ev.lista.find((l) => l.id === orfao.listaId);
-    return res.status(201).json({ guestId: orfao.id, guestToken: token, nome: orfao.nome, naLista: !!li, reivindicado: true });
+    return res.status(201).json({
+      guestId: orfao.id, guestToken: token, nome: orfao.nome, naLista: !!li, reivindicado: true,
+      consentimento: { versao: c.versao, em: c.em },
+    });
   }
   if (ev.guests.length >= limGuests(ev)) return res.status(409).json({ erro: 'Evento lotado.' });
   const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: clock.iso(), listaId: item?.id, tokenHash: hash };
   ev.guests.push(g);
+  const consentimento = registrarConsentimento(ev, g, consent.valor);
   save();
-  res.status(201).json({ guestId: g.id, guestToken: token, nome: g.nome, naLista: !!item });
+  res.status(201).json({
+    guestId: g.id, guestToken: token, nome: g.nome, naLista: !!item,
+    consentimento: { versao: consentimento.versao, em: consentimento.em },
+  });
 });
 
 // Saldo do convidado: exige o token no cabeçalho x-guest-token.
@@ -1038,10 +1087,13 @@ app.post('/api/events/:id/photos', getEvent, upload.single('foto'), (req, res) =
 app.get('/api/events/:id/photos', getEvent, (req, res) => {
   const ev = req.ev;
   const open = revealed(ev);
+  const org = ehOrg(req);
   const guestId = req.query.guestId;
-  const lista = ev.photos.map((p) =>
+  // Foto oculta não aparece para o convidado (nem antes nem depois da revelação); a organização continua vendo.
+  const visiveis = org ? ev.photos : ev.photos.filter((p) => !p.oculta);
+  const lista = visiveis.map((p) =>
     open
-      ? { id: p.id, autor: ev.config.mostrarAutor ? p.autor : '', criadaEm: p.criadaEm, minha: p.guestId === guestId, url: `/api/events/${ev.id}/photos/${p.id}/file` }
+      ? { id: p.id, autor: ev.config.mostrarAutor ? p.autor : '', criadaEm: p.criadaEm, minha: p.guestId === guestId, oculta: !!p.oculta, url: `/api/events/${ev.id}/photos/${p.id}/file` }
       : { id: p.id, bloqueada: true, minha: p.guestId === guestId }
   );
   res.json({ revelado: open, revealAt: ev.revealAt, agora: clock.iso(), fotos: lista });
@@ -1053,7 +1105,7 @@ app.get('/api/events/:id/retrospectiva', getEvent, (req, res) => {
   res.json(montarRetrospectiva(req.ev));
 });
 
-// O arquivo só sai depois da revelação — exceto para a organização (moderação).
+// O arquivo só sai depois da revelação — exceto para a organização (moderação) — e nunca se estiver oculto.
 app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
   // A credencial nunca vem na URL (fica em log, histórico e Referer): só por cabeçalho.
   const token = req.get('x-host-token');
@@ -1070,7 +1122,31 @@ app.get('/api/events/:id/photos/:pid/file', getEvent, (req, res) => {
   if (!revealed(ev) && !master && !org) return res.status(403).json({ erro: 'Esta foto ainda não foi revelada.' });
   const p = ev.photos.find((x) => x.id === req.params.pid);
   if (!p) return res.status(404).end();
+  // Foto oculta some para o convidado; a organização e o master continuam vendo.
+  if (p.oculta && !master && !org) return res.status(404).json({ erro: 'Esta foto está indisponível.' });
   res.sendFile(path.join(PHOTO_DIR, ev.id, `${p.id}.${p.ext}`));
+});
+
+// Convidado autenticado denuncia uma foto. A organização é avisada e modera.
+app.post('/api/events/:id/fotos/:pid/denunciar', getEvent, (req, res) => {
+  const guest = autentica(req.ev, req.body?.guestId, req.get('x-guest-token'));
+  if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de denunciar.' });
+  const r = registrarDenuncia(req.ev, { fotoId: req.params.pid, guest, motivo: req.body?.motivo });
+  if (r.erro) return res.status(r.status).json({ erro: r.erro });
+  if (!r.repetida) {
+    audit(req, 'foto.denunciada', { foto: req.params.pid, denunciante: 'convidado' });
+    save();
+    // Aviso ao casal em fila de e-mail (sem copiar a imagem nem o motivo).
+    try {
+      enfileirarAviso(DATA_DIR, `denuncia-${r.denuncia.id}.json`, {
+        para: req.ev.contato || '',
+        assunto: 'Uma foto foi denunciada no seu álbum',
+        texto: `A foto ${r.denuncia.fotoId} foi denunciada. Revise no painel, em Fotos e recados, e responda em até 48 horas.`,
+        criadoEm: clock.iso(),
+      });
+    } catch {}
+  }
+  res.status(r.repetida ? 200 : 201).json({ id: r.denuncia.id, repetida: !!r.repetida });
 });
 
 app.use((err, req, res, next) => {
@@ -1108,7 +1184,7 @@ function masterOnly(req, res, next) {
 const resumoEvento = (ev) => ({
   id: ev.id, titulo: ev.titulo, contato: ev.contato || '', criadoEm: ev.createdAt,
   dataEvento: ev.dataEvento, revealAt: ev.revealAt, revelado: revealed(ev), suspenso: !!ev.suspenso,
-  fotos: ev.photos.length, camera: ev.guests.length, lista: ev.lista.length, recados: ev.recados.length,
+  fotos: ev.photos.filter((p) => !p.oculta).length, camera: ev.guests.length, lista: ev.lista.length, recados: ev.recados.length,
   equipe: ev.equipe.length,
   push: ev.push.length, avisos: ev.avisos.length, limites: ev.limites, config: ev.config,
   // Estado do aviso de revelação: o operador usa isso para liberar um reenvio manual.
@@ -1164,6 +1240,7 @@ app.delete('/api/master/events/:id', masterOnly, getEvent, (req, res) => {
   if (req.body?.confirmar !== req.ev.id) return res.status(400).json({ erro: 'Confirme enviando o id do evento.' });
   audit(req, 'evento.excluido', { evento: req.ev.id });
   store.deleteEvent(req.ev.id);
+  registrarExclusao(DATA_DIR, { id: req.ev.id, motivo: 'master', em: clock.iso() });
   res.json({ ok: true });
 });
 // Fotos mais recentes de todos os casamentos, antes de qualquer revelação.
@@ -1171,7 +1248,7 @@ app.get('/api/master/photos', masterOnly, (req, res) => {
   const lim = Math.min(parseInt(req.query.limit, 10) || 60, 300);
   const todas = [];
   for (const ev of Object.values(db.events))
-    for (const p of ev.photos) todas.push({ id: p.id, eventoId: ev.id, evento: ev.titulo, autor: p.autor, criadaEm: p.criadaEm, url: `/api/events/${ev.id}/photos/${p.id}/file` });
+    for (const p of ev.photos) todas.push({ id: p.id, eventoId: ev.id, evento: ev.titulo, autor: p.autor, criadaEm: p.criadaEm, oculta: !!p.oculta, url: `/api/events/${ev.id}/photos/${p.id}/file` });
   todas.sort((a, b) => b.criadaEm.localeCompare(a.criadaEm));
   res.json({ fotos: todas.slice(0, lim), total: todas.length });
 });
@@ -1278,13 +1355,15 @@ app.get('/api/events/:id/lista.csv', getEvent, adminOnly, (req, res) => {
 app.get('/api/events/:id/fotos.zip', getEvent, adminOnly, (req, res) => {
   const ev = req.ev;
   if (!revealed(ev) && !req.admin.master) return res.status(409).json({ erro: 'O álbum só pode ser baixado depois da revelação.' });
-  audit(req, 'fotos.baixadas', { total: ev.photos.length });
+  const visiveis = ev.photos.filter((p) => !p.oculta);
+  audit(req, 'fotos.baixadas', { total: visiveis.length });
   res.type('application/zip').set('Content-Disposition', `attachment; filename="album-${ev.id}.zip"`);
   const z = new ZipArchive({ store: true });
   z.on('error', () => res.end());
   z.pipe(res);
   const n = {};
   for (const p of ev.photos) {
+    if (p.oculta) continue; // foto oculta não entra no álbum: o convidado não a vê
     const dono = (ev.guests.find((g) => g.id === p.guestId)?.nome || p.autor || 'convidado').replace(/[\\/:*?"<>|]/g, '_');
     n[dono] = (n[dono] || 0) + 1;
     z.file(path.join(PHOTO_DIR, ev.id, `${p.id}.${p.ext}`), { name: `${dono}/${String(n[dono]).padStart(3, '0')}.${p.ext}` });
@@ -1484,6 +1563,15 @@ module.exports.criarMaster = criarMasterConta;
 
 if (require.main === module) {
   (async () => {
+    // LGPD: com o servidor ativo, os scripts de CLI (retenção, exportar, apagar)
+    // recusam rodar — o lock do DATA_DIR é escrito aqui e removido ao encerrar.
+    const { escreverLock, removerLock } = require('./src/lgpd/servidor');
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    escreverLock(DATA_DIR);
+    const encerrar = () => { removerLock(DATA_DIR); process.exit(0); };
+    process.once('SIGINT', encerrar);
+    process.once('SIGTERM', encerrar);
+    process.once('exit', () => removerLock(DATA_DIR));
     sentry.installProcessHooks(); // só com SENTRY_DSN; caso contrário, no-op
     // Fail-closed: produção sem domínio https não sobe (cookie Secure, link mágico e 2FA
     // dependem de PUBLIC_URL https; sem ela o servidor se comportaria como dev).
@@ -1512,6 +1600,7 @@ if (require.main === module) {
 }
 app.store = store;
 module.exports = app;
+// Exposto para testes de integração (o Store é a fonte da verdade em memória).
 module.exports.store = store;
 module.exports.criarMaster = criarMasterConta;
 module.exports.isProd = isProd;

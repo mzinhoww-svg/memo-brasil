@@ -18,6 +18,7 @@ const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'con
 const patch = (p, body, h = {}) => fetch(B + p, { method: 'PATCH', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
 const get = (p, h = {}) => fetch(B + p, { headers: h });
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 const H = (g) => ({ 'x-guest-token': g.guestToken });
 const ler = async (ev, g, tk) => (await (await get(`/api/events/${ev.id}/recados?guestId=${encodeURIComponent(g.guestId)}`, tk ? { 'x-guest-token': tk } : H(g))).json()).recados;
 const escrever = (ev, g, texto, extra = {}) => post(`/api/events/${ev.id}/recados`, { guestId: g.guestId, texto, ...extra }, H(g));
@@ -25,8 +26,8 @@ const config = (ev, cfg) => patch(`/api/events/${ev.id}`, { config: cfg }, { 'x-
 
 async function festa(titulo = 'Festa') {
   const r = await (await post('/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 2 })).json();
-  const a = await (await post(`/api/events/${r.id}/guests`, { nome: 'Ana' })).json();
-  const b = await (await post(`/api/events/${r.id}/guests`, { nome: 'Bia' })).json();
+  const a = await (await post(`/api/events/${r.id}/guests`, { nome: 'Ana', consentimento: CONSENT })).json();
+  const b = await (await post(`/api/events/${r.id}/guests`, { nome: 'Bia', consentimento: CONSENT })).json();
   return { id: r.id, tk: r.hostToken, a, b };
 }
 

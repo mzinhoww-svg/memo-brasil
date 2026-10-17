@@ -65,6 +65,8 @@ async function criarEvento(titulo = 'Evento', cookie = '') {
 }
 
 const JPG = Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
+// A entrada do convidado exige o aceite do texto vigente (LGPD, #15).
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 // O upload exige o token do convidado no cabeçalho (item 7): o id sozinho não basta.
 async function subirFoto(eventoId, guestId, guestToken) {
   const fd = new FormData();
@@ -229,7 +231,7 @@ test('master por sessão abre painel, moderação, arquivo e ZIP (não 500)', as
   const { cookie } = await criarMasterLogado('painel-master@exemplo.com');
   const ev = await criarEvento('Painel do master');
   assert.equal(ev.status, 201);
-  const g = await (await post(`/api/events/${ev.json.id}/guests`, { nome: 'Rafa' })).json();
+  const g = await (await post(`/api/events/${ev.json.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
   const foto = await subirFoto(ev.json.id, g.guestId, g.guestToken);
   const H = { cookie };
 

@@ -31,10 +31,11 @@ test.after(async () => { for (const srv of [...abertos]) await stop(srv); });
 const post = (base, p, body, h = {}) => fetch(base + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
 const get = (base, p, h = {}) => fetch(base + p, { headers: h });
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
+const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
 
 async function novaFesta(base, titulo) {
   const r = await (await post(base, '/api/events', { titulo, revealAt: futuro(), fotosPorConvidado: 5 })).json();
-  const g = await (await post(base, `/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
+  const g = await (await post(base, `/api/events/${r.id}/guests`, { nome: 'Rafa', consentimento: CONSENT })).json();
   const fd = new FormData(); fd.append('guestId', g.guestId); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
   const up = await (await fetch(`${base}/api/events/${r.id}/photos`, { method: 'POST', headers: { 'x-guest-token': g.guestToken }, body: fd })).json();
   return { id: r.id, tk: r.hostToken, photo: up.id };
@@ -83,7 +84,7 @@ test('C2: convidado antigo sem tokenHash reivindica a sessão pelo nome uma vez'
   const { DatabaseSync } = require('node:sqlite');
   const first = await start();
   const r = await (await post(first.base, '/api/events', { titulo: 'Legado', revealAt: futuro(), fotosPorConvidado: 3 })).json();
-  const g = await (await post(first.base, `/api/events/${r.id}/guests`, { nome: 'Antiga' })).json();
+  const g = await (await post(first.base, `/api/events/${r.id}/guests`, { nome: 'Antiga', consentimento: CONSENT })).json();
   await stop(first.srv);
 
   // Simula a migração do JSON: convidado sem token (hash apagado no banco).
@@ -92,7 +93,7 @@ test('C2: convidado antigo sem tokenHash reivindica a sessão pelo nome uma vez'
   conn.close();
 
   const again = await start();
-  const claim = await post(again.base, `/api/events/${r.id}/guests`, { nome: 'Antiga' });
+  const claim = await post(again.base, `/api/events/${r.id}/guests`, { nome: 'Antiga', consentimento: CONSENT });
   assert.equal(claim.status, 201);
   const c = await claim.json();
   assert.equal(c.reivindicado, true);
@@ -100,7 +101,7 @@ test('C2: convidado antigo sem tokenHash reivindica a sessão pelo nome uma vez'
   assert.equal((await get(again.base, `/api/events/${r.id}/guests/${c.guestId}`, { 'x-guest-token': c.guestToken })).status, 200);
 
   // A reivindicação vale uma vez: a próxima entrada com o mesmo nome cria outro convidado.
-  const outra = await (await post(again.base, `/api/events/${r.id}/guests`, { nome: 'Antiga' })).json();
+  const outra = await (await post(again.base, `/api/events/${r.id}/guests`, { nome: 'Antiga', consentimento: CONSENT })).json();
   assert.notEqual(outra.guestId, c.guestId);
   await stop(again.srv);
 });

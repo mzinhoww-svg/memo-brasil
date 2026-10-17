@@ -90,6 +90,7 @@ window.addEventListener('hashchange', route);
 async function rResumo(v) {
   const ms = new Date(info.revealAt).getTime() - relogio(info.agora)();
   if (info.master) v.append(el('div', { class: 'warn' }, `Você está como admin master neste casamento.${info.contato ? ' Contato: ' + info.contato : ''}`));
+  if (info.retencao && info.retencao.diasRestantes <= 30) v.append(el('div', { class: 'warn' }, `Atenção: este álbum será apagado em ${info.retencao.diasRestantes} dia(s) (${dataBr(info.retencao.apagaEm)}) pela política de retenção. Baixe o álbum antes dessa data.`));
   v.append(el('h1', {}, info.titulo), el('p', { class: 'sub' }, [dataBr(info.dataEvento), info.local].filter(Boolean).join(' · ') || 'Complete os detalhes do casamento na aba "Detalhes e programação".'));
   v.append(el('div', { class: 'cards' },
     stat(info.totalLista, 'Convidados na lista'),
@@ -209,13 +210,28 @@ async function rFotos(v) {
     area.textContent = '';
     const r = await call('/moderacao');
     const grid = el('div', { class: 'thumbs' });
-    r.fotos.forEach((f) => {
+    for (const f of r.fotos) {
+      const legenda = [el('span', {}, f.autor)];
+      if (f.denuncias) legenda.push(el('span', { class: 'sub', style: 'margin:0 0 0 8px' }, `⚑ ${f.denuncias}`));
+      if (f.oculta) legenda.push(el('span', { class: 'sub', style: 'margin:0 0 0 8px' }, 'oculta'));
       const img = el('img', { alt: `Foto de ${f.autor}`, loading: 'lazy' });
       imgAutenticada(f.url, { 'x-host-token': TOKEN }).then((s) => { if (s) img.src = s; });
       grid.append(el('div', { class: 'thumb' }, img,
-        el('div', {}, el('span', {}, f.autor), el('button', { class: 'btn sm danger', onclick: async () => { if (confirm('Apagar esta foto para sempre?')) { await call(`/photos/${f.id}`, { method: 'DELETE' }); mostrar(); } } }, 'Apagar'))));
-    });
+        el('div', {}, ...legenda,
+          el('button', { class: 'btn sm', onclick: async () => { await call(`/photos/${f.id}`, { method: 'PATCH', body: JSON.stringify({ oculta: !f.oculta }) }); mostrar(); } }, f.oculta ? 'Mostrar' : 'Ocultar'),
+          el('button', { class: 'btn sm danger', onclick: async () => { if (confirm('Apagar esta foto para sempre?')) { await call(`/photos/${f.id}`, { method: 'DELETE' }); mostrar(); } } }, 'Apagar'))));
+    }
     area.append(el('h2', {}, `Fotos (${r.fotos.length})`), r.fotos.length ? grid : el('p', { class: 'sub' }, 'Ninguém enviou fotos ainda.'));
+    if (r.denunciasAbertas) {
+      const dl = await call('/denuncias');
+      area.append(el('h2', { style: 'margin-top:22px' }, `Denúncias (${r.denunciasAbertas})`));
+      dl.denuncias.filter((d) => d.status === 'aberta').forEach((d) => area.append(el('div', { class: 'panel' },
+        el('p', { style: 'margin:0 0 6px' }, d.motivo ? `Uma foto foi denunciada: ${d.motivo}` : 'Uma foto foi denunciada.'),
+        el('div', { class: 'row' },
+          el('span', { class: 'sub', style: 'margin:0' }, `— foto de ${d.autor || 'autor removido'}`),
+          el('button', { class: 'btn sm', onclick: async () => { await call(`/photos/${d.fotoId}`, { method: 'PATCH', body: JSON.stringify({ oculta: true }) }); mostrar(); } }, 'Ocultar foto'),
+          el('button', { class: 'btn sm danger', onclick: async () => { if (confirm('Apagar esta foto para sempre?')) { await call(`/photos/${d.fotoId}`, { method: 'DELETE' }); mostrar(); } } }, 'Apagar foto')))));
+    }
     area.append(el('h2', { style: 'margin-top:22px' }, `Recados (${r.recados.length})`));
     r.recados.slice().reverse().forEach((x) => area.append(el('div', { class: 'panel' }, el('p', { style: 'margin:0 0 6px' }, x.texto),
       el('div', { class: 'row' }, el('span', { class: 'sub', style: 'margin:0' }, `— ${x.autor}`), el('button', { class: 'btn sm danger', onclick: async () => { await call(`/recados/${x.id}`, { method: 'DELETE' }); mostrar(); } }, 'Apagar')))));

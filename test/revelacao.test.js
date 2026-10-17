@@ -307,7 +307,8 @@ async function criarEvento(titulo, revealAt, contato) {
   return (await json('/api/events', { titulo, revealAt, contato, fotosPorConvidado: 5 })).json();
 }
 async function entrar(id, nome) {
-  const g = await (await json(`/api/events/${id}/guests`, { nome })).json();
+  const CONSENT = { versao: 'consentimento-convidado v0.1', fotos: true, avisos: false };
+  const g = await (await json(`/api/events/${id}/guests`, { nome, consentimento: CONSENT })).json();
   return { id: g.guestId, token: g.guestToken };
 }
 // O upload exige o token do convidado no cabeçalho (item 7): o id sozinho não basta.
