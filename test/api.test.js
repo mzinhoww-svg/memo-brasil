@@ -27,12 +27,17 @@ async function criar(titulo) {
   const g = await (await post(`/api/events/${r.id}/guests`, { nome: 'Rafa' })).json();
   return { id: r.id, tk: r.hostToken, guest: g.guestId, gtoken: g.guestToken };
 }
-// Envia uma foto autenticando pelo cabeçalho x-guest-token (nunca por campo do corpo).
+// Envia uma foto autenticando pelos cabeçalhos x-guest-id e x-guest-token
+// (nunca por campo do corpo). `opts.token`/`opts.guestId` permitem forjar
+// credencial para os testes de rejeição.
 async function foto(ev, opts = {}) {
   const token = opts.token !== undefined ? opts.token : ev.gtoken;
+  const guestId = opts.guestId !== undefined ? opts.guestId : ev.guest;
   const fd = new FormData();
   fd.append('foto', new Blob([opts.buf || JPG], { type: opts.type || 'image/jpeg' }), opts.name || 'f.jpg');
-  const headers = token ? { 'x-guest-token': token } : {};
+  const headers = {};
+  if (guestId) headers['x-guest-id'] = guestId;
+  if (token) headers['x-guest-token'] = token;
   return fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers, body: fd });
 }
 // JPEG válido com um segmento APP1/EXIF contendo coordenadas de GPS.
@@ -128,8 +133,9 @@ test('variáveis da plataforma: fechar cadastro bloqueia novos eventos', async (
 
 test('push: inscrição inválida é recusada; manifest é por casamento', async () => {
   const a = await criar('Casamento Z');
-  assert.equal((await post(`/api/events/${a.id}/push/subscribe`, { guestId: a.guest, subscription: { endpoint: 'http://x' } })).status, 400);
-  const ok = await post(`/api/events/${a.id}/push/subscribe`, { guestId: a.guest, subscription: { endpoint: 'https://push.example/abc', keys: { p256dh: 'p', auth: 'a' } } });
+  const H = { 'x-guest-id': a.guest, 'x-guest-token': a.gtoken };
+  assert.equal((await post(`/api/events/${a.id}/push/subscribe`, { guestId: a.guest, subscription: { endpoint: 'http://x' } }, H)).status, 400);
+  const ok = await post(`/api/events/${a.id}/push/subscribe`, { guestId: a.guest, subscription: { endpoint: 'https://push.example/abc', keys: { p256dh: 'p', auth: 'a' } } }, H);
   assert.equal(ok.status, 201);
   const m = await (await get(`/e/${a.id}/manifest.webmanifest`)).json();
   assert.equal(m.name, 'Casamento Z');
@@ -150,11 +156,12 @@ test('ZIP do álbum só depois da revelação e só do próprio casamento', asyn
 
 // ───── Uploads seguros (APR-029, itens 7 e 11)
 
-test('upload exige credencial: sem token 401, token desconhecido/estranho 403, nada é gravado', async () => {
+test('upload exige credencial: sem token 403, token desconhecido/estranho 403, nada é gravado', async () => {
   const a = await criar('A'), b = await criar('B');
-  assert.equal((await foto(a, { token: '' })).status, 401);
+  assert.equal((await foto(a, { token: '' })).status, 403);
   assert.equal((await foto(a, { token: 'nao-existe' })).status, 403);
   assert.equal((await foto({ ...a, gtoken: b.gtoken })).status, 403);
+  assert.equal((await foto(a, { guestId: 'id-adivinhado' })).status, 403);
   const l = await (await get(`/api/events/${a.id}/photos`)).json();
   assert.equal(l.fotos.length, 0);
 });
@@ -198,16 +205,16 @@ test('a cota conta pelo convidado autenticado, não pelo guestId do formulário'
   const fd = new FormData();
   fd.append('guestId', bia.guestId);
   fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-  const r = await fetch(`${B}/api/events/${a.id}/photos`, { method: 'POST', headers: { 'x-guest-token': a.gtoken }, body: fd });
+  const r = await fetch(`${B}/api/events/${a.id}/photos`, { method: 'POST', headers: { 'x-guest-id': a.guest, 'x-guest-token': a.gtoken }, body: fd });
   assert.equal(r.status, 201);
-  const rafa = await (await get(`/api/events/${a.id}/guests/${a.guest}`)).json();
-  const b = await (await get(`/api/events/${a.id}/guests/${bia.guestId}`)).json();
+  const rafa = await (await get(`/api/events/${a.id}/guests/${a.guest}`, { 'x-guest-id': a.guest, 'x-guest-token': a.gtoken })).json();
+  const b = await (await get(`/api/events/${a.id}/guests/${bia.guestId}`, { 'x-guest-id': bia.guestId, 'x-guest-token': bia.guestToken })).json();
   assert.equal(rafa.fotosUsadas, 1);
   assert.equal(b.fotosUsadas, 0);
   // Rafa estoura a cota (2) e é barrado; a Bia, autenticada, ainda pode enviar.
   assert.equal((await foto(a)).status, 201);
   assert.equal((await foto(a)).status, 409);
-  assert.equal((await foto({ ...a, gtoken: bia.guestToken })).status, 201);
+  assert.equal((await foto(a, { guestId: bia.guestId, token: bia.guestToken })).status, 201);
 });
 
 test('nome do arquivo é gerado pelo servidor (ignora path traversal do cliente)', async () => {
@@ -274,10 +281,12 @@ test('entrada de convidado: cria convidado e consulta saldo; id inexistente', as
   assert.equal(r.status, 201);
   const j = await r.json();
   assert.ok(j.guestId);
-  const info = await (await get(`/api/events/${ev.id}/guests/${j.guestId}`)).json();
+  const info = await (await get(`/api/events/${ev.id}/guests/${j.guestId}`, { 'x-guest-token': j.guestToken })).json();
   assert.equal(info.nome, 'Maria');
   assert.equal(info.fotosRestantes, 2);
-  assert.equal((await get(`/api/events/${ev.id}/guests/inexistente`)).status, 404);
+  // Sem token o id sozinho não revela existência: 403 (não 404).
+  assert.equal((await get(`/api/events/${ev.id}/guests/inexistente`)).status, 403);
+  assert.equal((await get(`/api/events/${ev.id}/guests/${j.guestId}`)).status, 403);
 });
 
 test('upload de foto: funciona antes da revelação e valida tipo e credencial', async () => {
@@ -290,13 +299,13 @@ test('upload de foto: funciona antes da revelação e valida tipo e credencial',
   // Tipo falso (texto com nome de imagem), mas autenticado: 400.
   const fd = new FormData();
   fd.append('foto', new Blob(['x'], { type: 'text/plain' }), 'x.txt');
-  const bad = await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers: { 'x-guest-token': ev.gtoken }, body: fd });
+  const bad = await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', headers: { 'x-guest-id': ev.guest, 'x-guest-token': ev.gtoken }, body: fd });
   assert.equal(bad.status, 400);
-  // Sem credencial: 401, o corpo nem é lido.
+  // Sem credencial: 403, o corpo nem é lido.
   const fd2 = new FormData();
   fd2.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
   const noGuest = await fetch(`${B}/api/events/${ev.id}/photos`, { method: 'POST', body: fd2 });
-  assert.equal(noGuest.status, 401);
+  assert.equal(noGuest.status, 403);
 });
 
 test('limite por convidado bloqueia upload excedente', async () => {
@@ -351,7 +360,7 @@ test('listagem pré-revelação não expõe nenhuma foto (sem url, miniatura ou 
   const a = await criar('ListaPre');
   const bia = await (await post(`/api/events/${a.id}/guests`, { nome: 'Bia' })).json();
   const f1 = await (await foto(a)).json();
-  const f2 = await (await foto(a, { token: bia.guestToken })).json();
+  const f2 = await (await foto(a, { guestId: bia.guestId, token: bia.guestToken })).json();
 
   const r = await get(`/api/events/${a.id}/photos`);
   assert.equal(r.status, 200); // o álbum precisa responder para desenhar os cadeados
@@ -388,10 +397,10 @@ test('listagem pré-revelação não expõe nenhuma foto (sem url, miniatura ou 
 test('nome vazio é recusado na entrada de convidado; saldo decresce após upload', async () => {
   const ev = await criar('Saldo');
   assert.equal((await post(`/api/events/${ev.id}/guests`, { nome: '' })).status, 400);
-  const antes = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`)).json();
+  const antes = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`, { 'x-guest-id': ev.guest, 'x-guest-token': ev.gtoken })).json();
   assert.equal(antes.fotosRestantes, 2);
   await foto(ev);
-  const depois = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`)).json();
+  const depois = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`, { 'x-guest-id': ev.guest, 'x-guest-token': ev.gtoken })).json();
   assert.equal(depois.fotosUsadas, 1);
   assert.equal(depois.fotosRestantes, 1);
 });
@@ -482,7 +491,7 @@ test('dois uploads simultâneos do mesmo convidado no limite: só um passa', asy
 
   const lista = await (await get(`/api/events/${ev.id}/photos`)).json();
   assert.equal(lista.fotos.length, 1);
-  const info = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`)).json();
+  const info = await (await get(`/api/events/${ev.id}/guests/${ev.guest}`, { 'x-guest-id': ev.guest, 'x-guest-token': ev.gtoken })).json();
   assert.equal(info.fotosUsadas, 1);
   assert.equal(info.fotosRestantes, 0);
   const host = await (await get(`/api/events/${ev.id}/host`, { 'x-host-token': ev.tk })).json();
@@ -523,7 +532,7 @@ test('restart do servidor não perde evento, convidado nem foto', async () => {
     const r = await (await fetch(`${srv.base}/api/events`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ titulo: 'Sobrevive ao restart', revealAt: futuro(), fotosPorConvidado: 2 }) })).json();
     const g = await (await fetch(`${srv.base}/api/events/${r.id}/guests`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome: 'Rafa' }) })).json();
     const fd = new FormData(); fd.append('foto', new Blob([JPG], { type: 'image/jpeg' }), 'f.jpg');
-    const up = await fetch(`${srv.base}/api/events/${r.id}/photos`, { method: 'POST', headers: { 'x-guest-token': g.guestToken }, body: fd });
+    const up = await fetch(`${srv.base}/api/events/${r.id}/photos`, { method: 'POST', headers: { 'x-guest-id': g.guestId, 'x-guest-token': g.guestToken }, body: fd });
     assert.equal(up.status, 201);
     const { id: fotoId } = await up.json();
 
@@ -537,9 +546,11 @@ test('restart do servidor não perde evento, convidado nem foto', async () => {
     const lista = await (await fetch(`${srv.base}/api/events/${r.id}/photos`)).json();
     assert.equal(lista.fotos.length, 1);
     assert.equal(lista.fotos[0].id, fotoId);
-    const saldo = await (await fetch(`${srv.base}/api/events/${r.id}/guests/${g.guestId}`)).json();
+    // O token do convidado (só o hash no banco) continua valendo após o restart.
+    const saldo = await (await fetch(`${srv.base}/api/events/${r.id}/guests/${g.guestId}`, { headers: { 'x-guest-token': g.guestToken } })).json();
     assert.equal(saldo.fotosUsadas, 1);
     assert.equal(saldo.fotosRestantes, 1);
+    assert.equal((await fetch(`${srv.base}/api/events/${r.id}/guests/${g.guestId}`)).status, 403);
     // A foto continua no disco e continua protegida antes da revelação.
     assert.equal((await fetch(`${srv.base}/api/events/${r.id}/photos/${fotoId}/file`)).status, 403);
     const file = await fetch(`${srv.base}/api/events/${r.id}/photos/${fotoId}/file`, { headers: { 'x-host-token': r.hostToken } });

@@ -16,6 +16,9 @@ const { tokenHash, verifyToken } = require(path.join(__dirname, 'src', 'store', 
 // Relógio injetável: em produção é sempre o relógio real; TEST_NOW/advance só
 // valem com NODE_ENV=test. Todo "agora" da revelação passa por aqui.
 const clock = require('./src/clock');
+const { novoToken, autentica, sessaoDe, MENSAGENS } = require('./src/guest');
+const { semSegredos } = require('./src/seguranca');
+const { criarLimite } = require('./src/limite');
 
 const PORT = process.env.PORT || 3210;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -42,7 +45,7 @@ const saveSettings = () => fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settin
 const limGuests = (ev) => ev.limites?.maxConvidados ?? settings.maxConvidadosPorEvento;
 const limLista = (ev) => ev.limites?.maxLista ?? settings.maxListaPorEvento;
 const limFotos = (ev) => limFotosEvento(ev, settings);
-const CONFIG_PADRAO = { recadosAtivos: true, apenasLista: false, mostrarAutor: true };
+const CONFIG_PADRAO = { recadosAtivos: true, apenasLista: false, mostrarAutor: true, recadosMural: false };
 
 // Chaves VAPID para notificações push (geradas uma vez).
 const VAPID_FILE = path.join(DATA_DIR, 'vapid.json');
@@ -107,6 +110,8 @@ const sentry = createSentry({ version: require('./package.json').version });
 app.use(logger.middleware);
 app.get('/healthz', createHealthHandler({ dataDir: DATA_DIR }));
 app.use(express.json({ limit: '1mb' }));
+// C3: nenhum hash de token (host, equipe ou convidado) pode sair numa resposta.
+app.use(semSegredos);
 // Modo manutenção: só o admin master passa.
 app.use('/api', (req, res, next) => {
   if (!settings.manutencao) return next();
@@ -149,6 +154,31 @@ function adminOnly(req, res, next) {
 const donoOnly = (req, res, next) =>
   req.admin.dono ? next() : res.status(403).json({ erro: 'Só o casal pode fazer isso.' });
 
+// Organização pelo token, sem exigir acesso (usado na leitura dos recados).
+function ehOrganizacao(req) {
+  const ev = req.ev;
+  const token = req.get('x-host-token') || req.get('x-master-token') || req.query.token;
+  if (!token) return null;
+  if (isMaster(token)) return { papel: 'master', nome: 'Admin master', dono: true, master: true };
+  if (verifyToken(token, ev.hostTokenHash)) return { papel: 'casal', nome: 'Casal', dono: true };
+  const m = ev.equipe.find((e) => verifyToken(token, e.tokenHash));
+  return m ? { papel: m.papel, nome: m.nome, id: m.id } : null;
+}
+
+// Decisão 004: recado privado ao casal por padrão; mural só quando ligado e marcado.
+function recadosVisiveis(ev, opts) {
+  const mostrarAutor = ev.config.mostrarAutor;
+  return ev.recados
+    .filter((r) => opts.organizacao || r.guestId === opts.guestId || (r.visibilidade === 'mural' && ev.config.recadosMural))
+    .slice(-200).reverse()
+    .map((r) => {
+      const meu = r.guestId === opts.guestId;
+      const mural = r.visibilidade === 'mural';
+      const mostraAutor = opts.organizacao || meu || (mural && mostrarAutor);
+      return { id: r.id, texto: r.texto, criadoEm: r.criadoEm, meu, visibilidade: mural ? 'mural' : 'casal', autor: mostraAutor ? r.autor : '' };
+    });
+}
+
 // Reserva de cota: o check e o incremento acontecem sem nenhum `await` no meio,
 // então dois uploads do mesmo convidado nunca passam juntos. A reserva é
 // liberada quando a resposta termina, com sucesso ou erro.
@@ -173,19 +203,31 @@ function liberarFoto(ev, guest) {
   if (r.total === 0 && r.porConvidado.size === 0) reservasFoto.delete(ev.id);
 }
 
-// Autentica o convidado ANTES de o multer ler o corpo: a credencial vai no
-// cabeçalho `x-guest-token` (nunca na URL, que vaza em log/Referer, e nunca em
-// campo do formulário, que só existe depois de o corpo inteiro ser lido). Sem
-// credencial válida, nada é bufferizado em RAM. Também barra, aqui, o que não
-// depende do arquivo: evento suspenso/revelado, limites e a cota do convidado.
+// Limite por IP das tentativas inválidas de credencial (rota pública).
+// Configurável por env para os testes; o padrão é 20 falhas por 10 minutos.
+const limiteGuest = criarLimite({
+  max: parseInt(process.env.GUEST_MAX_TENTATIVAS, 10) > 0 ? parseInt(process.env.GUEST_MAX_TENTATIVAS, 10) : 20,
+  janelaMs: parseInt(process.env.GUEST_JANELA_MS, 10) > 0 ? parseInt(process.env.GUEST_JANELA_MS, 10) : 10 * 60 * 1000,
+});
+
+// Autentica o convidado ANTES de o multer ler o corpo: a credencial é a dupla
+// id + token, sempre por cabeçalho (x-guest-id e x-guest-token) — nunca na URL,
+// que vaza em log/Referer, e nunca em campo do formulário, que só existe depois
+// de o corpo inteiro ser lido. Autenticamos UM convidado (busca pelo id e um
+// único cálculo de hash, via autentica()) e limitamos por IP as tentativas
+// inválidas. Sem credencial válida, nada é bufferizado em RAM.
 function guestAuth(req, res, next) {
   const ev = req.ev;
-  if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
-  if (revealed(ev)) return res.status(409).json({ erro: 'O evento já terminou. As fotos foram reveladas.' });
+  if (ev.suspenso) return res.status(403).json({ erro: MENSAGENS.eventoIndisponivel });
+  if (revealed(ev)) return res.status(409).json({ erro: MENSAGENS.eventoEncerrado });
+  const ip = req.ip || req.socket?.remoteAddress || 'desconhecido';
+  if (limiteGuest.atingiu(ip)) return res.status(429).json({ erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' });
+  const guestId = req.get('x-guest-id');
   const token = req.get('x-guest-token');
-  if (!token) return res.status(401).json({ erro: 'Entre no evento antes de fotografar.' });
-  const guest = ev.guests.find((g) => verifyToken(token, g.tokenHash));
-  if (!guest) return res.status(403).json({ erro: 'Entre no evento antes de fotografar.' });
+  if (!guestId || !token) { limiteGuest.falhou(ip); return res.status(403).json({ erro: MENSAGENS.semToken }); }
+  const guest = autentica(ev, guestId, token);
+  if (!guest) { limiteGuest.falhou(ip); return res.status(403).json({ erro: MENSAGENS.semToken }); }
+  limiteGuest.limpou(ip);
   const usadas = ev.photos.filter((p) => p.guestId === guest.id).length;
   if (usadas >= ev.fotosPorConvidado) return res.status(409).json({ erro: `Você já usou suas ${ev.fotosPorConvidado} fotos.` });
   if (ev.photos.length >= limFotos(ev)) return res.status(413).json({ erro: 'Este evento atingiu o teto de fotos. Não é possível enviar mais fotos.' });
@@ -206,7 +248,9 @@ function publicInfo(ev) {
     agora: clock.iso(), fotosPorConvidado: ev.fotosPorConvidado,
     momentos: ev.photos.length, pessoas: ev.guests.length,
     dataEvento: ev.dataEvento, local: ev.local, endereco: ev.endereco, mensagem: ev.mensagem,
-    cronograma: ev.cronograma, suspenso: !!ev.suspenso, config: ev.config,
+    cronograma: ev.cronograma, suspenso: !!ev.suspenso,
+    // `recadosMural` é o nome do campo; `muralRecados` fica como apelido da decisão 004.
+    config: { ...ev.config, recadosMural: !!ev.config.recadosMural, muralRecados: !!ev.config.recadosMural },
   };
 }
 function parseCronograma(arr) {
@@ -289,7 +333,11 @@ app.patch('/api/events/:id', getEvent, adminOnly, (req, res) => {
   if (b.fotosPorConvidado !== undefined)
     ev.fotosPorConvidado = Math.min(Math.max(parseInt(b.fotosPorConvidado, 10) || ev.fotosPorConvidado, 1), settings.maxFotosPorConvidado);
   if (b.config && typeof b.config === 'object') {
-    for (const k of Object.keys(CONFIG_PADRAO)) if (typeof b.config[k] === 'boolean') ev.config[k] = b.config[k];
+    // `muralRecados` (decisão 004) e `recadosMural` (item 7) são o mesmo campo.
+    const cc = { ...b.config };
+    if (cc.recadosMural !== undefined && cc.muralRecados === undefined) cc.muralRecados = cc.recadosMural;
+    if (cc.muralRecados !== undefined && cc.recadosMural === undefined) cc.recadosMural = cc.muralRecados;
+    for (const k of Object.keys(CONFIG_PADRAO)) if (typeof cc[k] === 'boolean') ev.config[k] = cc[k];
     audit(req, 'config.alterada', { config: ev.config });
   }
   if (b.cronograma !== undefined) {
@@ -432,33 +480,45 @@ app.post('/api/events/:id/guests', getEvent, (req, res) => {
   const nome = clean(req.body.nome, 40);
   if (!nome) return res.status(400).json({ erro: 'Diga seu nome para entrar.' });
   if (ev.suspenso) return res.status(403).json({ erro: 'Este evento está temporariamente indisponível.' });
-  if (ev.guests.length >= limGuests(ev)) return res.status(409).json({ erro: 'Evento lotado.' });
   if (ev.config.apenasLista && !ev.lista.some((l) => norm(l.nome) === norm(nome)))
     return res.status(403).json({ erro: 'Este evento é só para convidados da lista. Use o nome exatamente como os noivos cadastraram.' });
   const item = ev.lista.find((l) => norm(l.nome) === norm(nome));
-  // A credencial do convidado sai em claro UMA vez; o banco guarda só o hash.
-  const token = newId(16);
-  const g = { id: newId(8), tokenHash: tokenHash(token), nome: item ? item.nome : nome, entrouEm: clock.iso(), listaId: item?.id };
+  // C2: convidado criado antes do token (sem tokenHash) reivindica a própria sessão
+  // na primeira entrada, para não perder a cota de fotos. A reivindicação vale uma vez.
+  // O token tem 32 bytes e o banco guarda só o hash (src/guest.js).
+  const { token, hash } = novoToken();
+  const orfao = ev.guests.find((x) => !x.tokenHash && norm(x.nome) === norm(nome));
+  if (orfao) {
+    orfao.tokenHash = hash;
+    save();
+    const li = orfao.listaId && ev.lista.find((l) => l.id === orfao.listaId);
+    return res.status(201).json({ guestId: orfao.id, guestToken: token, nome: orfao.nome, naLista: !!li, rsvp: li?.rsvp || null, reivindicado: true });
+  }
+  if (ev.guests.length >= limGuests(ev)) return res.status(409).json({ erro: 'Evento lotado.' });
+  const g = { id: newId(8), nome: item ? item.nome : nome, entrouEm: clock.iso(), listaId: item?.id, tokenHash: hash };
   ev.guests.push(g);
   save();
   res.status(201).json({ guestId: g.id, guestToken: token, nome: g.nome, naLista: !!item, rsvp: item?.rsvp || null });
 });
 
+// Saldo do convidado: exige o token no cabeçalho x-guest-token.
 app.get('/api/events/:id/guests/:gid', getEvent, (req, res) => {
-  const g = req.ev.guests.find((x) => x.id === req.params.gid);
-  if (!g) return res.status(404).json({ erro: 'Convidado não encontrado.' });
-  const item = g.listaId && req.ev.lista.find((l) => l.id === g.listaId);
-  const usadas = req.ev.photos.filter((p) => p.guestId === g.id).length;
-  res.json({
-    nome: g.nome, rsvp: item?.rsvp || null, acompanhantes: item?.acompanhantes || 0,
-    fotosUsadas: usadas, fotosRestantes: Math.max(0, req.ev.fotosPorConvidado - usadas),
-  });
+  const g = autentica(req.ev, req.params.gid, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
+  res.json(sessaoDe(req.ev, g));
+});
+
+// Reentrada no mesmo aparelho: valida a sessão salva (id + token) e devolve o saldo.
+app.post('/api/events/:id/sessao', getEvent, (req, res) => {
+  const g = autentica(req.ev, req.body.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.sessaoInvalida });
+  res.json(sessaoDe(req.ev, g));
 });
 
 app.post('/api/events/:id/rsvp', getEvent, (req, res) => {
   const ev = req.ev;
-  const g = ev.guests.find((x) => x.id === req.body.guestId);
-  if (!g) return res.status(403).json({ erro: 'Entre no evento primeiro.' });
+  const g = autentica(ev, req.body.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
   if (!['confirmado', 'recusado'].includes(req.body.status)) return res.status(400).json({ erro: 'Resposta inválida.' });
   let item = g.listaId && ev.lista.find((l) => l.id === g.listaId);
   if (!item) {
@@ -474,20 +534,27 @@ app.post('/api/events/:id/rsvp', getEvent, (req, res) => {
 });
 
 app.get('/api/events/:id/recados', getEvent, (req, res) => {
-  res.json({ recados: req.ev.recados.slice(-200).reverse().map((r) => ({ id: r.id, autor: r.autor, texto: r.texto, criadoEm: r.criadoEm })) });
+  const ev = req.ev;
+  // C4: sem credencial não lê. Organização vê todos; convidado vê os seus + o mural.
+  if (ehOrganizacao(req)) return res.json({ recados: recadosVisiveis(ev, { organizacao: true }), organizacao: true });
+  const g = autentica(ev, req.query.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.recadoSemCredencial });
+  res.json({ recados: recadosVisiveis(ev, { guestId: g.id }) });
 });
 app.post('/api/events/:id/recados', getEvent, (req, res) => {
   if (!req.ev.config.recadosAtivos) return res.status(403).json({ erro: 'Os recados estão desativados neste evento.' });
-  const g = req.ev.guests.find((x) => x.id === req.body.guestId);
-  if (!g) return res.status(403).json({ erro: 'Entre no evento primeiro.' });
+  const g = autentica(req.ev, req.body.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
   const texto = clean(req.body.texto, 400);
   if (!texto) return res.status(400).json({ erro: 'Escreva seu recado.' });
   const mine = req.ev.recados.filter((r) => r.guestId === g.id).length;
   if (mine >= 5) return res.status(409).json({ erro: 'Você já deixou 5 recados.' });
-  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, criadoEm: clock.iso() };
+  // Mural só se o casal ligou e o convidado marcou; por padrão é privado ao casal.
+  const mural = !!req.ev.config.recadosMural && req.body.mural === true;
+  const r = { id: newId(6), guestId: g.id, autor: g.nome, texto, visibilidade: mural ? 'mural' : 'casal', criadoEm: clock.iso() };
   req.ev.recados.push(r);
   save();
-  res.status(201).json({ id: r.id });
+  res.status(201).json({ id: r.id, visibilidade: r.visibilidade, aviso: mural ? MENSAGENS.recadoMural : MENSAGENS.recadoSoNoivos });
 });
 
 // ───── Fotos
@@ -616,8 +683,8 @@ app.get('/api/master/photos', masterOnly, (req, res) => {
 const subscriptionOk = (s) => s && typeof s.endpoint === 'string' && /^https:\/\//.test(s.endpoint) && s.keys && s.keys.p256dh && s.keys.auth;
 app.post('/api/events/:id/push/subscribe', getEvent, (req, res) => {
   if (!settings.pushAtivo) return res.status(403).json({ erro: 'Notificações desativadas na plataforma.' });
-  const g = req.ev.guests.find((x) => x.id === req.body.guestId);
-  if (!g) return res.status(403).json({ erro: 'Entre no evento primeiro.' });
+  const g = autentica(req.ev, req.body.guestId, req.get('x-guest-token'));
+  if (!g) return res.status(403).json({ erro: MENSAGENS.semToken });
   const sub = req.body.subscription;
   if (!subscriptionOk(sub)) return res.status(400).json({ erro: 'Inscrição inválida.' });
   if (req.ev.push.length >= 6000) return res.status(409).json({ erro: 'Limite de notificações atingido.' });
@@ -781,6 +848,7 @@ app.get('/e/:id/presenca', page('presenca.html'));
 app.get('/painel/:id', page('painel.html'));
 app.get('/master', page('master.html'));
 app.get('/sw.js', (req, res) => res.set('Service-Worker-Allowed', '/').type('application/javascript').sendFile(path.join(__dirname, 'public', 'sw.js')));
+app.get('/embutido.js', (req, res) => res.type('application/javascript').sendFile(path.join(__dirname, 'src', 'embutido.js')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {

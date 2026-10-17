@@ -39,7 +39,7 @@
 <script src="/common.js"></script>
 <script>
 (async () => {
-  const { id, guest, info } = await carregaConvidado();
+  const { id, guest, info, sessao } = await carregaConvidado();
   document.title = info.titulo;
   crumbs([{ t: info.titulo }, { t: 'Início' }]);
   $('#saud').textContent = `OLÁ, ${guest.nome.toUpperCase()}`;
@@ -55,12 +55,9 @@
     $('#restamLbl').textContent = ms > 0 ? 'Para revelar' : 'Álbum aberto';
   };
   tick(); setInterval(tick, 30000);
-  try {
-    const me = await api(`/api/events/${id}/guests/${guest.guestId}`);
-    $('#fotos').textContent = me.fotosRestantes;
-    $('#sCamera').textContent = info.revelado ? 'O evento terminou' : `${me.fotosRestantes} de ${info.fotosPorConvidado} fotos disponíveis`;
-    if (me.rsvp && me.rsvp !== 'pendente') $('#sPres').textContent = me.rsvp === 'confirmado' ? 'Você confirmou presença ✓' : 'Você respondeu que não vai';
-  } catch { $('#fotos').textContent = '—'; }
+  $('#fotos').textContent = sessao.fotosRestantes;
+  $('#sCamera').textContent = info.revelado ? 'O evento terminou' : `${sessao.fotosRestantes} de ${info.fotosPorConvidado} fotos disponíveis`;
+  $('#sPres').textContent = sessao.rsvp === 'confirmado' ? 'Você confirmou presença ✓' : sessao.rsvp === 'recusado' ? 'Você respondeu que não vai' : 'Avise os noivos se você vai';
   $('#sAlbum').textContent = info.revelado ? 'As fotos foram reveladas — veja o que a galera viu' : 'Fotos escondidas até a revelação';
   // Aviso mais recente da organização
   try {
