@@ -52,9 +52,11 @@ function extractCookies(setCookie) {
 function cookieHeader(jar) { return Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; '); }
 function cookieHasHttpOnly(setCookie) { return setCookie && /HttpOnly/i.test(setCookie); }
 
-const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
+// GET com cookie é leitura (livre); POST/PATCH/DELETE com cookie exigem Origin (CSRF).
+const comOrigem = (h) => (h.cookie ? { origin: B, ...h } : h);
+const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...comOrigem(h) }, body: JSON.stringify(body) });
 const get = (p, h = {}) => fetch(B + p, { headers: h });
-const del = (p, h = {}) => fetch(B + p, { method: 'DELETE', headers: { 'content-type': 'application/json', ...h } });
+const del = (p, h = {}) => fetch(B + p, { method: 'DELETE', headers: { 'content-type': 'application/json', ...comOrigem(h) } });
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
 
 async function criarEvento(titulo = 'Evento', cookie = '') {
@@ -212,7 +214,7 @@ test('exclusão de evento gera linha de auditoria encadeada', async () => {
   const before = app.store.get('SELECT hash_atual FROM auditoria ORDER BY id DESC LIMIT 1');
   const delR = await fetch(`${B}/api/master/events/${eventoId}`, {
     method: 'DELETE',
-    headers: { 'content-type': 'application/json', cookie },
+    headers: { 'content-type': 'application/json', cookie, origin: B },
     body: JSON.stringify({ confirmar: eventoId }),
   });
   assert.equal(delR.status, 200);
@@ -239,7 +241,7 @@ test('master por sessão abre painel, moderação, arquivo e ZIP (não 500)', as
   assert.equal((await get(`/api/events/${ev.json.id}/lista.csv`, H)).status, 200, '/lista.csv');
   const patch = await fetch(`${B}/api/events/${ev.json.id}`, {
     method: 'PATCH',
-    headers: { 'content-type': 'application/json', cookie },
+    headers: { 'content-type': 'application/json', cookie, origin: B },
     body: JSON.stringify({ titulo: 'Renomeado pelo master' }),
   });
   assert.equal(patch.status, 200, 'PATCH do evento');

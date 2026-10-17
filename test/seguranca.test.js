@@ -21,7 +21,10 @@ test.after(() => server.close());
 
 const futuro = () => new Date(Date.now() + 3600e3).toISOString();
 const get = (p, h = {}) => fetch(B + p, { headers: h });
-const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(body) });
+// Ações com cookie de sessão exigem Origin do próprio host (CSRF), então os
+// helpers que usam cookie mandam o cabeçalho — como o navegador faria.
+const comOrigem = (h) => (h.cookie ? { origin: B, ...h } : h);
+const post = (p, body, h = {}) => fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json', ...comOrigem(h) }, body: JSON.stringify(body) });
 
 function cookieHeader(setCookie) {
   const raw = Array.isArray(setCookie) ? setCookie[0] : setCookie;
@@ -129,4 +132,32 @@ test('equipe continua entrando por link próprio (token por hash) e o link é ro
   assert.ok(novo && novo !== ct);
   assert.equal((await get(`/api/events/${dono.id}/host`, { 'x-host-token': novo })).status, 200);
   assert.equal((await get(`/api/events/${dono.id}/host`, { 'x-host-token': ct })).status, 403);
+});
+
+test('CSRF: ação com cookie de sessão exige Origin do próprio host', async () => {
+  const cookie = await organizadorAutenticado('csrf@exemplo.com');
+  const H = { 'content-type': 'application/json', cookie };
+  const corpo = JSON.stringify({ titulo: 'CSRF', revealAt: futuro() });
+
+  // Sem Origin não dá para provar a origem (o navegador sempre manda em POST).
+  const semOrigin = await fetch(`${B}/api/events`, { method: 'POST', headers: H, body: corpo });
+  assert.equal(semOrigin.status, 403, 'sem Origin é recusado');
+
+  // Origin de outro site é recusado.
+  const outro = await fetch(`${B}/api/events`, { method: 'POST', headers: { ...H, origin: 'https://malicioso.exemplo' }, body: corpo });
+  assert.equal(outro.status, 403, 'Origin de outro site é recusado');
+
+  // Origin do próprio host passa (é o que o navegador manda em requisição same-origin).
+  const ok = await fetch(`${B}/api/events`, { method: 'POST', headers: { ...H, origin: B }, body: corpo });
+  assert.equal(ok.status, 201, 'Origin do próprio host passa');
+
+  // Leitura (GET) com cookie continua livre: não muda estado.
+  assert.equal((await get('/api/auth/me', { cookie })).status, 200);
+
+  // Token em cabeçalho (sem cookie) não é CSRF: continua funcionando sem Origin.
+  const ev = await (await ok.json());
+  const semCookie = await fetch(`${B}/api/events/${ev.id}`, {
+    method: 'PATCH', headers: { 'content-type': 'application/json', 'x-host-token': ev.hostToken }, body: JSON.stringify({ titulo: 'Via token' }),
+  });
+  assert.equal(semCookie.status, 200, 'token em cabeçalho segue valendo sem Origin');
 });
