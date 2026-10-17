@@ -9,3 +9,4 @@ backups/
 .deploy/
 *.log
 scripts/ci-output.txt
+.maestri/

@@ -216,7 +216,9 @@ async function rFotos(v) {
     const r = await call('/moderacao');
     const grid = el('div', { class: 'thumbs' });
     r.fotos.forEach((f) => {
-      grid.append(el('div', { class: 'thumb' }, el('img', { src: `${f.url}?token=${encodeURIComponent(TOKEN)}`, alt: `Foto de ${f.autor}`, loading: 'lazy' }),
+      const img = el('img', { alt: `Foto de ${f.autor}`, loading: 'lazy' });
+      imgAutenticada(f.url, { 'x-host-token': TOKEN }).then((s) => { if (s) img.src = s; });
+      grid.append(el('div', { class: 'thumb' }, img,
         el('div', {}, el('span', {}, f.autor), el('button', { class: 'btn sm danger', onclick: async () => { if (confirm('Apagar esta foto para sempre?')) { await call(`/photos/${f.id}`, { method: 'DELETE' }); mostrar(); } } }, 'Apagar'))));
     });
     area.append(el('h2', {}, `Fotos (${r.fotos.length})`), r.fotos.length ? grid : el('p', { class: 'sub' }, 'Ninguém enviou fotos ainda.'));

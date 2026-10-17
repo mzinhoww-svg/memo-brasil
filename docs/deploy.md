@@ -70,10 +70,48 @@ Obrigatórias para publicar (o `deploy.sh --apply` recusa sem elas):
 |---|---|
 | `DOMINIO` | domínio público, sem barra no fim (ex.: `lume.exemplo.com.br`) |
 | `PUBLIC_URL` | URL completa com `https`, usada no QR Code e no healthcheck |
-| `MASTER_TOKEN` | senha do admin master (string longa e aleatória) |
+| `MASTER_TOKEN` | **legado/dev**: em `https` o token estático não vale; crie a conta master (passo 6) |
+| `MASTER_TOTP_KEY` | 32 bytes aleatórios: cifra o segredo TOTP do master — **exigido em produção** |
 | `VAPID_CONTACT` | contato das notificações push (ex.: `mailto:contato@…`) |
 | `TRUST_PROXY` | `1` atrás do Caddy (um proxy). Ver abaixo |
 | `BACKUP_PASSPHRASE` (ou `BACKUP_GPG_KEY`) | cifra do backup — **obrigatória em produção** (LGPD) |
+
+**Fail-closed na subida (produção).** Com `NODE_ENV=production` **ou** `PUBLIC_URL` `https`, o
+servidor **não sobe** sem: `PUBLIC_URL` começando com `https://`, `MASTER_TOTP_KEY` e um provedor de
+e-mail **real** (`smtp`/`resend` com credenciais) — exceto ensaio com `EMAIL_CONSOLE_PERMITIDO=sim`.
+Confira `docker compose logs lume` depois de subir.
+
+### 2b. E-mail transacional (Brevo via SMTP)
+
+O MVP envia e-mail em dois momentos: **link mágico de acesso** (item 5/#9) e **aviso de
+revelação** para a organização (item 8). Os dois usam o mesmo módulo (`src/email`), com
+`EMAIL_PROVIDER=smtp` — hoje via Brevo, em `smtp-relay.brevo.com:587` com STARTTLS.
+
+| Variável | O que é |
+|---|---|
+| `EMAIL_PROVIDER` | `smtp` em produção. `console` só em dev/teste (em produção é recusado). |
+| `SMTP_HOST` | padrão `smtp-relay.brevo.com`. |
+| `SMTP_PORT` | padrão `587` (STARTTLS). A `465` usa TLS direto. |
+| `SMTP_USER` | usuário SMTP do Brevo. |
+| `SMTP_PASS` | **segredo**: a chave SMTP do Brevo. Nunca no git. |
+| `EMAIL_FROM` | remetente (precisa ser domínio/e-mail verificado no Brevo). `MAIL_FROM` também é aceito. |
+| `EMAIL_VERIFICADOS` | endereços liberados manualmente (separados por vírgula) para receber o aviso de revelação, enquanto a confirmação por link mágico não entra. |
+| `EMAIL_TIMEOUT_MS` / `SMTP_TIMEOUT_MS` | limites de tempo (padrão 10s) do job e do SMTP. |
+| `EMAIL_CONSOLE_PERMITIDO` | `sim` autoriza o provedor de console em produção (só para ensaio). |
+
+Regras que valem no deploy:
+
+- **Fail-closed.** Sem `SMTP_USER`/`SMTP_PASS` (ou com `EMAIL_PROVIDER=console`) em produção, o
+  servidor **não** inicia o envio: registra `[email] envio de e-mail desativado: …` e segue
+  rodando sem e-mail. Melhor não enviar do que fingir que enviou.
+- **Só endereço verificado.** O aviso de revelação vai apenas para o contato confirmado da
+  organização (`contatoVerificado`) ou para um endereço em `EMAIL_VERIFICADOS`. Contato não
+  verificado não recebe nada (fica registrado no evento o motivo).
+- **PII.** O log nunca mostra o endereço completo (sai mascarado, ex.: `ra**@e**.com`) nem link
+  com token de acesso.
+- **Teste de verdade.** Antes de considerar pronto, peça um link mágico e confirme que o e-mail
+  chega (pasta de spam inclusive) com `EMAIL_PROVIDER=smtp` e `SMTP_PASS` real **apenas no `.env`
+  do servidor**.
 
 **`TRUST_PROXY` (obrigatório atrás do Caddy).** O `docker-compose.yml` já fixa
 `TRUST_PROXY: "1"` no serviço `lume`. Sem isso, `req.ip` é o IP do Caddy: o rate limit do login
@@ -114,6 +152,32 @@ docker compose logs --tail=50 caddy             # certificado emitido sem erro
 
 Abrir no navegador do celular (390x844): o convite `https://SEU_DOMINIO/e/<id>` deve pedir
 câmera (getUserMedia exige HTTPS — é para isso que o Caddy existe).
+
+### 6. Criar o primeiro master (obrigatório em `https`)
+
+Em `https` o token estático e a janela de bootstrap do `MASTER_TOKEN` **não valem**: a única forma
+de entrar em `/master` é criar a conta com `scripts/master-criar.js` (já copiado para a imagem).
+A senha vem de `MASTER_SENHA` (ambiente) ou do prompt sem eco — **nunca** por argumento.
+
+```bash
+# com o serviço no ar (usa o mesmo DATA_DIR/volume /data)
+docker compose exec -e MASTER_SENHA='senha-longa-e-unica' lume \
+  node scripts/master-criar.js dono@exemplo.com.br 'Nome do responsável'
+
+# sem -e, ele pede a senha no prompt (sem eco):
+docker compose exec lume node scripts/master-criar.js dono@exemplo.com.br 'Nome do responsável'
+```
+
+O script imprime **uma única vez** o `totpSecret`, a URI `otpauth://…` e os códigos de recuperação:
+guarde no gerenciador de senhas (nunca no git). Depois entre em `https://SEU_DOMINIO/master` com
+e-mail + senha + o código do app autenticador (TOTP).
+
+Notas:
+
+- `MASTER_TOTP_KEY` precisa estar definido (passo 2) para a conta master funcionar.
+- Antes do primeiro `up` dá para criar sem o serviço no ar:
+  `docker compose run --rm -e MASTER_SENHA='…' lume node scripts/master-criar.js …`
+- `MASTER_BOOTSTRAP_*` faz o mesmo no boot; prefira o `master-criar.js` (senha fora do `.env`).
 
 ## Alternativa: systemd (sem Docker)
 
@@ -218,6 +282,11 @@ Só marcar depois de conferir, com evidência (saída de comando ou captura):
 - [ ] Log do Caddy sem token nem IP (B2): `docker compose logs caddy` / `access.log` não mostra
       `X-*-Token`, `Authorization`, `Cookie`, `X-Forwarded-For`, `?t=`/`?q=` nem IP completo (só a rede /24).
 - [ ] Containers do Caddy só com `DOMINIO` (B3): `docker compose exec caddy env` não lista segredos.
+- [ ] Master: conta criada com `scripts/master-criar.js` (senha por `MASTER_SENHA`, nunca argumento),
+      TOTP e códigos de recuperação guardados; login em `/master` funcionando.
+- [ ] E-mail (Brevo): `EMAIL_PROVIDER=smtp` com `SMTP_USER`/`SMTP_PASS` e `EMAIL_FROM` verificado; link
+      mágico e aviso de revelação entregues de verdade (conferir spam).
+- [ ] E-mail nunca loga endereço completo nem token: `docker compose logs lume` não mostra e-mail completo.
 - [ ] Região da VPS definida e **cifra de disco em repouso** ativada (fotos de pessoas e menores).
 - [ ] Rotacionar a senha inicial da VPS e confirmar login por chave SSH.
 - [ ] Monitoramento/healthcheck externo apontando para `/healthz`.
@@ -322,7 +391,7 @@ $ curl -H 'X-Host-Token: …' -H 'X-Master-Token: …' -H 'X-Guest-Token: …' \
 $ cat /data/access.log
   -> headers só User-Agent/Accept; uri "/api/auth/entrar?manter=ok";
      remote_ip/client_ip 192.168.65.0 (/24); nada de token/PII/Authorization/Cookie
-$ npm test                     -> 88 testes, 0 falhas
+$ npm test                     -> 154 testes, 0 falhas
 ```
 
 `hadolint` foi rodado via imagem Docker (o binário local não está instalado). Sem Docker no
