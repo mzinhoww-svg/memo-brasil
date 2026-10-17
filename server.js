@@ -1402,9 +1402,9 @@ if (require.main === module) {
     }
     await ensureMasterBootstrap();
     app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Memo Brasil em http://localhost:${PORT}`);
-      console.log(masterGerado ? `Token do admin master gerado em ${MASTER_FILE}` : process.env.MASTER_TOKEN ? 'Admin master: token vindo de MASTER_TOKEN' : `Admin master: token em ${MASTER_FILE}`);
-      console.log(`Admin master: http://localhost:${PORT}/master`);
+      console.log(`Lume em http://localhost:${PORT}`);
+      console.log('Admin master (login por sessão): http://localhost:' + PORT + '/master');
+      if (!isProd) console.log(masterGerado ? `Token estático de desenvolvimento em ${MASTER_FILE} (em https ele não vale)` : process.env.MASTER_TOKEN ? 'Token estático de desenvolvimento vindo de MASTER_TOKEN (em https ele não vale)' : `Token estático de desenvolvimento em ${MASTER_FILE} (em https ele não vale)`);
       if (lanIp()) console.log(`Na mesma rede Wi-Fi (celular): http://${lanIp()}:${PORT}`);
     });
   })();
