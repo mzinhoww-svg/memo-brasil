@@ -579,5 +579,31 @@ select is(jsonb_array_length(public.admin_health() -> 'jobs'), 3, 'saúde: os 3 
 select is((select array_agg(j ->> 'name' order by j ->> 'name') from jsonb_array_elements(public.admin_health() -> 'jobs') j), array['mm-expire-uploads', 'mm-purge-deleted', 'mm-reveal-due'], 'saúde: nomes dos jobs');
 reset role;
 
+-- ===================================================== listagens do console (usuários, participantes, convites, auditoria)
+select tests.login('00000000-0000-4000-8000-0000000000e1', false, 'auditor');
+select cmp_ok((public.admin_list_users() ->> 'total')::int, '>=', 1, 'auditor lista usuários');
+select is((select bool_and(i ->> 'email' is null or i ->> 'email' ~ '\*\*\*@') from jsonb_array_elements(public.admin_list_users() -> 'items') i), true, 'auditor só vê e-mail mascarado');
+select is((select count(*)::int from jsonb_array_elements(public.admin_list_users() -> 'items') i where i ? 'phone' or i ? 'metadata'), 0, 'usuários sem telefone nem metadata');
+select cmp_ok((public.admin_list_participants() ->> 'total')::int, '>=', 1, 'auditor lista participantes');
+select is((select count(*)::int from jsonb_array_elements(public.admin_list_invites() -> 'items') i where i ? 'tokenHash' or i ? 'token' or i ? 'token_hash'), 0, 'convites nunca expõem o token nem o hash');
+select cmp_ok((public.admin_list_audit(10, 0) ->> 'total')::int, '>=', 1, 'auditor lê a auditoria');
+select is(jsonb_array_length(public.admin_list_audit(3, 0) -> 'items') <= 3, true, 'paginação limitada');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000000c1', false, 'master');
+select is((select count(*)::int from jsonb_array_elements(public.admin_list_users() -> 'items') i where i ->> 'email' = 'emy@test.local'), 1, 'master vê o e-mail completo');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000000a1');
+select throws_ok($$select public.admin_list_users()$$, 'MM004', 'forbidden', 'host não lista usuários');
+select throws_ok($$select public.admin_list_participants()$$, 'MM004', 'forbidden', 'host não lista participantes');
+select throws_ok($$select public.admin_list_invites()$$, 'MM004', 'forbidden', 'host não lista convites');
+select throws_ok($$select public.admin_list_audit()$$, 'MM004', 'forbidden', 'host não lê a auditoria');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000000c2', false, 'master');
+select throws_ok($$select public.admin_list_users()$$, 'MM004', 'forbidden', 'claim master sem linha ativa é negada');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000000b1', true);
+select throws_ok($$select public.admin_list_audit()$$, 'MM004', 'forbidden', 'convidado anônimo não lê a auditoria');
+reset role;
+
 select * from finish();
 rollback;
