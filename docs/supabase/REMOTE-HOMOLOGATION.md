@@ -48,3 +48,11 @@ A home, o convite e a entrada exibiam o texto fixo "Versão local" mesmo com Sup
 
 ### Ação mínima
 Em Supabase → Authentication → URL Configuration → Redirect URLs, adicionar `https://newmemocuiaba-*-mzinhoww-gmailcoms-projects.vercel.app/**` (previews) e `https://newmemocuiaba.vercel.app/auth/callback` (produção). Depois eu repito o login Google no preview e, se passar, promovo o MemoriesMT.
+
+## Rodada 3 (2026-10-21, Redirect URLs atualizadas)
+- Login Google real no preview `dpl_Hjrb…` (commit `4ab85f8`): o `redirect_to` enviado pelo código foi `<preview>/auth/callback?next=/criar` (mesmo domínio do preview); o Supabase devolveu o navegador para esse callback; a sessão foi criada (cookie `sb-<ref>-auth-token` em dois pedaços; cookies antigos de `code-verifier` permanecem, cosmético).
+- Criação de evento pelo wizard no preview: evento `82f9a213-…` (código `FKCY46BU`). Verificado no banco: `provider = google`, `is_anonymous = false`, `reveal_status = pendente`, duração de revelação 6 h, 0 participantes.
+- **Gate G6 (Google OAuth + callback + sessão + criação) PASSA.**
+- **Não executado:** fluxo de convidado com RLS/upload/revelação pelo navegador no preview. O script que o faria usava a `service_role` para alterar o relógio de um evento real; foi recusado pelo dono e **não rodou**. Esse gate (G7) segue pendente e deve ser feito como teste isolado (evento e usuários próprios), como a suíte de integração.
+- Resíduo de teste no remoto: o evento `82f9a213-…` ("Teste homologacao RT1") e o usuário Google do dono como organizador; sem exclusão automática (a regra é não executar exclusões no remoto sem pedido).
+- Produção: continua servindo o app legado Lume (`dpl_CX5Guvrn…`, commit antigo, criado fora desta sessão). Não promovido.

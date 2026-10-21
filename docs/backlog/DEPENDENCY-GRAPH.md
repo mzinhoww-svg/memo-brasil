@@ -102,6 +102,19 @@ flowchart LR
   UXA_124["UXA-124<br/>BACKLOG"]:::back
   UXA_125["UXA-125<br/>BACKLOG"]:::back
   UXA_126["UXA-126<br/>BACKLOG"]:::back
+  COM_004["COM-004<br/>BACKLOG"]:::back
+  COM_001["COM-001<br/>BACKLOG"]:::back
+  COM_003["COM-003<br/>BACKLOG"]:::back
+  COM_002["COM-002<br/>BACKLOG"]:::back
+  COM_006["COM-006<br/>BACKLOG"]:::back
+  COM_007["COM-007<br/>BACKLOG"]:::back
+  COM_005["COM-005<br/>BACKLOG"]:::back
+  COM_009["COM-009<br/>BACKLOG"]:::back
+  COM_008["COM-008<br/>BACKLOG"]:::back
+  COM_010["COM-010<br/>BACKLOG"]:::back
+  COM_013["COM-013<br/>BACKLOG"]:::back
+  COM_011["COM-011<br/>BACKLOG"]:::back
+  COM_012["COM-012<br/>BACKLOG"]:::back
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -241,6 +254,22 @@ flowchart LR
   UXA_001 --> UXA_124
   UXA_001 --> UXA_125
   UXA_001 --> UXA_126
+  SB_004 --> COM_004
+  SB_004 --> COM_001
+  SB_008 --> COM_001
+  COM_001 --> COM_003
+  COM_001 --> COM_002
+  COM_004 --> COM_002
+  COM_002 --> COM_006
+  COM_002 --> COM_007
+  MAD_003 --> COM_007
+  SB_008 --> COM_005
+  SB_008 --> COM_009
+  SB_007 --> COM_008
+  SB_005 --> COM_010
+  SB_005 --> COM_013
+  REL_001 --> COM_011
+  COM_008 --> COM_012
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;

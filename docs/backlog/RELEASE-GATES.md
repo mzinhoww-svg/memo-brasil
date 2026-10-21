@@ -2,16 +2,19 @@
 
 | Gate | Critério | Estado | Evidência |
 |---|---|---|---|
-| G1 | Jornadas locais (eventos, convidados, fotos, revelação) | PASSA | 131 unit + 46 E2E + 29 testes de auditoria (A1); docs/audit/01-FUNCTIONAL-COVERAGE.md |
-| G2 | Design system aderente (paridade de estilos, axe, 4 viewports, 284 estados) | PASSA | docs/audit/02-VISUAL-COMPLIANCE.md |
-| G3 | Segurança do cliente pré-backend (sem segredos, XSS, headers, locks) | PASSA com ressalvas | docs/audit/04-SECURITY-REVIEW.md |
-| G4 | Revelação programada validada em browser e no preview | PASSA (preview 5d8df4a) | e2e/reveal*.spec.ts; e2e/remote.spec.ts |
-| G5 | Auditoria independente AUD-001 executada | CONCLUÍDA: resultado NO-GO para integrar agora | docs/audit/11-RELEASE-GATE.md |
-| G6 | Reauditoria dos P1 (AUD-002) após as correções | ABERTO | docs/audit/10-REMEDIATION-BACKLOG.md |
-| G7 | Acesso do conector Supabase ao projeto (INF-001) | ABERTO (bloqueio de infraestrutura) | docs/audit/evidence/logs/vercel-supabase-inspection.md |
-| G8 | Produção promovida e verificada (REL-001) | BLOQUEADO (destino não confirmado) | — |
+| G1 | Jornadas locais (eventos, convidados, fotos, revelação) | PASSA | 242 unit + 50 E2E locais; docs/audit/01-FUNCTIONAL-COVERAGE.md |
+| G2 | Design system v1 aderente (paridade, axe, viewports) | PASSA | docs/audit/02-VISUAL-COMPLIANCE.md |
+| G3 | Segurança do cliente pré-backend | PASSA com ressalvas | docs/audit/04-SECURITY-REVIEW.md |
+| G4 | Revelação programada no servidor (remoto) | PASSA | integração remota 12/12 e adaptador 9/9 (docs/supabase/REMOTE-HOMOLOGATION.md) |
+| G5 | Auditoria independente AUD-001 / reauditoria AUD-002 | CONCLUÍDAS (CONDITIONAL GO) | docs/audit/11-RELEASE-GATE.md |
+| G6 | Google OAuth + callback no preview (login real) | PASSA | docs/supabase/REMOTE-HOMOLOGATION.md (rodada 3) |
+| G7 | Fluxo de convidado com RLS e fotos pelo navegador no preview remoto | PENDENTE | SB-004/SB-008 |
+| G8 | Variáveis de Production confirmadas e domínio servindo o MemoriesMT | BLOQUEADO (domínio serve o Lume legado; valores criptografados) | REL-001, INF-002 |
+| G9 | V2 backend: pgTAP e E2E de autorização em Supabase local | PASSA (local; não aplicado no remoto) | pgTAP 366/366; e2e/master-studio.spec.ts 5/5; docs/supabase/MIGRATIONS-V2.md |
+| G10 | V2: revisão independente A1–A5 e correção de P0/P1 | EM ANDAMENTO | docs/audit/ux/INVENTARIO.md; revisões da sessão |
+| G11 | Acesso do conector Supabase ao projeto (INF-001) | ABERTO | INF-001 |
 
-## Itens P0/P1 em aberto (27)
+## Itens P0/P1 em aberto (34)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -41,9 +44,16 @@
 | QAV-002 | Revisão independente A1–A5 e correção de P0/P1 | P0 | BACKLOG |
 | RLV-001 | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BACKLOG |
 | UXA-104 | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rol | P1 | BACKLOG |
+| COM-004 | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | BACKLOG |
+| COM-001 | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | BACKLOG |
+| COM-003 | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | BACKLOG |
+| COM-002 | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | BACKLOG |
+| COM-006 | Página de planos e checkout do organizador | P1 | BACKLOG |
+| COM-005 | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG |
+| COM-009 | Backup, PITR e teste de restauração; política de retenção de fotos | P1 | BACKLOG |
 
-## Decisão atual (AUD-001)
-**NO-GO para iniciar a integração com o Supabase agora.** Não há P0; há 1 P1 de produto (`BG-101`) e 6 P1 de integração (`ITG-101..ITG-106`). O caminho até **CONDITIONAL GO** é curto e não exige reescrever o produto: ondas 1 a 3 em `docs/audit/10-REMEDIATION-BACKLOG.md`, depois `AUD-002`. **GO para continuar a fase pré-backend** (correções). Nenhum item de EP-09 deve começar antes de `AUD-002`. `INF-001` (acesso do conector) corre em paralelo.
+## Decisão atual
+**V1: NO-GO para produção** até REL-001/SB-008 (domínio serve o app legado e as variáveis de Production não foram verificadas) e G7 (fluxo de convidado no preview remoto). **V2: GO para preview** (nunca promover antes da V1 e da revisão independente). Itens da V2 em IN_REVIEW dependem da revisão A1–A5; nada aqui está DONE por ter sido codificado.
 
 ## Próximos itens READY
 | Prio | ID | Título |

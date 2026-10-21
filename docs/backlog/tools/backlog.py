@@ -88,13 +88,44 @@ g += ["  classDef done fill:#E8ECE4,stroke:#1C1917;", "  classDef ready fill:#FF
 w("DEPENDENCY-GRAPH.md", "\n".join(g) + "\n")
 # RELEASE GATES
 nxt = ready(); open_p01 = [i for i in leaf if i["priority"] in ("P0", "P1") and i["status"] not in ("DONE", "DEFERRED", "CANCELLED")]
-gates = [("G1","Jornadas locais (eventos, convidados, fotos, revelação)","PASSA","131 unit + 46 E2E + 29 testes de auditoria (A1); docs/audit/01-FUNCTIONAL-COVERAGE.md"),("G2","Design system aderente (paridade de estilos, axe, 4 viewports, 284 estados)","PASSA","docs/audit/02-VISUAL-COMPLIANCE.md"),
- ("G3","Segurança do cliente pré-backend (sem segredos, XSS, headers, locks)","PASSA com ressalvas","docs/audit/04-SECURITY-REVIEW.md"),("G4","Revelação programada validada em browser e no preview","PASSA (preview 5d8df4a)","e2e/reveal*.spec.ts; e2e/remote.spec.ts"),
- ("G5","Auditoria independente AUD-001 executada","CONCLUÍDA: resultado NO-GO para integrar agora","docs/audit/11-RELEASE-GATE.md"),("G6","Reauditoria dos P1 (AUD-002) após as correções","ABERTO","docs/audit/10-REMEDIATION-BACKLOG.md"),
- ("G7","Acesso do conector Supabase ao projeto (INF-001)","ABERTO (bloqueio de infraestrutura)","docs/audit/evidence/logs/vercel-supabase-inspection.md"),("G8","Produção promovida e verificada (REL-001)","BLOQUEADO (destino não confirmado)","—")]
+gates = [("G1","Jornadas locais (eventos, convidados, fotos, revelação)","PASSA","242 unit + 50 E2E locais; docs/audit/01-FUNCTIONAL-COVERAGE.md"),
+ ("G2","Design system v1 aderente (paridade, axe, viewports)","PASSA","docs/audit/02-VISUAL-COMPLIANCE.md"),
+ ("G3","Segurança do cliente pré-backend","PASSA com ressalvas","docs/audit/04-SECURITY-REVIEW.md"),
+ ("G4","Revelação programada no servidor (remoto)","PASSA","integração remota 12/12 e adaptador 9/9 (docs/supabase/REMOTE-HOMOLOGATION.md)"),
+ ("G5","Auditoria independente AUD-001 / reauditoria AUD-002","CONCLUÍDAS (CONDITIONAL GO)","docs/audit/11-RELEASE-GATE.md"),
+ ("G6","Google OAuth + callback no preview (login real)","PASSA","docs/supabase/REMOTE-HOMOLOGATION.md (rodada 3)"),
+ ("G7","Fluxo de convidado com RLS e fotos pelo navegador no preview remoto","PENDENTE","SB-004/SB-008"),
+ ("G8","Variáveis de Production confirmadas e domínio servindo o MemoriesMT","BLOQUEADO (domínio serve o Lume legado; valores criptografados)","REL-001, INF-002"),
+ ("G9","V2 backend: pgTAP e E2E de autorização em Supabase local","PASSA (local; não aplicado no remoto)","pgTAP 366/366; e2e/master-studio.spec.ts 5/5; docs/supabase/MIGRATIONS-V2.md"),
+ ("G10","V2: revisão independente A1–A5 e correção de P0/P1","EM ANDAMENTO","docs/audit/ux/INVENTARIO.md; revisões da sessão"),
+ ("G11","Acesso do conector Supabase ao projeto (INF-001)","ABERTO","INF-001")]
 rg = ["# Release gates", "", tab(gates, ["Gate", "Critério", "Estado", "Evidência"]), "", f"## Itens P0/P1 em aberto ({len(open_p01)})", tab([(i["id"], i["title"], i["priority"], i["status"]) for i in open_p01], ["ID", "Título", "Prio", "Status"]), "",
-      "## Decisão atual (AUD-001)", "**NO-GO para iniciar a integração com o Supabase agora.** Não há P0; há 1 P1 de produto (`BG-101`) e 6 P1 de integração (`ITG-101..ITG-106`). O caminho até **CONDITIONAL GO** é curto e não exige reescrever o produto: ondas 1 a 3 em `docs/audit/10-REMEDIATION-BACKLOG.md`, depois `AUD-002`. **GO para continuar a fase pré-backend** (correções). Nenhum item de EP-09 deve começar antes de `AUD-002`. `INF-001` (acesso do conector) corre em paralelo.", "",
+      "## Decisão atual", "**V1: NO-GO para produção** até REL-001/SB-008 (domínio serve o app legado e as variáveis de Production não foram verificadas) e G7 (fluxo de convidado no preview remoto). **V2: GO para preview** (nunca promover antes da V1 e da revisão independente). Itens da V2 em IN_REVIEW dependem da revisão A1–A5; nada aqui está DONE por ter sido codificado.", "",
       "## Próximos itens READY", tab([(i["priority"], i["id"], i["title"]) for i in nxt], ["Prio", "ID", "Título"])]
 w("RELEASE-GATES.md", "\n".join(rg) + "\n")
 print(f"OK: {len(leaf)} itens; prioridade {dict(cnt_p)}; status {dict(cnt_s)}; requisitos {dict(cnt)}")
 print("Próximos READY:", ", ".join(f"{i['id']}({i['priority']})" for i in nxt))
+
+# ROADMAP.md: releases incrementais (campo `release` em cada item; definições em meta.releases) e caminho crítico
+rel = data["meta"].get("releases", {})
+if rel:
+    openi = [i for i in leaf if i["status"] not in ("DONE", "CANCELLED")]
+    memo = {}
+    def chain(n):
+        if n in memo: return memo[n]
+        ds = [chain(d) for d in by[n]["dependencies"] if by[d]["status"] not in ("DONE", "CANCELLED")]
+        best = max(ds, key=len, default=[]); memo[n] = best + [n]; return memo[n]
+    def crit(prefix_ok):
+        c = [chain(i["id"]) for i in openi if prefix_ok(i)]
+        return max(c, key=len, default=[])
+    r_out = ["# Roadmap por releases (gerado de backlog.json)", "", "> Não editar: altere `release` nos itens de `backlog.json` e rode `tools/backlog.py`.", ""]
+    for rid, rd in rel.items():
+        mine = sorted([i for i in openi if i.get("release") == rid], key=lambda i: (PR[i["priority"]], i["id"]))
+        cp = collections.Counter(i["priority"] for i in mine); cs = collections.Counter(i["status"] for i in mine)
+        r_out += [f"## {rid} · {rd['nome']} ({rd['janela']})", "", rd["objetivo"], "", f"Itens abertos: **{len(mine)}** · " + ", ".join(f"{k} {cp.get(k,0)}" for k in PR) + " · " + ", ".join(f"{k} {v}" for k, v in sorted(cs.items())), ""]
+        r_out.append(tab([(i["id"], i["priority"], i["status"], i["title"][:90], ", ".join(i["dependencies"]) or "-") for i in mine], ["ID", "Prio", "Status", "Título", "Depende de"]) if mine else "_Sem itens abertos._")
+        r_out.append("")
+    mon = crit(lambda i: i["id"] == "COM-006")
+    scale = crit(lambda i: i["id"] in ("COM-008", "COM-010", "COM-012", "COM-013"))
+    r_out += ["## Caminho crítico", "", "Monetização: " + " → ".join(mon), "", "Escala: " + " → ".join(scale), ""]
+    w("ROADMAP.md", "\n".join(r_out))

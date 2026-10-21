@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P3 47. Status: BACKLOG 75, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, IN_REVIEW 15, READY 11.
+Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P3 47. Status: BACKLOG 88, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, IN_REVIEW 15, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -508,3 +508,47 @@ Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P
 | RLV-001 | FEATURE | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BACKLOG | QAV-002, SB-004, SB-008 | missão design/studio/master 2026-10-21 | - | - |
 
 **RLV-001** critérios: Preview funcional; sem promoção enquanto SB-004/SB-008 e a homologação v1 estiverem pendentes
+
+## EP-19 · Monetização e escala (BACKLOG)
+
+| ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
+|---|---|---|---|---|---|---|---|---|
+| COM-001 | FEATURE | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | BACKLOG | SB-004, SB-008 | consolidação do backlog 2026-10-21 | - | - |
+| COM-002 | FEATURE | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | BACKLOG | COM-001, COM-004 | consolidação do backlog 2026-10-21 | - | - |
+| COM-003 | FEATURE | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | BACKLOG | COM-001 | consolidação do backlog 2026-10-21 | - | - |
+| COM-004 | FEATURE | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | BACKLOG | SB-004 | consolidação do backlog 2026-10-21 | - | - |
+| COM-005 | FEATURE | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG | SB-008 | consolidação do backlog 2026-10-21 | - | - |
+| COM-006 | FEATURE | Página de planos e checkout do organizador | P1 | BACKLOG | COM-002 | consolidação do backlog 2026-10-21 | - | - |
+| COM-007 | FEATURE | Faturamento e financeiro no console master (recibos, reembolso, conciliação) | P2 | BACKLOG | COM-002, MAD-003 | consolidação do backlog 2026-10-21 | - | - |
+| COM-008 | FEATURE | Observabilidade: logs, alertas de revelação atrasada/uploads com falha, uptime | P2 | BACKLOG | SB-007 | consolidação do backlog 2026-10-21 | - | - |
+| COM-009 | FEATURE | Backup, PITR e teste de restauração; política de retenção de fotos | P1 | BACKLOG | SB-008 | consolidação do backlog 2026-10-21 | - | - |
+| COM-010 | FEATURE | Escala de mídia: miniaturas, transformação de imagem e custo de Storage por evento | P2 | BACKLOG | SB-005 | consolidação do backlog 2026-10-21 | - | - |
+| COM-011 | FEATURE | Domínio próprio e e-mail de marca | P2 | BACKLOG | REL-001 | consolidação do backlog 2026-10-21 | - | - |
+| COM-012 | FEATURE | Suporte e operação: canal de contato, SLA e runbook de incidentes | P2 | BACKLOG | COM-008 | consolidação do backlog 2026-10-21 | - | - |
+| COM-013 | FEATURE | Abuso e antifraude: rate limit na borda e moderação automática de imagens | P2 | BACKLOG | SB-005 | consolidação do backlog 2026-10-21 | - | - |
+
+**COM-004** critérios: Páginas publicadas; aceite versionado e auditado; revisão jurídica registrada
+
+**COM-001** critérios: Tabelas e RLS; pgTAP; sem cobrança ainda
+
+**COM-003** critérios: RPCs recusam acima do plano; testes de bypass
+
+**COM-002** critérios: Pagamento aprovado libera entitlement; webhook repetido não duplica; modo teste do provedor
+
+**COM-006** critérios: Fluxo completo em modo teste; estados de erro e recibo
+
+**COM-007** critérios: Reembolso auditado com justificativa; relatório de receita real
+
+**COM-005** critérios: Entrega comprovada em ambiente de teste; descadastro; sem PII em logs
+
+**COM-009** critérios: Restauração testada e documentada; RPO/RTO definidos
+
+**COM-008** critérios: Alertas ativos com destino definido; painel de saúde alimentado
+
+**COM-010** critérios: Miniaturas geradas no servidor; custo por evento medido
+
+**COM-013** critérios: Limites por IP/usuário; fila de moderação automática com revisão humana
+
+**COM-011** critérios: Domínio verificado na Vercel; Redirect URLs e OAuth atualizados
+
+**COM-012** critérios: Runbook publicado; simulação de incidente registrada

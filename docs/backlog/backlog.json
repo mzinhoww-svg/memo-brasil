@@ -17,7 +17,29 @@
    "DEFERRED",
    "CANCELLED"
   ],
-  "rule": "DONE exige implementação, testes, evidências e documentação atualizada."
+  "rule": "DONE exige implementação, testes, evidências e documentação atualizada.",
+  "releases": {
+   "R1": {
+    "nome": "Estabilização e go-live da V1",
+    "janela": "0–30 dias",
+    "objetivo": "Homologação real concluída e V1 em produção (Google OAuth, callback, variáveis de Production, smoke público)."
+   },
+   "R2": {
+    "nome": "Studio & Admin V2 em produção",
+    "janela": "30–60 dias",
+    "objetivo": "Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio)."
+   },
+   "R3": {
+    "nome": "Monetização e escala",
+    "janela": "60–90 dias",
+    "objetivo": "Planos, pagamento, e-mail, observabilidade e escala de mídia."
+   },
+   "R4": {
+    "nome": "Pós-90 dias",
+    "janela": ">90 dias",
+    "objetivo": "Melhorias P3 e itens adiados sem dependência de receita."
+   }
+  }
  },
  "epics": {
   "EP-01": "Eventos e convites",
@@ -37,7 +59,8 @@
   "EP-15": "Analytics",
   "EP-16": "Security v2",
   "EP-17": "QA v2",
-  "EP-18": "Release v2"
+  "EP-18": "Release v2",
+  "EP-19": "Monetização e escala"
  },
  "items": [
   {
@@ -400,7 +423,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R4"
   },
   {
    "id": "FT-007",
@@ -421,7 +445,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R4"
   },
   {
    "id": "FT-008",
@@ -499,7 +524,8 @@
    ],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R4"
   },
   {
    "id": "FT-011",
@@ -618,7 +644,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R4"
   },
   {
    "id": "FT-016",
@@ -1253,7 +1280,8 @@
    "environment": null,
    "sources": [
     "A2-008"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-021",
@@ -1300,7 +1328,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "FT-040",
@@ -1373,7 +1402,8 @@
    "environment": null,
    "sources": [
     "A2-003"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "BG-041",
@@ -1393,7 +1423,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "BG-042",
@@ -1416,7 +1447,8 @@
    "environment": null,
    "sources": [
     "A2-014"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "FT-050",
@@ -1459,7 +1491,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R4"
   },
   {
    "id": "BG-051",
@@ -1569,7 +1602,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "BG-061",
@@ -1591,7 +1625,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "BG-062",
@@ -1614,7 +1649,8 @@
    "environment": null,
    "sources": [
     "A2-013"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "FT-070",
@@ -1681,7 +1717,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "BG-071",
@@ -1704,7 +1741,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R1"
   },
   {
    "id": "AUD-001",
@@ -1762,7 +1800,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R1"
   },
   {
    "id": "REL-002",
@@ -1813,7 +1852,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "FT-081",
@@ -1835,7 +1875,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "FT-082",
@@ -1861,7 +1902,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "FT-083",
@@ -1886,7 +1928,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "FT-084",
@@ -1912,7 +1955,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "FT-085",
@@ -1937,7 +1981,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "FT-086",
@@ -1959,7 +2004,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "FT-087",
@@ -1984,7 +2030,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "FT-088",
@@ -2010,7 +2057,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "FT-089",
@@ -2037,7 +2085,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R3"
   },
   {
    "id": "INF-001",
@@ -2064,7 +2113,8 @@
     "docs/audit/evidence/logs/vercel-supabase-inspection.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R1"
   },
   {
    "id": "BG-101",
@@ -2185,7 +2235,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R3"
   },
   {
    "id": "BG-104",
@@ -2224,7 +2275,8 @@
    "severity_audit": [
     "P2",
     "P3"
-   ]
+   ],
+   "release": "R3"
   },
   {
    "id": "BG-105",
@@ -2257,7 +2309,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "BG-106",
@@ -2293,7 +2346,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "BG-107",
@@ -2328,7 +2382,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "BG-108",
@@ -2362,7 +2417,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "BG-109",
@@ -2396,7 +2452,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "BG-110",
@@ -2431,7 +2488,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "BG-111",
@@ -2467,7 +2525,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "BG-112",
@@ -2502,7 +2561,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R2"
   },
   {
    "id": "BG-113",
@@ -2579,7 +2639,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-121",
@@ -2614,7 +2675,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-122",
@@ -2654,7 +2716,8 @@
    "severity_audit": [
     "P3",
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-123",
@@ -2688,7 +2751,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-124",
@@ -2722,7 +2786,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-125",
@@ -2757,7 +2822,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-126",
@@ -2792,7 +2858,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-127",
@@ -2826,7 +2893,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-128",
@@ -2862,7 +2930,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-129",
@@ -2896,7 +2965,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-130",
@@ -2930,7 +3000,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-131",
@@ -2964,7 +3035,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-132",
@@ -2999,7 +3071,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-133",
@@ -3032,7 +3105,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-134",
@@ -3065,7 +3139,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-135",
@@ -3099,7 +3174,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-136",
@@ -3134,7 +3210,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-137",
@@ -3167,7 +3244,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-138",
@@ -3201,7 +3279,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-139",
@@ -3234,7 +3313,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-140",
@@ -3268,7 +3348,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-141",
@@ -3302,7 +3383,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-142",
@@ -3335,7 +3417,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-143",
@@ -3368,7 +3451,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "BG-150",
@@ -3402,7 +3486,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R3"
   },
   {
    "id": "ITG-101",
@@ -3758,7 +3843,8 @@
    "severity_audit": [
     "P2",
     "P2"
-   ]
+   ],
+   "release": "R3"
   },
   {
    "id": "ITG-108",
@@ -3794,7 +3880,8 @@
    ],
    "severity_audit": [
     "P2"
-   ]
+   ],
+   "release": "R3"
   },
   {
    "id": "ITG-109",
@@ -3836,7 +3923,8 @@
    "severity_audit": [
     "P2",
     "P2"
-   ]
+   ],
+   "release": "R3"
   },
   {
    "id": "ITG-110",
@@ -3871,7 +3959,8 @@
    ],
    "severity_audit": [
     "P3"
-   ]
+   ],
+   "release": "R4"
   },
   {
    "id": "INF-002",
@@ -3898,7 +3987,8 @@
    "environment": null,
    "effort": "S",
    "sources": [],
-   "severity_audit": []
+   "severity_audit": [],
+   "release": "R1"
   },
   {
    "id": "INF-003",
@@ -3923,7 +4013,8 @@
    "environment": null,
    "effort": "S",
    "sources": [],
-   "severity_audit": []
+   "severity_audit": [],
+   "release": "R4"
   },
   {
    "id": "AUD-002",
@@ -4077,7 +4168,8 @@
     "docs/supabase/REMOTE-HOMOLOGATION.md"
    ],
    "commit": "4ab85f8",
-   "environment": "remote"
+   "environment": "remote",
+   "release": "R1"
   },
   {
    "id": "SB-005",
@@ -4101,7 +4193,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R1"
   },
   {
    "id": "SB-006",
@@ -4125,7 +4218,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R1"
   },
   {
    "id": "SB-007",
@@ -4149,7 +4243,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R1"
   },
   {
    "id": "SB-008",
@@ -4179,7 +4274,8 @@
     "docs/supabase/REMOTE-HOMOLOGATION.md"
    ],
    "commit": "4ab85f8",
-   "environment": "vercel"
+   "environment": "vercel",
+   "release": "R1"
   },
   {
    "id": "EP-11",
@@ -4361,7 +4457,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-002",
@@ -4387,7 +4484,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": "9242018",
-   "environment": "local"
+   "environment": "local",
+   "release": "R2"
   },
   {
    "id": "DSV-001",
@@ -4413,7 +4511,8 @@
     "docs/architecture/DESIGN-V2-STUDIO-ADMIN.md"
    ],
    "commit": "c9269c6",
-   "environment": "local"
+   "environment": "local",
+   "release": "R2"
   },
   {
    "id": "DSV-002",
@@ -4435,7 +4534,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "DSV-003",
@@ -4457,7 +4557,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "EST-001",
@@ -4483,7 +4584,8 @@
     "docs/supabase/MIGRATIONS-V2.md"
    ],
    "commit": "198e2eb",
-   "environment": "local-supabase"
+   "environment": "local-supabase",
+   "release": "R2"
   },
   {
    "id": "EST-002",
@@ -4509,7 +4611,8 @@
     "docs/architecture/DESIGN-V2-STUDIO-ADMIN.md"
    ],
    "commit": "c9269c6",
-   "environment": "local"
+   "environment": "local",
+   "release": "R2"
   },
   {
    "id": "EST-003",
@@ -4531,7 +4634,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "EST-004",
@@ -4554,7 +4658,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "EST-005",
@@ -4576,7 +4681,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "MAD-001",
@@ -4602,7 +4708,8 @@
     "docs/supabase/MIGRATIONS-V2.md"
    ],
    "commit": "198e2eb",
-   "environment": "local-supabase"
+   "environment": "local-supabase",
+   "release": "R2"
   },
   {
    "id": "MAD-002",
@@ -4628,7 +4735,8 @@
     "docs/supabase/MIGRATIONS-V2.md"
    ],
    "commit": "198e2eb",
-   "environment": "local-supabase"
+   "environment": "local-supabase",
+   "release": "R2"
   },
   {
    "id": "MAD-003",
@@ -4656,7 +4764,8 @@
     "docs/supabase/MIGRATIONS-V2.md"
    ],
    "commit": "1d862dc",
-   "environment": "local-supabase"
+   "environment": "local-supabase",
+   "release": "R2"
   },
   {
    "id": "MAD-004",
@@ -4678,7 +4787,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "ANL-001",
@@ -4704,7 +4814,8 @@
     "docs/supabase/MIGRATIONS-V2.md"
    ],
    "commit": "198e2eb",
-   "environment": "local-supabase"
+   "environment": "local-supabase",
+   "release": "R2"
   },
   {
    "id": "SCV-001",
@@ -4730,7 +4841,8 @@
     "docs/supabase/MIGRATIONS-V2.md"
    ],
    "commit": "198e2eb",
-   "environment": "local-supabase"
+   "environment": "local-supabase",
+   "release": "R2"
   },
   {
    "id": "SCV-002",
@@ -4753,7 +4865,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "QAV-001",
@@ -4776,7 +4889,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "QAV-002",
@@ -4798,7 +4912,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "RLV-001",
@@ -4822,7 +4937,8 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-104",
@@ -4848,7 +4964,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-105",
@@ -4877,7 +4994,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": "9242018",
-   "environment": "local"
+   "environment": "local",
+   "release": "R2"
   },
   {
    "id": "UXA-106",
@@ -4903,7 +5021,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-107",
@@ -4932,7 +5051,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": "9242018",
-   "environment": "local"
+   "environment": "local",
+   "release": "R2"
   },
   {
    "id": "UXA-108",
@@ -4960,7 +5080,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-109",
@@ -4987,7 +5108,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-110",
@@ -5015,7 +5137,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": "9242018",
-   "environment": "local"
+   "environment": "local",
+   "release": "R2"
   },
   {
    "id": "UXA-111",
@@ -5043,7 +5166,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-112",
@@ -5071,7 +5195,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-113",
@@ -5099,7 +5224,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": "9242018",
-   "environment": "local"
+   "environment": "local",
+   "release": "R2"
   },
   {
    "id": "UXA-114",
@@ -5128,7 +5254,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": "9242018",
-   "environment": "local"
+   "environment": "local",
+   "release": "R2"
   },
   {
    "id": "UXA-115",
@@ -5154,7 +5281,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-116",
@@ -5180,7 +5308,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-117",
@@ -5206,7 +5335,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-118",
@@ -5232,7 +5362,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-119",
@@ -5258,7 +5389,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-120",
@@ -5284,7 +5416,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-121",
@@ -5310,7 +5443,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-122",
@@ -5336,7 +5470,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-123",
@@ -5364,7 +5499,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-124",
@@ -5390,7 +5526,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-125",
@@ -5416,7 +5553,8 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
   },
   {
    "id": "UXA-126",
@@ -5442,7 +5580,331 @@
     "docs/audit/ux/INVENTARIO.md"
    ],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "EP-19",
+   "type": "EPIC",
+   "title": "Monetização e escala",
+   "description": "Monetização e escala",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Todos os itens do epic EP-19 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-004",
+   "type": "FEATURE",
+   "title": "Termos de uso, política de privacidade e registro de aceite (organizador e convidado)",
+   "description": "Termos de uso, política de privacidade e registro de aceite (organizador e convidado)",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-004"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Páginas publicadas; aceite versionado e auditado; revisão jurídica registrada"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "COM-001",
+   "type": "FEATURE",
+   "title": "Modelo de planos e entitlements no banco (plano por evento/organizador)",
+   "description": "Modelo de planos e entitlements no banco (plano por evento/organizador)",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-004",
+    "SB-008"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Tabelas e RLS; pgTAP; sem cobrança ainda"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-003",
+   "type": "FEATURE",
+   "title": "Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade)",
+   "description": "Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade)",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "COM-001"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "RPCs recusam acima do plano; testes de bypass"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-002",
+   "type": "FEATURE",
+   "title": "Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação",
+   "description": "Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação",
+   "epic": "EP-19",
+   "parent": "FT-086",
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "COM-001",
+    "COM-004"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Pagamento aprovado libera entitlement; webhook repetido não duplica; modo teste do provedor"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-006",
+   "type": "FEATURE",
+   "title": "Página de planos e checkout do organizador",
+   "description": "Página de planos e checkout do organizador",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "COM-002"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Fluxo completo em modo teste; estados de erro e recibo"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-007",
+   "type": "FEATURE",
+   "title": "Faturamento e financeiro no console master (recibos, reembolso, conciliação)",
+   "description": "Faturamento e financeiro no console master (recibos, reembolso, conciliação)",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "COM-002",
+    "MAD-003"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Reembolso auditado com justificativa; relatório de receita real"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-005",
+   "type": "FEATURE",
+   "title": "E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca",
+   "description": "E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-008"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Entrega comprovada em ambiente de teste; descadastro; sem PII em logs"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-009",
+   "type": "FEATURE",
+   "title": "Backup, PITR e teste de restauração; política de retenção de fotos",
+   "description": "Backup, PITR e teste de restauração; política de retenção de fotos",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-008"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Restauração testada e documentada; RPO/RTO definidos"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "COM-008",
+   "type": "FEATURE",
+   "title": "Observabilidade: logs, alertas de revelação atrasada/uploads com falha, uptime",
+   "description": "Observabilidade: logs, alertas de revelação atrasada/uploads com falha, uptime",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-007"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Alertas ativos com destino definido; painel de saúde alimentado"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-010",
+   "type": "FEATURE",
+   "title": "Escala de mídia: miniaturas, transformação de imagem e custo de Storage por evento",
+   "description": "Escala de mídia: miniaturas, transformação de imagem e custo de Storage por evento",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-005"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Miniaturas geradas no servidor; custo por evento medido"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-013",
+   "type": "FEATURE",
+   "title": "Abuso e antifraude: rate limit na borda e moderação automática de imagens",
+   "description": "Abuso e antifraude: rate limit na borda e moderação automática de imagens",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-005"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Limites por IP/usuário; fila de moderação automática com revisão humana"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-011",
+   "type": "FEATURE",
+   "title": "Domínio próprio e e-mail de marca",
+   "description": "Domínio próprio e e-mail de marca",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "REL-001"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Domínio verificado na Vercel; Redirect URLs e OAuth atualizados"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "COM-012",
+   "type": "FEATURE",
+   "title": "Suporte e operação: canal de contato, SLA e runbook de incidentes",
+   "description": "Suporte e operação: canal de contato, SLA e runbook de incidentes",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "COM-008"
+   ],
+   "origin": "consolidação do backlog 2026-10-21",
+   "acceptance": [
+    "Runbook publicado; simulação de incidente registrada"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
   }
  ],
  "requirements": [
