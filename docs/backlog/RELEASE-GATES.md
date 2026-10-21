@@ -2,10 +2,10 @@
 
 | Gate | Critério | Estado | Evidência |
 |---|---|---|---|
-| G1 | Jornadas locais (eventos, convidados, fotos, revelação) | PASSA | 131 unit + 50 E2E (46 locais passando; 4 remotos) |
+| G1 | Jornadas locais (eventos, convidados, fotos, revelação) | PASSA | 131 unit + 51 E2E (46 locais; 5 remotos no preview) |
 | G2 | Design system aderente (paridade de estilos, axe, 4 viewports) | PASSA | docs/qa/VISUAL-VALIDATION.md |
 | G3 | Segurança básica do cliente (CSP, headers, locks, sem segredos) | PASSA com ressalvas | docs/qa/FINAL-AUDIT.md |
-| G4 | Revelação programada validada em browser e no preview | ABERTO até o smoke remoto (FT-037) | e2e/reveal*.spec.ts |
+| G4 | Revelação programada validada em browser e no preview | PASSA (preview no commit 5d8df4a) | e2e/reveal*.spec.ts; e2e/remote.spec.ts |
 | G5 | Auditoria independente concluída sem P0/P1 bloqueante (AUD-001) | ABERTO | docs/audit/ (a produzir) |
 | G6 | Produção promovida e verificada (REL-001) | BLOQUEADO (destino não confirmado) | — |
 
@@ -17,7 +17,7 @@
 | REL-001 | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | P1 | BLOCKED |
 
 ## Decisão atual
-**NO-GO para iniciar o Supabase** enquanto `AUD-001` (P0) estiver aberta. **GO para executar a auditoria independente** (`AUD-001`): as dependências estão concluídas, exceto a validação remota `FT-037`. Não declarar o produto pronto com P0/P1 bloqueantes em aberto.
+**NO-GO para iniciar o Supabase** enquanto `AUD-001` (P0) estiver aberta. **GO para executar a auditoria independente** (`AUD-001`): todas as dependências estão concluídas (inclui a validação no preview, `FT-037`). Não declarar o produto pronto com P0/P1 bloqueantes em aberto.
 
 ## Próximos itens READY
 | Prio | ID | Título |

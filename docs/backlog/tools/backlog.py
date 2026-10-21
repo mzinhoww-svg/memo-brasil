@@ -88,11 +88,11 @@ g += ["  classDef done fill:#E8ECE4,stroke:#1C1917;", "  classDef ready fill:#FF
 w("DEPENDENCY-GRAPH.md", "\n".join(g) + "\n")
 # RELEASE GATES
 nxt = ready(); open_p01 = [i for i in leaf if i["priority"] in ("P0", "P1") and i["status"] not in ("DONE", "DEFERRED", "CANCELLED")]
-gates = [("G1","Jornadas locais (eventos, convidados, fotos, revelação)","PASSA","131 unit + 50 E2E (46 locais passando; 4 remotos)"),("G2","Design system aderente (paridade de estilos, axe, 4 viewports)","PASSA","docs/qa/VISUAL-VALIDATION.md"),
- ("G3","Segurança básica do cliente (CSP, headers, locks, sem segredos)","PASSA com ressalvas","docs/qa/FINAL-AUDIT.md"),("G4","Revelação programada validada em browser e no preview","ABERTO até o smoke remoto (FT-037)","e2e/reveal*.spec.ts"),
+gates = [("G1","Jornadas locais (eventos, convidados, fotos, revelação)","PASSA","131 unit + 51 E2E (46 locais; 5 remotos no preview)"),("G2","Design system aderente (paridade de estilos, axe, 4 viewports)","PASSA","docs/qa/VISUAL-VALIDATION.md"),
+ ("G3","Segurança básica do cliente (CSP, headers, locks, sem segredos)","PASSA com ressalvas","docs/qa/FINAL-AUDIT.md"),("G4","Revelação programada validada em browser e no preview","PASSA (preview no commit 5d8df4a)","e2e/reveal*.spec.ts; e2e/remote.spec.ts"),
  ("G5","Auditoria independente concluída sem P0/P1 bloqueante (AUD-001)","ABERTO","docs/audit/ (a produzir)"),("G6","Produção promovida e verificada (REL-001)","BLOQUEADO (destino não confirmado)","—")]
 rg = ["# Release gates", "", tab(gates, ["Gate", "Critério", "Estado", "Evidência"]), "", f"## Itens P0/P1 em aberto ({len(open_p01)})", tab([(i["id"], i["title"], i["priority"], i["status"]) for i in open_p01], ["ID", "Título", "Prio", "Status"]), "",
-      "## Decisão atual", "**NO-GO para iniciar o Supabase** enquanto `AUD-001` (P0) estiver aberta. **GO para executar a auditoria independente** (`AUD-001`): as dependências estão concluídas, exceto a validação remota `FT-037`. Não declarar o produto pronto com P0/P1 bloqueantes em aberto.", "",
+      "## Decisão atual", "**NO-GO para iniciar o Supabase** enquanto `AUD-001` (P0) estiver aberta. **GO para executar a auditoria independente** (`AUD-001`): todas as dependências estão concluídas (inclui a validação no preview, `FT-037`). Não declarar o produto pronto com P0/P1 bloqueantes em aberto.", "",
       "## Próximos itens READY", tab([(i["priority"], i["id"], i["title"]) for i in nxt], ["Prio", "ID", "Título"])]
 w("RELEASE-GATES.md", "\n".join(rg) + "\n")
 print(f"OK: {len(leaf)} itens; prioridade {dict(cnt_p)}; status {dict(cnt_s)}; requisitos {dict(cnt)}")
