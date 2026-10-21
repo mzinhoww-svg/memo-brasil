@@ -22,7 +22,7 @@ export default function Convite() {
   const params = useParams<{ code: string }>();
   const code = normalizeShareCode(params.code ?? "") ?? "";
   const router = useRouter();
-  const { ready, user, signIn, repos, now, known, switchTo } = useApp();
+  const { ready, user, signIn, repos, now, known, switchTo, canSwitchIdentity } = useApp();
   const data = useEventData({ code });
   const [nameInput, setName] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
@@ -66,7 +66,7 @@ export default function Convite() {
         <div className="app-screen">
           <p className="emocao app-emocao">A visão de {event.hostName}. Agora, a sua.</p>
 
-          {!user && <KnownPeople people={known} onPick={(id) => void switchTo(id)} />}
+          {!user && canSwitchIdentity && <KnownPeople people={known} onPick={(id) => void switchTo(id)} />}
 
           {isHost || member ? (
             <div className="app-stack">

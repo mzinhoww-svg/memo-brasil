@@ -3524,7 +3524,7 @@
    "epic": "EP-08",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [
     "ITG-102"
    ],
@@ -3541,14 +3541,18 @@
     "web/src/features/photos/service.ts",
     "web/src/repositories/types.ts"
    ],
-   "tests": [],
+   "tests": [
+    "web/src/features/authority/authority.test.ts",
+    "web/src/repositories/contract-v2.test.ts"
+   ],
    "evidence": [
     "docs/audit/drafts/A4.md",
-    "types.ts:24,46,48; hooks.ts:83-92",
-    "indexeddb:108-112; photos/service.ts:24-32; INTEGRATION-PLAN §4,§7"
+    "docs/audit/remediation/ITG-103.md",
+    "indexeddb:108-112; photos/service.ts:24-32; INTEGRATION-PLAN §4,§7",
+    "types.ts:24,46,48; hooks.ts:83-92"
    ],
-   "commit": null,
-   "environment": null,
+   "commit": "b69eb37",
+   "environment": "local (Vitest + Chromium)",
    "effort": "L",
    "sources": [
     "A4-001",

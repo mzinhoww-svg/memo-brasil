@@ -11,7 +11,7 @@ import { useApp } from "@/features/app/provider";
 import { seedDemoEvent } from "@/features/demo/seed";
 
 export default function Home() {
-  const { repos, ready, user, signIn, now, persistent, storageError, known, switchTo } = useApp();
+  const { repos, ready, user, signIn, now, persistent, storageError, known, switchTo, canSwitchIdentity } = useApp();
   const [mine, setMine] = useState<MemoEvent[]>([]);
   const [joined, setJoined] = useState<MemoEvent[]>([]);
   const [busy, setBusy] = useState(false);
@@ -75,7 +75,7 @@ export default function Home() {
           <Button variant="texto" onClick={() => demo("pendente")} disabled={busy || !ready}>Ver exemplo com revelação em 2 minutos</Button>
         </div>
 
-        {ready && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
+        {ready && canSwitchIdentity && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
 
         {(!persistent || storageError) && ready && (
           <div className="app-banner" role="status">

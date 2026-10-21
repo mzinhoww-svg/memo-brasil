@@ -11,13 +11,12 @@
 | G7 | Acesso do conector Supabase ao projeto (INF-001) | ABERTO (bloqueio de infraestrutura) | docs/audit/evidence/logs/vercel-supabase-inspection.md |
 | G8 | Produção promovida e verificada (REL-001) | BLOQUEADO (destino não confirmado) | — |
 
-## Itens P0/P1 em aberto (6)
+## Itens P0/P1 em aberto (5)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
 | REL-001 | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | P1 | BLOCKED |
 | INF-001 | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) | P1 | READY |
-| ITG-103 | Fotos por URL/miniatura e upload em duas fases com created_at do servidor | P1 | BACKLOG |
 | ITG-105 | Identidade (auth.uid) e migração local→nuvem compatíveis com o esquema | P1 | BACKLOG |
 | AUD-002 | Reauditoria dos P1 após as correções (gate para iniciar a fase Supabase) | P1 | BACKLOG |
 

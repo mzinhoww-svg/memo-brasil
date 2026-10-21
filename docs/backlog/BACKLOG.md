@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 47, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 52, READY 11.
+Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 46, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 53, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -247,7 +247,7 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 | INF-001 | TASK | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) | P1 | READY | - | auditoria AUD-001 (infraestrutura) | - | - |
 | ITG-101 | FEATURE | Leitura escopada por papel: serviços recebem Actor; fotos bloqueadas nunca chegam ao cliente; convite sem expor evento | P1 | DONE | BG-101, BG-102, ITG-106 | auditoria AUD-001 · A3-001, A1-005, A1-004, A4-006 · natureza: integração | 20c4950 | local (Vitest + Chromium) |
 | ITG-102 | FEATURE | Contratos de repositório v2: paginação, contagem, erros tipados, versão e idempotência | P1 | DONE | ITG-106, BG-113 | auditoria AUD-001 · A3-003, A4-002, A4-003 · natureza: integração | a58c22b | local (Vitest + Chromium) |
-| ITG-103 | FEATURE | Fotos por URL/miniatura e upload em duas fases com created_at do servidor | P1 | BACKLOG | ITG-102 | auditoria AUD-001 · A4-001, A4-009 · natureza: integração | - | - |
+| ITG-103 | FEATURE | Fotos por URL/miniatura e upload em duas fases com created_at do servidor | P1 | DONE | ITG-102 | auditoria AUD-001 · A4-001, A4-009 · natureza: integração | b69eb37 | local (Vitest + Chromium) |
 | ITG-104 | FEATURE | Autoridade do servidor: revelação, rolo, limites e relógio | P1 | DONE | BG-101, BG-102, ITG-106 | auditoria AUD-001 · A4-004, A4-005, A4-010, A4-011 · natureza: integração | d5b9f25 | local (Vitest + Chromium) |
 | ITG-105 | FEATURE | Identidade (auth.uid) e migração local→nuvem compatíveis com o esquema | P1 | BACKLOG | ITG-102 | auditoria AUD-001 · A4-007, A4-008 · natureza: integração | - | - |
 | ITG-106 | TASK | Corrigir contradições do INTEGRATION-PLAN e fechar decisões de produto pendentes | P1 | DONE | - | auditoria AUD-001 · A4-005, A4-008 · natureza: integração | 753e57d | documentação |
@@ -261,8 +261,6 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 **BG-071** critérios: Interface Outbox com testes e implementação local
 
 **INF-001** critérios: list_projects do conector do Claude retorna o projeto asyaegeodyttttaubvxh; get_project confirma ACTIVE_HEALTHY, PostgreSQL 17 e região us-west-2 (somente leitura); Nenhuma escrita, migration, tabela, bucket ou credencial criada nesta verificação; Resultado registrado em docs/audit/evidence/logs
-
-**ITG-103** critérios: [A4-001] Corrigir: getPhotoUrl(id,variant) com expiração, miniaturas, carga sob demanda; separar fila local de upload do cache.; [A4-009] Corrigir: upload_status + finalize_photo; captured_at do cliente com tolerância; created_at do servidor; outbox com bytes e backoff.; [A4-001] Teste de regressão: Contrato: getPhotoUrl devolve URL válida; hook renova após expirar;; [A4-009] Teste de regressão: Falha no meio do upload não consome rolo; foto tirada antes do fim,
 
 **ITG-105** critérios: [A4-007] Corrigir: Usar AuthService no provider; anônimo + linkIdentity; remover switchTo do produto (demo à parte); função de fusão para Google já existente.; [A4-008] Corrigir: author_id nullable + author_name; RPC import_event security definer que ignora triggers; escolher identidade; manifesto com contagens e versão de formato.; [A4-007] Teste de regressão: Anônimo vincula Google mantendo uid e fotos.; [A4-008] Teste de regressão: Importar evento encerrado com fotos de 3 autores: contagens iguais,
 

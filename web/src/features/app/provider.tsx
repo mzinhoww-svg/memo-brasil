@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { now as clockNow } from "@/lib/clock";
 import { createServerClock, type ServerClock } from "@/lib/server-clock";
 import { localRevealAuthority, type RevealAuthority } from "@/features/authority";
+import { identityPolicy, type IdentityMode } from "@/features/cloud/import-plan";
 import { createLocalScheduler } from "@/lib/services/notifications";
 import type { NotificationScheduler } from "@/lib/services";
 import { createLocalRepositories, createMemoryRepositories, StorageUnavailableError, type Repositories, type User } from "@/repositories";
@@ -24,6 +25,9 @@ interface AppState {
   /** Cria (ou renomeia) a identidade local. Autenticação real depende do backend. */
   signIn: (name: string) => Promise<User>;
   signOut: () => Promise<void>;
+  /** `local` = identidade do aparelho; `cloud` = a da sessão (`auth.uid()`), sem troca de pessoa. */
+  identityMode: IdentityMode;
+  canSwitchIdentity: boolean;
   /** Outras identidades já usadas neste aparelho (ex.: o anfitrião depois de testar como convidado). */
   known: User[];
   switchTo: (id: string) => Promise<void>;
@@ -105,7 +109,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AppState>(
-    () => ({ repos, persistent, ready, user, storageError, scheduler, authority: localRevealAuthority, clock, now: clock.now, signIn, signOut, known, switchTo, reportStorageError: () => setStorageError(true) }),
+    () => ({ repos, persistent, ready, user, storageError, scheduler, authority: localRevealAuthority, clock, identityMode: "local", canSwitchIdentity: identityPolicy("local").canSwitch, now: clock.now, signIn, signOut, known, switchTo, reportStorageError: () => setStorageError(true) }),
     [repos, persistent, ready, user, known, storageError, scheduler, clock, signIn, signOut, switchTo],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
