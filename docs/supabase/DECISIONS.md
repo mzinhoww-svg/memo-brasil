@@ -15,11 +15,12 @@ Status: **técnicas = adotadas (reversíveis)**; **de produto = propostas, aguar
 | T8 | Identidade: Supabase Auth (anônima + Google via `linkIdentity`); `switchTo` existe só no demo local | `User.id` local ≠ `auth.uid()` |
 | T9 | Migração local→nuvem por RPC `import_event`, só eventos do host, IDs preservados, idempotente | A4-008 |
 
-## De produto (propostas; confirmar)
-| # | Pergunta | Proposta | Efeito |
+## De produto (FIXADAS pelo dono em 2026-10-21; implementadas nas migrations 1–6)
+| # | Pergunta | Decisão | Onde está implementada |
 |---|---|---|---|
-| P1 | Criar evento exige login Google? | **Sim** (organizador); convidado entra anônimo | define `host_id = auth.uid()` |
-| P2 | O host vê as fotos antes da revelação? | **Sim** (moderação), como no código | policy de `photos` |
-| P3 | Quem remove convidado pode bloquear reentrada? | **Sim** (`participants.blocked_at`) | BG-103 |
-| P4 | Retenção/LGPD: excluir conta apaga fotos de terceiros? | Apaga as do titular; fotos de convidados em eventos dele são apagadas com o evento | `delete_account` |
-| P5 | Código de convite: rotação/expiração? | Rotação a pedido e expiração opcional; limite de tentativas por IP | ITG-107 |
+| P1 | Criar evento exige login Google? | **Sim** para o organizador; **convidado entra por convite, sem conta** (sessão anônima) | policy `events_insert` (não anônimo); `join_event`; portão no wizard |
+| P2 | O host vê as fotos antes da revelação? | **Sim**, com acesso restrito e auditável | `can_see_photo` (host), `audit_logs` (`photo.moderated`, `reveal.*`) |
+| P3 | Remoção de participante | Perde acesso ao evento e aos arquivos | `participants.blocked_at` + `is_member` (RLS, Storage e Realtime reagem na hora) |
+| P4 | LGPD / exclusão de conta | Pedido registrado e processado com anonimização; não apaga fotos de outros participantes; retenção de 30 dias para evento apagado | `request_account_deletion`, `process_account_deletion`, `purge_deleted_events` |
+| P5 | Convites | Token imprevisível (24 bytes, só o hash), expiração, limite de usos, revogação, rotação do código, limite de tentativas | `create_invitation`, `revoke_invitation`, `rotate_event_code`, `check_rate_limit` |
+| P6 | Administrador master | Só por claim `app_metadata.role='master'` emitida pelo servidor; nunca público nem credencial fixa. Leitura de eventos/participantes/auditoria, **sem** acesso aos arquivos | `is_master()` + policies de leitura |
