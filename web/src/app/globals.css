@@ -1,0 +1,81 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+@import "../styles/mm.css";
+
+/* Tokens semânticos do MemoriesMT expostos ao Tailwind v4 (modo inline: as utilities
+   apontam para as variáveis de tokens.css, que continuam a fonte de verdade). */
+@theme inline {
+  --color-*: initial;
+  --color-fundo: var(--fundo);
+  --color-neutro: var(--neutro);
+  --color-tinta: var(--tinta);
+  --color-apoio: var(--apoio);
+  --color-borda: var(--borda);
+  --color-divisor: var(--divisor);
+  --color-acao: var(--acao);
+  --color-on-acao: var(--on-acao);
+  --color-foco: var(--foco);
+  --color-rec: var(--rec);
+  --color-rec-texto: var(--rec-texto);
+  --color-on-rec: var(--on-rec);
+  --color-desabilitado: var(--desabilitado);
+  --color-on-desabilitado: var(--on-desabilitado);
+  --color-evento-superficie: var(--evento-superficie);
+  --color-evento-grafismo: var(--evento-grafismo);
+  --color-evento-controle: var(--evento-controle);
+  --color-evento-texto: var(--evento-texto);
+  --color-evento-profundo: var(--evento-profundo);
+  --color-on-evento: var(--on-evento);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-7: var(--space-7);
+  --spacing-8: var(--space-8);
+  --spacing-9: var(--space-9);
+  --spacing-10: var(--space-10);
+  --spacing-avatar: var(--size-avatar);
+  --spacing-alvo: var(--size-alvo);
+  --spacing-opcao: var(--size-opcao);
+  --spacing-nav: var(--size-nav);
+  --spacing-campo: var(--size-campo);
+  --spacing-cta: var(--size-cta);
+  --spacing-cta-xl: var(--size-cta-xl);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-control: var(--radius-control);
+  --radius-panel: var(--radius-panel);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-icone: var(--radius-icone);
+  --radius-pill: var(--radius-pill);
+
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-evento: var(--font-evento);
+}
+
+html { background: var(--fundo); color: var(--tinta); }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.4;
+  background: var(--fundo);
+  color: var(--tinta);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+:where(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.mm-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mm-skip { position: absolute; left: var(--space-4); top: -100px; padding: var(--space-3) var(--space-4); background: var(--acao); color: var(--on-acao); border-radius: var(--radius-md); z-index: 100; }
+.mm-skip:focus { top: var(--space-4); }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
