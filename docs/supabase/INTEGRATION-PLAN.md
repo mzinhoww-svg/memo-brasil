@@ -4,6 +4,24 @@ Status: **somente planejamento.** Nada foi criado no Supabase: sem projeto, sem 
 Fontes: `docs/reverse-engineering/08-DATA-MODEL.md` e `09-API-AND-INTEGRATIONS.md` (REA), `web/src/repositories/types.ts`, `web/src/domain/*`.
 Convenção: **[REA]** confirmado pelo REA · **[DEC]** decisão deste plano · **[HIP]** hipótese a validar.
 
+## 0. Revisão pós-AUD-001 (v2): o que mudou e por quê
+Fonte: `docs/audit/08-SUPABASE-READINESS.md` (A4) e `docs/audit/drafts/A3.md`. Decisões técnicas adotadas (reversíveis) e propostas de produto (aguardam confirmação do dono) estão em `docs/supabase/DECISIONS.md`.
+| Contradição/lacuna do plano v1 | Decisão v2 |
+|---|---|
+| §4.1 dizia que nem o autor lê a própria foto antes da revelação; §5 dizia "autor: as suas" | **Ninguém que não seja o host lê foto antes de `is_revealed`, nem o autor** (câmera descartável; é o que a interface faz). Tabela de RLS corrigida |
+| `reveal_status` espelhado por qualquer cliente | **Só a tarefa `reveal_due_events` escreve** `reveal_status` e `revealed_at`; a RLS usa `now() >= reveal_at OR revealed_at IS NOT NULL`, não o espelho. O cliente apenas lê |
+| Revelação "ao terminar" gravada como data absoluta | `reveal_anchor` (`fim`/`data`) e `reveal_offset_days`: o servidor recalcula `reveal_at` quando o fim muda e a revelação ainda não ocorreu (BG-101) |
+| `participants` × `event_members` | **`participants`**; host fora da tabela; `is_member = is_host OR participants` |
+| `invitations` sem uso | O link carrega `invitations.id`; `participants.invitation_id` registra a origem; `?mesa=` deixa de ser rótulo livre confiável |
+| `photos.author_id not null` impede importar fotos de convidados | `author_id` nullable (`on delete set null`), `author_name` preservado |
+| Importação bloqueada pelos triggers de evento encerrado | RPC `import_event` `security definer` com bypass controlado e idempotente por UUID |
+| Rolo contado no cliente | RPC `my_shot_count(event_id)` + trigger `before insert` (a verdade); o cliente só exibe |
+| Sem controle de concorrência | `version` e `updated_at` em `events` e `photos`; `update … where version = $expected` → conflito tipado |
+| Sem paginação/contagem | `photos`/`participants` expõem `count`, páginas por cursor; PostgREST trunca em 1000 linhas |
+| Upload em um passo | duas fases: linha `enviando` → objeto → `finalize_photo` → `pronta`; `created_at` pelo servidor, `captured_at` do cliente |
+**RPCs adicionais:** `event_preview(code)` (campos mínimos do convite, sem participantes nem fotos), `my_shot_count(event_id)`, `import_event(bundle)`, `finalize_photo(photo_id)`, além de `join_event`, `get_photo_url`, `delete_account`.
+
+
 ## 1. Contratos que já existem no código (não mudam)
 | Interface local | Implementação atual | Implementação Supabase |
 |---|---|---|
@@ -57,7 +75,11 @@ create table events (
   reveal_enabled boolean not null default true,                                        -- [DEC] desligada = fotos visíveis na hora
   reveal_at timestamptz,                                                                -- UTC; obrigatório quando reveal_enabled
   timezone text not null default 'America/Cuiaba',                                      -- IANA: só para exibir e contar no fuso do evento
-  reveal_status reveal_status not null default 'pendente',
+  reveal_status reveal_status not null default 'pendente',                              -- espelho; escrito SÓ pela tarefa reveal_due_events
+  revealed_at timestamptz,                                                              -- monotônico: gravado uma vez (= reveal_at), nunca volta a null (BG-102)
+  reveal_anchor text not null default 'fim' check (reveal_anchor in ('fim','data')),   -- BG-101: 'fim' acompanha o fim do evento
+  reveal_offset_days int not null default 0 check (reveal_offset_days between 0 and 30),
+  version int not null default 1, updated_at timestamptz not null default now(),         -- concorrência otimista (ITG-102)
   constraint reveal_consistente check ((reveal_enabled and reveal_at is not null) or (not reveal_enabled and reveal_at is null)),
   capacity int check (capacity in (5,10,20,50,100,150,200)),                           -- null = ilimitado [REA]
   shots_per_person int check (shots_per_person in (5,10,16,24,36)),                    -- null = ilimitado [REA]
@@ -68,16 +90,18 @@ create table events (
   notice jsonb, created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );
 create table participants (event_id uuid references events on delete cascade, user_id uuid references profiles on delete cascade, name text not null, table_label text, joined_at timestamptz default now(), primary key (event_id, user_id));
+-- participants.invitation_id uuid references invitations (origem da entrada, ex.: Mesa 8); host NÃO é linha em participants: is_member = is_host OR existe participants
 create table photos (
   id uuid primary key,                         -- gerado no cliente: idempotência do envio offline
-  event_id uuid not null references events on delete cascade, author_id uuid not null references profiles,
+  event_id uuid not null references events on delete cascade, author_id uuid references profiles on delete set null,  -- nullable: importação de fotos de autores sem conta; author_name sempre preenchido
+  captured_at timestamptz, upload_status text not null default 'pronta' check (upload_status in ('enviando','pronta','falhou')), mime text, bytes int, width int, height int, deleted_at timestamptz, version int not null default 1,
   author_name text not null, moment text not null, caption text check (length(caption) <= 140), table_label text,
   status photo_status not null default 'visivel', highlighted boolean not null default false,
   storage_path text not null unique, created_at timestamptz not null default now()
 );
 create table photo_reports (photo_id uuid references photos on delete cascade, reporter_id uuid references profiles on delete cascade, created_at timestamptz default now(), primary key (photo_id, reporter_id));
 create table reactions (photo_id uuid references photos on delete cascade, author_id uuid references profiles on delete cascade, event_id uuid not null references events on delete cascade, kind reaction_kind not null, primary key (photo_id, author_id));  -- [REA] upsert on (photo_id, author_id)
-create table invitations (id uuid primary key default gen_random_uuid(), event_id uuid references events on delete cascade, label text not null, created_at timestamptz default now());
+create table invitations (id uuid primary key default gen_random_uuid(), event_id uuid references events on delete cascade, label text not null, expires_at timestamptz, revoked_at timestamptz, created_at timestamptz default now());  -- o link carrega o id (não o rótulo livre): ITG-107
 create table push_subscriptions (id uuid primary key default gen_random_uuid(), user_id uuid references profiles on delete cascade, event_id uuid references events on delete cascade, endpoint text not null unique, p256dh text not null, auth text not null);
 create table entitlements (user_id uuid references profiles on delete cascade, kind text not null, capacity int, valid_until timestamptz, provider_ref text not null unique, primary key (user_id, provider_ref));
 create index on photos (event_id, created_at desc); create index on participants (user_id); create index on reactions (event_id);
@@ -97,7 +121,7 @@ Contagem de pedidos de remoção = `count(*) from photo_reports` (evita contar d
 ## 4.1 Revelação programada no servidor (contrato já modelado no cliente)
 Cliente hoje: `reveal_enabled`, `reveal_at`, `timezone`, `reveal_status` em `MemoEvent`; `computeRevealStatus(now)` decide a visibilidade; `reconcileReveal` espelha o estado de forma idempotente; os timers do navegador só acordam a interface. **Nada disso é segurança**: no cliente a foto bloqueada existe no aparelho. No servidor:
 - **Quem configura**: só o organizador do evento (`is_host`) ou master com auditoria (`audit_logs`). Trigger recusa `update` de `reveal_*` quando `reveal_status = 'revelada'` (não esconder o que já foi visto) e recusa ligar a revelação se já existem fotos visíveis. `reveal_at` precisa estar ≥ `now() + 1 min` na gravação.
-- **Revelação idempotente**: `pg_cron` a cada minuto executa `reveal_due_events()`: `update events set reveal_status='revelada' where reveal_enabled and reveal_status='pendente' and reveal_at <= now()` (idempotente, sem efeito se repetido) e publica via Realtime (`events` canal por `event_id`) e Web Push ("As fotos foram reveladas"). Se o job atrasar, a RLS continua correta porque ela usa `now() >= reveal_at`, não o status.
+- **Revelação idempotente**: `pg_cron` a cada minuto executa `reveal_due_events()`: `update events set reveal_status='revelada', revealed_at = reveal_at where reveal_enabled and revealed_at is null and reveal_at <= now()` (idempotente, sem efeito se repetido) e publica via Realtime (`events` canal por `event_id`) e Web Push ("As fotos foram reveladas"). Se o job atrasar, a RLS continua correta porque ela usa `now() >= reveal_at`, não o status.
 - **Controle de acesso das fotos**: a policy de `photos` só devolve linha a não-host se `is_revealed(event)`; o bucket `event-photos` é **privado** e o cliente só obtém **URL assinada** (curta, 60 s) por RPC `get_photo_url(photo_id)` que reaplica a mesma regra. Antes da revelação nem a linha nem o objeto são acessíveis, nem para o autor (câmera descartável); o host vê tudo para moderar.
 - **Sincronização entre dispositivos**: o cliente assina o canal do evento; ao receber `reveal_status = 'revelada'` roda a transição. Offline: ao reconectar, relê `events` e recalcula; nunca confia em contagem local.
 - **Fuso**: `reveal_at` é sempre UTC; `timezone` só formata. Alterar o fuso sem mudar a hora de parede recalcula `reveal_at` no cliente e grava o novo UTC.
@@ -110,7 +134,7 @@ Cliente hoje: `reveal_enabled`, `reveal_at`, `timezone`, `reveal_status` em `Mem
 | `profiles` | próprio perfil; nome visível a co-participantes | no signup (trigger) | próprio | só via `delete_account` |
 | `events` | host, ou participante (colunas completas); público só via RPC | host (`host_id = auth.uid()`) | host | host |
 | `participants` | host vê todos; participante vê os do mesmo evento | só via `join_event` | próprio nome/mesa | host remove; próprio sai |
-| `photos` | host: todas não removidas; autor: as suas; outros membros: `status='visivel' and everyone_sees_all and is_revealed(event)` | membro, `author_id = auth.uid()`, passa nos triggers | host (`status`, `highlighted`) | host (soft delete → `removida`) |
+| `photos` | host: todas não removidas (moderação). **Convidado, inclusive o autor, só lê depois de `is_revealed`** (contradição corrigida: antes constava "autor: as suas"); `status='visivel' and upload_status='pronta'`; `everyone_sees_all=false` limita a si mesmo, mas só depois da revelação | membro, `author_id = auth.uid()`, passa nos triggers | host (`status`, `highlighted`) com `version` | host (soft delete) |
 | `reactions` | membros do evento (se reações ligadas) | membro, `author_id = auth.uid()`, só em foto que enxerga | próprio | próprio |
 | `photo_reports` | host | membro (uma por foto) | — | — |
 | `invitations`, `push_subscriptions`, `entitlements` | host / próprio / próprio | host / próprio / só service role | — | host / próprio / — |

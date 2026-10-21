@@ -2108,7 +2108,7 @@
    "epic": "EP-03",
    "parent": null,
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [
     "BG-101"
    ],
@@ -2123,13 +2123,19 @@
     "web/src/features/events/service.ts",
     "web/src/lib/clock.ts"
    ],
-   "tests": [],
-   "evidence": [
-    "docs/audit/drafts/A1.md",
-    "a1-reveal.json (R5: stored revelada→pendente; R5b editavel true); screenshots/a1-r5-regride.png"
+   "tests": [
+    "web/e2e/reveal.spec.ts (BG-102)",
+    "web/src/domain/reveal.test.ts (BG-102)",
+    "web/src/features/features.test.ts (BG-102)",
+    "web/src/repositories/repositories.test.ts (v4)"
    ],
-   "commit": null,
-   "environment": null,
+   "evidence": [
+    "a1-reveal.json (R5: stored revelada→pendente; R5b editavel true); screenshots/a1-r5-regride.png",
+    "docs/audit/drafts/A1.md",
+    "docs/audit/remediation/BG-102.md"
+   ],
+   "commit": "4570190",
+   "environment": "local (build de teste, Chromium)",
    "effort": "S",
    "sources": [
     "A1-002"
