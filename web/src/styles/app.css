@@ -69,3 +69,5 @@
 .studio-qr { width: 120px; height: 120px; border: 6px solid; background: repeating-conic-gradient(currentColor 0 25%, transparent 0 50%) 0 0 / 24px 24px; border-radius: 8px; }
 .studio-qr[data-estilo="pontos"] { border-radius: 50%; } .studio-qr[data-estilo="arredondado"] { border-radius: 24px; }
 .studio-botao { display: inline-flex; align-items: center; min-height: 44px; padding: 0 24px; border-radius: 999px; font-weight: 600; }
+.studio-capa { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; }
+.studio-logo { max-width: 96px; max-height: 96px; object-fit: contain; }

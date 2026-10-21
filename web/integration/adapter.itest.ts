@@ -1,5 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { assetUrl, currentAsset, uploadBrandAsset } from "@/features/studio/assets";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readEventScoped } from "@/features/access/read";
 import { moderate } from "@/features/admin/service";
@@ -147,6 +150,21 @@ describe("adaptador Supabase atrás do contrato de repositório", () => {
       const h = (await host.events.get(tEvent))!;
       await expect(host.events.save({ ...h, theme: bad })).rejects.toBeInstanceOf(RepositoryError);
       expect((await host.events.get(tEvent))?.theme?.preset).toBe("oceano");
+    });
+    it("logo e capa: host envia em duas fases, membro assina a URL, estranho não; SVG e tipo falso são recusados", async () => {
+      const png = fs.readFileSync(path.resolve(__dirname, "../public/pwa/icon-192.png"));
+      const file = (type = "image/png", body: Buffer | string = png) => new File([body as BlobPart], "x", { type });
+      const a = await uploadBrandAsset(hostSb, tEvent, "logo", file(), { width: 192, height: 192 });
+      expect((await currentAsset(hostSb, tEvent, "logo"))?.id).toBe(a.id);
+      expect(await assetUrl(guestSb, a)).toMatch(/^http/); // membro do evento
+      expect(await assetUrl(strangerSb, a)).toBeUndefined(); // quem não entrou
+      await expect(uploadBrandAsset(guestSb, tEvent, "cover", file(), { width: 192, height: 192 })).rejects.toThrow(); // membro não é host
+      await expect(uploadBrandAsset(hostSb, tEvent, "cover", file("image/svg+xml", "<svg xmlns='http://www.w3.org/2000/svg'/>"), { width: 192, height: 192 })).rejects.toThrow(/PNG, JPEG ou WebP/);
+      const dup = await uploadBrandAsset(hostSb, tEvent, "logo", file(), { width: 192, height: 192 }); // substitui
+      expect(dup.id).not.toBe(a.id);
+      expect((await currentAsset(hostSb, tEvent, "logo"))?.id).toBe(dup.id);
+      const { data } = await admin.from("event_assets").select("id").eq("event_id", tEvent).eq("kind", "logo");
+      expect(data).toHaveLength(1);
     });
     it("restaurar o padrão apaga a linha; salvar outras configurações não mexe no tema", async () => {
       const r = await restoreDefaultTheme(host, tEvent, NOW());

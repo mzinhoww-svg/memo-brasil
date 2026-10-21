@@ -6,6 +6,9 @@ import type { MemoEvent } from "@/domain/event";
 import { MESSAGE_MAX, QR_STYLES, THEME_FONTS, type QrStyle, type ThemeFont, type ThemeSpec } from "@/domain/theme";
 import { EVENT_FONT_LABEL } from "@/lib/event-theme";
 import { PRESETS, validateTheme } from "@/lib/event-theme/spec";
+import type { AssetKind } from "./assets";
+
+export interface StudioImages { logoUrl?: string; coverUrl?: string; onUpload: (kind: AssetKind, file: File) => Promise<string | undefined> }
 
 const COLOR_LABEL = { superficie: "Fundo", grafismo: "Detalhes", controle: "Botões", texto: "Texto", profundo: "Destaque" } as const;
 const QR_LABEL: Record<QrStyle, string> = { classico: "Clássico", pontos: "Pontos", arredondado: "Arredondado" };
@@ -15,7 +18,7 @@ export function initialTheme(event: Pick<MemoEvent, "theme" | "palette" | "event
 }
 
 /** Editor com prévia em tempo real. A prévia usa o mesmo wrapper isolado (EventTheme) que o convidado verá. */
-export function AppearanceStudio({ event, locked, onSave, onRestore }: { event: MemoEvent; locked: boolean; onSave: (t: ThemeSpec) => Promise<string | undefined>; onRestore: () => Promise<string | undefined> }) {
+export function AppearanceStudio({ event, locked, onSave, onRestore, images }: { event: MemoEvent; locked: boolean; onSave: (t: ThemeSpec) => Promise<string | undefined>; onRestore: () => Promise<string | undefined>; images?: StudioImages }) {
   const [draft, setDraft] = useState<ThemeSpec>(() => initialTheme(event));
   const [msg, setMsg] = useState<string | undefined>();
   const verdict = useMemo(() => validateTheme(draft), [draft]);
@@ -53,6 +56,19 @@ export function AppearanceStudio({ event, locked, onSave, onRestore }: { event: 
             <p id="ap-msg-ajuda" className="app-p app-muted">{draft.welcomeMessage.length}/{MESSAGE_MAX}. Só texto; aparece no convite e na entrada.</p>
           </div>
           <OptionGroup<QrStyle> label="Estilo do QR Code" value={draft.qrStyle} onChange={(v) => set({ qrStyle: v })} options={QR_STYLES.map((q) => ({ value: q, label: QR_LABEL[q] }))} />
+          <div className="app-stack-sm" data-testid="imagens">
+            <span className="mm-group-label">Imagens</span>
+            {images ? (
+              (["logo", "cover"] as const).map((k) => (
+                <div className="mm-field" key={k}>
+                  <label className="mm-field-label" htmlFor={`ap-${k}`}>{k === "logo" ? "Logotipo (PNG, JPEG ou WebP, até 2 MB)" : "Capa (PNG, JPEG ou WebP, até 5 MB)"}</label>
+                  <input id={`ap-${k}`} type="file" accept="image/png,image/jpeg,image/webp" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setMsg((await images.onUpload(k, f)) ?? (k === "logo" ? "Logotipo atualizado." : "Capa atualizada.")); e.target.value = ""; }} />
+                </div>
+              ))
+            ) : (
+              <p className="app-p app-muted">Logo e capa ficam disponíveis com o servidor ligado.</p>
+            )}
+          </div>
         </fieldset>
         {!verdict.ok && (
           <ul className="mm-field-erro" role="alert">{verdict.errors.map((e) => <li key={e}>{e}</li>)}</ul>
@@ -68,6 +84,10 @@ export function AppearanceStudio({ event, locked, onSave, onRestore }: { event: 
         <p className="mm-group-label">Prévia do convite</p>
         <EventTheme palette={event.palette} font={draft.font} theme={verdict.ok ? draft : undefined} className="studio-cartao">
           <div className="studio-cartao-corpo" style={{ background: "var(--evento-superficie)", color: "var(--evento-texto)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- URL assinada do Storage, sem otimizador */}
+            {images?.coverUrl && <img className="studio-capa" src={images.coverUrl} alt="" />}
+            {/* eslint-disable-next-line @next/next/no-img-element -- URL assinada do Storage, sem otimizador */}
+            {images?.logoUrl && <img className="studio-logo" src={images.logoUrl} alt="Logotipo do evento" />}
             <p className="nome-evento app-h1" style={{ color: "var(--evento-profundo)", fontFamily: "var(--font-evento)" }}>{event.title}</p>
             {draft.welcomeMessage && <p className="app-p">{draft.welcomeMessage}</p>}
             <span className="studio-qr" data-estilo={draft.qrStyle} aria-hidden="true" style={{ borderColor: "var(--evento-controle)" }} />
