@@ -5,7 +5,7 @@ import { createIndexedDbRepositories, createMemoryRepositories, deleteEventCasca
 
 const ev = (id: string, code: string): MemoEvent => ({
   id, code, title: "Emy e Igor", category: "casamento", hostId: "h", hostName: "Emy", startAt: 1, durationHours: 6,
-  cameraStyle: "original", revealEnabled: true, revealAt: 6, revealAnchor: "fim", revealOffsetDays: 0, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24,
+  cameraStyle: "original", revealEnabled: true, revealAt: 6, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24,
   everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 1,
 });
 const photo = (id: string, eventId: string, createdAt = 1): Photo => ({ id, eventId, authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false });
@@ -169,5 +169,22 @@ describe("BG-101: migração v3 (âncora da revelação)", () => {
     expect(await v3.events.get("b")).toMatchObject({ revealAnchor: "fim", revealOffsetDays: 2 });
     expect(await v3.events.get("c")).toMatchObject({ revealAnchor: "data", revealOffsetDays: 0 });
     expect(await v3.events.get("d")).toMatchObject({ revealAnchor: "data", revealOffsetDays: 0 });
+  });
+});
+
+describe("BG-102: migração v4 (revealedAt)", () => {
+  it("marca como já reveladas as revelações cujo horário passou; as pendentes ficam sem registro", async () => {
+    const { MIGRATIONS } = await import("./indexeddb");
+    const dbName = `revelada-${n++}`;
+    const v3 = createIndexedDbRepositories(dbName, MIGRATIONS.slice(0, 3));
+    const past = Date.now() - 3_600_000, future = Date.now() + 3_600_000;
+    await v3.events.save({ ...ev("p", "PPPPPPPP"), revealedAt: undefined, revealEnabled: true, revealAt: past, revealStatus: "revelada" } as never);
+    await v3.events.save({ ...ev("f", "FFFFFFFF"), revealedAt: undefined, revealEnabled: true, revealAt: future, revealStatus: "pendente" } as never);
+    await v3.events.save({ ...ev("d", "DDDDDDDD"), revealedAt: undefined, revealEnabled: false, revealAt: null, revealStatus: "desativada" } as never);
+    expect((await v3.events.get("p"))!.revealedAt).toBeUndefined(); // controle
+    const v4 = createIndexedDbRepositories(dbName);
+    expect((await v4.events.get("p"))!.revealedAt).toBe(past);
+    expect((await v4.events.get("f"))!.revealedAt).toBeNull();
+    expect((await v4.events.get("d"))!.revealedAt).toBeNull();
   });
 });

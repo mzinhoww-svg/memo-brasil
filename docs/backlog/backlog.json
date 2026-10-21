@@ -2066,7 +2066,7 @@
    "epic": "EP-03",
    "parent": null,
    "priority": "P1",
-   "status": "READY",
+   "status": "DONE",
    "dependencies": [],
    "origin": "auditoria AUD-001 · A1-001 · natureza: produto",
    "acceptance": [
@@ -2079,13 +2079,19 @@
     "web/src/features/events/reveal-input.ts",
     "web/src/features/events/service.ts"
    ],
-   "tests": [],
+   "tests": [
+    "web/e2e/reveal.spec.ts (BG-101)",
+    "web/src/domain/reveal.test.ts",
+    "web/src/features/features.test.ts (BG-101)",
+    "web/src/repositories/repositories.test.ts (v3)"
+   ],
    "evidence": [
     "docs/audit/drafts/A1.md",
-    "docs/audit/evidence/test-results/a1-reveal.json (R9, R9b); screenshots/a1-r9-encerrado-antes.png"
+    "docs/audit/evidence/test-results/a1-reveal.json (R9, R9b); screenshots/a1-r9-encerrado-antes.png",
+    "docs/audit/remediation/BG-101.md"
    ],
-   "commit": null,
-   "environment": null,
+   "commit": "c5e7e46",
+   "environment": "local (build de teste, Chromium)",
    "effort": "M",
    "sources": [
     "A1-001"

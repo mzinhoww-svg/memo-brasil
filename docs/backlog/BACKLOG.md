@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 52, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 45, READY 13.
+Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 52, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 46, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -61,7 +61,7 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| BG-101 | BUG | Revelação 'ao terminar' e 'N dias depois' não acompanha o fim do evento (estender/encerrar agora) | P1 | READY | - | auditoria AUD-001 · A1-001 · natureza: produto | - | - |
+| BG-101 | BUG | Revelação 'ao terminar' e 'N dias depois' não acompanha o fim do evento (estender/encerrar agora) | P1 | DONE | - | auditoria AUD-001 · A1-001 · natureza: produto | c5e7e46 | local (build de teste, Chromium) |
 | BG-102 | BUG | Estado 'revelada' não é monotônico: relógio atrasado reesconde fotos e destrava a edição | P2 | BACKLOG | BG-101 | auditoria AUD-001 · A1-002 · natureza: produto | - | - |
 | BG-104 | BUG | Diálogo de revelação: foco, Escape, landmark e não bloquear a postagem | P2 | READY | - | auditoria AUD-001 · A1-006, A1-014 · natureza: produto | - | - |
 | BG-121 | BUG | Contagem zera enquanto a tela segue 'Aguardando' por até 15 s | P3 | BACKLOG | - | auditoria AUD-001 · A1-008 · natureza: produto | - | - |
@@ -87,8 +87,6 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 | US-032a | USER_STORY | Como convidado, quero fotografar sem ver fotos bloqueadas e ver a espera com contagem | P0 | DONE | TK-030a1 | REA | 0e818dd | local (build de produção, Chromium) |
 | US-032b | USER_STORY | Como convidado, quero que a galeria abra sozinha na hora, mesmo offline, sem recarregar | P0 | DONE | US-032a | REA | 0e818dd | local (build de produção, Chromium) |
 | US-032c | USER_STORY | Modo sem revelação: fotos aparecem na hora | P0 | DONE | - | REA | 0e818dd | local (build de produção, Chromium) |
-
-**BG-101** critérios: [A1-001] Corrigir: Persistir revealMode (fim|data|depois) e offset; recalcular revealAt em setEndIn/endEventNow enquanto pendente; senão exigir confirmação mostrando o novo horário.; [A1-001] Teste de regressão: e2e: alterar fim e encerrar agora com modo 'fim' mantém revealAt === endAt; teste de domínio de recalculo
 
 **BG-102** critérios: [A1-002] Corrigir: Local: gravar revealedAt e nunca regredir. Backend: hora do servidor (clock.ts como ponto de troca), transição só pendente→revelada.; [A1-002] Teste de regressão: unit: reconcileReveal nunca grava revelada→pendente; e2e com relógio recuado
 

@@ -35,7 +35,7 @@ flowchart LR
   FT_088["FT-088<br/>DEFERRED"]:::defer
   FT_089["FT-089<br/>DEFERRED"]:::defer
   INF_001["INF-001<br/>READY"]:::ready
-  BG_101["BG-101<br/>READY"]:::ready
+  BG_101["BG-101<br/>DONE"]:::done
   BG_102["BG-102<br/>BACKLOG"]:::back
   BG_111["BG-111<br/>BACKLOG"]:::back
   BG_113["BG-113<br/>BACKLOG"]:::back

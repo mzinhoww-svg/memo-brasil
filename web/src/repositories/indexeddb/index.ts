@@ -46,6 +46,15 @@ export const MIGRATIONS: Migration[] = [
       if (e.revealAnchor === undefined) await cur.update({ ...cur.value, ...inferRevealAnchor(e) } as never);
     }
   },
+  // v4: revealedAt (monotônico). Revelações cujo horário já passou ficam registradas como reveladas.
+  async (_db, tx) => {
+    const store = tx.objectStore("events");
+    const now = Date.now();
+    for (let cur = await store.openCursor(); cur; cur = await cur.continue()) {
+      const e = cur.value as unknown as { revealedAt?: number | null; revealEnabled: boolean; revealAt: number | null };
+      if (e.revealedAt === undefined) await cur.update({ ...cur.value, revealedAt: e.revealEnabled && e.revealAt !== null && e.revealAt <= now ? e.revealAt : null } as never);
+    }
+  },
 ];
 export const DB_VERSION = MIGRATIONS.length;
 

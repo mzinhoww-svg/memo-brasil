@@ -100,8 +100,10 @@ export function formatInZone(epoch: number, tz: string): { date: string; time: s
   return { date: `${d} · ${m} · ${y}`, time: `${z.time.slice(0, 2)}h${z.time.slice(3)}` };
 }
 
-export function computeRevealStatus(e: Pick<MemoEvent, "revealEnabled" | "revealAt">, now: number): RevealStatus {
+/** `revealedAt` (registrado pela tarefa de revelação) torna o estado monotônico: relógio recuado não reesconde. */
+export function computeRevealStatus(e: Pick<MemoEvent, "revealEnabled" | "revealAt"> & { revealedAt?: number | null }, now: number): RevealStatus {
   if (!e.revealEnabled) return "desativada";
+  if (e.revealedAt !== undefined && e.revealedAt !== null) return "revelada";
   if (e.revealAt === null) return "pendente";
   return now >= e.revealAt ? "revelada" : "pendente";
 }

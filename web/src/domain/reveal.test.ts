@@ -9,7 +9,7 @@ const H = 3_600_000;
 const D = 24 * H;
 const ev = (o: Partial<MemoEvent> = {}): MemoEvent => ({
   id: "e", code: "AAAAAAAA", title: "Emy e Igor", category: "casamento", hostId: "host", hostName: "Emy", startAt: 0, durationHours: 6,
-  cameraStyle: "original", revealEnabled: true, revealAt: 10 * H, revealAnchor: "fim", revealOffsetDays: 0, timezone: "America/Cuiaba", revealStatus: "pendente", capacity: 50,
+  cameraStyle: "original", revealEnabled: true, revealAt: 10 * H, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, timezone: "America/Cuiaba", revealStatus: "pendente", capacity: 50,
   shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 0, ...o,
 });
 
@@ -126,5 +126,21 @@ describe("BG-101: âncora da revelação", () => {
     expect(syncRevealWithEnd({ ...e, durationHours: 30 }, 5 * H).revealAt).toBe(30 * H);
     expect(syncRevealWithEnd({ ...e, durationHours: 30 }, 7 * H).revealAt).toBe(6 * H); // já revelada: fica
     expect(syncRevealWithEnd({ ...ev({ revealAnchor: "data", revealAt: 9 * H }), durationHours: 30 }, 0).revealAt).toBe(9 * H);
+  });
+});
+
+describe("BG-102: 'revelada' é monotônica (revealedAt persistido)", () => {
+  const pend = ev({ revealEnabled: true, revealAt: 10 * H });
+  it("depois de observada, o relógio recuado não reesconde as fotos", () => {
+    const seen = { ...pend, revealedAt: 10 * H };
+    expect(computeRevealStatus(seen, 5 * H)).toBe("revelada");
+    expect(computeRevealStatus(seen, 0)).toBe("revelada");
+    expect(computeRevealStatus(pend, 5 * H)).toBe("pendente"); // sem registro, vale o relógio
+  });
+  it("e a edição continua travada com o relógio recuado", () => {
+    expect(canEditReveal({ ...pend, revealedAt: 10 * H }, 3, 2 * H, false)).toEqual({ ok: false, reason: "ja-revelada" });
+  });
+  it("revealedAt sem revelação ligada é ignorado", () => {
+    expect(computeRevealStatus({ revealEnabled: false, revealAt: null, revealedAt: 5 }, 0)).toBe("desativada");
   });
 });

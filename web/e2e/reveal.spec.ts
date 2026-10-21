@@ -172,3 +172,32 @@ test("BG-101: 'ao terminar' acompanha o fim ao estender e ao encerrar agora (pel
   await page.getByRole("dialog").getByRole("button", { name: "Encerrar agora" }).click();
   await expect(cfg).toContainText("A revelação aconteceu em"); // revelou no encerramento, sem esperar horas
 });
+
+test("BG-102: com o relógio do aparelho recuado, a revelação já ocorrida não volta a esconder nem destrava a edição", async ({ page }) => {
+  const t0 = Date.now();
+  const { code, id } = await setup(page, t0, 3, "Relógio recuado");
+  await switchPerson(page, code, "Ana");
+  await postViaFile(page, code);
+  await page.clock.fastForward("04:00");
+  await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
+  await page.getByRole("button", { name: "Ver as fotos", exact: true }).click({ timeout: 8000 });
+  await page.getByRole("link", { name: "Agora" }).click();
+  await expect(page.locator(".mm-post")).toHaveCount(1);
+  await expect.poll(() => page.evaluate(async (eid) => {
+    const db: IDBDatabase = await new Promise((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => res(r.result); });
+    const e: { revealedAt: number | null } = await new Promise((res) => { const r = db.transaction("events").objectStore("events").get(eid); r.onsuccess = () => res(r.result); });
+    return e.revealedAt !== null;
+  }, id)).toBe(true); // a reconciliação gravou revealedAt antes de recuar o relógio
+
+  await page.clock.setFixedTime(t0 - 60 * MIN); // relógio do aparelho recuado para uma hora antes do evento
+  await page.reload();
+  await expect(page.getByTestId("aguardando-revelacao")).toHaveCount(0);
+  await expect(page.locator(".mm-post")).toHaveCount(1);
+  const revealedAt = await page.evaluate(async (eid) => {
+    const db: IDBDatabase = await new Promise((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => res(r.result); });
+    const e: { revealStatus: string; revealedAt: number | null } = await new Promise((res) => { const r = db.transaction("events").objectStore("events").get(eid); r.onsuccess = () => res(r.result); });
+    return e;
+  }, id);
+  expect(revealedAt.revealStatus).toBe("revelada");
+  expect(revealedAt.revealedAt).not.toBeNull();
+});

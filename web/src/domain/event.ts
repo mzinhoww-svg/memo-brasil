@@ -24,6 +24,8 @@ export interface MemoEvent {
   revealOffsetDays: number;
   timezone: string; // IANA, usado para mostrar e contar a revelação
   revealStatus: RevealStatus; // espelho persistido de computeRevealStatus (idempotente)
+  /** Instante em que a revelação passou a valer (gravado uma vez pela tarefa de revelação; nunca volta a null). */
+  revealedAt: number | null;
   capacity: Capacity;
   shotsPerPerson: Shots;
   everyoneSeesAll: boolean;
@@ -53,7 +55,7 @@ export function revealAt(e: Pick<MemoEvent, "revealEnabled" | "revealAt" | "star
   return e.revealEnabled ? (e.revealAt ?? Number.POSITIVE_INFINITY) : e.startAt;
 }
 
-export function isRevealed(e: Pick<MemoEvent, "revealEnabled" | "revealAt">, now: number): boolean {
+export function isRevealed(e: Pick<MemoEvent, "revealEnabled" | "revealAt"> & { revealedAt?: number | null }, now: number): boolean {
   return computeRevealStatus(e, now) !== "pendente";
 }
 

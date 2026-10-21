@@ -292,3 +292,24 @@ describe("BG-101: revelação relativa ao término acompanha o fim do evento", (
     expect(u.ok && u.event).toMatchObject({ revealAnchor: "fim", revealOffsetDays: 3 });
   });
 });
+
+describe("BG-102: espelho da revelação não regride com o relógio recuado", () => {
+  const H = 3_600_000;
+  it("reconcile grava revealedAt uma vez e o recuo do relógio não desfaz", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: { enabled: true, kind: "ao-terminar", days: 1, date: "", time: "", timezone: "UTC" } }, NOW);
+    if (!r.ok) throw new Error();
+    const at = r.event.revealAt!;
+    const first = await reconcileReveal(repos, r.event.id, at + H);
+    expect(first).toMatchObject({ revealStatus: "revelada", revealedAt: at });
+    const back = await reconcileReveal(repos, r.event.id, NOW); // relógio recuado para antes do início
+    expect(back).toMatchObject({ revealStatus: "revelada", revealedAt: at });
+    expect(await updateReveal(repos, r.event.id, { enabled: false, kind: "data", days: 1, date: "", time: "", timezone: "UTC" }, NOW)).toEqual({ ok: false, reason: "ja-revelada" });
+  });
+  it("com revealedAt, as fotos continuam liberadas com o relógio recuado", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: { enabled: true, kind: "ao-terminar", days: 1, date: "", time: "", timezone: "UTC" } }, NOW);
+    if (!r.ok) throw new Error();
+    await postPhoto(repos, r.event, guest, img, { moment: "O sim" }, NOW + 1);
+    const revealed = (await reconcileReveal(repos, r.event.id, r.event.revealAt! + 1))!;
+    expect(await loadFeed(repos, revealed, { id: "outro", host: false }, NOW + 2)).toHaveLength(1);
+  });
+});

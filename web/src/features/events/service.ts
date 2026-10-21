@@ -49,6 +49,7 @@ export async function createEvent(repos: Repositories, host: User, input: EventI
     revealOffsetDays: reveal.offsetDays,
     timezone: reveal.timezone,
     revealStatus: computeRevealStatus({ revealEnabled: reveal.enabled, revealAt: reveal.at }, now),
+    revealedAt: null,
     capacity: input.capacity,
     shotsPerPerson: input.shotsPerPerson,
     everyoneSeesAll: input.everyoneSeesAll,
@@ -118,7 +119,7 @@ export async function updateReveal(repos: Repositories, eventId: string, input: 
   if (!verdict.ok) return { ok: false, reason: verdict.reason };
   const r = resolveReveal(input, endAt(e), now);
   if (!r.ok) return { ok: false, reason: "invalido", errors: r.errors };
-  const next: MemoEvent = { ...e, revealEnabled: r.enabled, revealAt: r.at, revealAnchor: r.anchor, revealOffsetDays: r.offsetDays, timezone: r.timezone, revealStatus: computeRevealStatus({ revealEnabled: r.enabled, revealAt: r.at }, now) };
+  const next: MemoEvent = { ...e, revealEnabled: r.enabled, revealAt: r.at, revealAnchor: r.anchor, revealOffsetDays: r.offsetDays, timezone: r.timezone, revealStatus: computeRevealStatus({ revealEnabled: r.enabled, revealAt: r.at }, now), revealedAt: null };
   await repos.events.save(next);
   return { ok: true, event: next };
 }
@@ -131,8 +132,10 @@ export async function reconcileReveal(repos: Repositories, eventId: string, now:
   const e = await repos.events.get(eventId);
   if (!e) return undefined;
   const status = computeRevealStatus(e, now);
-  if (status === e.revealStatus) return e;
-  const next = { ...e, revealStatus: status };
+  // grava revealedAt uma única vez, no horário agendado; relógio recuado não desfaz
+  const revealedAt = e.revealedAt ?? (status === "revelada" && e.revealEnabled ? e.revealAt : null);
+  if (status === e.revealStatus && revealedAt === (e.revealedAt ?? null)) return e;
+  const next = { ...e, revealStatus: status, revealedAt };
   await repos.events.save(next);
   return next;
 }
