@@ -3,6 +3,8 @@ import { Birthstone_Bounce, Great_Vibes, Pinyon_Script } from "next/font/google"
 import "./globals.css";
 import { THEME_INIT_SCRIPT, ThemeProvider } from "@/lib/theme";
 import { paletteCss } from "@/lib/event-theme";
+import { AppProvider } from "@/features/app/provider";
+import { RegisterServiceWorker } from "@/lib/register-sw";
 
 // Fontes do evento (só no nome do evento). Bricolage e Instrument Serif são locais (tokens.css).
 const birthstone = Birthstone_Bounce({ weight: "400", subsets: ["latin"], variable: "--fonte-birthstone", display: "swap" });
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
   title: { default: "MemoriesMT", template: "%s · MemoriesMT" },
   description: "A festa vista por todo mundo.",
   applicationName: "MemoriesMT",
-  icons: { icon: "/brand/memoriesmt-selo.svg", apple: "/pwa/icon-192.png" },
+  icons: { icon: "/brand/memoriesmt-selo.svg", apple: "/pwa/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "MemoriesMT", statusBarStyle: "default" },
 };
 
@@ -37,7 +39,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <a className="mm-skip" href="#conteudo">Ir para o conteúdo</a>
         <ThemeProvider>
-          <div id="conteudo">{children}</div>
+          <RegisterServiceWorker />
+          <AppProvider>
+            <div id="conteudo">{children}</div>
+          </AppProvider>
         </ThemeProvider>
       </body>
     </html>

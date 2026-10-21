@@ -3,13 +3,13 @@
 import { useId } from "react";
 import { cx } from "./cx";
 
-export interface Option<T extends string | number | null> {
+export interface Option<T extends string | number | boolean | null> {
   value: T;
   label: string;
 }
 
 /** Opções exclusivas de 48px. Mais de seis opções: use um campo de seleção. */
-export function OptionGroup<T extends string | number | null>({ label, options, value, onChange, list }: { label: string; options: Option<T>[]; value: T; onChange: (v: T) => void; list?: boolean }) {
+export function OptionGroup<T extends string | number | boolean | null>({ label, options, value, onChange, list }: { label: string; options: Option<T>[]; value: T; onChange: (v: T) => void; list?: boolean }) {
   const id = useId();
   return (
     <div className="mm-group" role="group" aria-labelledby={id}>

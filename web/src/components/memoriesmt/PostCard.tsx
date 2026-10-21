@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- fotos locais vêm de blob URLs; next/image não se aplica */
 import type { ReactNode } from "react";
 import { Icon } from "./Icon";
 
@@ -20,7 +21,7 @@ export function PostCard({ vision, meta, avatar, imageSrc, alt, caption, tag, on
         </button>
       </div>
       <div className="mm-media">
-        {imageSrc ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={imageSrc} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>Carregando foto</span>}
+        {imageSrc ? <img src={imageSrc} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>Carregando foto</span>}
         {tag && <span className="mm-tag">{tag}</span>}
       </div>
       {caption && <p className="mm-post-legenda" style={{ margin: 0 }}>{caption}</p>}

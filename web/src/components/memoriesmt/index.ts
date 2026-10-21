@@ -13,6 +13,7 @@ export { Notice } from "./Notice";
 export { OptionGroup, type Option } from "./OptionGroup";
 export { PostCard, initials } from "./PostCard";
 export { Progress } from "./Progress";
+export { Sheet } from "./Sheet";
 export { Signature } from "./Signature";
 export { StatGrid, StatTile } from "./StatTile";
 export { Stepper } from "./Stepper";

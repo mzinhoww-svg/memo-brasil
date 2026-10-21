@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useSyncExternalStore, type ReactNode } from "react";
 
 export type Theme = "dia" | "noite";
 export const THEME_KEY = "mm-tema";
@@ -11,16 +11,18 @@ export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}")
 type Ctx = { theme: Theme; setTheme: (t: Theme) => void; toggle: () => void };
 const ThemeContext = createContext<Ctx | null>(null);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dia");
+/** A fonte de verdade é o atributo data-theme do <html>; o React só assina as mudanças. */
+function subscribe(cb: () => void) {
+  const mo = new MutationObserver(cb);
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => mo.disconnect();
+}
+const snapshot = (): Theme => (document.documentElement.getAttribute("data-theme") === "noite" ? "noite" : "dia");
 
-  useEffect(() => {
-    const current = document.documentElement.getAttribute("data-theme");
-    setThemeState(current === "noite" ? "noite" : "dia");
-  }, []);
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const theme = useSyncExternalStore(subscribe, snapshot, () => "dia" as Theme);
 
   const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
     document.documentElement.setAttribute("data-theme", t);
     try {
       localStorage.setItem(THEME_KEY, t);
@@ -28,7 +30,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       /* armazenamento indisponível: o tema vale só nesta sessão */
     }
   }, []);
-
   const toggle = useCallback(() => setTheme(theme === "dia" ? "noite" : "dia"), [theme, setTheme]);
 
   return <ThemeContext.Provider value={{ theme, setTheme, toggle }}>{children}</ThemeContext.Provider>;

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 @import "../styles/mm.css";
+@import "../styles/app.css";
 
 /* Tokens semânticos do MemoriesMT expostos ao Tailwind v4 (modo inline: as utilities
    apontam para as variáveis de tokens.css, que continuam a fonte de verdade). */

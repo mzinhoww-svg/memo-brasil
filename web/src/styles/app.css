@@ -1,0 +1,41 @@
+/* Estrutura das telas. Só tokens do kit; componentes vêm de mm.css. */
+.app-col { width: 100%; max-width: 480px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; background: var(--fundo); }
+@media (min-width: 768px) { body { background: var(--neutro); } .app-col--card { border-left: 1px solid var(--divisor); border-right: 1px solid var(--divisor); } }
+.app-screen { padding: var(--space-6) var(--space-4); display: flex; flex-direction: column; gap: var(--space-6); flex: 1; }
+.app-stack { display: flex; flex-direction: column; gap: var(--space-4); }
+.app-stack-sm { display: flex; flex-direction: column; gap: var(--space-2); }
+.app-row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.app-between { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.app-topbar { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); gap: var(--space-3); }
+.app-fixed-bottom { position: sticky; bottom: 0; z-index: 20; }
+.app-with-tabbar { padding-bottom: var(--space-6); }
+.app-fluid .mm-post, .app-fluid .mm-field, .app-fluid .mm-progress, .app-fluid .mm-notice, .app-fluid .mm-visions, .app-fluid .mm-stats, .app-fluid .mm-list, .app-fluid .mm-group, .app-fluid .mm-tabbar, .app-fluid .mm-event-header { max-width: none; }
+.app-fluid .mm-media { height: auto; aspect-ratio: 4 / 5; }
+.app-h1 { margin: 0; } .app-p { margin: 0; }
+.app-eyebrow { color: var(--apoio); margin: 0; }
+.app-muted { color: var(--apoio); }
+.app-emocao { margin: 0; color: var(--tinta); }
+.app-empty { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); padding: var(--space-6) 0; color: var(--apoio); }
+.app-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.app-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+.app-thumb { position: relative; aspect-ratio: 1; border-radius: var(--radius-control); background: var(--evento-superficie); overflow: hidden; display: block; width: 100%; border: 0; padding: 0; }
+.app-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.app-thumb-badge { position: absolute; left: var(--space-2); bottom: var(--space-2); padding: 2px 8px; border-radius: var(--radius-pill); background: var(--fundo); color: var(--tinta); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.app-banner { padding: 12px 14px; border-radius: var(--radius-panel); background: var(--neutro); font-size: 15px; display: flex; gap: var(--space-3); align-items: flex-start; }
+.app-banner svg { flex-shrink: 0; margin-top: 1px; }
+.app-camera { position: relative; aspect-ratio: 3 / 4; background: var(--tinta); border-radius: var(--radius-lg); overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--fundo); }
+.app-camera video, .app-camera img, .app-camera canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
+.app-camera-msg { padding: var(--space-6); text-align: center; color: var(--fundo); }
+.app-dialog { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; background: color-mix(in srgb, var(--tinta) 55%, transparent); }
+.app-dialog-panel { width: 100%; max-width: 480px; background: var(--fundo); border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: var(--space-6) var(--space-4) var(--space-8); display: flex; flex-direction: column; gap: var(--space-4); }
+.app-admin { display: grid; grid-template-columns: 1fr; min-height: 100dvh; background: var(--neutro); }
+.app-admin-side { display: none; }
+.app-admin-main { padding: var(--space-6) var(--space-4); display: flex; flex-direction: column; gap: var(--space-6); min-width: 0; }
+.app-admin-navm { display: flex; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-2); }
+.app-admin-navm a { text-decoration: none; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; }
+@media (min-width: 900px) { .app-admin { grid-template-columns: 256px 1fr; } .app-admin-side { display: block; position: sticky; top: 0; height: 100dvh; } .app-admin-navm { display: none; } .app-admin-main { padding: var(--space-8) var(--space-9); max-width: 1100px; } }
+.app-card { background: var(--fundo); border-radius: var(--radius-panel); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.app-qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, max-content)); gap: var(--space-4); }
+@media print { .no-print { display: none !important; } body { background: #fff; } .app-qr-grid { gap: 0; } .mm-card-mesa { break-inside: avoid; page-break-inside: avoid; } }
+.app-landing-hero { padding: var(--space-6) var(--space-4) 0; }
+.app-sheet-handle { height: 4px; width: 40px; border-radius: 2px; background: var(--borda); align-self: center; }
