@@ -5988,7 +5988,7 @@
     "remoto: mm-purge-storage */30 ativo, HTTP 200 removidos 6, fila 6->0 (OPERATOR-COMMANDS.md, evidência A.3.5)",
     "worker purge-storage testado local (2/2); falta deploy e agendamento no remoto"
    ],
-   "commit": "HEAD",
+   "commit": "36b01f2",
    "environment": "local+remoto",
    "release": "R2"
   },
