@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "gen:assets": "node scripts/gen-assets.mjs"
+    "gen:assets": "node scripts/gen-assets.mjs",
+    "test:integration": "vitest run --config vitest.integration.config.ts && node --test --test-force-exit integration/supabase.integration.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

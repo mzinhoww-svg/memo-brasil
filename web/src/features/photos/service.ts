@@ -8,7 +8,7 @@ export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" };
 
 export async function usedShots(repos: Repositories, eventId: string, userId: string): Promise<number> {
-  return repos.photos.count(eventId, { authorId: userId, excludeStatus: "removida" });
+  return (await repos.events.counts(eventId, { userId, host: false })).mine;
 }
 
 /** Publica a foto no rolo do convidado. Valida rolo, evento e tamanho antes de gravar. */

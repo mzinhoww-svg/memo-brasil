@@ -2,6 +2,7 @@ import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { beginRow, isPublished, matchesFilter, paginate, sortNewestFirst } from "../paging";
 import { objectUrl } from "../object-url";
+import { localCounts, toPreview } from "../preview";
 import { RepositoryError, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryOptions, type User } from "../types";
 
 const clone = <T,>(v: T): T => structuredClone(v);
@@ -23,6 +24,11 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
 
   return {
     events: {
+      preview: async (code, now) => {
+        const e = [...events.values()].find((x) => x.code === code);
+        return e ? toPreview(e, now, [...participants.values()].filter((p) => p.eventId === e.id).length) : undefined;
+      },
+      counts: async (id, who) => localCounts([...photos.values()].filter((p) => p.eventId === id), who),
       list: async () => [...events.values()].map(clone),
       get: async (id) => (events.has(id) ? clone(events.get(id)!) : undefined),
       getByCode: async (code) => {

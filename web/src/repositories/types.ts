@@ -30,7 +30,9 @@ export interface PhotoData {
 export type RepositoryErrorCode =
   | "conflict" | "not-found" | "unavailable" | "invalid"
   /** Recusas do servidor (trigger/RLS): o rolo da pessoa acabou, o evento terminou, a lotação fechou. */
-  | "shot-limit" | "event-ended" | "capacity-full";
+  | "shot-limit" | "event-ended" | "capacity-full"
+  /** Recusas de política do servidor (RLS/trigger/RPC). */
+  | "forbidden" | "reveal-locked" | "rate-limited" | "invalid-invite" | "reopen-forbidden";
 export class RepositoryError extends Error {
   readonly code: RepositoryErrorCode;
   constructor(code: RepositoryErrorCode, message: string, cause?: unknown) {
@@ -54,7 +56,30 @@ export interface RepositoryOptions {
   now?: () => number;
 }
 
+/** O que quem ainda não entrou no evento pode saber: o suficiente para o convite, nada sobre pessoas, fotos ou revelação. */
+export interface EventPreview {
+  code: string;
+  title: string;
+  category: MemoEvent["category"];
+  hostName: string;
+  startAt: number;
+  place?: string;
+  palette: MemoEvent["palette"];
+  eventFont: MemoEvent["eventFont"];
+  capacity: MemoEvent["capacity"];
+  status: "ativo" | "encerrado";
+  full: boolean;
+}
+export interface PhotoCounts { mine: number; total: number }
+export type JoinResult = { role: "organizador" | "membro"; eventId: string };
+
 export interface EventRepository {
+  /** Prévia do convite por código, mesmo para quem não é membro (no servidor, RPC; localmente, a partir do evento). */
+  preview(code: string, now: number): Promise<EventPreview | undefined>;
+  /** Contagens sem conteúdo (rolo e espera). No servidor quem decide o escopo é a sessão, não os parâmetros. */
+  counts(eventId: string, who: { userId: string | null; host: boolean }): Promise<PhotoCounts>;
+  /** Entrada por código no servidor (RPC `join_event`). Ausente nos adaptadores locais, que validam no cliente. */
+  join?(code: string, name: string, table?: string, token?: string): Promise<JoinResult>;
   list(): Promise<MemoEvent[]>;
   get(id: string): Promise<MemoEvent | undefined>;
   getByCode(code: string): Promise<MemoEvent | undefined>;

@@ -62,8 +62,7 @@ export async function createEvent(repos: Repositories, host: User, input: EventI
     tables: input.tables ?? 0,
     createdAt: now,
   };
-  await repos.events.save(event);
-  return { ok: true, event };
+  return { ok: true, event: await repos.events.save(event) }; // o repositório devolve o gravado (no servidor: código e horários dele)
 }
 
 type Step<R> = { fail: R } | { next: MemoEvent; done: (saved: MemoEvent) => R };

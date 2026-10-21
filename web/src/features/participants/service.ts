@@ -5,16 +5,20 @@ import { withLock } from "@/lib/lock";
 
 export type JoinOutcome =
   | { ok: true; event: MemoEvent; participant: Participant }
-  | { ok: false; reason: "codigo" | "encerrado" | "lotado" | "nome" };
+  | { ok: false; reason: JoinFailure };
+type JoinFailure = "codigo" | "encerrado" | "lotado" | "nome";
 
 /** Entrar na festa por código (REA F-05/F-11). Identidade local; entrada real depende do backend. */
 export async function joinEvent(repos: Repositories, user: User, codeInput: string, name: string, now: number, tableLabel?: string): Promise<JoinOutcome> {
   const code = normalizeShareCode(codeInput);
   if (!code) return { ok: false, reason: "codigo" };
+  if (repos.events.join) return joinOnServer(repos, user, code, name, tableLabel);
   const event = await repos.events.getByCode(code);
   if (!event) return { ok: false, reason: "codigo" };
   return withLock(`entrar:${event.id}`, () => joinLocked(repos, event, user, name, now, tableLabel));
 }
+
+const JOIN_REASON: Record<string, JoinFailure> = { "capacity-full": "lotado", "event-ended": "encerrado", invalid: "codigo", "rate-limited": "codigo", forbidden: "codigo" };
 
 async function joinLocked(repos: Repositories, event: MemoEvent, user: User, name: string, now: number, tableLabel?: string): Promise<JoinOutcome> {
   const trimmed = name.trim();
@@ -31,5 +35,20 @@ async function joinLocked(repos: Repositories, event: MemoEvent, user: User, nam
     if (e instanceof RepositoryError && e.code === "event-ended") return { ok: false, reason: "encerrado" };
     throw e;
   }
+  return { ok: true, event, participant };
+}
+
+/** Servidor: a entrada (lotação, encerramento, limite de tentativas) é decidida na RPC; aqui só traduzimos a recusa. */
+async function joinOnServer(repos: Repositories, user: User, code: string, name: string, tableLabel?: string): Promise<JoinOutcome> {
+  if (!name.trim()) return { ok: false, reason: "nome" };
+  try {
+    await repos.events.join!(code, name.trim(), tableLabel);
+  } catch (e) {
+    if (e instanceof RepositoryError) return { ok: false, reason: JOIN_REASON[e.code] ?? "codigo" };
+    throw e;
+  }
+  const event = await repos.events.getByCode(code);
+  if (!event) return { ok: false, reason: "codigo" };
+  const participant = (await repos.participants.get(event.id, user.id)) ?? { eventId: event.id, userId: user.id, name: name.trim(), joinedAt: Date.now(), tableLabel };
   return { ok: true, event, participant };
 }

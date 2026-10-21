@@ -4,6 +4,7 @@ import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { beginRow, isPublished, matchesFilter, paginate, sortNewestFirst } from "../paging";
 import { objectUrl } from "../object-url";
+import { localCounts, toPreview } from "../preview";
 import { RepositoryError, StorageUnavailableError, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryOptions, type User } from "../types";
 
 interface Schema extends DBSchema {
@@ -124,6 +125,12 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
 
   return {
     events: {
+      preview: (code, now) =>
+        guard(async (d) => {
+          const e = await d.getFromIndex("events", "code", code);
+          return e ? toPreview(e, now, await d.countFromIndex("participants", "eventId", e.id)) : undefined;
+        }),
+      counts: (id, who) => guard(async (d) => localCounts(await d.getAllFromIndex("photos", "eventId", id), who)),
       list: () => guard((d) => d.getAll("events")),
       get: (id) => guard((d) => d.get("events", id)),
       getByCode: (code) => guard((d) => d.getFromIndex("events", "code", code)),
