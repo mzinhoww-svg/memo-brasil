@@ -54,7 +54,7 @@ export default function Design() {
       <section aria-labelledby="g-btn" className="app-stack">
         <h2 id="g-btn" className="titulo-card app-h1">Botões</h2>
         <div className="app-row">
-          <Button>Entrar na festa</Button><Button variant="secundario">Ver no Agora</Button><Button variant="pequeno">Salvar</Button><Button variant="texto">Agora não</Button><Button variant="destrutivo">Remover</Button><Button disabled>Postar</Button>
+          <Button>Entrar na festa</Button><Button variant="secundario">Ver no Agora</Button><Button variant="pequeno">Salvar</Button><Button variant="secundario" small>Ver mais</Button><Button variant="texto">Agora não</Button><Button variant="destrutivo" small>Remover</Button><Button disabled>Postar</Button>
         </div>
         <Button variant="cta" icon="camera">Postar daqui</Button>
         <Button variant="cta-xl" icon="camera">Tirar foto</Button>

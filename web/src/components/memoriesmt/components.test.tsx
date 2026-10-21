@@ -14,6 +14,12 @@ describe("Button", () => {
     expect(b).toHaveAttribute("type", "button");
     expect(b).toHaveClass("mm-btn", "mm-btn--secundario");
   });
+  it('"pequeno" é primário de 44px; small acompanha secundário e destrutivo', () => {
+    render(<><Button variant="pequeno">A</Button><Button variant="secundario" small>B</Button><Button variant="destrutivo" small>C</Button></>);
+    expect(screen.getByRole("button", { name: "A" })).toHaveClass("mm-btn--primario", "mm-btn--pequeno");
+    expect(screen.getByRole("button", { name: "B" })).toHaveClass("mm-btn--secundario", "mm-btn--pequeno");
+    expect(screen.getByRole("button", { name: "C" })).toHaveClass("mm-btn--destrutivo", "mm-btn--pequeno");
+  });
   it("desabilitado usa o atributo disabled", () => {
     render(<Button disabled>Postar</Button>);
     expect(screen.getByRole("button")).toBeDisabled();

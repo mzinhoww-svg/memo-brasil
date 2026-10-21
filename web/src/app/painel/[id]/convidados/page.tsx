@@ -28,7 +28,7 @@ export default function Convidados() {
             {rows.map((r) => (
               <div key={r.participant.userId} className="app-between" style={{ maxWidth: 340 }}>
                 <span>{r.participant.name}</span>
-                <Button variant="destrutivo" className="mm-btn--pequeno" onClick={() => setRemoving(r.participant)}>Remover</Button>
+                <Button variant="destrutivo" small onClick={() => setRemoving(r.participant)}>Remover</Button>
               </div>
             ))}
           </section>

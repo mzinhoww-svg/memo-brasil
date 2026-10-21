@@ -63,13 +63,12 @@
   --font-evento: var(--font-evento);
 }
 
-html { background: var(--fundo); color: var(--tinta); }
+/* O preflight do Tailwind põe line-height 1.5 no html; o kit herda `normal` do navegador. */
+html { background: var(--fundo); color: var(--tinta); line-height: normal; }
 body {
   margin: 0;
   min-height: 100dvh;
   font-family: var(--font-sans);
-  font-size: 17px;
-  line-height: 1.4;
   background: var(--fundo);
   color: var(--tinta);
   -webkit-font-smoothing: antialiased;

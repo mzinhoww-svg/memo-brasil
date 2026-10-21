@@ -11,7 +11,7 @@
 .app-with-tabbar { padding-bottom: var(--space-6); }
 .app-fluid .mm-post, .app-fluid .mm-field, .app-fluid .mm-progress, .app-fluid .mm-notice, .app-fluid .mm-visions, .app-fluid .mm-stats, .app-fluid .mm-list, .app-fluid .mm-group, .app-fluid .mm-tabbar, .app-fluid .mm-event-header { max-width: none; }
 .app-fluid .mm-media { height: auto; aspect-ratio: 4 / 5; }
-.app-h1 { margin: 0; } .app-p { margin: 0; }
+.app-h1 { margin: 0; } .app-p { margin: 0; font-size: 17px; line-height: 1.4; }
 .app-eyebrow { color: var(--apoio); margin: 0; }
 .app-muted { color: var(--apoio); }
 .app-emocao { margin: 0; color: var(--tinta); }

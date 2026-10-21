@@ -38,7 +38,7 @@ export default function Conteudo() {
             <div className="app-row">
               {p.status === "oculta" ? <Button variant="pequeno" onClick={() => act(p.id, "mostrar")}>Mostrar de novo</Button> : <Button variant="pequeno" onClick={() => act(p.id, "ocultar")}>Ocultar</Button>}
               <Button variant="pequeno" onClick={() => act(p.id, "destacar")}>{p.highlighted ? "Tirar destaque" : "Destacar"}</Button>
-              <Button variant="destrutivo" className="mm-btn--pequeno" onClick={() => act(p.id, "remover")}>Remover</Button>
+              <Button variant="destrutivo" small onClick={() => act(p.id, "remover")}>Remover</Button>
             </div>
           </div>
         ))}
