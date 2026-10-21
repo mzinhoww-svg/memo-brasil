@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Birthstone_Bounce, Great_Vibes, Pinyon_Script } from "next/font/google";
 import "./globals.css";
 import { THEME_INIT_SCRIPT, ThemeProvider } from "@/lib/theme";
+import { paletteCss } from "@/lib/event-theme";
 
 // Fontes do evento (só no nome do evento). Bricolage e Instrument Serif são locais (tokens.css).
 const birthstone = Birthstone_Bounce({ weight: "400", subsets: ["latin"], variable: "--fonte-birthstone", display: "swap" });
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" data-theme="dia" suppressHydrationWarning className={`${birthstone.variable} ${pinyon.variable} ${vibes.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <style dangerouslySetInnerHTML={{ __html: paletteCss() }} />
       </head>
       <body>
         <a className="mm-skip" href="#conteudo">Ir para o conteúdo</a>
