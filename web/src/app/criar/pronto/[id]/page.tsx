@@ -53,7 +53,7 @@ export default function Pronto() {
             <Button variant="secundario" block href={`/e/${event.code}`}>Entrar como convidado</Button>
             <Button variant="secundario" block href={`/painel/${event.id}`}>Abrir o painel</Button>
           </div>
-          <p className="mm-field-ajuda">Versão local: o convite só abre neste aparelho. Para outros aparelhos entrarem, o servidor precisa estar ligado.</p>
+          <p className="app-p app-muted">Versão local: o convite só abre neste aparelho. Para outros aparelhos entrarem, o servidor precisa estar ligado.</p>
           <div style={{ marginTop: "auto" }}><Signature /></div>
         </div>
       </main>

@@ -86,3 +86,8 @@ export function validateDraft(d: Draft, _now: number): DraftErrors {
   if (d.durationHours < MIN_DURATION_HOURS) errors.termino = "curto";
   return errors;
 }
+
+/** A retrospectiva abre quando o evento terminou e as fotos foram reveladas (anfitrião vê sempre). */
+export function retrospectiveOpen(e: MemoEvent, now: number, isHost: boolean): boolean {
+  return isHost || (eventStatus(e, now) === "encerrado" && isRevealed(e, now));
+}

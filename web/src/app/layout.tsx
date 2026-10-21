@@ -4,6 +4,7 @@ import "./globals.css";
 import { THEME_INIT_SCRIPT, ThemeProvider } from "@/lib/theme";
 import { paletteCss } from "@/lib/event-theme";
 import { AppProvider } from "@/features/app/provider";
+import { StorageBanner } from "@/components/memoriesmt";
 import { RegisterServiceWorker } from "@/lib/register-sw";
 
 // Fontes do evento (só no nome do evento). Bricolage e Instrument Serif são locais (tokens.css).
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <RegisterServiceWorker />
           <AppProvider>
+            <StorageBanner />
             <div id="conteudo">{children}</div>
           </AppProvider>
         </ThemeProvider>

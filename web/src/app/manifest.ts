@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: "MemoriesMT",
     short_name: "MemoriesMT",
     description: "A festa vista por todo mundo.",

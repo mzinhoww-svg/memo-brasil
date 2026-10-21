@@ -89,3 +89,38 @@ describe.each(impls)("contrato dos repositórios (%s)", (_name, make) => {
     expect((await r.photos.listByEvent("e2")).map((p) => p.id)).toEqual(["p9"]);
   });
 });
+
+describe.each(impls)("garantias extras (%s)", (_name, make) => {
+  it("update não ressuscita foto removida", async () => {
+    const r = make();
+    await r.photos.add(photo("p1", "e1"), { bytes: bytes(1), type: "image/jpeg" });
+    await r.photos.remove("p1");
+    await r.photos.update({ ...photo("p1", "e1"), status: "oculta" });
+    expect(await r.photos.get("p1")).toBeUndefined();
+  });
+  it("identidades: clear mantém as conhecidas e switchTo volta ao anfitrião", async () => {
+    const r = make();
+    await r.users.save({ id: "host", name: "Emy", createdAt: 1 });
+    await r.users.clear();
+    await r.users.save({ id: "ana", name: "Ana", createdAt: 2 });
+    expect((await r.users.known()).map((u) => u.id).sort()).toEqual(["ana", "host"]);
+    expect((await r.users.switchTo("host"))?.name).toBe("Emy");
+    expect((await r.users.current())?.id).toBe("host");
+    expect(await r.users.switchTo("fantasma")).toBeUndefined();
+  });
+});
+
+describe("migração de schema do IndexedDB", () => {
+  it("subir a versão preserva os dados e roda só a migração nova", async () => {
+    const { MIGRATIONS } = await import("./indexeddb");
+    const dbName = `migra-${n++}`;
+    const v1 = createIndexedDbRepositories(dbName);
+    await v1.events.save(ev("e1", "AAAAAAAA"));
+    await v1.photos.add(photo("p1", "e1"), { bytes: bytes(7), type: "image/jpeg" });
+    let ran = 0;
+    const v2 = createIndexedDbRepositories(dbName, [...MIGRATIONS, () => { ran++; }]);
+    expect((await v2.events.get("e1"))?.id).toBe("e1");
+    expect(Array.from(new Uint8Array((await v2.photos.getData("p1"))!.bytes))).toEqual([7]);
+    expect(ran).toBe(1);
+  });
+});

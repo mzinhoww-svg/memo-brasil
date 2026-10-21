@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Icon, LiveIndicator, Notice, PostCard } from "@/components/memoriesmt";
-import { eventStatus, isRevealed, revealAt } from "@/domain/event";
+import { Button, Icon, LiveIndicator, Notice, PostCard } from "@/components/memoriesmt";
+import { eventStatus, isRevealed, retrospectiveOpen, revealAt } from "@/domain/event";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
 import { formatDate, formatTime, relativeTime, usePhotoUrls } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
@@ -17,8 +17,10 @@ export default function Agora() {
   const { repos } = useApp();
   const { event, user, viewer, now, photos, reactions, participants, refresh } = useGuest();
   const [more, setMore] = useState<string | undefined>();
+  const [limit, setLimit] = useState(20);
   const shown = visiblePhotos(event, photos, viewer, now);
-  const urls = usePhotoUrls(shown);
+  const page = shown.slice(0, limit);
+  const urls = usePhotoUrls(page);
   const live = eventStatus(event, now) === "ativo";
   const hiddenOthers = !viewer.host && !isRevealed(event, now);
 
@@ -38,7 +40,7 @@ export default function Agora() {
         <p className="app-p app-muted" style={{ fontFamily: "var(--font-evento)", fontSize: 30, lineHeight: 1.05, color: "var(--evento-profundo)" }}>{event.title}</p>
       </div>
 
-      {!live && isRevealed(event, now) && <Link className="mm-btn mm-btn--secundario mm-btn--bloco" href={`/e/${event.code}/retrospectiva`}>Ver a retrospectiva</Link>}
+      {!live && retrospectiveOpen(event, now, viewer.host) && <Link className="mm-btn mm-btn--secundario mm-btn--bloco" href={`/e/${event.code}/retrospectiva`}>Ver a retrospectiva</Link>}
 
       {event.notice && (!event.notice.expiresAt || event.notice.expiresAt > now) && <Notice text={event.notice.text} eyebrow={event.category === "casamento" ? "Aviso · cerimonial" : "Aviso · organização"} />}
 
@@ -59,7 +61,7 @@ export default function Agora() {
         </div>
       ) : (
         <div className="app-stack" style={{ gap: "var(--space-8)" }}>
-          {shown.map((p) => (
+          {page.map((p) => (
             <PostCard
               key={p.id}
               vision={visionName(p)}
@@ -73,6 +75,7 @@ export default function Agora() {
               reactions={event.reactionsEnabled ? <PhotoReactions photo={p} reactions={reactions} userId={user.id} onReact={onReact} /> : undefined}
             />
           ))}
+          {shown.length > limit && <Button variant="secundario" block onClick={() => setLimit((n) => n + 20)}>Ver mais fotos</Button>}
         </div>
       )}
       {more && (

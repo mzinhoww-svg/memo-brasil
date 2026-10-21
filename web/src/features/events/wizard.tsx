@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button, Chip, Chips, Field, OptionGroup, Progress, Signature, Stepper } from "@/components/memoriesmt";
 import { priceRule } from "@/domain/pricing";
 import { CAMERA_STYLE_LABEL, CAPACITY_OPTIONS, CATEGORY_LABEL, REVEAL_LABEL, SHOTS_OPTIONS, MIN_DURATION_HOURS, type CameraStyle, type Capacity, type EventCategory, type RevealTiming, type Shots } from "@/domain/options";
@@ -10,6 +10,7 @@ import { EVENT_FONT_LABEL, PALETTES } from "@/lib/event-theme";
 import { useApp } from "@/features/app/provider";
 import { localBilling } from "@/lib/services";
 import { createEvent } from "./service";
+import { resolveDuration } from "./duration";
 
 const STEPS = ["Nome", "Término", "Revelação", "Identidade", "Convidados", "Resumo"] as const;
 const DURATIONS = [1, 3, 6, 12, 24, 48];
@@ -42,10 +43,8 @@ export function CreateWizard() {
 
   const hostName = hostInput ?? user?.name ?? "";
 
-  const durationHours = useMemo(() => {
-    if (until) return (new Date(until).getTime() - now()) / 3_600_000;
-    return hours;
-  }, [until, hours, now]);
+  const untilMs = until ? new Date(until).getTime() : undefined;
+  const [previewHours, setPreviewHours] = useState(6);
   const price = priceRule(capacity, false);
 
   function next() {
@@ -54,19 +53,24 @@ export function CreateWizard() {
       if (!hostName.trim()) e.host = "Escreva seu nome para organizar a festa.";
       if (!title.trim()) e.title = "Escolha o nome do evento. Todos os convidados vão ver.";
     }
-    if (step === 1 && durationHours < MIN_DURATION_HOURS) e.termino = "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.";
+    if (step === 1 && resolveDuration({ untilMs, presetHours: hours }, now()) < MIN_DURATION_HOURS) e.termino = "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.";
     setErrors(e);
-    if (Object.keys(e).length === 0) setStep((s) => Math.min(STEPS.length - 1, s + 1));
+    if (Object.keys(e).length === 0) {
+      if (step === 1) setPreviewHours(resolveDuration({ untilMs, presetHours: hours }, now()));
+      setStep((s) => Math.min(STEPS.length - 1, s + 1));
+    }
   }
 
   async function create() {
     setBusy(true);
     const me = await signIn(hostName);
+    const startNow = now();
+    const durationHours = resolveDuration({ untilMs, presetHours: hours }, startNow);
     const r = await createEvent(
       repos,
       me,
       { title, category, durationHours, revealTiming: reveal, revealDelayDays: delayDays, cameraStyle: camera, capacity, shotsPerPerson: shots, everyoneSeesAll: everyone, palette, eventFont: font, place },
-      now(),
+      startNow,
     );
     setBusy(false);
     if (!r.ok) return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
@@ -114,7 +118,7 @@ export function CreateWizard() {
           <>
             <h1 className="titulo-tela app-h1">Qual é a cara do seu evento?</h1>
             <OptionGroup<CameraStyle> label="Câmera" value={camera} onChange={setCamera} options={(Object.keys(CAMERA_STYLE_LABEL) as CameraStyle[]).map((c) => ({ value: c, label: CAMERA_STYLE_LABEL[c] }))} />
-            <p className="mm-field-ajuda">Estilos mudam o visual da foto postada.</p>
+            <p className="app-p app-muted">Estilos mudam o visual da foto postada.</p>
             <div className="app-stack-sm">
               <span className="mm-group-label">Cor do evento</span>
               <Chips label="Cor do evento">
@@ -144,7 +148,7 @@ export function CreateWizard() {
             <div className="app-card">
               <span className="titulo-card">{title}</span>
               <span className="app-muted">{CATEGORY_LABEL[category]}{place ? ` · ${place}` : ""}</span>
-              <span>Termina em {Math.round(durationHours * 10) / 10} h · {REVEAL_LABEL[reveal].toLowerCase()}{reveal === "depois" ? ` (${delayDays} d)` : ""}</span>
+              <span>Termina em {Math.round(previewHours * 10) / 10} h · {REVEAL_LABEL[reveal].toLowerCase()}{reveal === "depois" ? ` (${delayDays} d)` : ""}</span>
               <span>{capacity === null ? "Convidados ilimitados" : `Até ${capacity} convidados`} · {shots === null ? "fotos ilimitadas" : `${shots} fotos por pessoa`}</span>
             </div>
             {price.kind === "gratis" ? (

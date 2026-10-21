@@ -25,6 +25,10 @@
 | D8 | Identidade local + "Entrar como outra pessoa" | simular mais de uma pessoa no aparelho, rotulado como demonstração |
 | D9 | Relógio de teste só em build com `NEXT_PUBLIC_MM_TEST_CLOCK=1` | produção usa `Date.now()` |
 | D10 | Editor salva por **download** (não cria nova foto/rolo) | REA não define a persistência da versão editada (HIP) |
+| D12 | Identidades locais ficam no aparelho (`users.known/switchTo`); "Continuar como" volta ao anfitrião | achado A3 da auditoria: trocar de pessoa não pode destruir o acesso ao painel |
+| D13 | `withLock` (Web Locks + fila) em postar, entrar e denunciar | evita passar do rolo/vagas com toques rápidos ou duas abas |
+| D14 | CSP/headers só em produção; relógio de teste fixado em `"0"` no build | CSP exige `unsafe-inline` em dev; teste não pode ligar em produção |
+| D15 | Service worker versionado por deploy (`/sw.js?v=<build>`), aquecimento das rotas do evento 1×/sessão | cache antigo some; rotas dinâmicas precisam de uma visita para abrir offline |
 | D11 | Sem splash, intro de 3 slides, Scrapbook, e-mail/senha | splash/slides foram trocados pela capa do kit; Scrapbook era placeholder; e-mail inativo no original |
 
 ## O que é local, simulado ou depende do backend

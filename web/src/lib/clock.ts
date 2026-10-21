@@ -3,7 +3,7 @@
  * para simular o fim/revelação nos testes E2E. Em produção sempre devolve Date.now().
  */
 export function now(): number {
-  if (process.env.NEXT_PUBLIC_MM_TEST_CLOCK === "1" && typeof window !== "undefined") {
+  if (process.env.NEXT_PUBLIC_MM_TEST_CLOCK === "1" && typeof window !== "undefined" && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) {
     const raw = window.sessionStorage.getItem("mm-agora") ?? new URLSearchParams(window.location.search).get("agora");
     const n = raw ? Number(raw) : NaN;
     if (Number.isFinite(n)) {

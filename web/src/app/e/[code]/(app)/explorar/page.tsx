@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Chip, Chips, Icon, PostCard, VisionGrid, VisionTile } from "@/components/memoriesmt";
+import { Button, Chip, Chips, Icon, PostCard, VisionGrid, VisionTile } from "@/components/memoriesmt";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
 import { relativeTime, usePhotoUrls } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
@@ -15,10 +15,10 @@ export default function Explorar() {
   const { repos } = useApp();
   const { event, user, viewer, now, photos, reactions, participants, refresh } = useGuest();
   const shown = useMemo(() => visiblePhotos(event, photos, viewer, now), [event, photos, viewer, now]);
-  const urls = usePhotoUrls(shown);
   const [moment, setMoment] = useState<string | undefined>();
   const [vision, setVision] = useState<string | undefined>();
   const [more, setMore] = useState<string | undefined>();
+  const [limit, setLimit] = useState(20);
 
   const moments = event.moments.map((m) => ({ m, n: shown.filter((p) => p.moment === m).length })).filter((x) => x.n > 0);
   const visions = useMemo(() => {
@@ -32,6 +32,8 @@ export default function Explorar() {
     return [...map.values()];
   }, [shown]);
   const list = shown.filter((p) => (!moment || p.moment === moment) && (!vision || visionKey(p) === vision));
+  const pageList = list.slice(0, limit);
+  const urls = usePhotoUrls([...pageList, ...visions.map((v) => shown.find((p) => p.id === v.cover)!).filter(Boolean)]);
 
   async function onReact(photoId: string, kind: ReactionKind) {
     await react(repos, event, photoId, user.id, kind);
@@ -72,7 +74,7 @@ export default function Explorar() {
             </VisionGrid>
           </div>
           <div className="app-stack" style={{ gap: "var(--space-8)" }}>
-            {list.map((p) => (
+            {pageList.map((p) => (
               <PostCard
                 key={p.id}
                 vision={visionName(p)}
@@ -86,6 +88,7 @@ export default function Explorar() {
                 reactions={event.reactionsEnabled ? <PhotoReactions photo={p} reactions={reactions} userId={user.id} onReact={onReact} /> : undefined}
               />
             ))}
+            {list.length > limit && <Button variant="secundario" block onClick={() => setLimit((n) => n + 20)}>Ver mais fotos</Button>}
           </div>
         </>
       )}

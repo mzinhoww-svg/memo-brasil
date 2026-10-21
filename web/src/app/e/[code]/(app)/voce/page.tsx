@@ -83,7 +83,7 @@ export default function Voce() {
         <Link href="/" className="mm-btn mm-btn--texto" style={{ alignSelf: "flex-start" }}>Voltar ao início</Link>
         <div className="app-stack-sm">
           <Button variant="secundario" block onClick={async () => { await signOut(); router.push(`/e/${event.code}`); }}>Entrar como outra pessoa</Button>
-          <p className="mm-field-ajuda">Demonstração: serve para testar a festa com mais de uma pessoa neste aparelho. Suas fotos continuam guardadas.</p>
+          <p className="app-p app-muted">Demonstração: serve para testar a festa com mais de uma pessoa neste aparelho. Você volta para {user.name} pela tela inicial ou pelo convite, na lista Continuar como.</p>
         </div>
       </div>
       <div style={{ marginTop: "auto" }}><Signature /></div>

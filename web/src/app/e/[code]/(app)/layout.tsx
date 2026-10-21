@@ -38,6 +38,23 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     return () => scheduler.cancel(ev.id);
   }, [ev, scheduler, clock]);
 
+  // aquece as rotas do evento: com o service worker ativo, ficam disponíveis mesmo sem sinal na festa
+  const evCode = ev?.code;
+  useEffect(() => {
+    if (!evCode || !navigator.onLine) return;
+    const key = `mm-aquecido-${evCode}`;
+    try {
+      if (sessionStorage.getItem(key)) return; // uma vez por sessão: não repete a cada página
+      sessionStorage.setItem(key, "1");
+    } catch {
+      /* sem sessionStorage: aquece mesmo assim */
+    }
+    const id = setTimeout(() => {
+      for (const r of ["agora", "explorar", "voce", "postar"]) void fetch(`/e/${evCode}/${r}`, { credentials: "same-origin" }).catch(() => undefined);
+    }, 4000); // depois da primeira pintura, para não competir com a página
+    return () => clearTimeout(id);
+  }, [evCode]);
+
   const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh } : null), [data, user, participant, isHost, now, refresh]);
 
   if (!ready || data.loading) return <main className="app-col"><p className="app-screen app-muted">Carregando a festa…</p></main>;

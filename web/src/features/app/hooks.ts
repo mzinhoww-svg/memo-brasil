@@ -88,8 +88,8 @@ export function usePhotoUrls(photos: Photo[]): Record<string, string> {
         const d = await repos.photos.getData(p.id);
         if (!d || !alive) continue;
         cache.current.set(p.id, URL.createObjectURL(new Blob([d.bytes], { type: d.type })));
+        if (alive) setUrls(Object.fromEntries(cache.current)); // aparece foto a foto, sem esperar o lote
       }
-      if (alive) setUrls(Object.fromEntries(cache.current));
     })();
     return () => {
       alive = false;

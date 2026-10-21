@@ -26,7 +26,8 @@ export default function Configuracoes() {
   const locked = !canEditEnd(event, photoCount, now);
 
   const save = async (patch: Parameters<typeof updateSettings>[2]) => {
-    await updateSettings(repos, event.id, patch);
+    const r = await updateSettings(repos, event.id, patch);
+    setMsg(!r.ok && r.reason === "capacidade-menor-que-convidados" ? "Esse evento já tem mais convidados do que essa capacidade. Escolha um número maior." : undefined);
     await refresh();
   };
 
@@ -60,6 +61,7 @@ export default function Configuracoes() {
         {event.revealTiming === "depois" && <Stepper label="Dias depois do fim" value={event.revealDelayDays} min={1} max={30} format={(n) => String(n)} decrementLabel="Menos um dia" incrementLabel="Mais um dia" onChange={(n) => save({ revealDelayDays: n })} />}
         <OptionGroup<Shots> label="Fotos por pessoa" value={event.shotsPerPerson} onChange={(v) => save({ shotsPerPerson: v })} options={SHOTS_OPTIONS.map((s) => ({ value: s, label: s === null ? "Ilimitadas" : String(s) }))} />
         <OptionGroup<Capacity> label="Convidados" value={event.capacity} onChange={(v) => save({ capacity: v })} options={CAPACITY_OPTIONS.map((c) => ({ value: c, label: c === null ? "Ilimitado" : String(c) }))} />
+        {event.capacity !== null && event.capacity > 10 || event.capacity === null ? <p className="app-p app-muted">Passar de 10 convidados teria valor. Nesta versão de demonstração, nada é cobrado.</p> : null}
         <OptionGroup<boolean> list label="Quem vê as fotos" value={event.everyoneSeesAll} onChange={(v) => save({ everyoneSeesAll: v })} options={[{ value: true, label: "Todos veem todas as fotos" }, { value: false, label: "Cada um vê só as suas" }]} />
         <OptionGroup<boolean> label="Reações nas fotos" value={event.reactionsEnabled} onChange={(v) => save({ reactionsEnabled: v })} options={[{ value: true, label: "Ligadas" }, { value: false, label: "Desligadas" }]} />
       </section>

@@ -6,7 +6,7 @@ import type { Participant, Repositories } from "@/repositories";
 /** Célula CSV segura: aspas escapadas e prefixo contra fórmulas em planilhas (=, +, -, @). */
 export function csvCell(v: string | number): string {
   let s = String(v);
-  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  if (/^[\s\u0000-\u001f]*[=+\-@]/.test(s)) s = `'${s}`;
   return /[",\n\r;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

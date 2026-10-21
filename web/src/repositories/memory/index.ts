@@ -13,6 +13,7 @@ export function createMemoryRepositories(): Repositories {
   const reactions = new Map<string, Reaction>();
   const invitations = new Map<string, Invitation>();
   let user: User | undefined;
+  const known = new Map<string, User>();
   const pk = (e: string, u: string) => `${e}|${u}`;
   const dropWhere = <V,>(m: Map<string, V>, pred: (v: V) => boolean) => {
     for (const [k, v] of m) if (pred(v)) m.delete(k);
@@ -43,7 +44,7 @@ export function createMemoryRepositories(): Repositories {
         photos.set(p.id, clone(p));
         data.set(p.id, { bytes: d.bytes.slice(0), type: d.type });
       },
-      update: async (p) => void photos.set(p.id, clone(p)),
+      update: async (p) => void (photos.has(p.id) && photos.set(p.id, clone(p))),
       getData: async (id) => (data.has(id) ? { bytes: data.get(id)!.bytes.slice(0), type: data.get(id)!.type } : undefined),
       remove: async (id) => {
         photos.delete(id);
@@ -71,8 +72,16 @@ export function createMemoryRepositories(): Repositories {
     },
     users: {
       current: async () => (user ? clone(user) : undefined),
-      save: async (u) => void (user = clone(u)),
+      save: async (u) => {
+        user = clone(u);
+        known.set(u.id, clone(u));
+      },
       clear: async () => void (user = undefined),
+      known: async () => [...known.values()].map(clone),
+      switchTo: async (id) => {
+        user = known.has(id) ? clone(known.get(id)!) : undefined;
+        return user ? clone(user) : undefined;
+      },
     },
   };
 }

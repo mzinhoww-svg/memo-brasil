@@ -64,8 +64,12 @@ export interface InvitationRepository {
 }
 export interface UserRepository {
   current(): Promise<User | undefined>;
+  /** Define a pessoa atual e a lembra na lista de identidades deste aparelho. */
   save(u: User): Promise<void>;
+  /** Sai da pessoa atual, mas mantém as identidades conhecidas (o anfitrião volta ao painel). */
   clear(): Promise<void>;
+  known(): Promise<User[]>;
+  switchTo(id: string): Promise<User | undefined>;
 }
 
 export interface Repositories {

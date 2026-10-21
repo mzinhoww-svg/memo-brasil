@@ -36,6 +36,9 @@ Tipografia (Bricolage 800 com tracking negativo nos títulos; Instrument Serif i
 3. `body` com `font-size: 17px` alterava containers do kit (Notice, TableCard): removido; tamanhos vêm das classes do kit.
 4. Tabs da galeria apontavam `aria-controls` para painel inexistente (axe, crítico): painel adicionado.
 
+5. (Auditoria) Texto de ajuda/consentimento a 13px e avisos a 15px ficavam abaixo dos 17px do README para leitura: agora usam 17px; componentes do kit seguem os tamanhos do kit.
+6. (Auditoria) Safe-area do iPhone na TabBar e quebra de nome de evento longo: adicionadas; **não medidas** em aparelho real.
+
 ## 5. O que esta validação NÃO prova
 - Não é comparação de pixels contra o `index.html` do kit (é paridade de estilos computados dos componentes + inspeção das capturas). Telas compostas do app (feed, wizard, painel) não existem no kit; a fidelidade delas é a dos componentes e dos tokens usados.
 - Só Chromium. Safari/iOS e Firefox não foram executados (riscos conhecidos: `getUserMedia`/zoom, `localStorage` em modo privado, push).

@@ -10,32 +10,48 @@ interface Schema extends DBSchema {
   photoData: { key: string; value: PhotoData };
   reactions: { key: [string, string]; value: Reaction; indexes: { eventId: string; photoId: string } };
   invitations: { key: string; value: Invitation; indexes: { eventId: string } };
-  meta: { key: string; value: User };
+  meta: { key: string; value: User | User[] };
 }
 
 export const DB_NAME = "memoriesmt";
-export const DB_VERSION = 1;
 
-async function open(name: string): Promise<IDBPDatabase<Schema>> {
+/** Migrações por versão: MIGRATIONS[i] leva o schema da versão i para i+1. Nunca edite uma já publicada. */
+export type Migration = (db: IDBPDatabase<Schema>) => void;
+export const MIGRATIONS: Migration[] = [
+  (db) => {
+    db.createObjectStore("events", { keyPath: "id" }).createIndex("code", "code", { unique: true });
+    db.createObjectStore("participants", { keyPath: ["eventId", "userId"] }).createIndex("eventId", "eventId");
+    db.createObjectStore("photos", { keyPath: "id" }).createIndex("eventId", "eventId");
+    db.createObjectStore("photoData");
+    const r = db.createObjectStore("reactions", { keyPath: ["photoId", "authorId"] });
+    r.createIndex("eventId", "eventId");
+    r.createIndex("photoId", "photoId");
+    db.createObjectStore("invitations", { keyPath: "id" }).createIndex("eventId", "eventId");
+    db.createObjectStore("meta");
+  },
+];
+export const DB_VERSION = MIGRATIONS.length;
+
+async function open(name: string, migrations: Migration[]): Promise<IDBPDatabase<Schema>> {
   if (typeof indexedDB === "undefined") throw new StorageUnavailableError();
   try {
-    return await openDB<Schema>(name, DB_VERSION, {
-      upgrade(db) {
-        db.createObjectStore("events", { keyPath: "id" }).createIndex("code", "code", { unique: true });
-        db.createObjectStore("participants", { keyPath: ["eventId", "userId"] }).createIndex("eventId", "eventId");
-        db.createObjectStore("photos", { keyPath: "id" }).createIndex("eventId", "eventId");
-        db.createObjectStore("photoData");
-        const r = db.createObjectStore("reactions", { keyPath: ["photoId", "authorId"] });
-        r.createIndex("eventId", "eventId");
-        r.createIndex("photoId", "photoId");
-        db.createObjectStore("invitations", { keyPath: "id" }).createIndex("eventId", "eventId");
-        db.createObjectStore("meta");
+    return await openDB<Schema>(name, migrations.length, {
+      upgrade(db, oldVersion, newVersion) {
+        for (let v = oldVersion; v < (newVersion ?? migrations.length); v++) migrations[v]?.(db);
       },
-    });
+      // outra aba com versão antiga não pode travar a atualização, e esta não pode travar as novas
+      blocking() {
+        void dbHandle?.close();
+      },
+      terminated() {
+        dbHandle = undefined;
+      },
+    }).then((d) => (dbHandle = d));
   } catch (e) {
     throw new StorageUnavailableError(e);
   }
 }
+let dbHandle: IDBPDatabase<Schema> | undefined;
 
 /** Apaga todas as linhas de um índice numa transação (acesso sem tipos: store/índice dinâmicos). */
 async function wipe(db: IDBPDatabase<Schema>, store: "participants" | "reactions" | "invitations", index: "eventId" | "photoId", value: string) {
@@ -46,9 +62,12 @@ async function wipe(db: IDBPDatabase<Schema>, store: "participants" | "reactions
 }
 
 /** Adaptador IndexedDB. Falhas de cota/permissão viram StorageUnavailableError. */
-export function createIndexedDbRepositories(name: string = DB_NAME): Repositories {
+export function createIndexedDbRepositories(name: string = DB_NAME, migrations: Migration[] = MIGRATIONS): Repositories {
   let dbp: Promise<IDBPDatabase<Schema>> | undefined;
-  const db = () => (dbp ??= open(name));
+  const db = () => (dbp ??= open(name, migrations).catch((e) => {
+    dbp = undefined; // falha de abertura não fica em cache: a próxima chamada tenta de novo
+    throw e;
+  }));
   const guard = async <T,>(fn: (d: IDBPDatabase<Schema>) => Promise<T>): Promise<T> => {
     const d = await db();
     try {
@@ -82,7 +101,12 @@ export function createIndexedDbRepositories(name: string = DB_NAME): Repositorie
           const tx = d.transaction(["photos", "photoData"], "readwrite");
           await Promise.all([tx.objectStore("photos").put(p), tx.objectStore("photoData").put(data, p.id), tx.done]);
         }),
-      update: (p) => guard(async (d) => void (await d.put("photos", p))),
+      update: (p) =>
+        guard(async (d) => {
+          const tx = d.transaction("photos", "readwrite");
+          if (await tx.store.get(p.id)) await tx.store.put(p);
+          await tx.done;
+        }),
       getData: (id) => guard((d) => d.get("photoData", id)),
       remove: (id) =>
         guard(async (d) => {
@@ -111,9 +135,25 @@ export function createIndexedDbRepositories(name: string = DB_NAME): Repositorie
       removeByEvent: (id) => guard((d) => wipe(d, "invitations", "eventId", id)),
     },
     users: {
-      current: () => guard((d) => d.get("meta", "user")),
-      save: (u) => guard(async (d) => void (await d.put("meta", u, "user"))),
+      current: () => guard(async (d) => (await d.get("meta", "user")) as User | undefined),
+      save: (u) =>
+        guard(async (d) => {
+          const tx = d.transaction("meta", "readwrite");
+          const known = ((await tx.store.get("known")) as User[] | undefined) ?? [];
+          await tx.store.put(u, "user");
+          await tx.store.put([...known.filter((k) => k.id !== u.id), u], "known");
+          await tx.done;
+        }),
       clear: () => guard((d) => d.delete("meta", "user")),
+      known: () => guard(async (d) => ((await d.get("meta", "known")) as User[] | undefined) ?? []),
+      switchTo: (id) =>
+        guard(async (d) => {
+          const tx = d.transaction("meta", "readwrite");
+          const u = (((await tx.store.get("known")) as User[] | undefined) ?? []).find((k) => k.id === id);
+          if (u) await tx.store.put(u, "user");
+          await tx.done;
+          return u;
+        }),
     },
   };
 }

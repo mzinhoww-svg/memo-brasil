@@ -35,7 +35,7 @@ export default function Downloads() {
         {progress && <Progress label="Preparando o álbum" status={`${progress.done} de ${progress.total}`} value={(progress.done / Math.max(1, progress.total)) * 100} />}
         {result && <p className="app-p" role="status">{result}</p>}
         <Button variant="secundario" icon="baixar" block onClick={csv}>Lista de convidados (CSV)</Button>
-        <p className="mm-field-ajuda">As fotos baixadas são as que estão guardadas neste aparelho.</p>
+        <p className="app-p app-muted">As fotos baixadas são as que estão guardadas neste aparelho.</p>
       </div>
     </>
   );

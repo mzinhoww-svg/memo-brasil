@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, EventHeader, EventTheme, Field, Signature } from "@/components/memoriesmt";
+import { Button, EventHeader, EventTheme, Field, KnownPeople, Signature } from "@/components/memoriesmt";
 import { eventStatus } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
 import { formatDate, useEventData } from "@/features/app/hooks";
@@ -22,7 +22,7 @@ export default function Convite() {
   const params = useParams<{ code: string }>();
   const code = normalizeShareCode(params.code ?? "") ?? "";
   const router = useRouter();
-  const { ready, user, signIn, repos, now } = useApp();
+  const { ready, user, signIn, repos, now, known, switchTo } = useApp();
   const data = useEventData({ code });
   const [nameInput, setName] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
@@ -66,6 +66,8 @@ export default function Convite() {
         <div className="app-screen">
           <p className="emocao app-emocao">A visão de {event.hostName}. Agora, a sua.</p>
 
+          {!user && <KnownPeople people={known} onPick={(id) => void switchTo(id)} />}
+
           {isHost || member ? (
             <div className="app-stack">
               <h1 className="titulo-tela app-h1">Você está dentro, {member?.name ?? user?.name}.</h1>
@@ -75,13 +77,14 @@ export default function Convite() {
           ) : (
             <form className="app-stack" onSubmit={(e) => { e.preventDefault(); void enter(); }}>
               <h1 className="titulo-tela app-h1">Entrar na festa</h1>
-              <Field label="Como te chamam na festa?" value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" maxLength={40} error={error} help={ended ? undefined : `Ao postar, você autoriza ${event.category === "casamento" ? "os noivos" : "o anfitrião"} a guardar e compartilhar a foto.`} />
+              <Field label="Como te chamam na festa?" value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" maxLength={40} error={error} />
+              {!ended && <p className="app-p app-muted">Ao postar, você autoriza {event.category === "casamento" ? "os noivos" : "o anfitrião"} a guardar e compartilhar a foto.</p>}
               <Button type="submit" variant="primario" block disabled={busy || ended}>{busy ? "Entrando…" : "Entrar na festa"}</Button>
               {ended && <p className="mm-field-erro">{MESSAGES.encerrado}</p>}
             </form>
           )}
 
-          <p className="mm-field-ajuda">Versão local: tudo fica guardado neste aparelho. Fotos de outros aparelhos só aparecem quando o servidor entrar.</p>
+          <p className="app-p app-muted">Versão local: tudo fica guardado neste aparelho. Fotos de outros aparelhos só aparecem quando o servidor entrar.</p>
           <div style={{ marginTop: "auto" }}><Signature /></div>
         </div>
       </main>

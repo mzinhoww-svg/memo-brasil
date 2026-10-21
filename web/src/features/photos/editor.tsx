@@ -233,7 +233,7 @@ export function PhotoEditor({ repos, photo, others, onDone }: { repos: Repositor
             <Button variant="secundario" small disabled={!draft.trim()} onClick={addText}>Adicionar texto</Button>
             <Button variant="destrutivo" small disabled={!selected} onClick={removeText}>Excluir texto</Button>
           </div>
-          <p className="mm-field-ajuda">Toque no texto na foto e arraste para mudar de lugar.</p>
+          <p className="app-p app-muted">Toque no texto na foto e arraste para mudar de lugar.</p>
         </div>
       )}
       {mode === "colagem" && (
@@ -242,7 +242,7 @@ export function PhotoEditor({ repos, photo, others, onDone }: { repos: Repositor
           <Chips label="Layout da colagem">
             {(Object.keys(COLLAGE_LABEL) as CollageLayout[]).map((l) => <Chip key={l} variant="filtro" pressed={snap.layout === l} onClick={() => chooseLayout(l)}>{COLLAGE_LABEL[l]}</Chip>)}
           </Chips>
-          {others.length === 0 && <p className="mm-field-ajuda">Ainda não há outras fotos neste álbum.</p>}
+          {others.length === 0 && <p className="app-p app-muted">Ainda não há outras fotos neste álbum.</p>}
         </div>
       )}
       <Button variant="cta" icon="baixar" block disabled={!base} onClick={finish}>Concluir e baixar</Button>

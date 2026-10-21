@@ -95,14 +95,10 @@ test("pedido de remoção cai na fila do anfitrião, que oculta e depois remove 
   await expect(page.getByText("Pedido enviado. O anfitrião vai analisar.")).toBeVisible();
   await page.keyboard.press("Escape");
 
-  // volta a ser o anfitrião: o evento foi criado por Emy; troca de pessoa não restaura a identidade, então
-  // o teste assume a identidade do anfitrião pelo mesmo registro local.
-  await page.evaluate(async (eid) => {
-    const open = (n: string) => new Promise<IDBDatabase>((res) => { const r = indexedDB.open(n); r.onsuccess = () => res(r.result); });
-    const db = await open("memoriesmt");
-    const ev: { hostId: string; hostName: string } = await new Promise((res) => { const r = db.transaction("events").objectStore("events").get(eid); r.onsuccess = () => res(r.result); });
-    await new Promise((res) => { const tx = db.transaction("meta", "readwrite"); tx.objectStore("meta").put({ id: ev.hostId, name: ev.hostName, createdAt: 1 }, "user"); tx.oncomplete = () => res(null); });
-  }, id);
+  // volta a ser o anfitrião pela própria interface ("Continuar como")
+  await page.goto("/");
+  await page.getByRole("button", { name: "Emy", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Seus eventos" })).toBeVisible();
   await page.goto(`/painel/${id}/conteudo`);
   await expect(page.getByRole("tab", { name: "Pedidos de remoção · 1" })).toHaveAttribute("aria-selected", "true");
   await page.getByRole("button", { name: "Ocultar" }).click();
@@ -207,4 +203,43 @@ test("avisos do evento: ativar pede permissão e confirma", async ({ page, conte
   await page.getByRole("link", { name: "Você" }).click();
   await page.getByRole("button", { name: "Ativar avisos" }).click();
   await expect(page.getByText("Avisos ligados neste aparelho.")).toBeVisible();
+});
+
+
+test("rota inexistente mostra 404 em português com saída", async ({ page }) => {
+  const res = await page.goto("/pagina-que-nao-existe");
+  expect(res?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: "Essa página não existe." })).toBeVisible();
+  await page.getByRole("link", { name: "Voltar ao início" }).click();
+  await expect(page.getByRole("heading", { name: "A festa vista por todo mundo." })).toBeVisible();
+});
+
+test("anfitrião testa como convidado e volta ao painel por 'Continuar como'", async ({ page }) => {
+  const { code, id } = await createViaWizard(page, { title: "Volta ao painel" });
+  await switchPerson(page, code, "Ana");
+  await page.goto(`/painel/${id}`);
+  await expect(page.getByRole("heading", { name: "Só o anfitrião abre o painel." })).toBeVisible();
+  await page.goto(`/e/${code}/voce`);
+  await page.getByRole("button", { name: "Entrar como outra pessoa" }).click();
+  await page.getByRole("button", { name: "Emy", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Você está dentro, Emy." })).toBeVisible();
+  await page.goto(`/painel/${id}`);
+  await expect(page.getByRole("heading", { name: /por todos os ângulos/ })).toBeVisible();
+});
+
+test("cabeçalhos de segurança e CSP sem violações de console nas telas principais", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  const res = await page.goto("/");
+  const h = res!.headers();
+  expect(h["x-content-type-options"]).toBe("nosniff");
+  expect(h["x-frame-options"]).toBe("DENY");
+  expect(h["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(h["permissions-policy"]).toContain("camera=(self)");
+  expect(h["content-security-policy"]).toContain("frame-ancestors 'none'");
+  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.waitForURL(/agora/);
+  await page.getByRole("link", { name: "Explorar" }).click();
+  await page.getByRole("link", { name: "Você" }).click();
+  expect(errors.filter((e) => /Content Security Policy|Refused to/i.test(e))).toEqual([]);
 });

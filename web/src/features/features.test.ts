@@ -3,7 +3,7 @@ import { endAt } from "@/domain/event";
 import { createMemoryRepositories, type Repositories, type User } from "@/repositories";
 import { eventStats, moderate } from "./admin/service";
 import { seedDemoEvent } from "./demo/seed";
-import { createEvent, endEventNow, setEndIn, type EventInput } from "./events/service";
+import { createEvent, endEventNow, setEndIn, updateSettings, type EventInput } from "./events/service";
 import { inviteUrl, tableFromSearch } from "./invitations/links";
 import { joinEvent } from "./participants/service";
 import { loadFeed, postPhoto, react, usedShots } from "./photos/service";
@@ -117,5 +117,35 @@ describe("convites", () => {
     expect(tableFromSearch("?mesa=Mesa%208")).toBe("Mesa 8");
     expect(tableFromSearch("?mesa=%3Cscript%3E")).toBeUndefined();
     expect(tableFromSearch("")).toBeUndefined();
+  });
+});
+
+describe("concorrência (rolo e vagas)", () => {
+  it("postagens simultâneas não passam do rolo", async () => {
+    const r = await createEvent(repos, host, { ...input, shotsPerPerson: 5 }, NOW);
+    if (!r.ok) throw new Error();
+    const results = await Promise.all(Array.from({ length: 12 }, (_, i) => postPhoto(repos, r.event, guest, img, { moment: "O sim" }, NOW + i)));
+    expect(results.filter((x) => x.ok)).toHaveLength(5);
+    expect(await usedShots(repos, r.event.id, guest.id)).toBe(5);
+  });
+  it("entradas simultâneas não passam da capacidade", async () => {
+    const r = await createEvent(repos, host, { ...input, capacity: 5 }, NOW);
+    if (!r.ok) throw new Error();
+    const results = await Promise.all(Array.from({ length: 12 }, (_, i) => joinEvent(repos, { ...guest, id: `u${i}` }, r.event.code, "Fulano", NOW)));
+    expect(results.filter((x) => x.ok)).toHaveLength(5);
+    expect((await repos.participants.listByEvent(r.event.id)).length).toBe(5);
+  });
+  it("capacidade não pode ficar abaixo dos convidados atuais", async () => {
+    const r = await createEvent(repos, host, { ...input, capacity: 20 }, NOW);
+    if (!r.ok) throw new Error();
+    for (let i = 0; i < 8; i++) await joinEvent(repos, { ...guest, id: `u${i}` }, r.event.code, "F", NOW);
+    expect(await updateSettings(repos, r.event.id, { capacity: 5 })).toEqual({ ok: false, reason: "capacidade-menor-que-convidados" });
+    expect((await updateSettings(repos, r.event.id, { capacity: 10 })).ok).toBe(true);
+  });
+  it("reagir em foto inexistente ou removida não grava", async () => {
+    const r = await createEvent(repos, host, { ...input, revealTiming: "durante" }, NOW);
+    if (!r.ok) throw new Error();
+    expect(await react(repos, r.event, "nao-existe", guest.id, "amei")).toEqual([]);
+    expect(await repos.reactions.listByEvent(r.event.id)).toEqual([]);
   });
 });

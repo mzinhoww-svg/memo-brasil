@@ -1,6 +1,7 @@
 import { canJoin, type MemoEvent } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
 import type { Participant, Repositories, User } from "@/repositories";
+import { withLock } from "@/lib/lock";
 
 export type JoinOutcome =
   | { ok: true; event: MemoEvent; participant: Participant }
@@ -12,6 +13,10 @@ export async function joinEvent(repos: Repositories, user: User, codeInput: stri
   if (!code) return { ok: false, reason: "codigo" };
   const event = await repos.events.getByCode(code);
   if (!event) return { ok: false, reason: "codigo" };
+  return withLock(`entrar:${event.id}`, () => joinLocked(repos, event, user, name, now, tableLabel));
+}
+
+async function joinLocked(repos: Repositories, event: MemoEvent, user: User, name: string, now: number, tableLabel?: string): Promise<JoinOutcome> {
   const trimmed = name.trim();
   if (!trimmed) return { ok: false, reason: "nome" };
   const existing = await repos.participants.get(event.id, user.id);

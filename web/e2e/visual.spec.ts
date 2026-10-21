@@ -19,6 +19,7 @@ async function noOverflow(page: Page, label: string) {
 }
 async function shot(page: Page, name: string, fullPage = false) {
   await page.evaluate(() => document.fonts.ready);
+  if (!process.env.SAVE_SHOTS) return; // evita sujar docs/qa a cada execução: SAVE_SHOTS=1 regrava as capturas
   await page.screenshot({ path: path.join(SHOTS, `${name}.png`), fullPage, animations: "disabled" });
 }
 
@@ -69,7 +70,7 @@ for (const vp of VIEWPORTS) {
         await shot(page, `${key}-explorar`);
         await page.goto(`/e/${code}/postar`);
         await expect(page.getByRole("heading", { name: "Postar daqui" })).toBeVisible();
-        await page.waitForTimeout(800);
+        await expect(page.getByRole("button", { name: "Tirar foto" })).toBeVisible({ timeout: 15_000 });
         await shot(page, `${key}-postar`);
         await page.goto("/criar");
         await shot(page, `${key}-criar`);

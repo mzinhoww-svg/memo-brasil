@@ -78,12 +78,15 @@ export async function endEventNow(repos: Repositories, eventId: string, now: num
   return next;
 }
 
-export async function updateSettings(repos: Repositories, eventId: string, patch: Partial<Pick<MemoEvent, "title" | "place" | "revealTiming" | "revealDelayDays" | "shotsPerPerson" | "capacity" | "everyoneSeesAll" | "reactionsEnabled" | "tables" | "notice" | "palette" | "eventFont" | "moments">>): Promise<MemoEvent | undefined> {
+export type SettingsResult = { ok: true; event: MemoEvent } | { ok: false; reason: "inexistente" | "capacidade-menor-que-convidados" };
+
+export async function updateSettings(repos: Repositories, eventId: string, patch: Partial<Pick<MemoEvent, "title" | "place" | "revealTiming" | "revealDelayDays" | "shotsPerPerson" | "capacity" | "everyoneSeesAll" | "reactionsEnabled" | "tables" | "notice" | "palette" | "eventFont" | "moments">>): Promise<SettingsResult> {
   const e = await repos.events.get(eventId);
-  if (!e) return undefined;
+  if (!e) return { ok: false, reason: "inexistente" };
+  if (patch.capacity !== undefined && patch.capacity !== null && patch.capacity < (await repos.participants.listByEvent(eventId)).length) return { ok: false, reason: "capacidade-menor-que-convidados" };
   const next = { ...e, ...patch };
   await repos.events.save(next);
-  return next;
+  return { ok: true, event: next };
 }
 
 export async function deleteEvent(repos: Repositories, eventId: string): Promise<void> {

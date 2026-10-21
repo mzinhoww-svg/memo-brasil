@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "./contrast";
 import { CAPACITY_OPTIONS, SHOTS_OPTIONS } from "./options";
-import { canEditEnd, canJoin, endAt, eventStatus, isRevealed, revealAt, shotsLeft, validateDraft, type MemoEvent } from "./event";
+import { canEditEnd, canJoin, endAt, eventStatus, isRevealed, retrospectiveOpen, revealAt, shotsLeft, validateDraft, type MemoEvent } from "./event";
 import { priceRule } from "./pricing";
 import { SHARE_CODE_ALPHABET, extractShareCode, generateShareCode, normalizeShareCode } from "./share-code";
 import { canPost, hide, moderationQueue, remove, report, setReaction, visiblePhotos, type Photo, type Reaction } from "./photo";
@@ -163,5 +163,17 @@ describe("visibilidade e moderação", () => {
     expect(q.map((p) => p.id).sort()).toEqual(["h", "o"]);
     expect(hide(other).status).toBe("oculta");
     expect(remove(other).status).toBe("removida");
+  });
+});
+
+describe("retrospectiva", () => {
+  it("só abre para convidados depois do fim E da revelação; anfitrião sempre", () => {
+    const durante = { ...base, revealTiming: "durante" as const };
+    expect(retrospectiveOpen(durante, base.startAt + H, false)).toBe(false); // revelada, mas o evento segue
+    expect(retrospectiveOpen(durante, endAt(base), false)).toBe(true);
+    const depois = { ...base, revealTiming: "depois" as const, revealDelayDays: 1 };
+    expect(retrospectiveOpen(depois, endAt(base), false)).toBe(false);
+    expect(retrospectiveOpen(depois, endAt(base) + D, false)).toBe(true);
+    expect(retrospectiveOpen(base, base.startAt, true)).toBe(true);
   });
 });

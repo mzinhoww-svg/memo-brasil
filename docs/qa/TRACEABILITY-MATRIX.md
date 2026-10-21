@@ -32,7 +32,7 @@ Confiança do REA entre colchetes: OBS observado · EST estático · INF inferid
 | F-25 [EST] | Convite por QR | TableCard | `qr.ts`, QR Code Studio (card A6 por mesa) | U `qr`; E visual | Concluído |
 | F-26 [EST] | Câmera (1×/2×, virar, rolo) | Button CTA-XL, Progress | `/e/[code]/postar` (virar, rolo, permissão, fallback arquivo) | E câmera de teste | Parcial (sem zoom 1×/2×) |
 | F-27 [EST] | Estilos aplicados à foto | — | `applyStylePixels` | U | Concluído |
-| F-28 [EST] | Rolo limitado | Progress | `canPost`, `postPhoto` (cliente) | U; E rolo esgotado | Concluído (cliente); servidor = backend |
+| F-28 [EST] | Rolo limitado | Progress | `canPost`, `postPhoto` com `withLock` (cliente) | U (inclui 12 posts simultâneos); E rolo esgotado | Concluído (cliente); servidor = backend |
 | F-29 [EST] | Sync offline-first | Notice "Sem sinal" | Persistência local + aviso offline | E offline/persistência | Parcial (sem upload remoto) |
 | F-30 [EST] | Galeria do evento | PostCard, StatTile, LiveIndicator | `/agora`, `/explorar`, `/voce`, painel | E | Concluído |
 | F-31 [EST/INF] | Revelação (gating) | — | `visiblePhotos` | U; E revelação com relógio | Concluído |
@@ -41,9 +41,9 @@ Confiança do REA entre colchetes: OBS observado · EST estático · INF inferid
 | F-34 [EST] | Exportar/baixar álbum | Button, Progress | Painel > Downloads (ZIP, CSV); "Baixar foto" | U `export`; E downloads | Concluído |
 | F-35 [EST] | Compartilhar fotos | — | Web Share só no convite | — | Parcial |
 | F-36 [EST] | Configurações do evento | OptionGroup, Stepper, Sheet | Painel > Configurações | U `setEndIn`; E encerrar/excluir | Concluído |
-| F-37 [EST] | Perfil / sair / excluir conta | — | "Entrar como outra pessoa" (local) | E | Parcial (excluir conta = backend) |
+| F-37 [EST] | Perfil / sair / excluir conta | — | "Entrar como outra pessoa" + "Continuar como" (identidades locais) | E "volta ao painel" | Parcial (excluir conta = backend) |
 | F-38 [EST] | Notificações locais | — | `notificationPlan` + `createLocalScheduler` | U (plano e agendador) | Parcial (só com app aberto) |
 | — | Moderação (host) — *decisão de produto, não REA* | Tabs, CountBadge, PostCard | Painel > Conteúdo | E moderação | Concluído |
 | — | Momentos, QR por mesa, aviso do cerimonial — *kit* | Chip, VisionTile, Notice, TableCard | Painel + Explorar | E | Concluído |
-| — | PWA | — | `manifest.ts`, `sw.js`, ícones | E PWA | Concluído |
+| — | PWA | — | `manifest.ts`, `sw.js` versionado por deploy, ícones | E PWA | Parcial (rota dinâmica não visitada não abre offline) |
 | — | Temas Dia/Noite | tokens | `lib/theme.tsx`, `tokens.css` | E tema; paridade | Concluído |

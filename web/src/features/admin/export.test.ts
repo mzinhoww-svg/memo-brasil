@@ -34,3 +34,10 @@ describe("ZIP do álbum", () => {
     expect(Object.keys(zip.files).sort()).toEqual(["emy-igor-001-o-sim.jpg", "emy-igor-002-o-sim.jpg"]);
   });
 });
+
+describe("CSV: espaço antes da fórmula", () => {
+  it("neutraliza ' =cmd' e quebra de linha antes de '='", () => {
+    expect(csvCell(" =1+1")).toBe("' =1+1");
+    expect(csvCell("\t@x")).toBe("'\t@x");
+  });
+});

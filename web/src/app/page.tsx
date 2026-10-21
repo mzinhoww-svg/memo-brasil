@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button, Cover, Icon, LiveIndicator, Signature, ThemeToggle, Logo } from "@/components/memoriesmt";
+import { Button, Cover, Icon, KnownPeople, LiveIndicator, Signature, ThemeToggle, Logo } from "@/components/memoriesmt";
 import type { MemoEvent } from "@/domain/event";
 import { eventStatus } from "@/domain/event";
 import { formatDate } from "@/features/app/hooks";
@@ -11,7 +11,7 @@ import { useApp } from "@/features/app/provider";
 import { seedDemoEvent } from "@/features/demo/seed";
 
 export default function Home() {
-  const { repos, ready, user, signIn, now, persistent, storageError } = useApp();
+  const { repos, ready, user, signIn, now, persistent, storageError, known, switchTo } = useApp();
   const [mine, setMine] = useState<MemoEvent[]>([]);
   const [joined, setJoined] = useState<MemoEvent[]>([]);
   const [busy, setBusy] = useState(false);
@@ -74,6 +74,8 @@ export default function Home() {
           <Button variant="texto" onClick={demo} disabled={busy || !ready}>{busy ? "Preparando…" : "Ver uma festa de exemplo"}</Button>
         </div>
 
+        {ready && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
+
         {(!persistent || storageError) && ready && (
           <div className="app-banner" role="status">
             <Icon name="sem-sinal" label="Aviso" />
@@ -94,7 +96,7 @@ export default function Home() {
           </section>
         )}
 
-        <p className="mm-field-ajuda">Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor. <Link href="/design">Guia de componentes</Link></p>
+        <p className="app-p app-muted">Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor. <Link href="/design">Guia de componentes</Link></p>
         <div style={{ marginTop: "auto" }}><Signature /></div>
       </div>
     </main>
