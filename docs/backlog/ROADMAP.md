@@ -24,7 +24,7 @@ Itens abertos: **9** · P0 2, P1 5, P2 2, P3 0 · BACKLOG 4, BLOCKED 4, READY 1
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **73** · P0 15, P1 15, P2 30, P3 13 · BACKLOG 48, BLOCKED 1, IN_REVIEW 16, READY 8
+Itens abertos: **71** · P0 14, P1 14, P2 30, P3 13 · BACKLOG 45, BLOCKED 2, IN_REVIEW 16, READY 8
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -36,13 +36,12 @@ Itens abertos: **73** · P0 15, P1 15, P2 30, P3 13 · BACKLOG 48, BLOCKED 1, IN
 | EST-004 | P0 | IN_REVIEW | Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estil | EST-001, EST-002 |
 | MAD-001 | P0 | IN_REVIEW | Papéis de plataforma no servidor: platform_roles, is_master com linha ativa, provisionamen | EST-001 |
 | MAD-002 | P0 | IN_REVIEW | Auditoria v2: reason obrigatório, imutabilidade, actor_role, confirmação de ações destruti | MAD-001 |
-| QAV-001 | P0 | BACKLOG | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots ant | EST-005, MAD-003 |
-| QAV-002 | P0 | BACKLOG | Revisão independente A1–A5 e correção de P0/P1 | QAV-001 |
-| RLV-001 | P0 | BACKLOG | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboa | QAV-002, SB-004, SB-008 |
+| QAV-001 | P0 | IN_REVIEW | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots ant | EST-005, MAD-003 |
+| QAV-002 | P0 | IN_REVIEW | Revisão independente A1–A5 e correção de P0/P1 | QAV-001 |
+| RLV-001 | P0 | BLOCKED | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboa | QAV-002, SB-004, SB-008 |
 | SCV-002 | P0 | BACKLOG | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | EST-004, MAD-003 |
 | SCV-003 | P0 | BACKLOG | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e val | MAD-001 |
 | SCV-008 | P0 | BLOCKED | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento | SCV-003 |
-| UXA-001 | P0 | IN_REVIEW | Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e est | - |
 | ANL-001 | P1 | IN_REVIEW | RPCs/views agregadas reais para o dashboard (eventos, participantes, fotos, falhas, revela | MAD-001 |
 | COM-009 | P1 | BACKLOG | Backup, PITR e teste de restauração; política de retenção de fotos | SB-008 |
 | DSV-002 | P1 | BACKLOG | Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /de | DSV-001 |
@@ -56,7 +55,6 @@ Itens abertos: **73** · P0 15, P1 15, P2 30, P3 13 · BACKLOG 48, BLOCKED 1, IN
 | QAV-003 | P1 | BACKLOG | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e per | EST-004, SCV-008 |
 | SCV-004 | P1 | BACKLOG | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
 | SCV-006 | P1 | BACKLOG | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
-| UXA-002 | P1 | IN_REVIEW | Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com ca | UXA-001 |
 | UXA-104 | P1 | BACKLOG | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostr | UXA-001 |
 | BG-022 | P2 | READY | Sem validação em Safari/iOS e Firefox | - |
 | BG-040 | P2 | BACKLOG | Rota dinâmica nunca visitada não abre offline | - |

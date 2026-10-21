@@ -14,7 +14,7 @@
 | G10 | V2: revisão independente A1–A5 e correção de P0/P1 | EM ANDAMENTO | docs/audit/ux/INVENTARIO.md; revisões da sessão |
 | G11 | Acesso do conector Supabase ao projeto (INF-001) | ABERTO | INF-001 |
 
-## Itens P0/P1 em aberto (42)
+## Itens P0/P1 em aberto (40)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -24,8 +24,6 @@
 | SB-005 | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | P1 | BACKLOG |
 | SB-006 | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexão | P1 | BACKLOG |
 | SB-008 | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | P0 | BLOCKED |
-| UXA-001 | Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e estados | P0 | IN_REVIEW |
-| UXA-002 | Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com campo e copiar | P1 | IN_REVIEW |
 | DSV-001 | Tokens v2 por camada (Platform/Event/Admin) e breakpoints | P0 | IN_REVIEW |
 | DSV-002 | Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /design | P1 | BACKLOG |
 | DSV-003 | Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste | P0 | BACKLOG |
@@ -40,9 +38,9 @@
 | MAD-004 | Acesso excepcional a foto privada por admin com justificativa e auditoria | P1 | BACKLOG |
 | ANL-001 | RPCs/views agregadas reais para o dashboard (eventos, participantes, fotos, falhas, revelações, Storage, tendências) | P1 | IN_REVIEW |
 | SCV-002 | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG |
-| QAV-001 | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots antes/depois; três identidades | P0 | BACKLOG |
-| QAV-002 | Revisão independente A1–A5 e correção de P0/P1 | P0 | BACKLOG |
-| RLV-001 | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BACKLOG |
+| QAV-001 | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots antes/depois; três identidades | P0 | IN_REVIEW |
+| QAV-002 | Revisão independente A1–A5 e correção de P0/P1 | P0 | IN_REVIEW |
+| RLV-001 | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BLOCKED |
 | UXA-104 | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rol | P1 | BACKLOG |
 | COM-004 | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | BACKLOG |
 | COM-001 | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | BACKLOG |

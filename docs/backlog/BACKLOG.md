@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P3 47. Status: BACKLOG 99, BLOCKED 5, CANCELLED 2, DEFERRED 11, DONE 58, IN_REVIEW 16, READY 11.
+Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P3 47. Status: BACKLOG 96, BLOCKED 6, CANCELLED 2, DEFERRED 11, DONE 60, IN_REVIEW 16, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -344,8 +344,8 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| UXA-001 | FEATURE | Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e estados | P0 | IN_REVIEW | - | missão design/studio/master 2026-10-21 | - | - |
-| UXA-002 | FEATURE | Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com campo e copiar | P1 | IN_REVIEW | UXA-001 | missão design/studio/master 2026-10-21 | 9242018 | local |
+| UXA-001 | FEATURE | Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e estados | P0 | DONE | - | missão design/studio/master 2026-10-21 | c15336a | local |
+| UXA-002 | FEATURE | Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com campo e copiar | P1 | DONE | UXA-001 | missão design/studio/master 2026-10-21 | 9242018 | local |
 | UXA-104 | FEATURE | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rol | P1 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-105 | FEATURE | [Administrativa] /painel/[id] e abas (visão, convidados, momentos, configurações, downloads): Container 1100px alinhado à esquerda (1920: 564px vazios à direita) e formulários presos em 340–343px; Con | P2 | IN_REVIEW | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | 9242018 | local |
 | UXA-106 | FEATURE | [Administrativa] /painel/[id]/convidados: Lista de convidados repetida: tabela 'Convidados' e logo abaixo 'Remover da festa' com os mesmos nomes | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
@@ -370,10 +370,6 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 | UXA-125 | FEATURE | [Administrativa] /painel/[id]/aparencia (WIP de outro agente): Em 375 a 'Prévia do convite' fica no fim, após ~1,4k px de formulário: edita-se sem ver o efeito (≥1024 a prévia é lateral e boa) | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-126 | FEATURE | [Anfitrião] /criar · passo 6 (resumo): CTA 'Criar evento de demonstração' quebra em 2 linhas em 320; aviso de cobrança longo antes do CTA | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-127 | FEATURE | Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fonte | P2 | BACKLOG | EST-004 | revisão independente A1–A5 2026-10-21 | - | - |
-
-**UXA-001** critérios: Inventário em docs/audit/ux com severidade, causa e solução; inclui Evento criado, Câmera, Espera, Revelação, Galeria, Painel, erros, loading, vazio, sessão expirada
-
-**UXA-002** critérios: Sem quebra de título em 320–1920; URL legível e copiável; screenshots antes/depois · testes: e2e/uxa-evento-criado.spec.ts
 
 **UXA-104** critérios: Grade 3–4 colunas ≥1024 com cartão compacto (miniatura, motivo, ações), seleção em massa, atalhos e painel lateral de detalhe. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-conteudo-1440.png, painel-conteudo-todas-1440.png) em docs/audit/ux/screens.
 
@@ -530,13 +526,13 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| QAV-001 | FEATURE | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots antes/depois; três identidades | P0 | BACKLOG | EST-005, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
-| QAV-002 | FEATURE | Revisão independente A1–A5 e correção de P0/P1 | P0 | BACKLOG | QAV-001 | missão design/studio/master 2026-10-21 | - | - |
+| QAV-001 | FEATURE | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots antes/depois; três identidades | P0 | IN_REVIEW | EST-005, MAD-003 | missão design/studio/master 2026-10-21 | ed63bc4 | local |
+| QAV-002 | FEATURE | Revisão independente A1–A5 e correção de P0/P1 | P0 | IN_REVIEW | QAV-001 | missão design/studio/master 2026-10-21 | ed63bc4 | local |
 | QAV-003 | FEATURE | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador | P1 | BACKLOG | EST-004, SCV-008 | revisão independente A1–A5 2026-10-21 | - | - |
 
-**QAV-001** critérios: Regressão v1 intacta; evidências anexadas
+**QAV-001** critérios: Regressão v1 intacta; evidências anexadas · testes: vitest 245; playwright local 51; pgTAP 366 (pré-hardening)
 
-**QAV-002** critérios: Relatório consolidado; P0/P1 corrigidos
+**QAV-002** critérios: Relatório consolidado; P0/P1 corrigidos · testes: vitest 245; playwright local 51; pgTAP 366 (pré-hardening)
 
 **QAV-003** critérios: Testes rodando em Supabase local; falha de permissão coberta
 
@@ -544,9 +540,9 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| RLV-001 | FEATURE | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BACKLOG | QAV-002, SB-004, SB-008 | missão design/studio/master 2026-10-21 | - | - |
+| RLV-001 | FEATURE | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BLOCKED | QAV-002, SB-004, SB-008 | missão design/studio/master 2026-10-21 | ed63bc4 | vercel-preview |
 
-**RLV-001** critérios: Preview funcional; sem promoção enquanto SB-004/SB-008 e a homologação v1 estiverem pendentes
+**RLV-001** critérios: Preview funcional; sem promoção enquanto SB-004/SB-008 e a homologação v1 estiverem pendentes · testes: smoke HTTP do preview V2 (gate /master, headers)
 
 ## EP-19 · Monetização e escala (BACKLOG)
 

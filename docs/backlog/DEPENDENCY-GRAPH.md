@@ -59,8 +59,8 @@ flowchart LR
   SB_006["SB-006<br/>BACKLOG"]:::back
   SB_007["SB-007<br/>BACKLOG"]:::back
   SB_008["SB-008<br/>BLOCKED"]:::block
-  UXA_001["UXA-001<br/>IN_REVIEW"]:::back
-  UXA_002["UXA-002<br/>IN_REVIEW"]:::back
+  UXA_001["UXA-001<br/>DONE"]:::done
+  UXA_002["UXA-002<br/>DONE"]:::done
   DSV_001["DSV-001<br/>IN_REVIEW"]:::back
   DSV_002["DSV-002<br/>BACKLOG"]:::back
   DSV_003["DSV-003<br/>BACKLOG"]:::back
@@ -76,9 +76,9 @@ flowchart LR
   ANL_001["ANL-001<br/>IN_REVIEW"]:::back
   SCV_001["SCV-001<br/>IN_REVIEW"]:::back
   SCV_002["SCV-002<br/>BACKLOG"]:::back
-  QAV_001["QAV-001<br/>BACKLOG"]:::back
-  QAV_002["QAV-002<br/>BACKLOG"]:::back
-  RLV_001["RLV-001<br/>BACKLOG"]:::back
+  QAV_001["QAV-001<br/>IN_REVIEW"]:::back
+  QAV_002["QAV-002<br/>IN_REVIEW"]:::back
+  RLV_001["RLV-001<br/>BLOCKED"]:::block
   UXA_104["UXA-104<br/>BACKLOG"]:::back
   UXA_105["UXA-105<br/>IN_REVIEW"]:::back
   UXA_106["UXA-106<br/>BACKLOG"]:::back

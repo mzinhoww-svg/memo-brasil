@@ -4445,19 +4445,21 @@
    "epic": "EP-11",
    "parent": null,
    "priority": "P0",
-   "status": "IN_REVIEW",
+   "status": "DONE",
    "dependencies": [],
    "origin": "missão design/studio/master 2026-10-21",
    "acceptance": [
     "Inventário em docs/audit/ux com severidade, causa e solução; inclui Evento criado, Câmera, Espera, Revelação, Galeria, Painel, erros, loading, vazio, sessão expirada"
    ],
    "files": [],
-   "tests": [],
+   "tests": [
+    "axe-core sem violações; 0 overflow"
+   ],
    "evidence": [
     "docs/audit/ux/INVENTARIO.md"
    ],
-   "commit": null,
-   "environment": null,
+   "commit": "c15336a",
+   "environment": "local",
    "release": "R2"
   },
   {
@@ -4468,7 +4470,7 @@
    "epic": "EP-11",
    "parent": null,
    "priority": "P1",
-   "status": "IN_REVIEW",
+   "status": "DONE",
    "dependencies": [
     "UXA-001"
    ],
@@ -4881,7 +4883,7 @@
    "epic": "EP-17",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "EST-005",
     "MAD-003"
@@ -4891,10 +4893,14 @@
     "Regressão v1 intacta; evidências anexadas"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "tests": [
+    "vitest 245; playwright local 51; pgTAP 366 (pré-hardening)"
+   ],
+   "evidence": [
+    "docs/audit/V2-FINAL-AUDIT.md"
+   ],
+   "commit": "ed63bc4",
+   "environment": "local",
    "release": "R2"
   },
   {
@@ -4905,7 +4911,7 @@
    "epic": "EP-17",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "QAV-001"
    ],
@@ -4914,10 +4920,14 @@
     "Relatório consolidado; P0/P1 corrigidos"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "tests": [
+    "vitest 245; playwright local 51; pgTAP 366 (pré-hardening)"
+   ],
+   "evidence": [
+    "docs/audit/V2-FINAL-AUDIT.md"
+   ],
+   "commit": "ed63bc4",
+   "environment": "local",
    "release": "R2"
   },
   {
@@ -4928,7 +4938,7 @@
    "epic": "EP-18",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "BLOCKED",
    "dependencies": [
     "QAV-002",
     "SB-004",
@@ -4939,10 +4949,14 @@
     "Preview funcional; sem promoção enquanto SB-004/SB-008 e a homologação v1 estiverem pendentes"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "tests": [
+    "smoke HTTP do preview V2 (gate /master, headers)"
+   ],
+   "evidence": [
+    "docs/audit/V2-FINAL-AUDIT.md"
+   ],
+   "commit": "ed63bc4",
+   "environment": "vercel-preview",
    "release": "R2"
   },
   {
