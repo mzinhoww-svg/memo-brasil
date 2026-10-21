@@ -53,7 +53,7 @@ flowchart LR
   AUD_002["AUD-002<br/>DONE"]:::done
   SB_001["SB-001<br/>DONE"]:::done
   SB_002["SB-002<br/>DONE"]:::done
-  SB_003["SB-003<br/>BLOCKED"]:::block
+  SB_003["SB-003<br/>DONE"]:::done
   SB_004["SB-004<br/>BLOCKED"]:::block
   SB_005["SB-005<br/>BACKLOG"]:::back
   SB_006["SB-006<br/>BACKLOG"]:::back

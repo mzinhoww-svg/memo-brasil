@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **133** itens (sem contar 10 épicos). Prioridade: P0 22, P1 47, P2 30, P3 34. Status: BACKLOG 47, BLOCKED 5, CANCELLED 2, DEFERRED 11, DONE 57, READY 11.
+Total: **133** itens (sem contar 10 épicos). Prioridade: P0 22, P1 47, P2 30, P3 34. Status: BACKLOG 47, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -286,12 +286,12 @@ Total: **133** itens (sem contar 10 épicos). Prioridade: P0 22, P1 47, P2 30, P
 | FT-089 | FEATURE | Migração local → nuvem | P1 | DEFERRED | FT-080, FT-082, FT-085, INF-001, AUD-002, ITG-105 | fase Supabase | - | - |
 | SB-001 | FEATURE | Migrations v1 do Supabase: schema, RLS, RPCs, Storage privado, tarefas de revelação, endurecimento | P0 | DONE | ITG-106 | entrega autônoma 2026-10-21 | 6270624 | Supabase local (Docker) |
 | SB-002 | FEATURE | Adaptador Supabase atrás do contrato de repositório e ligação no Next (provider, sessão anônima, Google do organizador, CSP) | P0 | DONE | SB-001, ITG-102 | entrega autônoma 2026-10-21 | 2e77aae | Supabase local + Chromium |
-| SB-003 | TASK | Aplicar as migrations no projeto remoto asyaegeodyttttaubvxh | P0 | BLOCKED | SB-001 | entrega autônoma 2026-10-21 | - | remoto |
-| SB-004 | TASK | Configurar Google OAuth, login anônimo e URLs de redirect no Supabase remoto | P0 | BLOCKED | SB-003 | entrega autônoma 2026-10-21 | - | remoto |
+| SB-003 | TASK | Aplicar as migrations no projeto remoto asyaegeodyttttaubvxh | P0 | DONE | SB-001 | entrega autônoma 2026-10-21 | 4ab85f8 | remote |
+| SB-004 | TASK | Configurar Google OAuth, login anônimo e URLs de redirect no Supabase remoto | P0 | BLOCKED | SB-003 | entrega autônoma 2026-10-21 | 4ab85f8 | remote |
 | SB-005 | TASK | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | P1 | BACKLOG | SB-003 | entrega autônoma 2026-10-21 | - | - |
 | SB-006 | TASK | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexão | P1 | BACKLOG | SB-002 | entrega autônoma 2026-10-21 | - | - |
 | SB-007 | TASK | Relógio do servidor no app e observabilidade (logs estruturados, monitor da revelação, runbook de recuperação) | P2 | BACKLOG | SB-003 | entrega autônoma 2026-10-21 | - | - |
-| SB-008 | TASK | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | P0 | BLOCKED | SB-003, SB-004, REL-001 | entrega autônoma 2026-10-21 | - | vercel |
+| SB-008 | TASK | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | P0 | BLOCKED | SB-003, SB-004, REL-001 | entrega autônoma 2026-10-21 | 4ab85f8 | vercel |
 
 **FT-080** critérios: Depende do backend; não iniciar antes do release gate
 
@@ -313,9 +313,7 @@ Total: **133** itens (sem contar 10 épicos). Prioridade: P0 22, P1 47, P2 30, P
 
 **FT-089** critérios: Depende do backend; não iniciar antes do release gate
 
-**SB-003** critérios: Dono aprova a ação (ou roda o script); Advisors remotos sem alertas; Todas as tabelas de public com RLS; pg_cron com 3 tarefas mm-*
-
-**SB-004** critérios: Client ID/Secret do Google informados no painel Supabase; Login, callback, sessão e logout verificados em preview e produção; Anonymous sign-ins e manual linking ativos
+**SB-004** critérios: Client ID/Secret do Google informados no painel Supabase; Login, callback, sessão e logout verificados em preview e produção; Anonymous sign-ins e manual linking ativos · testes: authorize?provider=google -> 400 provider is not enabled
 
 **SB-005** critérios: Fila de limpeza é drenada; Upload com MIME falso é recusado; Teste automatizado
 
@@ -323,7 +321,7 @@ Total: **133** itens (sem contar 10 épicos). Prioridade: P0 22, P1 47, P2 30, P
 
 **SB-007** critérios: Offset sincronizado no carregamento; Alerta de atraso da revelação; Procedimento de backup/restauração testado
 
-**SB-008** critérios: NEXT_PUBLIC_SUPABASE_URL e _PUBLISHABLE_KEY em Preview/Production; Smoke test no deployment publicado; Gates de RELEASE-GATES.md cumpridos
+**SB-008** critérios: NEXT_PUBLIC_SUPABASE_URL e _PUBLISHABLE_KEY em Preview/Production; Smoke test no deployment publicado; Gates de RELEASE-GATES.md cumpridos · testes: preview OK; Production sem NEXT_PUBLIC_MM_BACKEND
 
 ## EP-10 · Governança e release (IN_PROGRESS)
 

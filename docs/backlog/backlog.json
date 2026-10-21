@@ -4022,7 +4022,7 @@
    "epic": "EP-09",
    "parent": null,
    "priority": "P0",
-   "status": "BLOCKED",
+   "status": "DONE",
    "dependencies": [
     "SB-001"
    ],
@@ -4034,10 +4034,14 @@
     "pg_cron com 3 tarefas mm-*"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": "remoto"
+   "tests": [
+    "integração remota 12/12; adaptador remoto 9/9"
+   ],
+   "evidence": [
+    "docs/supabase/REMOTE-HOMOLOGATION.md"
+   ],
+   "commit": "4ab85f8",
+   "environment": "remote"
   },
   {
    "id": "SB-004",
@@ -4058,10 +4062,14 @@
     "Anonymous sign-ins e manual linking ativos"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": "remoto"
+   "tests": [
+    "authorize?provider=google -> 400 provider is not enabled"
+   ],
+   "evidence": [
+    "docs/supabase/REMOTE-HOMOLOGATION.md"
+   ],
+   "commit": "4ab85f8",
+   "environment": "remote"
   },
   {
    "id": "SB-005",
@@ -4156,9 +4164,13 @@
     "Gates de RELEASE-GATES.md cumpridos"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
+   "tests": [
+    "preview OK; Production sem NEXT_PUBLIC_MM_BACKEND"
+   ],
+   "evidence": [
+    "docs/supabase/REMOTE-HOMOLOGATION.md"
+   ],
+   "commit": "4ab85f8",
    "environment": "vercel"
   }
  ],
