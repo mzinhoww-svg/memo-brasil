@@ -4,6 +4,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/features/app/provider";
+import { useState } from "react";
+import { notificationPlan } from "@/domain/notifications";
 import { Button, Icon, Progress, Signature } from "@/components/memoriesmt";
 import { isRevealed, shotsLeft } from "@/domain/event";
 import { usePhotoUrls } from "@/features/app/hooks";
@@ -11,7 +13,8 @@ import { useGuest } from "@/features/events/guest-context";
 
 export default function Voce() {
   const { event, user, now, photos, isHost } = useGuest();
-  const { signOut } = useApp();
+  const { signOut, scheduler, now: clock } = useApp();
+  const [avisos, setAvisos] = useState<string | undefined>();
   const router = useRouter();
   const mine = photos.filter((p) => p.authorId === user.id && p.status !== "removida");
   const urls = usePhotoUrls(mine);
@@ -54,6 +57,25 @@ export default function Voce() {
           </div>
         )}
         {mine.length > 0 && !revealed && event.everyoneSeesAll && <p className="app-p app-muted meta">Só você vê suas fotos por enquanto. Os outros veem quando as fotos forem reveladas.</p>}
+      </section>
+
+      <section className="app-stack-sm" aria-labelledby="avisos">
+        <h2 id="avisos" className="titulo-card app-h1">Avisos do evento</h2>
+        <p className="app-p app-muted meta">Lembretes de fim e de revelação. Nesta versão funcionam só enquanto o MemoriesMT estiver aberto.</p>
+        <Button
+          variant="secundario"
+          block
+          onClick={async () => {
+            if (typeof Notification === "undefined") return setAvisos("Este navegador não mostra avisos.");
+            const p = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+            if (p !== "granted") return setAvisos("Avisos bloqueados. Libere nas permissões do navegador.");
+            scheduler.schedule(event.id, notificationPlan(event, clock()));
+            setAvisos("Avisos ligados neste aparelho.");
+          }}
+        >
+          Ativar avisos
+        </Button>
+        {avisos && <p className="app-p" role="status">{avisos}</p>}
       </section>
 
       <div className="app-stack-sm">

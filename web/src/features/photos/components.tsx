@@ -21,10 +21,18 @@ export function PhotoReactions({ photo, reactions, userId, onReact }: { photo: P
 }
 
 /** "Mais opções, incluindo pedir para remover". O pedido vai para a fila de moderação do anfitrião. */
-export function MoreSheet({ onReport, onClose }: { onReport: () => Promise<void>; onClose: () => void }) {
+export function MoreSheet({ onReport, onClose, onDownload, editHref, reactors }: { onReport: () => Promise<void>; onClose: () => void; onDownload?: () => void; editHref?: string; reactors?: { name: string; label: string }[] }) {
   const [sent, setSent] = useState(false);
   return (
     <Sheet title="Mais opções" onClose={onClose}>
+      {reactors && (
+        <section className="app-stack-sm" aria-labelledby="quem">
+          <h3 id="quem" className="nome app-h1">Quem reagiu</h3>
+          {reactors.length === 0 ? <p className="app-p app-muted">Ninguém reagiu a esta foto ainda.</p> : <ul className="app-stack-sm" style={{ margin: 0, padding: 0, listStyle: "none" }}>{reactors.map((r) => <li key={r.name + r.label} className="app-between"><span>{r.name}</span><span className="app-muted">{r.label}</span></li>)}</ul>}
+        </section>
+      )}
+      {editHref && <Button variant="secundario" href={editHref} block>Editar foto</Button>}
+      {onDownload && <Button variant="secundario" icon="baixar" block onClick={onDownload}>Baixar foto</Button>}
       {sent ? <p className="corpo app-p">Pedido enviado. O anfitrião vai analisar.</p> : <p className="corpo app-p app-muted">Essa foto não deveria estar aqui? Peça para remover.</p>}
       <div className="app-stack-sm">
         {!sent && <Button variant="destrutivo" block onClick={async () => { await onReport(); setSent(true); }}>Pedir para remover</Button>}

@@ -7,6 +7,7 @@ import { useApp } from "@/features/app/provider";
 import { useClock, useEventData, useOnline } from "@/features/app/hooks";
 import { GuestProvider } from "@/features/events/guest-context";
 import { normalizeShareCode } from "@/domain/share-code";
+import { notificationPlan } from "@/domain/notifications";
 
 /** Área do convidado: guarda de acesso, tema do evento e barra de navegação com "Postar daqui". */
 export default function GuestLayout({ children }: { children: ReactNode }) {
@@ -14,7 +15,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const code = normalizeShareCode(params.code ?? "") ?? "";
   const path = usePathname();
   const router = useRouter();
-  const { ready, user } = useApp();
+  const { ready, user, scheduler, now: clock } = useApp();
   const data = useEventData({ code });
   const { now, sync } = useClock();
   const { refresh: reload } = data;
@@ -29,6 +30,13 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (ready && !data.loading && data.event && (!user || (!participant && !isHost))) router.replace(`/e/${code}`);
   }, [ready, data.loading, data.event, user, participant, isHost, router, code]);
+
+  const ev = data.event;
+  useEffect(() => {
+    if (!ev || typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    scheduler.schedule(ev.id, notificationPlan(ev, clock()));
+    return () => scheduler.cancel(ev.id);
+  }, [ev, scheduler, clock]);
 
   const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh } : null), [data, user, participant, isHost, now, refresh]);
 
@@ -47,7 +55,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   if (!ctx) return <main className="app-col"><p className="app-screen app-muted">Entrando na festa…</p></main>;
 
   const base = `/e/${code}`;
-  const onPost = path.endsWith("/postar");
+  const onPost = path.endsWith("/postar") || path.includes("/editar/");
   return (
     <GuestProvider value={ctx}>
       <EventTheme palette={data.event.palette} font={data.event.eventFont} className="app-col app-col--card app-fluid">

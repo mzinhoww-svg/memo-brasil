@@ -11,10 +11,11 @@ import { useGuest } from "@/features/events/guest-context";
 import { MoreSheet, PhotoReactions } from "@/features/photos/components";
 import { avatarOf, tagFor, visionName } from "@/features/photos/labels";
 import { react, reportPhoto } from "@/features/photos/service";
+import { downloadPhoto, reactorsOf } from "@/features/photos/share";
 
 export default function Agora() {
   const { repos } = useApp();
-  const { event, user, viewer, now, photos, reactions, refresh } = useGuest();
+  const { event, user, viewer, now, photos, reactions, participants, refresh } = useGuest();
   const [more, setMore] = useState<string | undefined>();
   const shown = visiblePhotos(event, photos, viewer, now);
   const urls = usePhotoUrls(shown);
@@ -76,6 +77,8 @@ export default function Agora() {
       )}
       {more && (
         <MoreSheet
+          reactors={reactorsOf(photos.find((p) => p.id === more)!, reactions, participants, user, { id: event.hostId, name: event.hostName })}
+          editHref={`/e/${event.code}/editar/${more}`} onDownload={() => void downloadPhoto(repos, photos.find((p) => p.id === more)!)}
           onClose={() => setMore(undefined)}
           onReport={async () => {
             await reportPhoto(repos, more);

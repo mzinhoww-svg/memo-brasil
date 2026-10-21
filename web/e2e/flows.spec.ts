@@ -200,3 +200,51 @@ test("downloads: baixa o álbum em ZIP e a lista de convidados em CSV", async ({
   const [csv] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Lista de convidados (CSV)" }).click()]);
   expect(csv.suggestedFilename()).toMatch(/convidados\.csv$/);
 });
+
+test("mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem, desfazer) com download", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.waitForURL(/agora/);
+  await page.getByRole("button", { name: /Mais opções/ }).first().click();
+  const sheet = page.getByRole("dialog", { name: "Mais opções" });
+  await expect(sheet.getByRole("heading", { name: "Quem reagiu" })).toBeVisible();
+  await expect(sheet.locator("li").first()).toBeVisible();
+  const [dl] = await Promise.all([page.waitForEvent("download"), sheet.getByRole("button", { name: "Baixar foto" }).click()]);
+  expect(dl.suggestedFilename()).toMatch(/^memoriesmt-.*\.(svg|jpg|png)$/);
+
+  await sheet.getByRole("link", { name: "Editar foto" }).click();
+  await page.waitForURL(/\/editar\//);
+  const canvas = page.getByRole("img", { name: "Foto em edição" });
+  await expect(canvas).toBeVisible();
+  const box = (await canvas.boundingBox())!;
+  const undo = page.getByRole("button", { name: "Desfazer" });
+  await expect(undo).toBeDisabled();
+  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5, { steps: 6 });
+  await page.mouse.up();
+  await expect(undo).toBeEnabled();
+  await page.getByRole("button", { name: "Texto", exact: true }).click();
+  await page.getByLabel("Texto", { exact: true }).fill("Quem viu, viu.");
+  await page.getByRole("button", { name: "Adicionar texto" }).click();
+  await expect(page.getByRole("button", { name: "Excluir texto" })).toBeEnabled();
+  await page.getByRole("button", { name: "Colagem" }).click();
+  await page.getByRole("button", { name: "2 lado a lado" }).click();
+  await expect(page.getByRole("button", { name: "2 lado a lado" })).toHaveAttribute("aria-pressed", "true");
+  await undo.click();
+  await expect(page.getByRole("button", { name: "2 lado a lado" })).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("button", { name: "Refazer" })).toBeEnabled();
+  const [edited] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Concluir e baixar" }).click()]);
+  expect(edited.suggestedFilename()).toMatch(/^memoriesmt-editada-.*\.jpg$/);
+  await page.waitForURL(/agora$/);
+});
+
+test("avisos do evento: ativar pede permissão e confirma", async ({ page, context }) => {
+  await context.grantPermissions(["notifications"]);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.waitForURL(/agora/);
+  await page.getByRole("link", { name: "Você" }).click();
+  await page.getByRole("button", { name: "Ativar avisos" }).click();
+  await expect(page.getByText("Avisos ligados neste aparelho.")).toBeVisible();
+});
