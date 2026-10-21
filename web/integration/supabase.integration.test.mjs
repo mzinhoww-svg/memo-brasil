@@ -57,7 +57,7 @@ describe("Auth e papéis", () => {
   it("prévia do convite só com os campos seguros; sem login não há prévia", async () => {
     const p = await g1.rpc("event_preview", { p_code: code });
     assert.ifError(p.error);
-    assert.deepEqual(Object.keys(p.data).sort(), ["capacity", "category", "code", "eventFont", "full", "hostName", "palette", "place", "startAt", "status", "title"]);
+    assert.deepEqual(Object.keys(p.data).sort(), ["capacity", "category", "code", "eventFont", "full", "hostName", "palette", "place", "startAt", "status", "theme", "title"]);
     const anon = await mk().rpc("event_preview", { p_code: code });
     assert.ok(anon.error, "sem sessão deveria falhar");
   });

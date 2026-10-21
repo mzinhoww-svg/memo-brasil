@@ -4,6 +4,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readEventScoped } from "@/features/access/read";
 import { moderate } from "@/features/admin/service";
 import { createEvent, setEndIn, updateSettings, type EventInput } from "@/features/events/service";
+import { restoreDefaultTheme, saveTheme } from "@/features/events/theme";
+import { PRESETS, type ThemeSpec } from "@/lib/event-theme/spec";
 import { joinEvent } from "@/features/participants/service";
 import { postPhoto } from "@/features/photos/service";
 import { RepositoryError, type Repositories, type User } from "@/repositories";
@@ -118,5 +120,41 @@ describe("adaptador Supabase atrás do contrato de repositório", () => {
     expect(toRepositoryError({ code: "42501" }).code).toBe("forbidden");
     expect(toRepositoryError({ statusCode: "403" }).code).toBe("forbidden");
     expect(toRepositoryError(new TypeError("fetch failed")).code).toBe("unavailable");
+  });
+
+  describe("Event Theme (event_themes)", () => {
+    // evento próprio: o principal já foi revelado/bloqueado pelos testes anteriores
+    let tEvent = "", tCode = "";
+    beforeAll(async () => {
+      const r = await createEvent(host, hostUser, { ...input, title: `Tema ${tag}`, capacity: 5, shotsPerPerson: 5 }, NOW());
+      if (!r.ok) throw new Error("setup tema");
+      tEvent = r.event.id; tCode = r.event.code;
+      await joinEvent(guest, guestUser, tCode, "Ana", NOW());
+    });
+    afterAll(async () => { if (tEvent) await admin.from("events").delete().eq("id", tEvent); });
+    const oceano: ThemeSpec = { preset: "oceano", colors: { ...PRESETS.oceano.dia }, font: "pinyon", welcomeMessage: "Que bom ter você!", qrStyle: "pontos" };
+    it("host grava o tema; o convidado vê na prévia e o estranho sem entrar também (só campos de tema)", async () => {
+      const r = await saveTheme(host, tEvent, oceano, NOW());
+      expect(r.ok && r.event.theme).toMatchObject({ preset: "oceano", font: "pinyon", welcomeMessage: "Que bom ter você!", qrStyle: "pontos" });
+      expect((await host.events.get(tEvent))?.theme?.colors.superficie).toBe(PRESETS.oceano.dia.superficie);
+      const prev = await stranger.events.preview(tCode, NOW());
+      expect(prev?.theme).toMatchObject({ preset: "oceano", qrStyle: "pontos" });
+    });
+    it("convidado membro não grava tema (RLS) e tema sem contraste é recusado pelo banco", async () => {
+      const bad = { ...oceano, colors: { ...oceano.colors, texto: "#EEEEEE" } };
+      const e = (await guest.events.get(tEvent))!;
+      await expect(guest.events.save({ ...e, theme: oceano })).rejects.toBeInstanceOf(RepositoryError);
+      const h = (await host.events.get(tEvent))!;
+      await expect(host.events.save({ ...h, theme: bad })).rejects.toBeInstanceOf(RepositoryError);
+      expect((await host.events.get(tEvent))?.theme?.preset).toBe("oceano");
+    });
+    it("restaurar o padrão apaga a linha; salvar outras configurações não mexe no tema", async () => {
+      const r = await restoreDefaultTheme(host, tEvent, NOW());
+      expect(r.ok && r.event.theme).toBeUndefined();
+      expect((await host.events.get(tEvent))?.theme).toBeUndefined();
+      await saveTheme(host, tEvent, oceano, NOW());
+      const u = await updateSettings(host, tEvent, { place: "Salão" });
+      expect(u.ok && u.event.theme?.preset).toBe("oceano");
+    });
   });
 });
