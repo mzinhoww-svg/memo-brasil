@@ -1732,7 +1732,7 @@
     "docs/audit/11-RELEASE-GATE.md",
     "docs/audit/evidence/"
    ],
-   "commit": "(esta auditoria; SHA registrado no commit seguinte)",
+   "commit": "32dff31",
    "environment": "local (build de produção/teste, Chromium) + inspeção Vercel/Supabase somente leitura"
   },
   {

@@ -327,7 +327,7 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| AUD-001 | TASK | Auditoria independente pré-Supabase (docs/audit/00..11) | P0 | DONE | FT-037 | auditoria | (esta auditoria; SHA registrado no commit seguinte) | local (build de produção/teste, Chromium) + inspeção Vercel/Supabase somente leitura |
+| AUD-001 | TASK | Auditoria independente pré-Supabase (docs/audit/00..11) | P0 | DONE | FT-037 | auditoria | 32dff31 | local (build de produção/teste, Chromium) + inspeção Vercel/Supabase somente leitura |
 | AUD-002 | TASK | Reauditoria dos P1 após as correções (gate para iniciar a fase Supabase) | P1 | BACKLOG | BG-101, ITG-101, ITG-102, ITG-103, ITG-104, ITG-105, ITG-106 | auditoria AUD-001 · infraestrutura | - | - |
 | INF-002 | TASK | Produção serve o build antigo (3a8bf89): sem headers/CSP e sem correções da auditoria anterior | P2 | BLOCKED | REL-001 | auditoria AUD-001 · infraestrutura | - | - |
 | INF-003 | TASK | Projeto Vercel sem repositório vinculado: deploys foram criados por API com gitSource | P3 | BACKLOG | - | auditoria AUD-001 · infraestrutura | - | - |
