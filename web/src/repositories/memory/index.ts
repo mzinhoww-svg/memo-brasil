@@ -31,6 +31,7 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
       },
       save: async (e, opts) => {
         const cur = events.get(e.id);
+        if (!cur && opts?.expectedVersion !== undefined) throw new RepositoryError("not-found", `Evento ${e.id} não existe (apagado?)`);
         if (cur && opts?.expectedVersion !== undefined && cur.version !== opts.expectedVersion) throw new RepositoryError("conflict", `Evento ${e.id}: versão ${opts.expectedVersion} desatualizada (atual ${cur.version})`);
         const saved = { ...clone(e), version: cur ? cur.version + 1 : 1 };
         events.set(e.id, saved);

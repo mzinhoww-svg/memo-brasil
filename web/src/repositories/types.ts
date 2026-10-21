@@ -44,7 +44,7 @@ export class RepositoryError extends Error {
 /** Concorrência otimista: se informada e diferente da gravada, a escrita falha com `conflict`. */
 export interface WriteOptions { expectedVersion?: number }
 export interface Page<T> { items: T[]; total: number; nextCursor: string | null }
-export interface PhotoCountFilter { authorId?: string; excludeStatus?: Photo["status"] }
+export interface PhotoCountFilter { authorId?: string; status?: Photo["status"]; excludeStatus?: Photo["status"] }
 
 /** URL para exibir a foto; `release` devolve o recurso (revoga o object URL ou descarta a URL assinada). */
 export interface PhotoUrl { url: string; release: () => void }

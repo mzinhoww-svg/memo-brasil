@@ -11,7 +11,7 @@ const decode = (c: string): { createdAt: number; id: string } => {
 export const sortNewestFirst = (list: Photo[]): Photo[] => [...list].sort((a, b) => b.createdAt - a.createdAt || (a.id < b.id ? 1 : -1));
 
 export const matchesFilter = (p: Photo, f: PhotoCountFilter = {}): boolean =>
-  (f.authorId === undefined || p.authorId === f.authorId) && (f.excludeStatus === undefined || p.status !== f.excludeStatus);
+  (f.authorId === undefined || p.authorId === f.authorId) && (f.status === undefined || p.status === f.status) && (f.excludeStatus === undefined || p.status !== f.excludeStatus);
 
 /** Linha como o repositório a grava na fase 1: `createdAt` do relógio do repositório (se houver), `capturedAt` do cliente. */
 export function beginRow(photo: Photo, now?: () => number): Photo {

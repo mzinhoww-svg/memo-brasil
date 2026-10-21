@@ -26,7 +26,7 @@ export default function Agora() {
   const pending = !viewer.host && !isRevealed(event, now);
 
   async function onReact(photoId: string, kind: ReactionKind) {
-    await react(repos, event, photoId, user.id, kind);
+    await react(repos, event, photoId, user.id, kind, now);
     await refresh();
   }
 

@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 46, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 53, READY 11.
+Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 45, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 54, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -249,7 +249,7 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 | ITG-102 | FEATURE | Contratos de repositório v2: paginação, contagem, erros tipados, versão e idempotência | P1 | DONE | ITG-106, BG-113 | auditoria AUD-001 · A3-003, A4-002, A4-003 · natureza: integração | a58c22b | local (Vitest + Chromium) |
 | ITG-103 | FEATURE | Fotos por URL/miniatura e upload em duas fases com created_at do servidor | P1 | DONE | ITG-102 | auditoria AUD-001 · A4-001, A4-009 · natureza: integração | b69eb37 | local (Vitest + Chromium) |
 | ITG-104 | FEATURE | Autoridade do servidor: revelação, rolo, limites e relógio | P1 | DONE | BG-101, BG-102, ITG-106 | auditoria AUD-001 · A4-004, A4-005, A4-010, A4-011 · natureza: integração | d5b9f25 | local (Vitest + Chromium) |
-| ITG-105 | FEATURE | Identidade (auth.uid) e migração local→nuvem compatíveis com o esquema | P1 | BACKLOG | ITG-102 | auditoria AUD-001 · A4-007, A4-008 · natureza: integração | - | - |
+| ITG-105 | FEATURE | Identidade (auth.uid) e migração local→nuvem compatíveis com o esquema | P1 | DONE | ITG-102 | auditoria AUD-001 · A4-007, A4-008 · natureza: integração | 4ac0980 | local (Vitest + Chromium) |
 | ITG-106 | TASK | Corrigir contradições do INTEGRATION-PLAN e fechar decisões de produto pendentes | P1 | DONE | - | auditoria AUD-001 · A4-005, A4-008 · natureza: integração | 753e57d | documentação |
 | ITG-107 | FEATURE | Convites: id, rotação, expiração, ?mesa= confiável e limite de tentativas (código ~39,6 bits) | P2 | BACKLOG | ITG-106 | auditoria AUD-001 · A4-014, A3-005 · natureza: integração | - | - |
 | ITG-108 | TASK | Ambiente (env), CSP para o Supabase e suíte de contrato reutilizável | P2 | BACKLOG | ITG-106 | auditoria AUD-001 · A4-013 · natureza: integração | - | - |
@@ -261,8 +261,6 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 **BG-071** critérios: Interface Outbox com testes e implementação local
 
 **INF-001** critérios: list_projects do conector do Claude retorna o projeto asyaegeodyttttaubvxh; get_project confirma ACTIVE_HEALTHY, PostgreSQL 17 e região us-west-2 (somente leitura); Nenhuma escrita, migration, tabela, bucket ou credencial criada nesta verificação; Resultado registrado em docs/audit/evidence/logs
-
-**ITG-105** critérios: [A4-007] Corrigir: Usar AuthService no provider; anônimo + linkIdentity; remover switchTo do produto (demo à parte); função de fusão para Google já existente.; [A4-008] Corrigir: author_id nullable + author_name; RPC import_event security definer que ignora triggers; escolher identidade; manifesto com contagens e versão de formato.; [A4-007] Teste de regressão: Anônimo vincula Google mantendo uid e fotos.; [A4-008] Teste de regressão: Importar evento encerrado com fotos de 3 autores: contagens iguais,
 
 **ITG-107** critérios: [A4-014] Corrigir: Decidir: id no link + invitation_id, ou cortar. RPC rotate_code, rate limit em preview/join, table_label só informativo.; [A3-005] Corrigir: RPC por código com rate limit, backoff e captcha; não expor eventos por id; avaliar 10+ caracteres.; [A4-014] Teste de regressão: Código rotacionado invalida o antigo; 100 previews/min são limitados.; [A3-005] Teste de regressão: 100 códigos inválidos geram 429.
 

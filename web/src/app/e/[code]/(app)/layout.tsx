@@ -9,6 +9,7 @@ import { GuestProvider } from "@/features/events/guest-context";
 import { normalizeShareCode } from "@/domain/share-code";
 import { notificationPlan } from "@/domain/notifications";
 import { computeRevealStatus } from "@/domain/reveal";
+import { expirePending } from "@/features/photos/service";
 import { RevealTransition } from "@/features/reveal/RevealTransition";
 
 /** Área do convidado: guarda de acesso, tema do evento e barra de navegação com "Postar daqui". */
@@ -70,6 +71,11 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     scheduler.schedule(ev.id, notificationPlan(ev, clock()));
     return () => scheduler.cancel(ev.id);
   }, [ev, scheduler, clock]);
+
+  // envios que ficaram pela metade (aba fechada) deixam de ocupar o rolo depois de 1 h
+  useEffect(() => {
+    if (evId) void expirePending(repos, evId, clock(), 60 * 60_000);
+  }, [evId, repos, clock]);
 
   // aquece as rotas do evento: com o service worker ativo, ficam disponíveis mesmo sem sinal na festa
   const evCode = ev?.code;

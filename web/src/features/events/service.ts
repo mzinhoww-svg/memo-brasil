@@ -81,6 +81,7 @@ async function mutateEvent<R>(repos: Repositories, eventId: string, notFound: R,
     try {
       return s.done(await repos.events.save(s.next, { expectedVersion: e.version }));
     } catch (err) {
+      if (err instanceof RepositoryError && err.code === "not-found") return notFound; // o evento foi apagado no meio
       if (!(err instanceof RepositoryError && err.code === "conflict")) throw err;
     }
   }

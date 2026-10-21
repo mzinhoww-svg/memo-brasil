@@ -19,6 +19,13 @@ Fonte: `docs/audit/08-SUPABASE-READINESS.md` (A4) e `docs/audit/drafts/A3.md`. D
 | Sem controle de concorrência | `version` e `updated_at` em `events` e `photos`; `update … where version = $expected` → conflito tipado |
 | Sem paginação/contagem | `photos`/`participants` expõem `count`, páginas por cursor; PostgREST trunca em 1000 linhas |
 | Upload em um passo | duas fases: linha `enviando` → objeto → `finalize_photo` → `pronta`; `created_at` pelo servidor, `captured_at` do cliente |
+| `is_revealed` sem `revealed_at` e trigger pelo espelho (AUD-002 · P1) | `is_revealed` monotônica e usada nos triggers; o espelho nunca decide |
+| SELECT de `reactions` para todos os membros (AUD-002 · P1) | escopo pela visibilidade da foto |
+| Linhas `enviando` órfãs ocupam o rolo (AUD-002 · P2) | tarefa `expire_pending_uploads()` (pg_cron, a cada 10 min): `enviando` com mais de 1 h vira `falhou` e o objeto de Storage, se houver, é removido; `falhou` com mais de 24 h é apagada. O trigger de rolo conta só `enviando` recente e `pronta` |
+| `reveal_at` relativo ao fim sem SQL (AUD-002) | trigger `before update of duration_hours, ended_at on events`: se `reveal_anchor='fim'` e **não** `is_revealed(old)`, `reveal_at := least(coalesce(ended_at, start_at + duration), start_at + duration) + reveal_offset_days * interval '1 day'`; testado contra os mesmos casos de `syncRevealWithEnd` |
+| `events` salvo depois de apagado | `update … where id = $1 and version = $2` e `0 rows` = `not-found` (o cliente já trata) |
+| `counts.total` vazava fotos moderadas | RPC `event_counts(event_id)` devolve `mine` e `total` visível para convidado; `total` com ocultas só para o host |
+
 **RPCs adicionais:** `event_preview(code)` (campos mínimos do convite, sem participantes nem fotos), `my_shot_count(event_id)`, `import_event(bundle)`, `finalize_photo(photo_id)`, além de `join_event`, `get_photo_url`, `delete_account`.
 
 
@@ -54,7 +61,7 @@ erDiagram
 
 ## 3. Esquema (rascunho de DDL; tipos inferidos do REA e do domínio local)
 ```sql
-create type reveal_status as enum ('desativada','pendente','revelada');          -- [DEC] espelho persistido; a verdade é now() >= reveal_at
+create type reveal_status as enum ('desativada','pendente','revelada');          -- [DEC] espelho persistido; a verdade é is_revealed() (revealed_at ou now() >= reveal_at)
 create type camera_style  as enum ('original','vintage','preto-e-branco');      -- [REA]
 create type event_category as enum ('casamento','festa','empresa','viagem','outro'); -- [REA] MemoPurpose
 create type photo_status  as enum ('visivel','oculta','removida');
@@ -112,7 +119,7 @@ Contagem de pedidos de remoção = `count(*) from photo_reports` (evita contar d
 - **`resolve_event_by_code(code)`** `security definer`: devolve só `title, category, host name, place, palette, event_font, start/end, status`. Sem lista de participantes. [REA E-06]
 - **`join_event(code, guest_name, table_label)`** `security definer`: exige `auth.uid()` (sessão anônima conta); erros `codenotfound`, `eventended`, `eventfull`, `notauthenticated` [REA]; idempotente para quem já é membro; capacidade contada **dentro da transação** (`select … for update` no evento) para não estourar sob concorrência.
 - **Limite de fotos**: trigger `before insert on photos` conta fotos não removidas do autor no evento e levanta `shotlimitreached` [REA E-15]; também bloqueia evento encerrado (`now() >= least(ended_at, start_at + duration_hours)`).
-- **Revelação**: função `is_revealed(event)` = `not reveal_enabled or now() >= reveal_at`. Usada nas policies; o horário é o do servidor, nunca o relógio do cliente. Ver §4.1.
+- **Revelação**: função `is_revealed(event)` = `reveal_enabled = false OR revealed_at IS NOT NULL OR now() >= reveal_at` (monotônica: `revealed_at` uma vez gravado nunca volta a null). Usada nas policies **e** nos triggers; o horário é o do servidor, nunca o do cliente; `reveal_status` é só espelho para exibição e nunca decide acesso. Ver §4.1.
 - **Reação única**: PK `(photo_id, author_id)` + `upsert`.
 - **Não reabrir álbum encerrado com fotos**: trigger em `update events` bloqueia aumentar `duration_hours`/limpar `ended_at` se encerrado e há fotos. [REA F-36]
 - **Exclusão de evento** em cascata (fotos, reações, participantes, convites) + remoção de objetos do Storage por Edge Function (`on delete`/job), porque o Postgres não apaga objetos sozinho. [REA E-S]
@@ -120,7 +127,7 @@ Contagem de pedidos de remoção = `count(*) from photo_reports` (evita contar d
 
 ## 4.1 Revelação programada no servidor (contrato já modelado no cliente)
 Cliente hoje: `reveal_enabled`, `reveal_at`, `timezone`, `reveal_status` em `MemoEvent`; `computeRevealStatus(now)` decide a visibilidade; `reconcileReveal` espelha o estado de forma idempotente; os timers do navegador só acordam a interface. **Nada disso é segurança**: no cliente a foto bloqueada existe no aparelho. No servidor:
-- **Quem configura**: só o organizador do evento (`is_host`) ou master com auditoria (`audit_logs`). Trigger recusa `update` de `reveal_*` quando `reveal_status = 'revelada'` (não esconder o que já foi visto) e recusa ligar a revelação se já existem fotos visíveis. `reveal_at` precisa estar ≥ `now() + 1 min` na gravação.
+- **Quem configura**: só o organizador do evento (`is_host`) ou master com auditoria (`audit_logs`). Trigger recusa `update` de `reveal_*` quando `is_revealed(event)` (pelo tempo, não pelo espelho: entre `reveal_at` e o próximo tick do cron o organizador já não consegue reabrir) (não esconder o que já foi visto) e recusa ligar a revelação se já existem fotos visíveis. `reveal_at` precisa estar ≥ `now() + 1 min` na gravação.
 - **Revelação idempotente**: `pg_cron` a cada minuto executa `reveal_due_events()`: `update events set reveal_status='revelada', revealed_at = reveal_at where reveal_enabled and revealed_at is null and reveal_at <= now()` (idempotente, sem efeito se repetido) e publica via Realtime (`events` canal por `event_id`) e Web Push ("As fotos foram reveladas"). Se o job atrasar, a RLS continua correta porque ela usa `now() >= reveal_at`, não o status.
 - **Controle de acesso das fotos**: a policy de `photos` só devolve linha a não-host se `is_revealed(event)`; o bucket `event-photos` é **privado** e o cliente só obtém **URL assinada** (curta, 60 s) por RPC `get_photo_url(photo_id)` que reaplica a mesma regra. Antes da revelação nem a linha nem o objeto são acessíveis, nem para o autor (câmera descartável); o host vê tudo para moderar.
 - **Sincronização entre dispositivos**: o cliente assina o canal do evento; ao receber `reveal_status = 'revelada'` roda a transição. Offline: ao reconectar, relê `events` e recalcula; nunca confia em contagem local.
@@ -135,7 +142,7 @@ Cliente hoje: `reveal_enabled`, `reveal_at`, `timezone`, `reveal_status` em `Mem
 | `events` | host, ou participante (colunas completas); público só via RPC | host (`host_id = auth.uid()`) | host | host |
 | `participants` | host vê todos; participante vê os do mesmo evento | só via `join_event` | próprio nome/mesa | host remove; próprio sai |
 | `photos` | host: todas não removidas (moderação). **Convidado, inclusive o autor, só lê depois de `is_revealed`** (contradição corrigida: antes constava "autor: as suas"); `status='visivel' and upload_status='pronta'`; `everyone_sees_all=false` limita a si mesmo, mas só depois da revelação | membro, `author_id = auth.uid()`, passa nos triggers | host (`status`, `highlighted`) com `version` | host (soft delete) |
-| `reactions` | membros do evento (se reações ligadas) | membro, `author_id = auth.uid()`, só em foto que enxerga | próprio | próprio |
+| `reactions` | **só reações de fotos que o leitor pode ver** (a mesma regra de `photos`: `is_revealed`, `status='visivel'`, `upload_status='pronta'`, `everyone_sees_all`); host: todas as de fotos não removidas | membro, `author_id = auth.uid()`, só em foto que enxerga, evento ligado a reações | próprio | próprio |
 | `photo_reports` | host | membro (uma por foto) | — | — |
 | `invitations`, `push_subscriptions`, `entitlements` | host / próprio / próprio | host / próprio / só service role | — | host / próprio / — |
 Helper `is_member(event_id)`/`is_host(event_id)` com `security definer` e `search_path` fixo. **Testes de RLS** (pgTAP ou script com dois usuários): convidado A não lê foto de B antes da revelação; B não escreve com `author_id` de A; usuário de fora não lê nada; host lê tudo. Isolamento entre eventos é o teste mais importante (aprendizado APR-035 do projeto Express: vínculo nunca vem do corpo da requisição).

@@ -3631,7 +3631,7 @@
    "epic": "EP-08",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [
     "ITG-102"
    ],
@@ -3648,14 +3648,17 @@
     "web/src/lib/services/index.ts",
     "web/src/repositories/types.ts"
    ],
-   "tests": [],
-   "evidence": [
-    "docs/audit/drafts/A4.md",
-    "provider.tsx:65-86; types.ts:65-73; services/index.ts:9; KnownPeople",
-    "INTEGRATION-PLAN §3 (photos), §4, §10; types.ts:65-73"
+   "tests": [
+    "web/src/features/cloud/import-plan.test.ts"
    ],
-   "commit": null,
-   "environment": null,
+   "evidence": [
+    "INTEGRATION-PLAN §3 (photos), §4, §10; types.ts:65-73",
+    "docs/audit/drafts/A4.md",
+    "docs/audit/remediation/ITG-105.md",
+    "provider.tsx:65-86; types.ts:65-73; services/index.ts:9; KnownPeople"
+   ],
+   "commit": "4ac0980",
+   "environment": "local (Vitest + Chromium)",
    "effort": "M",
    "sources": [
     "A4-007",

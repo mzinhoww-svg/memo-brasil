@@ -56,7 +56,8 @@ export async function readEventScoped(repos: Repositories, key: EventKey, actor:
   const allowed = new Set(photos.map((p) => p.id));
   const counts = {
     mine: actor.userId ? await repos.photos.count(event.id, { authorId: actor.userId, excludeStatus: "removida" }) : 0,
-    total: await repos.photos.count(event.id, { excludeStatus: "removida" }),
+    // o convidado não deve nem saber quantas fotos foram moderadas: só as visíveis entram no total dele
+    total: await repos.photos.count(event.id, isHost ? { excludeStatus: "removida" } : { status: "visivel" }),
   };
   const [participants, reactions] = await Promise.all([repos.participants.listByEvent(event.id), repos.reactions.listByEvent(event.id)]);
   return { access: isHost ? "organizador" : "membro", event, participants, photos, reactions: reactions.filter((r) => allowed.has(r.photoId)), counts };

@@ -38,7 +38,7 @@ export default function Explorar() {
   const urls = usePhotoUrls([...pageList, ...visions.map((v) => shown.find((p) => p.id === v.cover)!).filter(Boolean)]);
 
   async function onReact(photoId: string, kind: ReactionKind) {
-    await react(repos, event, photoId, user.id, kind);
+    await react(repos, event, photoId, user.id, kind, now);
     await refresh();
   }
 

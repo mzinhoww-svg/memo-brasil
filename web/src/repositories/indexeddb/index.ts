@@ -132,6 +132,7 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
           const tx = d.transaction("events", "readwrite");
           const cur = await tx.store.get(e.id);
           const curV = cur?.version ?? 1;
+          if (!cur && opts?.expectedVersion !== undefined) throw new RepositoryError("not-found", `Evento ${e.id} não existe (apagado?)`);
           if (cur && opts?.expectedVersion !== undefined && curV !== opts.expectedVersion) throw new RepositoryError("conflict", `Evento ${e.id}: versão ${opts.expectedVersion} desatualizada (atual ${curV})`);
           const saved = { ...e, version: cur ? curV + 1 : 1 };
           await tx.store.put(saved);

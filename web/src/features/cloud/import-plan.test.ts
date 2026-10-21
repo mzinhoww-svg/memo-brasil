@@ -29,9 +29,9 @@ beforeEach(async () => {
   const hostPhoto = await mk(host, 1), anaPhoto = await mk(ana, 2), removed = await mk(ana, 3);
   await moderate(repos, removed, "remover");
   const ev = (await repos.events.get(eventId))!;
-  await react(repos, ev, hostPhoto, host.id, "amei");
-  await react(repos, ev, hostPhoto, ana.id, "uau");
-  await react(repos, ev, anaPhoto, host.id, "amei");
+  await react(repos, ev, hostPhoto, host.id, "amei", ev.revealAt! + 1);
+  await react(repos, ev, hostPhoto, ana.id, "uau", ev.revealAt! + 1);
+  await react(repos, ev, anaPhoto, host.id, "amei", ev.revealAt! + 1);
 });
 
 describe("ITG-105: pacote de importação local → nuvem", () => {

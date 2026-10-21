@@ -71,11 +71,11 @@ describe("entrar e postar", () => {
     const other = { id: "g9", host: false };
     expect(await loadFeed(repos, e, other, NOW + 10)).toHaveLength(0);
     expect(await loadFeed(repos, e, other, endAt(e))).toHaveLength(1);
-    await react(repos, e, p.photo.id, other.id, "amei");
-    const after = await react(repos, e, p.photo.id, other.id, "uau");
+    await react(repos, e, p.photo.id, other.id, "amei", endAt(e));
+    const after = await react(repos, e, p.photo.id, other.id, "uau", endAt(e));
     expect(after).toHaveLength(1);
     expect(await repos.reactions.listByEvent(e.id)).toEqual([{ eventId: e.id, photoId: p.photo.id, authorId: "g9", kind: "uau" }]);
-    expect(await react(repos, e, p.photo.id, other.id, "uau")).toHaveLength(0);
+    expect(await react(repos, e, p.photo.id, other.id, "uau", endAt(e))).toHaveLength(0);
     expect(await repos.reactions.listByEvent(e.id)).toHaveLength(0);
   });
 });

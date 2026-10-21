@@ -43,16 +43,25 @@ export async function loadFeed(repos: Repositories, event: MemoEvent, viewer: Vi
   return visiblePhotos(event, await repos.photos.listByEvent(event.id), viewer, now);
 }
 
-export async function react(repos: Repositories, event: MemoEvent, photoId: string, userId: string, kind: ReactionKind): Promise<Reaction[]> {
-  if (!event.reactionsEnabled) return repos.reactions.listByEvent(event.id);
+/** Reage a uma foto que a pessoa pode ver (mesma regra da leitura). Devolve só as reações dessa foto; bloqueada = []. */
+export async function react(repos: Repositories, event: MemoEvent, photoId: string, userId: string, kind: ReactionKind, now: number = Date.now()): Promise<Reaction[]> {
+  if (!event.reactionsEnabled) return [];
   const target = await repos.photos.get(photoId);
-  if (!target || target.eventId !== event.id || target.status !== "visivel") return repos.reactions.listByEvent(event.id);
+  if (!target || target.eventId !== event.id || target.uploadStatus !== "pronta") return [];
+  if (visiblePhotos(event, [target], { id: userId, host: event.hostId === userId }, now).length === 0) return [];
   const all = await repos.reactions.listByEvent(event.id);
   const next = setReaction(all, { eventId: event.id, photoId, authorId: userId }, kind);
   const mine = next.find((r) => r.photoId === photoId && r.authorId === userId);
   if (mine) await repos.reactions.put(mine);
   else await repos.reactions.remove(photoId, userId);
-  return next;
+  return next.filter((r) => r.photoId === photoId);
+}
+
+/** Remove envios inacabados (`enviando`/`falhou`) mais velhos que o prazo: deixam de ocupar o rolo. Devolve quantos saíram. */
+export async function expirePending(repos: Repositories, eventId: string, now: number, ttlMs: number): Promise<number> {
+  const stale = (await repos.photos.pending(eventId)).filter((p) => now - p.createdAt >= ttlMs);
+  for (const p of stale) await repos.photos.remove(p.id);
+  return stale.length;
 }
 
 export async function reportPhoto(repos: Repositories, photoId: string): Promise<Photo | undefined> {

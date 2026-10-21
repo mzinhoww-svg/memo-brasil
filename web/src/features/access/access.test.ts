@@ -4,7 +4,7 @@ import { createMemoryRepositories, type Repositories, type User } from "@/reposi
 import { moderate } from "../admin/service";
 import { createEvent, reconcileReveal, updateSettings, type EventInput } from "../events/service";
 import { joinEvent } from "../participants/service";
-import { postPhoto, react } from "../photos/service";
+import { expirePending, postPhoto, react } from "../photos/service";
 import { readEventScoped, readPhotoData } from "./read";
 
 const NOW = 1_800_000_000_000;
@@ -45,8 +45,8 @@ describe("ITG-101: leitura escopada por papel", () => {
   it("o rolo funciona sem expor fotos: contagens (as minhas e o total) chegam mesmo antes da revelação", async () => {
     const v = await readEventScoped(repos, { code }, asGuest(ana), NOW + 20 * 60_000);
     expect(v.photos).toEqual([]);
-    expect(v.counts).toEqual({ mine: 1, total: 3 }); // ana: 1; total sem removidas (ana 1 + bia 2: visível e oculta)
-    expect((await readEventScoped(repos, { code }, asGuest(bia), NOW + 20 * 60_000)).counts).toEqual({ mine: 2, total: 3 });
+    expect(v.counts).toEqual({ mine: 1, total: 2 }); // total do convidado: só as visíveis (ana 1 + bia 1)
+    expect((await readEventScoped(repos, { code }, asGuest(bia), NOW + 20 * 60_000)).counts).toEqual({ mine: 2, total: 2 });
     expect((await readEventScoped(repos, { code }, asGuest(null), NOW)).counts).toEqual({ mine: 0, total: 0 }); // convite não conta nada
   });
   it("o organizador vê todas as fotos não removidas (moderação), inclusive ocultas e antes da revelação", async () => {
@@ -106,5 +106,46 @@ describe("ITG-101: bytes da foto passam pela mesma regra", () => {
     expect(await readPhotoData(repos, asGuest(ana), rev, removedPhoto, revealAt + 1)).toBeUndefined();
     expect(await readPhotoData(repos, asGuest(null), rev, biaPhoto, revealAt + 1)).toBeUndefined(); // sem entrar
     expect(await readPhotoData(repos, asGuest(ana), rev, "inexistente", revealAt + 1)).toBeUndefined();
+  });
+});
+
+describe("AUD-002: achados corrigidos", () => {
+  it("react respeita a visibilidade: antes da revelação, foto oculta, de outro com 'todos veem tudo' desligado e envio inacabado não recebem reação", async () => {
+    let ev = (await repos.events.get(id))!;
+    expect(await react(repos, ev, anaPhoto, bia.id, "amei", NOW + 60_000)).toEqual([]); // antes da revelação
+    expect(await repos.reactions.listByEvent(id)).toEqual([]);
+    ev = (await reconcileReveal(repos, id, revealAt + 1))!;
+    await react(repos, ev, hiddenPhoto, ana.id, "uau", revealAt + 1);
+    expect(await repos.reactions.listByEvent(id)).toEqual([]); // oculta
+    await repos.photos.begin({ id: "meio", eventId: id, authorId: bia.id, authorName: "Bia", createdAt: NOW, moment: "x", status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "enviando" });
+    await react(repos, ev, "meio", ana.id, "amei", revealAt + 1);
+    expect(await repos.reactions.listByEvent(id)).toEqual([]); // enviando
+    await updateSettings(repos, id, { everyoneSeesAll: false });
+    const closed = (await repos.events.get(id))!;
+    await react(repos, closed, biaPhoto, ana.id, "amei", revealAt + 1);
+    expect(await repos.reactions.listByEvent(id)).toEqual([]); // foto de outro sem permissão
+    await react(repos, closed, anaPhoto, ana.id, "amei", revealAt + 1);
+    expect((await repos.reactions.listByEvent(id)).map((r) => r.photoId)).toEqual([anaPhoto]); // a própria pode
+  });
+  it("o total de fotos visto pelo convidado não inclui as ocultas; o do organizador sim", async () => {
+    expect((await readEventScoped(repos, { code }, asGuest(ana), NOW + 60_000)).counts.total).toBe(2); // ana 1 + bia 1 visível (a oculta e a removida fora)
+    expect((await readEventScoped(repos, { id }, asHost(host), NOW + 60_000)).counts.total).toBe(3);
+  });
+  it("evento apagado não ressuscita: save versionado vira not-found e o serviço devolve 'inexistente'", async () => {
+    const ev = (await repos.events.get(id))!;
+    await repos.events.remove(id);
+    await expect(repos.events.save({ ...ev, title: "Fantasma" }, { expectedVersion: ev.version })).rejects.toMatchObject({ code: "not-found" });
+    expect(await repos.events.get(id)).toBeUndefined();
+    expect(await updateSettings(repos, id, { title: "X" })).toEqual({ ok: false, reason: "inexistente" });
+    expect(await reconcileReveal(repos, id, revealAt + 1)).toBeUndefined();
+  });
+  it("envios inacabados vencidos são varridos e deixam de ocupar o rolo; os recentes ficam", async () => {
+    const mk = (pid: string, createdAt: number) => repos.photos.begin({ id: pid, eventId: id, authorId: ana.id, authorName: "Ana", createdAt, moment: "x", status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "enviando" });
+    await mk("velho", NOW); await mk("novo", NOW + 50 * 60_000);
+    const before = await repos.photos.count(id, { authorId: ana.id, excludeStatus: "removida" });
+    expect(await expirePending(repos, id, NOW + 61 * 60_000, 60 * 60_000)).toBe(1);
+    expect(await repos.photos.get("velho")).toBeUndefined();
+    expect(await repos.photos.get("novo")).toBeDefined();
+    expect(await repos.photos.count(id, { authorId: ana.id, excludeStatus: "removida" })).toBe(before - 1);
   });
 });
