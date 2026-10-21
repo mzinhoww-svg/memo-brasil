@@ -3925,7 +3925,7 @@
    "epic": "EP-10",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [
     "BG-101",
     "ITG-101",
@@ -3940,12 +3940,15 @@
     "Reexecutar as frentes A1 e A4 e os testes de exposição sobre as correções; só então liberar EP-09."
    ],
    "files": [],
-   "tests": [],
-   "evidence": [
-    "docs/audit/07-VERCEL-DEPLOYMENT.md"
+   "tests": [
+    "web/src/features/access/access.test.ts (AUD-002)"
    ],
-   "commit": null,
-   "environment": null,
+   "evidence": [
+    "docs/audit/07-VERCEL-DEPLOYMENT.md",
+    "docs/audit/12-AUD-002.md"
+   ],
+   "commit": "2196a24",
+   "environment": "local (Vitest + Chromium)",
    "effort": "S",
    "sources": [],
    "severity_audit": []

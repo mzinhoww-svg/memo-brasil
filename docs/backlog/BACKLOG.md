@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 45, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 54, READY 11.
+Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 44, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 55, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -310,7 +310,7 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
 | AUD-001 | TASK | Auditoria independente pré-Supabase (docs/audit/00..11) | P0 | DONE | FT-037 | auditoria | 32dff31 | local (build de produção/teste, Chromium) + inspeção Vercel/Supabase somente leitura |
-| AUD-002 | TASK | Reauditoria dos P1 após as correções (gate para iniciar a fase Supabase) | P1 | BACKLOG | BG-101, ITG-101, ITG-102, ITG-103, ITG-104, ITG-105, ITG-106 | auditoria AUD-001 · infraestrutura | - | - |
+| AUD-002 | TASK | Reauditoria dos P1 após as correções (gate para iniciar a fase Supabase) | P1 | DONE | BG-101, ITG-101, ITG-102, ITG-103, ITG-104, ITG-105, ITG-106 | auditoria AUD-001 · infraestrutura | 2196a24 | local (Vitest + Chromium) |
 | INF-002 | TASK | Produção serve o build antigo (3a8bf89): sem headers/CSP e sem correções da auditoria anterior | P2 | BLOCKED | REL-001 | auditoria AUD-001 · infraestrutura | - | - |
 | INF-003 | TASK | Projeto Vercel sem repositório vinculado: deploys foram criados por API com gitSource | P3 | BACKLOG | - | auditoria AUD-001 · infraestrutura | - | - |
 | REL-001 | TASK | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | P1 | BLOCKED | - | auditoria | - | - |
@@ -321,5 +321,3 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 **INF-002** critérios: O alias de produção aponta para o primeiro deploy. Resolver promovendo o preview validado, só com autorização (REL-001).
 
 **INF-003** critérios: Sem integração Git automática. Decidir se vincula o repositório (Root Directory web) ou mantém deploy manual documentado.
-
-**AUD-002** critérios: Reexecutar as frentes A1 e A4 e os testes de exposição sobre as correções; só então liberar EP-09.

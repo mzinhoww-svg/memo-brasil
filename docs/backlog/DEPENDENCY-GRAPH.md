@@ -50,7 +50,7 @@ flowchart LR
   ITG_109["ITG-109<br/>BACKLOG"]:::back
   ITG_110["ITG-110<br/>BACKLOG"]:::back
   INF_002["INF-002<br/>BLOCKED"]:::block
-  AUD_002["AUD-002<br/>BACKLOG"]:::back
+  AUD_002["AUD-002<br/>DONE"]:::done
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2

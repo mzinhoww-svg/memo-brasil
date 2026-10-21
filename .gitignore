@@ -11,3 +11,5 @@ backups/
 *.log
 scripts/ci-output.txt
 .maestri/
+supabase/.temp/
+supabase/.branches/
