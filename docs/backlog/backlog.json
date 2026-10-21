@@ -5952,12 +5952,14 @@
    ],
    "files": [],
    "tests": [
+    "pgTAP 398/398; adapter 14/14; test_provision_master.sh",
     "supabase/ops/test_provision_master.sh (7/7)"
    ],
    "evidence": [
+    "docs/supabase/MIGRATIONS-V2.md",
     "docs/supabase/V2-REMOTE-APPLY-RUNBOOK.md"
    ],
-   "commit": "5374f89",
+   "commit": "23af55c",
    "environment": "local-supabase",
    "release": "R2"
   },
@@ -6027,12 +6029,14 @@
    "files": [],
    "tests": [
     "integration/adapter.itest.ts upload hostil (13/13)",
+    "pgTAP 398/398; adapter 14/14; test_provision_master.sh",
     "web/src/lib/image-sniff.test.ts (11)"
    ],
    "evidence": [
+    "docs/supabase/MIGRATIONS-V2.md",
     "supabase/functions/finalize-asset/index.ts"
    ],
-   "commit": "5374f89",
+   "commit": "23af55c",
    "environment": "local-supabase",
    "release": "R2"
   },
@@ -6077,12 +6081,13 @@
    ],
    "files": [],
    "tests": [
-    "pgTAP 385/385 com endurecimento (Supabase local)"
+    "pgTAP 385/385 com endurecimento (Supabase local)",
+    "pgTAP 398/398; adapter 14/14; test_provision_master.sh"
    ],
    "evidence": [
     "docs/supabase/MIGRATIONS-V2.md"
    ],
-   "commit": "5374f89",
+   "commit": "23af55c",
    "environment": "local-supabase",
    "release": "R2"
   },

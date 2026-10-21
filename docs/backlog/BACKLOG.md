@@ -497,28 +497,28 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 |---|---|---|---|---|---|---|---|---|
 | SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 5374f89 | local-supabase |
 | SCV-002 | FEATURE | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG | EST-004, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
-| SCV-003 | FEATURE | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha | P0 | IN_REVIEW | MAD-001 | revisão independente A1–A5 2026-10-21 | 5374f89 | local-supabase |
+| SCV-003 | FEATURE | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha | P0 | IN_REVIEW | MAD-001 | revisão independente A1–A5 2026-10-21 | 23af55c | local-supabase |
 | SCV-004 | FEATURE | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD | P1 | BACKLOG | SB-005 | revisão independente A1–A5 2026-10-21 | - | - |
 | SCV-005 | FEATURE | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava do último master | P2 | BACKLOG | MAD-002 | revisão independente A1–A5 2026-10-21 | - | - |
-| SCV-006 | FEATURE | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | IN_REVIEW | SB-005, EST-004 | revisão independente A1–A5 2026-10-21 | 5374f89 | local-supabase |
+| SCV-006 | FEATURE | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | IN_REVIEW | SB-005, EST-004 | revisão independente A1–A5 2026-10-21 | 23af55c | local-supabase |
 | SCV-007 | FEATURE | Middleware de refresh de sessão para Server Components (evitar deslogar o console após ~1 h) | P2 | BACKLOG | MAD-003 | revisão independente A1–A5 2026-10-21 | - | - |
-| SCV-008 | FEATURE | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP | P0 | IN_REVIEW | SCV-003 | revisão independente A1–A5 2026-10-21 | 5374f89 | local-supabase |
+| SCV-008 | FEATURE | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP | P0 | IN_REVIEW | SCV-003 | revisão independente A1–A5 2026-10-21 | 23af55c | local-supabase |
 
 **SCV-001** critérios: RLS; testes de escalada de privilégio · testes: pgTAP 366/366 local, pgTAP 385/385; adaptador 13/13
 
 **SCV-002** critérios: Sem P0/P1 abertos
 
-**SCV-003** critérios: Config remota registrada; provision_master recusa conta com senha/sem Google (teste) · testes: supabase/ops/test_provision_master.sh (7/7)
+**SCV-003** critérios: Config remota registrada; provision_master recusa conta com senha/sem Google (teste) · testes: pgTAP 398/398; adapter 14/14; test_provision_master.sh, supabase/ops/test_provision_master.sh (7/7)
 
 **SCV-004** critérios: Objetos de event-branding removidos após purga/LGPD; teste de ponta a ponta
 
 **SCV-005** critérios: pgTAP cobre os três; sem contorno silencioso
 
-**SCV-006** critérios: Edge Function valida; arquivo falso/bomba de descompressão recusado · testes: integration/adapter.itest.ts upload hostil (13/13), web/src/lib/image-sniff.test.ts (11)
+**SCV-006** critérios: Edge Function valida; arquivo falso/bomba de descompressão recusado · testes: integration/adapter.itest.ts upload hostil (13/13), pgTAP 398/398; adapter 14/14; test_provision_master.sh, web/src/lib/image-sniff.test.ts (11)
 
 **SCV-007** critérios: Sessão do console renova sem logout; teste E2E com expiração
 
-**SCV-008** critérios: supabase db reset + test db verdes; contagem documentada · testes: pgTAP 385/385 com endurecimento (Supabase local)
+**SCV-008** critérios: supabase db reset + test db verdes; contagem documentada · testes: pgTAP 385/385 com endurecimento (Supabase local), pgTAP 398/398; adapter 14/14; test_provision_master.sh
 
 ## EP-17 · QA v2 (BACKLOG)
 

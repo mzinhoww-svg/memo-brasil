@@ -74,3 +74,11 @@ Achados da revisão independente de segurança e o que mudou (edição das migra
 - P2 `feature_flags`: tabela só staff; `get_enabled_flags()` devolve apenas `key` e `enabled`.
 - P3 `event_preview` com rate limit (120/h por pessoa).
 - Não corrigidos (viraram itens): magic bytes/dimensões reais no upload (SB-005), `admin_log` com prefixo reservado, claim única `role`, corrida no "último master", divergências menores cliente×SQL, middleware de refresh de sessão.
+
+## Segunda revisão de segurança (A4-2) — o que foi corrigido e o que segue aberto
+Corrigido e validado no Supabase local (migrations 0800/0900, Edge Function, provisionamento):
+- Cliente não finaliza ativo (`finalize_asset` revogado); validação pelo conteúdo (assinatura, tipo, dimensões reais, teto de pixels) na Edge Function.
+- TOCTOU: `begin_asset_validation` trava o ativo (`validating_at`); durante a validação o host não insere nem apaga o objeto; `mark_asset_validated` confere tamanho e Content-Type do objeto real no Storage.
+- CORS com origem restrita na resposta da função; sem texto do Postgres no erro; rate limit de 30 validações por hora e usuário.
+- Provisionamento do master: uma única identidade Google com o mesmo e-mail e verificado; sem senha; conta ativa, não SSO e não banida; sessões e refresh tokens revogados; e-mail ambíguo recusado; teste com 20 verificações.
+Aberto (itens no backlog): worker que consome `storage_purge_queue` e agendamento de `expire_pending_assets`/`purge_deleted_events` (SCV-004); event trigger contra `DISABLE/DROP TRIGGER`, prefixo reservado em `admin_log` e trava do último master (SCV-005); middleware de refresh de sessão (SCV-007); logo/capa para quem ainda não entrou (EST-006); reencode da imagem no servidor, validação de tamanho do RIFF/IEND/EOI e polyglots (SCV-006); desligar o provider e-mail/senha no Auth remoto (config do dono, SCV-003); `syncTheme` não é atômico com o `update` do evento.
