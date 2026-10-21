@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, EventHeader, EventTheme, Field, KnownPeople, Signature } from "@/components/memoriesmt";
 import { eventStatus } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
@@ -22,8 +22,12 @@ export default function Convite() {
   const params = useParams<{ code: string }>();
   const code = normalizeShareCode(params.code ?? "") ?? "";
   const router = useRouter();
-  const { ready, user, signIn, repos, now, known, switchTo, canSwitchIdentity } = useApp();
+  const { ready, user, signIn, repos, now, known, switchTo, canSwitchIdentity, backend, ensureSession } = useApp();
   const data = useEventData({ code });
+  // na nuvem o convite só abre com sessão (anônima, sem conta): cria ao chegar
+  useEffect(() => {
+    if (ready && backend === "supabase" && !user) void ensureSession();
+  }, [ready, backend, user, ensureSession]);
   const [nameInput, setName] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);

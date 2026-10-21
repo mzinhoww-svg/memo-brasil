@@ -25,7 +25,7 @@ const toLocalInput = (ts: number) => {
 
 export function CreateWizard() {
   const router = useRouter();
-  const { repos, user, signIn, now, ready } = useApp();
+  const { repos, user, signIn, now, ready, backend, canCreate, signInWithGoogle } = useApp();
   const [step, setStep] = useState(0);
   const [hostInput, setHostName] = useState<string | undefined>();
   const [title, setTitle] = useState("");
@@ -99,6 +99,18 @@ export function CreateWizard() {
 
   if (!ready) return <p className="app-screen app-muted">Carregando…</p>;
   const last = step === STEPS.length - 1;
+
+  // na nuvem só o organizador com conta cria evento (RLS recusa convidado anônimo); a entrada é pelo Google
+  if (ready && backend === "supabase" && !canCreate) {
+    return (
+      <div className="app-screen">
+        <h1 className="titulo-tela app-h1">Entre para criar o seu evento.</h1>
+        <p className="corpo app-p app-muted">Quem organiza usa uma conta Google. Convidados entram só com o código, sem conta.</p>
+        <Button variant="primario" block onClick={() => void signInWithGoogle("/criar")}>Entrar com Google</Button>
+        <Button href="/" variant="texto">Voltar ao início</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="app-screen">

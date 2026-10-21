@@ -5,14 +5,19 @@ const isProd = process.env.NODE_ENV === "production";
 
 // CSP: o app só carrega a própria origem. 'unsafe-inline' é necessário para o script do tema e os estilos
 // gerados pelo Next (sem nonce nesta fase). Em dev o Next precisa de eval, por isso só vale em produção.
+// Modo Supabase: libera SOMENTE o host configurado (REST/Auth/Storage por HTTPS e Realtime por WebSocket). Nada de curingas.
+const sbUrl = process.env.NEXT_PUBLIC_MM_BACKEND === "supabase" ? process.env.NEXT_PUBLIC_SUPABASE_URL : undefined;
+const sbOrigin = sbUrl ? new URL(sbUrl).origin : "";
+const sbWs = sbOrigin ? sbOrigin.replace(/^http/, "ws") : "";
+
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob:${sbOrigin ? ` ${sbOrigin}` : ""}`,
   "media-src 'self' blob:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self'${sbOrigin ? ` ${sbOrigin} ${sbWs}` : ""}`,
   "worker-src 'self'",
   "manifest-src 'self'",
   "object-src 'none'",

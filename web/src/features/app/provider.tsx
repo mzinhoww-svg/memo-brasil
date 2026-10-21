@@ -8,6 +8,10 @@ import { identityPolicy, type IdentityMode } from "@/features/cloud/import-plan"
 import { createLocalScheduler } from "@/lib/services/notifications";
 import type { NotificationScheduler } from "@/lib/services";
 import { createLocalRepositories, createMemoryRepositories, StorageUnavailableError, type Repositories, type User } from "@/repositories";
+import { createSupabaseRepositories } from "@/repositories/supabase";
+import { browserSupabase } from "@/lib/supabase/client";
+import { backendMode } from "@/lib/supabase/env";
+import { serverRevealAuthority } from "@/features/authority";
 
 interface AppState {
   repos: Repositories;
@@ -28,6 +32,14 @@ interface AppState {
   /** `local` = identidade do aparelho; `cloud` = a da sessão (`auth.uid()`), sem troca de pessoa. */
   identityMode: IdentityMode;
   canSwitchIdentity: boolean;
+  /** local = IndexedDB neste aparelho; supabase = servidor (RLS, Storage, revelação no servidor). */
+  backend: "local" | "supabase";
+  /** Pode criar evento: local sempre; na nuvem só organizador com conta (não anônimo). */
+  canCreate: boolean;
+  /** Organizador entra com Google (só na nuvem). `next` é um caminho do próprio site. */
+  signInWithGoogle: (next?: string) => Promise<void>;
+  /** Na nuvem, abre a sessão anônima do convidado (necessária até para ver a prévia do convite, com limite de tentativas por pessoa). */
+  ensureSession: () => Promise<void>;
   /** Outras identidades já usadas neste aparelho (ex.: o anfitrião depois de testar como convidado). */
   known: User[];
   switchTo: (id: string) => Promise<void>;
@@ -37,7 +49,9 @@ interface AppState {
 const Ctx = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const local = useMemo(() => createLocalRepositories(), []);
+  const mode = useMemo(() => backendMode(), []);
+  const local = useMemo(() => (mode === "supabase" ? { repos: createSupabaseRepositories(browserSupabase()), persistent: true } : createLocalRepositories()), [mode]);
+  const [canCreate, setCanCreate] = useState(mode === "local");
   const [repos, setRepos] = useState<Repositories>(local.repos);
   const [persistent, setPersistent] = useState(local.persistent);
   const [user, setUser] = useState<User | undefined>();
@@ -56,6 +70,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setUser(u);
           setKnown(k);
         }
+        if (mode === "supabase") {
+          const { data } = await browserSupabase().auth.getUser();
+          if (alive) setCanCreate(Boolean(data.user && !data.user.is_anonymous));
+        }
         if (local.persistent && "storage" in navigator && navigator.storage.persist) void navigator.storage.persist();
       } catch (e) {
         if (!(e instanceof StorageUnavailableError)) throw e;
@@ -71,7 +89,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       alive = false;
     };
-  }, [local]);
+  }, [local, mode]);
 
   const signIn = useCallback(
     async (name: string) => {
@@ -79,9 +97,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!clean) throw new Error("nome vazio");
       const u: User = { id: user?.id ?? crypto.randomUUID(), name: clean, createdAt: user?.createdAt ?? Date.now() };
       await repos.users.save(u);
-      setUser(u);
+      const saved = (await repos.users.current()) ?? u; // na nuvem o id é o auth.uid() da sessão, não o gerado aqui
+      setUser(saved);
       setKnown(await repos.users.known());
-      return u;
+      return saved;
     },
     [repos, user],
   );
@@ -108,9 +127,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("unhandledrejection", onRejection);
   }, []);
 
+  const ensureSession = useCallback(async () => {
+    if (mode !== "supabase" || user) return;
+    await repos.users.save({ id: "", name: "", createdAt: Date.now() }); // sem sessão, o adaptador entra como anônimo
+    setUser(await repos.users.current());
+  }, [mode, repos, user]);
+
+  const signInWithGoogle = useCallback(
+    async (next = "/criar") => {
+      if (mode !== "supabase") return;
+      const safe = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+      await browserSupabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safe)}` } });
+    },
+    [mode],
+  );
+
   const value = useMemo<AppState>(
-    () => ({ repos, persistent, ready, user, storageError, scheduler, authority: localRevealAuthority, clock, identityMode: "local", canSwitchIdentity: identityPolicy("local").canSwitch, now: clock.now, signIn, signOut, known, switchTo, reportStorageError: () => setStorageError(true) }),
-    [repos, persistent, ready, user, known, storageError, scheduler, clock, signIn, signOut, switchTo],
+    () => ({ repos, persistent, ready, user, storageError, scheduler, authority: mode === "supabase" ? serverRevealAuthority : localRevealAuthority, clock, identityMode: mode === "supabase" ? "cloud" : "local", canSwitchIdentity: identityPolicy(mode === "supabase" ? "cloud" : "local").canSwitch, backend: mode, canCreate, signInWithGoogle, ensureSession, now: clock.now, signIn, signOut, known, switchTo, reportStorageError: () => setStorageError(true) }),
+    [repos, persistent, ready, user, known, storageError, scheduler, clock, mode, canCreate, signInWithGoogle, ensureSession, signIn, signOut, switchTo],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
