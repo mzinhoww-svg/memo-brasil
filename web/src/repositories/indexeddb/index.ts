@@ -2,8 +2,9 @@ import { openDB, type DBSchema, type IDBPDatabase, type IDBPTransaction, type St
 import { inferRevealAnchor, migrateLegacyReveal } from "@/domain/reveal";
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
-import { matchesFilter, paginate, sortNewestFirst } from "../paging";
-import { RepositoryError, StorageUnavailableError, type Invitation, type Participant, type PhotoData, type Repositories, type User } from "../types";
+import { beginRow, isPublished, matchesFilter, paginate, sortNewestFirst } from "../paging";
+import { objectUrl } from "../object-url";
+import { RepositoryError, StorageUnavailableError, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryOptions, type User } from "../types";
 
 interface Schema extends DBSchema {
   events: { key: string; value: MemoEvent; indexes: { code: string } };
@@ -65,6 +66,13 @@ export const MIGRATIONS: Migration[] = [
       }
     }
   },
+  // v6: uploadStatus (envio em duas fases); fotos que já existem estão prontas
+  async (_db, tx) => {
+    const store = tx.objectStore("photos");
+    for (let cur = await store.openCursor(); cur; cur = await cur.continue()) {
+      if ((cur.value as { uploadStatus?: string }).uploadStatus === undefined) await cur.update({ ...cur.value, uploadStatus: "pronta" } as never);
+    }
+  },
 ];
 export const DB_VERSION = MIGRATIONS.length;
 
@@ -98,7 +106,7 @@ async function wipe(db: IDBPDatabase<Schema>, store: "participants" | "reactions
 }
 
 /** Adaptador IndexedDB. Falhas de cota/permissão viram StorageUnavailableError. */
-export function createIndexedDbRepositories(name: string = DB_NAME, migrations: Migration[] = MIGRATIONS): Repositories {
+export function createIndexedDbRepositories(name: string = DB_NAME, migrations: Migration[] = MIGRATIONS, opts: RepositoryOptions = {}): Repositories {
   let dbp: Promise<IDBPDatabase<Schema>> | undefined;
   const db = () => (dbp ??= open(name, migrations).catch((e) => {
     dbp = undefined; // falha de abertura não fica em cache: a próxima chamada tenta de novo
@@ -141,15 +149,45 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
       removeByEvent: (id) => guard((d) => wipe(d, "participants", "eventId", id)),
     },
     photos: {
-      listByEvent: (id) => guard(async (d) => sortNewestFirst(await d.getAllFromIndex("photos", "eventId", id))),
+      listByEvent: (id) => guard(async (d) => sortNewestFirst((await d.getAllFromIndex("photos", "eventId", id)).filter(isPublished))),
       count: (id, f) => guard(async (d) => (f ? (await d.getAllFromIndex("photos", "eventId", id)).filter((p) => matchesFilter(p, f)).length : d.countFromIndex("photos", "eventId", id))),
-      page: (id, o) => guard(async (d) => paginate(sortNewestFirst(await d.getAllFromIndex("photos", "eventId", id)), o)),
+      page: (id, o) => guard(async (d) => paginate(sortNewestFirst((await d.getAllFromIndex("photos", "eventId", id)).filter(isPublished)), o)),
       get: (id) => guard((d) => d.get("photos", id)),
+      begin: (p) =>
+        guard(async (d) => {
+          const tx = d.transaction("photos", "readwrite");
+          const cur = await tx.store.get(p.id);
+          const row = cur ?? beginRow(p, opts.now);
+          if (!cur) await tx.store.put(row);
+          await tx.done;
+          return row;
+        }),
+      attach: (id, data) =>
+        guard(async (d) => {
+          const tx = d.transaction(["photos", "photoData"], "readwrite");
+          if (!(await tx.objectStore("photos").get(id))) throw new RepositoryError("not-found", `Foto ${id} não existe`);
+          await Promise.all([tx.objectStore("photoData").put(data, id), tx.done]);
+        }),
+      finalize: (id) =>
+        guard(async (d) => {
+          const tx = d.transaction(["photos", "photoData"], "readwrite");
+          const cur = await tx.objectStore("photos").get(id);
+          if (!cur) throw new RepositoryError("not-found", `Foto ${id} não existe`);
+          if (!(await tx.objectStore("photoData").get(id))) throw new RepositoryError("invalid", `Foto ${id} ainda não recebeu os bytes`);
+          const saved = { ...cur, uploadStatus: "pronta" as const, version: (cur.version ?? 1) + 1 };
+          await Promise.all([tx.objectStore("photos").put(saved), tx.done]);
+          return saved;
+        }),
+      pending: (id) => guard(async (d) => sortNewestFirst((await d.getAllFromIndex("photos", "eventId", id)).filter((p) => !isPublished(p)))),
+      getUrl: (id) => guard(async (d) => {
+        const data = await d.get("photoData", id);
+        return data ? objectUrl(data) : undefined;
+      }),
       add: (p, data) =>
         guard(async (d) => {
           const tx = d.transaction(["photos", "photoData"], "readwrite");
           if (await tx.objectStore("photos").get(p.id)) return void (await tx.done);
-          await Promise.all([tx.objectStore("photos").put(p), tx.objectStore("photoData").put(data, p.id), tx.done]);
+          await Promise.all([tx.objectStore("photos").put({ ...beginRow(p, opts.now), uploadStatus: "pronta" }), tx.objectStore("photoData").put(data, p.id), tx.done]);
         }),
       update: (p, opts) =>
         guard(async (d) => {

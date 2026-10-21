@@ -17,7 +17,7 @@ export default function Voce() {
   const [avisos, setAvisos] = useState<string | undefined>();
   const router = useRouter();
   const mine = photos.filter((p) => p.authorId === user.id && p.status !== "removida");
-  const urls = usePhotoUrls(isRevealed(event, now) ? mine : []);
+  const urls = usePhotoUrls(isRevealed(event, now) ? mine : [], "thumb");
   const left = shotsLeft(event, counts.mine);
   const revealed = isRevealed(event, now);
   const total = event.shotsPerPerson;

@@ -113,7 +113,7 @@ describe("contraste", () => {
   });
 });
 
-const ph = (o: Partial<Photo>): Photo => ({ id: "p", eventId: "e1", authorId: "a", authorName: "Ana", createdAt: 1, moment: "O sim", status: "visivel", reports: 0, highlighted: false, version: 1, ...o });
+const ph = (o: Partial<Photo>): Photo => ({ id: "p", eventId: "e1", authorId: "a", authorName: "Ana", createdAt: 1, moment: "O sim", status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "pronta", ...o });
 
 const T = (authorId: string) => ({ eventId: "e1", photoId: "p1", authorId });
 describe("postar e reagir", () => {

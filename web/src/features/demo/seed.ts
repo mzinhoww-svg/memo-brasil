@@ -46,7 +46,7 @@ export async function seedDemoEvent(repos: Repositories, host: User, now: number
     const photo: Photo = {
       id: crypto.randomUUID(), eventId: event.id, authorId: g.id, authorName: g.name, createdAt: now - (12 - i) * 11 * 60_000,
       moment: MOMENTS[i % MOMENTS.length], caption: i % 3 === 0 ? "Ninguém segurou a emoção." : undefined, tableLabel: g.table,
-      status: "visivel", reports: i === 7 ? 1 : 0, highlighted: i === 2, version: 1,
+      status: "visivel", reports: i === 7 ? 1 : 0, highlighted: i === 2, version: 1, uploadStatus: "pronta",
     };
     await repos.photos.add(photo, sampleImage(i));
     for (let k = 0; k < (i % 4) + 1; k++) {

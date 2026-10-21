@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { LOCAL_ACTOR } from "@/domain/roles";
-import type { Participant } from "@/repositories";
+import type { Participant, PhotoSize, PhotoUrl } from "@/repositories";
 import { readEventScoped, type EventAccess, type EventPreview } from "@/features/access/read";
 import { useApp } from "./provider";
 
@@ -77,11 +77,11 @@ export function useEventData(key: { code?: string; id?: string }): EventData {
   return { ...state, refresh };
 }
 
-/** URLs de objeto para as fotos; revoga ao sair. */
-export function usePhotoUrls(photos: Photo[]): Record<string, string> {
+/** URLs para exibir as fotos (miniatura nas grades, inteira nas telas cheias); libera ao sair. */
+export function usePhotoUrls(photos: Photo[], size: PhotoSize = "full"): Record<string, string> {
   const { repos } = useApp();
   const [urls, setUrls] = useState<Record<string, string>>({});
-  const cache = useRef<Map<string, string>>(new Map());
+  const cache = useRef<Map<string, PhotoUrl>>(new Map());
   const ids = photos.map((p) => p.id).join(",");
 
   useEffect(() => {
@@ -89,22 +89,23 @@ export function usePhotoUrls(photos: Photo[]): Record<string, string> {
     (async () => {
       for (const p of photos) {
         if (cache.current.has(p.id)) continue;
-        const d = await repos.photos.getData(p.id);
-        if (!d || !alive) continue;
-        cache.current.set(p.id, URL.createObjectURL(new Blob([d.bytes], { type: d.type })));
-        if (alive) setUrls(Object.fromEntries(cache.current)); // aparece foto a foto, sem esperar o lote
+        const u = await repos.photos.getUrl(p.id, size);
+        if (!u) continue;
+        if (!alive) { u.release(); continue; }
+        cache.current.set(p.id, u);
+        setUrls(Object.fromEntries([...cache.current].map(([id, v]) => [id, v.url]))); // aparece foto a foto, sem esperar o lote
       }
     })();
     return () => {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repos, ids]);
+  }, [repos, ids, size]);
 
   useEffect(() => {
     const map = cache.current;
     return () => {
-      map.forEach((u) => URL.revokeObjectURL(u));
+      map.forEach((u) => u.release());
       map.clear();
     };
   }, []);

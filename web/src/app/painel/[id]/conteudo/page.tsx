@@ -19,7 +19,7 @@ export default function Conteudo() {
   const reported = useMemo(() => moderationQueue(live).filter((p) => p.status === "visivel"), [live]);
   const hidden = live.filter((p) => p.status === "oculta");
   const list = tab === "pedidos" ? reported : tab === "ocultas" ? hidden : live;
-  const urls = usePhotoUrls(list);
+  const urls = usePhotoUrls(list, "thumb");
 
   async function act(id: string, a: ModerationAction) {
     await moderate(repos, id, a);

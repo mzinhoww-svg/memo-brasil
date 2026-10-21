@@ -40,7 +40,7 @@ describe("ITG-104: quem decide a revelação", () => {
 describe("ITG-104: limites e relógio decididos pelo servidor", () => {
   const failing = (code: "shot-limit" | "event-ended" | "capacity-full" | "unavailable"): Repositories => ({
     ...repos,
-    photos: { ...repos.photos, add: async () => { throw new RepositoryError(code, "recusado pelo servidor"); } },
+    photos: { ...repos.photos, begin: async () => { throw new RepositoryError(code, "recusado pelo servidor"); } },
     participants: { ...repos.participants, put: async () => { throw new RepositoryError(code, "recusado pelo servidor"); } },
   });
   it("rolo cheio recusado no servidor vira a mesma razão da interface e não conta como foto", async () => {

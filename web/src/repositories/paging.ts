@@ -13,6 +13,12 @@ export const sortNewestFirst = (list: Photo[]): Photo[] => [...list].sort((a, b)
 export const matchesFilter = (p: Photo, f: PhotoCountFilter = {}): boolean =>
   (f.authorId === undefined || p.authorId === f.authorId) && (f.excludeStatus === undefined || p.status !== f.excludeStatus);
 
+/** Linha como o repositório a grava na fase 1: `createdAt` do relógio do repositório (se houver), `capturedAt` do cliente. */
+export function beginRow(photo: Photo, now?: () => number): Photo {
+  return { ...photo, uploadStatus: "enviando", capturedAt: photo.capturedAt ?? photo.createdAt, createdAt: now ? now() : photo.createdAt };
+}
+export const isPublished = (p: Photo): boolean => p.uploadStatus === "pronta";
+
 export function paginate(sorted: Photo[], opts: { limit: number; cursor?: string | null }): Page<Photo> {
   let start = 0;
   if (opts.cursor) {

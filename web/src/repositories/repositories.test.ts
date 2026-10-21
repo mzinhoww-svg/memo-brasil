@@ -8,7 +8,7 @@ const ev = (id: string, code: string): MemoEvent => ({
   cameraStyle: "original", revealEnabled: true, revealAt: 6, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, version: 1, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24,
   everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 1,
 });
-const photo = (id: string, eventId: string, createdAt = 1): Photo => ({ id, eventId, authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false, version: 1 });
+const photo = (id: string, eventId: string, createdAt = 1): Photo => ({ id, eventId, authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "pronta" });
 const bytes = (...n: number[]) => new Uint8Array(n).buffer;
 
 let n = 0;

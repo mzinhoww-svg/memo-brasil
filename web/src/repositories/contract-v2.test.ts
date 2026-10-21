@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MemoEvent } from "@/domain/event";
 import type { Photo } from "@/domain/photo";
 import { RepositoryError, StorageUnavailableError, createIndexedDbRepositories, createMemoryRepositories, type Repositories } from "./index";
@@ -8,7 +8,7 @@ const ev = (id: string, code: string): MemoEvent => ({
   revealEnabled: false, revealAt: null, revealAnchor: "data", revealOffsetDays: 0, timezone: "UTC", revealStatus: "desativada", revealedAt: null,
   capacity: 50, shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 1, version: 1,
 });
-const ph = (id: string, createdAt: number, o: Partial<Photo> = {}): Photo => ({ id, eventId: "e1", authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false, version: 1, ...o });
+const ph = (id: string, createdAt: number, o: Partial<Photo> = {}): Photo => ({ id, eventId: "e1", authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "pronta", ...o });
 const data = (n: number) => ({ bytes: new Uint8Array([n]).buffer, type: "image/jpeg" });
 
 let n = 0;
@@ -99,5 +99,92 @@ describe("ITG-102: migração v5 (version)", () => {
     const v5 = createIndexedDbRepositories(name);
     expect((await v5.events.get("e1"))!.version).toBe(1);
     expect((await v5.photos.get("p1"))!.version).toBe(1);
+  });
+});
+
+describe.each(impls)("contrato v2: fotos por URL e envio em duas fases (%s)", (_name, make) => {
+  let r: Repositories;
+  beforeEach(() => {
+    r = make();
+    if (typeof URL.createObjectURL !== "function") {
+      vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: () => `blob:fake-${Math.random()}`, revokeObjectURL: () => undefined }));
+    }
+  });
+
+  it("begin cria a linha 'enviando': invisível nas listas, mas reserva o rolo na contagem", async () => {
+    await r.photos.begin(ph("p1", 1, { uploadStatus: "enviando" }));
+    expect((await r.photos.get("p1"))!.uploadStatus).toBe("enviando");
+    expect(await r.photos.listByEvent("e1")).toEqual([]);
+    expect((await r.photos.page("e1", { limit: 10 })).items).toEqual([]);
+    expect(await r.photos.count("e1", { excludeStatus: "removida" })).toBe(1);
+    expect((await r.photos.pending("e1")).map((p) => p.id)).toEqual(["p1"]);
+  });
+  it("attach guarda os bytes e finalize publica; finalize sem bytes é recusado", async () => {
+    await r.photos.begin(ph("p1", 1, { uploadStatus: "enviando" }));
+    await expect(r.photos.finalize("p1")).rejects.toMatchObject({ code: "invalid" });
+    await r.photos.attach("p1", data(7));
+    const done = await r.photos.finalize("p1");
+    expect(done.uploadStatus).toBe("pronta");
+    expect((await r.photos.listByEvent("e1")).map((p) => p.id)).toEqual(["p1"]);
+    expect(await r.photos.pending("e1")).toEqual([]);
+    await expect(r.photos.attach("fantasma", data(1))).rejects.toMatchObject({ code: "not-found" });
+  });
+  it("add continua sendo as três etapas juntas (foto pronta) e idempotente", async () => {
+    await r.photos.add(ph("p1", 1), data(1));
+    expect((await r.photos.get("p1"))!.uploadStatus).toBe("pronta");
+  });
+  it("begin é idempotente: reenvio não zera uma foto já pronta", async () => {
+    await r.photos.add(ph("p1", 1), data(1));
+    await r.photos.begin(ph("p1", 2, { uploadStatus: "enviando" }));
+    expect((await r.photos.get("p1"))!.uploadStatus).toBe("pronta");
+  });
+  it("getUrl entrega URL (miniatura cai para a imagem inteira) e permite liberar; foto sem bytes não tem URL", async () => {
+    await r.photos.add(ph("p1", 1), data(1));
+    const full = await r.photos.getUrl("p1", "full");
+    const thumb = await r.photos.getUrl("p1", "thumb");
+    expect(full!.url).toMatch(/^blob:/);
+    expect(thumb!.url).toMatch(/^blob:/);
+    full!.release(); thumb!.release();
+    expect(await r.photos.getUrl("fantasma", "full")).toBeUndefined();
+    await r.photos.begin(ph("p2", 2, { uploadStatus: "enviando" }));
+    expect(await r.photos.getUrl("p2", "full")).toBeUndefined();
+  });
+});
+
+describe("contrato v2: created_at é do repositório quando ele tem relógio (servidor)", () => {
+  it.each([["memória", (now: () => number) => createMemoryRepositories({ now })], ["IndexedDB", (now: () => number) => createIndexedDbRepositories(`ts-${n++}`, undefined, { now })]] as const)(
+    "%s: o horário do cliente vira capturedAt e createdAt passa a ser o do relógio do repositório",
+    async (_n, make) => {
+      const r = make(() => 5_000);
+      await r.photos.add(ph("p1", 1_234), data(1));
+      expect(await r.photos.get("p1")).toMatchObject({ createdAt: 5_000, capturedAt: 1_234 });
+    },
+  );
+  it("sem relógio injetado (modo local) o createdAt do cliente é mantido", async () => {
+    const r = createMemoryRepositories();
+    await r.photos.add(ph("p1", 1_234), data(1));
+    expect(await r.photos.get("p1")).toMatchObject({ createdAt: 1_234 });
+  });
+});
+
+describe("ITG-103: migração v6 (uploadStatus)", () => {
+  it("fotos antigas viram 'pronta'", async () => {
+    const { MIGRATIONS } = await import("./indexeddb");
+    const name = `v6-${n++}`;
+    const v5 = createIndexedDbRepositories(name, MIGRATIONS.slice(0, 5));
+    await v5.photos.add(ph("p1", 1), data(1));
+    const raw = await new Promise<IDBDatabase>((res) => { const q = indexedDB.open(name); q.onsuccess = () => res(q.result); });
+    await new Promise<void>((res) => { // estado legado: foto sem uploadStatus
+      const p = ph("p1", 1) as Partial<Photo>;
+      delete p.uploadStatus;
+      const tx = raw.transaction("photos", "readwrite");
+      tx.objectStore("photos").put(p);
+      tx.oncomplete = () => res();
+    });
+    raw.close();
+    expect((await v5.photos.get("p1"))!.uploadStatus).toBeUndefined(); // controle
+    const v6 = createIndexedDbRepositories(name);
+    expect((await v6.photos.get("p1"))!.uploadStatus).toBe("pronta");
+    expect((await v6.photos.listByEvent("e1")).map((p) => p.id)).toEqual(["p1"]);
   });
 });

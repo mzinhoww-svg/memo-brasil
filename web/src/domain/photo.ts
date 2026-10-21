@@ -18,6 +18,10 @@ export interface Photo {
   highlighted: boolean; // "Escolha dos noivos"
   /** Concorrência otimista: incrementada pelo repositório a cada gravação. */
   version: number;
+  /** Envio em duas fases: `enviando` (linha criada, bytes a caminho) → `pronta` (visível). */
+  uploadStatus: "enviando" | "pronta" | "falhou";
+  /** Quando o aparelho captou a foto; `createdAt` é o horário do repositório/servidor. */
+  capturedAt?: number;
 }
 
 export interface Reaction {

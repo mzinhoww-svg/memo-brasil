@@ -46,6 +46,14 @@ export interface WriteOptions { expectedVersion?: number }
 export interface Page<T> { items: T[]; total: number; nextCursor: string | null }
 export interface PhotoCountFilter { authorId?: string; excludeStatus?: Photo["status"] }
 
+/** URL para exibir a foto; `release` devolve o recurso (revoga o object URL ou descarta a URL assinada). */
+export interface PhotoUrl { url: string; release: () => void }
+export type PhotoSize = "thumb" | "full";
+export interface RepositoryOptions {
+  /** Relógio do repositório. Com ele, `createdAt` é do repositório (servidor); sem ele vale o horário do cliente. */
+  now?: () => number;
+}
+
 export interface EventRepository {
   list(): Promise<MemoEvent[]>;
   get(id: string): Promise<MemoEvent | undefined>;
@@ -68,8 +76,18 @@ export interface PhotoRepository {
   count(eventId: string, filter?: PhotoCountFilter): Promise<number>;
   /** Mais novas primeiro; `cursor` opaco devolvido em `nextCursor`. */
   page(eventId: string, opts: { limit: number; cursor?: string | null }): Promise<Page<Photo>>;
+  /** Fase 1: cria a linha `enviando` (invisível nas listas, mas reserva o rolo). Idempotente por `id`. */
+  begin(photo: Photo): Promise<Photo>;
+  /** Fase 2: grava os bytes. Foto inexistente é `not-found`. */
+  attach(id: string, data: PhotoData): Promise<void>;
+  /** Fase 3: publica (`pronta`). Sem bytes é `invalid`. */
+  finalize(id: string): Promise<Photo>;
+  /** Envios que não terminaram (para retomar ou limpar). */
+  pending(eventId: string): Promise<Photo[]>;
   /** Idempotente por `id`: reenvio da mesma foto não duplica nem sobrescreve. */
   add(photo: Photo, data: PhotoData): Promise<void>;
+  /** URL de exibição; `thumb` cai para a imagem inteira quando não há miniatura. */
+  getUrl(id: string, size: PhotoSize): Promise<PhotoUrl | undefined>;
   /** Versionado; foto inexistente é `not-found`. */
   update(photo: Photo, opts?: WriteOptions): Promise<Photo>;
   getData(id: string): Promise<PhotoData | undefined>;

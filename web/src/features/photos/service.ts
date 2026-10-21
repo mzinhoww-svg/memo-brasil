@@ -22,17 +22,21 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
   if (!verdict.ok) return { ok: false, reason: verdict.reason };
   const photo: Photo = {
     id: crypto.randomUUID(), eventId: event.id, authorId: user.id, authorName: user.name, createdAt: now,
-    moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false, version: 1,
+    moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "enviando",
   };
   try {
-    await repos.photos.add(photo, data);
+    // envio em duas fases: a linha reserva o rolo, os bytes seguem, e só então a foto fica visível
+    await repos.photos.begin(photo);
+    await repos.photos.attach(photo.id, data);
+    const published = await repos.photos.finalize(photo.id);
+    return { ok: true, photo: published };
   } catch (e) {
+    await repos.photos.remove(photo.id).catch(() => undefined); // modo local: não deixa envio pela metade ocupando o rolo
     // o servidor tem a palavra final sobre rolo e encerramento (AC-07): a recusa vira a mesma razão da interface
     if (e instanceof RepositoryError && e.code === "shot-limit") return { ok: false, reason: "rolo" };
     if (e instanceof RepositoryError && e.code === "event-ended") return { ok: false, reason: "encerrado" };
     return { ok: false, reason: "armazenamento" };
   }
-  return { ok: true, photo };
 }
 
 export async function loadFeed(repos: Repositories, event: MemoEvent, viewer: Viewer, now: number): Promise<Photo[]> {

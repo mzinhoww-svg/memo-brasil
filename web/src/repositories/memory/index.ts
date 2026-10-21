@@ -1,12 +1,13 @@
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
-import { matchesFilter, paginate, sortNewestFirst } from "../paging";
-import { RepositoryError, type Invitation, type Participant, type PhotoData, type Repositories, type User } from "../types";
+import { beginRow, isPublished, matchesFilter, paginate, sortNewestFirst } from "../paging";
+import { objectUrl } from "../object-url";
+import { RepositoryError, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryOptions, type User } from "../types";
 
 const clone = <T,>(v: T): T => structuredClone(v);
 
 /** Adaptador em memória: testes e fallback quando o IndexedDB não existe. */
-export function createMemoryRepositories(): Repositories {
+export function createMemoryRepositories(opts: RepositoryOptions = {}): Repositories {
   const events = new Map<string, MemoEvent>();
   const participants = new Map<string, Participant>();
   const photos = new Map<string, Photo>();
@@ -46,16 +47,34 @@ export function createMemoryRepositories(): Repositories {
       removeByEvent: async (id) => dropWhere(participants, (p) => p.eventId === id),
     },
     photos: {
-      listByEvent: async (id) => [...photos.values()].filter((p) => p.eventId === id).map(clone).sort((a, b) => b.createdAt - a.createdAt),
+      listByEvent: async (id) => sortNewestFirst([...photos.values()].filter((p) => p.eventId === id && isPublished(p))).map(clone),
       get: async (id) => (photos.has(id) ? clone(photos.get(id)!) : undefined),
       count: async (id, f) => [...photos.values()].filter((p) => p.eventId === id && matchesFilter(p, f)).length,
       page: async (id, o) => {
-        const pg = paginate(sortNewestFirst([...photos.values()].filter((p) => p.eventId === id)), o);
+        const pg = paginate(sortNewestFirst([...photos.values()].filter((p) => p.eventId === id && isPublished(p))), o);
         return { ...pg, items: pg.items.map(clone) };
       },
+      begin: async (p) => {
+        if (!photos.has(p.id)) photos.set(p.id, beginRow(clone(p), opts.now));
+        return clone(photos.get(p.id)!);
+      },
+      attach: async (id, d) => {
+        if (!photos.has(id)) throw new RepositoryError("not-found", `Foto ${id} não existe`);
+        data.set(id, { bytes: d.bytes.slice(0), type: d.type });
+      },
+      finalize: async (id) => {
+        const cur = photos.get(id);
+        if (!cur) throw new RepositoryError("not-found", `Foto ${id} não existe`);
+        if (!data.has(id)) throw new RepositoryError("invalid", `Foto ${id} ainda não recebeu os bytes`);
+        const saved = { ...cur, uploadStatus: "pronta" as const, version: cur.version + 1 };
+        photos.set(id, saved);
+        return clone(saved);
+      },
+      pending: async (id) => sortNewestFirst([...photos.values()].filter((p) => p.eventId === id && !isPublished(p))).map(clone),
+      getUrl: async (id) => (data.has(id) ? objectUrl(data.get(id)!) : undefined),
       add: async (p, d) => {
         if (photos.has(p.id)) return;
-        photos.set(p.id, clone(p));
+        photos.set(p.id, { ...beginRow(clone(p), opts.now), uploadStatus: "pronta" });
         data.set(p.id, { bytes: d.bytes.slice(0), type: d.type });
       },
       update: async (p, opts) => {

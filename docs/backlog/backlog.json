@@ -3567,7 +3567,7 @@
    "epic": "EP-08",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [
     "BG-101",
     "BG-102",
@@ -3593,15 +3593,18 @@
     "web/src/features/events/service.ts",
     "web/src/features/reveal/RevealTransition.tsx"
    ],
-   "tests": [],
-   "evidence": [
-    "docs/audit/drafts/A4.md",
-    "(app)/layout.tsx:65-68; events/service.ts:124-131",
-    "postar/page.tsx:29; photos/service.ts:10-12; domain/photo.ts:55; INTEGRATION-PLAN §4.1 x §5",
-    "photo.ts:30,38; event.ts:18,26; events/service.ts:92; configuracoes/page.tsx:48,73; qr/page.tsx:36; photos/service.ts:16,40-42"
+   "tests": [
+    "web/src/features/authority/authority.test.ts"
    ],
-   "commit": null,
-   "environment": null,
+   "evidence": [
+    "(app)/layout.tsx:65-68; events/service.ts:124-131",
+    "docs/audit/drafts/A4.md",
+    "docs/audit/remediation/ITG-104.md",
+    "photo.ts:30,38; event.ts:18,26; events/service.ts:92; configuracoes/page.tsx:48,73; qr/page.tsx:36; photos/service.ts:16,40-42",
+    "postar/page.tsx:29; photos/service.ts:10-12; domain/photo.ts:55; INTEGRATION-PLAN §4.1 x §5"
+   ],
+   "commit": "d5b9f25",
+   "environment": "local (Vitest + Chromium)",
    "effort": "M",
    "sources": [
     "A4-004",
