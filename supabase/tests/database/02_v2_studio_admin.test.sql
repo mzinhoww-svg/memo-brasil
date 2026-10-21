@@ -354,6 +354,7 @@ select throws_ok($$insert into storage.objects (bucket_id, name, metadata) value
 update storage.objects set metadata = '{"size":1,"mimetype":"image/png"}' where bucket_id = 'event-branding';
 select is((select (metadata ->> 'size')::int from storage.objects where bucket_id = 'event-branding'), 1000, 'Storage: sem UPDATE (ninguém altera objeto existente)');
 set local role service_role;
+select lives_ok($$select public.begin_asset_validation('20000000-0000-4000-8000-000000000a01', '00000000-0000-4000-8000-0000000000a1')$$, 'Edge Function trava o ativo para validar');
 select lives_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000a01', '00000000-0000-4000-8000-0000000000a1', 200, 200, 1000, 'image/png')$$, 'validação do servidor publica o logo');
 set local role authenticated;
 select is((select upload_status from public.event_assets where id = '20000000-0000-4000-8000-000000000a01'), 'pronta', 'ativo publicado após validação do servidor');
@@ -623,19 +624,38 @@ select is(has_function_privilege('anon', 'public.mark_asset_validated(uuid, uuid
 select is(has_function_privilege('service_role', 'public.mark_asset_validated(uuid, uuid, int, int, int, text)', 'EXECUTE'), true, 'service_role confirma ativo');
 select is(has_function_privilege('authenticated', 'public.finalize_asset(uuid)', 'EXECUTE'), false, 'finalize_asset não é mais chamável pelo cliente');
 
--- mark_asset_validated (chamada só pela Edge Function): regras do servidor, sem confiar no cliente
+-- mark_asset_validated / begin_asset_validation (chamadas só pela Edge Function): regras do servidor, sem confiar no cliente
 reset role;
 insert into public.event_assets (id, event_id, kind, storage_path, mime, width, height, created_by)
 values ('20000000-0000-4000-8000-000000000b01', '10000000-0000-4000-8000-00000000000a', 'logo', '10000000-0000-4000-8000-00000000000a/20000000-0000-4000-8000-000000000b01', 'image/png', 200, 200, '00000000-0000-4000-8000-0000000000a1');
+select tests.fake_object('event-branding', '10000000-0000-4000-8000-00000000000a/20000000-0000-4000-8000-000000000b01', 5000, 'image/webp');
 set local role service_role;
+select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 320, 240, 5000, 'image/webp')$$, 'MM005', 'invalid', 'sem a trava de validação o ativo não é confirmado');
+select throws_ok($$select public.begin_asset_validation('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a2')$$, 'MM004', 'forbidden', 'trava em nome de outro host é recusada');
 select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a2', 200, 200, 1000, 'image/png')$$, 'MM004', 'forbidden', 'validação em nome de outro host é recusada');
+select is(public.begin_asset_validation('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1'), true, 'Edge Function trava o ativo');
+select throws_ok($$select public.begin_asset_validation('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1')$$, 'MM009', 'busy', 'segunda validação concorrente é recusada (busy)');
+-- TOCTOU: durante a validação o host não troca nem apaga o objeto
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000000a1');
+select is(public.can_upload_branding('10000000-0000-4000-8000-00000000000a/20000000-0000-4000-8000-000000000b01'), false, 'durante a validação o host não insere objeto no caminho');
+select is(public.can_delete_branding('10000000-0000-4000-8000-00000000000a/20000000-0000-4000-8000-000000000b01'), false, 'durante a validação o host não apaga o objeto');
+reset role;
+set local role service_role;
 select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 200, 200, 1000, 'image/gif')$$, 'MM005', 'invalid', 'tipo fora da lista é recusado (gif)');
-select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 200, 200, 2097153, 'image/png')$$, 'MM005', 'invalid', 'logo acima de 2 MiB é recusado');
-select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 8, 200, 1000, 'image/png')$$, 'MM005', 'invalid', 'dimensão real fora de 16–8192 é recusada');
+select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 200, 200, 2097153, 'image/webp')$$, 'MM005', 'invalid', 'logo acima de 2 MiB é recusado');
+select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 8, 200, 5000, 'image/webp')$$, 'MM005', 'invalid', 'dimensão real fora de 16–8192 é recusada');
+select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 320, 240, 4999, 'image/webp')$$, 'MM005', 'invalid', 'tamanho validado diferente do objeto real no Storage é recusado (objeto trocado)');
+select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 320, 240, 5000, 'image/png')$$, 'MM005', 'invalid', 'tipo validado diferente do Content-Type armazenado é recusado');
 select lives_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 320, 240, 5000, 'image/webp')$$, 'validação correta publica o ativo');
 select is((select upload_status || ':' || width || 'x' || height || ':' || mime from public.event_assets where id = '20000000-0000-4000-8000-000000000b01'), 'pronta:320x240:image/webp', 'dimensões e tipo gravados são os REAIS, não os declarados');
+select is((select validating_at is null from public.event_assets where id = '20000000-0000-4000-8000-000000000b01'), true, 'trava liberada após publicar');
 select is((select count(*)::int from public.audit_logs where action = 'asset.published' and target_id = '20000000-0000-4000-8000-000000000b01' and (detail ->> 'validated')::boolean), 1, 'publicação validada auditada');
+select lives_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 320, 240, 5000, 'image/webp')$$, 'confirmar de novo é idempotente');
 reset role;
+
+select is(has_function_privilege('authenticated', 'public.begin_asset_validation(uuid, uuid)', 'EXECUTE'), false, 'cliente não trava ativo para validação');
+select is(has_function_privilege('service_role', 'public.begin_asset_validation(uuid, uuid)', 'EXECUTE'), true, 'service_role trava ativo para validação');
 
 select * from finish();
 rollback;

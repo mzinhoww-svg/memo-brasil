@@ -2,10 +2,15 @@
 // `finalize_asset` foi revogado e `mark_asset_validated` só é executável pelo service_role (esta função).
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sniffImage, validateSniffed, type AssetKind } from "../_shared/image-sniff.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
-const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "x-content-type-options": "nosniff" } });
+const extraOrigins = Deno.env.get("ALLOWED_ORIGINS") ?? "";
+const reply = (req: Request) => (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders(req.headers.get("origin"), extraOrigins), "content-type": "application/json", "x-content-type-options": "nosniff" } });
 
 Deno.serve(async (req) => {
+  const json = reply(req);
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(req.headers.get("origin"), extraOrigins) }); // preflight do navegador
   if (req.method !== "POST") return json({ error: "method" }, 405);
   const url = Deno.env.get("SUPABASE_URL")!, anon = Deno.env.get("SUPABASE_ANON_KEY")!, service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const auth = req.headers.get("Authorization") ?? "";
@@ -22,9 +27,11 @@ Deno.serve(async (req) => {
   const admin = createClient(url, service, { auth: { persistSession: false } });
   const { data: a } = await admin.from("event_assets").select("id,event_id,kind,mime,storage_path,created_by,upload_status").eq("id", assetId).maybeSingle();
   if (!a || a.created_by !== u.user.id) return json({ error: "forbidden" }, 403);
-  const { data: ev } = await admin.from("events").select("host_id").eq("id", a.event_id).maybeSingle();
-  if (!ev || ev.host_id !== u.user.id) return json({ error: "forbidden" }, 403);
   if (a.upload_status === "pronta") return json({ ok: true });
+  // trava o ativo: enquanto valida, o cliente não consegue trocar nem apagar o objeto (fecha o TOCTOU)
+  const lock = await admin.rpc("begin_asset_validation", { p_id: a.id, p_user: u.user.id });
+  if (lock.error) return json({ error: lock.error.code === "MM009" ? "busy" : "forbidden" }, lock.error.code === "MM009" ? 409 : 403);
+  if (lock.data === false) return json({ ok: true });
 
   const dl = await admin.storage.from("event-branding").download(a.storage_path);
   if (dl.error || !dl.data) return json({ error: "missing" }, 422);
@@ -37,6 +44,6 @@ Deno.serve(async (req) => {
     return json({ error: "rejected", reason: verdict.reason }, 422);
   }
   const r = await admin.rpc("mark_asset_validated", { p_id: a.id, p_user: u.user.id, p_width: verdict.width, p_height: verdict.height, p_bytes: bytes.length, p_mime: verdict.mime });
-  if (r.error) return json({ error: "state", message: r.error.message }, 409);
+  if (r.error) return json({ error: "state" }, 409); // sem repassar texto do Postgres
   return json({ ok: true, width: verdict.width, height: verdict.height });
 });

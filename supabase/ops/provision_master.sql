@@ -54,21 +54,32 @@ begin
   if p_user_txt is not null then
     begin uid := p_user_txt::uuid; exception when invalid_text_representation then raise exception 'provision_master: user_id não é um UUID'; end;
     select * into u from auth.users where id = uid;
+    if not found then raise exception 'provision_master: usuário não encontrado em auth.users (a pessoa precisa entrar uma vez antes; o script não cria contas)'; end if;
   else
+    -- e-mail duplicado (ex.: usuário SSO e não-SSO) é erro, nunca "uma linha arbitrária"
+    if (select count(*) from auth.users where lower(email) = lower(p_email)) > 1 then raise exception 'provision_master: e-mail ambíguo (mais de uma conta); use -v user_id=...'; end if;
     select * into u from auth.users where lower(email) = lower(p_email);
+    if not found then raise exception 'provision_master: usuário não encontrado em auth.users (a pessoa precisa entrar uma vez antes; o script não cria contas)'; end if;
   end if;
-  if not found then
-    raise exception 'provision_master: usuário não encontrado em auth.users (a pessoa precisa entrar uma vez antes; o script não cria contas)';
-  end if;
+  if coalesce(u.is_sso_user, false) then raise exception 'provision_master: conta SSO não é aceita'; end if;
+  if u.deleted_at is not null then raise exception 'provision_master: conta apagada'; end if;
+  if u.banned_until is not null and u.banned_until > now() then raise exception 'provision_master: conta banida'; end if;
   if coalesce(u.is_anonymous, false) then raise exception 'provision_master: conta anônima não pode ser master'; end if;
   if u.email_confirmed_at is null then raise exception 'provision_master: e-mail ainda não confirmado'; end if;
-  -- anti pré-sequestro: a conta precisa ter entrado pelo Google e não pode ter senha (login e-mail/senha criado por terceiro com o mesmo e-mail)
-  if not exists (select 1 from auth.identities i where i.user_id = u.id and i.provider = 'google') then
-    raise exception 'provision_master: a conta não tem identidade Google (a pessoa precisa entrar uma vez com o Google)';
+  -- anti pré-sequestro: a conta precisa ter UMA única identidade, Google, com o mesmo e-mail da conta e verificado; e não pode ter senha
+  -- (login e-mail/senha ou vinculação manual criados por terceiro com o mesmo e-mail)
+  if (select count(*) from auth.identities i where i.user_id = u.id) <> 1
+     or not exists (select 1 from auth.identities i where i.user_id = u.id and i.provider = 'google'
+                      and lower(coalesce(i.identity_data ->> 'email', '')) = lower(coalesce(u.email, '#'))
+                      and coalesce(i.identity_data ->> 'email_verified', 'false') = 'true') then
+    raise exception 'provision_master: a conta precisa ter uma única identidade Google, com o mesmo e-mail da conta e verificado';
   end if;
   if coalesce(u.encrypted_password, '') <> '' then
     raise exception 'provision_master: a conta tem senha definida; recusado (use uma conta que entre só pelo Google)';
   end if;
+  -- sessões e refresh tokens anteriores não valem para o novo papel: a pessoa entra de novo
+  delete from auth.sessions where user_id = u.id;
+  delete from auth.refresh_tokens where user_id = u.id::text;
 
   if not exists (select 1 from public.platform_roles where user_id = u.id and role = 'master' and revoked_at is null) then
     insert into public.platform_roles (user_id, role, granted_by) values (u.id, 'master', null); -- trigger grava platform_role.granted

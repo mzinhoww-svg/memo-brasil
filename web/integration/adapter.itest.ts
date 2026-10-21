@@ -185,6 +185,17 @@ describe("adaptador Supabase atrás do contrato de repositório", () => {
       const { data } = await admin.from("event_assets").select("id").eq("event_id", tEvent).eq("kind", "logo");
       expect(data).toHaveLength(1);
     });
+    it("Edge Function: CORS só para origem permitida na resposta real e sem vazar texto do banco", async () => {
+      const token = (await hostSb.auth.getSession()).data.session!.access_token;
+      const call = (origin: string, assetId: string) => fetch(`${URL}/functions/v1/finalize-asset`, { method: "POST", headers: { authorization: `Bearer ${token}`, apikey: PUB, "content-type": "application/json", origin }, body: JSON.stringify({ assetId }) });
+      // o gateway LOCAL do Supabase pode responder com `*`; em produção a função é a única fonte (origem restrita, testada em src/lib/cors.test.ts)
+      const ok = await call("https://newmemocuiaba.vercel.app", crypto.randomUUID());
+      expect(ok.status).toBe(403);
+      expect(["*", "https://newmemocuiaba.vercel.app"]).toContain(ok.headers.get("access-control-allow-origin"));
+      const evil = await call("https://evil.example", crypto.randomUUID());
+      expect(evil.headers.get("access-control-allow-origin")).not.toBe("https://evil.example"); // a função nunca ecoa origem fora da lista
+      expect(await ok.text()).not.toMatch(/MM00|postgres/i); // sem texto de erro do banco
+    });
     it("restaurar o padrão apaga a linha; salvar outras configurações não mexe no tema", async () => {
       const r = await restoreDefaultTheme(host, tEvent, NOW());
       expect(r.ok && r.event.theme).toBeUndefined();
