@@ -6431,6 +6431,102 @@
    "commit": null,
    "environment": null,
    "release": "R2"
+  },
+  {
+   "id": "SCV-010",
+   "type": "BUG",
+   "title": "Auth remoto com login e-mail/senha e cadastro abertos",
+   "description": "auth/v1/settings: external.email=true e disable_signup=false (com confirmação). Qualquer pessoa cria conta não anônima e, pela RLS, pode criar evento. A UI só oferece Google. Desligar o provedor Email (ou fechar o cadastro) no painel Auth.",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P1",
+   "status": "BLOCKED",
+   "dependencies": [],
+   "origin": "A.4 2026-10-21",
+   "acceptance": [
+    "auth/v1/settings sem external.email e sem cadastro por e-mail",
+    "Teste: POST /auth/v1/signup com e-mail recusado"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "config diff 2026-10-21: email habilitado"
+   ],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R1"
+  },
+  {
+   "id": "INF-004",
+   "type": "BUG",
+   "title": "Variável SUPABASE_SERVICEROLE_KEY (sensível) no ambiente Production da Vercel",
+   "description": "Production contém SUPABASE_SERVICEROLE_KEY. Nenhum código de web/ nem do repo a lê. Regra do projeto: service_role nunca na Vercel. Decisão do dono: remover (confirmar antes que o app legado Lume não a usa).",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P1",
+   "status": "BLOCKED",
+   "dependencies": [],
+   "origin": "A.4 2026-10-21",
+   "acceptance": [
+    "Variável removida de Production ou justificada por escrito",
+    "Nenhuma service_role em Preview/Production do MemoriesMT"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "filter_project_envs 2026-10-21: chave presente em production, tipo sensitive"
+   ],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R1"
+  },
+  {
+   "id": "INF-005",
+   "type": "TASK",
+   "title": "Preview por API exige rootDirectory=web e framework=nextjs",
+   "description": "create_deployment sem projectSettings builda a raiz do repo (app legado) e gera deployment vazio 'READY' (81 ms, NOT_FOUND). Passar projectSettings {rootDirectory:'web',framework:'nextjs'}; o push não dispara deploy neste projeto. Corrigir a configuração do projeto/Git integration antes da promoção.",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "REL-001"
+   ],
+   "origin": "A.4 2026-10-21",
+   "acceptance": [
+    "Push da branch gera preview com o app de web/ sem parâmetros manuais"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "dpl_AQwY… vazio; dpl_2v3G… correto"
+   ],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R1"
+  },
+  {
+   "id": "QAV-004",
+   "type": "TASK",
+   "title": "Limpar usuários e dados de teste do remoto",
+   "description": "4 usuários com identidade e-mail (testes isolados), 9 objetos órfãos em event-photos e eventos de teste ficaram no remoto. Remover por script de operador com backup prévio, sem tocar a conta Google real.",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SCV-010"
+   ],
+   "origin": "A.4 2026-10-21",
+   "acceptance": [
+    "Remoto sem usuários/objetos de teste; backup anterior guardado"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R1"
   }
  ],
  "requirements": [

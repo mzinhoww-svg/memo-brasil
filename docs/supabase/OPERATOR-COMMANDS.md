@@ -86,10 +86,11 @@ Falhas (testadas localmente): chave errada → `403` e a fila é preservada; fun
 - Limite da evidência: o caminho `event-branding` foi exercitado só localmente (`web/integration/purge.integration.test.mjs`); no remoto o bucket ainda não tem objetos.
 - Pendências separadas: SCV-009 (falha visível/alerta de fila parada) e **9 objetos órfãos** em `event-photos` (sem linha em `photos`, fora da fila; eram 12 antes da purga), a tratar à parte com decisão do dono.
 
-## 6. Auth e produção (fora do banco)
-- Auth → Providers → Email: desligar login por e-mail/senha (deixar Google). 
-- Vercel (projeto `newmemocuiaba`): confirmar `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `NEXT_PUBLIC_MM_BACKEND=supabase` em Production; `service_role` NUNCA na Vercel.
-- Primeiro master: `supabase/ops/provision_master.sql` (ver o cabeçalho; exige login Google prévio da conta).
+## 6. Auth e produção (fora do banco) — detalhes em [A4-AUTH-VERCEL-AUDIT.md](A4-AUTH-VERCEL-AUDIT.md)
+- **SCV-010 (P1):** Auth → Providers → Email: desligar (ou Auth → Sign In/Up: desativar cadastro). Verificação: `curl -s https://asyaegeodyttttaubvxh.supabase.co/auth/v1/settings -H "apikey: <publishable>"` → `external.email=false`. Conferir também SMS/Twilio e desligar se não for usado.
+- **INF-004 (P1):** Vercel → `newmemocuiaba` → Settings → Environment Variables → Production: remover `SUPABASE_SERVICEROLE_KEY` (nenhum código atual a lê; confirmar antes que o app legado não depende dela). Confirmar `NEXT_PUBLIC_MM_BACKEND=supabase`, `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+- **Primeiro master** (janela de mudança; a conta Google já existe e passa nas travas): SQL Editor com `supabase/ops/provision_master_sqleditor.sql` (editar só o e-mail e o motivo) ou `psql` com `provision_master.sql`. Depois a pessoa sai e entra de novo.
+- **Promoção:** só com autorização explícita. Antes, estreitar o wildcard de Redirect URLs dos previews e resolver INF-005 (deploy correto por push).
 
 ## 7. Depois
 Avise o Claude: ele roda `web/e2e/remote-flow.spec.ts` no preview atualizado (organizador→convidado→upload→tema→revelação→álbum→download, e `/master`), atualiza o backlog e o GO/NO-GO.
