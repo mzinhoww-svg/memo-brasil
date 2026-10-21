@@ -120,8 +120,8 @@ select throws_ok($$update public.audit_logs set reason = 'x'$$, 'MM010', null, '
 select throws_ok($$delete from public.audit_logs$$, 'MM010', null, 'DELETE em audit_logs bloqueado (dono)');
 select throws_ok($$truncate public.audit_logs$$, 'MM010', null, 'TRUNCATE em audit_logs bloqueado');
 set local role service_role;
-select throws_ok($$update public.audit_logs set action = 'x'$$, 'MM010', null, 'UPDATE bloqueado até para service_role');
-select throws_ok($$delete from public.audit_logs$$, 'MM010', null, 'DELETE bloqueado até para service_role');
+select throws_ok($$update public.audit_logs set action = 'x'$$, '42501', null, 'UPDATE negado ao service_role (privilégio revogado; o trigger ENABLE ALWAYS é a segunda barreira)');
+select throws_ok($$delete from public.audit_logs$$, '42501', null, 'DELETE negado ao service_role (privilégio revogado)');
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000000a1');
 select throws_ok($$update public.audit_logs set action = 'x'$$, '42501', null, 'cliente não altera auditoria');
@@ -535,8 +535,9 @@ select is((select array_agg(k order by k) from jsonb_object_keys((public.admin_l
   'lista de eventos: sem código de convite, sem caminhos, sem legendas');
 select is((select (i ->> 'revealState') from jsonb_array_elements(public.admin_list_events(25, 0, 'Evento E') -> 'items') i), 'atrasada', 'revelação atrasada exposta na lista');
 select is(public.admin_list_organizers() ->> 'total', '2', 'lista de organizadores: total');
-select is((select i ->> 'email' from jsonb_array_elements(public.admin_list_organizers(25, 0, 'emy') -> 'items') i), 'e***@test.local', 'auditor vê e-mail mascarado');
-select is((select (i ->> 'eventsCount')::int from jsonb_array_elements(public.admin_list_organizers(25, 0, 'emy') -> 'items') i), 2, 'contagem de eventos não apagados do organizador (A e E)');
+select is(public.admin_list_organizers(25, 0, 'emy@test') ->> 'total', '0', 'auditor NÃO busca por e-mail (impede reconstruir e-mail mascarado por prefixo)');
+select is((select i ->> 'email' from jsonb_array_elements(public.admin_list_organizers(25, 0) -> 'items') i where i ->> 'email' like 'e***%' limit 1), 'e***@test.local', 'auditor vê e-mail mascarado');
+select is((select (i ->> 'eventsCount')::int from jsonb_array_elements(public.admin_list_organizers(25, 0) -> 'items') i where i ->> 'email' like 'e***%' limit 1), 2, 'contagem de eventos não apagados do organizador (A e E)');
 select throws_ok($$select public.admin_list_events(10, 0, null, 'revelado')$$, 'MM005', 'invalid', 'status inválido recusado');
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000000c1', false, 'master');
