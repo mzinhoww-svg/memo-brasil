@@ -18,7 +18,6 @@ export function validateTheme(t: ThemeSpec): { ok: boolean; errors: string[] } {
   if (!THEME_FONTS.includes(t.font)) errors.push("fonte fora da lista");
   if (!QR_STYLES.includes(t.qrStyle)) errors.push("estilo de QR desconhecido");
   if (typeof t.welcomeMessage !== "string" || t.welcomeMessage.length > MESSAGE_MAX) errors.push(`mensagem acima de ${MESSAGE_MAX} caracteres`);
-  // eslint-disable-next-line no-control-regex
   else if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(t.welcomeMessage)) errors.push("mensagem com caracteres de controle");
   if (errors.length === 0) {
     const c = t.colors;
