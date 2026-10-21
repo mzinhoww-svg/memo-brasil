@@ -6,11 +6,10 @@
 
 Homologação real concluída e V1 em produção (Google OAuth, callback, variáveis de Production, smoke público).
 
-Itens abertos: **9** · P0 2, P1 5, P2 2, P3 0 · BACKLOG 4, BLOCKED 4, READY 1
+Itens abertos: **8** · P0 1, P1 5, P2 2, P3 0 · BACKLOG 4, BLOCKED 3, READY 1
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
-| SB-004 | P0 | BLOCKED | Configurar Google OAuth, login anônimo e URLs de redirect no Supabase remoto | SB-003 |
 | SB-008 | P0 | BLOCKED | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | SB-003, SB-004, REL-001 |
 | BG-071 | P1 | BACKLOG | Outbox de sincronização offline ainda é só desenho | AUD-001, ITG-102 |
 | INF-001 | P1 | READY | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh  | - |
@@ -24,7 +23,7 @@ Itens abertos: **9** · P0 2, P1 5, P2 2, P3 0 · BACKLOG 4, BLOCKED 4, READY 1
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **71** · P0 14, P1 14, P2 30, P3 13 · BACKLOG 45, BLOCKED 2, IN_REVIEW 16, READY 8
+Itens abertos: **71** · P0 14, P1 14, P2 30, P3 13 · BACKLOG 42, BLOCKED 1, IN_REVIEW 20, READY 8
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -40,8 +39,8 @@ Itens abertos: **71** · P0 14, P1 14, P2 30, P3 13 · BACKLOG 45, BLOCKED 2, IN
 | QAV-002 | P0 | IN_REVIEW | Revisão independente A1–A5 e correção de P0/P1 | QAV-001 |
 | RLV-001 | P0 | BLOCKED | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboa | QAV-002, SB-004, SB-008 |
 | SCV-002 | P0 | BACKLOG | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | EST-004, MAD-003 |
-| SCV-003 | P0 | BACKLOG | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e val | MAD-001 |
-| SCV-008 | P0 | BLOCKED | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento | SCV-003 |
+| SCV-003 | P0 | IN_REVIEW | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e val | MAD-001 |
+| SCV-008 | P0 | IN_REVIEW | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento | SCV-003 |
 | ANL-001 | P1 | IN_REVIEW | RPCs/views agregadas reais para o dashboard (eventos, participantes, fotos, falhas, revela | MAD-001 |
 | COM-009 | P1 | BACKLOG | Backup, PITR e teste de restauração; política de retenção de fotos | SB-008 |
 | DSV-002 | P1 | BACKLOG | Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /de | DSV-001 |
@@ -52,9 +51,9 @@ Itens abertos: **71** · P0 14, P1 14, P2 30, P3 13 · BACKLOG 45, BLOCKED 2, IN
 | MAD-003 | P1 | IN_REVIEW | Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações | MAD-001, MAD-002, ANL-001 |
 | MAD-004 | P1 | BACKLOG | Acesso excepcional a foto privada por admin com justificativa e auditoria | MAD-002 |
 | MAD-005 | P1 | BACKLOG | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | MAD-003 |
-| QAV-003 | P1 | BACKLOG | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e per | EST-004, SCV-008 |
+| QAV-003 | P1 | IN_REVIEW | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e per | EST-004, SCV-008 |
 | SCV-004 | P1 | BACKLOG | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
-| SCV-006 | P1 | BACKLOG | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
+| SCV-006 | P1 | IN_REVIEW | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
 | UXA-104 | P1 | BACKLOG | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostr | UXA-001 |
 | BG-022 | P2 | READY | Sem validação em Safari/iOS e Firefox | - |
 | BG-040 | P2 | BACKLOG | Rota dinâmica nunca visitada não abre offline | - |
@@ -180,6 +179,6 @@ Itens abertos: **33** · P0 0, P1 0, P2 0, P3 33 · BACKLOG 33
 
 ## Caminho crítico
 
-Monetização: SB-004 → SB-008 → COM-001 → COM-002 → COM-006
+Monetização: REL-001 → SB-008 → COM-001 → COM-002 → COM-006
 
 Escala: SB-007 → COM-008 → COM-012

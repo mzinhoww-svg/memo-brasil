@@ -4150,7 +4150,7 @@
    "epic": "EP-09",
    "parent": null,
    "priority": "P0",
-   "status": "BLOCKED",
+   "status": "DONE",
    "dependencies": [
     "SB-003"
    ],
@@ -4162,12 +4162,13 @@
    ],
    "files": [],
    "tests": [
-    "authorize?provider=google -> 400 provider is not enabled"
+    "authorize?provider=google -> 400 provider is not enabled",
+    "login Google real + callback no domínio do preview + sessão (rodada 3)"
    ],
    "evidence": [
     "docs/supabase/REMOTE-HOMOLOGATION.md"
    ],
-   "commit": "4ab85f8",
+   "commit": "1c40e79",
    "environment": "remote",
    "release": "R1"
   },
@@ -4268,12 +4269,13 @@
    ],
    "files": [],
    "tests": [
-    "preview OK; Production sem NEXT_PUBLIC_MM_BACKEND"
+    "preview OK; Production sem NEXT_PUBLIC_MM_BACKEND",
+    "web/e2e/remote-flow.spec.ts no preview"
    ],
    "evidence": [
     "docs/supabase/REMOTE-HOMOLOGATION.md"
    ],
-   "commit": "4ab85f8",
+   "commit": "5374f89",
    "environment": "vercel",
    "release": "R1"
   },
@@ -4580,12 +4582,13 @@
    ],
    "files": [],
    "tests": [
-    "pgTAP 366/366 local"
+    "pgTAP 366/366 local",
+    "pgTAP 385/385; adaptador 13/13"
    ],
    "evidence": [
     "docs/supabase/MIGRATIONS-V2.md"
    ],
-   "commit": "198e2eb",
+   "commit": "5374f89",
    "environment": "local-supabase",
    "release": "R2"
   },
@@ -4659,13 +4662,15 @@
    "files": [],
    "tests": [
     "e2e/studio-local.spec.ts",
+    "pgTAP 385/385; adaptador 13/13",
     "src/features/studio/AppearanceStudio.test.tsx"
    ],
    "evidence": [
-    "docs/architecture/DESIGN-V2-STUDIO-ADMIN.md"
+    "docs/architecture/DESIGN-V2-STUDIO-ADMIN.md",
+    "docs/supabase/MIGRATIONS-V2.md"
    ],
-   "commit": "901fdb0",
-   "environment": "local",
+   "commit": "5374f89",
+   "environment": "local-supabase",
    "release": "R2"
   },
   {
@@ -4709,12 +4714,13 @@
    ],
    "files": [],
    "tests": [
-    "pgTAP 366/366 local"
+    "pgTAP 366/366 local",
+    "pgTAP 385/385; adaptador 13/13"
    ],
    "evidence": [
     "docs/supabase/MIGRATIONS-V2.md"
    ],
-   "commit": "198e2eb",
+   "commit": "5374f89",
    "environment": "local-supabase",
    "release": "R2"
   },
@@ -4736,12 +4742,13 @@
    ],
    "files": [],
    "tests": [
-    "pgTAP 366/366 local"
+    "pgTAP 366/366 local",
+    "pgTAP 385/385; adaptador 13/13"
    ],
    "evidence": [
     "docs/supabase/MIGRATIONS-V2.md"
    ],
-   "commit": "198e2eb",
+   "commit": "5374f89",
    "environment": "local-supabase",
    "release": "R2"
   },
@@ -4815,12 +4822,13 @@
    ],
    "files": [],
    "tests": [
-    "pgTAP 366/366 local"
+    "pgTAP 366/366 local",
+    "pgTAP 385/385; adaptador 13/13"
    ],
    "evidence": [
     "docs/supabase/MIGRATIONS-V2.md"
    ],
-   "commit": "198e2eb",
+   "commit": "5374f89",
    "environment": "local-supabase",
    "release": "R2"
   },
@@ -4842,12 +4850,13 @@
    ],
    "files": [],
    "tests": [
-    "pgTAP 366/366 local"
+    "pgTAP 366/366 local",
+    "pgTAP 385/385; adaptador 13/13"
    ],
    "evidence": [
     "docs/supabase/MIGRATIONS-V2.md"
    ],
-   "commit": "198e2eb",
+   "commit": "5374f89",
    "environment": "local-supabase",
    "release": "R2"
   },
@@ -5933,7 +5942,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "MAD-001"
    ],
@@ -5942,10 +5951,14 @@
     "Config remota registrada; provision_master recusa conta com senha/sem Google (teste)"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "tests": [
+    "supabase/ops/test_provision_master.sh (7/7)"
+   ],
+   "evidence": [
+    "docs/supabase/V2-REMOTE-APPLY-RUNBOOK.md"
+   ],
+   "commit": "5374f89",
+   "environment": "local-supabase",
    "release": "R2"
   },
   {
@@ -6002,7 +6015,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "SB-005",
     "EST-004"
@@ -6012,10 +6025,15 @@
     "Edge Function valida; arquivo falso/bomba de descompressão recusado"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "tests": [
+    "integration/adapter.itest.ts upload hostil (13/13)",
+    "web/src/lib/image-sniff.test.ts (11)"
+   ],
+   "evidence": [
+    "supabase/functions/finalize-asset/index.ts"
+   ],
+   "commit": "5374f89",
+   "environment": "local-supabase",
    "release": "R2"
   },
   {
@@ -6049,7 +6067,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P0",
-   "status": "BLOCKED",
+   "status": "IN_REVIEW",
    "dependencies": [
     "SCV-003"
    ],
@@ -6058,10 +6076,14 @@
     "supabase db reset + test db verdes; contagem documentada"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "tests": [
+    "pgTAP 385/385 com endurecimento (Supabase local)"
+   ],
+   "evidence": [
+    "docs/supabase/MIGRATIONS-V2.md"
+   ],
+   "commit": "5374f89",
+   "environment": "local-supabase",
    "release": "R2"
   },
   {
@@ -6189,7 +6211,7 @@
    "epic": "EP-17",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "EST-004",
     "SCV-008"
@@ -6199,10 +6221,14 @@
     "Testes rodando em Supabase local; falha de permissão coberta"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "tests": [
+    "web/e2e/remote-flow.spec.ts (desktop + Android emulado)"
+   ],
+   "evidence": [
+    "docs/supabase/REMOTE-HOMOLOGATION.md"
+   ],
+   "commit": "5374f89",
+   "environment": "remote-preview",
    "release": "R2"
   },
   {

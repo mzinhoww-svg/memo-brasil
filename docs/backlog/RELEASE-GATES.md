@@ -8,19 +8,19 @@
 | G4 | Revelação programada no servidor (remoto) | PASSA | integração remota 12/12 e adaptador 9/9 (docs/supabase/REMOTE-HOMOLOGATION.md) |
 | G5 | Auditoria independente AUD-001 / reauditoria AUD-002 | CONCLUÍDAS (CONDITIONAL GO) | docs/audit/11-RELEASE-GATE.md |
 | G6 | Google OAuth + callback no preview (login real) | PASSA | docs/supabase/REMOTE-HOMOLOGATION.md (rodada 3) |
-| G7 | Fluxo de convidado com RLS e fotos pelo navegador no preview remoto | PENDENTE | SB-004/SB-008 |
+| G7 | Fluxo de convidado com RLS, upload privado, revelação por cron e álbum no preview remoto | PASSA (desktop e Android emulado; iOS Safari não testado) | web/e2e/remote-flow.spec.ts; docs/supabase/REMOTE-HOMOLOGATION.md (rodada 4) |
 | G8 | Variáveis de Production confirmadas e domínio servindo o MemoriesMT | BLOQUEADO (domínio serve o Lume legado; valores criptografados) | REL-001, INF-002 |
-| G9 | V2 backend: pgTAP e E2E de autorização em Supabase local | PASSA (local; não aplicado no remoto) | pgTAP 366/366; e2e/master-studio.spec.ts 5/5; docs/supabase/MIGRATIONS-V2.md |
-| G10 | V2: revisão independente A1–A5 e correção de P0/P1 | EM ANDAMENTO | docs/audit/ux/INVENTARIO.md; revisões da sessão |
+| G9 | V2 backend validado em Supabase local (pgTAP, integração, adaptador, E2E, provisionamento) | PASSA (local): pgTAP 385/385, integração 12/12, adaptador 13/13, E2E 5/5, provisionamento 7/7 | docs/supabase/MIGRATIONS-V2.md; supabase/ops/test_provision_master.sh |
+| G10 | V2: revisão independente (segurança, a11y, arquitetura, performance) e correção de P0/P1 | EM ANDAMENTO | relatórios da sessão |
+| G12 | Migrations V2 aplicadas no remoto e Edge Function finalize-asset publicada | BLOQUEADO (aplicação bloqueada pelo classificador; ação do dono) | docs/supabase/V2-REMOTE-APPLY-RUNBOOK.md |
 | G11 | Acesso do conector Supabase ao projeto (INF-001) | ABERTO | INF-001 |
 
-## Itens P0/P1 em aberto (40)
+## Itens P0/P1 em aberto (39)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
 | REL-001 | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | P1 | BLOCKED |
 | INF-001 | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) | P1 | READY |
-| SB-004 | Configurar Google OAuth, login anônimo e URLs de redirect no Supabase remoto | P0 | BLOCKED |
 | SB-005 | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | P1 | BACKLOG |
 | SB-006 | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexão | P1 | BACKLOG |
 | SB-008 | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | P0 | BLOCKED |
@@ -49,14 +49,14 @@
 | COM-006 | Página de planos e checkout do organizador | P1 | BACKLOG |
 | COM-005 | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG |
 | COM-009 | Backup, PITR e teste de restauração; política de retenção de fotos | P1 | BACKLOG |
-| SCV-003 | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha | P0 | BACKLOG |
+| SCV-003 | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha | P0 | IN_REVIEW |
 | SCV-004 | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD | P1 | BACKLOG |
-| SCV-006 | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | BACKLOG |
-| SCV-008 | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP | P0 | BLOCKED |
+| SCV-006 | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | IN_REVIEW |
+| SCV-008 | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP | P0 | IN_REVIEW |
 | EST-006 | Logo e capa nas demais telas do convidado e na prévia do convite (assinatura de URL fora da RLS para quem ainda não entrou) | P1 | BACKLOG |
 | DSV-004 | Tokens --mm-* v2 completos (espaço, raio, sombra, movimento) e documentação do DS v2 em /design (Studio, Admin DS, tema) | P1 | BACKLOG |
 | MAD-005 | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | P1 | BACKLOG |
-| QAV-003 | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador | P1 | BACKLOG |
+| QAV-003 | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador | P1 | IN_REVIEW |
 
 ## Decisão atual
 **V1: NO-GO para produção** até REL-001/SB-008 (domínio serve o app legado e as variáveis de Production não foram verificadas) e G7 (fluxo de convidado no preview remoto). **V2: GO para preview** (nunca promover antes da V1 e da revisão independente). Itens da V2 em IN_REVIEW dependem da revisão A1–A5; nada aqui está DONE por ter sido codificado.

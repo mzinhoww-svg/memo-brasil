@@ -56,3 +56,22 @@ Em Supabase → Authentication → URL Configuration → Redirect URLs, adiciona
 - **Não executado:** fluxo de convidado com RLS/upload/revelação pelo navegador no preview. O script que o faria usava a `service_role` para alterar o relógio de um evento real; foi recusado pelo dono e **não rodou**. Esse gate (G7) segue pendente e deve ser feito como teste isolado (evento e usuários próprios), como a suíte de integração.
 - Resíduo de teste no remoto: o evento `82f9a213-…` ("Teste homologacao RT1") e o usuário Google do dono como organizador; sem exclusão automática (a regra é não executar exclusões no remoto sem pedido).
 - Produção: continua servindo o app legado Lume (`dpl_CX5Guvrn…`, commit antigo, criado fora desta sessão). Não promovido.
+
+## Rodada 4 (2026-10-21) — homologação ponta a ponta no preview remoto
+Preview `dpl_HXdWGqLNacSGMEoQCvpQC9L2zsvk` (commit `ed63bc4`, front V2 compatível com servidor V1) contra o Supabase remoto **ainda no schema V1** (as migrations V2 NÃO foram aplicadas: ver abaixo). Teste `web/e2e/remote-flow.spec.ts`, usuários e eventos de teste isolados, removidos no fim.
+| Etapa | Resultado |
+|---|---|
+| Organizador (usuário de teste, sessão injetada) cria o evento **pela interface** do wizard | OK: evento com `host_id` do organizador, `reveal_status = pendente` |
+| Convidado (contexto independente, anônimo) entra pelo convite, vê a espera, posta uma foto | OK: `photos` = 1, `upload_status = pronta` |
+| Storage privado | OK: URL pública do objeto ≠ 200; foto bloqueada nem para o autor antes da revelação |
+| Permissões | OK: convidado não abre o painel nem `/master` (pede login de operador); organizador comum recebe "Sem permissão." no `/master` |
+| Isolamento entre organizadores | OK: outro organizador não lê o evento, as fotos nem assina a URL (antes e depois da revelação) |
+| Revelação com o relógio real do servidor | OK: o evento de teste teve o horário antecipado e o **job `mm-reveal-due` do pg_cron** marcou `revelada` sozinho (sem chamar a RPC); a galeria do convidado abriu com a foto |
+| Perfis | Desktop Chrome: passou. Android Chrome (Pixel 7 **emulado**): passou. **iOS Safari: não testado** (sem WebKit instalado e sem aparelho real) |
+Limites desta evidência: login Google do organizador foi homologado na rodada 3 (real); aqui o organizador usa sessão de teste injetada para poder repetir o fluxo sem credenciais pessoais.
+
+### Migrations V2 no remoto: BLOQUEADAS (ação sua)
+- Estado: o remoto tem as 6 migrations V1. Pendentes (dry-run): `20261022000100` … `20261022000800` (8 arquivos, aditivos; varredura sem DROP/TRUNCATE de dados).
+- Validação local concluída: pgTAP 385/385, integração 12/12, adaptador 13/13, E2E Supabase 5/5, provisionamento 7/7.
+- Recuperação: backup de esquema e dados do remoto feito antes (fora do repositório, em `/private/tmp/claude-503/backup/`); as migrations são aditivas e o front V2 tolera servidor V1.
+- O classificador de permissões **bloqueou** `supabase db push --linked` e o script `scripts/supabase-apply-remote.sh` ("Blind Apply"); não foi contornado. Procedimento em `docs/supabase/V2-REMOTE-APPLY-RUNBOOK.md`.

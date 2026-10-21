@@ -54,7 +54,7 @@ flowchart LR
   SB_001["SB-001<br/>DONE"]:::done
   SB_002["SB-002<br/>DONE"]:::done
   SB_003["SB-003<br/>DONE"]:::done
-  SB_004["SB-004<br/>BLOCKED"]:::block
+  SB_004["SB-004<br/>DONE"]:::done
   SB_005["SB-005<br/>BACKLOG"]:::back
   SB_006["SB-006<br/>BACKLOG"]:::back
   SB_007["SB-007<br/>BACKLOG"]:::back
@@ -115,18 +115,18 @@ flowchart LR
   COM_013["COM-013<br/>BACKLOG"]:::back
   COM_011["COM-011<br/>BACKLOG"]:::back
   COM_012["COM-012<br/>BACKLOG"]:::back
-  SCV_003["SCV-003<br/>BACKLOG"]:::back
+  SCV_003["SCV-003<br/>IN_REVIEW"]:::back
   SCV_004["SCV-004<br/>BACKLOG"]:::back
   SCV_005["SCV-005<br/>BACKLOG"]:::back
-  SCV_006["SCV-006<br/>BACKLOG"]:::back
+  SCV_006["SCV-006<br/>IN_REVIEW"]:::back
   SCV_007["SCV-007<br/>BACKLOG"]:::back
-  SCV_008["SCV-008<br/>BLOCKED"]:::block
+  SCV_008["SCV-008<br/>IN_REVIEW"]:::back
   EST_006["EST-006<br/>BACKLOG"]:::back
   EST_007["EST-007<br/>BACKLOG"]:::back
   DSV_004["DSV-004<br/>BACKLOG"]:::back
   MAD_005["MAD-005<br/>BACKLOG"]:::back
   MAD_006["MAD-006<br/>BACKLOG"]:::back
-  QAV_003["QAV-003<br/>BACKLOG"]:::back
+  QAV_003["QAV-003<br/>IN_REVIEW"]:::back
   UXA_127["UXA-127<br/>BACKLOG"]:::back
   FT_010 --> TK_010a
   FT_030 --> US_030a
