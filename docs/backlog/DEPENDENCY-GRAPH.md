@@ -59,7 +59,7 @@ flowchart LR
   SB_006["SB-006<br/>BACKLOG"]:::back
   SB_007["SB-007<br/>BACKLOG"]:::back
   SB_008["SB-008<br/>BLOCKED"]:::block
-  UXA_001["UXA-001<br/>BACKLOG"]:::back
+  UXA_001["UXA-001<br/>IN_REVIEW"]:::back
   UXA_002["UXA-002<br/>BACKLOG"]:::back
   DSV_001["DSV-001<br/>BACKLOG"]:::back
   DSV_002["DSV-002<br/>BACKLOG"]:::back
@@ -79,6 +79,29 @@ flowchart LR
   QAV_001["QAV-001<br/>BACKLOG"]:::back
   QAV_002["QAV-002<br/>BACKLOG"]:::back
   RLV_001["RLV-001<br/>BACKLOG"]:::back
+  UXA_104["UXA-104<br/>BACKLOG"]:::back
+  UXA_105["UXA-105<br/>BACKLOG"]:::back
+  UXA_106["UXA-106<br/>BACKLOG"]:::back
+  UXA_107["UXA-107<br/>BACKLOG"]:::back
+  UXA_108["UXA-108<br/>BACKLOG"]:::back
+  UXA_109["UXA-109<br/>BACKLOG"]:::back
+  UXA_110["UXA-110<br/>BACKLOG"]:::back
+  UXA_111["UXA-111<br/>BACKLOG"]:::back
+  UXA_112["UXA-112<br/>BACKLOG"]:::back
+  UXA_113["UXA-113<br/>BACKLOG"]:::back
+  UXA_114["UXA-114<br/>BACKLOG"]:::back
+  UXA_115["UXA-115<br/>BACKLOG"]:::back
+  UXA_116["UXA-116<br/>BACKLOG"]:::back
+  UXA_117["UXA-117<br/>BACKLOG"]:::back
+  UXA_118["UXA-118<br/>BACKLOG"]:::back
+  UXA_119["UXA-119<br/>BACKLOG"]:::back
+  UXA_120["UXA-120<br/>BACKLOG"]:::back
+  UXA_121["UXA-121<br/>BACKLOG"]:::back
+  UXA_122["UXA-122<br/>BACKLOG"]:::back
+  UXA_123["UXA-123<br/>BACKLOG"]:::back
+  UXA_124["UXA-124<br/>BACKLOG"]:::back
+  UXA_125["UXA-125<br/>BACKLOG"]:::back
+  UXA_126["UXA-126<br/>BACKLOG"]:::back
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -195,6 +218,29 @@ flowchart LR
   QAV_002 --> RLV_001
   SB_004 --> RLV_001
   SB_008 --> RLV_001
+  UXA_001 --> UXA_104
+  UXA_001 --> UXA_105
+  UXA_001 --> UXA_106
+  UXA_001 --> UXA_107
+  UXA_001 --> UXA_108
+  UXA_001 --> UXA_109
+  UXA_001 --> UXA_110
+  UXA_001 --> UXA_111
+  UXA_001 --> UXA_112
+  UXA_001 --> UXA_113
+  UXA_001 --> UXA_114
+  UXA_001 --> UXA_115
+  UXA_001 --> UXA_116
+  UXA_001 --> UXA_117
+  UXA_001 --> UXA_118
+  UXA_001 --> UXA_119
+  UXA_001 --> UXA_120
+  UXA_001 --> UXA_121
+  UXA_001 --> UXA_122
+  UXA_001 --> UXA_123
+  UXA_001 --> UXA_124
+  UXA_001 --> UXA_125
+  UXA_001 --> UXA_126
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;

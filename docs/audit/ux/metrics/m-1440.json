@@ -1,0 +1,3317 @@
+{
+ "404": {
+  "h1": {
+   "text": "Essa página não existe.",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/pagina-que-nao-existe",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 2,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "home": {
+  "h1": {
+   "text": "A festa vista por todo mundo.",
+   "w": 446,
+   "lines": 2,
+   "fs": "36px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 965,
+  "url": "/",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   },
+   {
+    "el": "a",
+    "label": "Guia de componentes",
+    "w": 173.6,
+    "h": 21,
+    "inline": true
+   }
+  ],
+  "nTargets": 7,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "entrar": {
+  "h1": {
+   "text": "Entrar na festa",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/entrar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 4,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "entrar-erro": {
+  "h1": {
+   "text": "Entrar na festa",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/entrar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 4,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "master": {
+  "h1": {
+   "text": "Console indisponível neste modo.",
+   "w": 480,
+   "lines": 1,
+   "fs": "16px"
+  },
+  "col": {
+   "x": 460,
+   "w": 520
+  },
+  "main": {
+   "x": 460,
+   "w": 520
+  },
+  "docH": 1008,
+  "url": "/master",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   },
+   {
+    "el": "a",
+    "label": "Voltar ao início",
+    "w": 480,
+    "h": 19,
+    "inline": false
+   }
+  ],
+  "nTargets": 2,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "design": {
+  "h1": {
+   "text": "Guia de componentes",
+   "w": 344,
+   "lines": 1,
+   "fs": "34px"
+  },
+  "col": {
+   "x": 240,
+   "w": 960
+  },
+  "main": {
+   "x": 240,
+   "w": 960
+  },
+  "docH": 5280,
+  "url": "/design",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 42,
+  "lowContrast": [],
+  "nonText": [
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip.mm-chip--sugestao",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   }
+  ],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "offline-pagina": {
+  "h1": {
+   "text": "Sem sinal agora.",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/offline",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 2,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "convite-inexistente": {
+  "h1": {
+   "text": "Código não confere.",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/e/ZZZZZZZZ",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 3,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "painel-inexistente": {
+  "h1": {
+   "text": "Não achamos esse evento.",
+   "w": 448,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/painel/nao-existe",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 2,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "loading-entrar": {
+  "h1": {
+   "text": "Entrar na festa",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/entrar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 4,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0
+ },
+ "loading-convite": {
+  "h1": {
+   "text": "Código não confere.",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/e/ZZZZZZZZ",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 3,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0
+ },
+ "criar-1-erro": {
+  "h1": {
+   "text": "Qual é o nome do seu evento?",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/criar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 11,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "criar-1": {
+  "h1": {
+   "text": "Qual é o nome do seu evento?",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/criar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 11,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "criar-2": {
+  "h1": {
+   "text": "Quando o seu evento termina?",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/criar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 11,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "criar-3": {
+  "h1": {
+   "text": "Quando revelar as fotos?",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 1039,
+  "url": "/criar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 10,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "criar-3-data": {
+  "h1": {
+   "text": "Quando revelar as fotos?",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 1211,
+  "url": "/criar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 12,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "criar-4": {
+  "h1": {
+   "text": "Qual é a cara do seu evento?",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 931,
+  "url": "/criar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 14,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "criar-5": {
+  "h1": {
+   "text": "Quantos convidados no seu evento?",
+   "w": 446,
+   "lines": 2,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 994,
+  "url": "/criar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 20,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "criar-6": {
+  "h1": {
+   "text": "Confirme o seu evento",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/criar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 4,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "agora-demo": {
+  "h1": {
+   "text": "Agora",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 8866,
+  "url": "/e/YNXCTG6R/agora",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 65,
+  "lowContrast": [],
+  "nonText": [
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   }
+  ],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "explorar-demo": {
+  "h1": {
+   "text": "Explorar",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 9183,
+  "url": "/e/YNXCTG6R/explorar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 73,
+  "lowContrast": [],
+  "nonText": [
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   }
+  ],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "voce-demo": {
+  "h1": {
+   "text": "Você",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 1019,
+  "url": "/e/YNXCTG6R/voce",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 9,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "retrospectiva-demo": {
+  "h1": null,
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 4448,
+  "url": "/e/YNXCTG6R/retrospectiva",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 12,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "convite-depois-demo": {
+  "h1": {
+   "text": "Emy e Igor",
+   "w": 430,
+   "lines": 1,
+   "fs": "54px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/YNXCTG6R",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 3,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "mais-opcoes": {
+  "h1": {
+   "text": "Agora",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 8866,
+  "url": "/e/YNXCTG6R/agora",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 69,
+  "lowContrast": [],
+  "nonText": [
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   }
+  ],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "editor": {
+  "h1": {
+   "text": "Editar foto",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 920,
+  "url": "/e/YNXCTG6R/editar/8de2c0aa-2af2-476a-be76-f607dbbc5cbd",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 13,
+  "lowContrast": [],
+  "nonText": [
+   {
+    "el": "button.mm-chip.mm-chip--sugestao",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip.mm-chip--sugestao",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip.mm-chip--sugestao",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   }
+  ],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "postar-camera-demo": {
+  "h1": {
+   "text": "Postar daqui",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 925,
+  "url": "/e/YNXCTG6R/postar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 5,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "painel-visao": {
+  "h1": {
+   "text": "Seu casamento por todos os ângulos.",
+   "w": 1004,
+   "lines": 1,
+   "fs": "34px"
+  },
+  "col": {
+   "x": 256,
+   "w": 1100
+  },
+  "main": {
+   "x": 256,
+   "w": 1100
+  },
+  "docH": 900,
+  "url": "/painel/86784298-a3a6-403b-a03b-f3a23935520b",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 13,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "painel-conteudo": {
+  "h1": {
+   "text": "Conteúdo",
+   "w": 1004,
+   "lines": 1,
+   "fs": "34px"
+  },
+  "col": {
+   "x": 256,
+   "w": 1100
+  },
+  "main": {
+   "x": 256,
+   "w": 1100
+  },
+  "docH": 912,
+  "url": "/painel/86784298-a3a6-403b-a03b-f3a23935520b/conteudo",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 17,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "painel-conteudo-ocultas": {
+  "h1": {
+   "text": "Conteúdo",
+   "w": 1004,
+   "lines": 1,
+   "fs": "34px"
+  },
+  "col": {
+   "x": 256,
+   "w": 1100
+  },
+  "main": {
+   "x": 256,
+   "w": 1100
+  },
+  "docH": 900,
+  "url": "/painel/86784298-a3a6-403b-a03b-f3a23935520b/conteudo",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 13,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "painel-conteudo-todas": {
+  "h1": {
+   "text": "Conteúdo",
+   "w": 1004,
+   "lines": 1,
+   "fs": "34px"
+  },
+  "col": {
+   "x": 256,
+   "w": 1100
+  },
+  "main": {
+   "x": 256,
+   "w": 1100
+  },
+  "docH": 9162,
+  "url": "/painel/86784298-a3a6-403b-a03b-f3a23935520b/conteudo",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 61,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "painel-convidados": {
+  "h1": {
+   "text": "Convidados",
+   "w": 1004,
+   "lines": 1,
+   "fs": "34px"
+  },
+  "col": {
+   "x": 256,
+   "w": 1100
+  },
+  "main": {
+   "x": 256,
+   "w": 1100
+  },
+  "docH": 900,
+  "url": "/painel/86784298-a3a6-403b-a03b-f3a23935520b/convidados",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 15,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "painel-momentos": {
+  "h1": {
+   "text": "Momentos",
+   "w": 1004,
+   "lines": 1,
+   "fs": "34px"
+  },
+  "col": {
+   "x": 256,
+   "w": 1100
+  },
+  "main": {
+   "x": 256,
+   "w": 1100
+  },
+  "docH": 900,
+  "url": "/painel/86784298-a3a6-403b-a03b-f3a23935520b/momentos",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 16,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "painel-qr": {
+  "error": "Error: page.evaluate: Execution context was destroyed, most likely because of a navigation"
+ },
+ "painel-configuracoes": {
+  "h1": {
+   "text": "Configurações",
+   "w": 1004,
+   "lines": 1,
+   "fs": "34px"
+  },
+  "col": {
+   "x": 256,
+   "w": 1100
+  },
+  "main": {
+   "x": 256,
+   "w": 1100
+  },
+  "docH": 2633,
+  "url": "/painel/86784298-a3a6-403b-a03b-f3a23935520b/configuracoes",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 49,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "painel-downloads": {
+  "h1": {
+   "text": "Downloads",
+   "w": 1004,
+   "lines": 1,
+   "fs": "34px"
+  },
+  "col": {
+   "x": 256,
+   "w": 1100
+  },
+  "main": {
+   "x": 256,
+   "w": 1100
+  },
+  "docH": 900,
+  "url": "/painel/86784298-a3a6-403b-a03b-f3a23935520b/downloads",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 12,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "home-com-eventos": {
+  "h1": {
+   "text": "A festa vista por todo mundo.",
+   "w": 446,
+   "lines": 2,
+   "fs": "36px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 1163,
+  "url": "/",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   },
+   {
+    "el": "a",
+    "label": "Guia de componentes",
+    "w": 173.6,
+    "h": 21,
+    "inline": true
+   }
+  ],
+  "nTargets": 9,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "pronto": {
+  "h1": {
+   "text": "Casamento Emy e Igor",
+   "w": 430,
+   "lines": 1,
+   "fs": "54px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/criar/pronto/ecb6537b-fe14-4221-b595-47eea5ff7066",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 4,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "convite-antes": {
+  "h1": {
+   "text": "Casamento Emy e Igor",
+   "w": 430,
+   "lines": 1,
+   "fs": "54px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/877DF6V6",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 4,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "agora-vazio-pendente": {
+  "h1": {
+   "text": "Agora",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/877DF6V6/agora",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 5,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "convite-depois": {
+  "h1": {
+   "text": "Casamento Emy e Igor",
+   "w": 430,
+   "lines": 1,
+   "fs": "54px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/877DF6V6",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 2,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "postar-camera": {
+  "h1": {
+   "text": "Postar daqui",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 925,
+  "url": "/e/877DF6V6/postar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 5,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "postar-previa": {
+  "h1": {
+   "text": "Postar daqui",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 1316,
+  "url": "/e/877DF6V6/postar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 13,
+  "lowContrast": [],
+  "nonText": [
+   {
+    "el": "button.mm-chip.mm-chip--sugestao",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip.mm-chip--sugestao",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip.mm-chip--sugestao",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip.mm-chip--sugestao",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   }
+  ],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "postar-sucesso": {
+  "h1": null,
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/877DF6V6/postar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 4,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "agora-espera": {
+  "h1": {
+   "text": "Agora",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/877DF6V6/agora",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 5,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "explorar-espera": {
+  "h1": {
+   "text": "Explorar",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/877DF6V6/explorar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 5,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "voce-espera": {
+  "h1": {
+   "text": "Você",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 955,
+  "url": "/e/877DF6V6/voce",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 8,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "retrospectiva-espera": {
+  "h1": {
+   "text": "A retrospectiva ainda não abriu.",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/877DF6V6/retrospectiva",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 6,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "agora-revelado": {
+  "h1": {
+   "text": "Agora",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 1054,
+  "url": "/e/877DF6V6/agora",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 11,
+  "lowContrast": [],
+  "nonText": [
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   }
+  ],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "explorar-revelado": {
+  "h1": {
+   "text": "Explorar",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 1228,
+  "url": "/e/877DF6V6/explorar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 12,
+  "lowContrast": [],
+  "nonText": [
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   }
+  ],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "retrospectiva-revelada": {
+  "h1": null,
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 1165,
+  "url": "/e/877DF6V6/retrospectiva",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 7,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "convite-encerrado": {
+  "h1": {
+   "text": "Casamento Emy e Igor",
+   "w": 430,
+   "lines": 1,
+   "fs": "54px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/877DF6V6",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 6,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "sessao-expirada-agora": {
+  "h1": null,
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/e/877DF6V6/agora",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 1,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "sessao-expirada-painel": {
+  "h1": {
+   "text": "Só o anfitrião abre o painel.",
+   "w": 448,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/painel/ecb6537b-fe14-4221-b595-47eea5ff7066",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 2,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "pronto-sem-sessao": {
+  "h1": {
+   "text": "Não achamos esse evento.",
+   "w": 448,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/criar/pronto/ecb6537b-fe14-4221-b595-47eea5ff7066",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 2,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "home-continuar-como": {
+  "h1": {
+   "text": "A festa vista por todo mundo.",
+   "w": 446,
+   "lines": 2,
+   "fs": "36px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 1205,
+  "url": "/",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   },
+   {
+    "el": "a",
+    "label": "Guia de componentes",
+    "w": 173.6,
+    "h": 21,
+    "inline": true
+   }
+  ],
+  "nTargets": 10,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "agora-vazio": {
+  "h1": {
+   "text": "Agora",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/N64XP55G/agora",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 5,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "explorar-vazio": {
+  "h1": {
+   "text": "Explorar",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/N64XP55G/explorar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 5,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "agora-com-fotos": {
+  "h1": {
+   "text": "Agora",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 3764,
+  "url": "/e/N64XP55G/agora",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 30,
+  "lowContrast": [],
+  "nonText": [
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   },
+   {
+    "el": "button.mm-chip",
+    "kind": "borda",
+    "ratio": 1.46,
+    "bw": 1
+   }
+  ],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "postar-limite": {
+  "h1": {
+   "text": "Seu rolo acabou.",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/N64XP55G/postar",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 3,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "voce-com-fotos": {
+  "h1": {
+   "text": "Você",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 1102,
+  "url": "/e/N64XP55G/voce",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 8,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "agora-offline": {
+  "h1": {
+   "text": "Você",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 1183,
+  "url": "/e/N64XP55G/voce",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 8,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "convite-lotado": {
+  "h1": {
+   "text": "Mesa pequena",
+   "w": 430,
+   "lines": 1,
+   "fs": "54px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 481,
+   "w": 478
+  },
+  "docH": 900,
+  "url": "/e/BBQGGSAV",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 3,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "erro-boundary": {
+  "h1": {
+   "text": "Algo deu errado.",
+   "w": 446,
+   "lines": 1,
+   "fs": "28px"
+  },
+  "col": {
+   "x": 480,
+   "w": 480
+  },
+  "main": {
+   "x": 480,
+   "w": 480
+  },
+  "docH": 900,
+  "url": "/e/CQGJP5H5/agora",
+  "overflowX": false,
+  "scrollW": 1440,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 3,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ }
+}

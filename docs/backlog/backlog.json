@@ -4349,7 +4349,7 @@
    "epic": "EP-11",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [],
    "origin": "missão design/studio/master 2026-10-21",
    "acceptance": [
@@ -4357,7 +4357,9 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
    "commit": null,
    "environment": null
   },
@@ -4783,6 +4785,616 @@
    "files": [],
    "tests": [],
    "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-104",
+   "type": "FEATURE",
+   "title": "[Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rol",
+   "description": "Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rolagem enorme. Rota/estado: /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas. Larguras: 1024–1920. Causa provável: web/src/app/painel/[id]/conteudo/page.tsx:33 (app-stack maxWidth 480). Solução: Grade 3–4 colunas ≥1024 com cartão compacto (miniatura, motivo, ações), seleção em massa, atalhos e painel lateral de detalhe.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Grade 3–4 colunas ≥1024 com cartão compacto (miniatura, motivo, ações), seleção em massa, atalhos e painel lateral de detalhe. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-conteudo-1440.png, painel-conteudo-todas-1440.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/painel/[id]/conteudo/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-105",
+   "type": "FEATURE",
+   "title": "[Administrativa] /painel/[id] e abas (visão, convidados, momentos, configurações, downloads): Container 1100px alinhado à esquerda (1920: 564px vazios à direita) e formulários presos em 340–343px; Con",
+   "description": "Container 1100px alinhado à esquerda (1920: 564px vazios à direita) e formulários presos em 340–343px; Configurações = coluna de ~260px com 2,7k px de altura. Rota/estado: /painel/[id] e abas (visão, convidados, momentos, configurações, downloads). Larguras: 1024–1920. Causa provável: web/src/styles/app.css:36 (.app-admin-main max-width 1100 sem margin auto); web/src/app/painel/[id]/configuracoes/page.tsx:46,59,68,70,80,94; downloads/page.tsx:33; momentos/page.tsx:46; convidados/page.tsx:29. Solução: Centralizar o conteúdo ou usar largura fluida por seção; Configurações em 2 colunas com índice âncora e barra de salvar fixa; larguras em tokens, não px.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Centralizar o conteúdo ou usar largura fluida por seção; Configurações em 2 colunas com índice âncora e barra de salvar fixa; larguras em tokens, não px. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-visao-1920.png, painel-configuracoes-1440.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/painel/[id]/configuracoes/page.tsx",
+    "web/src/styles/app.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-106",
+   "type": "FEATURE",
+   "title": "[Administrativa] /painel/[id]/convidados: Lista de convidados repetida: tabela 'Convidados' e logo abaixo 'Remover da festa' com os mesmos nomes",
+   "description": "Lista de convidados repetida: tabela 'Convidados' e logo abaixo 'Remover da festa' com os mesmos nomes. Rota/estado: /painel/[id]/convidados. Larguras: 375–1440. Causa provável: web/src/app/painel/[id]/convidados/page.tsx:27-31. Solução: Uma tabela com ação Remover por linha (menu), busca e filtro por mesa.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Uma tabela com ação Remover por linha (menu), busca e filtro por mesa. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-convidados-1440.png, painel-convidados-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/painel/[id]/convidados/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-107",
+   "type": "FEATURE",
+   "title": "[Administrativa] /painel/[id] · navegação < 900px: Abas do painel cortadas ('Convidad…', 'Aparênci…'); 8 itens e só 3–5 visíveis, sem sinal de rolagem; 768 usa nav móvel e conteúdo esticado em 768px",
+   "description": "Abas do painel cortadas ('Convidad…', 'Aparênci…'); 8 itens e só 3–5 visíveis, sem sinal de rolagem; 768 usa nav móvel e conteúdo esticado em 768px. Rota/estado: /painel/[id] · navegação < 900px. Larguras: 320–899. Causa provável: web/src/app/painel/[id]/layout.tsx:64-70 + web/src/styles/app.css:34-36 (breakpoint 900, overflow-x sem fade/snap). Solução: Sidebar colapsável a partir de 768, ou menu 'Mais'; fade nas bordas e scrollIntoView do item atual.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Sidebar colapsável a partir de 768, ou menu 'Mais'; fade nas bordas e scrollIntoView do item atual. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-visao-375.png, painel-visao-768.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/painel/[id]/layout.tsx",
+    "web/src/styles/app.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-108",
+   "type": "FEATURE",
+   "title": "[Anfitrião] /criar · passos 1–6: Wizard em coluna de 480px: sem prévia do convite/tema nem resumo lateral; passos 3–5 longos",
+   "description": "Wizard em coluna de 480px: sem prévia do convite/tema nem resumo lateral; passos 3–5 longos. Rota/estado: /criar · passos 1–6. Larguras: 1024–1920. Causa provável: web/src/app/criar/page.tsx:7 + web/src/features/events/wizard.tsx + web/src/styles/app.css:2-3. Solução: Layout 2 colunas ≥1024 com prévia ao vivo do convite e resumo fixo; manter 1 coluna no mobile.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Layout 2 colunas ≥1024 com prévia ao vivo do convite e resumo fixo; manter 1 coluna no mobile. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-1-1440.png, criar-3-1440.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/criar/page.tsx",
+    "web/src/features/events/wizard.tsx",
+    "web/src/styles/app.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-109",
+   "type": "FEATURE",
+   "title": "[Convidado] /e/[code]/agora, /explorar, /retrospectiva em desktop: Feed em coluna única de 480px: 7,9k–8,9k px de rolagem em 1440 e fundo vazio; sem grade ou visualização ampliada para o álbum pós-eve",
+   "description": "Feed em coluna única de 480px: 7,9k–8,9k px de rolagem em 1440 e fundo vazio; sem grade ou visualização ampliada para o álbum pós-evento. Rota/estado: /e/[code]/agora, /explorar, /retrospectiva em desktop. Larguras: 1024–1920. Causa provável: web/src/styles/app.css:2 (.app-col) + web/src/app/e/[code]/(app)/explorar/page.tsx, retrospectiva/page.tsx. Solução: ≥1024: grade de miniaturas com lightbox na retrospectiva/explorar; Agora pode manter coluna.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "≥1024: grade de miniaturas com lightbox na retrospectiva/explorar; Agora pode manter coluna. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (agora-demo-1440.png, explorar-demo-1440.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/explorar/page.tsx,",
+    "web/src/styles/app.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-110",
+   "type": "FEATURE",
+   "title": "[Anfitrião] /criar · validação: Mensagens de erro continuam visíveis depois de o campo ser corrigido (passo 1 com nome preenchido ainda mostra os dois erros); sem foco no primeiro erro",
+   "description": "Mensagens de erro continuam visíveis depois de o campo ser corrigido (passo 1 com nome preenchido ainda mostra os dois erros); sem foco no primeiro erro. Rota/estado: /criar · validação. Larguras: 320–1920. Causa provável: web/src/features/events/wizard.tsx:43,57-68 (errors só recalculados no clique em Próximo). Solução: Limpar o erro do campo no onChange/onBlur; mover foco ao primeiro campo inválido; resumo de erros com role=alert.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Limpar o erro do campo no onChange/onBlur; mover foco ao primeiro campo inválido; resumo de erros com role=alert. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-1-375.png, criar-1-1440.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/features/events/wizard.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-111",
+   "type": "FEATURE",
+   "title": "[Todas] Carregando (pronto, convite, área do convidado): Loading é só texto cinza ('Preparando o convite…', 'Abrindo o convite…', 'Carregando a festa…'): sem skeleton, sem role=status/aria-busy e sem ",
+   "description": "Loading é só texto cinza ('Preparando o convite…', 'Abrindo o convite…', 'Carregando a festa…'): sem skeleton, sem role=status/aria-busy e sem altura reservada (salto de layout). Capturado durante o carregamento em /criar/pronto no 1º run. Rota/estado: Carregando (pronto, convite, área do convidado). Larguras: 320–1920. Causa provável: web/src/app/criar/pronto/[id]/page.tsx:22; web/src/app/e/[code]/page.tsx (Abrindo o convite…); web/src/app/e/[code]/(app)/layout.tsx:99. Solução: Componente Skeleton/Spinner com role=status e aria-busy; reservar altura do cabeçalho do evento; timeout com mensagem de erro.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Componente Skeleton/Spinner com role=status e aria-busy; reservar altura do cabeçalho do evento; timeout com mensagem de erro. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (loading-entrar-375.png, loading-convite-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/criar/pronto/[id]/page.tsx",
+    "web/src/app/e/[code]/(app)/layout.tsx",
+    "web/src/app/e/[code]/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-112",
+   "type": "FEATURE",
+   "title": "[Todas] Sessão expirada / sem identidade: Anfitrião sem sessão vê 'Só o anfitrião abre o painel.' com botão 'Entrar na festa' (mensagem errada, sem 'Continuar como'); /criar/pronto responde 'Não acham",
+   "description": "Anfitrião sem sessão vê 'Só o anfitrião abre o painel.' com botão 'Entrar na festa' (mensagem errada, sem 'Continuar como'); /criar/pronto responde 'Não achamos esse evento.' embora o evento exista; /agora redireciona ao convite sem avisar. Rota/estado: Sessão expirada / sem identidade. Larguras: 320–1920. Causa provável: web/src/app/painel/[id]/layout.tsx:47-49; web/src/app/criar/pronto/[id]/page.tsx:23; web/src/app/e/[code]/(app)/layout.tsx (redirect access convite). Solução: Estados distintos: não encontrado × sessão expirada × sem permissão; tela 'Sua sessão acabou' com Continuar como/Entrar e retorno à rota original.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Estados distintos: não encontrado × sessão expirada × sem permissão; tela 'Sua sessão acabou' com Continuar como/Entrar e retorno à rota original. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (sessao-expirada-painel-375.png, sessao-expirada-agora-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/criar/pronto/[id]/page.tsx",
+    "web/src/app/e/[code]/(app)/layout.tsx",
+    "web/src/app/painel/[id]/layout.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-113",
+   "type": "FEATURE",
+   "title": "[Convidado] Chips de reação, momento e sugestão (/agora, /explorar, /editar, /postar): Contraste não textual da borda dos chips 1,46–1,54:1 (WCAG 1.4.11 pede 3:1); estado selecionado depende de cor",
+   "description": "Contraste não textual da borda dos chips 1,46–1,54:1 (WCAG 1.4.11 pede 3:1); estado selecionado depende de cor. Rota/estado: Chips de reação, momento e sugestão (/agora, /explorar, /editar, /postar). Larguras: 320–1920. Causa provável: web/src/styles/mm.css:23 (.mm-chip border 1.5px var(--borda)). Solução: Borda ≥3:1 (token --borda-controle) ou fundo preenchido; manter aria-pressed.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Borda ≥3:1 (token --borda-controle) ou fundo preenchido; manter aria-pressed. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (agora-demo-375.png, explorar-demo-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/styles/mm.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-114",
+   "type": "FEATURE",
+   "title": "[Todas] Alvos de toque < 44px: Link 'Guia de componentes' 174×21px na home (3 estados); link 'Voltar ao início' 19px de altura em /master",
+   "description": "Link 'Guia de componentes' 174×21px na home (3 estados); link 'Voltar ao início' 19px de altura em /master. Rota/estado: Alvos de toque < 44px. Larguras: 320–1920. Causa provável: web/src/app/page.tsx:102; web/src/app/master/layout.tsx:19 (Link sem classe de botão). Solução: Usar mm-btn--texto/mm-link com min-height 44px; a skip-link (43px, só no foco) não conta.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Usar mm-btn--texto/mm-link com min-height 44px; a skip-link (43px, só no foco) não conta. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (home-375.png, master-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/master/layout.tsx",
+    "web/src/app/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-115",
+   "type": "FEATURE",
+   "title": "[Todas] Botão de texto (Voltar, Cancelar, Voltar ao início): Botão texto recuado 8px do eixo da coluna (x=24 vs 16) e 'Cancelar' centralizado no wizard; alinhamento inconsistente",
+   "description": "Botão texto recuado 8px do eixo da coluna (x=24 vs 16) e 'Cancelar' centralizado no wizard; alinhamento inconsistente. Rota/estado: Botão de texto (Voltar, Cancelar, Voltar ao início). Larguras: 320–1920. Causa provável: web/src/styles/mm.css:15 (.mm-btn--texto padding 0 space-2). Solução: Margem negativa de space-2 ou padding 0 horizontal; alinhamento único (esquerda).",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Margem negativa de space-2 ou padding 0 horizontal; alinhamento único (esquerda). Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (postar-camera-375.png, voce-demo-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/styles/mm.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-116",
+   "type": "FEATURE",
+   "title": "[Todas] Datas (cabeçalho, resumo, revelação): '21 · 10 · 2026' quebra entre os dígitos ('21 ·' / '10 · 2026 às 17h06'); formato fora do padrão pt-BR",
+   "description": "'21 · 10 · 2026' quebra entre os dígitos ('21 ·' / '10 · 2026 às 17h06'); formato fora do padrão pt-BR. Rota/estado: Datas (cabeçalho, resumo, revelação). Larguras: 320. Causa provável: web/src/features/app/hooks.ts:115-119 (formatDate). Solução: Intl.DateTimeFormat('pt-BR') com espaços não separáveis/nowrap.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Intl.DateTimeFormat('pt-BR') com espaços não separáveis/nowrap. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-6-320.png, agora-espera-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/features/app/hooks.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-117",
+   "type": "FEATURE",
+   "title": "[Convidado] /agora e retrospectiva · contadores: Plural errado: '1 fotos'",
+   "description": "Plural errado: '1 fotos'. Rota/estado: /agora e retrospectiva · contadores. Larguras: 375. Causa provável: web/src/app/e/[code]/(app)/agora/page.tsx:38. Solução: Helper de plural (1 foto / n fotos) em todos os contadores.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Helper de plural (1 foto / n fotos) em todos os contadores. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (agora-revelado-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/agora/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-118",
+   "type": "FEATURE",
+   "title": "[Todas] /error (boundary): 'Algo deu errado' usa o ícone de sem sinal (antena cortada), que sugere falta de conexão",
+   "description": "'Algo deu errado' usa o ícone de sem sinal (antena cortada), que sugere falta de conexão. Rota/estado: /error (boundary). Larguras: 320–1920. Causa provável: web/src/app/error.tsx:10. Solução: Ícone de alerta; mensagem com próxima ação e botão de relatar; foco no h1.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Ícone de alerta; mensagem com próxima ação e botão de relatar; foco no h1. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (erro-boundary-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/error.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-119",
+   "type": "FEATURE",
+   "title": "[Convidado] /retrospectiva e sucesso do post: Telas sem <h1>: o título é um <p class=emocao>; leitor de tela não anuncia a página",
+   "description": "Telas sem <h1>: o título é um <p class=emocao>; leitor de tela não anuncia a página. Rota/estado: /retrospectiva e sucesso do post. Larguras: 375–1440. Causa provável: web/src/app/e/[code]/(app)/retrospectiva/page.tsx:32; postar/page.tsx (sucesso). Solução: Promover a frase de emoção a h1 (mantendo o estilo).",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Promover a frase de emoção a h1 (mantendo o estilo). Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (retrospectiva-revelada-375.png, postar-sucesso-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/retrospectiva/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-120",
+   "type": "FEATURE",
+   "title": "[Convidado] /postar · limite de fotos (rolo acabou) e estados vazios: Tela do limite ocupa ~1/6 da altura, o resto é branco, com um único CTA; sem resumo das fotos ou aviso de revelação",
+   "description": "Tela do limite ocupa ~1/6 da altura, o resto é branco, com um único CTA; sem resumo das fotos ou aviso de revelação. Rota/estado: /postar · limite de fotos (rolo acabou) e estados vazios. Larguras: 375–1440. Causa provável: web/src/app/e/[code]/(app)/postar/page.tsx (estado limite). Solução: Mostrar contagem, miniaturas das fotos do convidado e, se houver revelação, quando abre; CTA para Você.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Mostrar contagem, miniaturas das fotos do convidado e, se houver revelação, quando abre; CTA para Você. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (postar-limite-375.png, agora-vazio-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/postar/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-121",
+   "type": "FEATURE",
+   "title": "[Convidado] /e/[code] · evento encerrado: Botão desabilitado e a mensagem de erro vem abaixo do botão, longe do campo; sem saída (retrospectiva)",
+   "description": "Botão desabilitado e a mensagem de erro vem abaixo do botão, longe do campo; sem saída (retrospectiva). Rota/estado: /e/[code] · evento encerrado. Larguras: 320–1920. Causa provável: web/src/app/e/[code]/page.tsx:77-90. Solução: Trocar o formulário por estado 'Festa encerrada' com link para a retrospectiva para membros.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Trocar o formulário por estado 'Festa encerrada' com link para a retrospectiva para membros. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (convite-encerrado-375.png, convite-lotado-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/e/[code]/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-122",
+   "type": "FEATURE",
+   "title": "[Convidado] /postar · câmera: 'Virar câmera' e 'Escolher foto' têm largura do texto, alinhados à esquerda, enquanto 'Tirar foto' é bloco",
+   "description": "'Virar câmera' e 'Escolher foto' têm largura do texto, alinhados à esquerda, enquanto 'Tirar foto' é bloco. Rota/estado: /postar · câmera. Larguras: 320–430. Causa provável: web/src/app/e/[code]/(app)/postar/page.tsx:162-163. Solução: Grid de 2 colunas de mesma largura abaixo do CTA.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Grid de 2 colunas de mesma largura abaixo do CTA. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (postar-camera-375.png, postar-camera-320.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/postar/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-123",
+   "type": "FEATURE",
+   "title": "[Todas] Home pública, /design, /master: Home mostra 'Guia de componentes' e 'Ver exemplo com revelação em 2 minutos' a usuário final; /design e /master são públicas e indexáveis",
+   "description": "Home mostra 'Guia de componentes' e 'Ver exemplo com revelação em 2 minutos' a usuário final; /design e /master são públicas e indexáveis. Rota/estado: Home pública, /design, /master. Larguras: 320–1920. Causa provável: web/src/app/page.tsx:76,102; web/src/app/design/page.tsx; web/src/app/master/page.tsx. Solução: Esconder atrás de flag em produção; metadata robots noindex em /design e /master.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Esconder atrás de flag em produção; metadata robots noindex em /design e /master. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (home-375.png, design-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/design/page.tsx",
+    "web/src/app/master/page.tsx",
+    "web/src/app/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-124",
+   "type": "FEATURE",
+   "title": "[Administrativa] /painel/[id]/qr · QR Code Studio: Cards A6 com ~35% de vazio entre texto e assinatura; em 375 empilha 10 cards (5,2k px); a grade de desktop está boa",
+   "description": "Cards A6 com ~35% de vazio entre texto e assinatura; em 375 empilha 10 cards (5,2k px); a grade de desktop está boa. Rota/estado: /painel/[id]/qr · QR Code Studio. Larguras: 375–1440. Causa provável: web/src/app/painel/[id]/qr/page.tsx. Solução: Altura do card proporcional à tela (A6 só na impressão); pré-visualizar 1 card com seletor de mesa no mobile.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Altura do card proporcional à tela (A6 só na impressão); pré-visualizar 1 card com seletor de mesa no mobile. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-qr-1440.png, painel-qr-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/app/painel/[id]/qr/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-125",
+   "type": "FEATURE",
+   "title": "[Administrativa] /painel/[id]/aparencia (WIP de outro agente): Em 375 a 'Prévia do convite' fica no fim, após ~1,4k px de formulário: edita-se sem ver o efeito (≥1024 a prévia é lateral e boa)",
+   "description": "Em 375 a 'Prévia do convite' fica no fim, após ~1,4k px de formulário: edita-se sem ver o efeito (≥1024 a prévia é lateral e boa). Rota/estado: /painel/[id]/aparencia (WIP de outro agente). Larguras: 320–768. Causa provável: web/src/features/studio/AppearanceStudio.tsx:67 (aside.studio-previa). Solução: Prévia fixa/colapsável no topo no mobile; reavaliar quando a tela estabilizar.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Prévia fixa/colapsável no topo no mobile; reavaliar quando a tela estabilizar. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-aparencia-375.png, painel-aparencia-1440.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/features/studio/AppearanceStudio.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-126",
+   "type": "FEATURE",
+   "title": "[Anfitrião] /criar · passo 6 (resumo): CTA 'Criar evento de demonstração' quebra em 2 linhas em 320; aviso de cobrança longo antes do CTA",
+   "description": "CTA 'Criar evento de demonstração' quebra em 2 linhas em 320; aviso de cobrança longo antes do CTA. Rota/estado: /criar · passo 6 (resumo). Larguras: 320. Causa provável: web/src/features/events/wizard.tsx:189,197. Solução: Rótulo curto 'Criar evento' e nota de demonstração como texto auxiliar.",
+   "epic": "EP-11",
+   "parent": "UXA-001",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md)",
+   "acceptance": [
+    "Rótulo curto 'Criar evento' e nota de demonstração como texto auxiliar. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-6-320.png, criar-6-375.png) em docs/audit/ux/screens."
+   ],
+   "files": [
+    "web/src/features/events/wizard.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
    "commit": null,
    "environment": null
   }

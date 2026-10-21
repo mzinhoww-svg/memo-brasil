@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **153** itens (sem contar 18 épicos). Prioridade: P0 34, P1 54, P2 31, P3 34. Status: BACKLOG 67, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, READY 11.
+Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P3 47. Status: BACKLOG 89, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, IN_REVIEW 1, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -344,12 +344,81 @@ Total: **153** itens (sem contar 18 épicos). Prioridade: P0 34, P1 54, P2 31, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| UXA-001 | FEATURE | Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e estados | P0 | BACKLOG | - | missão design/studio/master 2026-10-21 | - | - |
+| UXA-001 | FEATURE | Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e estados | P0 | IN_REVIEW | - | missão design/studio/master 2026-10-21 | - | - |
 | UXA-002 | FEATURE | Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com campo e copiar | P1 | BACKLOG | UXA-001 | missão design/studio/master 2026-10-21 | - | - |
+| UXA-104 | FEATURE | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rol | P1 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-105 | FEATURE | [Administrativa] /painel/[id] e abas (visão, convidados, momentos, configurações, downloads): Container 1100px alinhado à esquerda (1920: 564px vazios à direita) e formulários presos em 340–343px; Con | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-106 | FEATURE | [Administrativa] /painel/[id]/convidados: Lista de convidados repetida: tabela 'Convidados' e logo abaixo 'Remover da festa' com os mesmos nomes | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-107 | FEATURE | [Administrativa] /painel/[id] · navegação < 900px: Abas do painel cortadas ('Convidad…', 'Aparênci…'); 8 itens e só 3–5 visíveis, sem sinal de rolagem; 768 usa nav móvel e conteúdo esticado em 768px | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-108 | FEATURE | [Anfitrião] /criar · passos 1–6: Wizard em coluna de 480px: sem prévia do convite/tema nem resumo lateral; passos 3–5 longos | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-109 | FEATURE | [Convidado] /e/[code]/agora, /explorar, /retrospectiva em desktop: Feed em coluna única de 480px: 7,9k–8,9k px de rolagem em 1440 e fundo vazio; sem grade ou visualização ampliada para o álbum pós-eve | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-110 | FEATURE | [Anfitrião] /criar · validação: Mensagens de erro continuam visíveis depois de o campo ser corrigido (passo 1 com nome preenchido ainda mostra os dois erros); sem foco no primeiro erro | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-111 | FEATURE | [Todas] Carregando (pronto, convite, área do convidado): Loading é só texto cinza ('Preparando o convite…', 'Abrindo o convite…', 'Carregando a festa…'): sem skeleton, sem role=status/aria-busy e sem  | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-112 | FEATURE | [Todas] Sessão expirada / sem identidade: Anfitrião sem sessão vê 'Só o anfitrião abre o painel.' com botão 'Entrar na festa' (mensagem errada, sem 'Continuar como'); /criar/pronto responde 'Não acham | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-113 | FEATURE | [Convidado] Chips de reação, momento e sugestão (/agora, /explorar, /editar, /postar): Contraste não textual da borda dos chips 1,46–1,54:1 (WCAG 1.4.11 pede 3:1); estado selecionado depende de cor | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-114 | FEATURE | [Todas] Alvos de toque < 44px: Link 'Guia de componentes' 174×21px na home (3 estados); link 'Voltar ao início' 19px de altura em /master | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-115 | FEATURE | [Todas] Botão de texto (Voltar, Cancelar, Voltar ao início): Botão texto recuado 8px do eixo da coluna (x=24 vs 16) e 'Cancelar' centralizado no wizard; alinhamento inconsistente | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-116 | FEATURE | [Todas] Datas (cabeçalho, resumo, revelação): '21 · 10 · 2026' quebra entre os dígitos ('21 ·' / '10 · 2026 às 17h06'); formato fora do padrão pt-BR | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-117 | FEATURE | [Convidado] /agora e retrospectiva · contadores: Plural errado: '1 fotos' | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-118 | FEATURE | [Todas] /error (boundary): 'Algo deu errado' usa o ícone de sem sinal (antena cortada), que sugere falta de conexão | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-119 | FEATURE | [Convidado] /retrospectiva e sucesso do post: Telas sem <h1>: o título é um <p class=emocao>; leitor de tela não anuncia a página | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-120 | FEATURE | [Convidado] /postar · limite de fotos (rolo acabou) e estados vazios: Tela do limite ocupa ~1/6 da altura, o resto é branco, com um único CTA; sem resumo das fotos ou aviso de revelação | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-121 | FEATURE | [Convidado] /e/[code] · evento encerrado: Botão desabilitado e a mensagem de erro vem abaixo do botão, longe do campo; sem saída (retrospectiva) | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-122 | FEATURE | [Convidado] /postar · câmera: 'Virar câmera' e 'Escolher foto' têm largura do texto, alinhados à esquerda, enquanto 'Tirar foto' é bloco | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-123 | FEATURE | [Todas] Home pública, /design, /master: Home mostra 'Guia de componentes' e 'Ver exemplo com revelação em 2 minutos' a usuário final; /design e /master são públicas e indexáveis | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-124 | FEATURE | [Administrativa] /painel/[id]/qr · QR Code Studio: Cards A6 com ~35% de vazio entre texto e assinatura; em 375 empilha 10 cards (5,2k px); a grade de desktop está boa | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-125 | FEATURE | [Administrativa] /painel/[id]/aparencia (WIP de outro agente): Em 375 a 'Prévia do convite' fica no fim, após ~1,4k px de formulário: edita-se sem ver o efeito (≥1024 a prévia é lateral e boa) | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-126 | FEATURE | [Anfitrião] /criar · passo 6 (resumo): CTA 'Criar evento de demonstração' quebra em 2 linhas em 320; aviso de cobrança longo antes do CTA | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 
 **UXA-001** critérios: Inventário em docs/audit/ux com severidade, causa e solução; inclui Evento criado, Câmera, Espera, Revelação, Galeria, Painel, erros, loading, vazio, sessão expirada
 
 **UXA-002** critérios: Sem quebra de título em 320–1920; URL legível e copiável; screenshots antes/depois
+
+**UXA-104** critérios: Grade 3–4 colunas ≥1024 com cartão compacto (miniatura, motivo, ações), seleção em massa, atalhos e painel lateral de detalhe. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-conteudo-1440.png, painel-conteudo-todas-1440.png) em docs/audit/ux/screens.
+
+**UXA-105** critérios: Centralizar o conteúdo ou usar largura fluida por seção; Configurações em 2 colunas com índice âncora e barra de salvar fixa; larguras em tokens, não px. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-visao-1920.png, painel-configuracoes-1440.png) em docs/audit/ux/screens.
+
+**UXA-106** critérios: Uma tabela com ação Remover por linha (menu), busca e filtro por mesa. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-convidados-1440.png, painel-convidados-375.png) em docs/audit/ux/screens.
+
+**UXA-107** critérios: Sidebar colapsável a partir de 768, ou menu 'Mais'; fade nas bordas e scrollIntoView do item atual. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-visao-375.png, painel-visao-768.png) em docs/audit/ux/screens.
+
+**UXA-108** critérios: Layout 2 colunas ≥1024 com prévia ao vivo do convite e resumo fixo; manter 1 coluna no mobile. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-1-1440.png, criar-3-1440.png) em docs/audit/ux/screens.
+
+**UXA-109** critérios: ≥1024: grade de miniaturas com lightbox na retrospectiva/explorar; Agora pode manter coluna. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (agora-demo-1440.png, explorar-demo-1440.png) em docs/audit/ux/screens.
+
+**UXA-110** critérios: Limpar o erro do campo no onChange/onBlur; mover foco ao primeiro campo inválido; resumo de erros com role=alert. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-1-375.png, criar-1-1440.png) em docs/audit/ux/screens.
+
+**UXA-111** critérios: Componente Skeleton/Spinner com role=status e aria-busy; reservar altura do cabeçalho do evento; timeout com mensagem de erro. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (loading-entrar-375.png, loading-convite-375.png) em docs/audit/ux/screens.
+
+**UXA-112** critérios: Estados distintos: não encontrado × sessão expirada × sem permissão; tela 'Sua sessão acabou' com Continuar como/Entrar e retorno à rota original. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (sessao-expirada-painel-375.png, sessao-expirada-agora-375.png) em docs/audit/ux/screens.
+
+**UXA-113** critérios: Borda ≥3:1 (token --borda-controle) ou fundo preenchido; manter aria-pressed. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (agora-demo-375.png, explorar-demo-375.png) em docs/audit/ux/screens.
+
+**UXA-114** critérios: Usar mm-btn--texto/mm-link com min-height 44px; a skip-link (43px, só no foco) não conta. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (home-375.png, master-375.png) em docs/audit/ux/screens.
+
+**UXA-115** critérios: Margem negativa de space-2 ou padding 0 horizontal; alinhamento único (esquerda). Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (postar-camera-375.png, voce-demo-375.png) em docs/audit/ux/screens.
+
+**UXA-116** critérios: Intl.DateTimeFormat('pt-BR') com espaços não separáveis/nowrap. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-6-320.png, agora-espera-375.png) em docs/audit/ux/screens.
+
+**UXA-117** critérios: Helper de plural (1 foto / n fotos) em todos os contadores. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (agora-revelado-375.png) em docs/audit/ux/screens.
+
+**UXA-118** critérios: Ícone de alerta; mensagem com próxima ação e botão de relatar; foco no h1. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (erro-boundary-375.png) em docs/audit/ux/screens.
+
+**UXA-119** critérios: Promover a frase de emoção a h1 (mantendo o estilo). Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (retrospectiva-revelada-375.png, postar-sucesso-375.png) em docs/audit/ux/screens.
+
+**UXA-120** critérios: Mostrar contagem, miniaturas das fotos do convidado e, se houver revelação, quando abre; CTA para Você. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (postar-limite-375.png, agora-vazio-375.png) em docs/audit/ux/screens.
+
+**UXA-121** critérios: Trocar o formulário por estado 'Festa encerrada' com link para a retrospectiva para membros. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (convite-encerrado-375.png, convite-lotado-375.png) em docs/audit/ux/screens.
+
+**UXA-122** critérios: Grid de 2 colunas de mesma largura abaixo do CTA. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (postar-camera-375.png, postar-camera-320.png) em docs/audit/ux/screens.
+
+**UXA-123** critérios: Esconder atrás de flag em produção; metadata robots noindex em /design e /master. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (home-375.png, design-375.png) em docs/audit/ux/screens.
+
+**UXA-124** critérios: Altura do card proporcional à tela (A6 só na impressão); pré-visualizar 1 card com seletor de mesa no mobile. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-qr-1440.png, painel-qr-375.png) em docs/audit/ux/screens.
+
+**UXA-125** critérios: Prévia fixa/colapsável no topo no mobile; reavaliar quando a tela estabilizar. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-aparencia-375.png, painel-aparencia-1440.png) em docs/audit/ux/screens.
+
+**UXA-126** critérios: Rótulo curto 'Criar evento' e nota de demonstração como texto auxiliar. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-6-320.png, criar-6-375.png) em docs/audit/ux/screens.
 
 ## EP-12 · Design System v2 (BACKLOG)
 

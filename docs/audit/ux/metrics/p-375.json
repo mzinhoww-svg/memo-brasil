@@ -1,0 +1,77 @@
+{
+ "pronto": {
+  "h1": {
+   "text": "Casamento de Maria Eduarda e João Pedro",
+   "w": 327,
+   "lines": 3,
+   "fs": "54px"
+  },
+  "col": {
+   "x": 0,
+   "w": 375
+  },
+  "main": {
+   "x": 0,
+   "w": 375
+  },
+  "docH": 1013,
+  "url": "/criar/pronto/8a26e5c7-9448-4dc1-ac75-ebb04cbcd12f",
+  "overflowX": false,
+  "scrollW": 375,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 4,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "pronto-copiado": {
+  "h1": {
+   "text": "Casamento de Maria Eduarda e João Pedro",
+   "w": 327,
+   "lines": 3,
+   "fs": "54px"
+  },
+  "col": {
+   "x": 0,
+   "w": 375
+  },
+  "main": {
+   "x": 0,
+   "w": 375
+  },
+  "docH": 1013,
+  "url": "/criar/pronto/8a26e5c7-9448-4dc1-ac75-ebb04cbcd12f",
+  "overflowX": false,
+  "scrollW": 375,
+  "overflowingEls": [],
+  "small": [
+   {
+    "el": "a.mm-skip",
+    "label": "Ir para o conteúdo",
+    "w": 169.4,
+    "h": 43,
+    "inline": false
+   }
+  ],
+  "nTargets": 4,
+  "lowContrast": [],
+  "nonText": [],
+  "imgNoAlt": 0,
+  "axe": []
+ },
+ "pronto-url": {
+  "urlLines": 1,
+  "urlText": "http://localhost:3188/e/G4MJ3T7C",
+  "urlW": 311
+ }
+}
