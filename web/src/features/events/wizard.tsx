@@ -124,8 +124,8 @@ export function CreateWizard() {
           <>
             <h1 className="titulo-tela app-h1">Qual é o nome do seu evento?</h1>
             <p className="app-p app-muted">Ele aparece para todos os convidados.</p>
-            <Field label="Nome do evento" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={60} placeholder="Ex.: Emy e Igor" error={errors.title} />
-            <Field label="Seu nome" value={hostName} onChange={(e) => setHostName(e.target.value)} maxLength={40} autoComplete="given-name" error={errors.host} />
+            <Field label="Nome do evento" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: undefined })); }} maxLength={60} placeholder="Ex.: Emy e Igor" error={errors.title} />
+            <Field label="Seu nome" value={hostName} onChange={(e) => { setHostName(e.target.value); setErrors((x) => ({ ...x, host: undefined })); }} maxLength={40} autoComplete="given-name" error={errors.host} />
             <OptionGroup<EventCategory> label="Tipo de evento" value={category} onChange={setCategory} options={(Object.keys(CATEGORY_LABEL) as EventCategory[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c] }))} />
             <Field label="Local (opcional)" value={place} onChange={(e) => setPlace(e.target.value)} maxLength={60} placeholder="Ex.: Chalés Taíba, CE" />
           </>
@@ -134,8 +134,8 @@ export function CreateWizard() {
           <>
             <h1 className="titulo-tela app-h1">Quando o seu evento termina?</h1>
             <p className="app-p app-muted">O evento abre agora. Os convidados postam até ele fechar.</p>
-            <OptionGroup<number> label="Termina em" value={until ? -1 : hours} onChange={(v) => { setHours(v); setUntil(""); }} options={DURATIONS.map((h) => ({ value: h, label: h === 1 ? "1 hora" : `${h} horas` }))} />
-            <Field label="Ou escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => setUntil(e.target.value)} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." />
+            <OptionGroup<number> label="Termina em" value={until ? -1 : hours} onChange={(v) => { setHours(v); setUntil(""); setErrors((x) => ({ ...x, termino: undefined })); }} options={DURATIONS.map((h) => ({ value: h, label: h === 1 ? "1 hora" : `${h} horas` }))} />
+            <Field label="Ou escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => { setUntil(e.target.value); setErrors((x) => ({ ...x, termino: undefined })); }} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." />
           </>
         )}
         {step === 2 && (

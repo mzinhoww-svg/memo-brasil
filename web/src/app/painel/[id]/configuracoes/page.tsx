@@ -43,7 +43,7 @@ export default function Configuracoes() {
       <h1 className="titulo-pagina app-h1">Configurações</h1>
       {msg && <p className="app-p" role="status">{msg}</p>}
 
-      <section className="app-stack" style={{ maxWidth: 343 }} aria-labelledby="nome">
+      <section className="app-stack app-form-col" aria-labelledby="nome">
         <h2 id="nome" className="titulo-card app-h1">Nome e aparência</h2>
         <Field label="Nome do evento" value={title} maxLength={60} onChange={(e) => setTitle(e.target.value)} />
         <Button variant="secundario" disabled={!title.trim() || title === event.title} onClick={() => save({ title: title.trim() })}>Salvar nome</Button>
@@ -56,7 +56,7 @@ export default function Configuracoes() {
         <OptionGroup<EventFontId> label="Fonte do nome do evento" value={event.eventFont} onChange={(v) => save({ eventFont: v })} options={(Object.keys(EVENT_FONT_LABEL) as EventFontId[]).map((f) => ({ value: f, label: EVENT_FONT_LABEL[f] }))} />
       </section>
 
-      <section className="app-stack" style={{ maxWidth: 343 }} aria-labelledby="regras">
+      <section className="app-stack app-form-col" aria-labelledby="regras">
         <h2 id="regras" className="titulo-card app-h1">Regras da festa</h2>
         <OptionGroup<Shots> label="Fotos por pessoa" value={event.shotsPerPerson} onChange={(v) => save({ shotsPerPerson: v })} options={SHOTS_OPTIONS.map((s) => ({ value: s, label: s === null ? "Ilimitadas" : String(s) }))} />
         <OptionGroup<Capacity> label="Convidados" value={event.capacity} onChange={(v) => save({ capacity: v })} options={CAPACITY_OPTIONS.map((c) => ({ value: c, label: c === null ? "Ilimitado" : String(c) }))} />
@@ -65,9 +65,9 @@ export default function Configuracoes() {
         <OptionGroup<boolean> label="Reações nas fotos" value={event.reactionsEnabled} onChange={(v) => save({ reactionsEnabled: v })} options={[{ value: true, label: "Ligadas" }, { value: false, label: "Desligadas" }]} />
       </section>
 
-      <div style={{ maxWidth: 343 }}><RevealSettings event={event} now={now} photoCount={photoCount} onSaved={refresh} /></div>
+      <div className="app-form-col"><RevealSettings event={event} now={now} photoCount={photoCount} onSaved={refresh} /></div>
 
-      <section className="app-stack" style={{ maxWidth: 343 }} aria-labelledby="aviso">
+      <section className="app-stack app-form-col" aria-labelledby="aviso">
         <h2 id="aviso" className="titulo-card app-h1">Aviso no Agora</h2>
         {event.notice && <Notice text={event.notice.text} />}
         <Field label="Aviso curto" value={notice} maxLength={90} onChange={(e) => setNotice(e.target.value)} placeholder="Ex.: Pôr do sol na areia em 10 minutos." help="Um aviso por vez. Escreva a hora ou o lugar." />
@@ -77,7 +77,7 @@ export default function Configuracoes() {
         </div>
       </section>
 
-      <section className="app-stack" style={{ maxWidth: 343 }} aria-labelledby="fim">
+      <section className="app-stack app-form-col" aria-labelledby="fim">
         <h2 id="fim" className="titulo-card app-h1">Fim do evento</h2>
         <p className="app-p">{ended ? "Terminou" : "Termina"} em {formatDate(endAt(event))} · {formatTime(endAt(event))}.</p>
         {locked ? <p className="app-p app-muted">Este álbum já terminou e tem fotos. Não dá para reabrir.</p> : (
@@ -91,7 +91,7 @@ export default function Configuracoes() {
         {!ended && <Button variant="destrutivo" onClick={() => setConfirm("encerrar")}>Encerrar agora</Button>}
       </section>
 
-      <section className="app-stack" style={{ maxWidth: 343 }} aria-labelledby="perigo">
+      <section className="app-stack app-form-col" aria-labelledby="perigo">
         <h2 id="perigo" className="titulo-card app-h1">Excluir</h2>
         <p className="app-p app-muted">Apaga o evento, as fotos e as reações deste aparelho.</p>
         <Button variant="destrutivo" onClick={() => setConfirm("excluir")}>Excluir evento</Button>

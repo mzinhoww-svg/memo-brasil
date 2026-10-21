@@ -99,7 +99,7 @@ export default function Home() {
         )}
 
         <BackendNotice localText="Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor." />
-        <p className="app-p app-muted"><Link href="/design">Guia de componentes</Link></p>
+        <p className="app-p app-muted"><Link className="app-link" href="/design">Guia de componentes</Link></p>
         <div style={{ marginTop: "auto" }}><Signature /></div>
       </div>
     </main>

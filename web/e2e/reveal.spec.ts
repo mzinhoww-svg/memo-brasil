@@ -147,8 +147,9 @@ test("prévia do convidado no painel mostra a tela de espera", async ({ page }) 
 test("administrador master: rota é só um ponto de integração, sem login e sem efeito por parâmetro", async ({ page }) => {
   for (const url of ["/master", "/master?role=master", "/master?admin=1&token=abc"]) {
     await page.goto(url);
-    await expect(page.getByRole("heading", { name: "Disponível com o login real." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Console indisponível neste modo." })).toBeVisible(); // modo local: sem operadores
     await expect(page.locator("input")).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "Módulos do console" })).toHaveCount(0); // parâmetro de URL não abre nada
   }
   // outro usuário não administra o evento de alguém
   const { id, code } = await createViaWizard(page, { title: "Alheio", reveal: "desligada" });

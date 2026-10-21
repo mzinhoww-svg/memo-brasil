@@ -10,6 +10,7 @@
   --tinta: #1C1917;
   --apoio: #6B645F;
   --borda: #D9D5D1;
+  --borda-controle: #8A8480; /* borda de controles interativos: >= 3:1 sobre o fundo (WCAG 1.4.11) */
   --divisor: #E4E0DC;
   --acao: var(--tinta);
   --on-acao: #FFFFFF;
@@ -33,6 +34,7 @@
   --tinta: #F4F2EF;
   --apoio: #A8A29D;
   --borda: #3A3533;
+  --borda-controle: #7F7773;
   --divisor: #2A2624;
   --acao: var(--tinta);
   --on-acao: #1C1917;

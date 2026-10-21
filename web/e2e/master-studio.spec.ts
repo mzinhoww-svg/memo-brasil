@@ -5,7 +5,7 @@ import { expect, test, type BrowserContext } from "@playwright/test";
 const URL = process.env.SUPABASE_URL!, PUB = process.env.SUPABASE_PUBLISHABLE_KEY!, SVC = process.env.SUPABASE_SERVICE_KEY!;
 test.skip(!URL || !PUB || !SVC || !/127\.0\.0\.1|localhost/.test(URL), "precisa de Supabase local e das chaves no ambiente");
 const mk = (k = PUB) => createClient(URL, k, { auth: { persistSession: false, autoRefreshToken: false } });
-const admin = mk(SVC);
+const admin = URL ? mk(SVC) : (undefined as never); // sem ambiente local o arquivo todo é pulado
 const tag = Math.random().toString(36).slice(2, 8);
 const refName = () => `sb-${new globalThis.URL(URL).hostname.split(".")[0]}-auth-token`;
 

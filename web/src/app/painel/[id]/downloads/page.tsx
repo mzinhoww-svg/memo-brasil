@@ -30,7 +30,7 @@ export default function Downloads() {
   return (
     <>
       <h1 className="titulo-pagina app-h1">Downloads</h1>
-      <div className="app-stack" style={{ maxWidth: 343 }}>
+      <div className="app-stack app-form-col">
         <Button icon="baixar" block disabled={count === 0 || Boolean(progress)} onClick={album}>Baixar o álbum (ZIP)</Button>
         {progress && <Progress label="Preparando o álbum" status={`${progress.done} de ${progress.total}`} value={(progress.done / Math.max(1, progress.total)) * 100} />}
         {result && <p className="app-p" role="status">{result}</p>}

@@ -16,7 +16,7 @@ function Gate({ titulo, texto, acao }: { titulo: string; texto: string; acao?: R
       <h1 style={{ margin: 0 }}>{titulo}</h1>
       <p style={{ margin: 0 }}>{texto}</p>
       {acao}
-      <Link href="/">Voltar ao início</Link>
+      <Link className="app-link" href="/">Voltar ao início</Link>
     </main>
   );
 }

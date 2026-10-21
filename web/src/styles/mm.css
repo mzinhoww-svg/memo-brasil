@@ -20,7 +20,7 @@
 
 /* Chip */
 .mm-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.mm-chip { font: inherit; display: inline-flex; align-items: center; height: var(--size-alvo); padding: 0 14px; border: 1.5px solid var(--borda); border-radius: var(--radius-pill); background: var(--fundo); color: var(--tinta); font-size: 14px; font-weight: 600; cursor: pointer; box-sizing: border-box; }
+.mm-chip { font: inherit; display: inline-flex; align-items: center; height: var(--size-alvo); padding: 0 14px; border: 1.5px solid var(--borda-controle); border-radius: var(--radius-pill); background: var(--fundo); color: var(--tinta); font-size: 14px; font-weight: 600; cursor: pointer; box-sizing: border-box; }
 .mm-chip--filtro { border-color: var(--tinta); }
 .mm-chip--sugestao { background: var(--neutro); border-width: 1px; }
 .mm-chip[aria-pressed="true"] { background: var(--acao); border-color: var(--acao); color: var(--on-acao); }
@@ -74,7 +74,7 @@
 /* EventHeader */
 .mm-event-header { display: flex; flex-direction: column; gap: 6px; padding: 40px var(--space-6) var(--space-6); background: var(--evento-superficie); max-width: 375px; box-sizing: border-box; }
 .mm-event-meta { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--evento-profundo); }
-.mm-event-nome { font-family: var(--font-evento); font-size: 54px; line-height: 1.05; color: var(--evento-profundo); }
+.mm-event-nome { font-family: var(--font-evento); font-size: clamp(36px, 8vw, 54px); line-height: 1.05; color: var(--evento-profundo); text-wrap: balance; }
 
 /* PostCard */
 .mm-post { display: flex; flex-direction: column; gap: 10px; max-width: 343px; }

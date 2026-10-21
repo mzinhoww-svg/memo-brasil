@@ -43,7 +43,7 @@ export default function Momentos() {
         <Chips label="Momentos do evento">
           {event.moments.map((m) => <Chip key={m} variant="filtro" onClick={() => remove(m)}>{`Remover ${m}`}</Chip>)}
         </Chips>
-        <form className="app-stack-sm" style={{ maxWidth: 343 }} onSubmit={(e) => { e.preventDefault(); void add(); }} noValidate>
+        <form className="app-stack-sm app-form-col" onSubmit={(e) => { e.preventDefault(); void add(); }} noValidate>
           <Field label="Novo momento" value={name} onChange={(e) => setName(e.target.value)} maxLength={30} placeholder="Ex.: Corte do bolo" error={error} />
           <Button type="submit" variant="secundario">Adicionar momento</Button>
         </form>

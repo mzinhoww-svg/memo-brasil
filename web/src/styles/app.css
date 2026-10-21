@@ -71,3 +71,18 @@
 .studio-botao { display: inline-flex; align-items: center; min-height: 44px; padding: 0 24px; border-radius: 999px; font-weight: 600; }
 .studio-capa { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; }
 .studio-logo { max-width: 96px; max-height: 96px; object-fit: contain; }
+
+/* UXA-114: links soltos com alvo de toque de 44px */
+.app-link { display: inline-flex; align-items: center; min-height: var(--size-alvo); padding: 0 var(--space-2); }
+/* UXA-105: painel centralizado e formulários que usam a largura (343px só no mobile) */
+@media (min-width: 900px) { .app-admin-main { margin-inline: auto; width: 100%; box-sizing: border-box; } }
+.app-form-col { max-width: 343px; }
+@media (min-width: 768px) { .app-form-col { max-width: 560px; } }
+/* UXA-107: abas do painel com indicação de rolagem e encaixe */
+.app-admin-navm { scroll-snap-type: x proximity; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); padding-right: 28px; }
+.app-admin-navm a { scroll-snap-align: start; }
+/* UXA-101/103: "Evento criado" usa a largura em desktop; QR centralizado; URL em campo com Copiar */
+@media (min-width: 900px) { .app-col--pronto { max-width: 960px; } .pronto-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); align-items: start; } }
+.pronto-qr { align-self: center; border-radius: var(--radius-md); width: min(100%, 240px); height: auto; }
+.pronto-url { display: flex; gap: var(--space-2); align-items: stretch; }
+.pronto-url input { flex: 1; min-width: 0; font: inherit; font-size: 14px; padding: 0 var(--space-3); height: var(--size-alvo); border: 1.5px solid var(--borda-controle); border-radius: var(--radius-md); background: var(--fundo); color: var(--tinta); box-sizing: border-box; }
