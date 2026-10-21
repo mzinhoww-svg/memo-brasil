@@ -1,36 +1,14 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MemoriesMT (web)
 
-## Getting Started
-
-First, run the development server:
+Câmera coletiva para eventos. Versão **pré-Supabase**: tudo funciona neste aparelho (IndexedDB); a colaboração entre aparelhos chega com o backend (`../docs/supabase/INTEGRATION-PLAN.md`).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
+npm run lint && npm run typecheck && npm test   # 91 testes unitários
+npm run e2e        # Playwright: build de teste + 29 testes (fluxos, PWA, visual, axe)
+npm run build && npm start
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Documentação: `../docs/architecture/ARCHITECTURE.md`, `../docs/qa/VISUAL-VALIDATION.md`, `../docs/qa/TRACEABILITY-MATRIX.md`, plano em `../docs/plans/`. Guia de componentes: rota `/design`.
+Design system: `../design-system/MemoriesMT-design-system` (tokens, fontes, logos, ícones e componentes são cópias do kit; `scripts/gen-assets.mjs` e `scripts/gen-pwa-icons.mjs` regeneram dados de ícones e PNGs do PWA).
+Variável de teste: `NEXT_PUBLIC_MM_TEST_CLOCK=1` habilita `?agora=<ms>` (apenas no build de E2E).
