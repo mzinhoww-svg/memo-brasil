@@ -3952,6 +3952,214 @@
    "effort": "S",
    "sources": [],
    "severity_audit": []
+  },
+  {
+   "id": "SB-001",
+   "type": "FEATURE",
+   "title": "Migrations v1 do Supabase: schema, RLS, RPCs, Storage privado, tarefas de revelação, endurecimento",
+   "description": "Seis migrations versionadas em supabase/migrations, validadas no Supabase local.",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "ITG-106"
+   ],
+   "origin": "entrega autônoma 2026-10-21",
+   "acceptance": [
+    "RLS em todas as tabelas expostas",
+    "Revelação, rolo, lotação e encerramento no servidor",
+    "Storage privado com policies",
+    "75 testes pgTAP + advisors locais sem alertas"
+   ],
+   "files": [],
+   "tests": [
+    "supabase/tests/database/01_security_and_reveal.test.sql (75)",
+    "web/integration/supabase.integration.test.mjs (12)"
+   ],
+   "evidence": [
+    "docs/supabase/SECURITY-VALIDATION.md",
+    "docs/supabase/LOCAL-TEST-RESULTS.md"
+   ],
+   "commit": "6270624",
+   "environment": "Supabase local (Docker)"
+  },
+  {
+   "id": "SB-002",
+   "type": "FEATURE",
+   "title": "Adaptador Supabase atrás do contrato de repositório e ligação no Next (provider, sessão anônima, Google do organizador, CSP)",
+   "description": "createSupabaseRepositories + NEXT_PUBLIC_MM_BACKEND; componentes não importam o SDK.",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "SB-001",
+    "ITG-102"
+   ],
+   "origin": "entrega autônoma 2026-10-21",
+   "acceptance": [
+    "Contrato v2 cumprido pelo adaptador",
+    "E2E de navegador em modo Supabase",
+    "Modo local intacto (48 E2E)"
+   ],
+   "files": [],
+   "tests": [
+    "web/integration/adapter.itest.ts (9)",
+    "web/e2e/supabase.spec.ts (2)"
+   ],
+   "evidence": [
+    "docs/supabase/LOCAL-TEST-RESULTS.md"
+   ],
+   "commit": "2e77aae",
+   "environment": "Supabase local + Chromium"
+  },
+  {
+   "id": "SB-003",
+   "type": "TASK",
+   "title": "Aplicar as migrations no projeto remoto asyaegeodyttttaubvxh",
+   "description": "Ref e organização confirmados pela CLI; remoto vazio; scripts/supabase-apply-remote.sh pronto (dry-run ok). O db push foi bloqueado pelo harness como deploy de produção e não foi contornado.",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P0",
+   "status": "BLOCKED",
+   "dependencies": [
+    "SB-001"
+   ],
+   "origin": "entrega autônoma 2026-10-21",
+   "acceptance": [
+    "Dono aprova a ação (ou roda o script)",
+    "Advisors remotos sem alertas",
+    "Todas as tabelas de public com RLS",
+    "pg_cron com 3 tarefas mm-*"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "remoto"
+  },
+  {
+   "id": "SB-004",
+   "type": "TASK",
+   "title": "Configurar Google OAuth, login anônimo e URLs de redirect no Supabase remoto",
+   "description": "Credenciais do projeto Google do MemoriesMT não existem nesta sessão. Fluxo preparado (/auth/callback, portão do organizador) e testado com e-mail/senha local.",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P0",
+   "status": "BLOCKED",
+   "dependencies": [
+    "SB-003"
+   ],
+   "origin": "entrega autônoma 2026-10-21",
+   "acceptance": [
+    "Client ID/Secret do Google informados no painel Supabase",
+    "Login, callback, sessão e logout verificados em preview e produção",
+    "Anonymous sign-ins e manual linking ativos"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "remoto"
+  },
+  {
+   "id": "SB-005",
+   "type": "TASK",
+   "title": "Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução)",
+   "description": "O banco enfileira os caminhos; falta a função que apaga pela API de Storage e a checagem do conteúdo real das imagens (o bucket só confere o Content-Type).",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-003"
+   ],
+   "origin": "entrega autônoma 2026-10-21",
+   "acceptance": [
+    "Fila de limpeza é drenada",
+    "Upload com MIME falso é recusado",
+    "Teste automatizado"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "SB-006",
+   "type": "TASK",
+   "title": "Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexão",
+   "description": "A publicação supabase_realtime e a RLS no Realtime estão validadas no banco; falta o hook de interface que assina e reconsulta.",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-002"
+   ],
+   "origin": "entrega autônoma 2026-10-21",
+   "acceptance": [
+    "Dois contextos de navegador independentes veem a mudança",
+    "Revogação de acesso reflete na hora",
+    "Reconexão recupera o que perdeu"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "SB-007",
+   "type": "TASK",
+   "title": "Relógio do servidor no app e observabilidade (logs estruturados, monitor da revelação, runbook de recuperação)",
+   "description": "ServerClock existe mas não é sincronizado; faltam logs estruturados e alerta quando reveal_due_events atrasar.",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-003"
+   ],
+   "origin": "entrega autônoma 2026-10-21",
+   "acceptance": [
+    "Offset sincronizado no carregamento",
+    "Alerta de atraso da revelação",
+    "Procedimento de backup/restauração testado"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "SB-008",
+   "type": "TASK",
+   "title": "Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto",
+   "description": "Projeto newmemocuiaba sem variáveis hoje. Depende do banco remoto, do Google OAuth e da autorização de promoção (REL-001).",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P0",
+   "status": "BLOCKED",
+   "dependencies": [
+    "SB-003",
+    "SB-004",
+    "REL-001"
+   ],
+   "origin": "entrega autônoma 2026-10-21",
+   "acceptance": [
+    "NEXT_PUBLIC_SUPABASE_URL e _PUBLISHABLE_KEY em Preview/Production",
+    "Smoke test no deployment publicado",
+    "Gates de RELEASE-GATES.md cumpridos"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "vercel"
   }
  ],
  "requirements": [

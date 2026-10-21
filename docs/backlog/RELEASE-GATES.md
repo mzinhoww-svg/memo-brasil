@@ -11,12 +11,17 @@
 | G7 | Acesso do conector Supabase ao projeto (INF-001) | ABERTO (bloqueio de infraestrutura) | docs/audit/evidence/logs/vercel-supabase-inspection.md |
 | G8 | Produção promovida e verificada (REL-001) | BLOQUEADO (destino não confirmado) | — |
 
-## Itens P0/P1 em aberto (3)
+## Itens P0/P1 em aberto (8)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
 | REL-001 | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | P1 | BLOCKED |
 | INF-001 | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) | P1 | READY |
+| SB-003 | Aplicar as migrations no projeto remoto asyaegeodyttttaubvxh | P0 | BLOCKED |
+| SB-004 | Configurar Google OAuth, login anônimo e URLs de redirect no Supabase remoto | P0 | BLOCKED |
+| SB-005 | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | P1 | BACKLOG |
+| SB-006 | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexão | P1 | BACKLOG |
+| SB-008 | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | P0 | BLOCKED |
 
 ## Decisão atual (AUD-001)
 **NO-GO para iniciar a integração com o Supabase agora.** Não há P0; há 1 P1 de produto (`BG-101`) e 6 P1 de integração (`ITG-101..ITG-106`). O caminho até **CONDITIONAL GO** é curto e não exige reescrever o produto: ondas 1 a 3 em `docs/audit/10-REMEDIATION-BACKLOG.md`, depois `AUD-002`. **GO para continuar a fase pré-backend** (correções). Nenhum item de EP-09 deve começar antes de `AUD-002`. `INF-001` (acesso do conector) corre em paralelo.

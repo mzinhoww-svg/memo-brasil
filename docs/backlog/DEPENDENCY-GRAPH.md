@@ -51,6 +51,14 @@ flowchart LR
   ITG_110["ITG-110<br/>BACKLOG"]:::back
   INF_002["INF-002<br/>BLOCKED"]:::block
   AUD_002["AUD-002<br/>DONE"]:::done
+  SB_001["SB-001<br/>DONE"]:::done
+  SB_002["SB-002<br/>DONE"]:::done
+  SB_003["SB-003<br/>BLOCKED"]:::block
+  SB_004["SB-004<br/>BLOCKED"]:::block
+  SB_005["SB-005<br/>BACKLOG"]:::back
+  SB_006["SB-006<br/>BACKLOG"]:::back
+  SB_007["SB-007<br/>BACKLOG"]:::back
+  SB_008["SB-008<br/>BLOCKED"]:::block
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -130,6 +138,17 @@ flowchart LR
   ITG_104 --> AUD_002
   ITG_105 --> AUD_002
   ITG_106 --> AUD_002
+  ITG_106 --> SB_001
+  SB_001 --> SB_002
+  ITG_102 --> SB_002
+  SB_001 --> SB_003
+  SB_003 --> SB_004
+  SB_003 --> SB_005
+  SB_002 --> SB_006
+  SB_003 --> SB_007
+  SB_003 --> SB_008
+  SB_004 --> SB_008
+  REL_001 --> SB_008
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;
