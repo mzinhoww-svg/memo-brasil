@@ -26,6 +26,8 @@ export interface MemoEvent {
   revealStatus: RevealStatus; // espelho persistido de computeRevealStatus (idempotente)
   /** Instante em que a revelação passou a valer (gravado uma vez pela tarefa de revelação; nunca volta a null). */
   revealedAt: number | null;
+  /** Concorrência otimista: incrementada pelo repositório a cada gravação. */
+  version: number;
   capacity: Capacity;
   shotsPerPerson: Shots;
   everyoneSeesAll: boolean;

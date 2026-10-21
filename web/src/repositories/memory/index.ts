@@ -1,6 +1,7 @@
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
-import type { Invitation, Participant, PhotoData, Repositories, User } from "../types";
+import { matchesFilter, paginate, sortNewestFirst } from "../paging";
+import { RepositoryError, type Invitation, type Participant, type PhotoData, type Repositories, type User } from "../types";
 
 const clone = <T,>(v: T): T => structuredClone(v);
 
@@ -27,11 +28,18 @@ export function createMemoryRepositories(): Repositories {
         const e = [...events.values()].find((x) => x.code === code);
         return e ? clone(e) : undefined;
       },
-      save: async (e) => void events.set(e.id, clone(e)),
+      save: async (e, opts) => {
+        const cur = events.get(e.id);
+        if (cur && opts?.expectedVersion !== undefined && cur.version !== opts.expectedVersion) throw new RepositoryError("conflict", `Evento ${e.id}: versão ${opts.expectedVersion} desatualizada (atual ${cur.version})`);
+        const saved = { ...clone(e), version: cur ? cur.version + 1 : 1 };
+        events.set(e.id, saved);
+        return clone(saved);
+      },
       remove: async (id) => void events.delete(id),
     },
     participants: {
       listByEvent: async (id) => [...participants.values()].filter((p) => p.eventId === id).map(clone),
+      count: async (id) => [...participants.values()].filter((p) => p.eventId === id).length,
       get: async (e, u) => (participants.has(pk(e, u)) ? clone(participants.get(pk(e, u))!) : undefined),
       put: async (p) => void participants.set(pk(p.eventId, p.userId), clone(p)),
       remove: async (e, u) => void participants.delete(pk(e, u)),
@@ -40,11 +48,24 @@ export function createMemoryRepositories(): Repositories {
     photos: {
       listByEvent: async (id) => [...photos.values()].filter((p) => p.eventId === id).map(clone).sort((a, b) => b.createdAt - a.createdAt),
       get: async (id) => (photos.has(id) ? clone(photos.get(id)!) : undefined),
+      count: async (id, f) => [...photos.values()].filter((p) => p.eventId === id && matchesFilter(p, f)).length,
+      page: async (id, o) => {
+        const pg = paginate(sortNewestFirst([...photos.values()].filter((p) => p.eventId === id)), o);
+        return { ...pg, items: pg.items.map(clone) };
+      },
       add: async (p, d) => {
+        if (photos.has(p.id)) return;
         photos.set(p.id, clone(p));
         data.set(p.id, { bytes: d.bytes.slice(0), type: d.type });
       },
-      update: async (p) => void (photos.has(p.id) && photos.set(p.id, clone(p))),
+      update: async (p, opts) => {
+        const cur = photos.get(p.id);
+        if (!cur) throw new RepositoryError("not-found", `Foto ${p.id} não existe`);
+        if (opts?.expectedVersion !== undefined && cur.version !== opts.expectedVersion) throw new RepositoryError("conflict", `Foto ${p.id}: versão ${opts.expectedVersion} desatualizada (atual ${cur.version})`);
+        const saved = { ...clone(p), version: cur.version + 1 };
+        photos.set(p.id, saved);
+        return clone(saved);
+      },
       getData: async (id) => (data.has(id) ? { bytes: data.get(id)!.bytes.slice(0), type: data.get(id)!.type } : undefined),
       remove: async (id) => {
         photos.delete(id);

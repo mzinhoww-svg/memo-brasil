@@ -2,7 +2,8 @@ import { openDB, type DBSchema, type IDBPDatabase, type IDBPTransaction, type St
 import { inferRevealAnchor, migrateLegacyReveal } from "@/domain/reveal";
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
-import { StorageUnavailableError, type Invitation, type Participant, type PhotoData, type Repositories, type User } from "../types";
+import { matchesFilter, paginate, sortNewestFirst } from "../paging";
+import { RepositoryError, StorageUnavailableError, type Invitation, type Participant, type PhotoData, type Repositories, type User } from "../types";
 
 interface Schema extends DBSchema {
   events: { key: string; value: MemoEvent; indexes: { code: string } };
@@ -55,6 +56,15 @@ export const MIGRATIONS: Migration[] = [
       if (e.revealedAt === undefined) await cur.update({ ...cur.value, revealedAt: e.revealEnabled && e.revealAt !== null && e.revealAt <= now ? e.revealAt : null } as never);
     }
   },
+  // v5: version (concorrência otimista) em eventos e fotos já salvos
+  async (_db, tx) => {
+    for (const name of ["events", "photos"] as const) {
+      const store = tx.objectStore(name);
+      for (let cur = await store.openCursor(); cur; cur = await cur.continue()) {
+        if ((cur.value as { version?: number }).version === undefined) await cur.update({ ...cur.value, version: 1 } as never);
+      }
+    }
+  },
 ];
 export const DB_VERSION = MIGRATIONS.length;
 
@@ -99,7 +109,7 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
     try {
       return await fn(d);
     } catch (e) {
-      if (e instanceof StorageUnavailableError) throw e;
+      if (e instanceof RepositoryError) throw e;
       throw new StorageUnavailableError(e);
     }
   };
@@ -109,29 +119,49 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
       list: () => guard((d) => d.getAll("events")),
       get: (id) => guard((d) => d.get("events", id)),
       getByCode: (code) => guard((d) => d.getFromIndex("events", "code", code)),
-      save: (e) => guard(async (d) => void (await d.put("events", e))),
+      save: (e, opts) =>
+        guard(async (d) => {
+          const tx = d.transaction("events", "readwrite");
+          const cur = await tx.store.get(e.id);
+          const curV = cur?.version ?? 1;
+          if (cur && opts?.expectedVersion !== undefined && curV !== opts.expectedVersion) throw new RepositoryError("conflict", `Evento ${e.id}: versão ${opts.expectedVersion} desatualizada (atual ${curV})`);
+          const saved = { ...e, version: cur ? curV + 1 : 1 };
+          await tx.store.put(saved);
+          await tx.done;
+          return saved;
+        }),
       remove: (id) => guard((d) => d.delete("events", id)),
     },
     participants: {
       listByEvent: (id) => guard((d) => d.getAllFromIndex("participants", "eventId", id)),
+      count: (id) => guard((d) => d.countFromIndex("participants", "eventId", id)),
       get: (e, u) => guard((d) => d.get("participants", [e, u])),
       put: (p) => guard(async (d) => void (await d.put("participants", p))),
       remove: (e, u) => guard((d) => d.delete("participants", [e, u])),
       removeByEvent: (id) => guard((d) => wipe(d, "participants", "eventId", id)),
     },
     photos: {
-      listByEvent: (id) => guard(async (d) => (await d.getAllFromIndex("photos", "eventId", id)).sort((a, b) => b.createdAt - a.createdAt)),
+      listByEvent: (id) => guard(async (d) => sortNewestFirst(await d.getAllFromIndex("photos", "eventId", id))),
+      count: (id, f) => guard(async (d) => (f ? (await d.getAllFromIndex("photos", "eventId", id)).filter((p) => matchesFilter(p, f)).length : d.countFromIndex("photos", "eventId", id))),
+      page: (id, o) => guard(async (d) => paginate(sortNewestFirst(await d.getAllFromIndex("photos", "eventId", id)), o)),
       get: (id) => guard((d) => d.get("photos", id)),
       add: (p, data) =>
         guard(async (d) => {
           const tx = d.transaction(["photos", "photoData"], "readwrite");
+          if (await tx.objectStore("photos").get(p.id)) return void (await tx.done);
           await Promise.all([tx.objectStore("photos").put(p), tx.objectStore("photoData").put(data, p.id), tx.done]);
         }),
-      update: (p) =>
+      update: (p, opts) =>
         guard(async (d) => {
           const tx = d.transaction("photos", "readwrite");
-          if (await tx.store.get(p.id)) await tx.store.put(p);
+          const cur = await tx.store.get(p.id);
+          if (!cur) throw new RepositoryError("not-found", `Foto ${p.id} não existe`);
+          const curV = cur.version ?? 1;
+          if (opts?.expectedVersion !== undefined && curV !== opts.expectedVersion) throw new RepositoryError("conflict", `Foto ${p.id}: versão ${opts.expectedVersion} desatualizada (atual ${curV})`);
+          const saved = { ...p, version: curV + 1 };
+          await tx.store.put(saved);
           await tx.done;
+          return saved;
         }),
       getData: (id) => guard((d) => d.get("photoData", id)),
       remove: (id) =>

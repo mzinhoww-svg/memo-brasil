@@ -5,7 +5,7 @@ import { notificationPlan } from "./notifications";
 const H = 3_600_000;
 const ev = (o: Partial<MemoEvent> = {}): MemoEvent => ({
   id: "e", code: "AAAAAAAA", title: "Emy e Igor", category: "casamento", hostId: "h", hostName: "Emy", startAt: 0, durationHours: 6,
-  cameraStyle: "original", revealEnabled: true, revealAt: 6 * H, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24, everyoneSeesAll: true,
+  cameraStyle: "original", revealEnabled: true, revealAt: 6 * H, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, version: 1, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24, everyoneSeesAll: true,
   reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 0, ...o,
 });
 

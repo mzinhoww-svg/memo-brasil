@@ -3656,7 +3656,7 @@
    "epic": "EP-08",
    "parent": null,
    "priority": "P1",
-   "status": "READY",
+   "status": "DONE",
    "dependencies": [],
    "origin": "auditoria AUD-001 · A4-005, A4-008 · natureza: integração",
    "acceptance": [
@@ -3671,12 +3671,15 @@
    ],
    "tests": [],
    "evidence": [
+    "INTEGRATION-PLAN §3 (photos), §4, §10; types.ts:65-73",
     "docs/audit/drafts/A4.md",
-    "postar/page.tsx:29; photos/service.ts:10-12; domain/photo.ts:55; INTEGRATION-PLAN §4.1 x §5",
-    "INTEGRATION-PLAN §3 (photos), §4, §10; types.ts:65-73"
+    "docs/audit/remediation/ITG-106.md",
+    "docs/supabase/DECISIONS.md",
+    "docs/supabase/INTEGRATION-PLAN.md",
+    "postar/page.tsx:29; photos/service.ts:10-12; domain/photo.ts:55; INTEGRATION-PLAN §4.1 x §5"
    ],
-   "commit": null,
-   "environment": null,
+   "commit": "753e57d",
+   "environment": "documentação",
    "effort": "M",
    "sources": [
     "A4-005",

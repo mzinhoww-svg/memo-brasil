@@ -11,7 +11,7 @@
 | G7 | Acesso do conector Supabase ao projeto (INF-001) | ABERTO (bloqueio de infraestrutura) | docs/audit/evidence/logs/vercel-supabase-inspection.md |
 | G8 | Produção promovida e verificada (REL-001) | BLOQUEADO (destino não confirmado) | — |
 
-## Itens P0/P1 em aberto (10)
+## Itens P0/P1 em aberto (9)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -22,7 +22,6 @@
 | ITG-103 | Fotos por URL/miniatura e upload em duas fases com created_at do servidor | P1 | BACKLOG |
 | ITG-104 | Autoridade do servidor: revelação, rolo, limites e relógio | P1 | BACKLOG |
 | ITG-105 | Identidade (auth.uid) e migração local→nuvem compatíveis com o esquema | P1 | BACKLOG |
-| ITG-106 | Corrigir contradições do INTEGRATION-PLAN e fechar decisões de produto pendentes | P1 | READY |
 | AUD-002 | Reauditoria dos P1 após as correções (gate para iniciar a fase Supabase) | P1 | BACKLOG |
 
 ## Decisão atual (AUD-001)
@@ -32,7 +31,6 @@
 | Prio | ID | Título |
 |---|---|---|
 | P1 | INF-001 | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) |
-| P1 | ITG-106 | Corrigir contradições do INTEGRATION-PLAN e fechar decisões de produto pendentes |
 | P2 | BG-022 | Sem validação em Safari/iOS e Firefox |
 | P2 | BG-103 | 'Remover da festa' não impede a reentrada com o mesmo código |
 | P2 | BG-104 | Diálogo de revelação: foco, Escape, landmark e não bloquear a postagem |

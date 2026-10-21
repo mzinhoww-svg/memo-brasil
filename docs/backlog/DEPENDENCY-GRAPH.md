@@ -44,7 +44,7 @@ flowchart LR
   ITG_103["ITG-103<br/>BACKLOG"]:::back
   ITG_104["ITG-104<br/>BACKLOG"]:::back
   ITG_105["ITG-105<br/>BACKLOG"]:::back
-  ITG_106["ITG-106<br/>READY"]:::ready
+  ITG_106["ITG-106<br/>DONE"]:::done
   ITG_107["ITG-107<br/>BACKLOG"]:::back
   ITG_108["ITG-108<br/>BACKLOG"]:::back
   ITG_109["ITG-109<br/>BACKLOG"]:::back

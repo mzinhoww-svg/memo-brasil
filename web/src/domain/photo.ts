@@ -16,6 +16,8 @@ export interface Photo {
   status: PhotoStatus;
   reports: number;
   highlighted: boolean; // "Escolha dos noivos"
+  /** Concorrência otimista: incrementada pelo repositório a cada gravação. */
+  version: number;
 }
 
 export interface Reaction {

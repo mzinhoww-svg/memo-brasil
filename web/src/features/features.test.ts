@@ -313,3 +313,51 @@ describe("BG-102: espelho da revelação não regride com o relógio recuado", (
     expect(await loadFeed(repos, revealed, { id: "outro", host: false }, NOW + 2)).toHaveLength(1);
   });
 });
+
+describe("BG-113: escritas concorrentes não perdem atualização", () => {
+  const H = 3_600_000;
+  const mk = async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: { enabled: true, kind: "ao-terminar", days: 1, date: "", time: "", timezone: "UTC" } }, NOW);
+    if (!r.ok) throw new Error();
+    return r.event;
+  };
+  it("duas configurações em paralelo (título e local) ficam as duas", async () => {
+    const e = await mk();
+    await Promise.all([updateSettings(repos, e.id, { title: "Novo título" }), updateSettings(repos, e.id, { place: "Salão Azul" })]);
+    expect(await repos.events.get(e.id)).toMatchObject({ title: "Novo título", place: "Salão Azul" });
+  });
+  it("estender o fim e mudar uma configuração ao mesmo tempo preserva as duas mudanças", async () => {
+    const e = await mk();
+    const [ext] = await Promise.all([setEndIn(repos, e.id, 30, NOW + H), updateSettings(repos, e.id, { shotsPerPerson: 5 })]);
+    if (!ext.ok) throw new Error();
+    const saved = (await repos.events.get(e.id))!;
+    expect(saved.shotsPerPerson).toBe(5);
+    expect(saved.revealAt).toBe(endAt(saved));
+  });
+  it("cada gravação incrementa a versão e o serviço devolve o evento gravado", async () => {
+    const e = await mk();
+    const s = await updateSettings(repos, e.id, { title: "A" });
+    if (!s.ok) throw new Error();
+    expect(s.event.version).toBe(e.version + 1);
+    expect((await repos.events.get(e.id))!.version).toBe(s.event.version);
+  });
+  it("reconciliar duas vezes em paralelo grava revealedAt uma vez só (idempotente)", async () => {
+    const e = await mk();
+    const at = e.revealAt! + 1;
+    const [a, b] = await Promise.all([reconcileReveal(repos, e.id, at), reconcileReveal(repos, e.id, at)]);
+    expect(a!.revealedAt).toBe(b!.revealedAt);
+    expect((await repos.events.get(e.id))!.version).toBe(e.version + 1);
+  });
+  it("moderar uma foto removida no meio devolve resultado tipado em vez de estourar", async () => {
+    const e = await mk();
+    const p = await postPhoto(repos, e, guest, img, { moment: "O sim" }, NOW + 1);
+    if (!p.ok) throw new Error();
+    await repos.photos.remove(p.photo.id);
+    await expect(moderate(repos, p.photo.id, "ocultar")).resolves.toBeUndefined();
+    // e a corrida real: a foto some entre a leitura e a gravação
+    const q = await postPhoto(repos, e, guest, img, { moment: "O sim" }, NOW + 2);
+    if (!q.ok) throw new Error();
+    const racing = { ...repos, photos: { ...repos.photos, update: async () => { await repos.photos.remove(q.photo.id); return repos.photos.update(q.photo); } } } as typeof repos;
+    await expect(moderate(racing, q.photo.id, "ocultar")).resolves.toBeUndefined();
+  });
+});

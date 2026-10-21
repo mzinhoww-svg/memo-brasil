@@ -1,6 +1,6 @@
 import { canPost, report, setReaction, visiblePhotos, type Photo, type PostResult, type Reaction, type ReactionKind, type Viewer } from "@/domain/photo";
 import type { MemoEvent } from "@/domain/event";
-import type { PhotoData, Repositories, User } from "@/repositories";
+import { RepositoryError, retryOnConflict, type PhotoData, type Repositories, type User } from "@/repositories";
 import { withLock } from "@/lib/lock";
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
@@ -22,7 +22,7 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
   if (!verdict.ok) return { ok: false, reason: verdict.reason };
   const photo: Photo = {
     id: crypto.randomUUID(), eventId: event.id, authorId: user.id, authorName: user.name, createdAt: now,
-    moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false,
+    moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false, version: 1,
   };
   try {
     await repos.photos.add(photo, data);
@@ -50,10 +50,15 @@ export async function react(repos: Repositories, event: MemoEvent, photoId: stri
 
 export async function reportPhoto(repos: Repositories, photoId: string): Promise<Photo | undefined> {
   return withLock(`denuncia:${photoId}`, async () => {
-    const p = await repos.photos.get(photoId);
-    if (!p || p.status === "removida") return undefined;
-    const next = report(p);
-    await repos.photos.update(next);
-    return next;
+    try {
+      return await retryOnConflict(async () => {
+        const p = await repos.photos.get(photoId);
+        if (!p || p.status === "removida") return undefined;
+        return repos.photos.update(report(p), { expectedVersion: p.version });
+      });
+    } catch (e) {
+      if (e instanceof RepositoryError && e.code === "not-found") return undefined;
+      throw e;
+    }
   });
 }

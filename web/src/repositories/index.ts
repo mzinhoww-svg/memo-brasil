@@ -4,6 +4,7 @@ import { createMemoryRepositories } from "./memory";
 import type { Repositories } from "./types";
 
 export * from "./types";
+export { retryOnConflict } from "./mutate";
 export { createIndexedDbRepositories, createMemoryRepositories };
 
 /** Persistência local desta fase: IndexedDB; sem IndexedDB cai para memória (dados não persistem). */

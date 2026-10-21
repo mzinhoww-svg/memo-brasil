@@ -26,15 +26,34 @@ export interface PhotoData {
   type: string;
 }
 
+/** Código do erro: o chamador decide o que fazer sem inspecionar mensagens. */
+export type RepositoryErrorCode = "conflict" | "not-found" | "unavailable" | "invalid";
+export class RepositoryError extends Error {
+  readonly code: RepositoryErrorCode;
+  constructor(code: RepositoryErrorCode, message: string, cause?: unknown) {
+    super(message);
+    this.name = "RepositoryError";
+    this.code = code;
+    this.cause = cause;
+  }
+}
+
+/** Concorrência otimista: se informada e diferente da gravada, a escrita falha com `conflict`. */
+export interface WriteOptions { expectedVersion?: number }
+export interface Page<T> { items: T[]; total: number; nextCursor: string | null }
+export interface PhotoCountFilter { authorId?: string; excludeStatus?: Photo["status"] }
+
 export interface EventRepository {
   list(): Promise<MemoEvent[]>;
   get(id: string): Promise<MemoEvent | undefined>;
   getByCode(code: string): Promise<MemoEvent | undefined>;
-  save(event: MemoEvent): Promise<void>;
+  /** Devolve o evento como gravado (com a nova `version`). */
+  save(event: MemoEvent, opts?: WriteOptions): Promise<MemoEvent>;
   remove(id: string): Promise<void>;
 }
 export interface ParticipantRepository {
   listByEvent(eventId: string): Promise<Participant[]>;
+  count(eventId: string): Promise<number>;
   get(eventId: string, userId: string): Promise<Participant | undefined>;
   put(p: Participant): Promise<void>;
   remove(eventId: string, userId: string): Promise<void>;
@@ -43,8 +62,13 @@ export interface ParticipantRepository {
 export interface PhotoRepository {
   listByEvent(eventId: string): Promise<Photo[]>;
   get(id: string): Promise<Photo | undefined>;
+  count(eventId: string, filter?: PhotoCountFilter): Promise<number>;
+  /** Mais novas primeiro; `cursor` opaco devolvido em `nextCursor`. */
+  page(eventId: string, opts: { limit: number; cursor?: string | null }): Promise<Page<Photo>>;
+  /** Idempotente por `id`: reenvio da mesma foto não duplica nem sobrescreve. */
   add(photo: Photo, data: PhotoData): Promise<void>;
-  update(photo: Photo): Promise<void>;
+  /** Versionado; foto inexistente é `not-found`. */
+  update(photo: Photo, opts?: WriteOptions): Promise<Photo>;
   getData(id: string): Promise<PhotoData | undefined>;
   remove(id: string): Promise<void>;
   removeByEvent(eventId: string): Promise<void>;
@@ -82,10 +106,9 @@ export interface Repositories {
 }
 
 /** Lançado quando o navegador não oferece IndexedDB (modo privado, cota, bloqueio). */
-export class StorageUnavailableError extends Error {
+export class StorageUnavailableError extends RepositoryError {
   constructor(cause?: unknown) {
-    super("Armazenamento local indisponível");
+    super("unavailable", "Armazenamento local indisponível", cause);
     this.name = "StorageUnavailableError";
-    this.cause = cause;
   }
 }

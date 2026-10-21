@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 51, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 47, READY 12.
+Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 51, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 48, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -250,7 +250,7 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 | ITG-103 | FEATURE | Fotos por URL/miniatura e upload em duas fases com created_at do servidor | P1 | BACKLOG | ITG-102 | auditoria AUD-001 · A4-001, A4-009 · natureza: integração | - | - |
 | ITG-104 | FEATURE | Autoridade do servidor: revelação, rolo, limites e relógio | P1 | BACKLOG | BG-101, BG-102, ITG-106 | auditoria AUD-001 · A4-004, A4-005, A4-010, A4-011 · natureza: integração | - | - |
 | ITG-105 | FEATURE | Identidade (auth.uid) e migração local→nuvem compatíveis com o esquema | P1 | BACKLOG | ITG-102 | auditoria AUD-001 · A4-007, A4-008 · natureza: integração | - | - |
-| ITG-106 | TASK | Corrigir contradições do INTEGRATION-PLAN e fechar decisões de produto pendentes | P1 | READY | - | auditoria AUD-001 · A4-005, A4-008 · natureza: integração | - | - |
+| ITG-106 | TASK | Corrigir contradições do INTEGRATION-PLAN e fechar decisões de produto pendentes | P1 | DONE | - | auditoria AUD-001 · A4-005, A4-008 · natureza: integração | 753e57d | documentação |
 | ITG-107 | FEATURE | Convites: id, rotação, expiração, ?mesa= confiável e limite de tentativas (código ~39,6 bits) | P2 | BACKLOG | ITG-106 | auditoria AUD-001 · A4-014, A3-005 · natureza: integração | - | - |
 | ITG-108 | TASK | Ambiente (env), CSP para o Supabase e suíte de contrato reutilizável | P2 | BACKLOG | ITG-106 | auditoria AUD-001 · A4-013 · natureza: integração | - | - |
 | ITG-109 | TASK | Matriz de papéis × RLS e proteção de servidor para /master | P2 | BACKLOG | ITG-106 | auditoria AUD-001 · A3-002, A4-012 · natureza: integração | - | - |
@@ -273,8 +273,6 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 **ITG-104** critérios: [A4-004] Corrigir: Remover reveal_status gravável; derivar de reveal_at; manter job só para push/idempotência.; [A4-005] Corrigir: RPC my_shot_count(event); policy do autor também exige is_revealed; corrigir §5.; [A4-010] Corrigir: Checks e triggers para cada item; FK composta (photo_id,event_id).; [A4-011] Corrigir: Definir invariante; offset servidor-cliente via RPC; refetch em reveal_at+skew, realtime só acelera.; [A4-004] Teste de regressão: Convidado nunca chama events.save; teste RLS: update de reveal_* por; [A4-005] Teste de regressão: pgTAP: autor não lê foto própria pré-revelação; my_shot_count; [A4-010] Teste de regressão: pgTAP por regra, com ator malicioso.; [A4-011] Teste de regressão: Cliente 5 min adiantado não revela; encerrar antes não deixa
 
 **ITG-105** critérios: [A4-007] Corrigir: Usar AuthService no provider; anônimo + linkIdentity; remover switchTo do produto (demo à parte); função de fusão para Google já existente.; [A4-008] Corrigir: author_id nullable + author_name; RPC import_event security definer que ignora triggers; escolher identidade; manifesto com contagens e versão de formato.; [A4-007] Teste de regressão: Anônimo vincula Google mantendo uid e fotos.; [A4-008] Teste de regressão: Importar evento encerrado com fotos de 3 autores: contagens iguais,
-
-**ITG-106** critérios: [A4-005] Corrigir: RPC my_shot_count(event); policy do autor também exige is_revealed; corrigir §5.; [A4-008] Corrigir: author_id nullable + author_name; RPC import_event security definer que ignora triggers; escolher identidade; manifesto com contagens e versão de formato.; [A4-005] Teste de regressão: pgTAP: autor não lê foto própria pré-revelação; my_shot_count; [A4-008] Teste de regressão: Importar evento encerrado com fotos de 3 autores: contagens iguais,
 
 **ITG-107** critérios: [A4-014] Corrigir: Decidir: id no link + invitation_id, ou cortar. RPC rotate_code, rate limit em preview/join, table_label só informativo.; [A3-005] Corrigir: RPC por código com rate limit, backoff e captcha; não expor eventos por id; avaliar 10+ caracteres.; [A4-014] Teste de regressão: Código rotacionado invalida o antigo; 100 previews/min são limitados.; [A3-005] Teste de regressão: 100 códigos inválidos geram 429.
 

@@ -10,7 +10,7 @@ const H = 3600000;
 const D = 24 * H;
 const base: MemoEvent = {
   id: "e1", code: "NFVARBQX", title: "Emy e Igor", category: "casamento", hostId: "h1", hostName: "Emy",
-  startAt: 1_000_000, durationHours: 6, cameraStyle: "original", revealEnabled: true, revealAt: 6 * 3_600_000, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, timezone: "America/Cuiaba", revealStatus: "pendente",
+  startAt: 1_000_000, durationHours: 6, cameraStyle: "original", revealEnabled: true, revealAt: 6 * 3_600_000, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, version: 1, timezone: "America/Cuiaba", revealStatus: "pendente",
   capacity: 50, shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone",
   place: "Chalés Taíba, CE", moments: ["O sim", "Pôr do sol"], tables: 10, createdAt: 1_000_000,
 };
@@ -113,7 +113,7 @@ describe("contraste", () => {
   });
 });
 
-const ph = (o: Partial<Photo>): Photo => ({ id: "p", eventId: "e1", authorId: "a", authorName: "Ana", createdAt: 1, moment: "O sim", status: "visivel", reports: 0, highlighted: false, ...o });
+const ph = (o: Partial<Photo>): Photo => ({ id: "p", eventId: "e1", authorId: "a", authorName: "Ana", createdAt: 1, moment: "O sim", status: "visivel", reports: 0, highlighted: false, version: 1, ...o });
 
 const T = (authorId: string) => ({ eventId: "e1", photoId: "p1", authorId });
 describe("postar e reagir", () => {

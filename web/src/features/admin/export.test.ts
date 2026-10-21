@@ -23,7 +23,7 @@ describe("ZIP do álbum", () => {
   it("inclui só fotos não removidas e conta as sem bytes", async () => {
     const repos = createMemoryRepositories();
     const ev = { title: "Emy & Igor" } as MemoEvent;
-    const mk = (id: string, status: Photo["status"], t: number): Photo => ({ id, eventId: "e", authorId: "a", authorName: "Ana", createdAt: t, moment: "O sim", status, reports: 0, highlighted: false });
+    const mk = (id: string, status: Photo["status"], t: number): Photo => ({ id, eventId: "e", authorId: "a", authorName: "Ana", createdAt: t, moment: "O sim", status, reports: 0, highlighted: false, version: 1 });
     const photos = [mk("1", "visivel", 1), mk("2", "removida", 2), mk("3", "oculta", 3), mk("4", "visivel", 4)];
     for (const p of photos.slice(0, 3)) await repos.photos.add(p, { bytes: new Uint8Array([1, 2]).buffer, type: "image/jpeg" });
     const r = await zipAlbum(repos, ev, photos);

@@ -1,6 +1,6 @@
 import { hide, moderationQueue, remove, toggleHighlight, unhide, type Photo } from "@/domain/photo";
 import { eventStatus, type MemoEvent } from "@/domain/event";
-import type { Participant, Repositories } from "@/repositories";
+import { RepositoryError, retryOnConflict, type Participant, type Repositories } from "@/repositories";
 
 export interface EventStats {
   photos: number;
@@ -28,12 +28,19 @@ export async function eventStats(repos: Repositories, e: MemoEvent, now: number)
 export type ModerationAction = "ocultar" | "mostrar" | "remover" | "destacar";
 
 export async function moderate(repos: Repositories, photoId: string, action: ModerationAction): Promise<Photo | undefined> {
-  const p = await repos.photos.get(photoId);
-  if (!p) return undefined;
-  const next = action === "ocultar" ? hide(p) : action === "mostrar" ? unhide(p) : action === "remover" ? remove(p) : toggleHighlight(p);
-  if (next.status === "removida") await repos.reactions.removeByPhoto(photoId);
-  await repos.photos.update(next);
-  return next;
+  try {
+    return await retryOnConflict(async () => {
+      const p = await repos.photos.get(photoId);
+      if (!p) return undefined;
+      const next = action === "ocultar" ? hide(p) : action === "mostrar" ? unhide(p) : action === "remover" ? remove(p) : toggleHighlight(p);
+      const saved = await repos.photos.update(next, { expectedVersion: p.version });
+      if (saved.status === "removida") await repos.reactions.removeByPhoto(photoId);
+      return saved;
+    });
+  } catch (e) {
+    if (e instanceof RepositoryError && e.code === "not-found") return undefined; // a foto saiu no meio da operação
+    throw e;
+  }
 }
 
 /** Guests ordenados por fotos postadas (DataRow do admin). */

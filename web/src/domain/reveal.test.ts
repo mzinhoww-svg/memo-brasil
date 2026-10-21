@@ -9,7 +9,7 @@ const H = 3_600_000;
 const D = 24 * H;
 const ev = (o: Partial<MemoEvent> = {}): MemoEvent => ({
   id: "e", code: "AAAAAAAA", title: "Emy e Igor", category: "casamento", hostId: "host", hostName: "Emy", startAt: 0, durationHours: 6,
-  cameraStyle: "original", revealEnabled: true, revealAt: 10 * H, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, timezone: "America/Cuiaba", revealStatus: "pendente", capacity: 50,
+  cameraStyle: "original", revealEnabled: true, revealAt: 10 * H, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, version: 1, timezone: "America/Cuiaba", revealStatus: "pendente", capacity: 50,
   shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 0, ...o,
 });
 

@@ -5,10 +5,10 @@ import { createIndexedDbRepositories, createMemoryRepositories, deleteEventCasca
 
 const ev = (id: string, code: string): MemoEvent => ({
   id, code, title: "Emy e Igor", category: "casamento", hostId: "h", hostName: "Emy", startAt: 1, durationHours: 6,
-  cameraStyle: "original", revealEnabled: true, revealAt: 6, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24,
+  cameraStyle: "original", revealEnabled: true, revealAt: 6, revealAnchor: "fim", revealOffsetDays: 0, revealedAt: null, version: 1, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24,
   everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 1,
 });
-const photo = (id: string, eventId: string, createdAt = 1): Photo => ({ id, eventId, authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false });
+const photo = (id: string, eventId: string, createdAt = 1): Photo => ({ id, eventId, authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false, version: 1 });
 const bytes = (...n: number[]) => new Uint8Array(n).buffer;
 
 let n = 0;
@@ -95,7 +95,7 @@ describe.each(impls)("garantias extras (%s)", (_name, make) => {
     const r = make();
     await r.photos.add(photo("p1", "e1"), { bytes: bytes(1), type: "image/jpeg" });
     await r.photos.remove("p1");
-    await r.photos.update({ ...photo("p1", "e1"), status: "oculta" });
+    await expect(r.photos.update({ ...photo("p1", "e1"), status: "oculta" })).rejects.toMatchObject({ code: "not-found" }); // v2: erro tipado, não silêncio
     expect(await r.photos.get("p1")).toBeUndefined();
   });
   it("identidades: clear mantém as conhecidas e switchTo volta ao anfitrião", async () => {
