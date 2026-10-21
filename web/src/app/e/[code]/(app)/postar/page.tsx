@@ -14,7 +14,7 @@ const SUGGESTIONS = ["Alguém precisava registrar isso.", "Ninguém segurou a em
 
 export default function Postar() {
   const { repos, now: clock } = useApp();
-  const { event, user, participant, now, photos, refresh } = useGuest();
+  const { event, user, participant, now, counts, refresh } = useGuest();
   const [phase, setPhase] = useState<Phase>("iniciando");
   const [facing, setFacing] = useState<"environment" | "user">("environment");
   const [moment, setMoment] = useState(event.moments[0] ?? "Agora");
@@ -26,7 +26,7 @@ export default function Postar() {
   const stream = useRef<MediaStream | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const used = photos.filter((p) => p.authorId === user.id && p.status !== "removida").length;
+  const used = counts.mine;
   const left = shotsLeft(event, used);
   const ended = eventStatus(event, now) === "encerrado";
   const noRoll = left !== null && left <= 0;

@@ -16,7 +16,7 @@ import { downloadPhoto, reactorsOf } from "@/features/photos/share";
 
 export default function Agora() {
   const { repos } = useApp();
-  const { event, user, viewer, now, photos, reactions, participants, refresh, revealStatus, developed } = useGuest();
+  const { event, user, viewer, now, photos, reactions, participants, counts, refresh, revealStatus, developed } = useGuest();
   const [more, setMore] = useState<string | undefined>();
   const [limit, setLimit] = useState(20);
   const shown = visiblePhotos(event, photos, viewer, now);
@@ -46,7 +46,7 @@ export default function Agora() {
       {event.notice && (!event.notice.expiresAt || event.notice.expiresAt > now) && <Notice text={event.notice.text} eyebrow={event.category === "casamento" ? "Aviso · cerimonial" : "Aviso · organização"} />}
 
       {pending ? (
-        <WaitingReveal event={event} ownCount={photos.filter((p) => p.authorId === user.id && p.status !== "removida").length} totalCount={photos.filter((p) => p.status !== "removida").length} />
+        <WaitingReveal event={event} ownCount={counts.mine} totalCount={counts.total} />
       ) : viewer.host && revealStatus === "pendente" ? (
         <div className="app-banner" role="status">
           <Icon name="agora" decorative size={22} />

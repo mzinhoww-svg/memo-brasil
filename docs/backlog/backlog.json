@@ -2504,7 +2504,7 @@
    "epic": "EP-08",
    "parent": null,
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [],
    "origin": "auditoria AUD-001 · A3-004, A1-011 · natureza: produto",
    "acceptance": [
@@ -2519,14 +2519,17 @@
     "web/src/repositories/index.ts",
     "web/src/repositories/indexeddb/index.ts"
    ],
-   "tests": [],
+   "tests": [
+    "web/src/features/features.test.ts (BG-113)"
+   ],
    "evidence": [
     "docs/audit/drafts/A3.md",
+    "docs/audit/remediation/BG-113.md",
     "events/service.ts; admin/service.ts moderate; repositories/index.ts; indexeddb/index.ts:50-56 (leitura de código).",
     "web/src/features/events/service.ts:68-132"
    ],
-   "commit": null,
-   "environment": null,
+   "commit": "a58c22b",
+   "environment": "local (Vitest + Chromium)",
    "effort": "M",
    "sources": [
     "A3-004",
@@ -3461,7 +3464,7 @@
    "epic": "EP-08",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [
     "ITG-106",
     "BG-113"
@@ -3484,15 +3487,19 @@
     "web/src/features/photos/service.ts",
     "web/src/repositories/types.ts"
    ],
-   "tests": [],
+   "tests": [
+    "web/src/repositories/contract-v2.test.ts",
+    "web/src/repositories/repositories.test.ts"
+   ],
    "evidence": [
     "docs/audit/drafts/A3.md",
-    "types.ts; hooks.ts:74-100; app/page.tsx:24; editor.tsx:61.",
+    "docs/audit/remediation/ITG-102.md",
+    "types.ts:29-35,84-91; events/service.ts:93-94; photos/service.ts:51-58; a4-static-checks.txt",
     "types.ts:44,53; hooks.ts:65; admin/service.ts:15-21; photos/service.ts:11",
-    "types.ts:29-35,84-91; events/service.ts:93-94; photos/service.ts:51-58; a4-static-checks.txt"
+    "types.ts; hooks.ts:74-100; app/page.tsx:24; editor.tsx:61."
    ],
-   "commit": null,
-   "environment": null,
+   "commit": "a58c22b",
+   "environment": "local (Vitest + Chromium)",
    "effort": "L",
    "sources": [
     "A3-003",

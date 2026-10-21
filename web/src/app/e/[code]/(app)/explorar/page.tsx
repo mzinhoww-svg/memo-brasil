@@ -15,7 +15,7 @@ import { downloadPhoto, reactorsOf } from "@/features/photos/share";
 
 export default function Explorar() {
   const { repos } = useApp();
-  const { event, user, viewer, now, photos, reactions, participants, refresh, developed } = useGuest();
+  const { event, user, viewer, now, photos, reactions, participants, counts, refresh, developed } = useGuest();
   const shown = useMemo(() => visiblePhotos(event, photos, viewer, now), [event, photos, viewer, now]);
   const [moment, setMoment] = useState<string | undefined>();
   const [vision, setVision] = useState<string | undefined>();
@@ -50,7 +50,7 @@ export default function Explorar() {
       </div>
 
       {!viewer.host && !isRevealed(event, now) ? (
-        <WaitingReveal event={event} ownCount={photos.filter((p) => p.authorId === user.id && p.status !== "removida").length} totalCount={photos.filter((p) => p.status !== "removida").length} />
+        <WaitingReveal event={event} ownCount={counts.mine} totalCount={counts.total} />
       ) : shown.length === 0 ? (
         <div className="app-empty">
           <Icon name="explorar" label="Explorar" size={28} />

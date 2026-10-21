@@ -16,6 +16,8 @@ export interface GuestCtx {
   photos: Photo[];
   reactions: Reaction[];
   participants: Participant[];
+  /** Contagens sem conteúdo (rolo e espera): valem mesmo quando as fotos ainda estão bloqueadas. */
+  counts: { mine: number; total: number };
   refresh: () => Promise<void>;
   /** pendente enquanto a revelação não chegou (convidado não vê fotos); desativada = fotos na hora */
   revealStatus: RevealStatus;

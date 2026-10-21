@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
+import { LOCAL_ACTOR } from "@/domain/roles";
 import type { Participant } from "@/repositories";
+import { readEventScoped, type EventAccess, type EventPreview } from "@/features/access/read";
 import { useApp } from "./provider";
 
 /** Relógio reativo: atualiza a cada `ms`; `sync()` força a leitura imediata depois de uma ação que muda o tempo do evento. */
@@ -36,17 +38,23 @@ export function useOnline(): boolean {
 
 export interface EventData {
   loading: boolean;
+  /** Como a pessoa atual se relaciona com o evento; define o que ela recebe. */
+  access: EventAccess;
   event: MemoEvent | undefined;
+  /** Só quando a pessoa ainda não entrou: o mínimo para o convite. */
+  preview: EventPreview | undefined;
   participants: Participant[];
   photos: Photo[];
   reactions: Reaction[];
+  counts: { mine: number; total: number };
   refresh: () => Promise<void>;
 }
 
-/** Carrega o evento (por código ou id) com participantes, fotos e reações do armazenamento local. */
+/** Carrega o evento (por código ou id) já escopado ao papel da pessoa atual: o que ela não pode ver não chega aqui. */
 export function useEventData(key: { code?: string; id?: string }): EventData {
-  const { repos, ready } = useApp();
-  const [state, setState] = useState<Omit<EventData, "refresh">>({ loading: true, event: undefined, participants: [], photos: [], reactions: [] });
+  const { repos, ready, user, now } = useApp();
+  const userId = user?.id ?? null;
+  const [state, setState] = useState<Omit<EventData, "refresh">>({ loading: true, access: "inexistente", event: undefined, preview: undefined, participants: [], photos: [], reactions: [], counts: { mine: 0, total: 0 } });
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -57,14 +65,10 @@ export function useEventData(key: { code?: string; id?: string }): EventData {
 
   const refresh = useCallback(async () => {
     if (!ready) return;
-    const event = key.code ? await repos.events.getByCode(key.code) : key.id ? await repos.events.get(key.id) : undefined;
-    if (!event) {
-      if (alive.current) setState({ loading: false, event: undefined, participants: [], photos: [], reactions: [] });
-      return;
-    }
-    const [participants, photos, reactions] = await Promise.all([repos.participants.listByEvent(event.id), repos.photos.listByEvent(event.id), repos.reactions.listByEvent(event.id)]);
-    if (alive.current) setState({ loading: false, event, participants, photos, reactions });
-  }, [repos, ready, key.code, key.id]);
+    const k = key.code ? { code: key.code } : key.id ? { id: key.id } : undefined;
+    const v = k ? await readEventScoped(repos, k, LOCAL_ACTOR(userId), now()) : undefined;
+    if (alive.current) setState({ loading: false, access: v?.access ?? "inexistente", event: v?.event, preview: v?.preview, participants: v?.participants ?? [], photos: v?.photos ?? [], reactions: v?.reactions ?? [], counts: v?.counts ?? { mine: 0, total: 0 } });
+  }, [repos, ready, key.code, key.id, userId, now]);
 
   useEffect(() => {
     void refresh();

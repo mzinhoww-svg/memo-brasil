@@ -12,13 +12,13 @@ import { usePhotoUrls } from "@/features/app/hooks";
 import { useGuest } from "@/features/events/guest-context";
 
 export default function Voce() {
-  const { event, user, now, photos, isHost } = useGuest();
+  const { event, user, now, photos, counts, isHost } = useGuest();
   const { signOut, scheduler, now: clock } = useApp();
   const [avisos, setAvisos] = useState<string | undefined>();
   const router = useRouter();
   const mine = photos.filter((p) => p.authorId === user.id && p.status !== "removida");
   const urls = usePhotoUrls(isRevealed(event, now) ? mine : []);
-  const left = shotsLeft(event, mine.length);
+  const left = shotsLeft(event, counts.mine);
   const revealed = isRevealed(event, now);
   const total = event.shotsPerPerson;
 
@@ -32,19 +32,26 @@ export default function Voce() {
       <section className="app-stack-sm" aria-labelledby="rolo">
         <h2 id="rolo" className="titulo-card app-h1">Seu rolo</h2>
         {total === null ? (
-          <p className="corpo app-p">Rolo ilimitado. Já são {mine.length.toLocaleString("pt-BR")} fotos.</p>
+          <p className="corpo app-p">Rolo ilimitado. Já são {counts.mine.toLocaleString("pt-BR")} fotos.</p>
         ) : (
-          <Progress variant="evento" label={`Restam ${left} de ${total}`} status={`${mine.length} usadas`} value={(mine.length / total) * 100} />
+          <Progress variant="evento" label={`Restam ${left} de ${total}`} status={`${counts.mine} usadas`} value={(counts.mine / total) * 100} />
         )}
       </section>
 
       <section className="app-stack-sm" aria-labelledby="minhas">
         <h2 id="minhas" className="titulo-card app-h1">Suas fotos</h2>
-        {mine.length === 0 ? (
+        {counts.mine === 0 ? (
           <div className="app-empty">
             <Icon name="camera" label="Câmera" size={28} />
             <p className="corpo app-p">Você ainda não postou.</p>
             <p className="app-p">Viu alguma coisa boa? Posta.</p>
+          </div>
+        ) : !revealed ? (
+          // antes da revelação a lista vem vazia (ITG-101): só a contagem chega, e cada foto é um marcador sem conteúdo
+          <div className="app-grid-3">
+            {Array.from({ length: Math.min(counts.mine, 60) }, (_, i) => (
+              <div key={i} className="app-thumb"><span className="app-thumb-badge">Guardada</span></div>
+            ))}
           </div>
         ) : (
           <div className="app-grid-3">
@@ -56,7 +63,7 @@ export default function Voce() {
             ))}
           </div>
         )}
-        {mine.length > 0 && !revealed && <p className="app-p app-muted">Suas fotos estão guardadas no escuro. Elas aparecem na revelação.</p>}
+        {counts.mine > 0 && !revealed && <p className="app-p app-muted">Suas fotos estão guardadas no escuro. Elas aparecem na revelação.</p>}
       </section>
 
       <section className="app-stack-sm" aria-labelledby="avisos">

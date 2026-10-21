@@ -31,8 +31,8 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const isHost = Boolean(data.event && user && data.event.hostId === user.id);
 
   useEffect(() => {
-    if (ready && !data.loading && data.event && (!user || (!participant && !isHost))) router.replace(`/e/${code}`);
-  }, [ready, data.loading, data.event, user, participant, isHost, router, code]);
+    if (ready && !data.loading && data.access === "convite") router.replace(`/e/${code}`);
+  }, [ready, data.loading, data.access, router, code]);
 
   const ev = data.event;
   const status = ev ? computeRevealStatus(ev, now) : "desativada";
@@ -89,9 +89,10 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     return () => clearTimeout(id);
   }, [evCode]);
 
-  const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh, revealStatus: status, developed } : null), [data, user, participant, isHost, now, refresh, status, developed]);
+  const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, counts: data.counts, refresh, revealStatus: status, developed } : null), [data, user, participant, isHost, now, refresh, status, developed]);
 
   if (!ready || data.loading) return <main className="app-col"><p className="app-screen app-muted">Carregando a festa…</p></main>;
+  if (data.access === "convite") return <main className="app-col"><p className="app-screen app-muted">Entrando na festa…</p></main>;
   if (!data.event) {
     return (
       <main className="app-col app-fluid">
@@ -114,7 +115,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
         {!online && (
           <div className="app-banner" role="status" style={{ margin: "var(--space-4)" }}>
             <Icon name="sem-sinal" label="Sem sinal" />
-            <span>Sem sinal agora. Suas {data.photos.filter((p) => p.authorId === user?.id).length} fotos estão guardadas.</span>
+            <span>Sem sinal agora. Suas {data.counts.mine} fotos estão guardadas.</span>
           </div>
         )}
         <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>{children}</main>

@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 51, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 48, READY 11.
+Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P3 34. Status: BACKLOG 49, BLOCKED 2, CANCELLED 2, DEFERRED 11, DONE 50, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -241,12 +241,12 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 |---|---|---|---|---|---|---|---|---|
 | BG-070 | BUG | Exclusão em cascata não é atômica | P2 | BACKLOG | - | auditoria | - | - |
 | BG-071 | BUG | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG | AUD-001, ITG-102 | auditoria | - | - |
-| BG-113 | BUG | Read-modify-write sem versão: lost update e ressurreição de evento | P2 | BACKLOG | - | auditoria AUD-001 · A3-004, A1-011 · natureza: produto | - | - |
+| BG-113 | BUG | Read-modify-write sem versão: lost update e ressurreição de evento | P2 | DONE | - | auditoria AUD-001 · A3-004, A1-011 · natureza: produto | a58c22b | local (Vitest + Chromium) |
 | FT-070 | FEATURE | Plano de integração Supabase (ERD, RLS, Auth, Storage, realtime, migração, conflitos) | P1 | DONE | - | requisito do pedido | 0e818dd | - |
 | FT-071 | FEATURE | Contratos de repositório e serviços atrás de interfaces | P1 | DONE | - | requisito do pedido | 0e818dd | local (build de produção, Chromium) |
 | INF-001 | TASK | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) | P1 | READY | - | auditoria AUD-001 (infraestrutura) | - | - |
 | ITG-101 | FEATURE | Leitura escopada por papel: serviços recebem Actor; fotos bloqueadas nunca chegam ao cliente; convite sem expor evento | P1 | BACKLOG | BG-101, BG-102, ITG-106 | auditoria AUD-001 · A3-001, A1-005, A1-004, A4-006 · natureza: integração | - | - |
-| ITG-102 | FEATURE | Contratos de repositório v2: paginação, contagem, erros tipados, versão e idempotência | P1 | BACKLOG | ITG-106, BG-113 | auditoria AUD-001 · A3-003, A4-002, A4-003 · natureza: integração | - | - |
+| ITG-102 | FEATURE | Contratos de repositório v2: paginação, contagem, erros tipados, versão e idempotência | P1 | DONE | ITG-106, BG-113 | auditoria AUD-001 · A3-003, A4-002, A4-003 · natureza: integração | a58c22b | local (Vitest + Chromium) |
 | ITG-103 | FEATURE | Fotos por URL/miniatura e upload em duas fases com created_at do servidor | P1 | BACKLOG | ITG-102 | auditoria AUD-001 · A4-001, A4-009 · natureza: integração | - | - |
 | ITG-104 | FEATURE | Autoridade do servidor: revelação, rolo, limites e relógio | P1 | BACKLOG | BG-101, BG-102, ITG-106 | auditoria AUD-001 · A4-004, A4-005, A4-010, A4-011 · natureza: integração | - | - |
 | ITG-105 | FEATURE | Identidade (auth.uid) e migração local→nuvem compatíveis com o esquema | P1 | BACKLOG | ITG-102 | auditoria AUD-001 · A4-007, A4-008 · natureza: integração | - | - |
@@ -262,11 +262,7 @@ Total: **125** itens (sem contar 10 épicos). Prioridade: P0 17, P1 45, P2 29, P
 
 **INF-001** critérios: list_projects do conector do Claude retorna o projeto asyaegeodyttttaubvxh; get_project confirma ACTIVE_HEALTHY, PostgreSQL 17 e região us-west-2 (somente leitura); Nenhuma escrita, migration, tabela, bucket ou credencial criada nesta verificação; Resultado registrado em docs/audit/evidence/logs
 
-**BG-113** critérios: [A3-004] Corrigir: Patch com version; ON DELETE CASCADE; reabrir db.; [A1-011] Corrigir: withLock por evento ou patch por campo.; [A3-004] Teste de regressão: Teste concorrente updateSettings x reconcileReveal.; [A1-011] Teste de regressão: unit com dois saves concorrentes
-
 **ITG-101** critérios: [A3-001] Corrigir: Filtrar no servidor (RLS), URL assinada só se visível, serviços com Actor.; [A1-005] Corrigir: Definir listVisible/getData(viewer) no contrato e seguir o plano (policy is_revealed, bucket privado).; [A1-004] Corrigir: Passar Actor às funções de serviço e checar a ação correspondente; unificar isHost com can('event.view').; [A4-006] Corrigir: EventRepository.preview(code): EventPreview via RPC; separar hook de prévia do hook de membro.; [A3-001] Teste de regressão: Teste RLS: convidado não lê foto pendente nem modera.; [A1-005] Teste de regressão: teste de contrato do repositório: não-host não recebe fotos pendentes; [A1-004] Teste de regressão: unit: cada serviço recusa ator sem permissão; [A4-006] Teste de regressão: Não-membro só recebe campos de EventPreview; rate limit de preview.
-
-**ITG-102** critérios: [A3-003] Corrigir: PhotoRef com URL/miniatura, cursor, patch, erros tipados, hora do servidor, RPC por código, AuthService.; [A4-002] Corrigir: Page<T> com cursor, count()/RPCs agregadas, filtros por autor/status.; [A4-003] Corrigir: RepositoryError {network,conflict,forbidden,limit,notfound}; create/update(patch,expectedVersion); report(photoId,reporterId); remover Photo.reports gravável.; [A3-003] Teste de regressão: Mesma suíte de contrato em memory e supabase.; [A4-002] Teste de regressão: Contrato com 1200 fotos: contagem exata e paginação completa.; [A4-003] Teste de regressão: Contrato: update com versão velha falha com conflict; mesma pessoa
 
 **ITG-103** critérios: [A4-001] Corrigir: getPhotoUrl(id,variant) com expiração, miniaturas, carga sob demanda; separar fila local de upload do cache.; [A4-009] Corrigir: upload_status + finalize_photo; captured_at do cliente com tolerância; created_at do servidor; outbox com bytes e backoff.; [A4-001] Teste de regressão: Contrato: getPhotoUrl devolve URL válida; hook renova após expirar;; [A4-009] Teste de regressão: Falha no meio do upload não consome rolo; foto tirada antes do fim,
 

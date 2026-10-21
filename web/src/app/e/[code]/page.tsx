@@ -28,13 +28,13 @@ export default function Convite() {
   const [error, setError] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
   const member = data.participants.find((p) => p.userId === user?.id);
-  const event = data.event;
-  const isHost = Boolean(event && user && event.hostId === user.id);
+  const event = data.event ?? data.preview; // quem ainda não entrou só recebe a prévia do convite
+  const isHost = data.access === "organizador";
 
   const name = nameInput ?? member?.name ?? user?.name ?? "";
 
   if (!ready || data.loading) return <main className="app-col"><p className="app-screen app-muted">Abrindo o convite…</p></main>;
-  if (!event) {
+  if (!event || data.access === "inexistente") {
     return (
       <main className="app-col app-col--card app-fluid">
         <div className="app-screen">
@@ -57,7 +57,7 @@ export default function Convite() {
     router.push(`/e/${code}/agora`);
   }
 
-  const ended = eventStatus(event, now()) === "encerrado";
+  const ended = (data.preview?.status ?? (data.event ? eventStatus(data.event, now()) : "ativo")) === "encerrado";
   const meta = [formatDate(event.startAt), event.place].filter(Boolean).join(" · ");
   return (
     <EventTheme palette={event.palette} font={event.eventFont} className="app-col app-col--card app-fluid">
@@ -72,7 +72,7 @@ export default function Convite() {
             <div className="app-stack">
               <h1 className="titulo-tela app-h1">Você está dentro, {member?.name ?? user?.name}.</h1>
               <Button href={`/e/${code}/agora`} block>Ver no Agora</Button>
-              {isHost && <Button variant="secundario" href={`/painel/${event.id}`} block>Abrir o painel do evento</Button>}
+              {isHost && <Button variant="secundario" href={`/painel/${data.event?.id}`} block>Abrir o painel do evento</Button>}
             </div>
           ) : (
             <form className="app-stack" onSubmit={(e) => { e.preventDefault(); void enter(); }}>
