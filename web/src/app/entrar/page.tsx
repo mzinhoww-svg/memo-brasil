@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Field, Signature } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, Field, Signature } from "@/components/memoriesmt";
 import { extractShareCode } from "@/domain/share-code";
 
 export default function Entrar() {
@@ -19,7 +19,7 @@ export default function Entrar() {
   return (
     <main className="app-col app-col--card app-fluid">
       <div className="app-screen">
-        <Button variant="texto" href="/">Voltar</Button>
+        <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: "Entrar na festa" }]} />
         <form className="app-stack" onSubmit={(e) => { e.preventDefault(); submit(); }} noValidate>
           <h1 className="titulo-tela app-h1">Entrar na festa</h1>
           <p className="corpo app-p app-muted">Digite o código do card da mesa ou cole o link do convite.</p>

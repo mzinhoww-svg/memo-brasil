@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, PostCard, StatGrid, StatTile } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, PostCard, StatGrid, StatTile } from "@/components/memoriesmt";
 import { retrospectiveOpen } from "@/domain/event";
 import { visiblePhotos } from "@/domain/photo";
 import { formatDate, usePhotoUrls } from "@/features/app/hooks";
@@ -27,6 +27,7 @@ export default function Retrospectiva() {
   }
   return (
     <div className="app-screen">
+      <Breadcrumbs items={[{ label: "Agora", href: `/e/${event.code}/agora` }, { label: "Retrospectiva" }]} />
       <div className="app-stack-sm">
         <p className="eyebrow app-eyebrow">{formatDate(event.startAt)} · {event.title}</p>
         <p className="emocao-lg app-emocao">Todo mundo viu um {event.category === "casamento" ? "casamento" : "evento"} diferente. Agora dá para ver todos.</p>

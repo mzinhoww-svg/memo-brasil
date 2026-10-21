@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Chip, Chips, Field, OptionGroup, Progress, Signature } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, Chip, Chips, Field, GoogleButton, OptionGroup, Progress, Signature } from "@/components/memoriesmt";
 import { priceRule } from "@/domain/pricing";
 import { CAMERA_STYLE_LABEL, CAPACITY_OPTIONS, CATEGORY_LABEL, SHOTS_OPTIONS, MIN_DURATION_HOURS, type CameraStyle, type Capacity, type EventCategory, type Shots } from "@/domain/options";
 import type { EventFontId, PaletteId } from "@/domain/event";
@@ -104,16 +104,17 @@ export function CreateWizard() {
   if (ready && backend === "supabase" && !canCreate) {
     return (
       <div className="app-screen">
+        <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: "Criar evento" }]} />
         <h1 className="titulo-tela app-h1">Entre para criar o seu evento.</h1>
         <p className="corpo app-p app-muted">Quem organiza usa uma conta Google. Convidados entram só com o código, sem conta.</p>
-        <Button variant="primario" block onClick={() => void signInWithGoogle("/criar")}>Entrar com Google</Button>
-        <Button href="/" variant="texto">Voltar ao início</Button>
+        <GoogleButton block onClick={() => void signInWithGoogle("/criar")} />
       </div>
     );
   }
 
   return (
     <div className="app-screen">
+      <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: "Criar evento" }]} />
       <div className="app-stack-sm">
         <Button variant="texto" href="/">Cancelar</Button>
         <Progress variant="evento" label={`Passo ${step + 1} de ${STEPS.length}`} status={STEPS[step]} value={((step + 1) / STEPS.length) * 100} />

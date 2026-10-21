@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import {
-  AdminNav, Button, Chip, CountBadge, DataList, Field, Icon, Logo, Notice, OptionGroup, PostCard, Progress, Stepper, TabBar, Tabs,
+  AdminNav, Breadcrumbs, Button, GoogleButton, Chip, CountBadge, DataList, Field, Icon, Logo, Notice, OptionGroup, PostCard, Progress, Stepper, TabBar, Tabs,
 } from ".";
 
 vi.mock("next/link", () => ({ default: ({ href, children, ...p }: { href: string; children: React.ReactNode }) => <a href={href} {...p}>{children}</a> }));
@@ -130,5 +130,25 @@ describe("Icon, Logo, CountBadge, Progress, Notice, DataList, PostCard", () => {
     expect(screen.getByRole("button", { name: /pedir para remover/ })).toBeInTheDocument();
     expect(screen.getByAltText("Foto da Mesa 8")).toBeInTheDocument();
     expect(screen.getByText("Escolha dos noivos")).toHaveClass("mm-tag");
+  });
+});
+
+describe("Breadcrumbs", () => {
+  it("o último item é a página atual e não é link; os anteriores são links", () => {
+    render(<Breadcrumbs items={[{ label: "Início", href: "/" }, { label: "Painel", href: "/painel/1" }, { label: "Aparência" }]} />);
+    const nav = screen.getByRole("navigation", { name: "Trilha de navegação" });
+    expect(within(nav).getAllByRole("link").map((a) => a.textContent)).toEqual(["Início", "Painel"]);
+    expect(within(nav).getByText("Aparência")).toHaveAttribute("aria-current", "page");
+  });
+});
+
+describe("GoogleButton", () => {
+  it("é um botão com rótulo acessível, G decorativo e dispara o clique", async () => {
+    const onClick = vi.fn();
+    render(<GoogleButton onClick={onClick} />);
+    const b = screen.getByRole("button", { name: "Entrar com o Google" });
+    expect(b.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    await userEvent.click(b);
+    expect(onClick).toHaveBeenCalledOnce();
   });
 });

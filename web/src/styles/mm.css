@@ -149,3 +149,25 @@
 .mm-card-mesa .mm-assinatura { font-size: 12px; gap: 5px; }
 .mm-event-capa { width: calc(100% + 2 * var(--space-6)); margin: calc(-1 * 40px) calc(-1 * var(--space-6)) var(--space-3); max-height: 180px; object-fit: cover; display: block; }
 .mm-event-logo { max-width: 72px; max-height: 72px; object-fit: contain; align-self: flex-start; }
+
+/* GoogleButton: segue as diretrizes visuais do Google (superfície neutra, borda fina, G em cores de marca). */
+.mm-google { font: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 12px; height: var(--size-campo); min-height: var(--size-alvo); padding: 0 var(--space-5); box-sizing: border-box; background: #FFFFFF; color: #1F1F1F; border: 1px solid #747775; border-radius: var(--radius-control); font-size: 16px; font-weight: 500; letter-spacing: .1px; line-height: 1; cursor: pointer; transition: background-color .15s, box-shadow .15s; }
+.mm-google:hover { background: #F6F8FD; box-shadow: 0 1px 3px rgba(60, 64, 67, .3); }
+.mm-google:active { background: #ECEFF7; box-shadow: none; }
+.mm-google:disabled { background: #F2F2F2; color: #5F6368; border-color: #C4C7C5; cursor: not-allowed; box-shadow: none; }
+.mm-google--bloco { width: 100%; }
+.mm-google:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+[data-theme="noite"] .mm-google { background: #131314; color: #E3E3E3; border-color: #8E918F; }
+[data-theme="noite"] .mm-google:hover { background: #1E1F20; box-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+[data-theme="noite"] .mm-google:active { background: #2A2B2D; }
+[data-theme="noite"] .mm-google:disabled { background: #1B1B1C; color: #8E918F; border-color: #444746; }
+
+/* Breadcrumbs */
+.mm-crumbs ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-1); font-size: 14px; color: var(--apoio); }
+.mm-crumbs li { display: inline-flex; align-items: center; min-width: 0; }
+.mm-crumbs li + li::before { content: "›" / ""; margin-inline-end: var(--space-1); color: var(--apoio); }
+.mm-crumbs a { display: inline-flex; align-items: center; min-height: var(--size-alvo); padding: 0 var(--space-1); color: var(--apoio); text-decoration: underline; text-underline-offset: 2px; }
+.mm-crumbs a:hover { color: var(--tinta); }
+.mm-crumbs a:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.mm-crumbs [aria-current="page"] { color: var(--tinta); font-weight: 600; padding: 0 var(--space-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60vw; }
+@media print { .mm-crumbs { display: none; } }

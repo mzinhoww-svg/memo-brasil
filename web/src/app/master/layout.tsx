@@ -4,6 +4,7 @@ import { Logo } from "@/components/memoriesmt";
 import { masterAccess } from "@/lib/master/server";
 import "@/styles/admin.css";
 import { MasterLogin } from "./MasterLogin";
+import { MasterCrumbs } from "./MasterCrumbs";
 import { MasterNav } from "./MasterNav";
 
 export const metadata: Metadata = { title: "Administração da plataforma", robots: { index: false, follow: false } };
@@ -32,7 +33,7 @@ export default async function MasterLayout({ children }: { children: React.React
         <Logo variant="wordmark" size={140} />
         <MasterNav />
       </aside>
-      <main className="adm-main" id="conteudo-admin">{children}</main>
+      <main className="adm-main" id="conteudo-admin"><MasterCrumbs />{children}</main>
     </div>
   );
 }

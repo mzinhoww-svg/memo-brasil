@@ -6013,7 +6013,7 @@
    "evidence": [
     "pgTAP 416/416 local; migration 20261022001000"
    ],
-   "commit": "HEAD",
+   "commit": "3a1a79d",
    "environment": "local",
    "release": "R2"
   },

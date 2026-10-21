@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Chip, Chips, Field, Progress } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, Chip, Chips, Field, Progress } from "@/components/memoriesmt";
 import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
@@ -116,7 +116,7 @@ export default function Postar() {
   return (
     <div className="app-screen">
       <div className="app-between">
-        <Button variant="texto" href={`${base}/agora`}>Voltar</Button>
+        <Breadcrumbs items={[{ label: "Agora", href: `${base}/agora` }, { label: "Postar" }]} />
         <span className="eyebrow app-muted" aria-live="polite">{left === null ? "Rolo ilimitado" : left === 1 ? "1 foto restante" : `${left} fotos restantes`}</span>
       </div>
 

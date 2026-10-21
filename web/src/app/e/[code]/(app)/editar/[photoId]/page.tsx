@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/memoriesmt";
+import { Breadcrumbs, Button } from "@/components/memoriesmt";
 import { visiblePhotos } from "@/domain/photo";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
@@ -24,6 +24,7 @@ export default function Editar() {
   }
   return (
     <div className="app-screen">
+      <Breadcrumbs items={[{ label: "Agora", href: `/e/${event.code}/agora` }, { label: "Editar foto" }]} />
       <h1 className="titulo-tela app-h1">Editar foto</h1>
       <PhotoEditor repos={repos} photo={photo} others={visible} onDone={() => router.push(`/e/${event.code}/agora`)} />
     </div>

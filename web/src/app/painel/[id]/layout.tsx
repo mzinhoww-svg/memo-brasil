@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
-import { AdminNav, Button, CountBadge, EventTheme } from "@/components/memoriesmt";
+import { AdminNav, Breadcrumbs, Button, CountBadge, EventTheme } from "@/components/memoriesmt";
 import { eventStatus } from "@/domain/event";
 import { LOCAL_ACTOR, can } from "@/domain/roles";
 import { computeRevealStatus } from "@/domain/reveal";
@@ -57,6 +57,8 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
     return { href, label: s.label, current: s.slug ? path.startsWith(href) : path === base, count: s.slug === "conteudo" ? pending : undefined };
   });
 
+  const section = items.find((i) => i.current);
+  const crumbs = [{ label: "Início", href: "/" }, section && section.href !== base ? { label: event.title, href: base } : { label: event.title }, ...(section && section.href !== base ? [{ label: section.label }] : [])];
   return (
     <AdminProvider value={{ event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh }}>
       <EventTheme palette={event.palette} font={event.eventFont} className="app-admin app-fluid">
@@ -70,6 +72,7 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
+          <Breadcrumbs className="no-print" items={crumbs} />
           {children}
         </main>
       </EventTheme>

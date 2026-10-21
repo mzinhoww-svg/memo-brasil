@@ -1,4 +1,5 @@
 export { AdminNav, type AdminNavItem } from "./AdminNav";
+export { Breadcrumbs, type Crumb } from "./Breadcrumbs";
 export { Button, type ButtonVariant } from "./Button";
 export { Chip, Chips } from "./Chip";
 export { Cover } from "./Cover";
@@ -6,6 +7,7 @@ export { CountBadge } from "./CountBadge";
 export { DataList, type DataRowDef } from "./DataRow";
 export { EventHeader } from "./EventHeader";
 export { Field } from "./Field";
+export { GoogleButton } from "./GoogleButton";
 export { Icon, type IconName } from "./Icon";
 export { KnownPeople } from "./KnownPeople";
 export { LiveIndicator } from "./LiveIndicator";
