@@ -416,3 +416,6 @@ enabled = true
 
 [functions.finalize-asset]
 verify_jwt = true
+
+[functions.purge-storage]
+verify_jwt = false # a função compara o token com o service_role por conta própria; chave nova (sb_secret) não é JWT

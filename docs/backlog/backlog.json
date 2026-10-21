@@ -5971,7 +5971,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "SB-005"
    ],
@@ -5980,10 +5980,14 @@
     "Objetos de event-branding removidos após purga/LGPD; teste de ponta a ponta"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
+   "tests": [
+    "web/integration/purge.integration.test.mjs"
+   ],
+   "evidence": [
+    "worker purge-storage testado local (2/2); falta deploy e agendamento no remoto"
+   ],
    "commit": null,
-   "environment": null,
+   "environment": "local",
    "release": "R2"
   },
   {
@@ -5994,7 +5998,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [
     "MAD-002"
    ],
@@ -6003,10 +6007,14 @@
     "pgTAP cobre os três; sem contorno silencioso"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "tests": [
+    "supabase/tests/database/03_audit_hardening.test.sql"
+   ],
+   "evidence": [
+    "pgTAP 416/416 local; migration 20261022001000"
+   ],
+   "commit": "HEAD",
+   "environment": "local",
    "release": "R2"
   },
   {

@@ -55,9 +55,9 @@ r=$(run -v email="" -v user_id="" 2>&1); echo "$r" | grep -q "exatamente um par�
 r=$(run -v email="a@b.c" -v user_id="$UL" 2>&1); echo "$r" | grep -q "exatamente um parâmetro" && ok "recusa os dois parâmetros" || bad "dois parâmetros aceitos"
 
 # limpeza: remove papéis e usuários de teste criados aqui (e-mails terminam com -$T@test.local)
-# platform_roles é histórico por desenho (não apaga; FK restrict): só no banco LOCAL de teste o cleanup desliga os triggers da sessão
+# platform_roles é histórico por desenho (não apaga; FK restrict): só no banco LOCAL de teste o cleanup desliga (na mesma transação) o event trigger e o guard de DELETE, e religa antes do commit
 for id in $(sql -c "select id from auth.users where email like '%-$T@test.local'"); do
-  docker exec -i "$C" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -qAt -c "begin; set local session_replication_role = replica; delete from public.platform_roles where user_id='$id'; delete from auth.users where id='$id'; commit;" >/dev/null 2>&1 || echo "AVISO: não removi $id"
+  docker exec -i "$C" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -qAt -c "begin; alter event trigger audit_ddl_end disable; alter table public.platform_roles disable trigger platform_roles_guard_del; delete from public.platform_roles where user_id='$id'; alter table public.platform_roles enable always trigger platform_roles_guard_del; alter event trigger audit_ddl_end enable; set local session_replication_role = replica; delete from auth.users where id='$id'; commit;" >/dev/null 2>&1 || echo "AVISO: não removi $id"
 done
 left=$(sql -c "select count(*) from auth.users where email like '%-$T@test.local'"); [ "$left" = "0" ] && ok "dados de teste removidos" || bad "sobraram $left usuários de teste"
 exit $fail
