@@ -1,0 +1,24 @@
+<!-- @dsCard group="Navegação" height=200 -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../componentes.css">
+<script>document.documentElement.setAttribute('data-theme', new URLSearchParams(location.search).get('tema') || 'dia');</script>
+<meta charset="utf-8">
+<title>TabBar · MemoriesMT</title>
+</head>
+<body>
+<div class="mm-stack" style="padding:var(--space-6) 0 0">
+  <div class="mm-tabbar">
+    <a class="mm-btn mm-btn--cta" href="#postar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Postar daqui</span></a>
+    <nav class="mm-tabbar-nav" aria-label="Navegação principal">
+      <a class="mm-tabbar-item" href="#agora" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>Agora</span></a>
+      <a class="mm-tabbar-item" href="#explorar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>Explorar</span></a>
+      <a class="mm-tabbar-item" href="#voce"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Você</span></a>
+    </nav>
+  </div>
+</div>
+</body>
+</html>

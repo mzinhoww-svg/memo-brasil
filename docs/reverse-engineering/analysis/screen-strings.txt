@@ -1,0 +1,114 @@
+=== App/LaunchScreenScreenKt.java
+SLIDE_INTERVAL_MS | LaunchScreenScreen | app_release | scale | pulse
+=== App/MainActivity.java
+<set-?> | intent | app_release | android.intent.action.VIEW | join | <anonymous> | MainActivity.kt | call to 'resume' before 'invoke' with coroutine | No ViewModelStoreOwner was provided via LocalViewModelStoreOwner
+=== App/MemoApplication.java
+Companion | app_release | <set-?> | instance
+=== Onboarding/AuthMode.java
+title | SIGN_IN | SIGN_UP | app_release | Entrar | Criar conta
+=== Onboarding/EmailAuthSheetKt.java
+mode | EmailAuthSheet | app_release | email | submit | E-mail | Senha (mín. 6 caracteres) | Ainda não disponível nesta versão do app. Por enquanto, entre com o Google. | Esqueci minha senha | Aguarde…
+=== Onboarding/IntroSlidesScreenKt.java
+OnboardingTracking | SLIDE_COUNT | CollageSlide | index | IntroSlidesScreen | NextPillButton | PhotoCollage | modifier | PhotoHeroSlide | PhotoHeroSlide-au3_HiA | PhraseLines | lines | SlideControls | SlideTitle | gap | SlideTitle-942rkJo | app_release | O memo reúne todas | essas perspectivas. | Cada convidado registra o evento pelo próprio olhar. | Nenhuma foto aparece durante a festa. | Porque o melhor ainda está por vir. | advance | Os momentos acabam. | As memórias continuam. | E as melhores | memórias... | merecem durar | para sempre. | Próximo
+=== Onboarding/NameEntryScreenKt.java
+app_release | name | Como podemos te chamar? | Seu nome aparece nas fotos que você tirar, para todo mundo saber de quem foi o clique. | Seu nome | Continuar
+=== Onboarding/PurposeSelectionScreenKt.java
+purpose | modifier | PurposeSelectionScreen | app_release | selected | O que te trouxe ao Memo? | Cada pessoa tem um motivo para guardar um momento. Conta pra gente o seu. | option | Concluir
+=== Onboarding/WelcomeAuthScreenKt.java
+app_release | Boas-vindas a | Entrando... | Entrar com o Google | <anonymous> | WelcomeAuthScreen.kt | call to 'resume' before 'invoke' with coroutine | Continuar com e-mail | Convidado? Entre com um código | Ao continuar, você concorda com os Termos de Uso e a Política de Privacidade do Memo. | event
+=== Home/HomeScreenKt.java
+ActiveEventHero | events | now | height | ActiveEventHero-GHTll3U | AlbumPhotoTile | photo | width | angle | AlbumPhotoTile-YlGCr2M | AlbumRow | photos | AlbumsSection | modifier | CreateEventHero | CreateEventHero-uFdPcIQ | HeroPage | HeroPage-WH-ejsw | HeroSection | HeroTopControls | HomeEmptyState | title | message | HomeScreen | billing | app_release | d MMM | Foto de  | Foto ainda não revelada | toUpperCase(...) | Nenhuma foto ainda | ÁLBUNS | Nenhum álbum ainda | Quando um evento encerra, ele vira um álbum aqui — com as fotos de todo mundo. | Olá! | Olá,  | Crie um | novo  | evento | Criar evento | Abrir câmera | Entrar | Novo evento
+=== Home/JoinWithCodeSheetKt.java
+app_release | code | <anonymous> | JoinWithCodeSheet.kt | call to 'resume' before 'invoke' with coroutine | toUpperCase(...) | Entrar com código | Peça o código do evento para quem te convidou e digite abaixo. | Ex: NFVARBQX | Entrando... | Entrar no evento
+=== Home/MainTabBarKt.java
+TabLabel | label | color | icon | TabLabel-sW7UJKQ | app_release | FILMES | SCRAPBOOK | Scrapbook chega em breve
+=== CreateEvent/CreateEventFlowKt.java
+CreateEventFlow | billing | EventCreationErrorOverlay | message | EventCreationLoadingOverlay | app_release | step | <anonymous> | CreateEventFlow.kt | call to 'resume' before 'invoke' with coroutine | Não deu para criar o evento | Tentar novamente | Voltar | Criando o evento...
+=== CreateEvent/CreateStep.java
+NOTIFICATIONS | NAME | CATEGORY | END_DATE | REVEAL_TIMING | CAMERA_STYLE | INVITATION | GUEST_CAPACITY | PRICING | app_release
+=== CreateEvent/EventCameraStyleScreenKt.java
+EventCameraStyleScreen | draft | FanCard | width | height | rotation | FanCard-nbW04Pk | PhotoFan | images | modifier | StyleSwatch | style | app_release | appeared | appear | Qual câmera você\nquer usar? | Escolha uma câmera que combine com seu estilo.\n*Fotos originais são salvas por padrão.
+=== CreateEvent/EventCategoryScreenKt.java
+purpose | modifier | EventCategoryScreen | draft | app_release | Que tipo de evento\nvocê está criando? | Isso define a cara do convite enquanto as primeiras fotos não chegam.
+=== CreateEvent/EventCreatedScreenKt.java
+, NotificationCompat.CATEGORY_EVENT,  | EventCreatedScreen | SummaryDivider | SummaryRow | label | value | monospace | app_release | copied | event | Evento criado! |  + event.getTitle() +  |  está pronto para receber as fotos. | Código | Convidados | Ilimitadas | Fotos por pessoa | Link | Memo criado! |  está pronto. Compartilhe com os convidados para cada um registrar o evento pelo próprio olhar. | Compartilhar convite | Você foi convidado para \" | \" no Memo! Entre com o código  |  ou pelo link:  | android.intent.action.SEND | text/plain | android.intent.extra.TEXT | Abrir câmera | Fechar
+=== CreateEvent/EventDraft.java
+<set-?> | purpose | title | suggestions | Companion | app_release | now | Nossa festinha | Nosso encontro | Um dia para lembrar
+=== CreateEvent/EventEndDateScreenKt.java
+DayCell | modifier | date | past | selected | EventEndDateScreen | draft | month | app_release | kotlin.jvm.PlatformType | Quando o seu\nevento termina? | O filme abre agora, e os convidados podem capturar fotos até ele fechar no horário que você escolher. | Mês anterior | Próximo mês | Dom | Seg | Ter | Qua | Qui | Sex | Sáb | HORÁRIO | Escolha um horário no futuro — pelo menos 30 minutos a partir de agora. | LLLL yyyy | null cannot be cast to non-null type java.lang.String | toUpperCase(...) | substring(...)
+=== CreateEvent/EventGuestCapacityScreenKt.java
+label | selected | modifier | EventGuestCapacityScreen | draft | billing | ParticipantSquares | ShotsChip | shots | ShotsDialPreview | app_release | Grátis | Incluído no Memo+ | Quantos convidados\nno seu evento? | Garanta que todo mundo tenha a chance de tirar aquela foto perfeita do seu evento. | capacity | FOTOS POR PESSOA | PERMISSÕES DE VISIBILIDADE | Todos podem ver todas as fotos | Criar | Próximo
+=== CreateEvent/EventInvitationScreenKt.java
+EventInvitationScreen | draft | GuestInvitePreviewContent | IconLabel | label | InvitationCard | modifier | PreVisualizarButton | TrocarCapaButton | shots | app_release | Personalize o convite\ndo seu evento | Essa é a primeira coisa que os convidados veem ao entrar no seu Memo. | É assim que o convidado vê | Ao abrir o seu link ou escanear o QR, essa é a primeira tela do convidado. | você | Convidado por  | Seu evento | Digite seu nome | Abrir câmera | Pré-visualizar | <anonymous> | EventInvitationScreen.kt | call to 'resume' before 'invoke' with coroutine | custom: | Trocar capa | Fotos ilimitadas |  fotos disponíveis
+=== CreateEvent/EventNameScreenKt.java
+draft | app_release | Qual é o nome\ndo seu evento? | Escolha o título perfeito. Ele vai aparecer para todos os convidados. | Digite o nome do evento | SUGESTÕES
+=== CreateEvent/EventRevealTimingScreenKt.java
+name | modifier | BlurredPreviewCard-942rkJo | DelayDaysStepper | days | EventRevealTimingScreen | draft | StepperButton | icon | enabled | TimingCard | timing | app_release | dia | dias | Quando revelar\nas fotos? | As fotos ficam escondidas por padrão durante o evento. Escolha quando elas aparecem. | Marina | Diego | Revela aos poucos, durante o evento | Revela quando o evento terminar | Revela 1 dia depois do fim | Revela  |  dias depois do fim
+=== CreateEvent/MemoPlusPaywallScreenKt.java
+billing | modifier | BenefitRow | glyph | title | subtitle | BenefitsCard | MemoPlusPaywallScreen | PlanCard | badge | PlanPicker | selected | app_release | <anonymous> | MemoPlusPaywallScreen.kt | call to 'resume' before 'invoke' with coroutine | Plano anual | Plano mensal | Assinatura ativa ·  | Assinatura ativa | , null,  | Até 200 convidados, sem pagar por evento | Fotos ilimitadas | Sem limite de fotos por convidado | Memo+ | Para quem vive de momento em momento: eventos e fotos sem limite. | A assinatura renova automaticamente  | todo mês | todo ano |  até ser cancelada. Cancele quando quiser em Assinaturas do Google Play. Eventos já criados continuam seus para sempre. | Não conseguimos falar com o Google Play para carregar os planos. | Tentar de novo | Fechar | Assinando… | Assinar o Memo+ | Restaurando… | Restaurar compras | Equivale a  | ECONOMIZE  | Anual | Mensal
+=== CreateEvent/NotificationsPermissionScreenKt.java
+message | NotificationPhoneMockup | modifier | NotificationsPermissionScreen | app_release | Memo | O filme fecha em 1 hora | As fotos revelam em 10 minutos! | Não perca | nenhum momento | A gente avisa quando algo importante acontece, como o filme fechando ou as fotos sendo reveladas. | Ativar notificações | android.permission.POST_NOTIFICATIONS | Agora não
+=== CreateEvent/PlanKind.java
+MONTHLY | ANNUAL | app_release
+=== CreateEvent/PricingScreenKt.java
+text | Chip | glyph | PlusUpsellCard | modifier | PriceCard | capacity | PriceRow | title | subtitle | value | highlighted | PricingScreen | draft | billing | SummaryCard | app_release | <anonymous> | PricingScreen.kt | call to 'resume' before 'invoke' with coroutine | Memo+ ·  | Eventos ilimitados com até 200 convidados | , Math.min(i, 10) +  | Franquia gratuita de todo evento | Grátis | Incluído na assinatura Memo+ | Galeria compartilhada e revelação em grupo | Incluído | Total do evento | Criar evento | Criar evento grátis | Pagar  |  e criar | Preço indisponível | Carregando preço… | Incluído na sua\nassinatura Memo+ | Seu evento\né por nossa conta | Confirme o plano\ndo seu evento | Sua assinatura cobre eventos com até 200 convidados. Este evento não tem custo extra. | Eventos com até 10 convidados são gratuitos, com todas as memórias incluídas. | Até 10 convidados são grátis. Para  | , este evento tem um valor único. | Galeria compartilhada com todos os convidados | Fotos reveladas juntas, no momento que você escolheu | Qualidade original, sem marca d'água | Pagamento único e seguro pelo Google Play. Prefere não pagar por evento? Assine o Memo+. | Pagamento único e seguro pelo Google Play. | Não conseguimos falar com o Google Play para carregar o preço deste evento. | Tentar de novo | Não foi possível carregar o preço agora. Verifique a conexão e tente de novo. | Seu evento | ∞ fotos |  fotos/pessoa
+=== Gallery/AlbumExporter.java
+export | resolver | repository | photos | dir | photo | uri | Progress | Result | Stage | app_release | stage | done | total | hint | label | component1 | component2 | component3 | copy | equals | other | Você pode continuar usando o app. | Baixando fotos…  | Salvando na galeria…  | Progress(stage= | , done= | , total= | requested | saved | details | message | component4 | component5 |  não baixaram — tente de novo com internet. |  não estão mais disponíveis no servidor. |  foram recusadas pela galeria — verifique o espaço livre. | Este álbum ainda não tem fotos | Álbum salvo na galeria | Não foi possível salvar as fotos | Salvamos  |  fotos | Result(requested= | , saved= | , refusedByGallery= | , notDownloaded= | , missingOnServer= | DOWNLOADING | SAVING | AlbumExporter.kt | this | fetched | <anonymous> | call to 'resume' before 'invoke' with coroutine | _display_name | mime_type | image/jpeg | relative_path | Pictures/Memo | is_pending | datetaken | gravação na galeria ( | yyyy:MM:dd HH:mm:ss | XXX | carimbo de data na galeria (
+=== Gallery/CollageLayout.java
+label | render | photos | , ContentDisposition.Parameters.Size,  | render-O0kMr_c | gap | slotRects-viCIZxY | SIDE_BY_SIDE | TOP_BOTTOM | TRIO | GRID_2X2 | app_release | 2 lado a lado | 2 empilhadas | 3 fotos | 4 fotos | createBitmap(...)
+=== Gallery/EditorMode.java
+DRAW | TEXT | COLLAGE | app_release
+=== Gallery/EditorSnapshot.java
+ink | component1 | component2 | component3 | copy | equals | other | app_release | EditorSnapshot(baseImage= | , ink= | , textItems=
+=== Gallery/EventSettingsScreenKt.java
+CoverPickerGrid | DeleteButton | DeleteConfirmSheet | EndDateEditorDialog | EventSettingsScreen | billing | GalleryCoverTile | selected | modifier | GenericCoverTile | res | NameCoverEditorSheet | OptionsDialog | title | options | SelectableRow | label | SettingsRow | icon | value | ToggleRow | checked | now | app_release | cover | d MMM yyyy · HH:mm | <anonymous> | EventSettingsScreen.kt | call to 'resume' before 'invoke' with coroutine | custom: | Excluir evento | Excluir evento? | As fotos e reações deste evento serão apagadas. Essa ação não pode ser desfeita. | Cancelar | Encerrar agora | Fim de hoje | Fim de amanhã | Daqui a 3 dias | Daqui a 7 dias | Daqui a 30 dias | Data de término | Este álbum já encerrou e tem fotos, então não pode ser reaberto — isso esconderia de novo fotos que já foram vistas. | event | No ViewModelStoreOwner was provided via LocalViewModelStoreOwner | Configurações do evento | Nome | format(...) | Durante o evento | Depois do evento | Atraso adicional | Revelação | 1 dia |  dias | Dias de atraso | Convidados | Fotos por pessoa | Todos podem ver todas as fotos | Reações nas fotos | Quando revelar as fotos? | Quantos convidados? | Ilimitadas |  fotos | O álbum saiu deste aparelho, mas não conseguimos removê-lo da nuvem — ele continua com quem participou e pode reaparecer aqui. Tente de novo com conexão. | Não foi possível excluir o álbum neste aparelho. | Atenção | Entendi | Galeria | Não foi possível usar essa imagem. Tente outra foto. | A capa vale neste aparelho, mas ainda não subiu — os convidados só vão vê-la quando a conexão voltar. | Nome & Capa | Nome do evento | CAPA | Salvar
+=== Gallery/EventSettingsViewModel.java
+repository | , EventNotificationManager.EXTRA_EVENT_ID,  | bitmap | CoverSaveResult | DeleteResult | app_release | identifier | uploaded | component1 | component2 | copy | equals | other | CoverSaveResult(identifier= | , uploaded= | DELETED | LOCAL_ONLY | FAILED | EventSettingsViewModel.kt | this | <anonymous> | custom: | call to 'resume' before 'invoke' with coroutine
+=== Gallery/GalleryScreenKt.java
+ActionRow | , NotificationCompat.CATEGORY_EVENT,  | now | AlbumExportProgressRow | CoverHeader | photos | EmptyGallery | GalleryScreen | billing | PhotoTile | photo | reactions | modifier | SampleInfoBox | StatCell | value | label | StatsRow | ToastOverlay | message | context | StatDivider | app_release | d MMM | <anonymous> | GalleryScreen.kt | call to 'resume' before 'invoke' with coroutine | dir | Abrir câmera | Convidar | Compartilhar | Salvar | Nenhuma foto ainda | Abra a câmera e capture o primeiro momento. | No ViewModelStoreOwner was provided via LocalViewModelStoreOwner | Permita o acesso às fotos para salvar as imagens. | android.permission.WRITE_EXTERNAL_STORAGE | row | Configurações do evento | Foto de  | Este é um álbum de exemplo para você começar. Crie o seu próprio evento e comece a colecionar memórias! | Momentos | Restantes | format(...) | Encerrado | Pessoas | Não há fotos para compartilhar | .fileprovider | Não foi possível baixar as fotos para compartilhar | android.intent.action.SEND_MULTIPLE | image/jpeg | android.intent.extra.STREAM | Compartilhar fotos | Nenhum app disponível para compartilhar fotos | Compartilhando  |  fotos
+=== Gallery/GalleryViewModel.java
+repository | , EventNotificationManager.EXTRA_EVENT_ID,  | photo | bitmap | emoji | app_release | <anonymous> | GalleryViewModel.kt | call to 'resume' before 'invoke' with coroutine | gravação da foto editada (
+=== Gallery/PhotoEditorKt.java
+CollagePhotoCell | bitmap | order | modifier | CollagePickerSheet | EditorToolbar | mode | EditorToolbar-Lb_0hxI | EditorTopBar | HistoryButton | enabled | ModeChip | title | active | PhotoEditorScreen | image | TextOverlay | item | TextOverlay-t70-Qjw | context | ink | renderComposite-u2dx9i8 | app_release | history | layout | selected | Criar colagem | Escolha mais  |  foto | Ainda não há outras fotos neste álbum. | Aplicar colagem | Desenho | Texto | Borracha | Colagem | Cancelar | Concluir | font | composed | copy(...) | state | Excluir texto | createBitmap(...) | build(...)
+=== Gallery/PhotoTextFont.java
+label | family | style | weight | SERIF | SERIF_ITALIC | ELEGANT | ELEGANT_ITALIC | SANS | app_release | Serif | Serif itálico | Elegante | Elegante itálico | Sans
+=== Gallery/PhotoViewerOverlayKt.java
+Filmstrip | photos | PhotoViewerOverlay | ReactionFloatingBar | modifier | ReactionSummaryRow | counts | ViewerActionBar | ViewerBarButton | title | enabled | icon | ViewerIconButton | filled | ViewerTopBar | photo | WhoReactedSheet | reactions | app_release | d 'de' MMM, yyyy · HH:mm | <anonymous> | PhotoViewerOverlay.kt | call to 'resume' before 'invoke' with coroutine | android.permission.WRITE_EXTERNAL_STORAGE | Editar | Salvar | Fechar | Quem reagiu | Ninguém reagiu a esta foto ainda.
+=== Gallery/TextItem.java
+text | fraction | color | font | setColor-8_81llA | setFraction-k-4lQ0M | component1 | component2 | component3 | component3-F1C5BW0 | component4 | component4-0d7_KjU | component5 | component6 | copy | copy-6TbYsW0 | equals | other | app_release | toString(...) | <set-?> | TextItem(id= | , text= | , fraction= | , color= | , fontSize= | , font=
+=== Camera/CameraScreenKt.java
+BottomRow | CameraHeader | title | CameraNotice | message | modifier | CameraScreen | FilmDial | remaining | GalleryThumbnail | photo | PermissionPlaceholder | ZoomChip | label | selected | ZoomRow | app_release | now | <anonymous> | CameraScreen.kt | call to 'resume' before 'invoke' with coroutine | android.permission.CAMERA | also(...) | build(...) | abertura da câmera | Não foi possível abrir a câmera. Feche outros apps que a estejam usando e tente de novo. | No ViewModelStoreOwner was provided via LocalViewModelStoreOwner | android.settings.APPLICATION_DETAILS_SETTINGS | package | Você usou todas as suas fotos deste evento. | .jpg | exception | captura (código  | A câmera foi interrompida. Tente tirar a foto de novo. | Não foi possível tirar a foto. Tente de novo. | Não foi possível guardar a foto. Verifique o espaço livre no aparelho. | output | O Memo precisa da câmera para você fotografar o evento. | Aguardando permissão da câmera… | Abrir configurações | Pedir de novo | Inverter câmera
+=== Camera/CameraViewModel.java
+repository | <set-?> | app_release | <anonymous> | CameraViewModel.kt | call to 'resume' before 'invoke' with coroutine | gravação local da foto ( | Não foi possível guardar a foto. Verifique o espaço livre no aparelho. | Suas fotos neste evento acabaram — esta não entrou no rolo.
+=== Camera/PhotoStyleFilter.java
+apply | style | source | contrast | other | app_release | createBitmap(...)
+=== Components/BrandMarkKt.java
+, ContentDisposition.Parameters.Size,  | color | modifier | HandPhoneMark-8s8adOk | WordmarkLogo | WordmarkLogo-kHDZbjc | app_release | Memo
+=== Components/ButtonsKt.java
+label | SecondaryButton | SocialSignInButton | style | app_release
+=== Components/EventCoverImageKt.java
+modifier | app_release | bitmap | <anonymous> | EventCoverImage.kt | call to 'resume' before 'invoke' with coroutine
+=== Components/InviteSheetKt.java
+, NotificationCompat.CATEGORY_EVENT,  | app_release | copied | event | Convide para \" | Peça para os convidados escanearem o QR ou digitarem o código no app. | Compartilhar convite | Você foi convidado para \" | \" no Memo! Entre com o código  |  ou pelo link:  | android.intent.action.SEND | text/plain | android.intent.extra.TEXT
+=== Components/ManualGridKt.java
+, ExifInterface.GPS_DIRECTION_TRUE,  | columns | modifier | ManualGrid-nSlTg7c | app_release | items
+=== Components/MemoBottomSheetKt.java
+content | app_release
+=== Components/PageDotsIndicatorKt.java
+count | app_release
+=== Components/PhotoBitmapKt.java
+file | context | uri | photo | app_release | bitmap | key | value |  + (file.exists() ? file.lastModified() : 0L) + 
+=== Components/ProfileSheetKt.java
+NameEditorSheet | initial | ProfileSheet | billing | SignOutConfirmSheet | app_release | text | <anonymous> | ProfileSheet.kt | call to 'resume' before 'invoke' with coroutine | Excluir sua conta? | Isso apaga permanentemente sua conta, os eventos que você organiza e as fotos deles — para você e para os convidados. Não dá para desfazer. | Excluir conta | Cancelar | Seu nome | Seu nome aparece nas fotos que você tirar. | Salvar | Sair da conta? | Você volta para o começo e vai passar pelo onboarding de novo. Os álbuns já criados continuam salvos neste aparelho. | Sair
+=== Components/QrCodeKt.java
+payload | modifier | QrCode-6a0pyJM | side | app_release | createBitmap(...)
+=== Components/SocialButtonStyle.java
+LIGHT | DARK | app_release
+=== Components/StepChromeKt.java
+StepFooter | StepHeader | title | subtitle | app_release | Voltar | Próximo
+=== Components/TextFieldsKt.java
+value | modifier | placeholder | app_release
+=== Navigation/MemoNavGraphKt.java
+billing | app_release | events | <anonymous> | MemoNavGraph.kt | call to 'resume' before 'invoke' with coroutine | invoke | purpose | Não foi possível entrar | Tentar de novo | Continuar sem entrar no evento | name | , NotificationCompat.CATEGORY_EVENT,  | saved | event
+=== Navigation/Routes.java
+CAMERA | CREATE_EVENT | GALLERY | HOME | INTRO_SLIDES | LOADING | NAME_ENTRY | PURPOSE | WELCOME_AUTH | camera | gallery | app_release | camera/{eventId} | gallery/{eventId} | home | loading | purpose | camera/ | gallery/

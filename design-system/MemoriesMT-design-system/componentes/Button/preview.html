@@ -1,0 +1,31 @@
+<!-- @dsCard group="Ações" height=236 -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../componentes.css">
+<script>document.documentElement.setAttribute('data-theme', new URLSearchParams(location.search).get('tema') || 'dia');</script>
+<meta charset="utf-8">
+<title>Button · MemoriesMT</title>
+</head>
+<body>
+<div class="mm-stack">
+  <div class="mm-demo" style="padding:0">
+    <button type="button" class="mm-btn mm-btn--primario">Entrar na festa</button>
+    <button type="button" class="mm-btn mm-btn--secundario">Ver o que já postaram</button>
+    <button type="button" class="mm-btn mm-btn--primario" disabled>Entrar na festa</button>
+  </div>
+  <div class="mm-demo" style="padding:0">
+    <button type="button" class="mm-btn mm-btn--cta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Postar daqui</span></button>
+    <button type="button" class="mm-btn mm-btn--cta mm-btn--cta-xl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Tirar foto</span></button>
+  </div>
+  <div class="mm-demo" style="padding:0">
+    <button type="button" class="mm-btn mm-btn--primario mm-btn--pequeno">Ocultar foto</button>
+    <button type="button" class="mm-btn mm-btn--secundario mm-btn--pequeno">Manter</button>
+    <button type="button" class="mm-btn mm-btn--destrutivo mm-btn--pequeno">Bloquear autor</button>
+    <button type="button" class="mm-btn mm-btn--texto">Recomeçar</button>
+  </div>
+</div>
+</body>
+</html>

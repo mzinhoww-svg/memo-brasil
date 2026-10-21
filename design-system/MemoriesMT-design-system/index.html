@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dia">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MemoriesMT Design System</title>
+<link rel="stylesheet" href="tokens/tokens.css">
+<link rel="stylesheet" href="componentes/componentes.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Birthstone+Bounce:wght@400;500&amp;display=swap">
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: var(--fundo); color: var(--tinta); }
+  .g-top { position: sticky; top: 0; z-index: 2; background: var(--fundo); border-bottom: 1px solid var(--divisor); }
+  .g-top-in { max-width: 1040px; margin: 0 auto; padding: var(--space-3) var(--space-4); display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+  .g-top img { height: 24px; }
+  .g-nav { display: flex; gap: var(--space-1); flex-wrap: wrap; flex: 1; }
+  .g-nav a { font-size: 14px; font-weight: 600; color: var(--apoio); text-decoration: none; padding: 6px 10px; border-radius: var(--radius-pill); }
+  .g-nav a:hover { color: var(--tinta); background: var(--neutro); }
+  .g-nav a:focus-visible, .g-tema:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+  .g-tema { font: inherit; height: var(--size-alvo); padding: 0 var(--space-4); border: 1.5px solid var(--tinta); border-radius: var(--radius-md); background: var(--fundo); color: var(--tinta); font-size: 15px; font-weight: 700; cursor: pointer; }
+  main { max-width: 1040px; margin: 0 auto; padding: 0 var(--space-4) var(--space-10); }
+  section { padding-top: var(--space-9); scroll-margin-top: 72px; }
+  .g-h2 { margin: 0 0 var(--space-4); }
+  .g-sub { margin: var(--space-8) 0 var(--space-1); }
+  .g-apoio { color: var(--apoio); }
+  .g-capa { position: relative; width: 100%; aspect-ratio: 960 / 288; overflow: hidden; border-radius: var(--radius-lg); border: 1px solid var(--borda); }
+  .g-capa iframe { position: absolute; top: 0; left: 0; width: 960px; height: 288px; border: 0; transform-origin: 0 0; }
+  .g-md { font-size: 17px; line-height: 1.55; max-width: 760px; }
+  .g-md h2 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin: var(--space-8) 0 var(--space-3); }
+  .g-md h3 { font-size: 20px; font-weight: 800; margin: var(--space-6) 0 var(--space-2); }
+  .g-md ul { padding-left: 1.2em; }
+  .g-md li { margin: 6px 0; }
+  .g-md code { font-size: 0.9em; background: var(--neutro); padding: 1px 6px; border-radius: 6px; }
+  .g-md table { border-collapse: collapse; width: 100%; font-size: 15px; display: block; overflow-x: auto; }
+  .g-md th, .g-md td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--divisor); vertical-align: top; }
+  .g-md th { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--apoio); }
+  .g-cores { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-4); }
+  .g-cor { display: grid; grid-template-columns: 64px 1fr; gap: var(--space-3); align-items: start; }
+  .g-cor-sw span { display: block; width: 64px; height: 64px; border-radius: var(--radius-control); border: 1px solid var(--borda); box-sizing: border-box; }
+  .g-cor-nome { font-size: 16px; font-weight: 700; }
+  .g-cor-val { font-size: 13px; color: var(--apoio); font-variant-numeric: tabular-nums; }
+  .g-cor-uso { font-size: 14px; line-height: 1.4; margin-top: 4px; }
+  .g-tipo { padding: var(--space-4) 0; border-bottom: 1px solid var(--divisor); }
+  .g-tipo-meta { display: flex; gap: var(--space-3); align-items: baseline; flex-wrap: wrap; margin-bottom: 6px; }
+  .g-tipo-amostra { overflow-wrap: anywhere; margin: 4px 0; }
+  .g-med { display: grid; grid-template-columns: 140px 64px minmax(0, 1fr); gap: 4px var(--space-3); align-items: center; padding: 10px 0; border-bottom: 1px solid var(--divisor); }
+  .g-uso { grid-column: 1 / -1; }
+  .g-barra { height: 16px; background: var(--acao); border-radius: 4px; }
+  .g-alvo { background: var(--neutro); border: 1.5px solid var(--tinta); border-radius: var(--radius-md); box-sizing: border-box; }
+  .g-raios { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+  .g-raio { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .g-raio-box { width: 88px; height: 88px; background: var(--neutro); border: 1.5px solid var(--tinta); box-sizing: border-box; }
+  .g-logos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); }
+  .g-logo { margin: 0; padding: var(--space-6); border-radius: var(--radius-lg); background: #FFFFFF; border: 1px solid var(--borda); display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; color: #6B645F; }
+  .g-logo img { height: 56px; max-width: 100%; }
+  .g-logo--escuro { background: #1C1917; color: #A8A29D; border-color: #1C1917; }
+  .g-icones { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--space-3); }
+  .g-icone { margin: 0; padding: var(--space-4); border-radius: var(--radius-panel); background: #FFFFFF; border: 1px solid var(--borda); display: flex; flex-direction: column; align-items: center; gap: var(--space-2); color: #6B645F; }
+  .g-icone img { width: 28px; height: 28px; }
+  .g-comp { padding: var(--space-8) 0; border-bottom: 1px solid var(--divisor); }
+  .g-comp-head { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-3); }
+  .g-comp-head h3 { margin: 0; }
+  .g-frame { width: 100%; border: 1px solid var(--borda); border-radius: var(--radius-lg); background: var(--fundo); display: block; }
+  @media (max-width: 720px) {
+    .g-top-in { gap: var(--space-2) var(--space-3); padding-bottom: var(--space-2); }
+    .g-tema { order: 2; margin-left: auto; height: 40px; }
+    .g-nav { order: 3; flex: 0 0 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .g-nav a { white-space: nowrap; }
+    section { padding-top: var(--space-8); scroll-margin-top: 112px; }
+  }
+  .g-rodape { max-width: 1040px; margin: 0 auto; padding: var(--space-6) var(--space-4) var(--space-9); }
+</style>
+</head>
+<body>
+<header class="g-top">
+  <div class="g-top-in">
+    <img class="mm-logo--dia" src="logos/memoriesmt-wordmark.svg" alt="MemoriesMT">
+    <img class="mm-logo--noite" src="logos/memoriesmt-wordmark-negativo.svg" alt="MemoriesMT">
+    <nav class="g-nav" aria-label="Seções"><a href="#capa">Capa</a><a href="#guia">Guia</a><a href="#voz">Voz</a><a href="#evento">Evento</a><a href="#cores">Cores</a><a href="#tipografia">Tipografia</a><a href="#medidas">Medidas</a><a href="#logos">Logos</a><a href="#icones">Ícones</a><a href="#componentes">Componentes</a></nav>
+    <button type="button" class="g-tema" id="tema" aria-pressed="false">Tema Noite</button>
+  </div>
+</header>
+<main>
+  <section id="capa">
+    <div class="g-capa" id="capa-box"><iframe src="componentes/Cover/preview.html" data-base="componentes/Cover/preview.html" title="Capa do MemoriesMT"></iframe></div>
+  </section>
+  <section id="guia"><h2 class="display g-h2">Guia da marca</h2><div class="g-md"><p>MemoriesMT é uma câmera coletiva para eventos. O convidado aponta a câmera para o QR, entra com o nome e posta. Cada foto aparece na hora no feed da festa, organizada por momento e por mesa, com a identidade do evento na frente e a marca MemoriesMT só como assinatura.</p>
+<p>Personalidade: espirituosa, afetuosa, precisa. Não é fofa. A interface é editorial e calma; quem dá cor à festa é o evento.</p>
+<h2>Nome e marca</h2>
+<ul>
+<li>Em texto corrido, escreva <strong>MemoriesMT</strong>: uma palavra, com M e MT em maiúscula. Nunca "Memories MT", "memoriesmt" ou "Memories".</li>
+<li>O logotipo é o wordmark <code>memoriesmt-wordmark.svg</code>: "memories" em caixa baixa, Bricolage Grotesque 800, tracking -0,04em, seguido do selo MT. Use <code>memoriesmt-wordmark-negativo.svg</code> sobre tinta ou fotos escuras.</li>
+<li>O selo <code>memoriesmt-selo.svg</code> é um disco cheio com "MT" vazado. Ele vira ícone do app, favicon, avatar de perfil e assinatura pequena.</li>
+<li>Construção do wordmark: diâmetro do selo = 0,72 do corpo da palavra; espaço entre palavra e selo = 0,16 do diâmetro; base do selo na linha de base.</li>
+<li>Construção do selo: "MT" em Bricolage Grotesque 800, largura de 0,66 do diâmetro, centralizado no círculo.</li>
+<li>Área de proteção: 25% do diâmetro do selo em todos os lados.</li>
+<li>Tamanho mínimo: selo com 16px; wordmark com 96px de largura.</li>
+<li>Ícone do app: <code>memoriesmt-icone-app.svg</code>, fundo tinta com cantos <code>radius-icone</code> e selo branco. Durante um evento ao vivo, use <code>memoriesmt-icone-app-ao-vivo.svg</code>, com o ponto <code>rec</code> no canto.</li>
+<li>Não distorça, não recolora fora de tinta e branco, não contorne e não separe o selo do wordmark em peças de marca.</li>
+<li>Em telas e impressos do evento, a marca aparece só como assinatura discreta (componente Signature): "por" + selo + MemoriesMT, em <code>apoio</code>, 13px.</li>
+</ul>
+<h2>Cor</h2>
+<ul>
+<li>Dois temas: <strong>Dia</strong> (padrão) e <strong>Noite</strong> (pista, festa à noite). Todo componente funciona nos dois.</li>
+<li>Proporção de referência no Dia: branco 48 · tinta 28 · neutro 16 · apoio 5 · REC 3.</li>
+<li>Texto principal em <code>tinta</code> sobre <code>fundo</code>, <code>neutro</code> ou <code>evento-superficie</code>. Texto secundário em <code>apoio</code>.</li>
+<li>Ação principal em <code>acao</code> com texto <code>on-acao</code>. Na Noite, <code>acao</code> fica claro e o texto escuro; nunca fixe branco sobre <code>acao</code>.</li>
+<li><code>rec</code> é o ponto vermelho de gravando: "Ao vivo", "acabaram de postar", ícone ao vivo. Use no máximo 10% da tela, nunca como fundo grande e nunca em texto. Texto vermelho usa <code>rec-texto</code>.</li>
+<li><code>borda</code> é decorativa (1,5:1). Campos e botões secundários usam borda de 1,5px em <code>tinta</code>.</li>
+<li>Separe áreas por superfície (<code>fundo</code> contra <code>neutro</code>) e por <code>divisor</code>. Não use sombras.</li>
+<li>Foco do teclado: contorno de 2px em <code>foco</code> com 2px de afastamento, em todo elemento interativo.</li>
+<li>Cores do evento ficam nos tokens <code>evento-*</code>. Veja a seção Camada do evento.</li>
+</ul>
+<h2>Tipografia</h2>
+<ul>
+<li>Bricolage Grotesque (<code>sans</code>) para marca e interface. Títulos em 800 com tracking negativo: <code>display-xl</code>, <code>display</code>, <code>titulo-pagina</code>, <code>titulo-tela</code>, <code>titulo-card</code>.</li>
+<li>Texto corrido em <code>corpo</code>, 17px. No mobile, nada de leitura abaixo de 17px; <code>meta</code> (13px) só para metadados.</li>
+<li><code>eyebrow</code> sempre em caixa alta, 12px, peso 600, tracking +0,08em, em <code>apoio</code> ou <code>evento-profundo</code>.</li>
+<li>Instrument Serif itálico (<code>serif</code>) só para emoção: confirmação ("Sua visão entrou na história."), abertura de descoberta, capa de retrospectiva. Um por tela, no máximo.</li>
+<li>A fonte do evento (<code>evento</code>) aparece só no nome do casal. Nunca em botões, rótulos ou texto corrido.</li>
+<li>Números no padrão brasileiro: 1.284 fotos; horário 21h40; data 12 · 12 · 2026.</li>
+</ul>
+<h2>Espaço, raio e alvo</h2>
+<ul>
+<li>Margem lateral no mobile: <code>space-4</code>. Padding de tela: <code>space-6</code>. Admin: <code>space-8</code> vertical e <code>space-9</code> horizontal.</li>
+<li>Cantos crescem com o elemento: <code>radius-md</code> em abas e botões pequenos, <code>radius-control</code> em campos e botão de 56px, <code>radius-lg</code> em fotos e CTA de 64px, <code>radius-xl</code> em CTA de 72px.</li>
+<li>Pessoas e status são redondos: avatar, ponto <code>rec</code>, contador e chips usam <code>radius-pill</code>.</li>
+<li>Alvo mínimo de toque: <code>size-alvo</code> (44px). Ação principal: <code>size-campo</code> (56px), <code>size-cta</code> (64px) ou <code>size-cta-xl</code> (72px).</li>
+<li>No mobile, a ação de postar fica fixa no rodapé, acima da barra de navegação, sempre alcançável com o polegar.</li>
+</ul>
+<h2>Iconografia</h2>
+<ul>
+<li>Ícones de traço: grade de 24px, traço de 2px (2,2px no item ativo), terminações e cantos arredondados, sem preenchimento. Exceção: <code>mais</code> (três pontos cheios).</li>
+<li>Tamanho de uso: 22px na navegação, 24px em botões, 28px em estados vazios.</li>
+<li>Os arquivos do grupo Icones são de uma tinta só (<code>#1C1917</code>). Para recolorir, insira o SVG inline com <code>stroke="currentColor"</code>.</li>
+<li>Ícone sozinho sempre com <code>aria-label</code>. Sem emoji na interface.</li>
+</ul>
+<h2>Imagens</h2>
+<ul>
+<li>A foto do convidado é o conteúdo: sem moldura, sem filtro, cantos <code>radius-lg</code> no feed e <code>radius-control</code> nas miniaturas.</li>
+<li>Enquanto a foto carrega, mostre o espaço em <code>evento-superficie</code>.</li>
+<li>Tags sobre fotos ("Escolha dos noivos") usam fundo <code>fundo</code>, texto <code>tinta</code>, <code>eyebrow</code> em 11px e <code>radius-pill</code>.</li>
+</ul>
+<h2>Acessibilidade</h2>
+<ul>
+<li>Contraste mínimo de 4,5:1 para texto e 3:1 para ícones e bordas de controle, nos dois temas. As notas de cada token trazem os pares medidos.</li>
+<li><code>on-desabilitado</code> sobre <code>desabilitado</code> fica em 4,0:1 no Dia: aceito só no estado desabilitado.</li>
+<li>Estados nunca dependem só de cor: "Ao vivo" tem o ponto e a palavra; erro tem texto; item atual tem peso 800 e <code>aria-current</code>.</li>
+<li>Botões são <code>&lt;button&gt;</code>, links são <code>&lt;a href&gt;</code>, campos têm <code>&lt;label&gt;</code>.</li>
+</ul></div></section>
+  <section id="voz"><h2 class="display g-h2">Conteúdo e voz</h2><div class="g-md"><p>MemoriesMT fala com quem está na festa: de perto, rápido, com humor leve. A interface nunca compete com o momento.</p>
+<h2>Regras</h2>
+<ul>
+<li>Português do Brasil. Trate o convidado por "você". A marca fala em primeira pessoa do plural só quando age por ele ("A gente termina daqui.").</li>
+<li>Frases curtas. Um verbo de ação por botão, em tom de convite: "Postar daqui", "Entrar na festa", "Ver no Agora".</li>
+<li>Sem emoji, sem travessão, sem exclamação na interface. Exclamação só nas sugestões de legenda, que são a voz do convidado.</li>
+<li>Caixa de frase em títulos e botões. Caixa alta só em <code>eyebrow</code>.</li>
+<li>Nomes de seção fixos: <strong>Agora</strong> (feed ao vivo), <strong>Explorar</strong> (momentos e mesas), <strong>Você</strong> (suas fotos).</li>
+<li>O ponto de vista de cada pessoa é uma <strong>visão</strong>: "Visão da Mesa 8", "Visão do bar", "Visão de Ana".</li>
+<li>Erro diz o que aconteceu e o que fazer: "Código não confere. Confira no card da mesa."</li>
+<li>Falta de sinal tranquiliza: as fotos ficam guardadas e sobem sozinhas.</li>
+</ul>
+<h2>Frases de assinatura</h2>
+<ul>
+<li>"A festa vista por todo mundo."</li>
+<li>"Todo mundo viu um casamento diferente. Agora dá para ver todos."</li>
+</ul>
+<h2>Microcopy de referência</h2>
+<table>
+<thead>
+<tr>
+<th>Momento</th>
+<th>Texto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Entrada</td>
+<td>A visão da Emy. A visão do Igor. Agora, a sua.</td>
+</tr>
+<tr>
+<td>Campo de nome</td>
+<td>Como te chamam na festa?</td>
+</tr>
+<tr>
+<td>Consentimento</td>
+<td>Ao postar, você autoriza os noivos a guardar e compartilhar a foto.</td>
+</tr>
+<tr>
+<td>Dentro da festa</td>
+<td>Você está dentro, Ana.</td>
+</tr>
+<tr>
+<td>Postar</td>
+<td>Viu alguma coisa boa? Posta.</td>
+</tr>
+<tr>
+<td>Enviando</td>
+<td>Pode guardar o celular. A gente termina daqui.</td>
+</tr>
+<tr>
+<td>Sem sinal</td>
+<td>Sem sinal agora. Suas 3 fotos estão guardadas.</td>
+</tr>
+<tr>
+<td>Publicado</td>
+<td>Sua visão entrou na história.</td>
+</tr>
+<tr>
+<td>Explorar</td>
+<td>Enquanto você estava na pista…</td>
+</tr>
+<tr>
+<td>Descoberta</td>
+<td>Você perdeu isso.</td>
+</tr>
+<tr>
+<td>Card de mesa</td>
+<td>Essa mesa também faz parte da história.</td>
+</tr>
+<tr>
+<td>Painel dos noivos</td>
+<td>Seu casamento por todos os ângulos.</td>
+</tr>
+<tr>
+<td>QR Code Studio</td>
+<td>Cada QR sabe de onde veio.</td>
+</tr>
+<tr>
+<td>Pedido de remoção</td>
+<td>Mais opções, incluindo pedir para remover</td>
+</tr>
+</tbody>
+</table>
+<h2>Dados e números</h2>
+<ul>
+<li>Milhar com ponto (1.284), horário com "h" (21h40), data com pontos médios (12 · 12 · 2026).</li>
+<li>Metadado no formato "Momento · tempo": "Pôr do sol · há 2 min".</li>
+<li>Dados fictícios em telas de exemplo sempre marcados como "dados de exemplo".</li>
+</ul></div></section>
+  <section id="evento"><h2 class="display g-h2">Camada do evento</h2><div class="g-md"><p>Cada evento veste o produto com a própria identidade: paleta e monograma do convite, fonte do nome do casal. O produto continua em tinta, neutro e REC; o evento entra por cinco cores e uma fonte.</p>
+<h2>O que cada evento define</h2>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Papel</th>
+<th>Regra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>evento-superficie</code></td>
+<td>Faixa de entrada, aviso, espaço de foto, trilho do ranking</td>
+<td>Clara no Dia; <code>tinta</code> precisa ter 4,5:1 ou mais sobre ela</td>
+</tr>
+<tr>
+<td><code>evento-grafismo</code></td>
+<td>Grafismo e superfície decorativa</td>
+<td>Nunca texto</td>
+</tr>
+<tr>
+<td><code>evento-controle</code></td>
+<td>Borda e controle no tema</td>
+<td>3:1 ou mais sobre <code>fundo</code>; nunca texto</td>
+</tr>
+<tr>
+<td><code>evento-texto</code></td>
+<td>Avatar, barra do ranking, destaque</td>
+<td>4,5:1 ou mais sobre <code>fundo</code> e <code>evento-superficie</code>; <code>on-evento</code> sobre ela também</td>
+</tr>
+<tr>
+<td><code>evento-profundo</code></td>
+<td>Nome do casal, eyebrow do evento</td>
+<td>4,5:1 ou mais sobre <code>fundo</code> e <code>evento-superficie</code></td>
+</tr>
+<tr>
+<td>família <code>evento</code></td>
+<td>Nome do casal</td>
+<td>Só no nome; nunca em botões ou texto corrido</td>
+</tr>
+</tbody>
+</table>
+<h2>Como montar o tema</h2>
+<ol>
+<li>Extraia a paleta e o monograma do convite.</li>
+<li>A cor mais característica do convite costuma reprovar como texto. Use-a em <code>evento-grafismo</code> e derive uma versão escura para <code>evento-texto</code> e <code>evento-profundo</code>.</li>
+<li>Meça os pares acima nos temas Dia e Noite antes de publicar.</li>
+<li>No tema Noite, a cor original do convite costuma passar como texto sobre <code>fundo</code>; use-a em <code>evento-texto</code>.</li>
+<li>Mantenha <code>rec</code>, <code>acao</code> e <code>tinta</code> do produto. O evento não troca a cor de ação nem o ponto de gravando.</li>
+</ol>
+<h2>Exemplo: Emy e Igor, sálvia</h2>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Dia</th>
+<th>Noite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>evento-superficie</code></td>
+<td><code>#E8ECE4</code></td>
+<td><code>#262D24</code></td>
+</tr>
+<tr>
+<td><code>evento-grafismo</code></td>
+<td><code>#AAB4A2</code></td>
+<td><code>#5B6752</code></td>
+</tr>
+<tr>
+<td><code>evento-controle</code></td>
+<td><code>#889082</code></td>
+<td><code>#889082</code></td>
+</tr>
+<tr>
+<td><code>evento-texto</code></td>
+<td><code>#5B6752</code></td>
+<td><code>#AAB4A2</code></td>
+</tr>
+<tr>
+<td><code>evento-profundo</code></td>
+<td><code>#4A5543</code></td>
+<td><code>#C9D1C1</code></td>
+</tr>
+<tr>
+<td>família <code>evento</code></td>
+<td>Birthstone Bounce</td>
+<td>Birthstone Bounce</td>
+</tr>
+</tbody>
+</table>
+<p>A sálvia original (<code>#AAB4A2</code>) mede 2,2:1 sobre branco e reprova como texto no Dia; na Noite mede 8,7:1 e vira o texto do evento.</p>
+<h2>Marca MemoriesMT no evento</h2>
+<ul>
+<li>Identidade do evento na frente; MemoriesMT só como assinatura (componente Signature) no rodapé da entrada, do card de mesa e dos PDFs.</li>
+<li>Em contratos com parceiros, a assinatura pode trocar "MemoriesMT" pelo nome do cerimonial: "Experiência por Cerimonial X".</li>
+</ul></div></section>
+  <section id="cores"><h2 class="display g-h2">Cores</h2><p class="corpo g-apoio">Valores Dia · Noite. O quadrado mostra o tema ativo.</p><div class="g-cores"><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--fundo)"></span></div><div><div class="g-cor-nome">fundo</div><div class="g-cor-val">#FFFFFF · #141211</div><div class="g-cor-uso">Fundo da página e dos cards. No painel dos noivos, card em fundo sobre página em neutro.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--neutro)"></span></div><div><div class="g-cor-nome">neutro</div><div class="g-cor-val">#F4F2EF · #2A2624</div><div class="g-cor-uso">Superfície secundária: barra lateral do admin, abas inativas, chips de sugestão, página do painel dos noivos.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--tinta)"></span></div><div><div class="g-cor-nome">tinta</div><div class="g-cor-val">#1C1917 · #F4F2EF</div><div class="g-cor-uso">Texto principal e ícones sobre fundo, neutro e evento-superficie. Dia: 17,5:1 sobre fundo, 15,7:1 sobre neutro, 14,6:1 sobre evento-superficie. Noite: 16,7:1 sobre fundo, 13,4:1 sobre neutro.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--apoio)"></span></div><div><div class="g-cor-nome">apoio</div><div class="g-cor-val">#6B645F · #A8A29D</div><div class="g-cor-uso">Texto secundário, metadados, eyebrow, item de navegação inativo. Dia: 5,8:1 sobre fundo, 5,2:1 sobre neutro, 4,9:1 sobre evento-superficie. Noite: 7,4:1 sobre fundo, 5,9:1 sobre neutro.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--borda)"></span></div><div><div class="g-cor-nome">borda</div><div class="g-cor-val">#D9D5D1 · #3A3533</div><div class="g-cor-uso">Contorno de cards, chips não selecionados e seletor de evento. Decorativa: 1,5:1 sobre fundo. Nunca é o único limite de um campo; campos e botões secundários usam tinta.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--divisor)"></span></div><div><div class="g-cor-nome">divisor</div><div class="g-cor-val">#E4E0DC · #2A2624</div><div class="g-cor-uso">Linhas divisórias, borda superior da barra de navegação e trilho da barra de progresso.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--acao)"></span></div><div><div class="g-cor-nome">acao</div><div class="g-cor-val">= tinta</div><div class="g-cor-uso">Preenchimento do botão primário, do CTA e do chip, aba ou opção selecionados. Alias de tinta: inverte na Noite.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--on-acao)"></span></div><div><div class="g-cor-nome">on-acao</div><div class="g-cor-val">#FFFFFF · #1C1917</div><div class="g-cor-uso">Texto e ícone sobre acao. 17,5:1 no Dia, 15,7:1 na Noite.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--foco)"></span></div><div><div class="g-cor-nome">foco</div><div class="g-cor-val">= tinta</div><div class="g-cor-uso">Anel de foco do teclado: 2px sólido com 2px de afastamento. 15,7:1 ou mais sobre fundo e neutro nos dois temas.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--rec)"></span></div><div><div class="g-cor-nome">rec</div><div class="g-cor-val">#E1261C · #FF5A4E</div><div class="g-cor-uso">Ponto de gravando: Ao vivo, acabaram de postar, ícone do app ao vivo. No máximo 10% da tela. Marca não textual: 4,7:1 sobre fundo e 3,7:1 sobre tinta no Dia; 6,1:1 sobre fundo na Noite.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--rec-texto)"></span></div><div><div class="g-cor-nome">rec-texto</div><div class="g-cor-val">#C41E14 · #FF5A4E</div><div class="g-cor-uso">Acento em texto: erro de formulário, botão destrutivo, valor em alerta, preenchimento do contador. Dia: 5,9:1 sobre fundo, 5,3:1 sobre neutro. Noite: 6,1:1 sobre fundo, 4,9:1 sobre neutro.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--on-rec)"></span></div><div><div class="g-cor-nome">on-rec</div><div class="g-cor-val">#FFFFFF · #141211</div><div class="g-cor-uso">Texto sobre preenchimento rec-texto (contador). 5,9:1 no Dia, 6,1:1 na Noite.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--desabilitado)"></span></div><div><div class="g-cor-nome">desabilitado</div><div class="g-cor-val">#D9D5D1 · #3A3533</div><div class="g-cor-uso">Fundo de botão desabilitado.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--on-desabilitado)"></span></div><div><div class="g-cor-nome">on-desabilitado</div><div class="g-cor-val">#6B645F · #A8A29D</div><div class="g-cor-uso">Texto de botão desabilitado. Dia: 4,0:1 sobre desabilitado, abaixo de 4,5:1 (isento por ser estado inativo; não usar fora dele). Noite: 4,8:1.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--evento-superficie)"></span></div><div><div class="g-cor-nome">evento-superficie</div><div class="g-cor-val">#E8ECE4 · #262D24</div><div class="g-cor-uso">Camada do evento, exemplo sálvia: faixa de entrada, aviso do cerimonial, espaço de foto, trilho do ranking. Cada evento troca este valor.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--evento-grafismo)"></span></div><div><div class="g-cor-nome">evento-grafismo</div><div class="g-cor-val">#AAB4A2 · #5B6752</div><div class="g-cor-uso">Grafismo e superfície decorativa do evento. Nunca texto: 2,2:1 sobre fundo no Dia.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--evento-controle)"></span></div><div><div class="g-cor-nome">evento-controle</div><div class="g-cor-val">#889082 · #889082</div><div class="g-cor-uso">Borda e controle no tema do evento. Só interface, nunca texto: 3,3:1 sobre fundo no Dia, 5,7:1 na Noite.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--evento-texto)"></span></div><div><div class="g-cor-nome">evento-texto</div><div class="g-cor-val">#5B6752 · #AAB4A2</div><div class="g-cor-uso">Texto e preenchimento de destaque do evento: avatar, barra do ranking. Dia: 6,0:1 sobre fundo, 5,0:1 sobre evento-superficie. Noite: 8,7:1 sobre fundo, 6,6:1 sobre evento-superficie.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--evento-profundo)"></span></div><div><div class="g-cor-nome">evento-profundo</div><div class="g-cor-val">#4A5543 · #C9D1C1</div><div class="g-cor-uso">Nome do casal, eyebrow e rótulos do evento. Dia: 7,9:1 sobre fundo, 6,6:1 sobre evento-superficie. Noite: 11,9:1 sobre fundo, 9,0:1 sobre evento-superficie.</div></div></div><div class="g-cor"><div class="g-cor-sw"><span style="background:var(--on-evento)"></span></div><div><div class="g-cor-nome">on-evento</div><div class="g-cor-val">#FFFFFF · #141211</div><div class="g-cor-uso">Texto sobre preenchimento evento-texto (iniciais do avatar). 6,0:1 no Dia, 8,7:1 na Noite.</div></div></div></div></section>
+  <section id="tipografia"><h2 class="display g-h2">Tipografia</h2><h3 class="titulo-card g-sub">Marca e interface</h3><p class="corpo-sm g-apoio">Bricolage Grotesque variável, 200 a 800, com tamanho óptico automático. Títulos em 800 e tracking negativo; interface com corpo mínimo de 17px.</p><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">display-xl</span><span class="meta g-apoio">56px · 1.04 · 800 · -0.03em</span></div><div class="display-xl g-tipo-amostra">A festa vista por todo mundo.</div><div class="meta g-apoio">Capa de landing, pôster e one-pager. Um por peça.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">display</span><span class="meta g-apoio">40px · 1.06 · 800 · -0.03em</span></div><div class="display g-tipo-amostra">Todo mundo viu um casamento diferente.</div><div class="meta g-apoio">Título de seção em peças de venda e páginas.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">titulo-pagina</span><span class="meta g-apoio">34px · 1.1 · 800 · -0.02em</span></div><div class="titulo-pagina g-tipo-amostra">Cada QR sabe de onde veio.</div><div class="meta g-apoio">Título de página no admin (desktop).</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">numero</span><span class="meta g-apoio">30px · 1.1 · 800 · -0.02em</span></div><div class="numero g-tipo-amostra">1.284</div><div class="meta g-apoio">Número de destaque em card de estatística.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">titulo-tela</span><span class="meta g-apoio">28px · 1.08 · 800 · -0.02em</span></div><div class="titulo-tela g-tipo-amostra">Viu alguma coisa boa? Posta.</div><div class="meta g-apoio">Título de tela no mobile.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">titulo-card</span><span class="meta g-apoio">20px · 1.2 · 800 · -0.02em</span></div><div class="titulo-card g-tipo-amostra">Você perdeu isso.</div><div class="meta g-apoio">Título de bloco ou card.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">cta</span><span class="meta g-apoio">18px · 1.2 · 800</span></div><div class="cta g-tipo-amostra">Postar daqui</div><div class="meta g-apoio">Rótulo do CTA de 56 a 72px.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">botao</span><span class="meta g-apoio">17px · 1.2 · 700</span></div><div class="botao g-tipo-amostra">Entrar na festa</div><div class="meta g-apoio">Rótulo de botão primário e secundário.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">corpo</span><span class="meta g-apoio">17px · 1.4 · 400</span></div><div class="corpo g-tipo-amostra">Tudo o que você fotografar entra na história da festa.</div><div class="meta g-apoio">Texto corrido e legenda de post. Nunca abaixo de 17px no mobile.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">nome</span><span class="meta g-apoio">16px · 1.25 · 700</span></div><div class="nome g-tipo-amostra">Visão da Mesa 8</div><div class="meta g-apoio">Autor do post e item de destaque em lista.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">rotulo</span><span class="meta g-apoio">15px · 1.35 · 600</span></div><div class="rotulo g-tipo-amostra">Como te chamam na festa?</div><div class="meta g-apoio">Rótulo de campo, item de menu, botão pequeno.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">corpo-sm</span><span class="meta g-apoio">15px · 1.4 · 400</span></div><div class="corpo-sm g-tipo-amostra">Não achamos esse nome na lista.</div><div class="meta g-apoio">Ajuda, aviso secundário, linha de lista.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">meta</span><span class="meta g-apoio">13px · 1.35 · 500</span></div><div class="meta g-tipo-amostra">Pôr do sol · há 2 min</div><div class="meta g-apoio">Metadados e legendas de apoio, sempre em apoio.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">eyebrow</span><span class="meta g-apoio">12px · 1.3 · 600 · 0.08em</span></div><div class="eyebrow g-tipo-amostra">AO VIVO</div><div class="meta g-apoio">Sobretítulo e status. Sempre em caixa alta.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">nav</span><span class="meta g-apoio">12px · 1.3 · 600</span></div><div class="nav g-tipo-amostra">Explorar</div><div class="meta g-apoio">Rótulo da barra de navegação; 800 no item atual.</div></div><h3 class="titulo-card g-sub">Emoção</h3><p class="corpo-sm g-apoio">Instrument Serif itálico, só em momentos de emoção: confirmação, capa de retrospectiva, frase de abertura. Nunca em interface funcional.</p><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">emocao-lg</span><span class="meta g-apoio">42px · 1.04 · 400 · itálico</span></div><div class="emocao-lg g-tipo-amostra">Sua visão entrou na história.</div><div class="meta g-apoio">Confirmação de publicação e capa.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">emocao</span><span class="meta g-apoio">34px · 1.05 · 400 · itálico</span></div><div class="emocao g-tipo-amostra">Enquanto você estava na pista…</div><div class="meta g-apoio">Abertura de tela de descoberta e painel dos noivos.</div></div><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">emocao-sm</span><span class="meta g-apoio">22px · 1.2 · 400 · itálico</span></div><div class="emocao-sm g-tipo-amostra">A festa vista por todo mundo.</div><div class="meta g-apoio">Linha de apoio em peças de venda.</div></div><h3 class="titulo-card g-sub">Evento (exemplo)</h3><p class="corpo-sm g-apoio">Fonte do convite do casal, só no nome dos noivos. Troca a cada evento; o exemplo é Birthstone Bounce, servida pelo Google Fonts.</p><div class="g-tipo"><div class="g-tipo-meta"><span class="nome">nome-evento</span><span class="meta g-apoio">54px · 1.05 · 400</span></div><div class="nome-evento g-tipo-amostra">Emy &amp; Igor</div><div class="meta g-apoio">Nome do casal na entrada, no feed e no card de mesa.</div></div></section>
+  <section id="medidas"><h2 class="display g-h2">Medidas</h2>
+    <h3 class="titulo-card g-sub">Espaço</h3><div class="g-med"><span class="nome">space-1</span><span class="meta g-apoio">4px</span><span class="g-barra" style="width:var(--space-1)"></span><span class="meta g-apoio g-uso">Gap entre linhas de um mesmo bloco (nome e meta).</span></div><div class="g-med"><span class="nome">space-2</span><span class="meta g-apoio">8px</span><span class="g-barra" style="width:var(--space-2)"></span><span class="meta g-apoio g-uso">Gap entre chips, botões em linha e opções.</span></div><div class="g-med"><span class="nome">space-3</span><span class="meta g-apoio">12px</span><span class="g-barra" style="width:var(--space-3)"></span><span class="meta g-apoio g-uso">Gap padrão dentro de cards e listas.</span></div><div class="g-med"><span class="nome">space-4</span><span class="meta g-apoio">16px</span><span class="g-barra" style="width:var(--space-4)"></span><span class="meta g-apoio g-uso">Margem lateral do mobile e gap entre blocos de formulário.</span></div><div class="g-med"><span class="nome">space-5</span><span class="meta g-apoio">20px</span><span class="g-barra" style="width:var(--space-5)"></span><span class="meta g-apoio g-uso">Padding horizontal de botão e gap de seção no admin.</span></div><div class="g-med"><span class="nome">space-6</span><span class="meta g-apoio">24px</span><span class="g-barra" style="width:var(--space-6)"></span><span class="meta g-apoio g-uso">Padding de tela no mobile.</span></div><div class="g-med"><span class="nome">space-7</span><span class="meta g-apoio">28px</span><span class="g-barra" style="width:var(--space-7)"></span><span class="meta g-apoio g-uso">Padding de tela de confirmação e cards grandes.</span></div><div class="g-med"><span class="nome">space-8</span><span class="meta g-apoio">32px</span><span class="g-barra" style="width:var(--space-8)"></span><span class="meta g-apoio g-uso">Padding vertical da página do admin.</span></div><div class="g-med"><span class="nome">space-9</span><span class="meta g-apoio">48px</span><span class="g-barra" style="width:var(--space-9)"></span><span class="meta g-apoio g-uso">Padding horizontal da página do admin.</span></div><div class="g-med"><span class="nome">space-10</span><span class="meta g-apoio">72px</span><span class="g-barra" style="width:var(--space-10)"></span><span class="meta g-apoio g-uso">Padding de peças desktop e pôster.</span></div>
+    <h3 class="titulo-card g-sub">Raio</h3><div class="g-raios"><div class="g-raio"><span class="g-raio-box" style="border-radius:var(--radius-xs)"></span><span class="nome">radius-xs</span><span class="meta g-apoio">8px</span></div><div class="g-raio"><span class="g-raio-box" style="border-radius:var(--radius-sm)"></span><span class="nome">radius-sm</span><span class="meta g-apoio">10px</span></div><div class="g-raio"><span class="g-raio-box" style="border-radius:var(--radius-md)"></span><span class="nome">radius-md</span><span class="meta g-apoio">12px</span></div><div class="g-raio"><span class="g-raio-box" style="border-radius:var(--radius-control)"></span><span class="nome">radius-control</span><span class="meta g-apoio">14px</span></div><div class="g-raio"><span class="g-raio-box" style="border-radius:var(--radius-panel)"></span><span class="nome">radius-panel</span><span class="meta g-apoio">16px</span></div><div class="g-raio"><span class="g-raio-box" style="border-radius:var(--radius-lg)"></span><span class="nome">radius-lg</span><span class="meta g-apoio">18px</span></div><div class="g-raio"><span class="g-raio-box" style="border-radius:var(--radius-xl)"></span><span class="nome">radius-xl</span><span class="meta g-apoio">20px</span></div><div class="g-raio"><span class="g-raio-box" style="border-radius:var(--radius-icone)"></span><span class="nome">radius-icone</span><span class="meta g-apoio">32px</span></div><div class="g-raio"><span class="g-raio-box" style="border-radius:var(--radius-pill)"></span><span class="nome">radius-pill</span><span class="meta g-apoio">999px</span></div></div>
+    <h3 class="titulo-card g-sub">Alvos de toque</h3><div class="g-med"><span class="nome">size-avatar</span><span class="meta g-apoio">36px</span><span class="g-alvo" style="height:var(--size-avatar);width:var(--size-avatar)"></span><span class="meta g-apoio g-uso">Avatar com iniciais no feed.</span></div><div class="g-med"><span class="nome">size-alvo</span><span class="meta g-apoio">44px</span><span class="g-alvo" style="height:var(--size-alvo);width:var(--size-alvo)"></span><span class="meta g-apoio g-uso">Alvo mínimo: chips, abas, botões pequenos, botões de ícone.</span></div><div class="g-med"><span class="nome">size-opcao</span><span class="meta g-apoio">48px</span><span class="g-alvo" style="height:var(--size-opcao);width:var(--size-opcao)"></span><span class="meta g-apoio g-uso">Opção em grupo e botões do contador numérico.</span></div><div class="g-med"><span class="nome">size-nav</span><span class="meta g-apoio">52px</span><span class="g-alvo" style="height:var(--size-nav);width:var(--size-nav)"></span><span class="meta g-apoio g-uso">Item da barra de navegação inferior.</span></div><div class="g-med"><span class="nome">size-campo</span><span class="meta g-apoio">56px</span><span class="g-alvo" style="height:var(--size-campo);width:var(--size-campo)"></span><span class="meta g-apoio g-uso">Campo de texto, botão primário, CTA da barra inferior.</span></div><div class="g-med"><span class="nome">size-cta</span><span class="meta g-apoio">64px</span><span class="g-alvo" style="height:var(--size-cta);width:var(--size-cta)"></span><span class="meta g-apoio g-uso">CTA de tela: Postar minha primeira foto, Publicar.</span></div><div class="g-med"><span class="nome">size-cta-xl</span><span class="meta g-apoio">72px</span><span class="g-alvo" style="height:var(--size-cta-xl);width:var(--size-cta-xl)"></span><span class="meta g-apoio g-uso">CTA da câmera: Tirar foto.</span></div>
+  </section>
+  <section id="logos"><h2 class="display g-h2">Logos</h2><div class="g-logos"><figure class="g-logo"><img src="logos/memoriesmt-wordmark.svg" alt="memoriesmt-wordmark.svg"><figcaption class="meta">memoriesmt-wordmark.svg</figcaption></figure><figure class="g-logo g-logo--escuro"><img src="logos/memoriesmt-wordmark-negativo.svg" alt="memoriesmt-wordmark-negativo.svg"><figcaption class="meta">memoriesmt-wordmark-negativo.svg</figcaption></figure><figure class="g-logo"><img src="logos/memoriesmt-selo.svg" alt="memoriesmt-selo.svg"><figcaption class="meta">memoriesmt-selo.svg</figcaption></figure><figure class="g-logo g-logo--escuro"><img src="logos/memoriesmt-selo-negativo.svg" alt="memoriesmt-selo-negativo.svg"><figcaption class="meta">memoriesmt-selo-negativo.svg</figcaption></figure><figure class="g-logo"><img src="logos/memoriesmt-icone-app.svg" alt="memoriesmt-icone-app.svg"><figcaption class="meta">memoriesmt-icone-app.svg</figcaption></figure><figure class="g-logo"><img src="logos/memoriesmt-icone-app-ao-vivo.svg" alt="memoriesmt-icone-app-ao-vivo.svg"><figcaption class="meta">memoriesmt-icone-app-ao-vivo.svg</figcaption></figure></div><div class="g-md"><ul>
+<li><code>memoriesmt-wordmark.svg</code>: wordmark principal, "memories" + selo MT. Uma tinta: <code>#1C1917</code> (tinta). Sobre <code>fundo</code>, <code>neutro</code> e fotos claras.</li>
+<li><code>memoriesmt-wordmark-negativo.svg</code>: wordmark em <code>#FFFFFF</code>. Sobre tinta, tema Noite e fotos escuras.</li>
+<li><code>memoriesmt-selo.svg</code>: selo MT, disco com letras vazadas. Uma tinta: <code>#1C1917</code>. Ícone, favicon, avatar e assinatura.</li>
+<li><code>memoriesmt-selo-negativo.svg</code>: selo em <code>#FFFFFF</code>, letras vazadas mostram o fundo.</li>
+<li><code>memoriesmt-icone-app.svg</code>: ícone do app, 140px com cantos <code>radius-icone</code>. Duas tintas: fundo <code>#1C1917</code>, selo <code>#FFFFFF</code>.</li>
+<li><code>memoriesmt-icone-app-ao-vivo.svg</code>: ícone do app com o ponto <code>rec</code> (<code>#E1261C</code>) no canto. Só enquanto há evento ao vivo.</li>
+</ul>
+<p>Os desenhos são contornos vetoriais, sem dependência de fonte. Mínimos: selo 16px, wordmark 96px de largura. Proteção: 25% do diâmetro do selo.</p></div></section>
+  <section id="icones"><h2 class="display g-h2">Ícones</h2><div class="g-icones"><figure class="g-icone"><img src="icones/agora.svg" alt="agora"><figcaption class="meta">agora</figcaption></figure><figure class="g-icone"><img src="icones/baixar.svg" alt="baixar"><figcaption class="meta">baixar</figcaption></figure><figure class="g-icone"><img src="icones/camera.svg" alt="camera"><figcaption class="meta">camera</figcaption></figure><figure class="g-icone"><img src="icones/casal.svg" alt="casal"><figcaption class="meta">casal</figcaption></figure><figure class="g-icone"><img src="icones/explorar.svg" alt="explorar"><figcaption class="meta">explorar</figcaption></figure><figure class="g-icone"><img src="icones/favoritos.svg" alt="favoritos"><figcaption class="meta">favoritos</figcaption></figure><figure class="g-icone"><img src="icones/fechar.svg" alt="fechar"><figcaption class="meta">fechar</figcaption></figure><figure class="g-icone"><img src="icones/mais.svg" alt="mais"><figcaption class="meta">mais</figcaption></figure><figure class="g-icone"><img src="icones/moderar.svg" alt="moderar"><figcaption class="meta">moderar</figcaption></figure><figure class="g-icone"><img src="icones/sem-sinal.svg" alt="sem-sinal"><figcaption class="meta">sem-sinal</figcaption></figure><figure class="g-icone"><img src="icones/voce.svg" alt="voce"><figcaption class="meta">voce</figcaption></figure></div><div class="g-md"><p>Ícones de traço em grade de 24px: traço 2px, terminações e cantos arredondados, sem preenchimento. Uma tinta: <code>#1C1917</code> (tinta). Para recolorir, use o SVG inline com <code>stroke="currentColor"</code>. Na navegação, 22px; o item atual usa traço 2,2px.</p>
+<ul>
+<li><code>camera.svg</code>: postar, tirar foto. Sempre dentro do CTA "Postar daqui".</li>
+<li><code>agora.svg</code>: aba Agora, o feed ao vivo.</li>
+<li><code>explorar.svg</code>: aba Explorar.</li>
+<li><code>voce.svg</code>: aba Você.</li>
+<li><code>casal.svg</code>: aba Nosso casamento, no painel dos noivos.</li>
+<li><code>favoritos.svg</code>: favoritos dos noivos.</li>
+<li><code>moderar.svg</code>: moderação.</li>
+<li><code>baixar.svg</code>: downloads.</li>
+<li><code>fechar.svg</code>: fechar tela ou folha.</li>
+<li><code>sem-sinal.svg</code>: estado sem conexão.</li>
+<li><code>mais.svg</code>: mais opções. Exceção: três pontos cheios em <code>#1C1917</code>.</li>
+</ul></div></section>
+  <section id="componentes"><h2 class="display g-h2">Componentes</h2><article class="g-comp" id="c-AdminNav"><div class="g-comp-head"><h3 class="titulo-card">AdminNav</h3><span class="eyebrow g-apoio">Navegação</span></div><iframe class="g-frame" src="componentes/AdminNav/preview.html" data-base="componentes/AdminNav/preview.html" style="height:640px" title="Prévia de AdminNav" loading="lazy"></iframe><div class="g-md"><p>Menu lateral do admin: wordmark, seletor de evento e seções.</p>
+<p>Coluna de 256px em <code>neutro</code>. No topo, <code>memoriesmt-wordmark.svg</code> com 24px de altura (negativo no tema Noite). Seletor de evento (<code>mm-event-switch</code>) com nome em 800 e estado em <code>apoio</code> ("12.12.2026 · ao vivo"). Itens de 44px, <code>radius-sm</code>; o atual com <code>aria-current="page"</code>, fundo <code>fundo</code> e peso 800. Pendências com CountBadge à direita. O consumidor fornece evento, seções e contagens.</p></div></article><article class="g-comp" id="c-Button"><div class="g-comp-head"><h3 class="titulo-card">Button</h3><span class="eyebrow g-apoio">Ações</span></div><iframe class="g-frame" src="componentes/Button/preview.html" data-base="componentes/Button/preview.html" style="height:236px" title="Prévia de Button" loading="lazy"></iframe><div class="g-md"><p>Botão de ação em seis variantes: primário, CTA, secundário, pequeno, texto e destrutivo.</p>
+<ul>
+<li><strong>Primário</strong> (<code>mm-btn mm-btn--primario</code>): a ação da tela, uma por vista. 56px, <code>acao</code> com <code>on-acao</code>, <code>radius-control</code>.</li>
+<li><strong>CTA</strong> (<code>mm-btn mm-btn--cta</code>): postar e publicar. 64px, <code>radius-lg</code>, ícone da câmera à esquerda. <code>mm-btn--cta-xl</code> (72px) só na tela da câmera.</li>
+<li><strong>Secundário</strong> (<code>mm-btn--secundario</code>): alternativa ao primário, borda 1,5px em <code>tinta</code>.</li>
+<li><strong>Pequeno</strong> (<code>mm-btn--pequeno</code>): 44px, para ações em cards e barras do admin. Combine com primário ou secundário.</li>
+<li><strong>Texto</strong> (<code>mm-btn--texto</code>): ação de baixo peso, sublinhada, em <code>apoio</code>.</li>
+<li><strong>Destrutivo</strong> (<code>mm-btn--destrutivo</code>): bloquear, excluir. Borda e texto em <code>rec-texto</code>; nunca preenchido.</li>
+</ul>
+<p>O consumidor fornece o rótulo (verbo de ação em caixa de frase), o ícone opcional como SVG inline e o <code>type</code>. Use <code>&lt;button&gt;</code> para ações e <code>&lt;a class="mm-btn"&gt;</code> para navegação. Desabilitado: atributo <code>disabled</code>, que aplica <code>desabilitado</code> e <code>on-desabilitado</code>. Não use dois primários na mesma vista e não coloque ícone sem rótulo.</p></div></article><article class="g-comp" id="c-Chip"><div class="g-comp-head"><h3 class="titulo-card">Chip</h3><span class="eyebrow g-apoio">Ações</span></div><iframe class="g-frame" src="componentes/Chip/preview.html" data-base="componentes/Chip/preview.html" style="height:168px" title="Prévia de Chip" loading="lazy"></iframe><div class="g-md"><p>Pílula de 44px para reações, filtros de momento e sugestões de legenda.</p>
+<ul>
+<li><strong>Reação</strong> (<code>mm-chip</code>): "Amei 24", "Esse momento 11". Borda em <code>borda</code>; selecionado com <code>aria-pressed="true"</code> vira <code>acao</code>.</li>
+<li><strong>Filtro</strong> (<code>mm-chip mm-chip--filtro</code>): momentos no Explorar ("O sim", "Pôr do sol"). Borda em <code>tinta</code>. Selecionado mostra a contagem: "Pôr do sol · 318".</li>
+<li><strong>Sugestão</strong> (<code>mm-chip mm-chip--sugestao</code>): legendas prontas no fluxo de postar. Fundo <code>neutro</code>.</li>
+</ul>
+<p>O consumidor fornece o rótulo, a contagem e o estado <code>aria-pressed</code>. Agrupe com <code>mm-chips</code>. Chip é sempre <code>&lt;button&gt;</code>. A borda de <code>borda</code> é decorativa: o estado selecionado é marcado por preenchimento, nunca só por cor de borda.</p></div></article><article class="g-comp" id="c-CountBadge"><div class="g-comp-head"><h3 class="titulo-card">CountBadge</h3><span class="eyebrow g-apoio">Status</span></div><iframe class="g-frame" src="componentes/CountBadge/preview.html" data-base="componentes/CountBadge/preview.html" style="height:88px" title="Prévia de CountBadge" loading="lazy"></iframe><div class="g-md"><p>Contador em pílula de 24px para pendências: pedidos de remoção, fotos novas para moderar.</p>
+<p>Fundo <code>rec-texto</code>, número em <code>on-rec</code>, 12px peso 700. Use só para algo que pede ação; zero não aparece. Junto do rótulo, nunca sozinho.</p></div></article><article class="g-comp" id="c-DataRow"><div class="g-comp-head"><h3 class="titulo-card">DataRow</h3><span class="eyebrow g-apoio">Conteúdo</span></div><iframe class="g-frame" src="componentes/DataRow/preview.html" data-base="componentes/DataRow/preview.html" style="height:330px" title="Prévia de DataRow" loading="lazy"></iframe><div class="g-md"><p>Lista de linhas com rótulo e valor, para acessos por QR e rankings do admin.</p>
+<p>Cabeçalho em <code>eyebrow</code> com <code>apoio</code>; linhas de 52px separadas por <code>divisor</code>; nome em negrito seguido do tipo; valor em peso 700, alinhado à direita. Valor que pede atenção em <code>rec-texto</code> (<code>mm-row-valor--alerta</code>), sempre com uma nota que explique o que fazer. O consumidor fornece as linhas ordenadas e a nota.</p></div></article><article class="g-comp" id="c-EventHeader"><div class="g-comp-head"><h3 class="titulo-card">EventHeader</h3><span class="eyebrow g-apoio">Evento</span></div><iframe class="g-frame" src="componentes/EventHeader/preview.html" data-base="componentes/EventHeader/preview.html" style="height:200px" title="Prévia de EventHeader" loading="lazy"></iframe><div class="g-md"><p>Faixa de abertura com data, local e nome do casal: a identidade do evento na frente.</p>
+<p>Fundo <code>evento-superficie</code>. Data e local em <code>eyebrow</code> com <code>evento-profundo</code>, no formato "12 · 12 · 2026 · Chalés Taíba, CE". Nome do casal na família <code>evento</code>, 54px, em <code>evento-profundo</code>. O consumidor fornece data, local, nome e a fonte do convite. Nada além disso na faixa.</p></div></article><article class="g-comp" id="c-Field"><div class="g-comp-head"><h3 class="titulo-card">Field</h3><span class="eyebrow g-apoio">Formulários</span></div><iframe class="g-frame" src="componentes/Field/preview.html" data-base="componentes/Field/preview.html" style="height:300px" title="Prévia de Field" loading="lazy"></iframe><div class="g-md"><p>Campo de texto de 56px com rótulo, ajuda e erro.</p>
+<ul>
+<li>Rótulo <code>mm-field-label</code> sempre visível, ligado ao <code>&lt;input&gt;</code> por <code>for</code>/<code>id</code>. Placeholder só como exemplo, em <code>apoio</code>.</li>
+<li>Borda de 1,5px em <code>tinta</code>, <code>radius-control</code>, texto 17px.</li>
+<li>Código da festa: <code>mm-field-input--codigo</code> (20px, caixa alta, tracking +0,12em).</li>
+<li>Erro: <code>mm-field-erro</code> em <code>rec-texto</code>, abaixo do campo, dizendo o que fazer. Marque o campo com <code>aria-invalid="true"</code> e <code>aria-describedby</code>.</li>
+<li>Ajuda e consentimento: <code>mm-field-ajuda</code>, 13px em <code>apoio</code>.</li>
+</ul>
+<p>O consumidor fornece rótulo, valor, validação e mensagens.</p></div></article><article class="g-comp" id="c-LiveIndicator"><div class="g-comp-head"><h3 class="titulo-card">LiveIndicator</h3><span class="eyebrow g-apoio">Status</span></div><iframe class="g-frame" src="componentes/LiveIndicator/preview.html" data-base="componentes/LiveIndicator/preview.html" style="height:88px" title="Prévia de LiveIndicator" loading="lazy"></iframe><div class="g-md"><p>Ponto <code>rec</code> com rótulo em <code>eyebrow</code>, para sinalizar que o evento está ao vivo ou que algo acabou de acontecer.</p>
+<p>Use "Ao vivo" no topo do feed, a hora atual no painel dos noivos ("21h40") e "Subindo 2 de 3" durante o envio. O ponto nunca aparece sozinho: sempre com a palavra. Um indicador por tela.</p></div></article><article class="g-comp" id="c-Notice"><div class="g-comp-head"><h3 class="titulo-card">Notice</h3><span class="eyebrow g-apoio">Status</span></div><iframe class="g-frame" src="componentes/Notice/preview.html" data-base="componentes/Notice/preview.html" style="height:128px" title="Prévia de Notice" loading="lazy"></iframe><div class="g-md"><p>Aviso do cerimonial fixado no topo do feed, na cor do evento.</p>
+<p>Fundo <code>evento-superficie</code>, eyebrow em <code>evento-profundo</code> ("Aviso · cerimonial") e texto 16px peso 600 em <code>tinta</code>. Um aviso por vez, curto, com hora ou lugar: "Pôr do sol na areia em 10 minutos." O consumidor fornece o texto e quando ele expira.</p></div></article><article class="g-comp" id="c-OptionGroup"><div class="g-comp-head"><h3 class="titulo-card">OptionGroup</h3><span class="eyebrow g-apoio">Ações</span></div><iframe class="g-frame" src="componentes/OptionGroup/preview.html" data-base="componentes/OptionGroup/preview.html" style="height:220px" title="Prévia de OptionGroup" loading="lazy"></iframe><div class="g-md"><p>Grupo de opções exclusivas em botões de 48px, para configurações do admin.</p>
+<p>Use <code>mm-group</code> com um rótulo <code>mm-group-label</code> e a grade <code>mm-opts</code> (duas colunas) ou <code>mm-opts--lista</code> (uma coluna, texto à esquerda). Cada <code>mm-opt</code> é um <code>&lt;button&gt;</code> com <code>aria-pressed</code>; o selecionado vira <code>acao</code>. O consumidor fornece rótulos curtos e o estado. Para mais de seis opções, use um campo de seleção.</p></div></article><article class="g-comp" id="c-PostCard"><div class="g-comp-head"><h3 class="titulo-card">PostCard</h3><span class="eyebrow g-apoio">Conteúdo</span></div><iframe class="g-frame" src="componentes/PostCard/preview.html" data-base="componentes/PostCard/preview.html" style="height:520px" title="Prévia de PostCard" loading="lazy"></iframe><div class="g-md"><p>Post do feed Agora: autor, momento, foto, legenda e reações.</p>
+<ul>
+<li>Avatar <code>mm-avatar</code> com iniciais em <code>on-evento</code> sobre <code>evento-texto</code>.</li>
+<li>Autor como visão: "Visão da Mesa 8", "Visão de Ana". Meta em <code>apoio</code>: "Pôr do sol · há 2 min".</li>
+<li>Botão de mais opções (<code>mm-icon-btn</code>) sempre presente, com <code>aria-label</code> que cita o pedido de remoção.</li>
+<li>Foto em <code>mm-media</code>, <code>radius-lg</code>, sem moldura. Espaço em <code>evento-superficie</code> enquanto carrega.</li>
+<li>Tag "Escolha dos noivos" (<code>mm-tag</code>) quando os noivos destacam.</li>
+<li>Legenda opcional em 17px. Reações com Chip.</li>
+</ul>
+<p>O consumidor fornece autor, momento, tempo, imagem com <code>alt</code>, legenda e contagens.</p></div></article><article class="g-comp" id="c-Progress"><div class="g-comp-head"><h3 class="titulo-card">Progress</h3><span class="eyebrow g-apoio">Status</span></div><iframe class="g-frame" src="componentes/Progress/preview.html" data-base="componentes/Progress/preview.html" style="height:230px" title="Prévia de Progress" loading="lazy"></iframe><div class="g-md"><p>Barra de 8px para envio de fotos e para ranking de momentos.</p>
+<ul>
+<li><strong>Envio</strong> (<code>mm-progress</code>): trilho <code>divisor</code>, preenchimento <code>acao</code>. Cabeçalho com nome do item e estado: "Enviada", "62%", "Na fila" (em <code>apoio</code>).</li>
+<li><strong>Ranking</strong> (<code>mm-progress mm-progress--evento</code>): trilho <code>evento-superficie</code>, preenchimento <code>evento-texto</code>, cabeçalho 14px. A maior barra ocupa 100%; as demais são proporcionais.</li>
+</ul>
+<p>O consumidor fornece rótulo, valor e largura. Use <code>role="progressbar"</code> com <code>aria-valuenow</code> no envio.</p></div></article><article class="g-comp" id="c-Signature"><div class="g-comp-head"><h3 class="titulo-card">Signature</h3><span class="eyebrow g-apoio">Marca</span></div><iframe class="g-frame" src="componentes/Signature/preview.html" data-base="componentes/Signature/preview.html" style="height:88px" title="Prévia de Signature" loading="lazy"></iframe><div class="g-md"><p>Assinatura discreta da marca nas telas e impressos do evento: "por" + selo + MemoriesMT.</p>
+<p>13px em <code>apoio</code> (12px em impressos), selo de 16px desenhado inline com <code>fill: currentColor</code>. Fica no rodapé da entrada, do card de mesa e dos PDFs, centralizada ou à direita. Nunca maior que isso e nunca acima da identidade do evento. Em parcerias, o nome pode trocar pelo do cerimonial.</p></div></article><article class="g-comp" id="c-StatTile"><div class="g-comp-head"><h3 class="titulo-card">StatTile</h3><span class="eyebrow g-apoio">Conteúdo</span></div><iframe class="g-frame" src="componentes/StatTile/preview.html" data-base="componentes/StatTile/preview.html" style="height:230px" title="Prévia de StatTile" loading="lazy"></iframe><div class="g-md"><p>Card de número para o painel dos noivos e o admin.</p>
+<p>Card em <code>fundo</code> sobre página <code>neutro</code>, <code>radius-panel</code>, número em <code>numero</code> (30px, 800) e rótulo 13px em <code>apoio</code>. Grade de duas colunas. Números no padrão brasileiro ("1.284", "18 de 20"). Telas com dados fictícios trazem "dados de exemplo" no eyebrow.</p></div></article><article class="g-comp" id="c-Stepper"><div class="g-comp-head"><h3 class="titulo-card">Stepper</h3><span class="eyebrow g-apoio">Ações</span></div><iframe class="g-frame" src="componentes/Stepper/preview.html" data-base="componentes/Stepper/preview.html" style="height:120px" title="Prévia de Stepper" loading="lazy"></iframe><div class="g-md"><p>Contador numérico com botões de menos e mais, para escolher o número da mesa.</p>
+<p>O consumidor fornece o rótulo, o valor atual (com zero à esquerda: "08") e os limites. Os botões têm <code>aria-label</code> ("Mesa anterior", "Próxima mesa"). Valor em 28px peso 800.</p></div></article><article class="g-comp" id="c-TabBar"><div class="g-comp-head"><h3 class="titulo-card">TabBar</h3><span class="eyebrow g-apoio">Navegação</span></div><iframe class="g-frame" src="componentes/TabBar/preview.html" data-base="componentes/TabBar/preview.html" style="height:200px" title="Prévia de TabBar" loading="lazy"></iframe><div class="g-md"><p>Rodapé fixo do convidado: o CTA "Postar daqui" acima de três abas.</p>
+<ul>
+<li>CTA <code>mm-btn mm-btn--cta</code> com 56px dentro da barra, sempre visível.</li>
+<li>Abas Agora, Explorar e Você, 52px, ícone de 22px sobre rótulo <code>nav</code>. Atual com <code>aria-current="page"</code>, em <code>tinta</code> e peso 800; demais em <code>apoio</code>.</li>
+<li>Borda superior em <code>divisor</code>, fundo <code>fundo</code>.</li>
+<li>No painel dos noivos, use quatro abas (<code>mm-tabbar-nav--4</code>) e sem CTA.</li>
+</ul>
+<p>O consumidor fornece os destinos e a aba atual.</p></div></article><article class="g-comp" id="c-TableCard"><div class="g-comp-head"><h3 class="titulo-card">TableCard</h3><span class="eyebrow g-apoio">Evento</span></div><iframe class="g-frame" src="componentes/TableCard/preview.html" data-base="componentes/TableCard/preview.html" style="height:480px" title="Prévia de TableCard" loading="lazy"></iframe><div class="g-md"><p>Card de mesa impresso em A6 com QR Code da mesa.</p>
+<p>300 × 423px em tela (A6), borda <code>borda</code>, <code>radius-xs</code>. Eyebrow com o número da mesa em <code>evento-profundo</code>; título 25px peso 800; QR de 112px com instrução de três passos; rodapé com o nome do casal na família <code>evento</code> e a Signature. O consumidor fornece número da mesa, QR gerado, nome do casal e fonte do convite.</p></div></article><article class="g-comp" id="c-Tabs"><div class="g-comp-head"><h3 class="titulo-card">Tabs</h3><span class="eyebrow g-apoio">Navegação</span></div><iframe class="g-frame" src="componentes/Tabs/preview.html" data-base="componentes/Tabs/preview.html" style="height:120px" title="Prévia de Tabs" loading="lazy"></iframe><div class="g-md"><p>Abas de 44px para alternar filas e filtros no admin.</p>
+<p>Fundo <code>neutro</code>; a aba ativa com <code>aria-selected="true"</code> vira <code>acao</code>. Rótulo com contagem: "Pedidos de remoção · 3". Use <code>role="tablist"</code> no grupo e <code>role="tab"</code> em cada <code>&lt;button&gt;</code>. Linha <code>divisor</code> abaixo do grupo. O consumidor fornece rótulos, contagens e o painel controlado.</p></div></article><article class="g-comp" id="c-VisionTile"><div class="g-comp-head"><h3 class="titulo-card">VisionTile</h3><span class="eyebrow g-apoio">Conteúdo</span></div><iframe class="g-frame" src="componentes/VisionTile/preview.html" data-base="componentes/VisionTile/preview.html" style="height:340px" title="Prévia de VisionTile" loading="lazy"></iframe><div class="g-md"><p>Miniatura de uma visão no Explorar: a foto de capa com o nome da visão no rodapé.</p>
+<p>Grade de duas colunas (<code>mm-visions</code>), altura 140px, <code>radius-control</code>. Rótulo 13px peso 600 em <code>evento-profundo</code> sobre <code>evento-superficie</code>. Cada tile é um link para a visão. O consumidor fornece nome, foto de capa e destino.</p></div></article></section>
+</main>
+<footer class="g-rodape"><p class="meta g-apoio">MemoriesMT Design System · versão 1. Fontes sob licença SIL Open Font License, em licencas/.</p></footer>
+<script>
+  (function () {
+    var btn = document.getElementById('tema'), html = document.documentElement;
+    function frames() { return document.querySelectorAll('iframe[data-base]'); }
+    btn.addEventListener('click', function () {
+      var noite = html.getAttribute('data-theme') !== 'noite';
+      html.setAttribute('data-theme', noite ? 'noite' : 'dia');
+      btn.textContent = noite ? 'Tema Dia' : 'Tema Noite';
+      btn.setAttribute('aria-pressed', noite ? 'true' : 'false');
+      frames().forEach(function (f) { f.src = f.getAttribute('data-base') + '?tema=' + (noite ? 'noite' : 'dia'); });
+    });
+    var box = document.getElementById('capa-box'), cf = box.querySelector('iframe');
+    function escala() { cf.style.transform = 'scale(' + (box.clientWidth / 960) + ')'; }
+    escala(); window.addEventListener('resize', escala);
+  })();
+</script>
+</body>
+</html>

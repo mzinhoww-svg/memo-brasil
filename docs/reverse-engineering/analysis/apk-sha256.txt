@@ -1,0 +1,4 @@
+03d58b0e11e3b4c05f4adf2ebf9eb03f4362530a5d011c824e56e7753201fa7f  /Users/aurimar.nogueira@latam.com/Downloads/Memo_APK/base.apk
+7f5682530bf761d9ca4947c204b2a5e2682e3238e0ca848f2e9b08ac2c9325c4  /Users/aurimar.nogueira@latam.com/Downloads/Memo_APK/split_config.arm64_v8a.apk
+656ab7fe4a537278e9c17369a51085b901c99a6f9a89e55afa3ac050f9381109  /Users/aurimar.nogueira@latam.com/Downloads/Memo_APK/split_config.en.apk
+45ad6fe2fe32848a9b33bc1773195f58ca6812db996e2e375c5ba7feace335b3  /Users/aurimar.nogueira@latam.com/Downloads/Memo_APK/split_config.xxhdpi.apk

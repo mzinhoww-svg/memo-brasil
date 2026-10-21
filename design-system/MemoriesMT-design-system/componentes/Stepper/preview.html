@@ -1,0 +1,24 @@
+<!-- @dsCard group="Ações" height=120 -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../componentes.css">
+<script>document.documentElement.setAttribute('data-theme', new URLSearchParams(location.search).get('tema') || 'dia');</script>
+<meta charset="utf-8">
+<title>Stepper · MemoriesMT</title>
+</head>
+<body>
+<div class="mm-stack">
+  <div class="mm-group">
+    <span class="mm-group-label">Número da mesa</span>
+    <div class="mm-stepper">
+      <button type="button" class="mm-step-btn" aria-label="Mesa anterior">-</button>
+      <span class="mm-stepper-valor" aria-live="polite">08</span>
+      <button type="button" class="mm-step-btn" aria-label="Próxima mesa">+</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

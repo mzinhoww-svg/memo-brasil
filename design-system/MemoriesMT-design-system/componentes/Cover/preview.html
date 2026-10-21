@@ -1,0 +1,58 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../componentes.css">
+<script>document.documentElement.setAttribute('data-theme', new URLSearchParams(location.search).get('tema') || 'dia');</script>
+<meta charset="utf-8">
+<title>MemoriesMT</title>
+<style>
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--fundo); color: var(--tinta); font-family: var(--font-sans); overflow: hidden; }
+  .cover { position: relative; height: 288px; overflow: hidden; }
+  .art { position: absolute; top: 0; left: 480px; width: 480px; height: 288px; overflow: hidden; }
+  .art svg { display: block; width: 528px; height: 288px; }
+  .slab { fill: var(--acao); rx: var(--radius-xl); }
+  .cut { fill: var(--fundo); }
+  .field { fill: var(--borda); rx: var(--radius-xl); }
+  .dot { fill: var(--acao); }
+  .live { fill: var(--rec); }
+  .band { fill: var(--apoio); }
+  .words { position: absolute; left: var(--space-6); bottom: var(--space-6); max-width: 440px; }
+  .name { margin: 0; font-size: 72px; line-height: .92; font-weight: 800; letter-spacing: -0.03em; color: var(--tinta); }
+  .tag { margin: var(--space-2) 0 0 2px; font-size: 14px; line-height: 20px; color: var(--apoio); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 528 288" width="528" height="288">
+<!--
+  blocks      acao 176x260 slab bled off the top, the largest (tinta is the brand) · borda field 320x192 bleeding off the right · apoio band 120x16 · rec once, one 18px disc: the live dot stays small
+  arrangement one tall slab with a field beside it, bottoms on one line space-6 above the edge, space-4 gutters; the apoio band sits under the field
+  pattern     discs, from the seal and the REC dot (a literal motif, "pessoas e status são redondos"): one 96px disc cut from the slab in fundo, 28 discs of space-3 at a space-6 pitch crowding toward the slab and thinning up-right, one rec disc out ahead
+  scales      sides in space-2 multiples; gutters space-4; pitch space-6; corners radius-xl; band rx half of space-4; disc diameters space-3 and 12 x space-2
+-->
+<rect class="slab" x="16" y="-20" width="176" height="260" rx="20"/>
+<circle class="cut" cx="104" cy="168" r="48"/>
+<rect class="field" x="208" y="48" width="320" height="192" rx="20"/>
+<rect class="band" x="208" y="256" width="120" height="16" rx="8"/>
+<circle class="dot" cx="232" cy="72" r="6"/>
+<circle class="dot" cx="232" cy="96" r="6"/><circle class="dot" cx="256" cy="96" r="6"/>
+<circle class="dot" cx="232" cy="120" r="6"/><circle class="dot" cx="256" cy="120" r="6"/><circle class="dot" cx="280" cy="120" r="6"/>
+<circle class="dot" cx="232" cy="144" r="6"/><circle class="dot" cx="256" cy="144" r="6"/><circle class="dot" cx="280" cy="144" r="6"/><circle class="dot" cx="304" cy="144" r="6"/>
+<circle class="dot" cx="232" cy="168" r="6"/><circle class="dot" cx="256" cy="168" r="6"/><circle class="dot" cx="280" cy="168" r="6"/><circle class="dot" cx="304" cy="168" r="6"/><circle class="dot" cx="328" cy="168" r="6"/>
+<circle class="dot" cx="232" cy="192" r="6"/><circle class="dot" cx="256" cy="192" r="6"/><circle class="dot" cx="280" cy="192" r="6"/><circle class="dot" cx="304" cy="192" r="6"/><circle class="dot" cx="328" cy="192" r="6"/><circle class="dot" cx="352" cy="192" r="6"/>
+<circle class="dot" cx="232" cy="216" r="6"/><circle class="dot" cx="256" cy="216" r="6"/><circle class="dot" cx="280" cy="216" r="6"/><circle class="dot" cx="304" cy="216" r="6"/><circle class="dot" cx="328" cy="216" r="6"/><circle class="dot" cx="352" cy="216" r="6"/><circle class="dot" cx="376" cy="216" r="6"/>
+<circle class="live" cx="448" cy="168" r="9"/>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">MemoriesMT</h1>
+<p class="tag">A festa vista por todo mundo.</p>
+</div>
+</div>
+</body>
+</html>

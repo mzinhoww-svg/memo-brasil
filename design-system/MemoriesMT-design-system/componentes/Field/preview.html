@@ -1,0 +1,26 @@
+<!-- @dsCard group="Formulários" height=300 -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../componentes.css">
+<script>document.documentElement.setAttribute('data-theme', new URLSearchParams(location.search).get('tema') || 'dia');</script>
+<meta charset="utf-8">
+<title>Field · MemoriesMT</title>
+</head>
+<body>
+<div class="mm-stack">
+  <div class="mm-field">
+    <label class="mm-field-label" for="nome">Como te chamam na festa?</label>
+    <input class="mm-field-input" id="nome" type="text" placeholder="Seu nome ou apelido">
+    <span class="mm-field-ajuda">Ao postar, você autoriza os noivos a guardar e compartilhar a foto.</span>
+  </div>
+  <div class="mm-field">
+    <label class="mm-field-label" for="codigo">Código da festa</label>
+    <input class="mm-field-input mm-field-input--codigo" id="codigo" type="text" value="taib" aria-invalid="true" aria-describedby="codigo-erro">
+    <span class="mm-field-erro" id="codigo-erro">Código não confere. Confira no card da mesa.</span>
+  </div>
+</div>
+</body>
+</html>
