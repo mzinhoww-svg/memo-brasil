@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P3 47. Status: BACKLOG 89, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, IN_REVIEW 1, READY 11.
+Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P3 47. Status: BACKLOG 75, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, IN_REVIEW 15, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -345,18 +345,18 @@ Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
 | UXA-001 | FEATURE | Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e estados | P0 | IN_REVIEW | - | missão design/studio/master 2026-10-21 | - | - |
-| UXA-002 | FEATURE | Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com campo e copiar | P1 | BACKLOG | UXA-001 | missão design/studio/master 2026-10-21 | - | - |
+| UXA-002 | FEATURE | Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com campo e copiar | P1 | IN_REVIEW | UXA-001 | missão design/studio/master 2026-10-21 | 9242018 | local |
 | UXA-104 | FEATURE | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rol | P1 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
-| UXA-105 | FEATURE | [Administrativa] /painel/[id] e abas (visão, convidados, momentos, configurações, downloads): Container 1100px alinhado à esquerda (1920: 564px vazios à direita) e formulários presos em 340–343px; Con | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-105 | FEATURE | [Administrativa] /painel/[id] e abas (visão, convidados, momentos, configurações, downloads): Container 1100px alinhado à esquerda (1920: 564px vazios à direita) e formulários presos em 340–343px; Con | P2 | IN_REVIEW | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | 9242018 | local |
 | UXA-106 | FEATURE | [Administrativa] /painel/[id]/convidados: Lista de convidados repetida: tabela 'Convidados' e logo abaixo 'Remover da festa' com os mesmos nomes | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
-| UXA-107 | FEATURE | [Administrativa] /painel/[id] · navegação < 900px: Abas do painel cortadas ('Convidad…', 'Aparênci…'); 8 itens e só 3–5 visíveis, sem sinal de rolagem; 768 usa nav móvel e conteúdo esticado em 768px | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-107 | FEATURE | [Administrativa] /painel/[id] · navegação < 900px: Abas do painel cortadas ('Convidad…', 'Aparênci…'); 8 itens e só 3–5 visíveis, sem sinal de rolagem; 768 usa nav móvel e conteúdo esticado em 768px | P2 | IN_REVIEW | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | 9242018 | local |
 | UXA-108 | FEATURE | [Anfitrião] /criar · passos 1–6: Wizard em coluna de 480px: sem prévia do convite/tema nem resumo lateral; passos 3–5 longos | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-109 | FEATURE | [Convidado] /e/[code]/agora, /explorar, /retrospectiva em desktop: Feed em coluna única de 480px: 7,9k–8,9k px de rolagem em 1440 e fundo vazio; sem grade ou visualização ampliada para o álbum pós-eve | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
-| UXA-110 | FEATURE | [Anfitrião] /criar · validação: Mensagens de erro continuam visíveis depois de o campo ser corrigido (passo 1 com nome preenchido ainda mostra os dois erros); sem foco no primeiro erro | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-110 | FEATURE | [Anfitrião] /criar · validação: Mensagens de erro continuam visíveis depois de o campo ser corrigido (passo 1 com nome preenchido ainda mostra os dois erros); sem foco no primeiro erro | P2 | IN_REVIEW | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | 9242018 | local |
 | UXA-111 | FEATURE | [Todas] Carregando (pronto, convite, área do convidado): Loading é só texto cinza ('Preparando o convite…', 'Abrindo o convite…', 'Carregando a festa…'): sem skeleton, sem role=status/aria-busy e sem  | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-112 | FEATURE | [Todas] Sessão expirada / sem identidade: Anfitrião sem sessão vê 'Só o anfitrião abre o painel.' com botão 'Entrar na festa' (mensagem errada, sem 'Continuar como'); /criar/pronto responde 'Não acham | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
-| UXA-113 | FEATURE | [Convidado] Chips de reação, momento e sugestão (/agora, /explorar, /editar, /postar): Contraste não textual da borda dos chips 1,46–1,54:1 (WCAG 1.4.11 pede 3:1); estado selecionado depende de cor | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
-| UXA-114 | FEATURE | [Todas] Alvos de toque < 44px: Link 'Guia de componentes' 174×21px na home (3 estados); link 'Voltar ao início' 19px de altura em /master | P2 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-113 | FEATURE | [Convidado] Chips de reação, momento e sugestão (/agora, /explorar, /editar, /postar): Contraste não textual da borda dos chips 1,46–1,54:1 (WCAG 1.4.11 pede 3:1); estado selecionado depende de cor | P2 | IN_REVIEW | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | 9242018 | local |
+| UXA-114 | FEATURE | [Todas] Alvos de toque < 44px: Link 'Guia de componentes' 174×21px na home (3 estados); link 'Voltar ao início' 19px de altura em /master | P2 | IN_REVIEW | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | 9242018 | local |
 | UXA-115 | FEATURE | [Todas] Botão de texto (Voltar, Cancelar, Voltar ao início): Botão texto recuado 8px do eixo da coluna (x=24 vs 16) e 'Cancelar' centralizado no wizard; alinhamento inconsistente | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-116 | FEATURE | [Todas] Datas (cabeçalho, resumo, revelação): '21 · 10 · 2026' quebra entre os dígitos ('21 ·' / '10 · 2026 às 17h06'); formato fora do padrão pt-BR | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-117 | FEATURE | [Convidado] /agora e retrospectiva · contadores: Plural errado: '1 fotos' | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
@@ -372,29 +372,29 @@ Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P
 
 **UXA-001** critérios: Inventário em docs/audit/ux com severidade, causa e solução; inclui Evento criado, Câmera, Espera, Revelação, Galeria, Painel, erros, loading, vazio, sessão expirada
 
-**UXA-002** critérios: Sem quebra de título em 320–1920; URL legível e copiável; screenshots antes/depois
+**UXA-002** critérios: Sem quebra de título em 320–1920; URL legível e copiável; screenshots antes/depois · testes: e2e/uxa-evento-criado.spec.ts
 
 **UXA-104** critérios: Grade 3–4 colunas ≥1024 com cartão compacto (miniatura, motivo, ações), seleção em massa, atalhos e painel lateral de detalhe. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-conteudo-1440.png, painel-conteudo-todas-1440.png) em docs/audit/ux/screens.
 
-**UXA-105** critérios: Centralizar o conteúdo ou usar largura fluida por seção; Configurações em 2 colunas com índice âncora e barra de salvar fixa; larguras em tokens, não px. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-visao-1920.png, painel-configuracoes-1440.png) em docs/audit/ux/screens.
+**UXA-105** critérios: Centralizar o conteúdo ou usar largura fluida por seção; Configurações em 2 colunas com índice âncora e barra de salvar fixa; larguras em tokens, não px. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-visao-1920.png, painel-configuracoes-1440.png) em docs/audit/ux/screens. · testes: e2e/uxa-evento-criado.spec.ts
 
 **UXA-106** critérios: Uma tabela com ação Remover por linha (menu), busca e filtro por mesa. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-convidados-1440.png, painel-convidados-375.png) em docs/audit/ux/screens.
 
-**UXA-107** critérios: Sidebar colapsável a partir de 768, ou menu 'Mais'; fade nas bordas e scrollIntoView do item atual. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-visao-375.png, painel-visao-768.png) em docs/audit/ux/screens.
+**UXA-107** critérios: Sidebar colapsável a partir de 768, ou menu 'Mais'; fade nas bordas e scrollIntoView do item atual. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-visao-375.png, painel-visao-768.png) em docs/audit/ux/screens. · testes: e2e/uxa-evento-criado.spec.ts
 
 **UXA-108** critérios: Layout 2 colunas ≥1024 com prévia ao vivo do convite e resumo fixo; manter 1 coluna no mobile. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-1-1440.png, criar-3-1440.png) em docs/audit/ux/screens.
 
 **UXA-109** critérios: ≥1024: grade de miniaturas com lightbox na retrospectiva/explorar; Agora pode manter coluna. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (agora-demo-1440.png, explorar-demo-1440.png) em docs/audit/ux/screens.
 
-**UXA-110** critérios: Limpar o erro do campo no onChange/onBlur; mover foco ao primeiro campo inválido; resumo de erros com role=alert. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-1-375.png, criar-1-1440.png) em docs/audit/ux/screens.
+**UXA-110** critérios: Limpar o erro do campo no onChange/onBlur; mover foco ao primeiro campo inválido; resumo de erros com role=alert. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-1-375.png, criar-1-1440.png) em docs/audit/ux/screens. · testes: e2e/uxa-evento-criado.spec.ts
 
 **UXA-111** critérios: Componente Skeleton/Spinner com role=status e aria-busy; reservar altura do cabeçalho do evento; timeout com mensagem de erro. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (loading-entrar-375.png, loading-convite-375.png) em docs/audit/ux/screens.
 
 **UXA-112** critérios: Estados distintos: não encontrado × sessão expirada × sem permissão; tela 'Sua sessão acabou' com Continuar como/Entrar e retorno à rota original. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (sessao-expirada-painel-375.png, sessao-expirada-agora-375.png) em docs/audit/ux/screens.
 
-**UXA-113** critérios: Borda ≥3:1 (token --borda-controle) ou fundo preenchido; manter aria-pressed. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (agora-demo-375.png, explorar-demo-375.png) em docs/audit/ux/screens.
+**UXA-113** critérios: Borda ≥3:1 (token --borda-controle) ou fundo preenchido; manter aria-pressed. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (agora-demo-375.png, explorar-demo-375.png) em docs/audit/ux/screens. · testes: e2e/uxa-evento-criado.spec.ts
 
-**UXA-114** critérios: Usar mm-btn--texto/mm-link com min-height 44px; a skip-link (43px, só no foco) não conta. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (home-375.png, master-375.png) em docs/audit/ux/screens.
+**UXA-114** critérios: Usar mm-btn--texto/mm-link com min-height 44px; a skip-link (43px, só no foco) não conta. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (home-375.png, master-375.png) em docs/audit/ux/screens. · testes: e2e/uxa-evento-criado.spec.ts
 
 **UXA-115** critérios: Margem negativa de space-2 ou padding 0 horizontal; alinhamento único (esquerda). Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (postar-camera-375.png, voce-demo-375.png) em docs/audit/ux/screens.
 
@@ -424,11 +424,11 @@ Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| DSV-001 | FEATURE | Tokens v2 por camada (Platform/Event/Admin) e breakpoints | P0 | BACKLOG | UXA-001 | missão design/studio/master 2026-10-21 | - | - |
+| DSV-001 | FEATURE | Tokens v2 por camada (Platform/Event/Admin) e breakpoints | P0 | IN_REVIEW | UXA-001 | missão design/studio/master 2026-10-21 | c9269c6 | local |
 | DSV-002 | FEATURE | Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /design | P1 | BACKLOG | DSV-001 | missão design/studio/master 2026-10-21 | - | - |
 | DSV-003 | FEATURE | Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste | P0 | BACKLOG | DSV-002 | missão design/studio/master 2026-10-21 | - | - |
 
-**DSV-001** critérios: Tokens documentados; evento não altera :root nem outros eventos (teste)
+**DSV-001** critérios: Tokens documentados; evento não altera :root nem outros eventos (teste) · testes: src/lib/event-theme/event-theme.test.ts
 
 **DSV-002** critérios: Componentes reutilizáveis com testes e doc de uso; sem biblioteca redundante
 
@@ -438,15 +438,15 @@ Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| EST-001 | FEATURE | Migrations v2: event_themes, event_assets, bucket event-branding privado | P0 | BACKLOG | DSV-001 | missão design/studio/master 2026-10-21 | - | - |
-| EST-002 | FEATURE | Renderer de tema isolado por evento (tokens, sem CSS arbitrário) + assinatura Powered by MemoriesMT | P0 | BACKLOG | DSV-001 | missão design/studio/master 2026-10-21 | - | - |
+| EST-001 | FEATURE | Migrations v2: event_themes, event_assets, bucket event-branding privado | P0 | IN_REVIEW | DSV-001 | missão design/studio/master 2026-10-21 | 198e2eb | local-supabase |
+| EST-002 | FEATURE | Renderer de tema isolado por evento (tokens, sem CSS arbitrário) + assinatura Powered by MemoriesMT | P0 | IN_REVIEW | DSV-001 | missão design/studio/master 2026-10-21 | c9269c6 | local |
 | EST-003 | FEATURE | Criação de evento completa (nome, tipo, data/hora, local, timezone, limites, revelação, prévia do convite) | P1 | BACKLOG | EST-002 | missão design/studio/master 2026-10-21 | - | - |
 | EST-004 | FEATURE | Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estilo de QR, restaurar padrão | P0 | BACKLOG | EST-001, EST-002 | missão design/studio/master 2026-10-21 | - | - |
 | EST-005 | FEATURE | Gestão do evento: indicadores, compartilhar/baixar QR, participantes, revogar convites, uploads, limites, contagem regressiva, status, exportação autorizada | P1 | BACKLOG | EST-003 | missão design/studio/master 2026-10-21 | - | - |
 
-**EST-001** critérios: Migrations aditivas; pgTAP de RLS (host/membro/master/anônimo); CHECKs de cor/fonte/mensagem; sem SVG
+**EST-001** critérios: Migrations aditivas; pgTAP de RLS (host/membro/master/anônimo); CHECKs de cor/fonte/mensagem; sem SVG · testes: pgTAP 366/366 local
 
-**EST-002** critérios: Tema aplicado só no wrapper do evento; teste de isolamento; marca MemoriesMT intacta
+**EST-002** critérios: Tema aplicado só no wrapper do evento; teste de isolamento; marca MemoriesMT intacta · testes: src/lib/event-theme/event-theme.test.ts
 
 **EST-003** critérios: Prévia em tempo real; validação; E2E
 
@@ -458,16 +458,16 @@ Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| MAD-001 | FEATURE | Papéis de plataforma no servidor: platform_roles, is_master com linha ativa, provisionamento seguro do primeiro master | P0 | BACKLOG | EST-001 | missão design/studio/master 2026-10-21 | - | - |
-| MAD-002 | FEATURE | Auditoria v2: reason obrigatório, imutabilidade, actor_role, confirmação de ações destrutivas | P0 | BACKLOG | MAD-001 | missão design/studio/master 2026-10-21 | - | - |
-| MAD-003 | FEATURE | Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações, segurança, configurações, analytics, LGPD, saúde | P1 | BACKLOG | MAD-001, MAD-002, ANL-001 | missão design/studio/master 2026-10-21 | - | - |
+| MAD-001 | FEATURE | Papéis de plataforma no servidor: platform_roles, is_master com linha ativa, provisionamento seguro do primeiro master | P0 | IN_REVIEW | EST-001 | missão design/studio/master 2026-10-21 | 198e2eb | local-supabase |
+| MAD-002 | FEATURE | Auditoria v2: reason obrigatório, imutabilidade, actor_role, confirmação de ações destrutivas | P0 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 198e2eb | local-supabase |
+| MAD-003 | FEATURE | Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações, segurança, configurações, analytics, LGPD, saúde | P1 | IN_REVIEW | MAD-001, MAD-002, ANL-001 | missão design/studio/master 2026-10-21 | 1d862dc | local-supabase |
 | MAD-004 | FEATURE | Acesso excepcional a foto privada por admin com justificativa e auditoria | P1 | BACKLOG | MAD-002 | missão design/studio/master 2026-10-21 | - | - |
 
-**MAD-001** critérios: Sem credencial padrão; provisionamento auditado; organizador não acessa /master (teste)
+**MAD-001** critérios: Sem credencial padrão; provisionamento auditado; organizador não acessa /master (teste) · testes: pgTAP 366/366 local
 
-**MAD-002** critérios: audit_logs sem UPDATE/DELETE; pgTAP
+**MAD-002** critérios: audit_logs sem UPDATE/DELETE; pgTAP · testes: pgTAP 366/366 local
 
-**MAD-003** critérios: 12 módulos com estados loading/vazio/erro/sem permissão; Admin DS desktop-first
+**MAD-003** critérios: 12 módulos com estados loading/vazio/erro/sem permissão; Admin DS desktop-first · testes: e2e/master-studio.spec.ts (5/5 Supabase local)
 
 **MAD-004** critérios: URL de 60 s só após registro de auditoria; sem miniaturas no dashboard
 
@@ -475,18 +475,18 @@ Total: **176** itens (sem contar 18 épicos). Prioridade: P0 34, P1 55, P2 40, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| ANL-001 | FEATURE | RPCs/views agregadas reais para o dashboard (eventos, participantes, fotos, falhas, revelações, Storage, tendências) | P1 | BACKLOG | MAD-001 | missão design/studio/master 2026-10-21 | - | - |
+| ANL-001 | FEATURE | RPCs/views agregadas reais para o dashboard (eventos, participantes, fotos, falhas, revelações, Storage, tendências) | P1 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 198e2eb | local-supabase |
 
-**ANL-001** critérios: Somente master; sem métricas inventadas; testes com dados reais de teste
+**ANL-001** critérios: Somente master; sem métricas inventadas; testes com dados reais de teste · testes: pgTAP 366/366 local
 
 ## EP-16 · Security v2 (BACKLOG)
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | BACKLOG | MAD-001 | missão design/studio/master 2026-10-21 | - | - |
+| SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 198e2eb | local-supabase |
 | SCV-002 | FEATURE | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG | EST-004, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
 
-**SCV-001** critérios: RLS; testes de escalada de privilégio
+**SCV-001** critérios: RLS; testes de escalada de privilégio · testes: pgTAP 366/366 local
 
 **SCV-002** critérios: Sem P0/P1 abertos
 

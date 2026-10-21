@@ -4371,7 +4371,7 @@
    "epic": "EP-11",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "UXA-001"
    ],
@@ -4380,10 +4380,14 @@
     "Sem quebra de título em 320–1920; URL legível e copiável; screenshots antes/depois"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "e2e/uxa-evento-criado.spec.ts"
+   ],
+   "evidence": [
+    "docs/audit/ux/INVENTARIO.md"
+   ],
+   "commit": "9242018",
+   "environment": "local"
   },
   {
    "id": "DSV-001",
@@ -4393,7 +4397,7 @@
    "epic": "EP-12",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "UXA-001"
    ],
@@ -4402,10 +4406,14 @@
     "Tokens documentados; evento não altera :root nem outros eventos (teste)"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "src/lib/event-theme/event-theme.test.ts"
+   ],
+   "evidence": [
+    "docs/architecture/DESIGN-V2-STUDIO-ADMIN.md"
+   ],
+   "commit": "c9269c6",
+   "environment": "local"
   },
   {
    "id": "DSV-002",
@@ -4459,7 +4467,7 @@
    "epic": "EP-13",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "DSV-001"
    ],
@@ -4468,10 +4476,14 @@
     "Migrations aditivas; pgTAP de RLS (host/membro/master/anônimo); CHECKs de cor/fonte/mensagem; sem SVG"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "pgTAP 366/366 local"
+   ],
+   "evidence": [
+    "docs/supabase/MIGRATIONS-V2.md"
+   ],
+   "commit": "198e2eb",
+   "environment": "local-supabase"
   },
   {
    "id": "EST-002",
@@ -4481,7 +4493,7 @@
    "epic": "EP-13",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "DSV-001"
    ],
@@ -4490,10 +4502,14 @@
     "Tema aplicado só no wrapper do evento; teste de isolamento; marca MemoriesMT intacta"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "src/lib/event-theme/event-theme.test.ts"
+   ],
+   "evidence": [
+    "docs/architecture/DESIGN-V2-STUDIO-ADMIN.md"
+   ],
+   "commit": "c9269c6",
+   "environment": "local"
   },
   {
    "id": "EST-003",
@@ -4570,7 +4586,7 @@
    "epic": "EP-14",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "EST-001"
    ],
@@ -4579,10 +4595,14 @@
     "Sem credencial padrão; provisionamento auditado; organizador não acessa /master (teste)"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "pgTAP 366/366 local"
+   ],
+   "evidence": [
+    "docs/supabase/MIGRATIONS-V2.md"
+   ],
+   "commit": "198e2eb",
+   "environment": "local-supabase"
   },
   {
    "id": "MAD-002",
@@ -4592,7 +4612,7 @@
    "epic": "EP-14",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "MAD-001"
    ],
@@ -4601,10 +4621,14 @@
     "audit_logs sem UPDATE/DELETE; pgTAP"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "pgTAP 366/366 local"
+   ],
+   "evidence": [
+    "docs/supabase/MIGRATIONS-V2.md"
+   ],
+   "commit": "198e2eb",
+   "environment": "local-supabase"
   },
   {
    "id": "MAD-003",
@@ -4614,7 +4638,7 @@
    "epic": "EP-14",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "MAD-001",
     "MAD-002",
@@ -4625,10 +4649,14 @@
     "12 módulos com estados loading/vazio/erro/sem permissão; Admin DS desktop-first"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "e2e/master-studio.spec.ts (5/5 Supabase local)"
+   ],
+   "evidence": [
+    "docs/supabase/MIGRATIONS-V2.md"
+   ],
+   "commit": "1d862dc",
+   "environment": "local-supabase"
   },
   {
    "id": "MAD-004",
@@ -4660,7 +4688,7 @@
    "epic": "EP-15",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "MAD-001"
    ],
@@ -4669,10 +4697,14 @@
     "Somente master; sem métricas inventadas; testes com dados reais de teste"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "pgTAP 366/366 local"
+   ],
+   "evidence": [
+    "docs/supabase/MIGRATIONS-V2.md"
+   ],
+   "commit": "198e2eb",
+   "environment": "local-supabase"
   },
   {
    "id": "SCV-001",
@@ -4682,7 +4714,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "MAD-001"
    ],
@@ -4691,10 +4723,14 @@
     "RLS; testes de escalada de privilégio"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "pgTAP 366/366 local"
+   ],
+   "evidence": [
+    "docs/supabase/MIGRATIONS-V2.md"
+   ],
+   "commit": "198e2eb",
+   "environment": "local-supabase"
   },
   {
    "id": "SCV-002",
@@ -4822,7 +4858,7 @@
    "epic": "EP-11",
    "parent": "UXA-001",
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "UXA-001"
    ],
@@ -4834,12 +4870,14 @@
     "web/src/app/painel/[id]/configuracoes/page.tsx",
     "web/src/styles/app.css"
    ],
-   "tests": [],
+   "tests": [
+    "e2e/uxa-evento-criado.spec.ts"
+   ],
    "evidence": [
     "docs/audit/ux/INVENTARIO.md"
    ],
-   "commit": null,
-   "environment": null
+   "commit": "9242018",
+   "environment": "local"
   },
   {
    "id": "UXA-106",
@@ -4875,7 +4913,7 @@
    "epic": "EP-11",
    "parent": "UXA-001",
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "UXA-001"
    ],
@@ -4887,12 +4925,14 @@
     "web/src/app/painel/[id]/layout.tsx",
     "web/src/styles/app.css"
    ],
-   "tests": [],
+   "tests": [
+    "e2e/uxa-evento-criado.spec.ts"
+   ],
    "evidence": [
     "docs/audit/ux/INVENTARIO.md"
    ],
-   "commit": null,
-   "environment": null
+   "commit": "9242018",
+   "environment": "local"
   },
   {
    "id": "UXA-108",
@@ -4957,7 +4997,7 @@
    "epic": "EP-11",
    "parent": "UXA-001",
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "UXA-001"
    ],
@@ -4968,12 +5008,14 @@
    "files": [
     "web/src/features/events/wizard.tsx"
    ],
-   "tests": [],
+   "tests": [
+    "e2e/uxa-evento-criado.spec.ts"
+   ],
    "evidence": [
     "docs/audit/ux/INVENTARIO.md"
    ],
-   "commit": null,
-   "environment": null
+   "commit": "9242018",
+   "environment": "local"
   },
   {
    "id": "UXA-111",
@@ -5039,7 +5081,7 @@
    "epic": "EP-11",
    "parent": "UXA-001",
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "UXA-001"
    ],
@@ -5050,12 +5092,14 @@
    "files": [
     "web/src/styles/mm.css"
    ],
-   "tests": [],
+   "tests": [
+    "e2e/uxa-evento-criado.spec.ts"
+   ],
    "evidence": [
     "docs/audit/ux/INVENTARIO.md"
    ],
-   "commit": null,
-   "environment": null
+   "commit": "9242018",
+   "environment": "local"
   },
   {
    "id": "UXA-114",
@@ -5065,7 +5109,7 @@
    "epic": "EP-11",
    "parent": "UXA-001",
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "UXA-001"
    ],
@@ -5077,12 +5121,14 @@
     "web/src/app/master/layout.tsx",
     "web/src/app/page.tsx"
    ],
-   "tests": [],
+   "tests": [
+    "e2e/uxa-evento-criado.spec.ts"
+   ],
    "evidence": [
     "docs/audit/ux/INVENTARIO.md"
    ],
-   "commit": null,
-   "environment": null
+   "commit": "9242018",
+   "environment": "local"
   },
   {
    "id": "UXA-115",

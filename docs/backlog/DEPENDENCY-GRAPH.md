@@ -60,36 +60,36 @@ flowchart LR
   SB_007["SB-007<br/>BACKLOG"]:::back
   SB_008["SB-008<br/>BLOCKED"]:::block
   UXA_001["UXA-001<br/>IN_REVIEW"]:::back
-  UXA_002["UXA-002<br/>BACKLOG"]:::back
-  DSV_001["DSV-001<br/>BACKLOG"]:::back
+  UXA_002["UXA-002<br/>IN_REVIEW"]:::back
+  DSV_001["DSV-001<br/>IN_REVIEW"]:::back
   DSV_002["DSV-002<br/>BACKLOG"]:::back
   DSV_003["DSV-003<br/>BACKLOG"]:::back
-  EST_001["EST-001<br/>BACKLOG"]:::back
-  EST_002["EST-002<br/>BACKLOG"]:::back
+  EST_001["EST-001<br/>IN_REVIEW"]:::back
+  EST_002["EST-002<br/>IN_REVIEW"]:::back
   EST_003["EST-003<br/>BACKLOG"]:::back
   EST_004["EST-004<br/>BACKLOG"]:::back
   EST_005["EST-005<br/>BACKLOG"]:::back
-  MAD_001["MAD-001<br/>BACKLOG"]:::back
-  MAD_002["MAD-002<br/>BACKLOG"]:::back
-  MAD_003["MAD-003<br/>BACKLOG"]:::back
+  MAD_001["MAD-001<br/>IN_REVIEW"]:::back
+  MAD_002["MAD-002<br/>IN_REVIEW"]:::back
+  MAD_003["MAD-003<br/>IN_REVIEW"]:::back
   MAD_004["MAD-004<br/>BACKLOG"]:::back
-  ANL_001["ANL-001<br/>BACKLOG"]:::back
-  SCV_001["SCV-001<br/>BACKLOG"]:::back
+  ANL_001["ANL-001<br/>IN_REVIEW"]:::back
+  SCV_001["SCV-001<br/>IN_REVIEW"]:::back
   SCV_002["SCV-002<br/>BACKLOG"]:::back
   QAV_001["QAV-001<br/>BACKLOG"]:::back
   QAV_002["QAV-002<br/>BACKLOG"]:::back
   RLV_001["RLV-001<br/>BACKLOG"]:::back
   UXA_104["UXA-104<br/>BACKLOG"]:::back
-  UXA_105["UXA-105<br/>BACKLOG"]:::back
+  UXA_105["UXA-105<br/>IN_REVIEW"]:::back
   UXA_106["UXA-106<br/>BACKLOG"]:::back
-  UXA_107["UXA-107<br/>BACKLOG"]:::back
+  UXA_107["UXA-107<br/>IN_REVIEW"]:::back
   UXA_108["UXA-108<br/>BACKLOG"]:::back
   UXA_109["UXA-109<br/>BACKLOG"]:::back
-  UXA_110["UXA-110<br/>BACKLOG"]:::back
+  UXA_110["UXA-110<br/>IN_REVIEW"]:::back
   UXA_111["UXA-111<br/>BACKLOG"]:::back
   UXA_112["UXA-112<br/>BACKLOG"]:::back
-  UXA_113["UXA-113<br/>BACKLOG"]:::back
-  UXA_114["UXA-114<br/>BACKLOG"]:::back
+  UXA_113["UXA-113<br/>IN_REVIEW"]:::back
+  UXA_114["UXA-114<br/>IN_REVIEW"]:::back
   UXA_115["UXA-115<br/>BACKLOG"]:::back
   UXA_116["UXA-116<br/>BACKLOG"]:::back
   UXA_117["UXA-117<br/>BACKLOG"]:::back
