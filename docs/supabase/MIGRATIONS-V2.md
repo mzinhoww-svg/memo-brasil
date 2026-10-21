@@ -64,3 +64,13 @@ Pré-condições: homologação v1 estável; janela combinada; backup/PITR confi
 - Assinatura da URL de 60 s e as rotas `/master/**` (servidor Next), UI do Studio e do Master Admin.
 - Teste de API com supabase-js e E2E dos novos fluxos; pg_cron de reconciliação de `platform_roles` com `auth.users` removidos (FK `on delete restrict` impede apagar usuário com papel ativo: revogar antes).
 - Aviso de advisor pré-existente da v1 (`photos`: duas policies de SELECT permissivas) — não alterado para não mexer em objetos já aplicados no remoto.
+
+## Endurecimento pós-revisão A4 (NÃO VALIDADO em banco nesta sessão)
+Achados da revisão independente de segurança e o que mudou (edição das migrations V2 ainda não aplicadas em nenhum remoto + `20261022000700_security_hardening.sql`). **Docker indisponível durante a sessão: nada disto foi executado.** Antes de usar: `supabase db reset --local && supabase test db` (os 4 testes novos no fim de `02_v2_studio_admin.test.sql` e os 2 ajustados de flags).
+- P1 pré-sequestro de conta no provisionamento: `provision_master.sql` agora exige identidade `google` e recusa conta com senha. **Ação de configuração no remoto (não feita):** desligar o provider de e-mail/senha ou ligar confirmação.
+- P1 logo/capa de eventos apagados: fila de purga ganha `bucket`; `purge_deleted_events` enfileira `event_assets`; `expire_pending_assets()` criada (falta agendar e o worker do SB-005 precisa respeitar `bucket`).
+- P2 auditoria: triggers `ENABLE ALWAYS` e `revoke update, delete, truncate … from service_role` (falta um event trigger de DDL para `DISABLE TRIGGER`).
+- P2 busca por e-mail em `admin_list_organizers` só para master.
+- P2 `feature_flags`: tabela só staff; `get_enabled_flags()` devolve apenas `key` e `enabled`.
+- P3 `event_preview` com rate limit (120/h por pessoa).
+- Não corrigidos (viraram itens): magic bytes/dimensões reais no upload (SB-005), `admin_log` com prefixo reservado, claim única `role`, corrida no "último master", divergências menores cliente×SQL, middleware de refresh de sessão.

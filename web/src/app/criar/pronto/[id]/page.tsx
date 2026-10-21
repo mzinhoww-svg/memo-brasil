@@ -7,6 +7,7 @@ import { formatDate, useEventData } from "@/features/app/hooks";
 import { inviteUrl } from "@/features/invitations/links";
 import { qrDataUrl } from "@/features/invitations/qr";
 import { BackendNotice } from "@/features/app/backend-notice";
+import { useBrandImages } from "@/features/studio/useBrandImages";
 
 export default function Pronto() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ export default function Pronto() {
   const [qr, setQr] = useState<string | undefined>();
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const brand = useBrandImages(event?.id);
   const link = event ? inviteUrl(window.location.origin, event.code) : "";
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function Pronto() {
   return (
     <EventTheme palette={event.palette} font={event.eventFont} theme={event.theme} className="app-col app-col--card app-col--pronto app-fluid">
       <main style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-        <EventHeader meta={[formatDate(event.startAt), event.place].filter(Boolean).join(" · ")} name={event.title} />
+        <EventHeader meta={[formatDate(event.startAt), event.place].filter(Boolean).join(" · ")} name={event.title} {...brand} />
         <div className="app-screen">
           <p className="emocao app-emocao" role="status">Evento criado.</p>
           <div className="pronto-grid">

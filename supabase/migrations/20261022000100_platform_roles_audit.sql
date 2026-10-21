@@ -66,6 +66,11 @@ end $$;
 create trigger audit_logs_no_update before update on public.audit_logs for each row execute function public.audit_logs_immutable();
 create trigger audit_logs_no_delete before delete on public.audit_logs for each row execute function public.audit_logs_immutable();
 create trigger audit_logs_no_truncate before truncate on public.audit_logs for each statement execute function public.audit_logs_immutable();
+-- ENABLE ALWAYS: continuam valendo com session_replication_role = replica (contorno silencioso)
+alter table public.audit_logs enable always trigger audit_logs_no_update;
+alter table public.audit_logs enable always trigger audit_logs_no_delete;
+alter table public.audit_logs enable always trigger audit_logs_no_truncate;
+revoke update, delete, truncate on public.audit_logs from service_role;
 
 -- auditor lê toda a trilha (somente leitura). Uma única policy de SELECT (evita multiple_permissive_policies):
 -- host (eventos próprios) · master (via is_master, agora com linha ativa) · auditor

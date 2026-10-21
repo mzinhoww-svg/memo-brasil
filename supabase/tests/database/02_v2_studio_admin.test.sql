@@ -462,7 +462,8 @@ reset role;
 select is((select count(*)::int from public.audit_logs where action in ('platform_settings.insert', 'platform_settings.update', 'feature_flags.insert') and reason is not null and actor_role = 'master'), 4, 'escritas de setting/flag auditadas com motivo');
 select is((select detail ->> 'value_bytes' from public.audit_logs where action = 'platform_settings.update'), '12', 'log guarda só o tamanho do valor (não o conteúdo)');
 select tests.login('00000000-0000-4000-8000-0000000000b1', true);
-select is((select array_agg(key) from public.feature_flags), array['studio.v2'], 'convidado/authenticated lê apenas flags habilitadas');
+select is((select array_agg(key) from public.get_enabled_flags()), array['studio.v2'], 'convidado/authenticated lê só as flags habilitadas pela RPC (key+enabled)');
+select is((select count(*)::int from public.feature_flags), 0, 'authenticated comum não lê a tabela de flags (rollout é só do staff)');
 select is((select count(*)::int from public.platform_settings), 0, 'authenticated comum não lê platform_settings');
 select throws_ok($$insert into public.feature_flags (key, enabled) values ('hack', true)$$, '42501', null, 'authenticated não escreve flag');
 select throws_ok($$update public.feature_flags set enabled = false$$, '42501', null, 'authenticated não altera flag');
@@ -478,7 +479,8 @@ select throws_ok($$select public.admin_set_setting('limites.fotos', '{"max":1}',
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000000c2', false, 'master');
 select throws_ok($$select public.admin_set_setting('limites.fotos', '{"max":1}', 'claim sem linha tentando gravar')$$, 'MM004', 'forbidden', 'master sem linha não altera settings');
-select is((select count(*)::int from public.feature_flags), 1, 'master sem linha só vê flags habilitadas');
+select is((select count(*)::int from public.feature_flags), 0, 'master sem linha não lê a tabela de flags');
+select is((select count(*)::int from public.get_enabled_flags()), 1, 'master sem linha só vê as habilitadas pela RPC');
 reset role;
 -- caminho de operador (service_role) também é auditado
 set local role service_role;
@@ -604,6 +606,12 @@ reset role;
 select tests.login('00000000-0000-4000-8000-0000000000b1', true);
 select throws_ok($$select public.admin_list_audit()$$, 'MM004', 'forbidden', 'convidado anônimo não lê a auditoria');
 reset role;
+
+-- ===================================================== endurecimento (revisão A4) — NÃO VALIDADO em banco nesta sessão
+select is((select count(*)::int from pg_trigger where tgrelid = 'public.audit_logs'::regclass and tgname like 'audit_logs_no_%' and tgenabled = 'A'), 3, 'triggers de imutabilidade da auditoria valem sempre (ENABLE ALWAYS)');
+select is(has_table_privilege('service_role', 'public.audit_logs', 'UPDATE') or has_table_privilege('service_role', 'public.audit_logs', 'DELETE') or has_table_privilege('service_role', 'public.audit_logs', 'TRUNCATE'), false, 'service_role não altera nem apaga a auditoria');
+select has_column('public', 'storage_purge_queue', 'bucket', 'fila de purga conhece o bucket');
+select is(has_function_privilege('authenticated', 'public.expire_pending_assets()', 'EXECUTE'), false, 'expiração de assets não é chamável pelo cliente');
 
 select * from finish();
 rollback;

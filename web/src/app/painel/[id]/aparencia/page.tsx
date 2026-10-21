@@ -43,7 +43,6 @@ export default function Aparencia() {
   const locked = event.revealEnabled && computeRevealStatus(event, now) === "revelada";
   return (
     <AppearanceStudio
-      key={event.version}
       event={event}
       locked={locked}
       images={images}

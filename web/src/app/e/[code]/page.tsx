@@ -10,6 +10,7 @@ import { useApp } from "@/features/app/provider";
 import { tableFromSearch } from "@/features/invitations/links";
 import { joinEvent } from "@/features/participants/service";
 import { BackendNotice } from "@/features/app/backend-notice";
+import { useBrandImages } from "@/features/studio/useBrandImages";
 
 const MESSAGES = {
   codigo: "Código não confere. Confira no card da mesa.",
@@ -25,6 +26,7 @@ export default function Convite() {
   const router = useRouter();
   const { ready, user, signIn, repos, now, known, switchTo, canSwitchIdentity, backend, ensureSession } = useApp();
   const data = useEventData({ code });
+  const brand = useBrandImages(data.event?.id); // só quem já entrou (RLS do bucket) recebe URL assinada
   // na nuvem o convite só abre com sessão (anônima, sem conta): cria ao chegar
   useEffect(() => {
     if (ready && backend === "supabase" && !user) void ensureSession();
@@ -67,7 +69,7 @@ export default function Convite() {
   return (
     <EventTheme palette={event.palette} font={event.eventFont} theme={event.theme} className="app-col app-col--card app-fluid">
       <main style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-        <EventHeader meta={meta} name={event.title} />
+        <EventHeader meta={meta} name={event.title} {...brand} />
         <div className="app-screen">
           <p className="emocao app-emocao">A visão de {event.hostName}. Agora, a sua.</p>
           {event.theme?.welcomeMessage && <p className="app-p" data-testid="mensagem-evento">{event.theme.welcomeMessage}</p>}

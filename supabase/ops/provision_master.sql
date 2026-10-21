@@ -62,6 +62,13 @@ begin
   end if;
   if coalesce(u.is_anonymous, false) then raise exception 'provision_master: conta anônima não pode ser master'; end if;
   if u.email_confirmed_at is null then raise exception 'provision_master: e-mail ainda não confirmado'; end if;
+  -- anti pré-sequestro: a conta precisa ter entrado pelo Google e não pode ter senha (login e-mail/senha criado por terceiro com o mesmo e-mail)
+  if not exists (select 1 from auth.identities i where i.user_id = u.id and i.provider = 'google') then
+    raise exception 'provision_master: a conta não tem identidade Google (a pessoa precisa entrar uma vez com o Google)';
+  end if;
+  if coalesce(u.encrypted_password, '') <> '' then
+    raise exception 'provision_master: a conta tem senha definida; recusado (use uma conta que entre só pelo Google)';
+  end if;
 
   if not exists (select 1 from public.platform_roles where user_id = u.id and role = 'master' and revoked_at is null) then
     insert into public.platform_roles (user_id, role, granted_by) values (u.id, 'master', null); -- trigger grava platform_role.granted

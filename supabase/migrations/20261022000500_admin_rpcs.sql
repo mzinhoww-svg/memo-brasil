@@ -134,7 +134,7 @@ begin
   ), f as (
     select o.*, pr.display_name, u.email from org o
     join public.profiles pr on pr.id = o.host_id left join auth.users u on u.id = o.host_id
-    where pat is null or pr.display_name ilike pat or u.email ilike pat
+    where pat is null or pr.display_name ilike pat or (full_pii and u.email ilike pat)
   )
   select (select count(*) from f), coalesce(jsonb_agg(jsonb_build_object(
       'userId', p.host_id, 'displayName', p.display_name,

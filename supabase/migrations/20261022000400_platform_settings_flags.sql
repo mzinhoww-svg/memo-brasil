@@ -23,7 +23,14 @@ revoke all on public.platform_settings, public.feature_flags from anon, authenti
 grant select on public.platform_settings, public.feature_flags to authenticated; -- sem escrita direta: só RPC admin_*
 
 create policy platform_settings_staff_select on public.platform_settings for select to authenticated using (public.is_platform_staff());
-create policy feature_flags_select on public.feature_flags for select to authenticated using (enabled or public.is_platform_staff());
+create policy feature_flags_select on public.feature_flags for select to authenticated using (public.is_platform_staff()); -- `rollout` pode ter alvos de experimento: só staff
+
+create function public.get_enabled_flags() returns table (key text, enabled boolean)
+language sql stable security definer set search_path = '' as $$
+  select f.key, f.enabled from public.feature_flags f where f.enabled
+$$;
+revoke execute on function public.get_enabled_flags() from public, anon;
+grant execute on function public.get_enabled_flags() to authenticated;
 
 -- auditoria em qualquer caminho de escrita; a justificativa vem de mm.audit_reason (definida pela RPC)
 create function public.settings_audit() returns trigger
