@@ -19,8 +19,10 @@ flowchart LR
   FT_033["FT-033<br/>DONE"]:::done
   FT_036["FT-036<br/>DONE"]:::done
   FT_037["FT-037<br/>DONE"]:::done
+  BG_040["BG-040<br/>BACKLOG"]:::back
   BG_071["BG-071<br/>BACKLOG"]:::back
-  AUD_001["AUD-001<br/>READY"]:::ready
+  AUD_001["AUD-001<br/>DONE"]:::done
+  REL_001["REL-001<br/>BLOCKED"]:::block
   REL_002["REL-002<br/>DONE"]:::done
   FT_080["FT-080<br/>DEFERRED"]:::defer
   FT_081["FT-081<br/>DEFERRED"]:::defer
@@ -32,6 +34,23 @@ flowchart LR
   FT_087["FT-087<br/>DEFERRED"]:::defer
   FT_088["FT-088<br/>DEFERRED"]:::defer
   FT_089["FT-089<br/>DEFERRED"]:::defer
+  INF_001["INF-001<br/>READY"]:::ready
+  BG_101["BG-101<br/>READY"]:::ready
+  BG_102["BG-102<br/>BACKLOG"]:::back
+  BG_111["BG-111<br/>BACKLOG"]:::back
+  BG_113["BG-113<br/>BACKLOG"]:::back
+  ITG_101["ITG-101<br/>BACKLOG"]:::back
+  ITG_102["ITG-102<br/>BACKLOG"]:::back
+  ITG_103["ITG-103<br/>BACKLOG"]:::back
+  ITG_104["ITG-104<br/>BACKLOG"]:::back
+  ITG_105["ITG-105<br/>BACKLOG"]:::back
+  ITG_106["ITG-106<br/>READY"]:::ready
+  ITG_107["ITG-107<br/>BACKLOG"]:::back
+  ITG_108["ITG-108<br/>BACKLOG"]:::back
+  ITG_109["ITG-109<br/>BACKLOG"]:::back
+  ITG_110["ITG-110<br/>BACKLOG"]:::back
+  INF_002["INF-002<br/>BLOCKED"]:::block
+  AUD_002["AUD-002<br/>BACKLOG"]:::back
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -46,28 +65,71 @@ flowchart LR
   FT_032 --> FT_036
   FT_036 --> FT_037
   AUD_001 --> BG_071
+  ITG_102 --> BG_071
   FT_037 --> AUD_001
   FT_037 --> REL_002
-  AUD_001 --> FT_080
-  AUD_001 --> FT_081
-  AUD_001 --> FT_082
-  AUD_001 --> FT_083
+  INF_001 --> FT_080
+  AUD_002 --> FT_080
+  ITG_105 --> FT_080
+  AUD_002 --> FT_081
+  INF_001 --> FT_082
+  AUD_002 --> FT_082
+  ITG_104 --> FT_082
+  ITG_109 --> FT_082
+  ITG_106 --> FT_082
   FT_082 --> FT_083
-  AUD_001 --> FT_084
+  INF_001 --> FT_083
+  AUD_002 --> FT_083
+  ITG_104 --> FT_083
   BG_071 --> FT_084
   FT_082 --> FT_084
-  AUD_001 --> FT_085
+  INF_001 --> FT_084
+  AUD_002 --> FT_084
+  ITG_102 --> FT_084
   FT_082 --> FT_085
-  AUD_001 --> FT_086
-  AUD_001 --> FT_087
+  INF_001 --> FT_085
+  AUD_002 --> FT_085
+  ITG_103 --> FT_085
+  AUD_002 --> FT_086
   FT_082 --> FT_087
-  AUD_001 --> FT_088
+  INF_001 --> FT_087
+  AUD_002 --> FT_087
+  ITG_101 --> FT_087
   FT_080 --> FT_088
   FT_082 --> FT_088
-  AUD_001 --> FT_089
+  INF_001 --> FT_088
+  AUD_002 --> FT_088
+  ITG_109 --> FT_088
   FT_080 --> FT_089
   FT_082 --> FT_089
   FT_085 --> FT_089
+  INF_001 --> FT_089
+  AUD_002 --> FT_089
+  ITG_105 --> FT_089
+  BG_101 --> BG_102
+  BG_040 --> BG_111
+  BG_101 --> ITG_101
+  BG_102 --> ITG_101
+  ITG_106 --> ITG_101
+  ITG_106 --> ITG_102
+  BG_113 --> ITG_102
+  ITG_102 --> ITG_103
+  BG_101 --> ITG_104
+  BG_102 --> ITG_104
+  ITG_106 --> ITG_104
+  ITG_102 --> ITG_105
+  ITG_106 --> ITG_107
+  ITG_106 --> ITG_108
+  ITG_106 --> ITG_109
+  ITG_102 --> ITG_110
+  REL_001 --> INF_002
+  BG_101 --> AUD_002
+  ITG_101 --> AUD_002
+  ITG_102 --> AUD_002
+  ITG_103 --> AUD_002
+  ITG_104 --> AUD_002
+  ITG_105 --> AUD_002
+  ITG_106 --> AUD_002
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;

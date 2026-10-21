@@ -1,0 +1,47 @@
+Unused files (5)
+e2e/audit-a2-analyze.ts    
+playwright.audit.config.ts 
+playwright.remote.config.ts
+public/sw.js               
+scripts/gen-pwa-icons.mjs  
+Unused exports (19)
+initials                               src/components/memoriesmt/index.ts:15:20   
+initials                               src/components/memoriesmt/PostCard.tsx:5:14
+CountBadge                             src/components/memoriesmt/Tabs.tsx:37:10   
+luminance                    function  src/domain/contrast.ts:7:17                
+tzOffsetMs                   function  src/domain/reveal.ts:44:17                 
+BackendRequiredError         class     src/domain/roles.ts:42:14                  
+unavailableMasterRepository            src/domain/roles.ts:48:14                  
+SHARE_CODE_LENGTH                      src/domain/share-code.ts:2:14              
+useNow                       function  src/features/app/hooks.ts:21:17            
+sampleImage                  function  src/features/demo/seed.ts:8:17             
+DEFAULT_MOMENTS                        src/features/events/service.ts:24:14       
+extractShareCode                       src/features/invitations/links.ts:15:10    
+MAX_SIDE                               src/features/photos/capture.ts:24:14       
+MAX_PHOTO_BYTES                        src/features/photos/service.ts:6:14        
+DemoOnlyError                class     src/lib/services/index.ts:22:14            
+localSync                              src/lib/services/index.ts:46:14            
+THEME_KEY                              src/lib/theme.tsx:6:14                     
+DB_NAME                                src/repositories/indexeddb/index.ts:17:14  
+DB_VERSION                             src/repositories/indexeddb/index.ts:42:14  
+Unused exported types (20)
+AdminNavItem           type       src/components/memoriesmt/index.ts:1:25 
+ButtonVariant          type       src/components/memoriesmt/index.ts:2:23 
+DataRowDef             type       src/components/memoriesmt/index.ts:6:25 
+LogoVariant            type       src/components/memoriesmt/index.ts:12:21
+Option                 type       src/components/memoriesmt/index.ts:14:28
+TabBarItem             type       src/components/memoriesmt/index.ts:23:23
+TabDef                 type       src/components/memoriesmt/index.ts:25:37
+NotificationKind       type       src/domain/notifications.ts:3:13        
+PhotoStatus            type       src/domain/photo.ts:3:13                
+Role                   type       src/domain/roles.ts:9:13                
+MasterRepository       interface  src/domain/roles.ts:36:18               
+AuthService            interface  src/lib/services/index.ts:9:18          
+PurchaseRequest        type       src/lib/services/index.ts:16:13         
+SyncService            interface  src/lib/services/index.ts:43:18         
+EventRepository        interface  src/repositories/types.ts:29:18         
+ParticipantRepository  interface  src/repositories/types.ts:36:18         
+PhotoRepository        interface  src/repositories/types.ts:43:18         
+ReactionRepository     interface  src/repositories/types.ts:52:18         
+InvitationRepository   interface  src/repositories/types.ts:59:18         
+UserRepository         interface  src/repositories/types.ts:65:18         

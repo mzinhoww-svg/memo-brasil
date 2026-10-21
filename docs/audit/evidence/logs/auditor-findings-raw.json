@@ -1,0 +1,1403 @@
+[
+ {
+  "tid": "A1-001",
+  "severity": "P1",
+  "area": "revelação",
+  "title": "Revelação 'quando o evento terminar' não acompanha mudança nem encerramento do fim",
+  "description": "resolveReveal grava revealAt absoluto na criação. setEndIn e endEventNow não recalculam; RevealSettings.fromEvent sempre reabre como 'data'. Estender o fim para 1 dia deixou a revelação 18 h antes do fim; 'Encerrar agora' deixou 6 h de espera após encerrar. Revelada, não volta a esconder (D18), então a exposição precoce é irreversível. É o caminho padrão do wizard. AC-09 não atendido.",
+  "evidence": "docs/audit/evidence/test-results/a1-reveal.json (R9, R9b); screenshots/a1-r9-encerrado-antes.png",
+  "files": [
+   "web/src/features/events/service.ts",
+   "web/src/features/events/reveal-input.ts",
+   "web/src/features/events/RevealSettings.tsx",
+   "web/src/app/painel/[id]/configuracoes/page.tsx"
+  ],
+  "repro": [
+   "Criar evento com revelação 'Quando o evento terminar'",
+   "Configurações > mudar o fim para 1 dia",
+   "Ler IDB: revealAt inalterado, antes do novo fim"
+  ],
+  "impact": "Convidados veem todas as fotos no meio do evento sem aviso; ou esperam horas após o fim. Perda do efeito surpresa, sem desfazer.",
+  "cause": "O modo de revelação não é persistido, só o instante resultante.",
+  "fix": "Persistir revealMode (fim|data|depois) e offset; recalcular revealAt em setEndIn/endEventNow enquanto pendente; senão exigir confirmação mostrando o novo horário.",
+  "regression_test": "e2e: alterar fim e encerrar agora com modo 'fim' mantém revealAt === endAt; teste de domínio de recalculo",
+  "depends_on": [],
+  "effort": "M",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-002",
+  "severity": "P2",
+  "area": "revelação",
+  "title": "Estado 'revelada' não é monotônico: relógio atrasado reesconde fotos, regrava revealStatus e destrava edição",
+  "description": "Com o relógio recuado após a revelação, o convidado volta a 'Aguardando', reconcileReveal grava 'pendente' e o organizador volta a editar a revelação.",
+  "evidence": "a1-reveal.json (R5: stored revelada→pendente; R5b editavel true); screenshots/a1-r5-regride.png",
+  "files": [
+   "web/src/domain/reveal.ts",
+   "web/src/features/events/service.ts",
+   "web/src/app/e/[code]/(app)/layout.tsx",
+   "web/src/lib/clock.ts"
+  ],
+  "repro": [
+   "setFixedTime(revealAt+5s), abrir como convidado",
+   "setFixedTime(base), recarregar"
+  ],
+  "impact": "Aparelho com hora errada mostra estado errado; contrato do backend exige estado que nunca regride.",
+  "cause": "computeRevealStatus(now) é a única fonte e reconcile grava qualquer divergência.",
+  "fix": "Local: gravar revealedAt e nunca regredir. Backend: hora do servidor (clock.ts como ponto de troca), transição só pendente→revelada.",
+  "regression_test": "unit: reconcileReveal nunca grava revelada→pendente; e2e com relógio recuado",
+  "depends_on": [
+   "supabase INTEGRATION-PLAN"
+  ],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-003",
+  "severity": "P2",
+  "area": "moderação",
+  "title": "'Remover da festa' não impede a reentrada",
+  "description": "Convidado removido volta a entrar com o mesmo código e posta de novo. A tela diz 'não posta mais'.",
+  "evidence": "a1-journeys.json (J7 reentrada_apos_remocao true)",
+  "files": [
+   "web/src/features/admin/service.ts",
+   "web/src/app/painel/[id]/convidados/page.tsx",
+   "web/src/features/participants/service.ts"
+  ],
+  "repro": [
+   "Ana entra",
+   "Anfitrião remove Ana",
+   "Ana abre o convite e entra"
+  ],
+  "impact": "Moderação ineficaz; texto enganoso.",
+  "cause": "Remoção apaga a linha de participante, sem marca de banimento checada em joinEvent/canPost.",
+  "fix": "Estado 'removido' em participants, recusado em joinEvent; ou corrigir o texto.",
+  "regression_test": "e2e: removido não entra nem posta",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-004",
+  "severity": "P2",
+  "area": "papéis",
+  "title": "Política can() cobre só event.configure no layout do painel",
+  "description": "reveal.configure, photo.moderate, event.delete e event.view não são usadas; os serviços (updateReveal, moderate, deleteEvent, updateSettings, setEndIn, endEventNow, removeGuest) não recebem ator; o layout do convidado calcula isHost por conta própria; /master não usa can() nem MasterRepository. LOCAL_ACTOR é sempre 'organizador'.",
+  "evidence": "docs/audit/evidence/logs/a1-grep-roles.txt; web/src/app/painel/[id]/layout.tsx:51",
+  "files": [
+   "web/src/domain/roles.ts",
+   "web/src/features/events/service.ts",
+   "web/src/features/admin/service.ts",
+   "web/src/app/e/[code]/(app)/layout.tsx",
+   "web/src/app/master/page.tsx"
+  ],
+  "repro": [
+   "grep -rn 'can(' web/src"
+  ],
+  "impact": "Contrato de papéis não é exercitado nas ações; risco de divergir no RLS.",
+  "cause": "Gate único na rota.",
+  "fix": "Passar Actor às funções de serviço e checar a ação correspondente; unificar isHost com can('event.view').",
+  "regression_test": "unit: cada serviço recusa ator sem permissão",
+  "depends_on": [
+   "supabase INTEGRATION-PLAN"
+  ],
+  "effort": "M",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-005",
+  "severity": "P2",
+  "area": "contrato de dados",
+  "title": "Repositórios não têm leitura por papel: o filtro de revelação existe só na UI",
+  "description": "listByEvent devolve todas as fotos; GuestCtx.photos carrega todas, e visiblePhotos filtra na tela. Sem método do tipo listVisible(eventId, viewer), a troca para Supabase pode herdar um filtro só de cliente.",
+  "evidence": "a1-exposure-roles.json (E3 repositorio_lista_tudo_sem_filtro_de_papel); web/src/repositories/types.ts",
+  "files": [
+   "web/src/repositories/types.ts",
+   "web/src/features/app/hooks.ts",
+   "web/src/features/photos/service.ts"
+  ],
+  "repro": [
+   "Ler PhotoRepository"
+  ],
+  "impact": "Integração pode expor fotos bloqueadas se RLS e bucket privado não forem implementados.",
+  "cause": "Contrato local sem ator.",
+  "fix": "Definir listVisible/getData(viewer) no contrato e seguir o plano (policy is_revealed, bucket privado).",
+  "regression_test": "teste de contrato do repositório: não-host não recebe fotos pendentes",
+  "depends_on": [
+   "A1-004",
+   "supabase INTEGRATION-PLAN"
+  ],
+  "effort": "M",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-006",
+  "severity": "P2",
+  "area": "acessibilidade",
+  "title": "Diálogo de revelação: sem foco inicial, sem armadilha de foco, sem Escape e bloqueia a postagem por ~2,3 s",
+  "description": "role=dialog aria-modal, mas durante a animação o foco fica no BODY e a tabulação alcança a página atrás. Cobre /postar no meio de uma foto. O botão só aparece após 2,2 s (nenhum atalho).",
+  "evidence": "a1-reveal.json (R8 clique_em_Postar_bloqueado true, ms_ate_poder_postar 2313; R12 foco BODY); screenshots/a1-r7-transicao.png",
+  "files": [
+   "web/src/features/reveal/RevealTransition.tsx"
+  ],
+  "repro": [
+   "Convidado em /postar com foto capturada",
+   "Avançar o relógio além de revealAt"
+  ],
+  "impact": "Usuário de teclado e leitor de tela perde contexto; interrompe a postagem.",
+  "cause": "Diálogo sem gestão de foco; atraso fixo.",
+  "fix": "Focar o diálogo ao abrir, prender foco, aceitar Escape; permitir fechar antes; não cobrir /postar com foto pendente.",
+  "regression_test": "e2e + axe: foco dentro do diálogo; Escape fecha",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-007",
+  "severity": "P3",
+  "area": "revelação",
+  "title": "react() e reportPhoto() aceitam foto ainda bloqueada",
+  "description": "Em serviço, um convidado grava reação em foto pendente. A UI não oferece o caminho.",
+  "evidence": "a1-exposure-roles.json (E3 reacao_gravada_em_foto_bloqueada true)",
+  "files": [
+   "web/src/features/photos/service.ts"
+  ],
+  "repro": [
+   "react(repos,evento_pendente,photoId,'guest','amei')"
+  ],
+  "impact": "Baixo na UI; risco quando o contrato virar API.",
+  "cause": "Falta guarda de isRevealed.",
+  "fix": "Recusar react/report se não revelada e o ator não for host.",
+  "regression_test": "unit no serviço",
+  "depends_on": [
+   "A1-005"
+  ],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-008",
+  "severity": "P3",
+  "area": "revelação",
+  "title": "Contagem zera enquanto a tela segue 'Aguardando' por até 15 s",
+  "description": "WaitingReveal usa relógio de 1 s e o layout de 15 s; sem visibilitychange/focus para sincronizar. Aba suspensa mostra 00h 00min 00s e nada muda.",
+  "evidence": "a1-reveal.json (R13)",
+  "files": [
+   "web/src/features/reveal/WaitingReveal.tsx",
+   "web/src/features/app/hooks.ts",
+   "web/src/app/e/[code]/(app)/layout.tsx"
+  ],
+  "repro": [
+   "Fixar tempo em revealAt+2s sem disparar timers"
+  ],
+  "impact": "Atraso visível na transição.",
+  "cause": "Dois relógios independentes.",
+  "fix": "Sincronizar no visibilitychange/focus e usar uma única fonte.",
+  "regression_test": "e2e: visibilitychange após revealAt revela",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-009",
+  "severity": "P3",
+  "area": "revelação",
+  "title": "Sem limite superior para a data da revelação",
+  "description": "Ano 9999 é aceito; o timer ignora mais de 2^31 ms.",
+  "evidence": "a1-reveal.json (R3_dominio 'ano 9999')",
+  "files": [
+   "web/src/domain/reveal.ts"
+  ],
+  "repro": [
+   "validateRevealInput 9999-12-31"
+  ],
+  "impact": "Fotos presas por engano.",
+  "cause": "Validação só de piso.",
+  "fix": "Limitar (ex. 1 ano ou fim + 30 dias).",
+  "regression_test": "unit",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-010",
+  "severity": "P3",
+  "area": "revelação",
+  "title": "Troca de fuso mantém hora de parede; erro genérico e prévia da versão salva",
+  "description": "Cuiabá→Lisboa manteve 12h00 e caiu no passado: o aviso é 'Confira a data, a hora e o fuso' e o resumo diz 'Escolha a data e a hora' com campos preenchidos. A prévia usa o evento salvo, não o formulário. Coerente com INTEGRATION-PLAN linha 103, mas não explicado.",
+  "evidence": "a1-reveal.json (R4); screenshots/a1-r4-troca-fuso.png",
+  "files": [
+   "web/src/features/events/RevealForm.tsx",
+   "web/src/features/events/RevealSettings.tsx"
+  ],
+  "repro": [
+   "Configurações: fuso Lisboa mantendo 12:00"
+  ],
+  "impact": "Organizador não entende o motivo.",
+  "cause": "Mensagem única e texto de resumo.",
+  "fix": "Dizer 'o horário ficou no passado neste fuso'; explicar que a hora de parede é mantida.",
+  "regression_test": "e2e do texto",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-011",
+  "severity": "P3",
+  "area": "integridade",
+  "title": "Atualizações do evento sem trava (lost update)",
+  "description": "get→save do objeto inteiro em updateSettings, setEndIn, endEventNow, updateReveal e reconcileReveal, sem withLock. Não reproduzi; é leitura de código.",
+  "evidence": "web/src/features/events/service.ts:68-132",
+  "files": [
+   "web/src/features/events/service.ts"
+  ],
+  "repro": [
+   "Duas abas alterando o mesmo evento"
+  ],
+  "impact": "Alteração perdida em corrida rara.",
+  "cause": "Sem exclusão mútua nem merge por campo.",
+  "fix": "withLock por evento ou patch por campo.",
+  "regression_test": "unit com dois saves concorrentes",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-012",
+  "severity": "P3",
+  "area": "moderação",
+  "title": "Denúncia não é única por pessoa",
+  "description": "report() soma 1 a cada chamada; o estado 'enviado' vale por abertura da folha. Por leitura de código.",
+  "evidence": "web/src/domain/photo.ts:report; web/src/features/photos/service.ts:reportPhoto",
+  "files": [
+   "web/src/domain/photo.ts",
+   "web/src/features/photos/service.ts"
+  ],
+  "repro": [
+   "Denunciar a mesma foto várias vezes"
+  ],
+  "impact": "Contador inflado por um convidado.",
+  "cause": "Sem registro do denunciante.",
+  "fix": "Guardar (photoId, userId) e contar únicos.",
+  "regression_test": "unit",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-013",
+  "severity": "P3",
+  "area": "conteúdo",
+  "title": "Textos inexatos",
+  "description": "'Suas 1 fotos estão guardadas' (offline) e '23 fotos restantes' em evento encerrado.",
+  "evidence": "a1-journeys.json (J4, J2)",
+  "files": [
+   "web/src/app/e/[code]/(app)/layout.tsx",
+   "web/src/app/e/[code]/(app)/postar/page.tsx"
+  ],
+  "repro": [
+   "Offline com 1 foto; abrir /postar após encerrar"
+  ],
+  "impact": "Qualidade de texto.",
+  "cause": "Sem plural e sem checar encerramento.",
+  "fix": "Plural; esconder contador quando encerrado.",
+  "regression_test": "e2e dos textos",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-014",
+  "severity": "P3",
+  "area": "acessibilidade",
+  "title": "axe: region (moderate) nas telas de espera e transição",
+  "description": "Um nó fora de landmark em cada tela.",
+  "evidence": "a1-reveal.json (R12)",
+  "files": [
+   "web/src/features/reveal/WaitingReveal.tsx",
+   "web/src/features/reveal/RevealTransition.tsx"
+  ],
+  "repro": [
+   "axe na espera"
+  ],
+  "impact": "Menor.",
+  "cause": "Conteúdo sem landmark.",
+  "fix": "Envolver em main/região rotulada.",
+  "regression_test": "axe sem violações",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A1"
+ },
+ {
+  "tid": "A1-015",
+  "severity": "P3",
+  "area": "papéis",
+  "title": "Risco aceito pré-backend: meta.user com o hostId vira anfitrião",
+  "description": "Gravar meta.user com o hostId (legível no evento) abre painel e fotos antes da revelação. Registrado em ROLES.md como não segurança. Não existe senha fixa, URL secreta ou caminho master no código ou bundle.",
+  "evidence": "a1-exposure-roles.json (P2); a1-grep-roles.txt",
+  "files": [
+   "web/src/repositories/indexeddb/index.ts",
+   "web/src/domain/roles.ts"
+  ],
+  "repro": [
+   "IndexedDB meta 'user' = hostId"
+  ],
+  "impact": "Nenhum além do aparelho do usuário.",
+  "cause": "Identidade local.",
+  "fix": "Auth do Supabase com RLS; master só por claim.",
+  "regression_test": "teste de RLS no backend",
+  "depends_on": [
+   "supabase INTEGRATION-PLAN"
+  ],
+  "effort": "L",
+  "_src": "A1"
+ },
+ {
+  "tid": "A2-001",
+  "severity": "P2",
+  "area": "visual/tema",
+  "title": "Tela de revelação inverte no tema Noite",
+  "description": "`.app-reveal` usa `background: var(--tinta); color: var(--fundo)`. No Dia fica escura; na Noite vira tela clara cheia (#F4F2EF), em plena festa à noite. O DS exige temas Dia e Noite sem inversão. O CTA 'Ver as fotos' também usa troca inline fundo/tinta.",
+  "evidence": "docs/audit/evidence/screenshots/a2-revelacao-transicao-390-noite.png contra a2-revelacao-transicao-390-dia.png",
+  "files": [
+   "web/src/styles/app.css",
+   "web/src/features/reveal/RevealTransition.tsx"
+  ],
+  "repro": "Tema Noite, evento com revelação, convidado, avançar o relógio até o horário: aparece a tela clara.",
+  "impact": "Quebra de identidade no momento mais emocional do produto e ofuscamento em ambiente escuro.",
+  "cause": "Uso de tokens semânticos trocados em vez de uma superfície escura por tema.",
+  "fix": "Fixar superfície escura nos dois temas (tokens Noite escopados no componente) e texto claro; remover o style inline do botão.",
+  "regression_test": "Playwright: em Noite, getComputedStyle de [data-testid=transicao-revelacao] tem luminância <0,1.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-002",
+  "severity": "P2",
+  "area": "visual/overflow",
+  "title": "Seletor de evento do admin estoura com nome de 60 caracteres",
+  "description": "Em ≥900px a caixa `.mm-event-switch` tem 56px de altura fixa; título de 3 linhas ocupa 130px e a linha de data cai sobre a borda (6px de estouro). Mesmo CSS existe no kit (mm.css idêntico a componentes.css).",
+  "evidence": "docs/audit/evidence/test-results/a2-overflow.json (painel-1440-*: boxH 56, childBottomMax 130, overflows true); screenshots/a2-longos-painel-1440-dia.png",
+  "files": [
+   "web/src/styles/mm.css",
+   "web/src/components/memoriesmt/AdminNav.tsx",
+   "design-system/MemoriesMT-design-system/componentes/componentes.css"
+  ],
+  "repro": "Criar evento com 60 caracteres, abrir /painel/<id> em 1440px.",
+  "impact": "Texto sobreposto no cabeçalho de todas as telas do painel para nomes longos.",
+  "cause": "Altura fixa sem limite de linhas.",
+  "fix": "min-height em vez de height e line-clamp de 2 linhas com title completo; corrigir também o kit.",
+  "regression_test": "Playwright com título de 60 caracteres: filhos do .mm-event-switch dentro do retângulo.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-003",
+  "severity": "P2",
+  "area": "pwa/offline",
+  "title": "Offline só funciona para URLs já visitadas online",
+  "description": "O SW guarda HTML por URL exata. Rotas do mesmo evento nunca abertas (retrospectiva, painel/qr) e outros códigos caem em /offline, embora a casca seja a mesma e os dados estejam no IndexedDB. A página diz 'Tente de novo quando o sinal voltar', o que não ajuda quem tem o evento no aparelho.",
+  "evidence": "a2-pwa.json: offlineNeverVisited (4 de 4 em /offline); screenshots/a2-pwa-offline-nunca-visitada-390-dia.png",
+  "files": [
+   "web/public/sw.js"
+  ],
+  "repro": "Visitar /e/CODE/agora online, ficar offline, abrir /e/CODE/retrospectiva.",
+  "impact": "O convidado perde partes do app sem sinal, justo no cenário de festa com rede ruim. A promessa 'abre offline' é parcial.",
+  "cause": "Chave de cache por URL e fallback único para /offline; sem pré-cache de rotas.",
+  "fix": "Para /e/* e /painel/*, servir qualquer HTML-casca em cache quando offline (a rota resolve no cliente) e pré-cachear os chunks das rotas do convidado.",
+  "regression_test": "Playwright offline: abrir cada rota do convidado nunca visitada e esperar o h1 da rota, não /offline.",
+  "depends_on": [
+   "A2-004"
+  ],
+  "effort": "M",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-004",
+  "severity": "P2",
+  "area": "pwa/versionamento",
+  "title": "Pré-cache só de HTML; atualização apaga as páginas guardadas",
+  "description": "A instalação cacheia 5 URLs de HTML, sem JS, CSS ou fontes (entram depois, quando o SW já controla). Primeira visita seguida de offline funcionou aqui, mas por causa do cache HTTP. Ao trocar de versão o cache antigo é apagado e o novo tem só a casca: páginas de evento visitadas deixam de abrir offline. skipWaiting e claim trocam o SW sem aviso.",
+  "evidence": "a2-pwa.json: cacheAfterFirstVisit (sem /_next/static); swUpdate.cachesAfterB (só 5 URLs)",
+  "files": [
+   "web/public/sw.js",
+   "web/src/lib/register-sw.tsx"
+  ],
+  "repro": "Registrar /sw.js?v=AAA, visitar rotas, registrar ?v=BBB, listar caches.",
+  "impact": "Depois de cada deploy, o uso offline some até o convidado reabrir online cada tela.",
+  "cause": "Cache único por versão e sem migração de entradas.",
+  "fix": "Pré-cachear chunks do build (manifesto) e copiar entradas de navegação válidas para o cache novo antes de apagar o antigo.",
+  "regression_test": "Playwright: dois valores de ?v=; rota visitada continua abrindo offline após a troca.",
+  "depends_on": [],
+  "effort": "M",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-005",
+  "severity": "P2",
+  "area": "resiliência/dados",
+  "title": "Sem IndexedDB, o app confirma ações que não persistem",
+  "description": "Com `indexedDB` indefinido, o app usa repositório em memória e só a home avisa. Em /criar/pronto aparece 'Evento criado' com 'Compartilhar convite', e em postar 'Sua visão entrou na história'. Ao recarregar: 'Código não confere'. O banner global só aparece quando a abertura lança erro, não quando falta a API.",
+  "evidence": "a2-pwa.json: idb_undefined (afterReloadText, wizardEnd); idb_throws; screenshots/a2-idb-undefined-criar-390-dia.png",
+  "files": [
+   "web/src/features/app/provider.tsx",
+   "web/src/components/memoriesmt/StorageBanner.tsx"
+  ],
+  "repro": "addInitScript que remove window.indexedDB; criar evento; recarregar.",
+  "impact": "Perda silenciosa de fotos e eventos. Não classifiquei P1 porque o navegador precisa bloquear IndexedDB (modo restrito) e a home avisa nesse caso.",
+  "cause": "StorageBanner depende de storageError, não de persistent=false.",
+  "fix": "Mostrar o banner global quando persistent for false e avisar na confirmação de postagem e de criação.",
+  "regression_test": "Playwright com IndexedDB removido: banner visível em /e/CODE/postar e /criar/pronto.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-006",
+  "severity": "P3",
+  "area": "performance/fontes",
+  "title": "Fontes decorativas pré-carregadas em todas as rotas; fonte da interface sem preload",
+  "description": "Birthstone, Pinyon e Great Vibes (latin, cerca de 90 KB) têm preload em todas as páginas, inclusive / e /entrar, e só servem ao nome do evento. Bricolage (77 KB) vem de /fonts por @font-face e não tem preload. /fonts, /brand e /pwa respondem `max-age=0`. Fontes somam 163 KB por rota. O LCP mobile simulado (h1, 2,9 a 3,3 s) provavelmente sofre com isso (hipótese, não isolada).",
+  "evidence": "a2-perf-routes-mobile.json (fonts); HTML de /entrar; Lighthouse a2-lighthouse-home-mobile.json",
+  "files": [
+   "web/src/app/layout.tsx",
+   "web/src/styles/tokens.css",
+   "web/next.config.ts"
+  ],
+  "repro": "curl /entrar | grep preload; curl -I /fonts/BricolageGrotesque-Variable.woff2.",
+  "impact": "Cerca de 90 KB desnecessários por visita e revalidação de 77 KB a cada carga.",
+  "cause": "next/font no layout raiz e sem headers de cache para public/.",
+  "fix": "Carregar fontes do evento só nas rotas de evento e usar a fonte do evento escolhida; preload do Bricolage; Cache-Control immutable para /fonts.",
+  "regression_test": "Playwright: / não requisita woff2 de Birthstone, Pinyon ou Great Vibes.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-007",
+  "severity": "P3",
+  "area": "performance/bundle",
+  "title": "jszip carregado ao abrir Downloads; sem import dinâmico",
+  "description": "jszip tem 190 KB brutos (cerca de 55 KB gzip) e entra no carregamento de /painel/ID/downloads, embora só seja usado ao clicar. O código de demo (seed) vai no chunk da home (25 KB). Nenhum import() no projeto.",
+  "evidence": "a2-perf-routes-desktop.json (jsFiles: 0_t7ot-9xac4y.js 190 KB); build em /tmp/a2-build",
+  "files": [
+   "web/src/features/admin/export.ts",
+   "web/src/app/painel/[id]/downloads/page.tsx",
+   "web/src/app/page.tsx"
+  ],
+  "repro": "Abrir /painel/ID/downloads e listar scripts.",
+  "impact": "Rota de downloads 40% mais pesada que as demais.",
+  "cause": "Import estático.",
+  "fix": "import('jszip') dentro do handler do ZIP; idem para seed na home.",
+  "regression_test": "Playwright: ao abrir /downloads, nenhum script contém 'JSZip' antes do clique.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-008",
+  "severity": "P3",
+  "area": "pwa/manifest",
+  "title": "Manifest sem variante escura e com orientação travada",
+  "description": "theme_color e background_color fixos em #FFFFFF (a meta viewport já tem variante escura); `orientation: portrait` também vale para o painel do organizador em tablet ou desktop. Sem screenshots no manifest.",
+  "evidence": "a2-pwa.json: manifest, head.themeColors",
+  "files": [
+   "web/src/app/manifest.ts"
+  ],
+  "repro": "GET /manifest.webmanifest.",
+  "impact": "Splash branca para quem usa Noite; PWA do painel preso em retrato.",
+  "cause": "Manifest estático.",
+  "fix": "Remover orientation (ou limitar ao convidado) e alinhar cores de splash ao tema padrão do app.",
+  "regression_test": "Teste de unidade do manifest: sem orientation global.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-009",
+  "severity": "P3",
+  "area": "visual/toque",
+  "title": "Links abaixo de 44px: 'Guia de componentes' e skip link",
+  "description": "O link 'Guia de componentes' no rodapé da home mede 173×21, vive dentro de um parágrafo sem estilo de link e expõe a página /design em produção. O skip link mede 169×43.",
+  "evidence": "a2-crawl-375-dia.json (home, targets.small); screenshots/a2-home-1440-dia.png",
+  "files": [
+   "web/src/app/page.tsx",
+   "web/src/styles/mm.css"
+  ],
+  "repro": "Abrir / em 375px e medir os alvos.",
+  "impact": "Alvo pequeno e rota interna de desenvolvimento acessível ao público.",
+  "cause": "Link inline sem classe .mm-link e sem condicional de ambiente.",
+  "fix": "Usar alvo de 44px ou remover o link em produção; skip link com min-height 44.",
+  "regression_test": "Playwright: nenhum a[href] visível <44px na home.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-010",
+  "severity": "P3",
+  "area": "visual/tokens",
+  "title": "Borda de chip abaixo de 3:1 e tamanhos fixos fora dos tokens",
+  "description": "A borda 1px de `mm-chip` mede 1,46:1 (Dia) e 1,54:1 (Noite), contra a regra de 3:1 para bordas de controle; vem do CSS do kit. A home usa h1 de 36px inline (token `display` tem 40px) e o nome do evento usa 30px inline (`nome-evento` tem 54px).",
+  "evidence": "a2-crawl-390-dia.json (design, postar-preview: nonTextContrast); src/app/page.tsx:68",
+  "files": [
+   "web/src/styles/mm.css",
+   "web/src/app/page.tsx",
+   "web/src/app/criar/pronto/[id]/page.tsx",
+   "web/src/app/e/[code]/(app)/agora/page.tsx"
+  ],
+  "repro": "Medir a borda de .mm-chip contra o fundo.",
+  "impact": "Chips pouco perceptíveis no não selecionado; desvios pequenos de escala tipográfica.",
+  "cause": "Regra do DS inconsistente consigo mesma e estilos inline.",
+  "fix": "Decidir no DS (borda tinta ou 3:1) e usar as classes de texto do kit.",
+  "regression_test": "Teste de contraste de bordas de controle no crawl.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-011",
+  "severity": "P3",
+  "area": "visual/estados",
+  "title": "Faixa de abas do painel no mobile corta itens sem indício; CLS e h1 duplicado",
+  "description": "No 390px as abas do painel rolam na horizontal com itens cortados e sem indicação. O painel com id desconhecido em desktop tem CLS 0,322 (Lighthouse). O convite tem dois h1 (nome do evento e 'Entrar na festa').",
+  "evidence": "screenshots/a2-painel-configuracoes-390-dia.png; a2-lighthouse-painel-desktop.json; a2-crawl-390-dia.json (convite.h1)",
+  "files": [
+   "web/src/app/painel/[id]/layout.tsx",
+   "web/src/app/e/[code]/page.tsx"
+  ],
+  "repro": "Abrir /painel/<id> em 390px; abrir /painel/<uuid inexistente> em 1440px.",
+  "impact": "Navegação do admin menos descobrível; salto visual no erro; hierarquia de títulos ambígua.",
+  "cause": "Overflow-x sem fade ou seta; estado de erro com layout diferente do carregando; dois h1.",
+  "fix": "Fade na borda ou quebra em linhas; reservar altura do estado de erro; um só h1.",
+  "regression_test": "Lighthouse e axe no estado de erro; 1 h1 por rota.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-012",
+  "severity": "P3",
+  "area": "ux/demo",
+  "title": "Exemplo com revelação em 2 minutos não mostra a espera ao anfitrião",
+  "description": "O botão da home cria o exemplo como anfitrião, que vê tudo e só recebe um aviso. Para ver a tela de espera é preciso Você, 'Entrar como outra pessoa' e digitar um nome.",
+  "evidence": "a2-revelacao-host-agora-390-dia.png; a2-revelacao-espera-390-dia.png",
+  "files": [
+   "web/src/app/page.tsx",
+   "web/src/features/demo/seed.ts"
+  ],
+  "repro": "Home, 'Ver exemplo com revelação em 2 minutos'.",
+  "impact": "A demonstração do recurso novo exige 4 passos extras.",
+  "cause": "Seed entra como anfitrião.",
+  "fix": "Entrar já como convidado de exemplo com atalho para o painel.",
+  "regression_test": "Playwright: do botão até [data-testid=aguardando-revelacao] sem cliques extras.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-013",
+  "severity": "P3",
+  "area": "performance/imagens",
+  "title": "Imagens do feed sem lazy/decoding e /voce sem paginação",
+  "description": "Nenhum <img> usa loading=lazy ou decoding=async; /voce renderiza todas as fotos próprias de uma vez (150 em 307 ms, sem throttling). O feed é paginado (20 por vez), o que limita o custo. Redimensionamento 1600px e JPEG 0,85 confirmados no código (capture.ts).",
+  "evidence": "a2-perf-200fotos-b.json; src/features/photos/capture.ts",
+  "files": [
+   "web/src/components/memoriesmt/PostCard.tsx",
+   "web/src/app/e/[code]/(app)/voce/page.tsx"
+  ],
+  "repro": "Semear 150 fotos do anfitrião e abrir /voce.",
+  "impact": "Pressão de memória de bitmaps em celulares fracos com rolos grandes (não medida).",
+  "cause": "Sem atributos de carregamento e sem limite em /voce.",
+  "fix": "loading=lazy, decoding=async e paginar /voce.",
+  "regression_test": "Playwright: imagens fora da viewport sem decode inicial e /voce com no máximo 20 imagens iniciais.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A2"
+ },
+ {
+  "tid": "A2-014",
+  "severity": "P3",
+  "area": "pwa/sw",
+  "title": "Endurecimento do SW: chaves com códigos, evicção e troca silenciosa",
+  "description": "O cache não guarda dados de evento nem fotos, mas as chaves contêm código do convite e UUID. Com backend o código será credencial. A evicção parece FIFO por inserção (não verificado como LRU). Não há navigation preload nem aviso de nova versão.",
+  "evidence": "a2-pwa.json: cacheAfterVisits (URLs com /e/CODE e /painel/UUID); swUpdate.pagesCachedAfter50Fetches",
+  "files": [
+   "web/public/sw.js"
+  ],
+  "repro": "Listar caches após visitar um evento.",
+  "impact": "Rastro de códigos em aparelho compartilhado; páginas muito usadas podem sair do cache.",
+  "cause": "remember() usa a URL completa e o limite remove as mais antigas.",
+  "fix": "Limpar o cache ao sair do evento, registrar uso recente na evicção e avisar a nova versão.",
+  "regression_test": "Playwright: sair do evento esvazia entradas /e/CODE do cache.",
+  "depends_on": [
+   "A2-003"
+  ],
+  "effort": "M",
+  "_src": "A2"
+ },
+ {
+  "tid": "A3-001",
+  "severity": "P1",
+  "area": "seguranca/arquitetura",
+  "title": "Visibilidade, revelação e moderação só existem como filtro de UI; o cliente carrega tudo",
+  "description": "useEventData carrega todas as fotos do evento para qualquer participante e visiblePhotos() filtra depois (revelação, oculta). getData(id) devolve bytes de qualquer id. moderate/removeGuest/reportPhoto/react/updateSettings não recebem Actor; can() só é chamado em painel/[id]/layout.tsx.",
+  "evidence": "hooks.ts useEventData; photo.ts visiblePhotos; grep can( = 1 uso.",
+  "files": [
+   "web/src/features/app/hooks.ts",
+   "web/src/domain/photo.ts",
+   "web/src/features/admin/service.ts",
+   "web/src/features/photos/service.ts"
+  ],
+  "repro": "Ler código; um adaptador ingênuo entrega fotos pendentes ao convidado.",
+  "impact": "Com backend, revelação e moderação seriam contornáveis. Hoje não explorável (dados locais).",
+  "cause": "Regras no cliente.",
+  "fix": "Filtrar no servidor (RLS), URL assinada só se visível, serviços com Actor.",
+  "regression_test": "Teste RLS: convidado não lê foto pendente nem modera.",
+  "depends_on": [
+   "A3-002",
+   "A3-003"
+  ],
+  "effort": "L",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-002",
+  "severity": "P2",
+  "area": "seguranca/autorizacao",
+  "title": "Modelo de papéis incompleto para RLS",
+  "description": "event.view é true para qualquer convidado sem checar participação; sem ações postar/reagir/denunciar/baixar; LOCAL_ACTOR dá organizador a qualquer um; master true para tudo sem motivo/auditoria; sem papel participante nem co-organizador. IDOR futuro por event id (/painel/[id] só protegido pela UI).",
+  "evidence": "roles.ts:19-37; painel/[id]/layout.tsx:47.",
+  "files": [
+   "web/src/domain/roles.ts",
+   "docs/architecture/ROLES.md"
+  ],
+  "repro": "Expressar 'só participante posta' em can().",
+  "impact": "RLS derivada daqui teria lacunas.",
+  "cause": "Contrato escrito para a UI.",
+  "fix": "RLS por tabela: events (dono; leitura por RPC de código), participants (próprio/dono), photos (autor/dono/revelada), reactions (membro), invitations (dono), storage por evento; master por claim + audit_logs.",
+  "regression_test": "Matriz papel x ação x tabela.",
+  "depends_on": [
+   "A3-001"
+  ],
+  "effort": "M",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-003",
+  "severity": "P2",
+  "area": "arquitetura",
+  "title": "Contrato de repositório não é backend-ready em 7 pontos",
+  "description": "(1) getData devolve bytes completos e a UI cria blob URL (feed, editor, ZIP) sem URL assinada nem miniatura; (2) list sem paginação (o 'limit' do feed fatia no cliente); (3) events.list() em app/page.tsx assume todos visíveis; (4) getByCode assume leitura pública; (5) save(event) grava o objeto inteiro; (6) now() do cliente decide canPost/canJoin/revelação; (7) identidade é UUID local sem sessão e o único erro tipado é StorageUnavailableError. Pontos bons: interfaces async, domain puro.",
+  "evidence": "types.ts; hooks.ts:74-100; app/page.tsx:24; editor.tsx:61.",
+  "files": [
+   "web/src/repositories/types.ts",
+   "web/src/features/app/hooks.ts",
+   "web/src/app/page.tsx",
+   "web/src/features/photos/editor.tsx"
+  ],
+  "repro": "Ler código.",
+  "impact": "Adaptador exigirá mudar telas.",
+  "cause": "Interface moldada ao IndexedDB.",
+  "fix": "PhotoRef com URL/miniatura, cursor, patch, erros tipados, hora do servidor, RPC por código, AuthService.",
+  "regression_test": "Mesma suíte de contrato em memory e supabase.",
+  "depends_on": [
+   "A3-001"
+  ],
+  "effort": "L",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-004",
+  "severity": "P2",
+  "area": "integridade",
+  "title": "Read-modify-write sem versão: lost update e ressurreição de evento",
+  "description": "events.save grava o objeto inteiro: reconcileReveal (efeito do layout do convidado), updateSettings, updateReveal e setEndIn podem sobrescrever gravações concorrentes e ressuscitar evento excluído. moderate() sem withLock (reportPhoto usa): update perdido. deleteEventCascade em 5 transações. blocking() fecha o handle mas dbp cacheado fica apontando para conexão fechada.",
+  "evidence": "events/service.ts; admin/service.ts moderate; repositories/index.ts; indexeddb/index.ts:50-56 (leitura de código).",
+  "files": [
+   "web/src/features/events/service.ts",
+   "web/src/features/admin/service.ts",
+   "web/src/repositories/index.ts",
+   "web/src/repositories/indexeddb/index.ts"
+  ],
+  "repro": "Duas abas: reconcilia enquanto outra salva.",
+  "impact": "Perda silenciosa; órfãos.",
+  "cause": "Escrita da entidade inteira.",
+  "fix": "Patch com version; ON DELETE CASCADE; reabrir db.",
+  "regression_test": "Teste concorrente updateSettings x reconcileReveal.",
+  "depends_on": [
+   "A3-003"
+  ],
+  "effort": "M",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-005",
+  "severity": "P2",
+  "area": "seguranca",
+  "title": "Código de convite de 8 caracteres (~39,6 bits) exige rate limit e RPC no backend",
+  "description": "31^8 = 8,5e11 (39,6 bits), gerado com getRandomValues sem viés. Com leitura por código, é enumerável sem rate limit e /e/[code] revela título, anfitrião e local.",
+  "evidence": "share-code.ts; log2(31^8)=39,63.",
+  "files": [
+   "web/src/domain/share-code.ts"
+  ],
+  "repro": "Cálculo.",
+  "impact": "Descoberta de eventos alheios.",
+  "cause": "Código curto por design.",
+  "fix": "RPC por código com rate limit, backoff e captcha; não expor eventos por id; avaliar 10+ caracteres.",
+  "regression_test": "100 códigos inválidos geram 429.",
+  "depends_on": [
+   "A3-002"
+  ],
+  "effort": "M",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-006",
+  "severity": "P2",
+  "area": "qualidade/erros",
+  "title": "Falha de escrita deixa botões presos em 'ocupado' (wizard, entrar, ZIP)",
+  "description": "wizard create, Convite enter e Downloads album não têm try/finally: se o repositório lança, o estado ocupado nunca volta.",
+  "evidence": "a3-resilience.json: wizardButtonDisabled=true.",
+  "files": [
+   "web/src/features/events/wizard.tsx",
+   "web/src/app/e/[code]/page.tsx",
+   "web/src/app/painel/[id]/downloads/page.tsx",
+   "web/e2e/audit-a3-resilience.spec.ts"
+  ],
+  "repro": "put lança QuotaExceededError; clicar Criar evento.",
+  "impact": "Recarregar a página.",
+  "cause": "Sem try/finally.",
+  "fix": "try/catch/finally.",
+  "regression_test": "Botão reabilitado.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-007",
+  "severity": "P2",
+  "area": "qualidade/erros",
+  "title": "Falha de leitura vira 'Carregando a festa…' eterno com mensagem de escrita",
+  "description": "useEventData.refresh não captura: com leitura falhando, loading fica true e o banner fala de 'guardar'.",
+  "evidence": "a3-resilience.json readFailureBodyText.",
+  "files": [
+   "web/src/features/app/hooks.ts",
+   "web/src/app/e/[code]/(app)/layout.tsx",
+   "web/src/features/app/provider.tsx"
+  ],
+  "repro": "Falhar leituras e recarregar /e/CODE/agora.",
+  "impact": "Tela sem saída.",
+  "cause": "Sem catch.",
+  "fix": "Estado de erro com retry.",
+  "regression_test": "Espera tela de erro.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-008",
+  "severity": "P2",
+  "area": "acessibilidade",
+  "title": "Foco do Sheet volta ao primeiro controle a cada tick do relógio; fundo não inerte",
+  "description": "O efeito depende de onClose (lambda inline) e o painel re-renderiza a cada 15 s: o foco volta ao primeiro botão. Sem inert no fundo.",
+  "evidence": "a3-resilience.json: foco 'Voltar' antes, 'Excluir evento' após 16 s.",
+  "files": [
+   "web/src/components/memoriesmt/Sheet.tsx"
+  ],
+  "repro": "Abrir o Sheet, Tab, esperar 16 s.",
+  "impact": "Foco perdido.",
+  "cause": "Dependência instável.",
+  "fix": "onClose em ref; inert no fundo.",
+  "regression_test": "Foco estável após 16 s.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-009",
+  "severity": "P2",
+  "area": "validação",
+  "title": "Limites só em maxLength do HTML; domínio e serviços não validam",
+  "description": "Limites (título 60, nome 40, legenda 140, aviso 90, momento 30) só em maxLength. Serviços não limitam; updateSettings aceita título vazio e momentos ilimitados.",
+  "evidence": "grep maxLength só em .tsx.",
+  "files": [
+   "web/src/features/events/service.ts",
+   "web/src/features/photos/service.ts",
+   "web/src/domain/event.ts"
+  ],
+  "repro": "updateSettings com title vazio.",
+  "impact": "Dados inválidos persistem.",
+  "cause": "Validação só no formulário.",
+  "fix": "Schemas no domain e CHECK no banco.",
+  "regression_test": "Testes de limites.",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-010",
+  "severity": "P3",
+  "area": "seguranca/upload",
+  "title": "Sem limite de dimensão/bytes de entrada; demais defesas OK",
+  "description": "SVG com script é rasterizado (sem execução); não-imagem rejeitada; EXIF/GPS removido; 40 MB aleatório rejeitado em 2,6 s; PNG 20000x20000 (48 KB) aceito em 1 s no Chromium. Sem limite de file.size nem de pixels antes de decodificar; MAX_PHOTO_BYTES só vale na saída.",
+  "evidence": "a3-upload-results.json",
+  "files": [
+   "web/src/features/photos/capture.ts",
+   "web/src/features/photos/service.ts",
+   "web/e2e/audit-a3-upload.spec.ts"
+  ],
+  "repro": "Rodar o spec de upload.",
+  "impact": "Memória em celulares fracos.",
+  "cause": "—",
+  "fix": "Limitar bytes e pixels antes de decodificar; backend valida magic bytes e dimensão.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-011",
+  "severity": "P3",
+  "area": "seguranca/headers",
+  "title": "CSP com 'unsafe-inline', sem COOP/CORP; CSP precisará de ajuste para Supabase",
+  "description": "Headers idênticos no build de teste e de produção. CSP tem frame-ancestors 'none', object-src 'none', base-uri 'self'; script-src/style-src com 'unsafe-inline' sem nonce; sem COOP/CORP; X-Powered-By ativo. connect-src/img-src 'self' bloquearão o Supabase.",
+  "evidence": "logs/a3-headers-*.txt",
+  "files": [
+   "web/next.config.ts"
+  ],
+  "repro": "curl -I.",
+  "impact": "CSP quebra no go-live.",
+  "cause": "—",
+  "fix": "Nonce ou hash; origem Supabase; COOP; poweredByHeader:false.",
+  "regression_test": "—",
+  "depends_on": [
+   "A3-003"
+  ],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-012",
+  "severity": "P3",
+  "area": "dependencias",
+  "title": "npm audit: 5 altas, todas dev e inalcançáveis em runtime",
+  "description": "Cadeia braces, micromatch, fast-glob, eslint-config-next (DoS por padrão aninhado, GHSA-vfj7-8cjw-p6xm). audit --omit=dev: 0. O 'fix --force' sugere downgrade para eslint-config-next@14: não aplicar.",
+  "evidence": "logs/a3-npm-audit*.txt",
+  "files": [
+   "web/package.json"
+  ],
+  "repro": "npm audit --omit=dev.",
+  "impact": "Nenhum em produção.",
+  "cause": "—",
+  "fix": "Registrar exceção; audit --omit=dev no CI.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-013",
+  "severity": "P3",
+  "area": "dependencias/codigo-morto",
+  "title": "Dependências e exports não usados; contratos especulativos",
+  "description": "depcheck marca tailwindcss e @tailwindcss/turbopack (usados via @import: falso positivo). knip: 19 exports e 20 tipos sem uso; AuthService, BillingService, SyncService, MasterRepository sem consumidor. 131 testes passam; eslint limpo.",
+  "evidence": "logs/a3-depcheck.txt, a3-knip.txt",
+  "files": [
+   "web/src/lib/services/index.ts",
+   "web/src/domain/roles.ts"
+  ],
+  "repro": "npx knip.",
+  "impact": "Ruído.",
+  "cause": "—",
+  "fix": "Remover ou ligar contratos.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-014",
+  "severity": "P3",
+  "area": "tipagem",
+  "title": "Escapes de tipo: 7 asserções, 0 any, 0 ts-expect-error",
+  "description": "reveal.ts:124 (as unknown as, forma legada); indexeddb: as never x2 e db as unknown as (wipe dinâmico). '!' em editor (getContext, stage.current) e Sheet. Sem bug observado.",
+  "evidence": "grep as never|as unknown as.",
+  "files": [
+   "web/src/domain/reveal.ts",
+   "web/src/repositories/indexeddb/index.ts",
+   "web/src/features/photos/editor.tsx"
+  ],
+  "repro": "grep.",
+  "impact": "Baixo.",
+  "cause": "—",
+  "fix": "Tipo LegacyEvent; wipe tipado.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-015",
+  "severity": "P3",
+  "area": "qualidade/erros",
+  "title": "8 catch vazios; câmera não distingue causa",
+  "description": "sessionStorage, tema e SW são aceitáveis. Em postar, getUserMedia trata NotAllowed, NotFound e NotReadable do mesmo jeito e a mensagem só cita permissão.",
+  "evidence": "postar/page.tsx:54,75,89.",
+  "files": [
+   "web/src/app/e/[code]/(app)/postar/page.tsx"
+  ],
+  "repro": "Ler.",
+  "impact": "Suporte difícil.",
+  "cause": "—",
+  "fix": "Mapear error.name.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-016",
+  "severity": "P3",
+  "area": "qualidade/efeitos",
+  "title": "URLs de objeto sem revogação em editor e feed",
+  "description": "editor.tsx load() nunca revoga blob URLs; usePhotoUrls só revoga ao desmontar. Tracks da câmera e listeners são liberados corretamente.",
+  "evidence": "editor.tsx:28-34; hooks.ts:78-100.",
+  "files": [
+   "web/src/features/photos/editor.tsx",
+   "web/src/features/app/hooks.ts"
+  ],
+  "repro": "Ler.",
+  "impact": "Memória.",
+  "cause": "—",
+  "fix": "Revogar após decodificar.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-017",
+  "severity": "P3",
+  "area": "i18n/export",
+  "title": "CSV separado por vírgula; Excel pt-BR espera ponto e vírgula",
+  "description": "guestsCsv usa ',' e o Excel pt-BR espera ';'. Proteção contra fórmula e slug no ZIP corretos (sem path traversal).",
+  "evidence": "admin/export.ts.",
+  "files": [
+   "web/src/features/admin/export.ts"
+  ],
+  "repro": "Abrir no Excel pt-BR.",
+  "impact": "Usabilidade.",
+  "cause": "—",
+  "fix": "Usar ';'.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-018",
+  "severity": "P3",
+  "area": "i18n/datas",
+  "title": "Datas no fuso do aparelho, não do evento; formatação manual",
+  "description": "formatDate/formatTime usam o fuso do aparelho, não event.timezone; scheduler de notificações usa Date.now() em vez do relógio da app.",
+  "evidence": "hooks.ts:110-125.",
+  "files": [
+   "web/src/features/app/hooks.ts",
+   "web/src/lib/services/notifications.ts"
+  ],
+  "repro": "Ler.",
+  "impact": "Horários divergentes.",
+  "cause": "—",
+  "fix": "Intl com event.timezone.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-019",
+  "severity": "P3",
+  "area": "arquitetura",
+  "title": "Todas as páginas são Client Components; /design e /master públicos em produção",
+  "description": "Todas as páginas de dados são 'use client' (useApp/IndexedDB); AppProvider envolve tudo. Rotas [id]/[code] são dinâmicas. /design (catálogo) é servido em produção.",
+  "evidence": "grep use client; a3-xss-network.json.",
+  "files": [
+   "web/src/app/layout.tsx",
+   "web/src/app/design/page.tsx"
+  ],
+  "repro": "Abrir /design.",
+  "impact": "Auth SSR exigirá separar server/client.",
+  "cause": "—",
+  "fix": "Barrar /design.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "M",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-020",
+  "severity": "P3",
+  "area": "build",
+  "title": "tsconfig inclui e2e/: erro de tipo em spec quebra next build",
+  "description": "Na cópia de produção, specs A1 com erro de tipo fizeram 'next build' falhar; passou ao removê-los. Com a flag do relógio em 1 em produção, o gate de hostname localhost ainda limita.",
+  "evidence": "logs/a3-prod-build.txt (build final).",
+  "files": [
+   "web/tsconfig.json"
+  ],
+  "repro": "npm run build com specs com",
+  "impact": "Deploy frágil.",
+  "cause": "—",
+  "fix": "Excluir e2e do build.",
+  "regression_test": "—",
+  "depends_on": [],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A3-021",
+  "severity": "P3",
+  "area": "privacidade",
+  "title": "Nome e fotos persistem localmente após 'sair'",
+  "description": "users.clear() mantém 'known' por desenho; authorName/name denormalizados; sem apagar-meus-dados. Sem tokens nem console.*; localStorage só guarda o tema.",
+  "evidence": "indexeddb users.*; a3-xss-network.json.",
+  "files": [
+   "web/src/repositories/indexeddb/index.ts"
+  ],
+  "repro": "Sair e inspecionar IndexedDB.",
+  "impact": "Dados pessoais no aparelho.",
+  "cause": "—",
+  "fix": "Ação 'esquecer'; erasure no backend.",
+  "regression_test": "—",
+  "depends_on": [
+   "A3-003"
+  ],
+  "effort": "S",
+  "_src": "A3"
+ },
+ {
+  "tid": "A4-001",
+  "severity": "P1",
+  "area": "contratos",
+  "title": "PhotoRepository baseado em bytes, sem URL/miniatura",
+  "description": "add/getData movem ArrayBuffer; usePhotoUrls baixa todas as fotos em sequência.",
+  "evidence": "types.ts:24,46,48; hooks.ts:83-92",
+  "files": [
+   "web/src/repositories/types.ts",
+   "web/src/features/app/hooks.ts"
+  ],
+  "repro": "análise estática",
+  "impact": "Com Storage, feed baixa originais de todas as fotos; URLs assinadas de 60 s expiram no cache por id.",
+  "cause": "Contrato nasceu para IDB.",
+  "fix": "getPhotoUrl(id,variant) com expiração, miniaturas, carga sob demanda; separar fila local de upload do cache.",
+  "regression_test": "Contrato: getPhotoUrl devolve URL válida; hook renova após expirar;",
+  "depends_on": [],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-002",
+  "severity": "P1",
+  "area": "contratos",
+  "title": "Sem paginação nem contagem; truncamento silencioso",
+  "description": "listByEvent devolve tudo; stats, ranking e rolo usam length.",
+  "evidence": "types.ts:44,53; hooks.ts:65; admin/service.ts:15-21; photos/service.ts:11",
+  "files": [
+   "web/src/repositories/types.ts",
+   "web/src/features/admin/service.ts",
+   "web/src/features/photos/service.ts"
+  ],
+  "repro": "análise estática",
+  "impact": "Acima de ~1000 linhas (200 convidados x 36 fotos) números e rolo ficam errados sem erro.",
+  "cause": "Armazenamento local ilimitado.",
+  "fix": "Page<T> com cursor, count()/RPCs agregadas, filtros por autor/status.",
+  "regression_test": "Contrato com 1200 fotos: contagem exata e paginação completa.",
+  "depends_on": [],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-003",
+  "severity": "P1",
+  "area": "contratos",
+  "title": "Sem erros tipados, idempotência nem concorrência otimista",
+  "description": "Só StorageUnavailableError existe; save() é upsert da linha inteira; modelos sem updatedAt/version; reports é contador lido-incrementado-gravado.",
+  "evidence": "types.ts:29-35,84-91; events/service.ts:93-94; photos/service.ts:51-58; a4-static-checks.txt",
+  "files": [
+   "web/src/repositories/types.ts",
+   "web/src/domain/event.ts",
+   "web/src/features/photos/service.ts"
+  ],
+  "repro": "análise estática",
+  "impact": "Outbox não distingue offline de limite; dois aparelhos sobrescrevem configurações e denúncias; denúncia dupla da mesma pessoa.",
+  "cause": "Lock é local (Web Locks).",
+  "fix": "RepositoryError {network,conflict,forbidden,limit,notfound}; create/update(patch,expectedVersion); report(photoId,reporterId); remover Photo.reports gravável.",
+  "regression_test": "Contrato: update com versão velha falha com conflict; mesma pessoa",
+  "depends_on": [],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-004",
+  "severity": "P1",
+  "area": "revelação",
+  "title": "reconcileReveal grava reveal_status em qualquer cliente",
+  "description": "Efeito do layout do convidado chama events.save com status recalculado.",
+  "evidence": "(app)/layout.tsx:65-68; events/service.ts:124-131",
+  "files": [
+   "web/src/app/e/[code]/(app)/layout.tsx",
+   "web/src/features/events/service.ts"
+  ],
+  "repro": "análise estática",
+  "impact": "Sob RLS convidado recebe 403 a cada revelação; se permitido, convidado altera o evento.",
+  "cause": "Espelho persistido tratado como tarefa de cliente.",
+  "fix": "Remover reveal_status gravável; derivar de reveal_at; manter job só para push/idempotência.",
+  "regression_test": "Convidado nunca chama events.save; teste RLS: update de reveal_* por",
+  "depends_on": [
+   "A4-003"
+  ],
+  "effort": "S",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-005",
+  "severity": "P1",
+  "area": "limites/RLS",
+  "title": "Rolo contado no cliente quebra sob RLS; plano contraditório",
+  "description": "used vem das fotos visíveis; antes da revelação o convidado não lê as próprias (§4.1) mas §5 diz 'autor: as suas'.",
+  "evidence": "postar/page.tsx:29; photos/service.ts:10-12; domain/photo.ts:55; INTEGRATION-PLAN §4.1 x §5",
+  "files": [
+   "web/src/app/e/[code]/(app)/postar/page.tsx",
+   "docs/supabase/INTEGRATION-PLAN.md"
+  ],
+  "repro": "análise estática",
+  "impact": "Rolo ilimitado na UI ou, seguindo §5, autor vê fotos antes da revelação.",
+  "cause": "Contagem derivada de leitura filtrada.",
+  "fix": "RPC my_shot_count(event); policy do autor também exige is_revealed; corrigir §5.",
+  "regression_test": "pgTAP: autor não lê foto própria pré-revelação; my_shot_count",
+  "depends_on": [
+   "A4-002"
+  ],
+  "effort": "S",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-006",
+  "severity": "P1",
+  "area": "convites",
+  "title": "Convite carrega evento, participantes e fotos de não-membro",
+  "description": "useEventData({code}) lê getByCode + listas; layout do evento faz o mesmo.",
+  "evidence": "hooks.ts:60-65; e/[code]/page.tsx:26",
+  "files": [
+   "web/src/features/app/hooks.ts",
+   "web/src/app/e/[code]/page.tsx"
+  ],
+  "repro": "análise estática",
+  "impact": "Com RLS a tela de convite falha; sem RLS, expõe evento inteiro.",
+  "cause": "Sem tipo de prévia pública.",
+  "fix": "EventRepository.preview(code): EventPreview via RPC; separar hook de prévia do hook de membro.",
+  "regression_test": "Não-membro só recebe campos de EventPreview; rate limit de preview.",
+  "depends_on": [
+   "A4-003"
+  ],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-007",
+  "severity": "P1",
+  "area": "auth",
+  "title": "Identidade local incompatível com Supabase Auth",
+  "description": "User.id é UUID local; known/switchTo/clear; AuthService nunca usado; signOut anônimo perde a conta.",
+  "evidence": "provider.tsx:65-86; types.ts:65-73; services/index.ts:9; KnownPeople",
+  "files": [
+   "web/src/features/app/provider.tsx",
+   "web/src/repositories/types.ts",
+   "web/src/lib/services/index.ts"
+  ],
+  "repro": "análise estática",
+  "impact": "Anônimo que sai perde fotos; ids locais ≠ auth.uid().",
+  "cause": "Auth modelada como repositório local.",
+  "fix": "Usar AuthService no provider; anônimo + linkIdentity; remover switchTo do produto (demo à parte); função de fusão para Google já existente.",
+  "regression_test": "Anônimo vincula Google mantendo uid e fotos.",
+  "depends_on": [
+   "A4-003"
+  ],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-008",
+  "severity": "P1",
+  "area": "migração",
+  "title": "Plano de migração conflita com o DDL",
+  "description": "photos.author_id not null FK profiles, mas autores convidados locais não têm perfil; triggers de evento encerrado/rolo barram importação; hostId local precisa de remapeamento; várias identidades por aparelho.",
+  "evidence": "INTEGRATION-PLAN §3 (photos), §4, §10; types.ts:65-73",
+  "files": [
+   "docs/supabase/INTEGRATION-PLAN.md"
+  ],
+  "repro": "análise estática",
+  "impact": "Importação de evento encerrado falha.",
+  "cause": "Importação tratada como inserts comuns.",
+  "fix": "author_id nullable + author_name; RPC import_event security definer que ignora triggers; escolher identidade; manifesto com contagens e versão de formato.",
+  "regression_test": "Importar evento encerrado com fotos de 3 autores: contagens iguais,",
+  "depends_on": [
+   "A4-007"
+  ],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-009",
+  "severity": "P1",
+  "area": "upload/sync",
+  "title": "Upload em duas fases e created_at do cliente",
+  "description": "Sem estado de upload; linha antes do objeto conta no rolo; createdAt vem do cliente e o trigger usa now().",
+  "evidence": "indexeddb:108-112; photos/service.ts:24-32; INTEGRATION-PLAN §4,§7",
+  "files": [
+   "web/src/features/photos/service.ts",
+   "docs/supabase/INTEGRATION-PLAN.md"
+  ],
+  "repro": "análise estática",
+  "impact": "Falha parcial gasta um tiro; foto offline sincronizada após o fim é rejeitada.",
+  "cause": "add() atômico no IDB.",
+  "fix": "upload_status + finalize_photo; captured_at do cliente com tolerância; created_at do servidor; outbox com bytes e backoff.",
+  "regression_test": "Falha no meio do upload não consome rolo; foto tirada antes do fim,",
+  "depends_on": [
+   "A4-001",
+   "A4-003"
+  ],
+  "effort": "L",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-010",
+  "severity": "P1",
+  "area": "limites",
+  "title": "Regras que precisam virar constraint/trigger",
+  "description": "Só no cliente: rolo, capacidade (e não encolher abaixo de convidados), evento encerrado, não reabrir, revelação (1 min, imutável após revelada), título 60, legenda 140, momento 30, aviso 90, mesas 0-60, mime/8 MB, reação só em foto visível, denúncia única, event_id da reação = o da foto.",
+  "evidence": "photo.ts:30,38; event.ts:18,26; events/service.ts:92; configuracoes/page.tsx:48,73; qr/page.tsx:36; photos/service.ts:16,40-42",
+  "files": [
+   "web/src/domain/event.ts",
+   "web/src/domain/photo.ts"
+  ],
+  "repro": "análise estática",
+  "impact": "Cliente adulterado burla limites; plano omite capacidade encolhida, mesas, comprimentos, FK composta.",
+  "cause": "Validação só em UI.",
+  "fix": "Checks e triggers para cada item; FK composta (photo_id,event_id).",
+  "regression_test": "pgTAP por regra, com ator malicioso.",
+  "depends_on": [],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-011",
+  "severity": "P2",
+  "area": "revelação",
+  "title": "Relógio, ordem reveal×fim e realtime",
+  "description": "setEndIn/endEventNow não movem revealAt; o preset 'ao terminar' vira data fixa; o tempo passando não gera evento postgres_changes; relógio do cliente decide a UI.",
+  "evidence": "events/service.ts:68-85; reveal-input.ts:24-35; clock.ts; layout.tsx:55-60",
+  "files": [
+   "web/src/features/events/service.ts",
+   "web/src/features/reveal/RevealTransition.tsx"
+  ],
+  "repro": "análise estática",
+  "impact": "Álbum revelado com evento ainda aberto; contador diverge do servidor; atraso de até 60 s do cron.",
+  "cause": "Sem invariante reveal_at x ends_at.",
+  "fix": "Definir invariante; offset servidor-cliente via RPC; refetch em reveal_at+skew, realtime só acelera.",
+  "regression_test": "Cliente 5 min adiantado não revela; encerrar antes não deixa",
+  "depends_on": [
+   "A4-004"
+  ],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-012",
+  "severity": "P2",
+  "area": "papéis",
+  "title": "can() só guarda UI; /master sem proteção de servidor",
+  "description": "Serviços não checam ator; não há proxy/middleware; claim master tem TTL do JWT.",
+  "evidence": "roles.ts:19; painel/layout.tsx:49; ls src/proxy.ts ausente; ROLES.md regra 4",
+  "files": [
+   "web/src/domain/roles.ts",
+   "web/src/app/master/page.tsx"
+  ],
+  "repro": "ls web/src/proxy.ts web/src/middleware.ts",
+  "impact": "Matriz can()×RLS não é testável; rota master depende só de UI.",
+  "cause": "Contrato sem implementação.",
+  "fix": "Matriz can×RLS como teste; proxy validando claim; ações master via RPC com audit_logs.",
+  "regression_test": "Dois usuários x 6 ações x tabelas; master revogado perde acesso no",
+  "depends_on": [
+   "A4-007"
+  ],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-013",
+  "severity": "P2",
+  "area": "infra/testes",
+  "title": "Sem env, CSP bloqueia Supabase, suíte de contrato não reutilizável",
+  "description": "connect-src e img-src 'self'; sem supabase/ ou tipos gerados; fixtures usam ids 'e1','p1' e inserem reação sem foto.",
+  "evidence": "next.config.ts:12,15; a4-contract-fixtures.txt; repositories.test.ts:15-18,52-54,61-63",
+  "files": [
+   "web/next.config.ts",
+   "web/src/repositories/repositories.test.ts"
+  ],
+  "repro": "cat docs/audit/evidence/logs/a4-contract-fixtures.txt",
+  "impact": "Primeira chamada falha; suíte reprova adaptador correto.",
+  "cause": "Fixtures sem FK/auth.",
+  "fix": "CSP com host Supabase (https e wss) e env NEXT_PUBLIC_*; service role só servidor; fábrica de fixtures UUID com dois atores; supabase start no CI.",
+  "regression_test": "Mesma suíte roda em memória, IDB e Supabase local.",
+  "depends_on": [
+   "A4-003"
+  ],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-014",
+  "severity": "P2",
+  "area": "convites",
+  "title": "Convite sem id, rotação ou expiração; ?mesa= não confiável",
+  "description": "Código é segredo permanente; link carrega rótulo livre, não invitation id; invitations só no seed.",
+  "evidence": "links.ts:3-12; seed.ts:56; e/[code]/page.tsx:54",
+  "files": [
+   "web/src/features/invitations/links.ts"
+  ],
+  "repro": "análise estática",
+  "impact": "Sem métrica por mesa; vazamento do código não tem remédio; table_label forjável.",
+  "cause": "Modelo mínimo.",
+  "fix": "Decidir: id no link + invitation_id, ou cortar. RPC rotate_code, rate limit em preview/join, table_label só informativo.",
+  "regression_test": "Código rotacionado invalida o antigo; 100 previews/min são limitados.",
+  "depends_on": [
+   "A4-006"
+  ],
+  "effort": "M",
+  "_src": "A4"
+ },
+ {
+  "tid": "A4-015",
+  "severity": "P3",
+  "area": "modelo",
+  "title": "Tipos TS × Postgres",
+  "description": "notice com expiresAt em epoch ms; durationHours+endedAt em vez de ends_at; palette/eventFont sem enum; moment texto livre; moments:[] com fallback 'Agora'.",
+  "evidence": "event.ts:17,28-33,39-42; postar/page.tsx:22",
+  "files": [
+   "web/src/domain/event.ts"
+  ],
+  "repro": "análise estática",
+  "impact": "Conversões frágeis.",
+  "cause": "Modelo local.",
+  "fix": "notice_text+notice_expires_at; ends_at; checks nos enums; mapper único camel/snake e epoch↔timestamptz.",
+  "regression_test": "Roundtrip mapper para todos os campos.",
+  "depends_on": [
+   "A4-003"
+  ],
+  "effort": "S",
+  "_src": "A4"
+ }
+]

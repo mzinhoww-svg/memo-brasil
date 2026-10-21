@@ -1,0 +1,33 @@
+{
+  "svg-script": {
+    "outcome": "previa-aceita",
+    "ms": 223
+  },
+  "svg-xss-flag": null,
+  "nao-imagem-mime-png": {
+    "outcome": "rejeitada-nao-abriu",
+    "ms": 113
+  },
+  "gps-jpg": {
+    "outcome": "previa-aceita",
+    "ms": 112
+  },
+  "gps-stored": {
+    "size": 1472,
+    "hasExif": false,
+    "hasGPS": false,
+    "hasCamera": false,
+    "first2": [
+      255,
+      216
+    ]
+  },
+  "arquivo-40MB-aleatorio": {
+    "outcome": "rejeitada-nao-abriu",
+    "ms": 2583
+  },
+  "bomba-png-20000x20000": {
+    "outcome": "previa-aceita",
+    "ms": 995
+  }
+}

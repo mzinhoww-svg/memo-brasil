@@ -1,0 +1,1518 @@
+{
+ "viewport": {
+  "w": 390,
+  "h": 844
+ },
+ "theme": "noite",
+ "results": {
+  "revelacao-host-agora": {
+   "url": "/e/2MU6JX45/agora",
+   "textNodes": 101,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [
+    "p.app-p.app-muted:Emy e Igor:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 274,
+    "Birthstone Bounce": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.03,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nAO VIVO\n12 fotos\nAgora\n\nEmy e Igor\n\nAVISO · CERIMONIAL\nPôr do sol na areia em 10 minutos.\nRevelação pendente: os convidados ainda não veem as fotos. Você vê tudo como anfitrião.\nM3\nVisão da Mesa 3\nPista · há 11 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 22 min\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM1\nVisão da Mesa 1\nO sim · há 33 min\n\nNinguém segurou a emoção.\n\nAmei\nEsse momento 1\nRachei 1\nUau\nB\nVisão do bar\nChegada · há 44 min\nAmei 1\nEsse momento\nRachei\nUau\nM8\nVisão da Mesa 8\nPista · há 55 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM3\nVisão da Mesa 3\nPôr do sol · há 1 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nO sim · há 1 h\nAmei\nEsse momento 1\nRachei 1\nUau\nM1\nVisão da Mesa 1\nChegada · há 1 h\nAmei 1\nEsse momento\nRachei\nUau\nB\nVisão do bar\nPista · há 2 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 2 h\nESCOLHA DOS NOIVOS\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM3\nVisão da Mesa 3\nO sim · há 2 h\nAmei\nEsse momento 1\nRachei 1\nUau\nM8\nVisão da Mesa 8\nChegada · há 2 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento\nRachei\nUau\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "bodyScroll": 390
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 65,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    }
+   ],
+   "imgNoAlt": 0,
+   "h1": [
+    "Agora"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "revelacao-config": {
+   "url": "/painel/1e21db70-03f4-4067-8b59-bb9cbc194041/configuracoes",
+   "textNodes": 81,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [
+    "(rec-texto) span:Encerrar agora",
+    "(rec-texto) span:Excluir evento"
+   ],
+   "fontFamilies": {
+    "Bricolage Grotesque": 132
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.17,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVisão geral\nConteúdo\n1\nConvidados\nMomentos\nQR Code Studio\nConfigurações\nDownloads\nConfigurações\nNome e aparência\nNome do evento\nSalvar nome\nCor do evento\nSálvia\nTerracota\nOceano\nAmeixa\nFonte do nome do evento\nBirthstone Bounce\nPinyon Script\nGreat Vibes\nRegras da festa\nFotos por pessoa\n5\n10\n16\n24\n36\nIlimitadas\nConvidados\n5\n10\n20\n50\n100\n150\n200\nIlimitado\n\nPassar de 10 convidados teria valor. Nesta versão de demonstração, nada é cobrado.\n\nQuem vê as fotos\nTodos veem todas as fotos\nCada um vê só as suas\nReações nas fotos\nLigadas\nDesligadas\nRevelação programada\n\nLigada: revela em 20 · 10 · 2026 às 22h51. Fim do evento: 21 · 10 · 2026 às 03h49.\n\nRevelação programada\nLigada: as fotos ficam bloqueadas até a revelação\nDesligada: as fotos aparecem na hora\nQuando revelar\nQuando o evento terminar\nAlguns dias depois do fim\nEscolher data e hora\nData\nHorário\nFuso horário\nCuiabá (MT, UTC−4)\nBrasília e São Paulo (UTC−3)\nManaus (AM, UTC−4)\nFortaleza e Recife (UTC−3)\nRio Branco (AC, UTC−5)\nFernando de Noronha (UTC−2)\nLisboa\nNova York\nUTC\nA contagem regressiva dos convidados usa este fuso.\nRESUMO\nA revelação acontece em 20 · 10 · 2026 às 22h51, Cuiabá.\nSalvar revelação\nPré-visualizar como convidado\nAviso no Agora\nAVISO · ORGANIZAÇÃO\nPôr do sol na areia em 10 minutos.\nAviso curto\nUm aviso por vez. Escreva a hora ou o lugar.\nPublicar aviso\nApagar aviso\nFim do evento\n\nTermina em 21 · 10 · 2026 · 3h49.\n\nMudar o fim para daqui a\n1 hora\n3 horas\n6 horas\n1 dia\nEncerrar agora\nExcluir\n\nApaga o evento, as fotos e as reações deste aparelho.\n\nExcluir evento",
+   "overflowX": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "bodyScroll": 390
+   },
+   "overflowingEls": [
+    "a.mm-tab right=394",
+    "a.mm-tab right=511",
+    "a.mm-tab right=664",
+    "a.mm-tab right=811",
+    "a.mm-tab right=931"
+   ],
+   "targets": {
+    "total": 54,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Configurações"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "revelacao-previa": {
+   "url": "/painel/1e21db70-03f4-4067-8b59-bb9cbc194041/configuracoes",
+   "textNodes": 94,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao.app-emocao:As fotos aparecem todas juntas"
+   ],
+   "eventFontEls": [],
+   "redText": [
+    "(rec-texto) span:Encerrar agora",
+    "(rec-texto) span:Excluir evento"
+   ],
+   "fontFamilies": {
+    "Bricolage Grotesque": 154,
+    "Instrument Serif": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.17,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVisão geral\nConteúdo\n1\nConvidados\nMomentos\nQR Code Studio\nConfigurações\nDownloads\nConfigurações\nNome e aparência\nNome do evento\nSalvar nome\nCor do evento\nSálvia\nTerracota\nOceano\nAmeixa\nFonte do nome do evento\nBirthstone Bounce\nPinyon Script\nGreat Vibes\nRegras da festa\nFotos por pessoa\n5\n10\n16\n24\n36\nIlimitadas\nConvidados\n5\n10\n20\n50\n100\n150\n200\nIlimitado\n\nPassar de 10 convidados teria valor. Nesta versão de demonstração, nada é cobrado.\n\nQuem vê as fotos\nTodos veem todas as fotos\nCada um vê só as suas\nReações nas fotos\nLigadas\nDesligadas\nRevelação programada\n\nLigada: revela em 20 · 10 · 2026 às 22h51. Fim do evento: 21 · 10 · 2026 às 03h49.\n\nRevelação programada\nLigada: as fotos ficam bloqueadas até a revelação\nDesligada: as fotos aparecem na hora\nQuando revelar\nQuando o evento terminar\nAlguns dias depois do fim\nEscolher data e hora\nData\nHorário\nFuso horário\nCuiabá (MT, UTC−4)\nBrasília e São Paulo (UTC−3)\nManaus (AM, UTC−4)\nFortaleza e Recife (UTC−3)\nRio Branco (AC, UTC−5)\nFernando de Noronha (UTC−2)\nLisboa\nNova York\nUTC\nA contagem regressiva dos convidados usa este fuso.\nRESUMO\nA revelação acontece em 20 · 10 · 2026 às 22h51, Cuiabá.\nSalvar revelação\nPré-visualizar como convidado\nPrévia do convidado\n\nPRÉVIA · COMO O CONVIDADO VÊ\n\nO filme ainda está no escuro.\n\nAs fotos aparecem todas juntas.\n\nFALTAM\n00h 01min 59s\nFaltam 2 minutos para a revelação.\nRevela em 20 · 10 · 2026 às 22h51, Cuiabá.\n0\nfotos suas guardadas\n12\nfotos no álbum\nFechar prévia\nAviso no Agora\nAVISO · ORGANIZAÇÃO\nPôr do sol na areia em 10 minutos.\nAviso curto\nUm aviso por vez. Escreva a hora ou o lugar.\nPublicar aviso\nApagar aviso\nFim do evento\n\nTermina em 21 · 10 · 2026 · 3h49.\n\nMudar o fim para daqui a\n1 hora\n3 horas\n6 horas\n1 dia\nEncerrar agora\nExcluir\n\nApaga o evento, as fotos e as reações deste aparelho.\n\nExcluir evento",
+   "overflowX": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "bodyScroll": 390
+   },
+   "overflowingEls": [
+    "a.mm-tab right=394",
+    "a.mm-tab right=511",
+    "a.mm-tab right=664",
+    "a.mm-tab right=811",
+    "a.mm-tab right=931"
+   ],
+   "targets": {
+    "total": 55,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Configurações"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "revelacao-espera": {
+   "url": "/e/2MU6JX45/agora",
+   "textNodes": 21,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao.app-emocao:As fotos aparecem todas juntas"
+   ],
+   "eventFontEls": [
+    "p.app-p.app-muted:Emy e Igor:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 51,
+    "Birthstone Bounce": 1,
+    "Instrument Serif": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.03,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nAO VIVO\nAgora\n\nEmy e Igor\n\nAVISO · CERIMONIAL\nPôr do sol na areia em 10 minutos.\n\nAGUARDANDO REVELAÇÃO\n\nO filme ainda está no escuro.\n\nAs fotos aparecem todas juntas.\n\nFALTAM\n00h 01min 58s\nFaltam 2 minutos para a revelação.\nRevela em 20 · 10 · 2026 às 22h51, Cuiabá.\n0\nfotos suas guardadas\n12\nfotos no álbum\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "bodyScroll": 390
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 5,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Agora"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "revelacao-transicao": {
+   "url": "/e/2MU6JX45/agora",
+   "textNodes": 102,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao-lg:Revelando…"
+   ],
+   "eventFontEls": [
+    "p.app-p.app-muted:Emy e Igor:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 275,
+    "Instrument Serif": 1,
+    "Birthstone Bounce": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.03,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\n\nEMY E IGOR\n\nRevelando…\n\nAO VIVO\n12 fotos\nAgora\n\nEmy e Igor\n\nAVISO · CERIMONIAL\nPôr do sol na areia em 10 minutos.\nM3\nVisão da Mesa 3\nPista · há 14 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 25 min\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM1\nVisão da Mesa 1\nO sim · há 36 min\n\nNinguém segurou a emoção.\n\nAmei\nEsse momento 1\nRachei 1\nUau\nB\nVisão do bar\nChegada · há 47 min\nAmei 1\nEsse momento\nRachei\nUau\nM8\nVisão da Mesa 8\nPista · há 58 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM3\nVisão da Mesa 3\nPôr do sol · há 1 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nO sim · há 1 h\nAmei\nEsse momento 1\nRachei 1\nUau\nM1\nVisão da Mesa 1\nChegada · há 2 h\nAmei 1\nEsse momento\nRachei\nUau\nB\nVisão do bar\nPista · há 2 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 2 h\nESCOLHA DOS NOIVOS\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM3\nVisão da Mesa 3\nO sim · há 2 h\nAmei\nEsse momento 1\nRachei 1\nUau\nM8\nVisão da Mesa 8\nChegada · há 2 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento\nRachei\nUau\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "bodyScroll": 390
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 65,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    }
+   ],
+   "imgNoAlt": 0,
+   "h1": [
+    "Agora"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "revelacao-revelado": {
+   "url": "/e/2MU6JX45/agora",
+   "textNodes": 103,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao-lg:O filme foi revelado."
+   ],
+   "eventFontEls": [
+    "p.app-p.app-muted:Emy e Igor:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 276,
+    "Instrument Serif": 1,
+    "Birthstone Bounce": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.03,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\n\nEMY E IGOR\n\nO filme foi revelado.\n\nVer as fotos\nAO VIVO\n12 fotos\nAgora\n\nEmy e Igor\n\nAVISO · CERIMONIAL\nPôr do sol na areia em 10 minutos.\nM3\nVisão da Mesa 3\nPista · há 14 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 25 min\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM1\nVisão da Mesa 1\nO sim · há 36 min\n\nNinguém segurou a emoção.\n\nAmei\nEsse momento 1\nRachei 1\nUau\nB\nVisão do bar\nChegada · há 47 min\nAmei 1\nEsse momento\nRachei\nUau\nM8\nVisão da Mesa 8\nPista · há 58 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM3\nVisão da Mesa 3\nPôr do sol · há 1 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nO sim · há 1 h\nAmei\nEsse momento 1\nRachei 1\nUau\nM1\nVisão da Mesa 1\nChegada · há 2 h\nAmei 1\nEsse momento\nRachei\nUau\nB\nVisão do bar\nPista · há 2 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 2 h\nESCOLHA DOS NOIVOS\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM3\nVisão da Mesa 3\nO sim · há 2 h\nAmei\nEsse momento 1\nRachei 1\nUau\nM8\nVisão da Mesa 8\nChegada · há 2 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento\nRachei\nUau\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "bodyScroll": 390
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 66,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    }
+   ],
+   "imgNoAlt": 0,
+   "h1": [
+    "Agora"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "revelacao-galeria": {
+   "url": "/e/2MU6JX45/agora",
+   "textNodes": 100,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [
+    "p.app-p.app-muted:Emy e Igor:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 270,
+    "Birthstone Bounce": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.03,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nAO VIVO\n12 fotos\nAgora\n\nEmy e Igor\n\nAVISO · CERIMONIAL\nPôr do sol na areia em 10 minutos.\nM3\nVisão da Mesa 3\nPista · há 14 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 25 min\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM1\nVisão da Mesa 1\nO sim · há 36 min\n\nNinguém segurou a emoção.\n\nAmei\nEsse momento 1\nRachei 1\nUau\nB\nVisão do bar\nChegada · há 47 min\nAmei 1\nEsse momento\nRachei\nUau\nM8\nVisão da Mesa 8\nPista · há 58 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM3\nVisão da Mesa 3\nPôr do sol · há 1 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nO sim · há 1 h\nAmei\nEsse momento 1\nRachei 1\nUau\nM1\nVisão da Mesa 1\nChegada · há 2 h\nAmei 1\nEsse momento\nRachei\nUau\nB\nVisão do bar\nPista · há 2 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 2 h\nESCOLHA DOS NOIVOS\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM3\nVisão da Mesa 3\nO sim · há 2 h\nAmei\nEsse momento 1\nRachei 1\nUau\nM8\nVisão da Mesa 8\nChegada · há 2 h\n\nNinguém segurou a emoção.\n\nAmei 1\nEsse momento\nRachei\nUau\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "bodyScroll": 390
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 65,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    }
+   ],
+   "imgNoAlt": 0,
+   "h1": [
+    "Agora"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  }
+ }
+}

@@ -1,0 +1,3 @@
+Unused devDependencies
+* @tailwindcss/turbopack
+* tailwindcss

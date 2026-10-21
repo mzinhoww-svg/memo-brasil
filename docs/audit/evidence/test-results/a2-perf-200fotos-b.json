@@ -1,0 +1,60 @@
+{
+ "env": "Apple M4, Chromium Playwright, produção 3312, 390x844@3x, sem throttling",
+ "res": {
+  "seedInfo": {
+   "id": "2c0f9022-14ee-4b40-9e3d-6882a413c49d",
+   "avgKB": 446,
+   "totalMB": 81.9
+  },
+  "agora200": {
+   "firstImgMs": 80,
+   "clicksVerMais": 9,
+   "verMaisToAllLoadedMs": 1701,
+   "dom": {
+    "posts": 200,
+    "imgsLoaded": 200,
+    "nodes": 3884,
+    "pageH": 118620
+   },
+   "afterLoad": {
+    "jsHeapMB": 9.4,
+    "nodes": 5533,
+    "layoutCount": 50,
+    "taskSec": 0.76,
+    "scriptSec": 0.35
+   },
+   "scrollToEndMs": 2458,
+   "afterScroll": {
+    "jsHeapMB": 10.5,
+    "nodes": 5533,
+    "layoutCount": 50,
+    "taskSec": 0.86,
+    "scriptSec": 0.37
+   }
+  },
+  "voce150": {
+   "imgs": 150,
+   "toAllRenderedMs": 307,
+   "afterLoad": {
+    "jsHeapMB": 6.4,
+    "nodes": 738,
+    "layoutCount": 15,
+    "taskSec": 0.19,
+    "scriptSec": 0.06
+   },
+   "pageH": 7011
+  },
+  "zip": {
+   "ms": 689,
+   "name": "memoriesmt-emy-e-igor.zip",
+   "sizeMB": 81.9,
+   "after": {
+    "jsHeapMB": 5.2,
+    "nodes": 147,
+    "layoutCount": 11,
+    "taskSec": 0.55,
+    "scriptSec": 0.47
+   }
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "offline_false": {
+  "ok": true,
+  "states": [
+   "publicado@597ms"
+  ],
+  "photosInDb": 13,
+  "finalText": "Voltar\n23 FOTOS RESTANTES\n\nSua visão entrou na história.\n\nVer no Agora\nPostar outra"
+ },
+ "offline_true": {
+  "ok": true,
+  "states": [
+   "publicado@607ms"
+  ],
+  "photosInDb": 13,
+  "finalText": "Voltar\n23 FOTOS RESTANTES\n\nSua visão entrou na história.\n\nVer no Agora\nPostar outra"
+ },
+ "offline_reload": {
+  "ok": true,
+  "states": [
+   "publicado@583ms"
+  ],
+  "photosInDb": 13,
+  "finalText": "Voltar\n23 FOTOS RESTANTES\n\nSua visão entrou na história.\n\nVer no Agora\nPostar outra"
+ }
+}

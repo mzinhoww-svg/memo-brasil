@@ -1,0 +1,28 @@
+# fixtures do contrato dos repositorios usam ids nao-UUID e violam FKs (A4)
+7:  id, code, title: "Emy e Igor", category: "casamento", hostId: "h", hostName: "Emy", startAt: 1, durationHours: 6,
+11:const photo = (id: string, eventId: string, createdAt = 1): Photo => ({ id, eventId, authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false });
+27:    await r.events.save(ev("e1", "AAAAAAAA"));
+28:    await r.events.save(ev("e2", "BBBBBBBB"));
+29:    expect((await r.events.list()).map((e) => e.id).sort()).toEqual(["e1", "e2"]);
+30:    expect((await r.events.getByCode("BBBBBBBB"))?.id).toBe("e2");
+32:    await r.events.save({ ...ev("e1", "AAAAAAAA"), title: "Novo nome" });
+33:    expect((await r.events.get("e1"))?.title).toBe("Novo nome");
+34:    await r.events.remove("e1");
+35:    expect(await r.events.get("e1")).toBeUndefined();
+39:    await r.photos.add(photo("p1", "e1", 1), { bytes: bytes(1, 2, 3), type: "image/jpeg" });
+40:    await r.photos.add(photo("p2", "e1", 2), { bytes: bytes(9), type: "image/jpeg" });
+41:    expect((await r.photos.listByEvent("e1")).map((p) => p.id)).toEqual(["p2", "p1"]);
+42:    const d = await r.photos.getData("p1");
+45:    await r.photos.update({ ...photo("p1", "e1", 1), status: "oculta" });
+46:    expect((await r.photos.get("p1"))?.status).toBe("oculta");
+47:    await r.photos.remove("p1");
+48:    expect(await r.photos.get("p1")).toBeUndefined();
+49:    expect(await r.photos.getData("p1")).toBeUndefined();
+53:    await r.reactions.put({ eventId: "e1", photoId: "p1", authorId: "u1", kind: "amei" });
+# reacao inserida sem foto e participante sem evento:
+  it("uma reação por (foto, autor)", async () => {
+    await r.reactions.put({ eventId: "e1", photoId: "p1", authorId: "u1", kind: "amei" });
+    await r.reactions.put({ eventId: "e1", photoId: "p1", authorId: "u1", kind: "uau" });
+  it("participantes, convites e usuário local", async () => {
+    await r.participants.put({ eventId: "e1", userId: "u1", name: "Ana", joinedAt: 1 });
+    expect((await r.participants.get("e1", "u1"))?.name).toBe("Ana");

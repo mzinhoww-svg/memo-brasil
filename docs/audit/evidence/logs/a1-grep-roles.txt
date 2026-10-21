@@ -1,0 +1,47 @@
+# grep no código-fonte (web/src) por senha fixa/master/role/admin
+src/app/page.tsx:81:          <div className="app-banner" role="status">
+src/app/master/page.tsx:8: * O papel master só existe como claim emitida pelo servidor de autenticação; não há senha, URL secreta nem
+src/app/design/page.tsx:92:        <div role="tabpanel" id={panelId("g", tab)} aria-labelledby={tabId("g", tab)}><p className="app-p app-muted">{tab === "a" ? "Nenhum pedido de remoção em aberto." : "Nenhuma foto oculta."}</p></div>
+src/app/e/[code]/(app)/layout.tsx:115:          <div className="app-banner" role="status" style={{ margin: "var(--space-4)" }}>
+src/app/e/[code]/(app)/agora/page.tsx:51:        <div className="app-banner" role="status">
+src/app/e/[code]/(app)/postar/page.tsx:154:          {error && <p className="mm-field-erro" role="alert">{error}</p>}
+src/app/e/[code]/(app)/voce/page.tsx:78:        {avisos && <p className="app-p" role="status">{avisos}</p>}
+src/app/painel/[id]/conteudo/page.tsx:33:      <div role="tabpanel" id={panelId("mod", tab)} aria-labelledby={`mod-tab-${tab}`} className="app-stack" style={{ gap: "var(--space-8)", maxWidth: 480 }}>
+src/app/painel/[id]/configuracoes/page.tsx:44:      {msg && <p className="app-p" role="status">{msg}</p>}
+src/app/painel/[id]/downloads/page.tsx:36:        {result && <p className="app-p" role="status">{result}</p>}
+src/features/reveal/RevealTransition.tsx:18:    <div role="dialog" aria-modal="true" aria-label="Revelação das fotos" data-testid="transicao-revelacao" className="app-reveal">
+src/features/reveal/WaitingReveal.tsx:25:        <span role="timer" aria-live="off" className="display" data-testid="contagem" style={{ fontVariantNumeric: "tabular-nums" }}>{left.text}</span>
+src/features/events/wizard.tsx:176:              <div className="app-banner" role="status">
+src/features/events/wizard.tsx:180:            {errors.create && <p className="mm-field-erro" role="alert">{errors.create}</p>}
+src/features/events/RevealSettings.tsx:52:        <div className="app-banner" role="status">
+src/features/events/RevealSettings.tsx:69:      {msg && <p className="app-p" role="status">{msg}</p>}
+src/features/events/RevealForm.tsx:27:          {errors?.fuso && <p className="mm-field-erro" role="alert">{REVEAL_ERROR_TEXT[errors.fuso]}</p>}
+src/features/events/RevealForm.tsx:28:          {errors?.data && value.kind !== "data" && <p className="mm-field-erro" role="alert">{REVEAL_ERROR_TEXT[errors.data]}</p>}
+src/features/photos/capture.ts:26:/** Desenha a fonte (vídeo ou imagem) num canvas reduzido, aplica o estilo e devolve JPEG em bytes. */
+src/features/photos/editor.tsx:215:        <canvas ref={stage} aria-label="Foto em edição" role="img" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} style={{ width: "100%", height: "100%", touchAction: "none", cursor: mode === "texto" ? "move" : "crosshair" }} />
+src/features/photos/editor.tsx:217:      {error && <p className="mm-field-erro" role="alert">{error}</p>}
+src/components/memoriesmt/Tabs.tsx:24:    ref.current?.querySelectorAll<HTMLElement>('[role="tab"]')[next]?.focus();
+src/components/memoriesmt/Tabs.tsx:27:    <div ref={ref} className="mm-tabs" role="tablist" aria-label={label} onKeyDown={onKey}>
+src/components/memoriesmt/Tabs.tsx:29:        <button key={t.id} id={tabId(base, t.id)} type="button" role="tab" className="mm-tab" aria-selected={t.id === value} aria-controls={panelId(base, t.id)} tabIndex={t.id === value ? 0 : -1} onClick={() => onChange(t.id)}>
+src/components/memoriesmt/Progress.tsx:3:/** Barra de 8px. Envio (`role=progressbar`) ou ranking do evento. */
+src/components/memoriesmt/Progress.tsx:12:      <div className="mm-progress-track" role={variant === "envio" ? "progressbar" : undefined} aria-label={variant === "envio" ? label : undefined} aria-valuenow={variant === "envio" ? v : undefined} aria-valuemin={variant === "envio" ? 0 : undefined} aria-valuemax={variant === "envio" ? 100 : undefined}>
+src/components/memoriesmt/Sheet.tsx:37:      <div ref={ref} className="app-dialog-panel" role="dialog" aria-modal="true" aria-labelledby={id}>
+src/components/memoriesmt/Chip.tsx:16:    <div className="mm-chips" role="group" aria-label={label}>
+src/components/memoriesmt/OptionGroup.tsx:15:    <div className="mm-group" role="group" aria-labelledby={id}>
+src/components/memoriesmt/StorageBanner.tsx:13:    <div role="alert" className="app-banner" style={{ margin: "var(--space-4)", maxWidth: 480, marginInline: "auto" }}>
+src/components/memoriesmt/Cover.tsx:6:    <svg className={className} viewBox="0 0 528 288" role="img" aria-label="Capa MemoriesMT" style={{ display: "block", width: "100%", height: "auto" }}>
+src/components/memoriesmt/Stepper.tsx:9:    <div className="mm-group" role="group" aria-labelledby={id}>
+src/components/memoriesmt/Notice.tsx:4:    <div className="mm-notice" role="status">
+src/domain/collage.ts:26:/** Recorte "cover" da origem sw×sh dentro do destino: devolve o retângulo da origem a desenhar. */
+src/domain/roles.ts:6: * a mesma tabela. O papel `master` nunca vem de senha fixa, URL ou estado do navegador: só de uma claim emitida
+src/domain/roles.ts:7: * pelo servidor de autenticação (`app_metadata.role = 'master'`), que não existe nesta fase.
+src/domain/roles.ts:9:export type Role = "convidado" | "organizador" | "master";
+src/domain/roles.ts:20:  if (actor.role === "master") return true; // supervisão de plataforma (auditada no backend)
+
+# grep no bundle servido (.next/static)
+0,children:"Voltar ao início"})]})});if(!function(e,t,a){if("master"===e.role)return!0;let r=!!(a&&e.userId&&a.hostId===e.userId
+# search for token/query param handling
+src/app/e/[code]/page.tsx:54:    const r = await joinEvent(repos, me, code, name, now(), tableFromSearch(window.location.search));
+src/features/invitations/links.ts:5:  if (table) url.searchParams.set("mesa", table);
+src/features/invitations/links.ts:11:  const v = new URLSearchParams(search).get("mesa")?.trim();
+src/lib/clock.ts:7:    const raw = window.sessionStorage.getItem("mm-agora") ?? new URLSearchParams(window.location.search).get("agora");

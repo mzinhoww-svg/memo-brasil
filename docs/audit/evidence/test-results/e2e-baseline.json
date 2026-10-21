@@ -1,0 +1,2024 @@
+{
+  "config": {
+    "argv": [
+      "/Users/aurimar.nogueira@latam.com/.nvm/versions/node/v24.14.0/bin/node",
+      "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/node_modules/.bin/playwright",
+      "test",
+      "--reporter=list,json"
+    ],
+    "configFile": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/playwright.config.ts",
+    "rootDir": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e",
+        "snapshotDir": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 60000,
+        "use": {
+          "baseURL": "http://localhost:3187",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.8078.4 Safari/537.36",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium",
+          "permissions": [
+            "camera"
+          ],
+          "launchOptions": {
+            "args": [
+              "--use-fake-device-for-media-stream",
+              "--use-fake-ui-for-media-stream"
+            ]
+          },
+          "serviceWorkers": "allow"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": {
+      "command": "NEXT_PUBLIC_MM_TEST_CLOCK=1 npm run build && npx next start -p 3187",
+      "port": 3187,
+      "reuseExistingServer": false,
+      "timeout": 300000
+    }
+  },
+  "suites": [
+    {
+      "title": "a11y.spec.ts",
+      "file": "a11y.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "acessibilidade (axe) sem violações graves, tema dia",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4547,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:39:49.323Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "aa3ad05f8c0e05077efb-e2cdc05fa19be0d3c348",
+          "file": "a11y.spec.ts",
+          "line": 6,
+          "column": 7
+        },
+        {
+          "title": "acessibilidade (axe) sem violações graves, tema noite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4109,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:39:54.141Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "aa3ad05f8c0e05077efb-f6baab055f0134fbd858",
+          "file": "a11y.spec.ts",
+          "line": 6,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "flows.spec.ts",
+      "file": "flows.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "anfitrião cria um evento pelo wizard e vê o convite com código e QR",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 403,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:39:58.259Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-bc82befe5e483730d0d0",
+          "file": "flows.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "wizard valida nome do evento e término curto, com mensagens que dizem o que fazer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 234,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:39:58.666Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-942623216d982ed9f497",
+          "file": "flows.spec.ts",
+          "line": 12,
+          "column": 5
+        },
+        {
+          "title": "código inválido mostra erro; código válido leva ao convite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 193,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:39:58.903Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-849f2f74360aff939ac8",
+          "file": "flows.spec.ts",
+          "line": 28,
+          "column": 5
+        },
+        {
+          "title": "convidado entra, posta com a câmera de teste, gasta o rolo e reage uma vez por foto",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1946,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:39:59.099Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-0819ee988d881297fb42",
+          "file": "flows.spec.ts",
+          "line": 40,
+          "column": 5
+        },
+        {
+          "title": "revelação: outras pessoas só veem depois do fim do evento (relógio de teste)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1131,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:01.049Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-54c8d2436cde825a5be8",
+          "file": "flows.spec.ts",
+          "line": 69,
+          "column": 5
+        },
+        {
+          "title": "pedido de remoção cai na fila do anfitrião, que oculta e depois remove a foto",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1396,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:02.185Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-8ef83c860a1ab82e80e2",
+          "file": "flows.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "tema Noite persiste ao recarregar e vale para o app inteiro",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 230,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:03.584Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-ab67cbe53d1e74dc1275",
+          "file": "flows.spec.ts",
+          "line": 111,
+          "column": 5
+        },
+        {
+          "title": "sem sinal: aviso na área do convidado e fotos continuam guardadas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 431,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:03.818Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-25aebe473c700417f0c7",
+          "file": "flows.spec.ts",
+          "line": 122,
+          "column": 5
+        },
+        {
+          "title": "evento: encerrar agora e excluir, com confirmação",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 658,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:04.252Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-448ea7ce333fe71184a7",
+          "file": "flows.spec.ts",
+          "line": 130,
+          "column": 5
+        },
+        {
+          "title": "downloads: baixa o álbum em ZIP e a lista de convidados em CSV",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 340,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:04.914Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-488d22e254c5f0ba2671",
+          "file": "flows.spec.ts",
+          "line": 144,
+          "column": 5
+        },
+        {
+          "title": "mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem, desfazer) com download",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 711,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:05.257Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-5ae11a34cfeff01cf3ef",
+          "file": "flows.spec.ts",
+          "line": 160,
+          "column": 5
+        },
+        {
+          "title": "avisos do evento: ativar pede permissão e confirma",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 318,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:05.972Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-2ce2ce5a7f6926b22efa",
+          "file": "flows.spec.ts",
+          "line": 198,
+          "column": 5
+        },
+        {
+          "title": "rota inexistente mostra 404 em português com saída",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 168,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:06.293Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-de4529abb1a33527a1e2",
+          "file": "flows.spec.ts",
+          "line": 209,
+          "column": 5
+        },
+        {
+          "title": "anfitrião testa como convidado e volta ao painel por 'Continuar como'",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 970,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:06.464Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-6b5cd5e41b59fe5708a3",
+          "file": "flows.spec.ts",
+          "line": 217,
+          "column": 5
+        },
+        {
+          "title": "cabeçalhos de segurança e CSP sem violações de console nas telas principais",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 296,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:07.438Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "86d6a544053f1eb9f224-1adde8925d4d1111cade",
+          "file": "flows.spec.ts",
+          "line": 230,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "pwa.spec.ts",
+      "file": "pwa.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "service worker assume o controle, guarda o shell e abre páginas visitadas sem rede",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 185,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:07.745Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "30bf0965a0eb07fc9173-2b0a7ff3975537186e7a",
+          "file": "pwa.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "dados do IndexedDB sobrevivem a um recarregamento (persistência local)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 249,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:07.934Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "30bf0965a0eb07fc9173-ffbd3d34ea12beeff14e",
+          "file": "pwa.spec.ts",
+          "line": 23,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "remote.spec.ts",
+      "file": "remote.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "publicado: home, fontes, tema, manifest e service worker",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "defina E2E_BASE_URL",
+                  "location": {
+                    "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                    "line": 4,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:08.187Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "defina E2E_BASE_URL",
+                      "location": {
+                        "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                        "line": 4,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f93c19e99fb531cfc4f3-56cb0150571a29729d4b",
+          "file": "remote.spec.ts",
+          "line": 11,
+          "column": 5
+        },
+        {
+          "title": "publicado: criar evento, entrar como convidado, postar e reagir",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "defina E2E_BASE_URL",
+                  "location": {
+                    "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                    "line": 4,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:08.187Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "defina E2E_BASE_URL",
+                      "location": {
+                        "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                        "line": 4,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f93c19e99fb531cfc4f3-6640a578942eae41c2b2",
+          "file": "remote.spec.ts",
+          "line": 25,
+          "column": 5
+        },
+        {
+          "title": "publicado: painel e rota inexistente offline",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "defina E2E_BASE_URL",
+                  "location": {
+                    "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                    "line": 4,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:08.187Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "defina E2E_BASE_URL",
+                      "location": {
+                        "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                        "line": 4,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f93c19e99fb531cfc4f3-f9d4ed8a7e3f73264f1f",
+          "file": "remote.spec.ts",
+          "line": 37,
+          "column": 5
+        },
+        {
+          "title": "publicado: headers de segurança, 404 em português e relógio de teste fora do bundle",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "defina E2E_BASE_URL",
+                  "location": {
+                    "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                    "line": 4,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:08.187Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "defina E2E_BASE_URL",
+                      "location": {
+                        "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                        "line": 4,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f93c19e99fb531cfc4f3-6bf7f89c488d6c7af5d7",
+          "file": "remote.spec.ts",
+          "line": 52,
+          "column": 5
+        },
+        {
+          "title": "publicado: revelação programada (espera, contagem, revelação sem rede) com relógio do navegador",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "defina E2E_BASE_URL",
+                  "location": {
+                    "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                    "line": 4,
+                    "column": 6
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:08.187Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "defina E2E_BASE_URL",
+                      "location": {
+                        "file": "/Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/remote.spec.ts",
+                        "line": 4,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f93c19e99fb531cfc4f3-303e018c335a352623e0",
+          "file": "remote.spec.ts",
+          "line": 76,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "reveal-visual.spec.ts",
+      "file": "reveal-visual.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "revelação: configuração, espera, transição e galeria em 390px, tema dia",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4849,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:08.190Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "af3ea8bdfd9190c40660-3be19dfa7e4847518e2c",
+          "file": "reveal-visual.spec.ts",
+          "line": 22,
+          "column": 9
+        },
+        {
+          "title": "revelação: configuração, espera, transição e galeria em 390px, tema noite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4807,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:13.043Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "af3ea8bdfd9190c40660-3211c46f89e5dfddddab",
+          "file": "reveal-visual.spec.ts",
+          "line": 22,
+          "column": 9
+        },
+        {
+          "title": "revelação: configuração, espera, transição e galeria em 1440px, tema dia",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5363,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:17.855Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "af3ea8bdfd9190c40660-e9fdda3b62571b4508d5",
+          "file": "reveal-visual.spec.ts",
+          "line": 22,
+          "column": 9
+        },
+        {
+          "title": "revelação: configuração, espera, transição e galeria em 1440px, tema noite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4809,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:23.224Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "af3ea8bdfd9190c40660-62320566fd2836e56419",
+          "file": "reveal-visual.spec.ts",
+          "line": 22,
+          "column": 9
+        },
+        {
+          "title": "modo sem revelação em 390px, temas dia e noite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2001,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:28.038Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "af3ea8bdfd9190c40660-eda582aa3a858569faef",
+          "file": "reveal-visual.spec.ts",
+          "line": 61,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "reveal.spec.ts",
+      "file": "reveal.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "organizador liga a revelação, escolhe data, hora e fuso e vê o resumo; pode alterar enquanto pendente",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 641,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:30.046Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09b777a8c79fe95a2a39-410f3d65c8b52d0c1744",
+          "file": "reveal.spec.ts",
+          "line": 22,
+          "column": 5
+        },
+        {
+          "title": "data no passado é recusada com mensagem clara",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 512,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:30.691Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09b777a8c79fe95a2a39-f11c6de1cc229e1bc373",
+          "file": "reveal.spec.ts",
+          "line": 40,
+          "column": 5
+        },
+        {
+          "title": "convidado fotografa, não vê fotos bloqueadas, espera com contagem e a galeria abre sozinha na hora",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3303,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:31.206Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09b777a8c79fe95a2a39-8a16cf71205932731987",
+          "file": "reveal.spec.ts",
+          "line": 52,
+          "column": 5
+        },
+        {
+          "title": "modo sem revelação: a foto aparece na hora, sem tela de espera",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 842,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:34.513Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09b777a8c79fe95a2a39-96a049e0f44fbd56c165",
+          "file": "reveal.spec.ts",
+          "line": 88,
+          "column": 5
+        },
+        {
+          "title": "participante que entra depois da revelação vê a galeria direto, sem a transição",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1045,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:35.358Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09b777a8c79fe95a2a39-f0a4f914cff258a0553c",
+          "file": "reveal.spec.ts",
+          "line": 97,
+          "column": 5
+        },
+        {
+          "title": "app fechado na hora da revelação: ao reabrir já está revelada e o estado é espelhado no armazenamento",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 977,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:36.407Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09b777a8c79fe95a2a39-8778875217aad45dcd82",
+          "file": "reveal.spec.ts",
+          "line": 108,
+          "column": 5
+        },
+        {
+          "title": "organizador não altera a revelação depois que ela aconteceu",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 428,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:37.388Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09b777a8c79fe95a2a39-aa6a20066b51072680d3",
+          "file": "reveal.spec.ts",
+          "line": 127,
+          "column": 5
+        },
+        {
+          "title": "prévia do convidado no painel mostra a tela de espera",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 470,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:37.820Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09b777a8c79fe95a2a39-2b4c0442410baf4ff7b3",
+          "file": "reveal.spec.ts",
+          "line": 137,
+          "column": 5
+        },
+        {
+          "title": "administrador master: rota é só um ponto de integração, sem login e sem efeito por parâmetro",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 719,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:38.293Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09b777a8c79fe95a2a39-9987dd5d167746139c51",
+          "file": "reveal.spec.ts",
+          "line": 147,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "smoke.spec.ts",
+      "file": "smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "home abre com a marca, o CTA e a assinatura",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 107,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:39.019Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-0356a95b4b12ac92bae0",
+          "file": "smoke.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "manifest e ícones do PWA respondem",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 21,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:39.129Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-7e10e0b672cca6533996",
+          "file": "smoke.spec.ts",
+          "line": 11,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "visual.spec.ts",
+      "file": "visual.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "telas principais em 375px, tema dia",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 600,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:39.156Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-3e1cc8ac42458b0ac2b0",
+          "file": "visual.spec.ts",
+          "line": 28,
+          "column": 9
+        },
+        {
+          "title": "telas principais em 375px, tema noite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 579,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:39.759Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-6c2750fdbc0ffed5a486",
+          "file": "visual.spec.ts",
+          "line": 28,
+          "column": 9
+        },
+        {
+          "title": "telas principais em 390px, tema dia",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 795,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:40.341Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-e4eec38fa32363d6d7a7",
+          "file": "visual.spec.ts",
+          "line": 28,
+          "column": 9
+        },
+        {
+          "title": "telas principais em 390px, tema noite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 949,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:41.139Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-292e18217ea283078b6d",
+          "file": "visual.spec.ts",
+          "line": 28,
+          "column": 9
+        },
+        {
+          "title": "telas principais em 768px, tema dia",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 612,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:42.092Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-ffdd985a699c7875dc22",
+          "file": "visual.spec.ts",
+          "line": 28,
+          "column": 9
+        },
+        {
+          "title": "telas principais em 768px, tema noite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 606,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:42.708Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-d439080de6368cab87ab",
+          "file": "visual.spec.ts",
+          "line": 28,
+          "column": 9
+        },
+        {
+          "title": "telas principais em 1440px, tema dia",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 583,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:43.318Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-dde5aa346538bfb374f2",
+          "file": "visual.spec.ts",
+          "line": 28,
+          "column": 9
+        },
+        {
+          "title": "telas principais em 1440px, tema noite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 589,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:43.905Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-2f873ef3483782d91e96",
+          "file": "visual.spec.ts",
+          "line": 28,
+          "column": 9
+        },
+        {
+          "title": "paridade com os previews do kit, tema dia",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2594,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:44.497Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-8293f596e4567a28b77b",
+          "file": "visual.spec.ts",
+          "line": 120,
+          "column": 7
+        },
+        {
+          "title": "paridade com os previews do kit, tema noite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3092,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:47.095Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-351fe65df42717a9e7da",
+          "file": "visual.spec.ts",
+          "line": 120,
+          "column": 7
+        },
+        {
+          "title": "fontes oficiais carregam e tokens batem com tokens.json",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 121,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T02:40:50.190Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8324bb52c49185e48ff4-c1a08384427cddf49233",
+          "file": "visual.spec.ts",
+          "line": 139,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-21T02:39:45.184Z",
+    "duration": 65185.558000000005,
+    "expected": 46,
+    "skipped": 5,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

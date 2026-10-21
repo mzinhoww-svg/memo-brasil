@@ -88,11 +88,12 @@ g += ["  classDef done fill:#E8ECE4,stroke:#1C1917;", "  classDef ready fill:#FF
 w("DEPENDENCY-GRAPH.md", "\n".join(g) + "\n")
 # RELEASE GATES
 nxt = ready(); open_p01 = [i for i in leaf if i["priority"] in ("P0", "P1") and i["status"] not in ("DONE", "DEFERRED", "CANCELLED")]
-gates = [("G1","Jornadas locais (eventos, convidados, fotos, revelação)","PASSA","131 unit + 51 E2E (46 locais; 5 remotos no preview)"),("G2","Design system aderente (paridade de estilos, axe, 4 viewports)","PASSA","docs/qa/VISUAL-VALIDATION.md"),
- ("G3","Segurança básica do cliente (CSP, headers, locks, sem segredos)","PASSA com ressalvas","docs/qa/FINAL-AUDIT.md"),("G4","Revelação programada validada em browser e no preview","PASSA (preview no commit 5d8df4a)","e2e/reveal*.spec.ts; e2e/remote.spec.ts"),
- ("G5","Auditoria independente concluída sem P0/P1 bloqueante (AUD-001)","ABERTO","docs/audit/ (a produzir)"),("G6","Produção promovida e verificada (REL-001)","BLOQUEADO (destino não confirmado)","—")]
+gates = [("G1","Jornadas locais (eventos, convidados, fotos, revelação)","PASSA","131 unit + 46 E2E + 29 testes de auditoria (A1); docs/audit/01-FUNCTIONAL-COVERAGE.md"),("G2","Design system aderente (paridade de estilos, axe, 4 viewports, 284 estados)","PASSA","docs/audit/02-VISUAL-COMPLIANCE.md"),
+ ("G3","Segurança do cliente pré-backend (sem segredos, XSS, headers, locks)","PASSA com ressalvas","docs/audit/04-SECURITY-REVIEW.md"),("G4","Revelação programada validada em browser e no preview","PASSA (preview 5d8df4a)","e2e/reveal*.spec.ts; e2e/remote.spec.ts"),
+ ("G5","Auditoria independente AUD-001 executada","CONCLUÍDA: resultado NO-GO para integrar agora","docs/audit/11-RELEASE-GATE.md"),("G6","Reauditoria dos P1 (AUD-002) após as correções","ABERTO","docs/audit/10-REMEDIATION-BACKLOG.md"),
+ ("G7","Acesso do conector Supabase ao projeto (INF-001)","ABERTO (bloqueio de infraestrutura)","docs/audit/evidence/logs/vercel-supabase-inspection.md"),("G8","Produção promovida e verificada (REL-001)","BLOQUEADO (destino não confirmado)","—")]
 rg = ["# Release gates", "", tab(gates, ["Gate", "Critério", "Estado", "Evidência"]), "", f"## Itens P0/P1 em aberto ({len(open_p01)})", tab([(i["id"], i["title"], i["priority"], i["status"]) for i in open_p01], ["ID", "Título", "Prio", "Status"]), "",
-      "## Decisão atual", "**NO-GO para iniciar o Supabase** enquanto `AUD-001` (P0) estiver aberta. **GO para executar a auditoria independente** (`AUD-001`): todas as dependências estão concluídas (inclui a validação no preview, `FT-037`). Não declarar o produto pronto com P0/P1 bloqueantes em aberto.", "",
+      "## Decisão atual (AUD-001)", "**NO-GO para iniciar a integração com o Supabase agora.** Não há P0; há 1 P1 de produto (`BG-101`) e 6 P1 de integração (`ITG-101..ITG-106`). O caminho até **CONDITIONAL GO** é curto e não exige reescrever o produto: ondas 1 a 3 em `docs/audit/10-REMEDIATION-BACKLOG.md`, depois `AUD-002`. **GO para continuar a fase pré-backend** (correções). Nenhum item de EP-09 deve começar antes de `AUD-002`. `INF-001` (acesso do conector) corre em paralelo.", "",
       "## Próximos itens READY", tab([(i["priority"], i["id"], i["title"]) for i in nxt], ["Prio", "ID", "Título"])]
 w("RELEASE-GATES.md", "\n".join(rg) + "\n")
 print(f"OK: {len(leaf)} itens; prioridade {dict(cnt_p)}; status {dict(cnt_s)}; requisitos {dict(cnt)}")

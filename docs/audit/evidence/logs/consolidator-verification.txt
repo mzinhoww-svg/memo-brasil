@@ -1,0 +1,37 @@
+# Verificação do consolidador (leitura de código, 2026-10-21)
+
+## A1-001: setEndIn/endEventNow tocam revealAt?
+ocorrências de revealAt em setEndIn: 0
+ocorrências de revealAt em endEventNow: 0
+
+## A1-001: preset 'ao-terminar' grava data absoluta
+3:export type RevealKind = "ao-terminar" | "depois" | "data";
+15:export const defaultRevealInput = (): RevealInput => ({ enabled: true, kind: "ao-terminar", days: 1, date: "", time: "", timezone: defaultTimezone() });
+30:  const at = input.kind === "ao-terminar" ? endMs : endMs + Math.min(30, Math.max(1, input.days)) * DAY;
+
+## A1-003: removeGuest e bloqueio de reentrada
+export async function removeGuest(repos: Repositories, eventId: string, userId: string): Promise<void> {
+  await repos.participants.remove(eventId, userId);
+}
+(sem lista de removidos em participants/service.ts se nada acima)
+
+## A4-004: reconcileReveal no layout do convidado
+12:import { reconcileReveal } from "@/features/events/service";
+67:    void reconcileReveal(repos, evId, clock()).then(reload);
+
+## A3-006: wizard create(): setBusy(false) fora de try/finally?
+2:    setBusy(true);
+12:    setBusy(false);
+
+## A3-007: carregamento sem estado de erro em useEventData
+nenhum try/catch em useEventData
+
+## A3-008: Sheet reexecuta efeito por onClose inline
+34:  }, [onClose]);
+86:          onClose={() => setMore(undefined)}
+
+## A2-001: .app-reveal usa tinta como fundo (inverte no Noite)
+49:.app-reveal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: var(--tinta); color: var(--fun
+
+## A1-002: status é função pura de now
+79:  return now >= e.revealAt ? "revelada" : "pendente";

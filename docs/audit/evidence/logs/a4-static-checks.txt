@@ -1,0 +1,21 @@
+# usos de AuthService/SyncService/invitations (A4)
+AuthService/SyncService: nenhum uso fora da declaracao
+src/features/demo/seed.ts:56:  for (const label of ["Mesa 1", "Mesa 3", "Mesa 8", "Bar"]) await repos.invitations.put({ id: crypto.randomUUID(), eventId: event.id, label, createdAt: now });
+ls: src/middleware.ts: No such file or directory
+ls: src/proxy.ts: No such file or directory
+# CSP
+12:  "img-src 'self' data: blob:",
+15:  "connect-src 'self'",
+# campos de versao/updatedAt nos modelos
+nenhum campo updatedAt/version
+# Photo.reports sem reporter:
+src/features/photos/service.ts:25:    moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false,
+src/features/photos/service.ts:51:export async function reportPhoto(repos: Repositories, photoId: string): Promise<Photo | undefined> {
+src/domain/photo.ts:17:  reports: number;
+src/domain/photo.ts:60:export const report = (p: Photo): Photo => ({ ...p, reports: p.reports + 1 });
+src/domain/photo.ts:62:export const unhide = (p: Photo): Photo => ({ ...p, status: "visivel", reports: 0 });
+src/domain/photo.ts:67:  return photos.filter((p) => p.status !== "removida" && (p.status === "oculta" || p.reports > 0));
+# supabase CLI/docker locais (nao executados)
+/opt/homebrew/bin/docker
+/opt/homebrew/bin/supabase
+ls: ../supabase: No such file or directory

@@ -1,0 +1,410 @@
+{
+ "manifest": {
+  "manifest": {
+   "id": "/",
+   "name": "MemoriesMT",
+   "short_name": "MemoriesMT",
+   "description": "A festa vista por todo mundo.",
+   "lang": "pt-BR",
+   "start_url": "/",
+   "scope": "/",
+   "display": "standalone",
+   "orientation": "portrait",
+   "background_color": "#FFFFFF",
+   "theme_color": "#FFFFFF",
+   "categories": [
+    "photo",
+    "social"
+   ],
+   "icons": [
+    {
+     "src": "/pwa/icon-192.png",
+     "sizes": "192x192",
+     "type": "image/png",
+     "purpose": "any"
+    },
+    {
+     "src": "/pwa/icon-512.png",
+     "sizes": "512x512",
+     "type": "image/png",
+     "purpose": "any"
+    },
+    {
+     "src": "/pwa/icon-maskable-512.png",
+     "sizes": "512x512",
+     "type": "image/png",
+     "purpose": "maskable"
+    }
+   ],
+   "shortcuts": [
+    {
+     "name": "Entrar na festa",
+     "url": "/entrar"
+    },
+    {
+     "name": "Criar evento",
+     "url": "/criar"
+    }
+   ]
+  },
+  "icons": [
+   {
+    "src": "/pwa/icon-192.png",
+    "declared": "192x192",
+    "purpose": "any",
+    "status": 200,
+    "actual": "192x192",
+    "bytes": 5945,
+    "ct": "image/png"
+   },
+   {
+    "src": "/pwa/icon-512.png",
+    "declared": "512x512",
+    "purpose": "any",
+    "status": 200,
+    "actual": "512x512",
+    "bytes": 16067,
+    "ct": "image/png"
+   },
+   {
+    "src": "/pwa/icon-maskable-512.png",
+    "declared": "512x512",
+    "purpose": "maskable",
+    "status": 200,
+    "actual": "512x512",
+    "bytes": 9493,
+    "ct": "image/png"
+   }
+  ],
+  "apple": {
+   "status": 200,
+   "actual": "180x180"
+  },
+  "head": {
+   "manifest": "/manifest.webmanifest",
+   "themeColors": [
+    "#FFFFFF|(prefers-color-scheme: light)",
+    "#141211|(prefers-color-scheme: dark)"
+   ],
+   "apple": "/pwa/apple-touch-icon.png",
+   "viewport": "width=device-width, initial-scale=1, viewport-fit=cover"
+  },
+  "sw": {
+   "status": 200,
+   "headers": {
+    "cc": "no-cache",
+    "allowed": "/",
+    "ct": "application/javascript; charset=UTF-8"
+   },
+   "bytes": 2331
+  }
+ },
+ "serviceWorker": {
+  "registration": {
+   "scope": "http://localhost:3302/",
+   "script": "http://localhost:3302/sw.js?v=1792550385589",
+   "state": "activating"
+  },
+  "cacheAfterFirstVisit": {
+   "mm-1792550385589": [
+    "/",
+    "/entrar",
+    "/criar",
+    "/manifest.webmanifest",
+    "/offline"
+   ]
+  },
+  "controlledAfterFirstLoad": true,
+  "firstVisitReloadOffline": {
+   "navigated": true,
+   "hasHeading": true,
+   "interactive": true
+  },
+  "cacheAfterVisits": {
+   "mm-1792550385589": [
+    "/manifest.webmanifest",
+    "/offline",
+    "/_next/static/media/d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+    "/_next/static/media/db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+    "/_next/static/media/f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+    "/_next/static/chunks/0eqwz_vtxqn7_.css",
+    "/_next/static/chunks/0pb__fn2f1yx1.js",
+    "/_next/static/chunks/25l_295st-uro.js",
+    "/_next/static/chunks/turbopack-3-ry682tkyiqk.js",
+    "/_next/static/chunks/3l8442fo_s3hp.js",
+    "/_next/static/chunks/31b58fntv6rd6.js",
+    "/_next/static/chunks/3viea1k5se45o.js",
+    "/_next/static/chunks/3flby94he3vuo.js",
+    "/_next/static/chunks/1ow-ar-d6uk85.js",
+    "/_next/static/chunks/1781pmmrbaiag.js",
+    "/",
+    "/brand/memoriesmt-wordmark.svg",
+    "/brand/memoriesmt-wordmark-negativo.svg",
+    "/fonts/BricolageGrotesque-Variable.woff2",
+    "/_next/static/chunks/0yvhvkbu9z-th.js",
+    "/_next/static/chunks/3ofktsvotuz_5.js",
+    "/_next/static/chunks/134j4sgv2em4g.js",
+    "/_next/static/chunks/3h3urdhqrthfk.js",
+    "/_next/static/chunks/18z16_6z2ue9z.js",
+    "/e/JDMKA4RT/agora",
+    "/e/JDMKA4RT/explorar",
+    "/_next/static/chunks/29yy_q58r-xbs.js",
+    "/e/JDMKA4RT/voce",
+    "/_next/static/chunks/2p0pwo_oihm8w.js",
+    "/e/JDMKA4RT/postar",
+    "/_next/static/chunks/17_ci3qsponvz.js",
+    "/entrar",
+    "/criar",
+    "/painel/76b5ffd4-720a-42a1-b997-a4d657b6f06d",
+    "/_next/static/chunks/30kld_chhjhug.js",
+    "/_next/static/chunks/3zfz-613_tw2-.js"
+   ]
+  },
+  "offlineVisited": {
+   "/e/JDMKA4RT/agora": {
+    "status": 200,
+    "offlinePage": true,
+    "h1": "Agora",
+    "hydrated": true
+   },
+   "/e/JDMKA4RT/explorar": {
+    "status": 200,
+    "offlinePage": true,
+    "h1": "Explorar",
+    "hydrated": true
+   },
+   "/e/JDMKA4RT/voce": {
+    "status": 200,
+    "offlinePage": true,
+    "h1": "Você",
+    "hydrated": true
+   },
+   "/e/JDMKA4RT/postar": {
+    "status": 200,
+    "offlinePage": true,
+    "h1": "Postar daqui",
+    "hydrated": true
+   },
+   "/entrar": {
+    "status": 200,
+    "offlinePage": false,
+    "h1": "Entrar na festa",
+    "hydrated": true
+   },
+   "/criar": {
+    "status": 200,
+    "offlinePage": false,
+    "h1": "Qual é o nome do seu evento?",
+    "hydrated": true
+   },
+   "/painel/76b5ffd4-720a-42a1-b997-a4d657b6f06d": {
+    "status": 200,
+    "offlinePage": false,
+    "h1": "Seu casamento por todos os ângulos.",
+    "hydrated": true
+   },
+   "/": {
+    "status": 200,
+    "offlinePage": false,
+    "h1": "A festa vista por todo mundo.",
+    "hydrated": true
+   }
+  },
+  "offlineAgoraPosts": 12,
+  "offlineNeverVisited": {
+   "/e/JDMKA4RT/retrospectiva": {
+    "status": 200,
+    "offlinePage": true
+   },
+   "/painel/76b5ffd4-720a-42a1-b997-a4d657b6f06d/qr": {
+    "status": 200,
+    "offlinePage": true
+   },
+   "/e/ABCDEFGH/agora": {
+    "status": 200,
+    "offlinePage": true
+   },
+   "/design": {
+    "status": 200,
+    "offlinePage": true
+   }
+  },
+  "clientNavOffline": {
+   "Explorar": {
+    "url": "/e/JDMKA4RT/explorar",
+    "h1": "Explorar",
+    "offlinePage": true
+   },
+   "Você": {
+    "url": "/e/JDMKA4RT/voce",
+    "h1": "Você",
+    "offlinePage": true
+   }
+  },
+  "postOffline": {
+   "posted": false,
+   "postsInFeedAfter": 13,
+   "postsBefore": 12,
+   "photosInDb": 13
+  },
+  "reopenOfflinePosts": 13,
+  "afterReconnectPosts": 13,
+  "requestsAfterReconnect3s": [
+   "GET /e/JDMKA4RT/agora",
+   "GET blob:http://localhost:3302/695f9a1c-942e-4e7b-82a5-d6582314d20e",
+   "GET blob:http://localhost:3302/66d069a7-7e36-4e98-aea9-e2b12f5082ec",
+   "GET blob:http://localhost:3302/f5123b57-7eb9-4979-852e-3fbb78ab279a",
+   "GET blob:http://localhost:3302/c0b07394-7b2c-49d8-8a23-4e1d354a20cf",
+   "GET /e/JDMKA4RT/postar?_rsc=J278zwtQM6iN6t_3",
+   "GET /e/JDMKA4RT/explorar?_rsc=J278zwtQM6iN6t_3",
+   "GET /e/JDMKA4RT/voce?_rsc=J278zwtQM6iN6t_3",
+   "GET blob:http://localhost:3302/3082fc12-1a76-4fc6-8b73-4066c75dab65",
+   "GET blob:http://localhost:3302/4841e46a-3747-4080-842e-c27ff7f77ff7",
+   "GET blob:http://localhost:3302/9322d97c-9f32-412b-9d56-46a135579791",
+   "GET blob:http://localhost:3302/2b0c9758-dd51-46a7-a796-ee9aa68bc664",
+   "GET blob:http://localhost:3302/2dded19e-970c-4d24-9d44-52a26c4c8b09",
+   "GET blob:http://localhost:3302/b429bbb1-16ce-46fa-bb49-086e6fa1c079",
+   "GET /e/JDMKA4RT/postar?_rsc=OqUk611baydfYJCI",
+   "GET /e/JDMKA4RT/explorar?_rsc=OqUk611baydfYJCI",
+   "GET blob:http://localhost:3302/c5db9def-2468-42dd-9e3f-895b8bd58352",
+   "GET /e/JDMKA4RT/voce?_rsc=OqUk611baydfYJCI",
+   "GET blob:http://localhost:3302/a10212b5-935c-491b-88cd-55bfeac8d577",
+   "GET blob:http://localhost:3302/67eea190-07b2-447e-95e1-60465ad1dc49",
+   "GET /e/JDMKA4RT/agora",
+   "GET blob:http://localhost:3302/c4f9d3e8-16f7-4c58-afc6-e33034b095a8",
+   "GET blob:http://localhost:3302/22b31565-960f-4948-8382-0b77ba7bd612",
+   "GET blob:http://localhost:3302/128d6646-8851-432d-a44f-5be72dfe3b69",
+   "GET /e/JDMKA4RT/postar?_rsc=J278zwtQM6iN6t_3",
+   "GET /e/JDMKA4RT/explorar?_rsc=J278zwtQM6iN6t_3",
+   "GET /e/JDMKA4RT/voce?_rsc=J278zwtQM6iN6t_3",
+   "GET blob:http://localhost:3302/49326d23-102a-46de-bb11-1db175dc2a51",
+   "GET blob:http://localhost:3302/c9375be2-f5c4-4353-abf6-029159b2e371",
+   "GET blob:http://localhost:3302/226be356-e322-42b5-8799-833a2e8099a1",
+   "GET blob:http://localhost:3302/a9f72724-e628-4a3a-b199-82e865867b54",
+   "GET blob:http://localhost:3302/af5ebf3a-7479-4ba1-ab6e-d90277b0400c",
+   "GET blob:http://localhost:3302/2be01c58-4301-4964-a97b-deba394f4681",
+   "GET blob:http://localhost:3302/245cc2fe-2a94-4e14-ad96-99a6708f0e40",
+   "GET blob:http://localhost:3302/7e8db7f6-b2ed-4a4a-8f83-e947d8b676ce",
+   "GET blob:http://localhost:3302/3db2bf71-a7f4-4b21-846a-7e879cbda71d",
+   "GET blob:http://localhost:3302/ced6f2d8-971b-4626-8624-57c200a0784b"
+  ],
+  "postsAfterClearCache": 13,
+  "offlineAfterClearCache": {
+   "result": 200,
+   "body": "Ir para o conteúdo\nSem sinal agora. Suas 1 fotos estão guardadas.\nAO VIVO\n13 fot"
+  },
+  "consoleErrors": [
+   "Failed to load resource: net::ERR_FAILED",
+   "Failed to load resource: net::ERR_FAILED",
+   "Failed to load resource: net::ERR_FAILED",
+   "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+   "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+   "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+   "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+   "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+   "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+   "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+  ]
+ },
+ "swUpdate": {
+  "regA": {
+   "script": "http://localhost:3302/sw.js?v=AAA",
+   "state": "activated"
+  },
+  "cachesAfterA": [
+   "mm-AAA"
+  ],
+  "cachesAfterVisitsA": {
+   "mm-1792550385589": [
+    "/",
+    "/entrar",
+    "/offline",
+    "/manifest.webmanifest",
+    "/_next/static/chunks/3flby94he3vuo.js",
+    "/criar",
+    "/_next/static/media/d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+    "/_next/static/media/db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+    "/_next/static/media/f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+    "/_next/static/chunks/0eqwz_vtxqn7_.css",
+    "/_next/static/chunks/0pb__fn2f1yx1.js",
+    "/_next/static/chunks/25l_295st-uro.js",
+    "/_next/static/chunks/turbopack-3-ry682tkyiqk.js",
+    "/_next/static/chunks/3l8442fo_s3hp.js",
+    "/_next/static/chunks/31b58fntv6rd6.js",
+    "/_next/static/chunks/1ow-ar-d6uk85.js",
+    "/_next/static/chunks/1781pmmrbaiag.js",
+    "/_next/static/chunks/3viea1k5se45o.js",
+    "/fonts/BricolageGrotesque-Variable.woff2",
+    "/_next/static/chunks/134j4sgv2em4g.js"
+   ]
+  },
+  "regB": {
+   "script": "http://localhost:3302/sw.js?v=BBB",
+   "state": "activated"
+  },
+  "cachesAfterB": {
+   "mm-BBB": [
+    "/",
+    "/entrar",
+    "/criar",
+    "/manifest.webmanifest",
+    "/offline"
+   ]
+  },
+  "controllerAfterB": "http://localhost:3302/sw.js?v=BBB",
+  "registrations": [
+   {
+    "scope": "http://localhost:3302/",
+    "active": "http://localhost:3302/sw.js?v=BBB"
+   }
+  ],
+  "pagesCachedAfter50Fetches": {
+   "cache": "mm-BBB",
+   "total": 45,
+   "eventPages": 40
+  }
+ },
+ "swPartialInstall": {
+  "ready": {
+   "scope": "http://localhost:3302/",
+   "script": "http://localhost:3302/sw.js?v=1792550385589",
+   "state": "activating"
+  },
+  "cache": {
+   "mm-1792550385589": [
+    "/",
+    "/entrar",
+    "/criar",
+    "/offline",
+    "/manifest.webmanifest"
+   ]
+  },
+  "note": "/criar respondeu 500 durante a instalação"
+ },
+ "idb_undefined": {
+  "homeText": "Ir para o conteúdo\nNoite\nA festa vista por todo mundo.\n\nTodo mundo viu um casamento diferente. Agora dá para ver todos.\n\nEntrar na festa\nCriar evento\nVer uma festa de exemplo\nVer exemplo com revelação em 2 minutos\nEste navegador não deixa guardar dados. O que você fizer some ao fechar a página.\n\nVersão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor. Guia de componentes\n\npor\nMemoriesMT",
+  "demoEnabled": true,
+  "afterDemoUrl": "/e/TN2ENSQJ/agora",
+  "afterDemoText": "Ir para o conteúdo\nAO VIVO\n12 fotos\nAgora\n\nEmy e Igor\n\nAVISO · CERIMONIAL\nPôr do sol na areia em 10 minutos.\nM3\nVisão da Mesa 3\nPista · há 11 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 22 min\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM1\nVisão da Mesa 1\nO sim · há 33 min\n\nNinguém segurou a emoção.\n\nAmei\nEsse momento 1\nRachei 1\nUau\nB\nVisão do bar\nChegada · há 44 min\nAmei 1\n",
+  "afterReloadUrl": "/e/TN2ENSQJ/agora",
+  "afterReloadText": "Ir para o conteúdo\nCódigo não confere.\n\nConfira no card da mesa. Esta versão só abre festas criadas neste aparelho.\n\nTentar outro código",
+  "wizardEnd": {
+   "url": "/criar/pronto/1543e072-9abb-4b58-b707-419184525533",
+   "text": "Ir para o conteúdo\n20 · 10 · 2026\nTeste\n\nEvento criado.\n\nCÓDIGO DA FESTA\n3Y282CP8\nhttp://localhost:3302/e/3Y282CP8\nCompartilhar convite\nEntrar como convidado\nAbrir o painel\n\nVersão local: o convite só abre neste aparelho. Para outros aparelhos entrarem, o servidor precisa estar ligado.\n\npor\nMemories"
+  },
+  "errors": []
+ },
+ "idb_throws": {
+  "homeText": "Ir para o conteúdo\nNão deu para guardar neste aparelho. Libere espaço ou saia do modo privado e tente de novo.\nFechar\nNoite\nA festa vista por todo mundo.\n\nTodo mundo viu um casamento diferente. Agora dá para ver todos.\n\nEntrar na festa\nCriar evento\nVer uma festa de exemplo\nVer exemplo com revelação em 2 minutos\nEste navegador não deixa guardar dados. O que você fizer some ao fechar a página.\n\nVersão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com",
+  "demoEnabled": true,
+  "afterDemoUrl": "/e/T7VE2VXU/agora",
+  "afterDemoText": "Ir para o conteúdo\nNão deu para guardar neste aparelho. Libere espaço ou saia do modo privado e tente de novo.\nFechar\nAO VIVO\n12 fotos\nAgora\n\nEmy e Igor\n\nAVISO · CERIMONIAL\nPôr do sol na areia em 10 minutos.\nM3\nVisão da Mesa 3\nPista · há 11 min\nAmei 1\nEsse momento 1\nRachei 1\nUau 1\nM8\nVisão da Mesa 8\nPôr do sol · há 22 min\nAmei 1\nEsse momento\nRachei 1\nUau 1\nM1\nVisão da Mesa 1\nO sim · há 33 min\n\nNin",
+  "afterReloadUrl": "/e/T7VE2VXU/agora",
+  "afterReloadText": "Ir para o conteúdo\nNão deu para guardar neste aparelho. Libere espaço ou saia do modo privado e tente de novo.\nFechar\nCódigo não confere.\n\nConfira no card da mesa. Esta versão só abre festas criadas neste aparelho.\n\nTentar outro código",
+  "wizardEnd": {
+   "url": "/criar/pronto/896746a8-1c4a-4f2a-916c-5e3753f6c018",
+   "text": "Ir para o conteúdo\nNão deu para guardar neste aparelho. Libere espaço ou saia do modo privado e tente de novo.\nFechar\n20 · 10 · 2026\nTeste\n\nEvento criado.\n\nCÓDIGO DA FESTA\nZEK592UH\nhttp://localhost:3302/e/ZEK592UH\nCompartilhar convite\nEntrar como convidado\nAbrir o painel\n\nVersão local: o convite só "
+  },
+  "errors": []
+ }
+}

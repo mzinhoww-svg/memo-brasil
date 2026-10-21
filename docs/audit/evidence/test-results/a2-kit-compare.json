@@ -1,0 +1,807 @@
+{
+ "dia": {
+  "kitClasses": 82,
+  "appClasses": 96,
+  "identical": 48,
+  "diffs": [
+   {
+    "cls": "mm-admin-nav",
+    "kit": "AdminNav",
+    "app": "/design",
+    "d": {
+     "height": [
+      "538px",
+      "304px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-admin-logo",
+    "kit": "AdminNav",
+    "app": "/design",
+    "d": {
+     "height": [
+      "28px",
+      "24px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-logo--dia",
+    "kit": "AdminNav",
+    "app": "/",
+    "d": {
+     "height": [
+      "24px",
+      "18.5625px"
+     ],
+     "minHeight": [
+      "0px",
+      "auto"
+     ]
+    }
+   },
+   {
+    "cls": "mm-nav-list",
+    "kit": "AdminNav",
+    "app": "/design",
+    "d": {
+     "height": [
+      "366px",
+      "136px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-chips",
+    "kit": "Chip",
+    "app": "/e/NS8X55XQ/agora",
+    "d": {
+     "height": [
+      "96px",
+      "44px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-chip",
+    "kit": "Chip",
+    "app": "/e/NS8X55XQ/agora",
+    "d": {
+     "borderTopColor": [
+      "rgb(28, 25, 23)",
+      "rgb(217, 213, 209)"
+     ],
+     "color": [
+      "rgb(255, 255, 255)",
+      "rgb(28, 25, 23)"
+     ],
+     "backgroundColor": [
+      "rgb(28, 25, 23)",
+      "rgb(255, 255, 255)"
+     ]
+    }
+   },
+   {
+    "cls": "mm-list",
+    "kit": "DataRow",
+    "app": "/design",
+    "d": {
+     "height": [
+      "281px",
+      "157px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-list-head",
+    "kit": "DataRow",
+    "app": "/design",
+    "d": {
+     "height": [
+      "14px",
+      "25px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-list-nota",
+    "kit": "DataRow",
+    "app": "/design",
+    "d": {
+     "height": [
+      "32px",
+      "28px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-event-header",
+    "kit": "EventHeader",
+    "app": "/criar/pronto/f847d24f-682d-43",
+    "d": {
+     "minHeight": [
+      "0px",
+      "auto"
+     ]
+    }
+   },
+   {
+    "cls": "mm-event-nome",
+    "kit": "EventHeader",
+    "app": "/criar/pronto/f847d24f-682d-43",
+    "d": {
+     "fontFamily": [
+      "\"Birthstone Bounce\", cursive",
+      "\"Birthstone Bounce\", \"Birthstone Bounce Fallback\", cursive"
+     ]
+    }
+   },
+   {
+    "cls": "mm-field",
+    "kit": "Field",
+    "app": "/entrar",
+    "d": {
+     "height": [
+      "126.375px",
+      "108.188px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-field-ajuda",
+    "kit": "Field",
+    "app": "/entrar",
+    "d": {
+     "height": [
+      "36.375px",
+      "18.1875px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-group",
+    "kit": "OptionGroup",
+    "app": "/criar",
+    "d": {
+     "height": [
+      "132px",
+      "188px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-opts",
+    "kit": "OptionGroup",
+    "app": "/criar",
+    "d": {
+     "height": [
+      "104px",
+      "160px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-post",
+    "kit": "PostCard",
+    "app": "/e/NS8X55XQ/agora",
+    "d": {
+     "height": [
+      "492.938px",
+      "555.5px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-icon-btn",
+    "kit": "PostCard",
+    "app": "/e/NS8X55XQ/agora",
+    "d": {
+     "fontSize": [
+      "13.3333px",
+      "16px"
+     ],
+     "fontFamily": [
+      "Arial",
+      "\"Bricolage Grotesque\", \"Helvetica Neue\", sans-serif"
+     ],
+     "paddingTop": [
+      "1px",
+      "0px"
+     ],
+     "paddingLeft": [
+      "6px",
+      "0px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-media",
+    "kit": "PostCard",
+    "app": "/e/NS8X55XQ/agora",
+    "d": {
+     "height": [
+      "300px",
+      "447.5px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-tag",
+    "kit": "PostCard",
+    "app": "/design",
+    "d": {
+     "height": [
+      "13px",
+      "25px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-progress-head",
+    "kit": "Progress",
+    "app": "/criar",
+    "d": {
+     "height": [
+      "18px",
+      "17px"
+     ],
+     "fontSize": [
+      "15px",
+      "14px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-progress-track",
+    "kit": "Progress",
+    "app": "/criar",
+    "d": {
+     "backgroundColor": [
+      "rgb(228, 224, 220)",
+      "rgb(232, 236, 228)"
+     ]
+    }
+   },
+   {
+    "cls": "mm-progress-fill",
+    "kit": "Progress",
+    "app": "/criar",
+    "d": {
+     "backgroundColor": [
+      "rgb(28, 25, 23)",
+      "rgb(91, 103, 82)"
+     ]
+    }
+   },
+   {
+    "cls": "mm-assinatura",
+    "kit": "Signature",
+    "app": "/criar/pronto/f847d24f-682d-43",
+    "d": {
+     "minHeight": [
+      "auto",
+      "0px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-stat",
+    "kit": "StatTile",
+    "app": "/painel/f847d24f-682d-43d5-b06",
+    "d": {
+     "height": [
+      "54px",
+      "82px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-step-btn",
+    "kit": "Stepper",
+    "app": "/painel/f847d24f-682d-43d5-b06",
+    "d": {
+     "paddingTop": [
+      "1px",
+      "0px"
+     ],
+     "paddingLeft": [
+      "6px",
+      "0px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-tabbar",
+    "kit": "TabBar",
+    "app": "/e/NS8X55XQ/agora",
+    "d": {
+     "minHeight": [
+      "auto",
+      "0px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-card-mesa-nome",
+    "kit": "TableCard",
+    "app": "/painel/f847d24f-682d-43d5-b06",
+    "d": {
+     "fontFamily": [
+      "\"Birthstone Bounce\", cursive",
+      "\"Birthstone Bounce\", \"Birthstone Bounce Fallback\", cursive"
+     ]
+    }
+   },
+   {
+    "cls": "mm-tabs",
+    "kit": "Tabs",
+    "app": "/painel/f847d24f-682d-43d5-b06",
+    "d": {
+     "height": [
+      "96px",
+      "109px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-tab",
+    "kit": "Tabs",
+    "app": "/painel/f847d24f-682d-43d5-b06",
+    "d": {
+     "gap": [
+      "normal",
+      "6px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-visions",
+    "kit": "VisionTile",
+    "app": "/e/NS8X55XQ/explorar",
+    "d": {
+     "height": [
+      "290px",
+      "140px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-vision",
+    "kit": "VisionTile",
+    "app": "/e/NS8X55XQ/explorar",
+    "d": {
+     "fontSize": [
+      "13px",
+      "16px"
+     ],
+     "fontWeight": [
+      "600",
+      "400"
+     ]
+    }
+   }
+  ],
+  "onlyKit": [
+   "mm-stack",
+   "mm-demo",
+   "mm-on-neutro.mm-stack"
+  ],
+  "onlyApp": [
+   "mm-skip",
+   "emocao",
+   "eyebrow",
+   "meta",
+   "mm-btn.mm-btn--bloco.mm-btn--primario",
+   "mm-btn.mm-btn--bloco.mm-btn--secundario",
+   "display",
+   "corpo",
+   "mm-btn.mm-btn--bloco.mm-btn--cta",
+   "titulo-card",
+   "titulo-tela",
+   "mm-btn.mm-btn--bloco.mm-btn--cta.mm-btn--cta-xl",
+   "titulo-pagina",
+   "mm-opts.mm-opts--lista",
+   "mm-btn.mm-btn--destrutivo",
+   "mm-qr",
+   "nome-evento"
+  ]
+ },
+ "noite": {
+  "kitClasses": 82,
+  "appClasses": 96,
+  "identical": 49,
+  "diffs": [
+   {
+    "cls": "mm-admin-nav",
+    "kit": "AdminNav",
+    "app": "/design",
+    "d": {
+     "height": [
+      "534px",
+      "304px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-logo--noite",
+    "kit": "AdminNav",
+    "app": "/",
+    "d": {
+     "height": [
+      "24px",
+      "18.5625px"
+     ],
+     "minHeight": [
+      "0px",
+      "auto"
+     ]
+    }
+   },
+   {
+    "cls": "mm-nav-list",
+    "kit": "AdminNav",
+    "app": "/design",
+    "d": {
+     "height": [
+      "366px",
+      "136px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-chips",
+    "kit": "Chip",
+    "app": "/e/WM9RRUBP/agora",
+    "d": {
+     "height": [
+      "96px",
+      "44px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-chip",
+    "kit": "Chip",
+    "app": "/e/WM9RRUBP/agora",
+    "d": {
+     "borderTopColor": [
+      "rgb(244, 242, 239)",
+      "rgb(58, 53, 51)"
+     ],
+     "color": [
+      "rgb(28, 25, 23)",
+      "rgb(244, 242, 239)"
+     ],
+     "backgroundColor": [
+      "rgb(244, 242, 239)",
+      "rgb(20, 18, 17)"
+     ]
+    }
+   },
+   {
+    "cls": "mm-list",
+    "kit": "DataRow",
+    "app": "/design",
+    "d": {
+     "height": [
+      "281px",
+      "157px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-list-head",
+    "kit": "DataRow",
+    "app": "/design",
+    "d": {
+     "height": [
+      "14px",
+      "25px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-list-nota",
+    "kit": "DataRow",
+    "app": "/design",
+    "d": {
+     "height": [
+      "32px",
+      "28px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-event-header",
+    "kit": "EventHeader",
+    "app": "/criar/pronto/f3502949-200d-45",
+    "d": {
+     "minHeight": [
+      "0px",
+      "auto"
+     ]
+    }
+   },
+   {
+    "cls": "mm-event-nome",
+    "kit": "EventHeader",
+    "app": "/criar/pronto/f3502949-200d-45",
+    "d": {
+     "fontFamily": [
+      "\"Birthstone Bounce\", cursive",
+      "\"Birthstone Bounce\", \"Birthstone Bounce Fallback\", cursive"
+     ]
+    }
+   },
+   {
+    "cls": "mm-field",
+    "kit": "Field",
+    "app": "/entrar",
+    "d": {
+     "height": [
+      "126.375px",
+      "108.188px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-field-ajuda",
+    "kit": "Field",
+    "app": "/entrar",
+    "d": {
+     "height": [
+      "36.375px",
+      "18.1875px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-group",
+    "kit": "OptionGroup",
+    "app": "/criar",
+    "d": {
+     "height": [
+      "132px",
+      "188px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-opts",
+    "kit": "OptionGroup",
+    "app": "/criar",
+    "d": {
+     "height": [
+      "104px",
+      "160px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-post",
+    "kit": "PostCard",
+    "app": "/e/WM9RRUBP/agora",
+    "d": {
+     "height": [
+      "492.938px",
+      "555.5px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-icon-btn",
+    "kit": "PostCard",
+    "app": "/e/WM9RRUBP/agora",
+    "d": {
+     "fontSize": [
+      "13.3333px",
+      "16px"
+     ],
+     "fontFamily": [
+      "Arial",
+      "\"Bricolage Grotesque\", \"Helvetica Neue\", sans-serif"
+     ],
+     "paddingTop": [
+      "1px",
+      "0px"
+     ],
+     "paddingLeft": [
+      "6px",
+      "0px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-media",
+    "kit": "PostCard",
+    "app": "/e/WM9RRUBP/agora",
+    "d": {
+     "height": [
+      "300px",
+      "447.5px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-tag",
+    "kit": "PostCard",
+    "app": "/design",
+    "d": {
+     "height": [
+      "13px",
+      "25px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-progress-head",
+    "kit": "Progress",
+    "app": "/criar",
+    "d": {
+     "height": [
+      "18px",
+      "17px"
+     ],
+     "fontSize": [
+      "15px",
+      "14px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-progress-track",
+    "kit": "Progress",
+    "app": "/criar",
+    "d": {
+     "backgroundColor": [
+      "rgb(42, 38, 36)",
+      "rgb(38, 45, 36)"
+     ]
+    }
+   },
+   {
+    "cls": "mm-progress-fill",
+    "kit": "Progress",
+    "app": "/criar",
+    "d": {
+     "backgroundColor": [
+      "rgb(244, 242, 239)",
+      "rgb(170, 180, 162)"
+     ]
+    }
+   },
+   {
+    "cls": "mm-assinatura",
+    "kit": "Signature",
+    "app": "/criar/pronto/f3502949-200d-45",
+    "d": {
+     "minHeight": [
+      "auto",
+      "0px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-stat",
+    "kit": "StatTile",
+    "app": "/painel/f3502949-200d-45bd-815",
+    "d": {
+     "height": [
+      "54px",
+      "82px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-step-btn",
+    "kit": "Stepper",
+    "app": "/painel/f3502949-200d-45bd-815",
+    "d": {
+     "paddingTop": [
+      "1px",
+      "0px"
+     ],
+     "paddingLeft": [
+      "6px",
+      "0px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-tabbar",
+    "kit": "TabBar",
+    "app": "/e/WM9RRUBP/agora",
+    "d": {
+     "minHeight": [
+      "auto",
+      "0px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-card-mesa-nome",
+    "kit": "TableCard",
+    "app": "/painel/f3502949-200d-45bd-815",
+    "d": {
+     "fontFamily": [
+      "\"Birthstone Bounce\", cursive",
+      "\"Birthstone Bounce\", \"Birthstone Bounce Fallback\", cursive"
+     ]
+    }
+   },
+   {
+    "cls": "mm-tabs",
+    "kit": "Tabs",
+    "app": "/painel/f3502949-200d-45bd-815",
+    "d": {
+     "height": [
+      "96px",
+      "109px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-tab",
+    "kit": "Tabs",
+    "app": "/painel/f3502949-200d-45bd-815",
+    "d": {
+     "gap": [
+      "normal",
+      "6px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-visions",
+    "kit": "VisionTile",
+    "app": "/e/WM9RRUBP/explorar",
+    "d": {
+     "height": [
+      "290px",
+      "140px"
+     ]
+    }
+   },
+   {
+    "cls": "mm-vision",
+    "kit": "VisionTile",
+    "app": "/e/WM9RRUBP/explorar",
+    "d": {
+     "fontSize": [
+      "13px",
+      "16px"
+     ],
+     "fontWeight": [
+      "600",
+      "400"
+     ]
+    }
+   }
+  ],
+  "onlyKit": [
+   "mm-stack",
+   "mm-demo",
+   "mm-on-neutro.mm-stack"
+  ],
+  "onlyApp": [
+   "mm-skip",
+   "emocao",
+   "eyebrow",
+   "meta",
+   "mm-btn.mm-btn--bloco.mm-btn--primario",
+   "mm-btn.mm-btn--bloco.mm-btn--secundario",
+   "display",
+   "corpo",
+   "mm-btn.mm-btn--bloco.mm-btn--cta",
+   "titulo-card",
+   "titulo-tela",
+   "mm-btn.mm-btn--bloco.mm-btn--cta.mm-btn--cta-xl",
+   "titulo-pagina",
+   "mm-opts.mm-opts--lista",
+   "mm-btn.mm-btn--destrutivo",
+   "mm-qr",
+   "nome-evento"
+  ]
+ }
+}

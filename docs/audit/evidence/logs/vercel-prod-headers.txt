@@ -1,0 +1,9 @@
+# Cabeçalhos do alias de PRODUÇÃO (build antigo 3a8bf89), 2026-10-21T03:18:29Z
+HTTP/2 200 
+cache-control: public, max-age=0, must-revalidate
+strict-transport-security: max-age=63072000; includeSubDomains; preload
+x-vercel-id: gru1::4qxcc-1792552709678-8c5764857d08
+
+# Cabeçalhos do preview (protegido): resposta sem credencial
+HTTP/2 302 
+location: https://vercel.com/sso-api?url=https%3A%2F%2Fnewmemocuiaba-k1aozavzq-mzinhoww-gmailcoms-projects.vercel.app%2F

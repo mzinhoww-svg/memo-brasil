@@ -1,0 +1,982 @@
+{
+ "env": {
+  "machine": "Apple M4, macOS 25.6",
+  "browser": "Chromium (Playwright 1.64 bundle)",
+  "build": "next start produção, TEST_CLOCK=0, porta 3312",
+  "throttle": "CPU 4x, rede 1,6 Mbps down/750 Kbps up/150 ms RTT, cache desligado, SW bloqueado, 390x844 @3x"
+ },
+ "rows": [
+  {
+   "route": "/",
+   "ttfb": 2,
+   "dcl": 504,
+   "load": 2144,
+   "fcp": 628,
+   "lcp": 628,
+   "lcpEl": "P:",
+   "cls": 0.0274,
+   "tbtLike": 12,
+   "longTasks": 1,
+   "dom": 125,
+   "requests": 30,
+   "bytes": 836814,
+   "byType": {
+    "document": 19370,
+    "stylesheet": 32429,
+    "script": 574645,
+    "image": 17578,
+    "font": 166928,
+    "fetch": 25864
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "3--0t03dfi2zn.js",
+     19973
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ],
+    [
+     "2md8e-43xql69.js",
+     11871
+    ],
+    [
+     "1z6iay6f9ua1f.js",
+     25177
+    ],
+    [
+     "0zm2a7sf59ubz.js",
+     18377
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5654
+  },
+  {
+   "route": "/entrar",
+   "ttfb": 2,
+   "dcl": 512,
+   "load": 2030,
+   "fcp": 620,
+   "lcp": 620,
+   "lcpEl": "P:",
+   "cls": 0,
+   "tbtLike": 10,
+   "longTasks": 1,
+   "dom": 62,
+   "requests": 18,
+   "bytes": 755172,
+   "byType": {
+    "document": 16596,
+    "stylesheet": 32429,
+    "script": 531091,
+    "font": 166928,
+    "fetch": 8128
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "2md8e-43xql69.js",
+     11871
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ],
+    [
+     "3--0t03dfi2zn.js",
+     19973
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5540
+  },
+  {
+   "route": "/criar",
+   "ttfb": 3,
+   "dcl": 511,
+   "load": 2047,
+   "fcp": 632,
+   "lcp": 2132,
+   "lcpEl": "H1:",
+   "cls": 0,
+   "tbtLike": 9,
+   "longTasks": 1,
+   "dom": 83,
+   "requests": 18,
+   "bytes": 766830,
+   "byType": {
+    "document": 14948,
+    "stylesheet": 32429,
+    "script": 544397,
+    "font": 166928,
+    "fetch": 8128
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "1z6iay6f9ua1f.js",
+     25177
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ],
+    [
+     "3--0t03dfi2zn.js",
+     19973
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5557
+  },
+  {
+   "route": "/design",
+   "ttfb": 2,
+   "dcl": 534,
+   "load": 2338,
+   "fcp": 668,
+   "lcp": 668,
+   "lcpEl": "H1:",
+   "cls": 0,
+   "tbtLike": 16,
+   "longTasks": 1,
+   "dom": 408,
+   "requests": 22,
+   "bytes": 800419,
+   "byType": {
+    "document": 40328,
+    "stylesheet": 32429,
+    "image": 20982,
+    "font": 189056,
+    "script": 517624
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "0zm2a7sf59ubz.js",
+     18377
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "InstrumentSerif-Italic.woff2",
+     22128
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5855
+  },
+  {
+   "route": "/e/CODE/agora",
+   "ttfb": 20,
+   "dcl": 504,
+   "load": 2068,
+   "fcp": 628,
+   "lcp": 2184,
+   "lcpEl": "P:",
+   "cls": 0,
+   "tbtLike": 11,
+   "longTasks": 1,
+   "dom": 312,
+   "requests": 34,
+   "bytes": 760050,
+   "byType": {
+    "document": 16619,
+    "stylesheet": 32429,
+    "script": 532640,
+    "font": 166928,
+    "image": 10288,
+    "fetch": 1146
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "42-l3oxjfkp81.js",
+     23140
+    ],
+    [
+     "1m_5dq2v1grah.js",
+     10253
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5579
+  },
+  {
+   "route": "/e/CODE/explorar",
+   "ttfb": 4,
+   "dcl": 504,
+   "load": 2069,
+   "fcp": 624,
+   "lcp": 2204,
+   "lcpEl": "IMG:blob:http://localhost:3312/dae32ec1-9554",
+   "cls": 0.0002,
+   "tbtLike": 14,
+   "longTasks": 1,
+   "dom": 323,
+   "requests": 34,
+   "bytes": 760217,
+   "byType": {
+    "document": 16625,
+    "stylesheet": 32429,
+    "script": 532804,
+    "font": 166928,
+    "image": 10288,
+    "fetch": 1143
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "42-l3oxjfkp81.js",
+     23140
+    ],
+    [
+     "3pf-bisoui7ji.js",
+     10417
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5579
+  },
+  {
+   "route": "/e/CODE/voce",
+   "ttfb": 25,
+   "dcl": 500,
+   "load": 2058,
+   "fcp": 624,
+   "lcp": 2144,
+   "lcpEl": "P:",
+   "cls": 0,
+   "tbtLike": 22,
+   "longTasks": 1,
+   "dom": 107,
+   "requests": 27,
+   "bytes": 771722,
+   "byType": {
+    "document": 16617,
+    "stylesheet": 32429,
+    "script": 546143,
+    "font": 166928,
+    "fetch": 9605
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "42-l3oxjfkp81.js",
+     23140
+    ],
+    [
+     "3xm_lwd1k9pwp.js",
+     3783
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ],
+    [
+     "3--0t03dfi2zn.js",
+     19973
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5573
+  },
+  {
+   "route": "/e/CODE/postar",
+   "ttfb": 7,
+   "dcl": 511,
+   "load": 2079,
+   "fcp": 632,
+   "lcp": 2152,
+   "lcpEl": "H1:",
+   "cls": 0,
+   "tbtLike": 19,
+   "longTasks": 1,
+   "dom": 65,
+   "requests": 18,
+   "bytes": 748908,
+   "byType": {
+    "document": 16621,
+    "stylesheet": 32429,
+    "script": 532549,
+    "font": 166928,
+    "fetch": 381
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "42-l3oxjfkp81.js",
+     23140
+    ],
+    [
+     "072ntpsl5iu11.js",
+     10162
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5593
+  },
+  {
+   "route": "/painel/ID",
+   "ttfb": 12,
+   "dcl": 505,
+   "load": 2047,
+   "fcp": 628,
+   "lcp": 2144,
+   "lcpEl": "H1:",
+   "cls": 0,
+   "tbtLike": 15,
+   "longTasks": 1,
+   "dom": 134,
+   "requests": 26,
+   "bytes": 759199,
+   "byType": {
+    "document": 15721,
+    "stylesheet": 32429,
+    "script": 525033,
+    "font": 166928,
+    "image": 17578,
+    "fetch": 1510
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "1vk4ykivo1j31.js",
+     21750
+    ],
+    [
+     "0691zqiochtfd.js",
+     4036
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5558
+  },
+  {
+   "route": "/painel/ID/downloads",
+   "ttfb": 12,
+   "dcl": 502,
+   "load": 2417,
+   "fcp": 620,
+   "lcp": 2384,
+   "lcpEl": "P:",
+   "cls": 0,
+   "tbtLike": 16,
+   "longTasks": 1,
+   "dom": 90,
+   "requests": 25,
+   "bytes": 953065,
+   "byType": {
+    "document": 16478,
+    "stylesheet": 32429,
+    "script": 718572,
+    "font": 166928,
+    "image": 17578,
+    "fetch": 1080
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "1vk4ykivo1j31.js",
+     21750
+    ],
+    [
+     "0dzjrjxy_odo6.js",
+     2723
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ],
+    [
+     "0_t7ot-9xac4y.js",
+     194852
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5928
+  },
+  {
+   "route": "/painel/ID/qr",
+   "ttfb": 9,
+   "dcl": 496,
+   "load": 2101,
+   "fcp": 616,
+   "lcp": 2184,
+   "lcpEl": "P:",
+   "cls": 0,
+   "tbtLike": 65,
+   "longTasks": 2,
+   "dom": 237,
+   "requests": 25,
+   "bytes": 781281,
+   "byType": {
+    "document": 16464,
+    "stylesheet": 32429,
+    "script": 546802,
+    "font": 166928,
+    "image": 17578,
+    "fetch": 1080
+   },
+   "jsFiles": [
+    [
+     "1x6obpmlu1_c2.js",
+     5361
+    ],
+    [
+     "2r4s4h5xul1n-.js",
+     28739
+    ],
+    [
+     "turbopack-3-ry682tkyiqk.js",
+     10030
+    ],
+    [
+     "3_ihlpi3l6glc.js",
+     14090
+    ],
+    [
+     "0tyhdow00o649.js",
+     32027
+    ],
+    [
+     "2rwvtrztaibab.js",
+     10825
+    ],
+    [
+     "1vk4ykivo1j31.js",
+     21750
+    ],
+    [
+     "3joy27gvvabp8.js",
+     1851
+    ],
+    [
+     "2mkc7tne90q6y.js",
+     23954
+    ],
+    [
+     "1uz5km6kso2bv.js",
+     168355
+    ],
+    [
+     "3joo3wvjmdpyw.js",
+     229820
+    ]
+   ],
+   "fonts": [
+    [
+     "db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2",
+     28072
+    ],
+    [
+     "f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2",
+     29596
+    ],
+    [
+     "d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2",
+     32372
+    ],
+    [
+     "BricolageGrotesque-Variable.woff2",
+     76888
+    ]
+   ],
+   "errors": [
+    "warning: Service Worker registration blocked by Playwright"
+   ],
+   "wall": 5620
+  }
+ ]
+}

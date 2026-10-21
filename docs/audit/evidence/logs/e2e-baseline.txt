@@ -1,0 +1,71 @@
+[WebServer] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+[WebServer]  We detected multiple lockfiles and selected the directory of /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/package-lock.json as the root directory.
+[WebServer]  To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+[WebServer]    See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+[WebServer]  Detected additional lockfiles: 
+[WebServer]    * /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/package-lock.json
+[WebServer] 
+[WebServer] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+[WebServer]  We detected multiple lockfiles and selected the directory of /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/package-lock.json as the root directory.
+[WebServer]  To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+[WebServer]    See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+[WebServer]  Detected additional lockfiles: 
+[WebServer]    * /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/package-lock.json
+[WebServer] 
+
+Running 51 tests using 1 worker
+
+  ✓   1 e2e/a11y.spec.ts:6:7 › acessibilidade (axe) sem violações graves, tema dia (4.5s)
+  ✓   2 e2e/a11y.spec.ts:6:7 › acessibilidade (axe) sem violações graves, tema noite (4.1s)
+  ✓   3 e2e/flows.spec.ts:4:5 › anfitrião cria um evento pelo wizard e vê o convite com código e QR (403ms)
+  ✓   4 e2e/flows.spec.ts:12:5 › wizard valida nome do evento e término curto, com mensagens que dizem o que fazer (234ms)
+  ✓   5 e2e/flows.spec.ts:28:5 › código inválido mostra erro; código válido leva ao convite (193ms)
+  ✓   6 e2e/flows.spec.ts:40:5 › convidado entra, posta com a câmera de teste, gasta o rolo e reage uma vez por foto (1.9s)
+  ✓   7 e2e/flows.spec.ts:69:5 › revelação: outras pessoas só veem depois do fim do evento (relógio de teste) (1.1s)
+  ✓   8 e2e/flows.spec.ts:86:5 › pedido de remoção cai na fila do anfitrião, que oculta e depois remove a foto (1.4s)
+  ✓   9 e2e/flows.spec.ts:111:5 › tema Noite persiste ao recarregar e vale para o app inteiro (230ms)
+  ✓  10 e2e/flows.spec.ts:122:5 › sem sinal: aviso na área do convidado e fotos continuam guardadas (431ms)
+  ✓  11 e2e/flows.spec.ts:130:5 › evento: encerrar agora e excluir, com confirmação (658ms)
+  ✓  12 e2e/flows.spec.ts:144:5 › downloads: baixa o álbum em ZIP e a lista de convidados em CSV (340ms)
+  ✓  13 e2e/flows.spec.ts:160:5 › mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem, desfazer) com download (711ms)
+  ✓  14 e2e/flows.spec.ts:198:5 › avisos do evento: ativar pede permissão e confirma (318ms)
+  ✓  15 e2e/flows.spec.ts:209:5 › rota inexistente mostra 404 em português com saída (168ms)
+  ✓  16 e2e/flows.spec.ts:217:5 › anfitrião testa como convidado e volta ao painel por 'Continuar como' (970ms)
+  ✓  17 e2e/flows.spec.ts:230:5 › cabeçalhos de segurança e CSP sem violações de console nas telas principais (296ms)
+  ✓  18 e2e/pwa.spec.ts:3:5 › service worker assume o controle, guarda o shell e abre páginas visitadas sem rede (185ms)
+  ✓  19 e2e/pwa.spec.ts:23:5 › dados do IndexedDB sobrevivem a um recarregamento (persistência local) (249ms)
+  -  20 e2e/remote.spec.ts:11:5 › publicado: home, fontes, tema, manifest e service worker
+  -  21 e2e/remote.spec.ts:25:5 › publicado: criar evento, entrar como convidado, postar e reagir
+  -  22 e2e/remote.spec.ts:37:5 › publicado: painel e rota inexistente offline
+  -  23 e2e/remote.spec.ts:52:5 › publicado: headers de segurança, 404 em português e relógio de teste fora do bundle
+  -  24 e2e/remote.spec.ts:76:5 › publicado: revelação programada (espera, contagem, revelação sem rede) com relógio do navegador
+  ✓  25 e2e/reveal-visual.spec.ts:22:9 › revelação: configuração, espera, transição e galeria em 390px, tema dia (4.8s)
+  ✓  26 e2e/reveal-visual.spec.ts:22:9 › revelação: configuração, espera, transição e galeria em 390px, tema noite (4.8s)
+  ✓  27 e2e/reveal-visual.spec.ts:22:9 › revelação: configuração, espera, transição e galeria em 1440px, tema dia (5.4s)
+  ✓  28 e2e/reveal-visual.spec.ts:22:9 › revelação: configuração, espera, transição e galeria em 1440px, tema noite (4.8s)
+  ✓  29 e2e/reveal-visual.spec.ts:61:5 › modo sem revelação em 390px, temas dia e noite (2.0s)
+  ✓  30 e2e/reveal.spec.ts:22:5 › organizador liga a revelação, escolhe data, hora e fuso e vê o resumo; pode alterar enquanto pendente (641ms)
+  ✓  31 e2e/reveal.spec.ts:40:5 › data no passado é recusada com mensagem clara (512ms)
+  ✓  32 e2e/reveal.spec.ts:52:5 › convidado fotografa, não vê fotos bloqueadas, espera com contagem e a galeria abre sozinha na hora (3.3s)
+  ✓  33 e2e/reveal.spec.ts:88:5 › modo sem revelação: a foto aparece na hora, sem tela de espera (842ms)
+  ✓  34 e2e/reveal.spec.ts:97:5 › participante que entra depois da revelação vê a galeria direto, sem a transição (1.0s)
+  ✓  35 e2e/reveal.spec.ts:108:5 › app fechado na hora da revelação: ao reabrir já está revelada e o estado é espelhado no armazenamento (977ms)
+  ✓  36 e2e/reveal.spec.ts:127:5 › organizador não altera a revelação depois que ela aconteceu (428ms)
+  ✓  37 e2e/reveal.spec.ts:137:5 › prévia do convidado no painel mostra a tela de espera (470ms)
+  ✓  38 e2e/reveal.spec.ts:147:5 › administrador master: rota é só um ponto de integração, sem login e sem efeito por parâmetro (719ms)
+  ✓  39 e2e/smoke.spec.ts:3:5 › home abre com a marca, o CTA e a assinatura (107ms)
+  ✓  40 e2e/smoke.spec.ts:11:5 › manifest e ícones do PWA respondem (21ms)
+  ✓  41 e2e/visual.spec.ts:28:9 › telas principais em 375px, tema dia (600ms)
+  ✓  42 e2e/visual.spec.ts:28:9 › telas principais em 375px, tema noite (579ms)
+  ✓  43 e2e/visual.spec.ts:28:9 › telas principais em 390px, tema dia (795ms)
+  ✓  44 e2e/visual.spec.ts:28:9 › telas principais em 390px, tema noite (949ms)
+  ✓  45 e2e/visual.spec.ts:28:9 › telas principais em 768px, tema dia (612ms)
+  ✓  46 e2e/visual.spec.ts:28:9 › telas principais em 768px, tema noite (606ms)
+  ✓  47 e2e/visual.spec.ts:28:9 › telas principais em 1440px, tema dia (583ms)
+  ✓  48 e2e/visual.spec.ts:28:9 › telas principais em 1440px, tema noite (589ms)
+  ✓  49 e2e/visual.spec.ts:120:7 › paridade com os previews do kit, tema dia (2.6s)
+  ✓  50 e2e/visual.spec.ts:120:7 › paridade com os previews do kit, tema noite (3.1s)
+  ✓  51 e2e/visual.spec.ts:139:5 › fontes oficiais carregam e tokens batem com tokens.json (121ms)
+
+  5 skipped
+  46 passed (1.1m)

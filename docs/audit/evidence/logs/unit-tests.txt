@@ -1,0 +1,13 @@
+
+ RUN  v5.0.5 /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web
+
+
+ Test Files  14 passed (14)
+      Tests  131 passed (131)
+   Start at  22:39:28
+   Duration  2.71s (environment 69%, setup 21%, transform 4%, tests 3%, import 2%)
+
+Environment  jsdom was created 14 times · 13.14s total, 69% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+

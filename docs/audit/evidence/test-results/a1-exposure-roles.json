@@ -1,0 +1,99 @@
+{
+  "E1": {
+    "agora": {
+      "img_total": 0,
+      "img_blob_ou_foto": 0,
+      "html_contem_id_da_foto": false,
+      "texto": "AO VIVO Agora Segredo AGUARDANDO REVELAÇÃO O filme ainda está no escuro. As fotos aparecem todas juntas. FALTAM 00h 59min 59s Faltam 60 minutos para a revelação. Revela em 10 · 11 · 2026 às 12h00, Cuiabá. 0 fotos suas gu",
+      "blobs_criados": 0
+    },
+    "explorar": {
+      "img_total": 0,
+      "img_blob_ou_foto": 0,
+      "html_contem_id_da_foto": false,
+      "texto": "ENQUANTO VOCÊ ESTAVA NA PISTA… Explorar AGUARDANDO REVELAÇÃO O filme ainda está no escuro. As fotos aparecem todas juntas. FALTAM 00h 59min 58s Faltam 60 minutos para a revelação. Revela em 10 · 11 · 2026 às 12h00, Cuiab",
+      "blobs_criados": 0
+    },
+    "voce": {
+      "img_total": 0,
+      "img_blob_ou_foto": 0,
+      "html_contem_id_da_foto": false,
+      "texto": "VOCÊ ESTÁ DENTRO, ANA. Você Seu rolo Restam 24 de 24 0 usadas Suas fotos Você ainda não postou. Viu alguma coisa boa? Posta. Avisos do evento Lembretes de fim e de revelação. Nesta versão funcionam só enquanto o Memories",
+      "blobs_criados": 0
+    },
+    "retrospectiva": {
+      "img_total": 0,
+      "img_blob_ou_foto": 0,
+      "html_contem_id_da_foto": false,
+      "texto": "A retrospectiva ainda não abriu. Ela abre quando o evento terminar e as fotos forem reveladas. Voltar ao Agora",
+      "blobs_criados": 0
+    },
+    "editar/3043806d-9115-4050-a3e3-54e233126e04": {
+      "img_total": 0,
+      "img_blob_ou_foto": 0,
+      "html_contem_id_da_foto": true,
+      "texto": "Essa foto não está disponível. Voltar ao Agora",
+      "blobs_criados": 0
+    },
+    "postar_antes_de_capturar": {
+      "img": 0
+    },
+    "cache_chaves": {
+      "mm-1792550385589": 37
+    },
+    "cache_tem_foto_ou_blob": [],
+    "requests_de_imagem_nao_estatica": []
+  },
+  "E2": {
+    "espera": "AGUARDANDO REVELAÇÃO O filme ainda está no escuro. As fotos aparecem todas juntas. FALTAM 00h 59min 59s Faltam 60 minutos para a revelação. Revela em 10 · 11 · 2026 às 12h00, Cuiabá. 0 fotos suas guardadas 1 foto no álbum",
+    "vaza_autor_ou_momento": false,
+    "html_tem_authorName_Emy": false
+  },
+  "E3": {
+    "reacao_gravada_em_foto_bloqueada": true,
+    "convidado_ve_pelo_dominio": 0,
+    "repositorio_lista_tudo_sem_filtro_de_papel": 1
+  },
+  "P1": {
+    "convidado Ana /painel/<id>": "Ir para o conteúdo Só o anfitrião abre o painel. Entrar na festa",
+    "convidado Ana /painel/<id>/conteudo": "Ir para o conteúdo Só o anfitrião abre o painel. Entrar na festa",
+    "convidado Ana /painel/<id>/convidados": "Ir para o conteúdo Só o anfitrião abre o painel. Entrar na festa",
+    "convidado Ana /painel/<id>/momentos": "Ir para o conteúdo Só o anfitrião abre o painel. Entrar na festa",
+    "convidado Ana /painel/<id>/qr": "Ir para o conteúdo Só o anfitrião abre o painel. Entrar na festa",
+    "convidado Ana /painel/<id>/configuracoes": "Ir para o conteúdo Só o anfitrião abre o painel. Entrar na festa",
+    "convidado Ana /painel/<id>/downloads": "Ir para o conteúdo Só o anfitrião abre o painel. Entrar na festa",
+    "outro usuário local (Zé) /painel/<id>": "Ir para o conteúdo Só o anfitrião abre o painel. Entrar na festa",
+    "/master?role=master": "Ir para o conteúdo ADMINISTRAÇÃO DA PLATAFORMA Disponível com o login real. Aqui o administrador master vai supervisionar eventos, revelações e operações de tod",
+    "/master?admin=1": "Ir para o conteúdo ADMINISTRAÇÃO DA PLATAFORMA Disponível com o login real. Aqui o administrador master vai supervisionar eventos, revelações e operações de tod",
+    "/master?token=abc&role=master&admin=true": "Ir para o conteúdo ADMINISTRAÇÃO DA PLATAFORMA Disponível com o login real. Aqui o administrador master vai supervisionar eventos, revelações e operações de tod",
+    "/painel/<id>?role=master (convidado)": "Ir para o conteúdo Só o anfitrião abre o painel. Entrar na festa",
+    "anônimo em outro contexto (sem dados): /painel/<id>": "Ir para o conteúdo Não achamos esse evento. Esta versão só abre eventos criados neste aparelho. Voltar ao início",
+    "anônimo /e/<code>/agora": "http://localhost:3301/e/DRM8XSHZ/agora | Ir para o conteúdo Código não confere. Confira no card da mesa. Esta versão só abre festas criadas neste aparelho. Tenta"
+  },
+  "P2": {
+    "painel_abre_para_quem_forja_hostId": "Ir para o conteúdo Segredo 10 · 11 · 2026 · ao vivo Visão geral Conteúdo Convidados Momentos QR Code Studio Configuraçõe",
+    "agora_mostra_fotos_antes_da_revelacao": 1,
+    "hostId_exposto_no_evento": "3d0d4111-f3b1-41ae-a9b8-fb8e2d4cfbb6"
+  },
+  "P3": {
+    "outro_contexto_codigo_alheio": "Ir para o conteúdo Código não confere. Confira no card da mesa. Esta versão só abre festas criadas n"
+  },
+  "E4": {
+    "publicada": {
+      "imgs": 0,
+      "aviso": "Sua foto ficou guardada no escuro. Ela aparece para todos na revelação."
+    },
+    "voce": {
+      "img": 0,
+      "tiles": 1,
+      "selo": [
+        "GUARDADA"
+      ],
+      "blobs": 0
+    },
+    "agora": {
+      "espera": "AGUARDANDO REVELAÇÃO O filme ainda está no escuro. As fotos aparecem todas juntas. FALTAM 00h 59min 58s Faltam 60 minutos para a revelação. Revela em 10 · 11 · 2026 às 12h00, Cuiabá. 1 foto sua guardada 2 fotos no álbum",
+      "imgs": 0
+    }
+  }
+}

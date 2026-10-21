@@ -1,0 +1,90 @@
+{
+ "dia /": {
+  "tabStops": 9,
+  "notStandard": []
+ },
+ "dia /entrar": {
+  "tabStops": 4,
+  "notStandard": []
+ },
+ "dia /criar": {
+  "tabStops": 3,
+  "notStandard": []
+ },
+ "dia /e/CODE/agora": {
+  "tabStops": 10,
+  "notStandard": []
+ },
+ "dia /e/CODE/explorar": {
+  "tabStops": 12,
+  "notStandard": []
+ },
+ "dia /e/CODE/voce": {
+  "tabStops": 9,
+  "notStandard": []
+ },
+ "dia /e/CODE/postar": {
+  "tabStops": 5,
+  "notStandard": []
+ },
+ "dia /painel/ID": {
+  "tabStops": 10,
+  "notStandard": []
+ },
+ "dia /painel/ID/configuracoes": {
+  "tabStops": 22,
+  "notStandard": []
+ },
+ "dia /painel/ID/qr": {
+  "tabStops": 10,
+  "notStandard": []
+ },
+ "dia /design": {
+  "tabStops": 29,
+  "notStandard": []
+ },
+ "noite /": {
+  "tabStops": 9,
+  "notStandard": []
+ },
+ "noite /entrar": {
+  "tabStops": 4,
+  "notStandard": []
+ },
+ "noite /criar": {
+  "tabStops": 3,
+  "notStandard": []
+ },
+ "noite /e/CODE/agora": {
+  "tabStops": 10,
+  "notStandard": []
+ },
+ "noite /e/CODE/explorar": {
+  "tabStops": 12,
+  "notStandard": []
+ },
+ "noite /e/CODE/voce": {
+  "tabStops": 9,
+  "notStandard": []
+ },
+ "noite /e/CODE/postar": {
+  "tabStops": 5,
+  "notStandard": []
+ },
+ "noite /painel/ID": {
+  "tabStops": 10,
+  "notStandard": []
+ },
+ "noite /painel/ID/configuracoes": {
+  "tabStops": 22,
+  "notStandard": []
+ },
+ "noite /painel/ID/qr": {
+  "tabStops": 10,
+  "notStandard": []
+ },
+ "noite /design": {
+  "tabStops": 29,
+  "notStandard": []
+ }
+}

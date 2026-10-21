@@ -1,0 +1,18 @@
+HTTP/1.1 200 OK
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+X-Frame-Options: DENY
+Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=()
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+Cache-Control: no-cache
+Service-Worker-Allowed: /
+Accept-Ranges: bytes
+Last-Modified: Wed, 21 Oct 2026 01:29:23 GMT
+ETag: W/"91b-1a15c13c94b"
+Content-Type: application/javascript; charset=UTF-8
+Content-Length: 2331
+Vary: Accept-Encoding
+Date: Wed, 21 Oct 2026 02:43:19 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

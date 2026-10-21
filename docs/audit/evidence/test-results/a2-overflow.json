@@ -1,0 +1,349 @@
+{
+ "title": 60,
+ "name": 40,
+ "caption": 120,
+ "agora-375-dia": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 2
+ },
+ "explorar-375-dia": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 2
+ },
+ "voce-375-dia": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 1
+ },
+ "painel-375-dia": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 0,
+   "childBottomMax": 0,
+   "boxBottom": 0,
+   "overflows": false
+  }
+ },
+ "painel-convidados-375-dia": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 0,
+   "childBottomMax": 0,
+   "boxBottom": 0,
+   "overflows": false
+  }
+ },
+ "painel-conteudo-375-dia": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 0,
+   "childBottomMax": 0,
+   "boxBottom": 0,
+   "overflows": false
+  }
+ },
+ "painel-qr-375-dia": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 0,
+   "childBottomMax": 0,
+   "boxBottom": 0,
+   "overflows": false
+  }
+ },
+ "agora-375-noite": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 2
+ },
+ "explorar-375-noite": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 2
+ },
+ "voce-375-noite": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 1
+ },
+ "painel-375-noite": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 0,
+   "childBottomMax": 0,
+   "boxBottom": 0,
+   "overflows": false
+  }
+ },
+ "painel-convidados-375-noite": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 0,
+   "childBottomMax": 0,
+   "boxBottom": 0,
+   "overflows": false
+  }
+ },
+ "painel-conteudo-375-noite": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 0,
+   "childBottomMax": 0,
+   "boxBottom": 0,
+   "overflows": false
+  }
+ },
+ "painel-qr-375-noite": {
+  "overflowX": {
+   "scrollWidth": 375,
+   "innerWidth": 375,
+   "bodyScroll": 375
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 0,
+   "childBottomMax": 0,
+   "boxBottom": 0,
+   "overflows": false
+  }
+ },
+ "agora-1440-dia": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 2
+ },
+ "explorar-1440-dia": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 2
+ },
+ "voce-1440-dia": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 1
+ },
+ "painel-1440-dia": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 56,
+   "childBottomMax": 130,
+   "boxBottom": 124,
+   "overflows": true
+  }
+ },
+ "painel-convidados-1440-dia": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 56,
+   "childBottomMax": 130,
+   "boxBottom": 124,
+   "overflows": true
+  }
+ },
+ "painel-conteudo-1440-dia": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 56,
+   "childBottomMax": 130,
+   "boxBottom": 124,
+   "overflows": true
+  }
+ },
+ "painel-qr-1440-dia": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 56,
+   "childBottomMax": 130,
+   "boxBottom": 124,
+   "overflows": true
+  }
+ },
+ "agora-1440-noite": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 2
+ },
+ "explorar-1440-noite": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 2
+ },
+ "voce-1440-noite": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "overflowingEls": [],
+  "clippedText": [],
+  "small": 1
+ },
+ "painel-1440-noite": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 56,
+   "childBottomMax": 130,
+   "boxBottom": 124,
+   "overflows": true
+  }
+ },
+ "painel-convidados-1440-noite": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 56,
+   "childBottomMax": 130,
+   "boxBottom": 124,
+   "overflows": true
+  }
+ },
+ "painel-conteudo-1440-noite": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 56,
+   "childBottomMax": 130,
+   "boxBottom": 124,
+   "overflows": true
+  }
+ },
+ "painel-qr-1440-noite": {
+  "overflowX": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "bodyScroll": 1440
+  },
+  "clippedText": [],
+  "eventSwitch": {
+   "boxH": 56,
+   "childBottomMax": 130,
+   "boxBottom": 124,
+   "overflows": true
+  }
+ }
+}

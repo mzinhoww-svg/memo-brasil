@@ -1,0 +1,1564 @@
+{
+ "viewport": {
+  "w": 375,
+  "h": 812
+ },
+ "theme": "noite",
+ "results": {
+  "404": {
+   "url": "/rota-inexistente",
+   "textNodes": 6,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 17
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nEssa página não existe.\n\nConfira o endereço ou volte ao início.\n\nVoltar ao início\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 2,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Essa página não existe."
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "home": {
+   "url": "/",
+   "textNodes": 12,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 65
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nDia\nA festa vista por todo mundo.\n\nTodo mundo viu um casamento diferente. Agora dá para ver todos.\n\nEntrar na festa\nCriar evento\nVer uma festa de exemplo\nVer exemplo com revelação em 2 minutos\n\nVersão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor. Guia de componentes\n\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 7,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     },
+     {
+      "el": "a",
+      "label": "Guia de componentes",
+      "w": 173.6,
+      "h": 21,
+      "inline": true
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "A festa vista por todo mundo."
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "entrar": {
+   "url": "/entrar",
+   "textNodes": 9,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 21
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVoltar\nEntrar na festa\n\nDigite o código do card da mesa ou cole o link do convite.\n\nCódigo da festa\nSão 8 letras e números.\nEntrar na festa\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 4,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Entrar na festa"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "entrar-erro": {
+   "url": "/e/ZZZZZZZZ",
+   "textNodes": 5,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 10
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nCódigo não confere.\n\nConfira no card da mesa. Esta versão só abre festas criadas neste aparelho.\n\nTentar outro código\nVoltar ao início",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 3,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Código não confere."
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "criar-1": {
+   "url": "/criar",
+   "textNodes": 18,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 42
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nCancelar\nPasso 1 de 6\nNome\nQual é o nome do seu evento?\n\nEle aparece para todos os convidados.\n\nNome do evento\nSeu nome\nTipo de evento\nCasamento\nFesta\nEvento de empresa\nViagem\nOutro evento\nLocal (opcional)\nPróximo\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 11,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Qual é o nome do seu evento?"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "criar-2": {
+   "url": "/criar",
+   "textNodes": 19,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 40
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nCancelar\nPasso 2 de 6\nTérmino\nQuando o seu evento termina?\n\nO evento abre agora. Os convidados postam até ele fechar.\n\nTermina em\n1 hora\n3 horas\n6 horas\n12 horas\n24 horas\n48 horas\nOu escolha o horário\nPelo menos 30 minutos a partir de agora.\nPróximo\nVoltar\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 11,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Quando o seu evento termina?"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "criar-3": {
+   "url": "/criar",
+   "textNodes": 21,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 46
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nCancelar\nPasso 3 de 6\nRevelação\nQuando revelar as fotos?\n\nComo numa câmera descartável: as fotos ficam guardadas e aparecem para todos juntas, na hora que você escolher.\n\nRevelação programada\nLigada: as fotos ficam bloqueadas até a revelação\nDesligada: as fotos aparecem na hora\nQuando revelar\nQuando o evento terminar\nAlguns dias depois do fim\nEscolher data e hora\nFuso horário\nCuiabá (MT, UTC−4)\nBrasília e São Paulo (UTC−3)\nManaus (AM, UTC−4)\nFortaleza e Recife (UTC−3)\nRio Branco (AC, UTC−5)\nFernando de Noronha (UTC−2)\nLisboa\nNova York\nUTC\nA contagem regressiva dos convidados usa este fuso.\nRESUMO\nA revelação acontece em 21 · 10 · 2026 às 04h46, Cuiabá.\nPróximo\nVoltar\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 10,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Quando revelar as fotos?"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "criar-4": {
+   "url": "/criar",
+   "textNodes": 25,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [
+    "span.mm-event-nome:Casamento de Maria Eduarda e J:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 48,
+    "Birthstone Bounce": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nCancelar\nPasso 4 de 6\nIdentidade\nQual é a cara do seu evento?\nCâmera\nOriginal\nVintage\nPreto e branco\n\nEstilos mudam o visual da foto postada.\n\nCor do evento\nSálvia\nTerracota\nOceano\nAmeixa\nFonte do nome do evento\nBirthstone Bounce\nPinyon Script\nGreat Vibes\nPRÉVIA\nCasamento de Maria Eduarda e João Pedro Albuquerque Neto\nPróximo\nVoltar\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 14,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Qual é a cara do seu evento?"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "criar-5": {
+   "url": "/criar",
+   "textNodes": 28,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 51
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nCancelar\nPasso 5 de 6\nConvidados\nQuantos convidados no seu evento?\nConvidados\n5\n10\n20\n50\n100\n150\n200\nIlimitado\nFotos por pessoa\n5\n10\n16\n24\n36\nIlimitadas\nQuem vê as fotos\nTodos veem todas as fotos\nCada um vê só as suas\nPróximo\nVoltar\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 20,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Quantos convidados no seu evento?"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "criar-6": {
+   "url": "/criar",
+   "textNodes": 14,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 33
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nCancelar\nPasso 6 de 6\nResumo\nConfirme o seu evento\nCasamento de Maria Eduarda e João Pedro Albuquerque Neto\nCasamento\nTermina em 6 h · revelação em 21 · 10 · 2026 às 04h46 (Cuiabá)\nAté 50 convidados · 24 fotos por pessoa\nEste evento passaria de 10 convidados e teria valor. Nesta versão de demonstração, nada é cobrado.\nCriar evento de demonstração\nVoltar\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 4,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Confirme o seu evento"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "criar-pronto": {
+   "url": "/criar/pronto/656ecd47-d144-4a7f-85b3-c92c0d6841d1",
+   "textNodes": 13,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao.app-emocao:Evento criado."
+   ],
+   "eventFontEls": [
+    "h1.mm-event-nome:Casamento de Maria Eduarda e J:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 26,
+    "Birthstone Bounce": 1,
+    "Instrument Serif": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\n20 · 10 · 2026\nCasamento de Maria Eduarda e João Pedro Albuquerque Neto\n\nEvento criado.\n\nCÓDIGO DA FESTA\nQ6S9UQ3A\nhttp://localhost:3302/e/Q6S9UQ3A\nCompartilhar convite\nEntrar como convidado\nAbrir o painel\n\nVersão local: o convite só abre neste aparelho. Para outros aparelhos entrarem, o servidor precisa estar ligado.\n\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 4,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Casamento de Maria Eduarda e João Pedro Albuquerque Neto"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "postar-vazio": {
+   "url": "/e/Q6S9UQ3A/postar",
+   "textNodes": 7,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 23
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVoltar\n24 FOTOS RESTANTES\nPostar daqui\nTirar foto\nVirar câmera\nEscolher foto",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 5,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Postar daqui"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "postar-preview": {
+   "url": "/e/Q6S9UQ3A/postar",
+   "textNodes": 17,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 37
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVoltar\n24 FOTOS RESTANTES\nPostar daqui\nMomento\nChegada\nO sim\nPôr do sol\nPista\nLegenda (opcional)\nAlguém precisava registrar isso.\nNinguém segurou a emoção.\nQuem viu, viu.\nSó daqui dá para ver.\n\nAo postar, você autoriza os noivos a guardar e compartilhar a foto.\n\nPostar\nTirar outra",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 13,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [
+    {
+     "el": "button.mm-chip.mm-chip--sugestao",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip.mm-chip--sugestao",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip.mm-chip--sugestao",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip.mm-chip--sugestao",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    }
+   ],
+   "imgNoAlt": 0,
+   "h1": [
+    "Postar daqui"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "postar-publicado": {
+   "url": "/e/Q6S9UQ3A/postar",
+   "textNodes": 7,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao-lg.app-emocao:Sua visão entrou na história."
+   ],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 16,
+    "Instrument Serif": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVoltar\n23 FOTOS RESTANTES\n\nSua visão entrou na história.\n\nSua foto ficou guardada no escuro. Ela aparece para todos na revelação.\n\nVer no Agora\nPostar outra",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 4,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "convite": {
+   "url": "/e/Q6S9UQ3A",
+   "textNodes": 13,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao.app-emocao:A visão de"
+   ],
+   "eventFontEls": [
+    "h1.mm-event-nome:Casamento de Maria Eduarda e J:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 26,
+    "Birthstone Bounce": 1,
+    "Instrument Serif": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\n20 · 10 · 2026\nCasamento de Maria Eduarda e João Pedro Albuquerque Neto\n\nA visão de Emy. Agora, a sua.\n\nContinuar como\nEmy\nEntrar na festa\nComo te chamam na festa?\n\nAo postar, você autoriza os noivos a guardar e compartilhar a foto.\n\nEntrar na festa\n\nVersão local: tudo fica guardado neste aparelho. Fotos de outros aparelhos só aparecem quando o servidor entrar.\n\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 4,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Casamento de Maria Eduarda e João Pedro Albuquerque Neto",
+    "Entrar na festa"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "agora": {
+   "url": "/e/Q6S9UQ3A/agora",
+   "textNodes": 19,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao.app-emocao:As fotos aparecem todas juntas"
+   ],
+   "eventFontEls": [
+    "p.app-p.app-muted:Casamento de Maria Eduarda e J:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 48,
+    "Birthstone Bounce": 1,
+    "Instrument Serif": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.03,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nAO VIVO\nAgora\n\nCasamento de Maria Eduarda e João Pedro Albuquerque Neto\n\nAGUARDANDO REVELAÇÃO\n\nO filme ainda está no escuro.\n\nAs fotos aparecem todas juntas.\n\nFALTAM\n05h 59min 57s\nFaltam 360 minutos para a revelação.\nRevela em 21 · 10 · 2026 às 04h46, Cuiabá.\n1\nfoto sua guardada\n2\nfotos no álbum\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 5,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Agora"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "explorar": {
+   "url": "/e/Q6S9UQ3A/explorar",
+   "textNodes": 18,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao.app-emocao:As fotos aparecem todas juntas"
+   ],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 46,
+    "Instrument Serif": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\n\nENQUANTO VOCÊ ESTAVA NA PISTA…\n\nExplorar\n\nAGUARDANDO REVELAÇÃO\n\nO filme ainda está no escuro.\n\nAs fotos aparecem todas juntas.\n\nFALTAM\n05h 59min 56s\nFaltam 360 minutos para a revelação.\nRevela em 21 · 10 · 2026 às 04h46, Cuiabá.\n1\nfoto sua guardada\n2\nfotos no álbum\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 5,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Explorar"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "voce": {
+   "url": "/e/Q6S9UQ3A/voce",
+   "textNodes": 21,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 61
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\n\nVOCÊ ESTÁ DENTRO, MARIA EDUARDA DE ALBUQUERQUE E SOUZA PER.\n\nVocê\nSeu rolo\nRestam 23 de 24\n1 usadas\nSuas fotos\nGUARDADA\n\nSuas fotos estão guardadas no escuro. Elas aparecem na revelação.\n\nAvisos do evento\n\nLembretes de fim e de revelação. Nesta versão funcionam só enquanto o MemoriesMT estiver aberto.\n\nAtivar avisos\nVoltar ao início\nEntrar como outra pessoa\n\nDemonstração: serve para testar a festa com mais de uma pessoa neste aparelho. Você volta para Maria Eduarda de Albuquerque e Souza Per pela tela inicial ou pelo convite, na lista Continuar como.\n\npor\nMemoriesMT\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 8,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Você"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "retrospectiva": {
+   "url": "/e/Q6S9UQ3A/retrospectiva",
+   "textNodes": 8,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 31
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nA retrospectiva ainda não abriu.\n\nEla abre quando o evento terminar e as fotos forem reveladas.\n\nVoltar ao Agora\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 6,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "A retrospectiva ainda não abriu."
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "postar": {
+   "url": "/e/Q6S9UQ3A/postar",
+   "textNodes": 7,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 23
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVoltar\n23 FOTOS RESTANTES\nPostar daqui\nTirar foto\nVirar câmera\nEscolher foto",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 5,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Postar daqui"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "editar": {
+   "url": "/e/Q6S9UQ3A/editar/5dd3bf05-c1c6-4710-9f5e-00893ea7c8ce",
+   "textNodes": 3,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 8
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nEssa foto não está disponível.\nVoltar ao Agora",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 2,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Essa foto não está disponível."
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "home-logado": {
+   "url": "/",
+   "textNodes": 20,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 83
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.03,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nDia\nA festa vista por todo mundo.\n\nTodo mundo viu um casamento diferente. Agora dá para ver todos.\n\nEntrar na festa\nCriar evento\nVer uma festa de exemplo\nVer exemplo com revelação em 2 minutos\nContinuar como\nMaria Eduarda de Albuquerque e Souza Per\nSeus eventos\nAO VIVO\n20 · 10 · 2026\nCasamento de Maria Eduarda e João Pedro Albuquerque Neto\nVer no Agora\nPainel\n\nVersão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor. Guia de componentes\n\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 10,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     },
+     {
+      "el": "a",
+      "label": "Guia de componentes",
+      "w": 173.6,
+      "h": 21,
+      "inline": true
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "A festa vista por todo mundo."
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "painel": {
+   "url": "/painel/656ecd47-d144-4a7f-85b3-c92c0d6841d1",
+   "textNodes": 27,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 51
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0.03,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVisão geral\nConteúdo\nConvidados\nMomentos\nQR Code Studio\nConfigurações\nDownloads\n22H46\nSeu casamento por todos os ângulos.\n2\nfotos\n1\nconvidados entraram\n0\nreações\n1 de 50\nvagas usadas\nRevelação\n\nPendente. Revela em 21 · 10 · 2026 às 04h46, Cuiabá.\n\nConfigurar revelação\nMomentos\nChegada\n1\nO sim\n1\nVer no Agora",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [
+    "a.mm-tab right=482",
+    "a.mm-tab right=635",
+    "a.mm-tab right=780",
+    "a.mm-tab right=901"
+   ],
+   "targets": {
+    "total": 10,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Seu casamento por todos os ângulos."
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "painel-momentos": {
+   "url": "/painel/656ecd47-d144-4a7f-85b3-c92c0d6841d1/momentos",
+   "textNodes": 26,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 51
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVisão geral\nConteúdo\nConvidados\nMomentos\nQR Code Studio\nConfigurações\nDownloads\nMomentos\n\nOs convidados escolhem um momento ao postar. Eles também filtram o Explorar.\n\nRanking\nChegada\n1\nO sim\n1\nPôr do sol\n0\nPista\n0\nLista\nRemover Chegada\nRemover O sim\nRemover Pôr do sol\nRemover Pista\nNovo momento\nAdicionar momento",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [
+    "a.mm-tab right=482",
+    "a.mm-tab right=635",
+    "a.mm-tab right=780",
+    "a.mm-tab right=901"
+   ],
+   "targets": {
+    "total": 14,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Momentos"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "painel-qr": {
+   "url": "/painel/656ecd47-d144-4a7f-85b3-c92c0d6841d1/qr",
+   "textNodes": 23,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [
+    "span.mm-card-mesa-nome:Casamento de Maria Eduarda e J:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 39,
+    "Birthstone Bounce": 1
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVisão geral\nConteúdo\nConvidados\nMomentos\nQR Code Studio\nConfigurações\nDownloads\n\nCADA QR SABE DE ONDE VEIO.\n\nQR Code Studio\n\nCódigo da festa: Q6S9UQ3A. Imprima um card por mesa em A6.\n\nMesas\n−\n0\n+\nImprimir cards\nCONVITE\nEssa mesa também faz parte da história.\nAponte a câmera. Entre com seu nome. Poste o que só daqui dá para ver.\nCasamento de Maria Eduarda e João Pedro Albuquerque Neto\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [
+    "a.mm-tab right=481",
+    "a.mm-tab right=635",
+    "a.mm-tab right=780",
+    "a.mm-tab right=901"
+   ],
+   "targets": {
+    "total": 11,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "QR Code Studio"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "painel-conteudo": {
+   "url": "/painel/656ecd47-d144-4a7f-85b3-c92c0d6841d1/conteudo",
+   "textNodes": 13,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 19
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVisão geral\nConteúdo\nConvidados\nMomentos\nQR Code Studio\nConfigurações\nDownloads\nConteúdo\nPedidos de remoção\nOcultas\nTodas · 2\n\nNenhum pedido de remoção. Quando alguém pedir, a foto aparece aqui.",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [
+    "a.mm-tab right=482",
+    "a.mm-tab right=635",
+    "a.mm-tab right=780",
+    "a.mm-tab right=901"
+   ],
+   "targets": {
+    "total": 11,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Conteúdo"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "painel-convidados": {
+   "url": "/painel/656ecd47-d144-4a7f-85b3-c92c0d6841d1/convidados",
+   "textNodes": 16,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [
+    "(rec-texto) span:Remover"
+   ],
+   "fontFamilies": {
+    "Bricolage Grotesque": 27
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVisão geral\nConteúdo\nConvidados\nMomentos\nQR Code Studio\nConfigurações\nDownloads\nConvidados\nCONVIDADOS\nFOTOS\nMaria Eduarda de Albuquerque e Souza Per\n1\nRemover da festa\nMaria Eduarda de Albuquerque e Souza Per\nRemover",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [
+    "a.mm-tab right=482",
+    "a.mm-tab right=635",
+    "a.mm-tab right=780",
+    "a.mm-tab right=901"
+   ],
+   "targets": {
+    "total": 9,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Convidados"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "painel-downloads": {
+   "url": "/painel/656ecd47-d144-4a7f-85b3-c92c0d6841d1/downloads",
+   "textNodes": 12,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 23
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVisão geral\nConteúdo\nConvidados\nMomentos\nQR Code Studio\nConfigurações\nDownloads\nDownloads\nBaixar o álbum (ZIP)\nLista de convidados (CSV)\n\nAs fotos baixadas são as que estão guardadas neste aparelho.",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [
+    "a.mm-tab right=481",
+    "a.mm-tab right=634",
+    "a.mm-tab right=779",
+    "a.mm-tab right=901"
+   ],
+   "targets": {
+    "total": 10,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Downloads"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "painel-configuracoes": {
+   "url": "/painel/656ecd47-d144-4a7f-85b3-c92c0d6841d1/configuracoes",
+   "textNodes": 77,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [
+    "(rec-texto) span:Encerrar agora",
+    "(rec-texto) span:Excluir evento"
+   ],
+   "fontFamilies": {
+    "Bricolage Grotesque": 126
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nVisão geral\nConteúdo\nConvidados\nMomentos\nQR Code Studio\nConfigurações\nDownloads\nConfigurações\nNome e aparência\nNome do evento\nSalvar nome\nCor do evento\nSálvia\nTerracota\nOceano\nAmeixa\nFonte do nome do evento\nBirthstone Bounce\nPinyon Script\nGreat Vibes\nRegras da festa\nFotos por pessoa\n5\n10\n16\n24\n36\nIlimitadas\nConvidados\n5\n10\n20\n50\n100\n150\n200\nIlimitado\n\nPassar de 10 convidados teria valor. Nesta versão de demonstração, nada é cobrado.\n\nQuem vê as fotos\nTodos veem todas as fotos\nCada um vê só as suas\nReações nas fotos\nLigadas\nDesligadas\nRevelação programada\n\nLigada: revela em 21 · 10 · 2026 às 04h46. Fim do evento: 21 · 10 · 2026 às 04h46.\n\nRevelação programada\nLigada: as fotos ficam bloqueadas até a revelação\nDesligada: as fotos aparecem na hora\nQuando revelar\nQuando o evento terminar\nAlguns dias depois do fim\nEscolher data e hora\nData\nHorário\nFuso horário\nCuiabá (MT, UTC−4)\nBrasília e São Paulo (UTC−3)\nManaus (AM, UTC−4)\nFortaleza e Recife (UTC−3)\nRio Branco (AC, UTC−5)\nFernando de Noronha (UTC−2)\nLisboa\nNova York\nUTC\nA contagem regressiva dos convidados usa este fuso.\nRESUMO\nA revelação acontece em 21 · 10 · 2026 às 04h46, Cuiabá.\nSalvar revelação\nPré-visualizar como convidado\nAviso no Agora\nAviso curto\nUm aviso por vez. Escreva a hora ou o lugar.\nPublicar aviso\nFim do evento\n\nTermina em 21 · 10 · 2026 · 4h46.\n\nMudar o fim para daqui a\n1 hora\n3 horas\n6 horas\n1 dia\nEncerrar agora\nExcluir\n\nApaga o evento, as fotos e as reações deste aparelho.\n\nExcluir evento",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [
+    "a.mm-tab right=481",
+    "a.mm-tab right=634",
+    "a.mm-tab right=781",
+    "a.mm-tab right=901"
+   ],
+   "targets": {
+    "total": 53,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Configurações"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "design": {
+   "url": "/design",
+   "textNodes": 132,
+   "lowContrastText": [],
+   "serifCount": 1,
+   "serifEls": [
+    "p.emocao.app-emocao:Sua visão entrou na história."
+   ],
+   "eventFontEls": [
+    "p.nome-evento.app-h1:Emy & Igor:\"Birthstone Bounce\", \"Birthstone Bounce ",
+    "h1.mm-event-nome:Emy & Igor:\"Birthstone Bounce\", \"Birthstone Bounce ",
+    "span.mm-card-mesa-nome:Emy & Igor:\"Birthstone Bounce\", \"Birthstone Bounce "
+   ],
+   "redText": [
+    "(rec-texto) span:Remover",
+    "(rec-texto) span#_R_6pbsnqlb_-erro.mm-field-erro:Código não confere. Confira no",
+    "(rec-texto) span.mm-row-valor.mm-row-valor--alerta:12"
+   ],
+   "fontFamilies": {
+    "Bricolage Grotesque": 353,
+    "Instrument Serif": 1,
+    "Birthstone Bounce": 3
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 3.44,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nGuia de componentes\nDia\nMarca\npor\nMemoriesMT\nCores\nfundo\nneutro\ntinta\napoio\nborda\ndivisor\nacao\non-acao\nrec\nrec-texto\ndesabilitado\nevento-superficie\nevento-grafismo\nevento-controle\nevento-texto\nevento-profundo\nTipografia\n\nDisplay 40\n\nTítulo de tela 28\n\nCorpo 17. A festa vista por todo mundo.\n\nEYEBROW 12\n\nSua visão entrou na história.\n\nEmy & Igor\n\nBotões\nEntrar na festa\nVer no Agora\nSalvar\nVer mais\nAgora não\nRemover\nPostar\nPostar daqui\nTirar foto\nCampos e opções\nComo te chamam na festa?\nAo postar, você autoriza os noivos a guardar e compartilhar a foto.\nCódigo da festa\nCódigo não confere. Confira no card da mesa.\nFotos por pessoa\n10\n16\n24\nIlimitadas\nMesa\n−\n08\n+\nAmei 24\nEsse momento 11\nPôr do sol · 318\nQuem viu, viu.\nCamada do evento\nSálvia\nTerracota\nOceano\nAmeixa\n12 · 12 · 2026 · CHALÉS TAÍBA, CE\nEmy & Igor\nAVISO · CERIMONIAL\nPôr do sol na areia em 10 minutos. Todo mundo para a praia.\nAO VIVO\nFoto 2\n62%\nPôr do sol\n318\nVisão da Mesa 8\nVisão do bar\nM8\nVisão da Mesa 8\nPôr do sol · há 2 min\nCarregando foto\nESCOLHA DOS NOIVOS\n\nAlguém precisava registrar isso.\n\nAmei 24\nEsse momento 11\nMESA 08\nEssa mesa também faz parte da história.\nAponte a câmera. Entre com seu nome. Poste o que só daqui dá para ver.\nEmy & Igor\npor\nMemoriesMT\nPainel\nPedidos de remoção · 3\nOcultas\n\nNenhum pedido de remoção em aberto.\n\n1.284\nfotos\n112\nconvidados postaram\n3.960\nreações\n18 de 20\nmesas participando\nQR DO EVENTO\nACESSOS\nConvite digital · WhatsApp\n203\nMesa 12 · mesa\n12\nMesa 12 participando menos. Vale um aviso.\nEmy e Igor\n12.12.2026 · ao vivo\nVisão geral\nConteúdo\n3\nConvidados\n3\nÍcones\ncamera\nagora\nexplorar\nvoce\ncasal\nfavoritos\nmoderar\nbaixar\nfechar\nsem-sinal\nmais\nPostar daqui\nAgora\nExplorar\nVocê",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 42,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip.mm-chip--sugestao",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    },
+    {
+     "el": "button.mm-chip",
+     "kind": "borda",
+     "ratio": 1.54,
+     "bw": 1
+    }
+   ],
+   "imgNoAlt": 0,
+   "h1": [
+    "Guia de componentes",
+    "Emy & Igor"
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "offline": {
+   "url": "/offline",
+   "textNodes": 6,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 16
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\nSem sinal agora.\n\nSuas fotos estão guardadas neste aparelho. Tente de novo quando o sinal voltar.\n\nTentar de novo\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 2,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Sem sinal agora."
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  },
+  "master": {
+   "url": "/master",
+   "textNodes": 8,
+   "lowContrastText": [],
+   "serifCount": 0,
+   "serifEls": [],
+   "eventFontEls": [],
+   "redText": [],
+   "fontFamilies": {
+    "Bricolage Grotesque": 19
+   },
+   "shadows": [],
+   "gradients": [],
+   "recAreaPct": 0,
+   "emojiInText": [],
+   "exclamations": [],
+   "dashes": [],
+   "text": "Ir para o conteúdo\n\nADMINISTRAÇÃO DA PLATAFORMA\n\nDisponível com o login real.\n\nAqui o administrador master vai supervisionar eventos, revelações e operações de toda a plataforma. Ele precisa entrar com uma conta autorizada pelo servidor, o que ainda não existe nesta versão.\n\nQuem organiza uma festa continua administrando só os próprios eventos, no painel de cada evento.\n\nVoltar ao início\npor\nMemoriesMT",
+   "overflowX": {
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "bodyScroll": 375
+   },
+   "overflowingEls": [],
+   "targets": {
+    "total": 2,
+    "small": [
+     {
+      "el": "a.mm-skip",
+      "label": "Ir para o conteúdo",
+      "w": 169.4,
+      "h": 43,
+      "inline": false
+     }
+    ]
+   },
+   "nonTextContrast": [],
+   "imgNoAlt": 0,
+   "h1": [
+    "Disponível com o login real."
+   ],
+   "lang": "pt-BR",
+   "theme": "noite"
+  }
+ },
+ "console": [
+  {
+   "route": "master",
+   "type": "error",
+   "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  }
+ ]
+}

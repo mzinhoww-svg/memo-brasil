@@ -1,0 +1,172 @@
+{
+  "R1_aguardando_visivel": {
+    "revealAt-1ms": true,
+    "revealAt": false,
+    "revealAt+1ms": false
+  },
+  "R2_dst": {
+    "Lisboa 2026-10-25 00:59 (antes da volta)": "2026-10-24T23:59:00.000Z",
+    "Lisboa 2026-10-25 01:30 (ambíguo: ocorre 2x)": "2026-10-25T01:30:00.000Z",
+    "Lisboa 2026-10-25 02:00": "2026-10-25T02:00:00.000Z",
+    "Lisboa 2026-03-29 00:59": "2026-03-29T00:59:00.000Z",
+    "Lisboa 2026-03-29 01:30 (inexistente)": "2026-03-29T01:30:00.000Z",
+    "Lisboa 2026-03-29 02:00": "2026-03-29T01:00:00.000Z",
+    "UTC 2026-11-10 12:00": true,
+    "Cuiabá 2026-11-10 12:00": "2026-11-10T16:00:00.000Z",
+    "São Paulo 2026-11-10 12:00 (sem DST desde 2019)": "2026-11-10T15:00:00.000Z",
+    "roundtrip Lisboa 2026-10-25 01:30 -> epoch -> campos": {
+      "date": "2026-10-25",
+      "time": "01:30"
+    },
+    "roundtrip Lisboa 2026-03-29 01:30 -> epoch -> campos": {
+      "date": "2026-03-29",
+      "time": "02:30"
+    }
+  },
+  "R2_superficies": {
+    "painel_resumo": "Revelação Pendente. Revela em 10 · 11 · 2026 às 12h00, Cuiabá. Configurar revelação",
+    "config_resumo": "Revelação programada Ligada: revela em 10 · 11 · 2026 às 12h00. Fim do evento: 10 · 11 · 2026 às 17h00. Revelação programada Ligada: as fotos ficam bloqueadas até a revelação Desligada: as fotos aparecem na hora Quando revelar Quando o evento terminar Alguns dias depois do fim Escolher data e hora Data Horário Fuso horário Cuiabá (MT, UTC−4) Brasília e São Paulo (UTC−3) Manaus (AM, UTC−4) Fortalez",
+    "previa": "PRÉVIA · COMO O CONVIDADO VÊ O filme ainda está no escuro. As fotos aparecem todas juntas. FALTAM 00h 59min 59s Faltam 60 minutos para a revelação. Revela em 10 · 11 · 2026 às 12h00, Cuiabá. 0 fotos suas guardadas 1 foto no álbum",
+    "convidado": "AGUARDANDO REVELAÇÃO O filme ainda está no escuro. As fotos aparecem todas juntas. FALTAM 00h 59min 59s Faltam 60 minutos para a revelação. Revela em 10 · 11 · 2026 às 12h00, Cuiabá. 0 fotos suas guardadas 1 foto no álbum",
+    "contagem": "00h 59min 59s"
+  },
+  "R2_esperado": {
+    "date": "10 · 11 · 2026",
+    "time": "12h00"
+  },
+  "R3_dominio": {
+    "31/02": "{\"errors\":{\"data\":\"invalida\"}}",
+    "30/02": "{\"errors\":{\"data\":\"invalida\"}}",
+    "29/02/2027 (nao bissexto)": "{\"errors\":{\"data\":\"invalida\"}}",
+    "29/02/2028": "{\"errors\":{},\"at\":1835431200000}",
+    "hora 25:00": "{\"errors\":{\"data\":\"invalida\"}}",
+    "hora 12:60": "{\"errors\":{\"data\":\"invalida\"}}",
+    "hora vazia": "{\"errors\":{\"data\":\"invalida\"}}",
+    "data vazia": "{\"errors\":{\"data\":\"invalida\"}}",
+    "fuso inventado": "{\"errors\":{\"fuso\":\"invalido\"}}",
+    "fuso vazio": "{\"errors\":{\"fuso\":\"invalido\"}}",
+    "fuso offset 'UTC+3'": "{\"errors\":{\"fuso\":\"invalido\"}}",
+    "passado": "{\"errors\":{\"data\":\"passado\"}}",
+    "agora+59,999s": "{\"errors\":{\"data\":\"passado\"}}",
+    "agora+60s exato": "{\"errors\":{},\"at\":1794322860000}",
+    "ano 0001": "{\"errors\":{\"data\":\"passado\"}}",
+    "ano 99999 (5 dígitos)": "{\"errors\":{\"data\":\"invalida\"}}",
+    "ano 9999": "{\"errors\":{},\"at\":253402300740000}"
+  },
+  "R3_ui": {
+    "11:00 (=agora)": "Quando revelar as fotos? | alerta: erro mostrado",
+    "11:01 (=+60s)": "Qual é a cara do seu evento? | alerta: sem erro",
+    "data/hora vazias": "erro mostrado"
+  },
+  "R4": {
+    "antes": "2026-11-10T16:00:00.000Z",
+    "lisboa_resumo": "RESUMO Escolha a data e a hora para ver o resumo.",
+    "lisboa_mensagem": "Confira a data, a hora e o fuso. | alertas: ",
+    "lisboa_persistiu_revealAt": "2026-11-10T16:00:00.000Z",
+    "depois_rio_branco": "2026-11-10T17:00:00.000Z",
+    "tz": "America/Rio_Branco",
+    "resumo_apos_troca": "RESUMO A revelação acontece em 10 · 11 · 2026 às 12h00, Rio Branco.",
+    "deslocamento_h": 1
+  },
+  "R5": {
+    "depois_da_revelacao": {
+      "guest_waiting": false,
+      "stored": "revelada"
+    },
+    "relogio_voltou": {
+      "guest_waiting": true,
+      "stored": "pendente"
+    }
+  },
+  "R5b": {
+    "travado_apos_revelar": true,
+    "editavel_com_relogio_atrasado": true
+  },
+  "R6_R7": {
+    "sem_recarregar_marker": 42,
+    "fotos_apos_transicao": 1,
+    "ms_ate_dialogo": 2,
+    "foco_no_dialogo_ao_concluir": true,
+    "outra_aba": {
+      "aguardando": false,
+      "dialogo": true,
+      "fotos": 1
+    },
+    "entrou_depois": {
+      "dialogo": false,
+      "aguardando": false,
+      "fotos": 1
+    }
+  },
+  "R7b_reduced_motion_ms_ate_botao": 2,
+  "R8": {
+    "modal_sobre_postagem_em_andamento": true,
+    "clique_em_Postar_bloqueado_pelo_modal": true,
+    "ms_ate_poder_postar": 2313,
+    "reveal_durante_post_mostra_guardada_no_escuro": false,
+    "post_em_revealAt_mostra_guardada_no_escuro": false,
+    "fotos_no_agora_em_revealAt": 2
+  },
+  "R9_tardio_apos_encerrar": "recusado/erro",
+  "R9_ao_terminar": {
+    "revealAt_inicial": "2026-11-10T21:00:00.326Z",
+    "endedAt": "2026-11-10T15:00:00.824Z",
+    "revealAt_depois_de_encerrar": "2026-11-10T21:00:00.326Z",
+    "horas_de_espera_apos_encerrar": 6,
+    "convidado_logo_apos_encerrar": {
+      "encerrado": true,
+      "aguardando": true,
+      "contagem": "05h 59min 58s"
+    },
+    "retrospectiva_fechada_logo_apos": true,
+    "postar_apos_encerrar": "Voltar 24 FOTOS RESTANTES O evento terminou. Não dá mais para postar. As fotos e",
+    "retrospectiva_fechada_apos_horario_planejado": false
+  },
+  "R9b": {
+    "revealAt": "2026-11-10T21:00:00.401Z",
+    "novo_fim": "2026-11-11T15:00:00.761Z",
+    "revealAt_mudou": false,
+    "revela_antes_do_fim_horas": 18.0001
+  },
+  "R10": {
+    "reabrir_apos": {
+      "dialogo": false,
+      "aguardando": false,
+      "fotos": 1,
+      "stored": "revelada"
+    },
+    "offline": {
+      "banner_sem_sinal": true,
+      "fotos": 1
+    }
+  },
+  "R11": {
+    "ligar_com_fotos_visiveis_bloqueado": true,
+    "desligar_com_fotos_bloqueadas": {
+      "fotos_visiveis_para_convidado": 1,
+      "aguardando": false
+    }
+  },
+  "R12": {
+    "attrs": {
+      "role_timer": 0,
+      "aria_live": "off",
+      "sr_polite": "Faltam 60 minutos para a revelação."
+    },
+    "axe_espera": [
+      "region:moderate:1"
+    ],
+    "axe_transicao": [
+      "region:moderate:1"
+    ],
+    "foco_enquanto_revela": "BODY."
+  },
+  "R13": {
+    "apos_2_5s_contagem": "00h 00min 00s",
+    "apos_2_5s_ainda_aguardando": true,
+    "apos_16s": {
+      "aguardando": false,
+      "dialogo": true
+    }
+  }
+}

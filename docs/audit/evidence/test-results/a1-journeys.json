@@ -1,0 +1,94 @@
+{
+  "J1": {
+    "pronto": {
+      "codigo": "K7YQ5H3C",
+      "alfabeto_ok": true,
+      "qr": true,
+      "link": "http://localhost:3301/e/K7YQ5H3C",
+      "botao_apos_compartilhar": "Compartilhar convite"
+    },
+    "entrar": {
+      "minusculas": "/e/K7YQ5H3C | Ir para o conteúdo 20 · 10 · 2026 Emy e Igor A visão de Emy. Agora, a sua. Você está dentr",
+      "link": "/e/K7YQ5H3C | Ir para o conteúdo 20 · 10 · 2026 Emy e Igor A visão de Emy. Agora, a sua. Você está dentr",
+      "inexistente": "/e/ZZZZZZZZ | Ir para o conteúdo Código não confere. Confira no card da mesa. Esta versão só abre festas",
+      "com_letras_proibidas": "/entrar | Ir para o conteúdo Voltar Entrar na festa Digite o código do card da mesa ou cole o link d"
+    },
+    "capacidade": [
+      "1: entrou",
+      "2: entrou",
+      "3: entrou",
+      "4: entrou",
+      "5: entrou",
+      "6: A festa está lotada. Fale com quem convidou você."
+    ],
+    "rolo": [
+      "foto 1 ok",
+      "foto 2 ok",
+      "foto 3 ok",
+      "foto 4 ok",
+      "foto 5 ok",
+      "bloqueado: Seu rolo acabou."
+    ],
+    "restante_visivel_na_tela_bloqueada": 1
+  },
+  "J2": {
+    "renomear_ok": true,
+    "aviso_no_agora": true,
+    "nao_reabre": 1,
+    "postar_apos_encerrar": "Ir para o conteúdo Voltar 23 FOTOS RESTANTES O evento terminou. Não dá mais para postar. As fotos estão no Agora. Ver no",
+    "zip": "memoriesmt-nome-novo.zip",
+    "csv": "memoriesmt-XP9YSC58-convidados.csv",
+    "convidado_apos_excluir": "Ir para o conteúdo Código não confere. Confira no card da mesa. Esta versão só abre festas criadas n",
+    "linhas_restantes_no_idb": {
+      "events": 0,
+      "photos": 0,
+      "photoData": 0,
+      "reactions": 0,
+      "participants": 0,
+      "invitations": 0
+    }
+  },
+  "J3": {
+    "exportar_desabilitado_sem_fotos": true,
+    "reacoes_pressionadas_apos_2_cliques": [
+      "Rachei 1"
+    ],
+    "quem_reagiu": "Mais opções Quem reagiu Você Rachei Editar foto Baixar foto Essa foto não deveria estar aqui? Peça para remover. Pedir para remover Voltar",
+    "fila_moderacao": "Ir para o conteúdo Emy e Igor 20 · 10 · 2026 · ao vivo Visão geral Conteúdo 1 Convidados Momentos QR Code Studio Configurações Downloads Conteúdo Pedidos de remoção · 1 Ocultas Todas · 1 E Visão de Emy O sim · agora · 1 pedido Ocultar Destacar Remover",
+    "convidado_ve_apos_ocultar": 0,
+    "convidado_ve_apos_mostrar": 1
+  },
+  "J4": {
+    "negada": {
+      "msg": true,
+      "escolher_foto": true,
+      "tirar_foto": 0
+    },
+    "off": {
+      "banner": true,
+      "posta_offline": false,
+      "navegar_offline_sem_SW_ativo": "Ir para o conteúdo Sem sinal agora. Suas 1 fotos estão guardadas. Voltar 23 FOTOS RESTANTES Postar d"
+    }
+  },
+  "J5": {
+    "codigo_curto": true,
+    "codigo_inexistente": "Ir para o conteúdo Código não confere. Confira no card da mesa. Esta versão só abre festas criadas n",
+    "demo": "XS9JFCET",
+    "sem_indexeddb_aviso": true
+  },
+  "J6": {
+    "canvas_visivel": true,
+    "desenho_alterou_canvas": true,
+    "download": "memoriesmt-editada-95db70ea.jpg",
+    "voltou_para": "http://localhost:3301/e/WC88C8SK/editar/95db70ea-b441-4299-b78c-294e416ea401"
+  },
+  "J7": {
+    "ac01": {
+      "ainda_no_passo_termino": true,
+      "msg": "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora."
+    },
+    "apos_remover_convidado": "redirecionada para o convite",
+    "reentrada_apos_remocao": true,
+    "fotos_da_Ana_apos_corrida_rolo_5": 5
+  }
+}

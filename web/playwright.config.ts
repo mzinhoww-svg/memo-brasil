@@ -4,6 +4,7 @@ const PORT = 3187;
 
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: /audit-.*\.spec\.ts/, // specs da auditoria rodam só com playwright.audit.config.ts
   timeout: 60_000,
   fullyParallel: false,
   workers: 1,

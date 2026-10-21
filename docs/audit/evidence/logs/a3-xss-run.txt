@@ -1,0 +1,11 @@
+
+Running 1 test using 1 worker
+
+  ✓  1 e2e/audit-a3-xss-network.spec.ts:9:5 › XSS em texto de usuario e URL; rede e console (19.0s)
+
+  1 passed (19.4s)
+npm notice
+npm notice New minor version of npm available! 11.9.0 -> 11.21.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.21.1
+npm notice To update run: npm install -g npm@11.21.1
+npm notice

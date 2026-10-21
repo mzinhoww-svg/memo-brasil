@@ -1,0 +1,51 @@
+npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 495 packages in 9s
+
+> web@0.1.0 build
+> next build
+
+▲ Next.js 16.4.2 (Turbopack)
+✓ Running next.config.ts took 738ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.3s
+  Running TypeScript ...
+  Finished TypeScript in 1885ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/10) ...
+  Generating static pages using 9 workers (2/10) 
+  Generating static pages using 9 workers (4/10) 
+  Generating static pages using 9 workers (7/10) 
+✓ Generating static pages using 9 workers (10/10) in 165ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /criar
+├ ƒ /criar/pronto/[id]
+├ ○ /design
+├ ƒ /e/[code]
+├ ƒ /e/[code]/agora
+├ ƒ /e/[code]/editar/[photoId]
+├ ƒ /e/[code]/explorar
+├ ƒ /e/[code]/postar
+├ ƒ /e/[code]/retrospectiva
+├ ƒ /e/[code]/voce
+├ ○ /entrar
+├ ○ /manifest.webmanifest
+├ ○ /master
+├ ○ /offline
+├ ƒ /painel/[id]
+├ ƒ /painel/[id]/configuracoes
+├ ƒ /painel/[id]/conteudo
+├ ƒ /painel/[id]/convidados
+├ ƒ /painel/[id]/downloads
+├ ƒ /painel/[id]/momentos
+└ ƒ /painel/[id]/qr
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

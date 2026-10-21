@@ -1,0 +1,124 @@
+
+Running 12 tests using 1 worker
+
+  ✓   1 e2e/audit-a2-crawl.spec.ts:24:9 › crawl 375 dia (19.1s)
+  ✓   2 e2e/audit-a2-crawl.spec.ts:24:9 › crawl 375 noite (19.1s)
+  ✓   3 e2e/audit-a2-crawl.spec.ts:24:9 › crawl 390 dia (19.6s)
+  ✓   4 e2e/audit-a2-crawl.spec.ts:24:9 › crawl 390 noite (19.5s)
+  ✓   5 e2e/audit-a2-crawl.spec.ts:24:9 › crawl 768 dia (19.2s)
+  ✓   6 e2e/audit-a2-crawl.spec.ts:24:9 › crawl 768 noite (19.1s)
+  ✓   7 e2e/audit-a2-crawl.spec.ts:24:9 › crawl 1440 dia (18.9s)
+  ✓   8 e2e/audit-a2-crawl.spec.ts:24:9 › crawl 1440 noite (19.4s)
+  ✘   9 e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 390 dia (5.2s)
+  ✘  10 e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 390 noite (5.3s)
+  ✘  11 e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 1440 dia (5.2s)
+  ✘  12 e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 1440 noite (5.2s)
+
+
+  1) e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 390 dia ──────────────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('aguardando-revelacao')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByTestId('aguardando-revelacao') with timeout 5000ms
+      - waiting for getByTestId('aguardando-revelacao')
+
+
+      137 |       await page.getByRole("button", { name: "Ver exemplo com revelação em 2 minutos" }).click();
+      138 |       await page.waitForURL(/\/agora/);
+    > 139 |       await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+          |                                                              ^
+      140 |       await snap("revelacao-espera");
+      141 |       const id = await page.evaluate(() => new Promise<string>((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => { const q = r.result.transaction("events").objectStore("events").getAllKeys(); q.onsuccess = () => res(String((q.result as string[])[0])); }; }));
+      142 |       await page.goto(`/painel/${id}/configuracoes`);
+        at /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/audit-a2-crawl.spec.ts:139:62
+
+    Error Context: test-results/audit-a2-crawl-revelacao-390-dia/error-context.md
+
+  2) e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 390 noite ────────────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('aguardando-revelacao')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByTestId('aguardando-revelacao') with timeout 5000ms
+      - waiting for getByTestId('aguardando-revelacao')
+
+
+      137 |       await page.getByRole("button", { name: "Ver exemplo com revelação em 2 minutos" }).click();
+      138 |       await page.waitForURL(/\/agora/);
+    > 139 |       await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+          |                                                              ^
+      140 |       await snap("revelacao-espera");
+      141 |       const id = await page.evaluate(() => new Promise<string>((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => { const q = r.result.transaction("events").objectStore("events").getAllKeys(); q.onsuccess = () => res(String((q.result as string[])[0])); }; }));
+      142 |       await page.goto(`/painel/${id}/configuracoes`);
+        at /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/audit-a2-crawl.spec.ts:139:62
+
+    Error Context: test-results/audit-a2-crawl-revelacao-390-noite/error-context.md
+
+  3) e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 1440 dia ─────────────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('aguardando-revelacao')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByTestId('aguardando-revelacao') with timeout 5000ms
+      - waiting for getByTestId('aguardando-revelacao')
+
+
+      137 |       await page.getByRole("button", { name: "Ver exemplo com revelação em 2 minutos" }).click();
+      138 |       await page.waitForURL(/\/agora/);
+    > 139 |       await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+          |                                                              ^
+      140 |       await snap("revelacao-espera");
+      141 |       const id = await page.evaluate(() => new Promise<string>((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => { const q = r.result.transaction("events").objectStore("events").getAllKeys(); q.onsuccess = () => res(String((q.result as string[])[0])); }; }));
+      142 |       await page.goto(`/painel/${id}/configuracoes`);
+        at /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/audit-a2-crawl.spec.ts:139:62
+
+    Error Context: test-results/audit-a2-crawl-revelacao-1440-dia/error-context.md
+
+  4) e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 1440 noite ───────────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('aguardando-revelacao')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByTestId('aguardando-revelacao') with timeout 5000ms
+      - waiting for getByTestId('aguardando-revelacao')
+
+
+      137 |       await page.getByRole("button", { name: "Ver exemplo com revelação em 2 minutos" }).click();
+      138 |       await page.waitForURL(/\/agora/);
+    > 139 |       await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+          |                                                              ^
+      140 |       await snap("revelacao-espera");
+      141 |       const id = await page.evaluate(() => new Promise<string>((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => { const q = r.result.transaction("events").objectStore("events").getAllKeys(); q.onsuccess = () => res(String((q.result as string[])[0])); }; }));
+      142 |       await page.goto(`/painel/${id}/configuracoes`);
+        at /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/audit-a2-crawl.spec.ts:139:62
+
+    Error Context: test-results/audit-a2-crawl-revelacao-1440-noite/error-context.md
+
+  4 failed
+    e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 390 dia ───────────────────────────────────────────
+    e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 390 noite ─────────────────────────────────────────
+    e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 1440 dia ──────────────────────────────────────────
+    e2e/audit-a2-crawl.spec.ts:123:9 › revelacao 1440 noite ────────────────────────────────────────
+  8 passed (2.9m)
+done

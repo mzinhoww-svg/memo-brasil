@@ -1,0 +1,31 @@
+
+Running 6 tests using 1 worker
+
+  ✓  1 e2e/audit-a1-exposure-roles.spec.ts:34:5 › E1 convidado antes da revelação: nenhuma foto bloqueada em img, blob, DOM, SW/cache, rede (4.8s)
+  ✓  2 e2e/audit-a1-exposure-roles.spec.ts:65:5 › E2 contagem e metadados na espera (everyoneSeesAll ligado vs desligado) (818ms)
+  ✓  3 e2e/audit-a1-exposure-roles.spec.ts:74:5 › E3 reação / denúncia / quem reagiu em foto bloqueada (serviço) e convidado direto (1ms)
+  ✘  4 e2e/audit-a1-exposure-roles.spec.ts:87:5 › P1 convidado e outro organizador no painel; master por parâmetros; anônimo (1.5m)
+  ✓  5 e2e/audit-a1-exposure-roles.spec.ts:130:5 › P2 manipular meta.user no IndexedDB para virar anfitrião (risco aceito pré-backend?) (2.4s)
+  ✓  6 e2e/audit-a1-exposure-roles.spec.ts:143:5 › P3 convidado fora da lista de participantes cai no convite (1.6s)
+
+
+  1) e2e/audit-a1-exposure-roles.spec.ts:87:5 › P1 convidado e outro organizador no painel; master por parâmetros; anônimo 
+
+    Test timeout of 90000ms exceeded.
+
+    Error: page.goto: Target page, context or browser has been closed
+
+      100 |   await switchPerson(page, code, "Zé").catch(() => undefined);
+      101 |   await page.getByRole("button", { name: "Entrar como outra pessoa" }).click().catch(() => undefined);
+    > 102 |   await page.goto("/criar");
+          |              ^
+      103 |   await page.getByLabel("Nome do evento").fill("Outro");
+      104 |   await page.getByLabel("Seu nome").fill("Outra Org");
+      105 |   // user atual é Zé; wizard usa signIn(hostName) que RENOMEIA o usuário atual (mesmo id). Registrar.
+        at /Users/aurimar.nogueira@latam.com/projetos/mb-memoriesmt/web/e2e/audit-a1-exposure-roles.spec.ts:102:14
+
+    Error Context: test-results/audit-a1-exposure-roles-P1-e1457-ster-por-parâmetros-anônimo/error-context.md
+
+  1 failed
+    e2e/audit-a1-exposure-roles.spec.ts:87:5 › P1 convidado e outro organizador no painel; master por parâmetros; anônimo 
+  5 passed (1.7m)

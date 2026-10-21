@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+X-Frame-Options: DENY
+Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=()
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding
+Link: </_next/static/media/d43d4a0c5491b9b0-s.p.0u5m6xj8d9_3-.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2", </_next/static/media/db3f01ae0719bbb0-s.p.2c0pkezzij_il.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2", </_next/static/media/f48d461c03e0a8ec-s.p.3rqg0w444aekk.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2"
+X-Powered-By: Next.js
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Content-Type: text/html; charset=utf-8
+Date: Wed, 21 Oct 2026 02:58:38 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

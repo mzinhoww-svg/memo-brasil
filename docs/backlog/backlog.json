@@ -201,7 +201,9 @@
    "parent": null,
    "priority": "P2",
    "status": "DEFERRED",
-   "dependencies": [],
+   "dependencies": [
+    "AUD-002"
+   ],
    "origin": "projeto",
    "acceptance": [
     "Todos os itens do epic EP-09 DONE, DEFERRED ou CANCELLED com justificativa"
@@ -1226,13 +1228,13 @@
    "id": "BG-020",
    "type": "BUG",
    "title": "theme_color do manifest fixo (não acompanha Noite)",
-   "description": "theme_color do manifest fixo (não acompanha Noite)",
+   "description": "theme_color do manifest fixo (não acompanha Noite) [A2-008: manifest sem variante escura e com orientação travada]",
    "epic": "EP-04",
    "parent": null,
    "priority": "P3",
    "status": "BACKLOG",
    "dependencies": [],
-   "origin": "auditoria",
+   "origin": "auditoria · auditoria: A2-008",
    "acceptance": [
     "Meta theme-color por esquema já existe; manifest dinâmico por tema não é possível: documentar ou aceitar"
    ],
@@ -1240,17 +1242,20 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "sources": [
+    "A2-008"
+   ]
   },
   {
    "id": "BG-021",
    "type": "BUG",
    "title": "Nome de evento longo a 375 px não medido",
-   "description": "Nome de evento longo a 375 px não medido",
+   "description": "Nome de evento longo a 375 px não medido [Consolidado em BG-110 (A2-002): a auditoria mediu o estouro]",
    "epic": "EP-04",
    "parent": null,
    "priority": "P2",
-   "status": "READY",
+   "status": "CANCELLED",
    "dependencies": [],
    "origin": "auditoria",
    "acceptance": [
@@ -1340,13 +1345,13 @@
    "id": "BG-040",
    "type": "BUG",
    "title": "Rota dinâmica nunca visitada não abre offline",
-   "description": "Rota dinâmica nunca visitada não abre offline",
+   "description": "Rota dinâmica nunca visitada não abre offline [A2-003 confirmou: só URLs já visitadas abrem offline; /retrospectiva, /painel/ID/qr e outros códigos caem em /offline]",
    "epic": "EP-05",
    "parent": null,
    "priority": "P2",
    "status": "BACKLOG",
    "dependencies": [],
-   "origin": "auditoria",
+   "origin": "auditoria · auditoria: A2-003",
    "acceptance": [
     "Shell genérico para /e/* e /painel/* servido offline",
     "Teste E2E com rota não visitada"
@@ -1357,7 +1362,10 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "sources": [
+    "A2-003"
+   ]
   },
   {
    "id": "BG-041",
@@ -1383,13 +1391,13 @@
    "id": "BG-042",
    "type": "BUG",
    "title": "Lógica do SW sem teste unitário",
-   "description": "Lógica do SW sem teste unitário",
+   "description": "Lógica do SW sem teste unitário [A2-014: chaves com código do convite/UUID, evicção e troca silenciosa]",
    "epic": "EP-05",
    "parent": null,
    "priority": "P3",
    "status": "BACKLOG",
    "dependencies": [],
-   "origin": "auditoria",
+   "origin": "auditoria · auditoria: A2-014",
    "acceptance": [
     "Estratégias testadas em ambiente de worker simulado"
    ],
@@ -1397,7 +1405,10 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "sources": [
+    "A2-014"
+   ]
   },
   {
    "id": "FT-050",
@@ -1446,15 +1457,16 @@
    "id": "BG-051",
    "type": "BUG",
    "title": "Dependências sem auditoria de vulnerabilidades",
-   "description": "Dependências sem auditoria de vulnerabilidades",
+   "description": "Dependências sem auditoria de vulnerabilidades [A3-012: produção 0 vulnerabilidades; 5 altas só em desenvolvimento; ver BG-134] [Substituído por BG-134]",
    "epic": "EP-06",
    "parent": null,
    "priority": "P2",
-   "status": "READY",
+   "status": "CANCELLED",
    "dependencies": [],
    "origin": "requisito de auditoria",
    "acceptance": [
-    "npm audit sem alta/crítica em produção, ou exceção documentada"
+    "Produção sem alta/crítica (confirmado: 0)",
+    "Exceção das 5 altas de desenvolvimento documentada em BG-134"
    ],
    "files": [
     "web/package.json"
@@ -1577,13 +1589,13 @@
    "id": "BG-062",
    "type": "BUG",
    "title": "Evento grande (milhares de fotos) não medido",
-   "description": "Evento grande (milhares de fotos) não medido",
+   "description": "Evento grande (milhares de fotos) não medido [A2-013: /voce sem paginação; 200 fotos medidas: 1,7 s e heap ≈10 MB]",
    "epic": "EP-07",
    "parent": null,
    "priority": "P2",
    "status": "BACKLOG",
    "dependencies": [],
-   "origin": "auditoria",
+   "origin": "auditoria · auditoria: A2-013",
    "acceptance": [
     "Agora com 7.200 fotos mantém interação fluida; medir e registrar"
    ],
@@ -1591,7 +1603,10 @@
    "tests": [],
    "evidence": [],
    "commit": null,
-   "environment": null
+   "environment": null,
+   "sources": [
+    "A2-013"
+   ]
   },
   {
    "id": "FT-070",
@@ -1670,7 +1685,8 @@
    "priority": "P1",
    "status": "BACKLOG",
    "dependencies": [
-    "AUD-001"
+    "AUD-001",
+    "ITG-102"
    ],
    "origin": "auditoria",
    "acceptance": [
@@ -1690,7 +1706,7 @@
    "epic": "EP-10",
    "parent": null,
    "priority": "P0",
-   "status": "READY",
+   "status": "DONE",
    "dependencies": [
     "FT-037"
    ],
@@ -1704,10 +1720,20 @@
    "files": [
     "docs/audit/"
    ],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null
+   "tests": [
+    "web/e2e/audit-a1-*.spec.ts (29 testes)",
+    "web/e2e/audit-a2-*.spec.ts",
+    "web/e2e/audit-a3-*.spec.ts",
+    "linha de base: 131 unit + 46 E2E"
+   ],
+   "evidence": [
+    "docs/audit/00-EXECUTIVE-REPORT.md",
+    "docs/audit/09-FINDINGS-REGISTER.md",
+    "docs/audit/11-RELEASE-GATE.md",
+    "docs/audit/evidence/"
+   ],
+   "commit": "(esta auditoria; SHA registrado no commit seguinte)",
+   "environment": "local (build de produção/teste, Chromium) + inspeção Vercel/Supabase somente leitura"
   },
   {
    "id": "REL-001",
@@ -1767,7 +1793,9 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001"
+    "INF-001",
+    "AUD-002",
+    "ITG-105"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1789,7 +1817,7 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001"
+    "AUD-002"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1811,7 +1839,11 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001"
+    "INF-001",
+    "AUD-002",
+    "ITG-104",
+    "ITG-109",
+    "ITG-106"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1833,8 +1865,10 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001",
-    "FT-082"
+    "FT-082",
+    "INF-001",
+    "AUD-002",
+    "ITG-104"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1856,9 +1890,11 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001",
     "BG-071",
-    "FT-082"
+    "FT-082",
+    "INF-001",
+    "AUD-002",
+    "ITG-102"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1880,8 +1916,10 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001",
-    "FT-082"
+    "FT-082",
+    "INF-001",
+    "AUD-002",
+    "ITG-103"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1903,7 +1941,7 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001"
+    "AUD-002"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1925,8 +1963,10 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001",
-    "FT-082"
+    "FT-082",
+    "INF-001",
+    "AUD-002",
+    "ITG-101"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1948,9 +1988,11 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001",
     "FT-080",
-    "FT-082"
+    "FT-082",
+    "INF-001",
+    "AUD-002",
+    "ITG-109"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1972,10 +2014,12 @@
    "priority": "P1",
    "status": "DEFERRED",
    "dependencies": [
-    "AUD-001",
     "FT-080",
     "FT-082",
-    "FT-085"
+    "FT-085",
+    "INF-001",
+    "AUD-002",
+    "ITG-105"
    ],
    "origin": "fase Supabase",
    "acceptance": [
@@ -1986,6 +2030,1889 @@
    "evidence": [],
    "commit": null,
    "environment": null
+  },
+  {
+   "id": "INF-001",
+   "type": "TASK",
+   "title": "Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões)",
+   "description": "Bloqueio de INFRAESTRUTURA, não achado de produto. O usuário confirma o projeto ativo (ref asyaegeodyttttaubvxh, org zpnbwkmukywzlkxdfeja, us-west-2, PostgreSQL 17) pelo plugin Supabase do ChatGPT, mas o conector do Claude lista só projetos de outra organização (vercel_icfg_…, sa-east-1). Ação: reconectar o conector do Claude à conta/organização correta ou conceder acesso, sem alterar o banco.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 (infraestrutura)",
+   "acceptance": [
+    "list_projects do conector do Claude retorna o projeto asyaegeodyttttaubvxh",
+    "get_project confirma ACTIVE_HEALTHY, PostgreSQL 17 e região us-west-2 (somente leitura)",
+    "Nenhuma escrita, migration, tabela, bucket ou credencial criada nesta verificação",
+    "Resultado registrado em docs/audit/evidence/logs"
+   ],
+   "files": [
+    "docs/audit/evidence/logs/vercel-supabase-inspection.md"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/evidence/logs/vercel-supabase-inspection.md"
+   ],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "BG-101",
+   "type": "BUG",
+   "title": "Revelação 'ao terminar' e 'N dias depois' não acompanha o fim do evento (estender/encerrar agora)",
+   "description": "resolveReveal grava revealAt absoluto na criação. setEndIn e endEventNow não recalculam; RevealSettings.fromEvent sempre reabre como 'data'. Estender o fim para 1 dia deixou a revelação 18 h antes do fim; 'Encerrar agora' deixou 6 h de espera após encerrar. Revelada, não volta a esconder (D18), então a exposição precoce é irreversível. É o caminho padrão do wizard. AC-09 não atendido.",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P1",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A1-001 · natureza: produto",
+   "acceptance": [
+    "[A1-001] Corrigir: Persistir revealMode (fim|data|depois) e offset; recalcular revealAt em setEndIn/endEventNow enquanto pendente; senão exigir confirmação mostrando o novo horário.",
+    "[A1-001] Teste de regressão: e2e: alterar fim e encerrar agora com modo 'fim' mantém revealAt === endAt; teste de domínio de recalculo"
+   ],
+   "files": [
+    "web/src/app/painel/[id]/configuracoes/page.tsx",
+    "web/src/features/events/RevealSettings.tsx",
+    "web/src/features/events/reveal-input.ts",
+    "web/src/features/events/service.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "docs/audit/evidence/test-results/a1-reveal.json (R9, R9b); screenshots/a1-r9-encerrado-antes.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A1-001"
+   ],
+   "severity_audit": [
+    "P1"
+   ]
+  },
+  {
+   "id": "BG-102",
+   "type": "BUG",
+   "title": "Estado 'revelada' não é monotônico: relógio atrasado reesconde fotos e destrava a edição",
+   "description": "Com o relógio recuado após a revelação, o convidado volta a 'Aguardando', reconcileReveal grava 'pendente' e o organizador volta a editar a revelação.",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "BG-101"
+   ],
+   "origin": "auditoria AUD-001 · A1-002 · natureza: produto",
+   "acceptance": [
+    "[A1-002] Corrigir: Local: gravar revealedAt e nunca regredir. Backend: hora do servidor (clock.ts como ponto de troca), transição só pendente→revelada.",
+    "[A1-002] Teste de regressão: unit: reconcileReveal nunca grava revelada→pendente; e2e com relógio recuado"
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/layout.tsx",
+    "web/src/domain/reveal.ts",
+    "web/src/features/events/service.ts",
+    "web/src/lib/clock.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "a1-reveal.json (R5: stored revelada→pendente; R5b editavel true); screenshots/a1-r5-regride.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A1-002"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-103",
+   "type": "BUG",
+   "title": "'Remover da festa' não impede a reentrada com o mesmo código",
+   "description": "Convidado removido volta a entrar com o mesmo código e posta de novo. A tela diz 'não posta mais'.",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A1-003 · natureza: produto",
+   "acceptance": [
+    "[A1-003] Corrigir: Estado 'removido' em participants, recusado em joinEvent; ou corrigir o texto.",
+    "[A1-003] Teste de regressão: e2e: removido não entra nem posta"
+   ],
+   "files": [
+    "web/src/app/painel/[id]/convidados/page.tsx",
+    "web/src/features/admin/service.ts",
+    "web/src/features/participants/service.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "a1-journeys.json (J7 reentrada_apos_remocao true)"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A1-003"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-104",
+   "type": "BUG",
+   "title": "Diálogo de revelação: foco, Escape, landmark e não bloquear a postagem",
+   "description": "role=dialog aria-modal, mas durante a animação o foco fica no BODY e a tabulação alcança a página atrás. Cobre /postar no meio de uma foto. O botão só aparece após 2,2 s (nenhum atalho). Um nó fora de landmark em cada tela.",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A1-006, A1-014 · natureza: produto",
+   "acceptance": [
+    "[A1-006] Corrigir: Focar o diálogo ao abrir, prender foco, aceitar Escape; permitir fechar antes; não cobrir /postar com foto pendente.",
+    "[A1-014] Corrigir: Envolver em main/região rotulada.",
+    "[A1-006] Teste de regressão: e2e + axe: foco dentro do diálogo; Escape fecha",
+    "[A1-014] Teste de regressão: axe sem violações"
+   ],
+   "files": [
+    "web/src/features/reveal/RevealTransition.tsx",
+    "web/src/features/reveal/WaitingReveal.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "a1-reveal.json (R8 clique_em_Postar_bloqueado true, ms_ate_poder_postar 2313; R12 foco BODY); screenshots/a1-r7-transicao.png",
+    "a1-reveal.json (R12)"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A1-006",
+    "A1-014"
+   ],
+   "severity_audit": [
+    "P2",
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-105",
+   "type": "BUG",
+   "title": "Foco do Sheet volta ao primeiro controle a cada tick do relógio; fundo não inerte",
+   "description": "O efeito depende de onClose (lambda inline) e o painel re-renderiza a cada 15 s: o foco volta ao primeiro botão. Sem inert no fundo.",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-008 · natureza: produto",
+   "acceptance": [
+    "[A3-008] Corrigir: onClose em ref; inert no fundo.",
+    "[A3-008] Teste de regressão: Foco estável após 16 s."
+   ],
+   "files": [
+    "web/src/components/memoriesmt/Sheet.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "a3-resilience.json: foco 'Voltar' antes, 'Excluir evento' após 16 s."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-008"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-106",
+   "type": "BUG",
+   "title": "Falha de escrita deixa botões presos em 'ocupado' (wizard, entrar, ZIP)",
+   "description": "wizard create, Convite enter e Downloads album não têm try/finally: se o repositório lança, o estado ocupado nunca volta.",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-006 · natureza: produto",
+   "acceptance": [
+    "[A3-006] Corrigir: try/catch/finally.",
+    "[A3-006] Teste de regressão: Botão reabilitado."
+   ],
+   "files": [
+    "web/e2e/audit-a3-resilience.spec.ts",
+    "web/src/app/e/[code]/page.tsx",
+    "web/src/app/painel/[id]/downloads/page.tsx",
+    "web/src/features/events/wizard.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "a3-resilience.json: wizardButtonDisabled=true."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-006"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-107",
+   "type": "BUG",
+   "title": "Falha de leitura vira 'Carregando a festa…' eterno",
+   "description": "useEventData.refresh não captura: com leitura falhando, loading fica true e o banner fala de 'guardar'.",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-007 · natureza: produto",
+   "acceptance": [
+    "[A3-007] Corrigir: Estado de erro com retry.",
+    "[A3-007] Teste de regressão: Espera tela de erro."
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/layout.tsx",
+    "web/src/features/app/hooks.ts",
+    "web/src/features/app/provider.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "a3-resilience.json readFailureBodyText."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-007"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-108",
+   "type": "BUG",
+   "title": "Sem IndexedDB o app confirma ações que não persistem e o aviso global não aparece",
+   "description": "Com `indexedDB` indefinido, o app usa repositório em memória e só a home avisa. Em /criar/pronto aparece 'Evento criado' com 'Compartilhar convite', e em postar 'Sua visão entrou na história'. Ao recarregar: 'Código não confere'. O banner global só aparece quando a abertura lança erro, não quando falta a API.",
+   "epic": "EP-05",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-005 · natureza: produto",
+   "acceptance": [
+    "[A2-005] Corrigir: Mostrar o banner global quando persistent for false e avisar na confirmação de postagem e de criação.",
+    "[A2-005] Teste de regressão: Playwright com IndexedDB removido: banner visível em /e/CODE/postar e /criar/pronto."
+   ],
+   "files": [
+    "web/src/components/memoriesmt/StorageBanner.tsx",
+    "web/src/features/app/provider.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "a2-pwa.json: idb_undefined (afterReloadText, wizardEnd); idb_throws; screenshots/a2-idb-undefined-criar-390-dia.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-005"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-109",
+   "type": "BUG",
+   "title": "Tela de revelação inverte no tema Noite",
+   "description": "`.app-reveal` usa `background: var(--tinta); color: var(--fundo)`. No Dia fica escura; na Noite vira tela clara cheia (#F4F2EF), em plena festa à noite. O DS exige temas Dia e Noite sem inversão. O CTA 'Ver as fotos' também usa troca inline fundo/tinta.",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-001 · natureza: produto",
+   "acceptance": [
+    "[A2-001] Corrigir: Fixar superfície escura nos dois temas (tokens Noite escopados no componente) e texto claro; remover o style inline do botão.",
+    "[A2-001] Teste de regressão: Playwright: em Noite, getComputedStyle de [data-testid=transicao-revelacao] tem luminância <0,1."
+   ],
+   "files": [
+    "web/src/features/reveal/RevealTransition.tsx",
+    "web/src/styles/app.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "docs/audit/evidence/screenshots/a2-revelacao-transicao-390-noite.png contra a2-revelacao-transicao-390-dia.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-001"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-110",
+   "type": "BUG",
+   "title": "Seletor de evento do painel estoura com nome de 60 caracteres",
+   "description": "Em ≥900px a caixa `.mm-event-switch` tem 56px de altura fixa; título de 3 linhas ocupa 130px e a linha de data cai sobre a borda (6px de estouro). Mesmo CSS existe no kit (mm.css idêntico a componentes.css).",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-002 · natureza: produto",
+   "acceptance": [
+    "[A2-002] Corrigir: min-height em vez de height e line-clamp de 2 linhas com title completo; corrigir também o kit.",
+    "[A2-002] Teste de regressão: Playwright com título de 60 caracteres: filhos do .mm-event-switch dentro do retângulo."
+   ],
+   "files": [
+    "design-system/MemoriesMT-design-system/componentes/componentes.css",
+    "web/src/components/memoriesmt/AdminNav.tsx",
+    "web/src/styles/mm.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "docs/audit/evidence/test-results/a2-overflow.json (painel-1440-*: boxH 56, childBottomMax 130, overflows true); screenshots/a2-longos-painel-1440-dia.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-002"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-111",
+   "type": "BUG",
+   "title": "Atualização do service worker apaga as páginas guardadas; pré-cache só de HTML",
+   "description": "A instalação cacheia 5 URLs de HTML, sem JS, CSS ou fontes (entram depois, quando o SW já controla). Primeira visita seguida de offline funcionou aqui, mas por causa do cache HTTP. Ao trocar de versão o cache antigo é apagado e o novo tem só a casca: páginas de evento visitadas deixam de abrir offline. skipWaiting e claim trocam o SW sem aviso.",
+   "epic": "EP-05",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "BG-040"
+   ],
+   "origin": "auditoria AUD-001 · A2-004 · natureza: produto",
+   "acceptance": [
+    "[A2-004] Corrigir: Pré-cachear chunks do build (manifesto) e copiar entradas de navegação válidas para o cache novo antes de apagar o antigo.",
+    "[A2-004] Teste de regressão: Playwright: dois valores de ?v=; rota visitada continua abrindo offline após a troca."
+   ],
+   "files": [
+    "web/public/sw.js",
+    "web/src/lib/register-sw.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "a2-pwa.json: cacheAfterFirstVisit (sem /_next/static); swUpdate.cachesAfterB (só 5 URLs)"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A2-004"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-112",
+   "type": "BUG",
+   "title": "Limites de campos só em maxLength; domínio e serviços não validam",
+   "description": "Limites (título 60, nome 40, legenda 140, aviso 90, momento 30) só em maxLength. Serviços não limitam; updateSettings aceita título vazio e momentos ilimitados.",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-009 · natureza: produto",
+   "acceptance": [
+    "[A3-009] Corrigir: Schemas no domain e CHECK no banco.",
+    "[A3-009] Teste de regressão: Testes de limites."
+   ],
+   "files": [
+    "web/src/domain/event.ts",
+    "web/src/features/events/service.ts",
+    "web/src/features/photos/service.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "grep maxLength só em .tsx."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-009"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "BG-113",
+   "type": "BUG",
+   "title": "Read-modify-write sem versão: lost update e ressurreição de evento",
+   "description": "events.save grava o objeto inteiro: reconcileReveal (efeito do layout do convidado), updateSettings, updateReveal e setEndIn podem sobrescrever gravações concorrentes e ressuscitar evento excluído. moderate() sem withLock (reportPhoto usa): update perdido. deleteEventCascade em 5 transações. blocking() fecha o handle mas dbp cacheado fica apontando para conexão fechada. get→save do objeto inteiro em updateSettings, setEndIn, endEventNow, updateReveal e reconcileReveal, sem withLock. Não reproduzi; é leitura de código.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-004, A1-011 · natureza: produto",
+   "acceptance": [
+    "[A3-004] Corrigir: Patch com version; ON DELETE CASCADE; reabrir db.",
+    "[A1-011] Corrigir: withLock por evento ou patch por campo.",
+    "[A3-004] Teste de regressão: Teste concorrente updateSettings x reconcileReveal.",
+    "[A1-011] Teste de regressão: unit com dois saves concorrentes"
+   ],
+   "files": [
+    "web/src/features/admin/service.ts",
+    "web/src/features/events/service.ts",
+    "web/src/repositories/index.ts",
+    "web/src/repositories/indexeddb/index.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "events/service.ts; admin/service.ts moderate; repositories/index.ts; indexeddb/index.ts:50-56 (leitura de código).",
+    "web/src/features/events/service.ts:68-132"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A3-004",
+    "A1-011"
+   ],
+   "severity_audit": [
+    "P2",
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-120",
+   "type": "BUG",
+   "title": "react() e reportPhoto() aceitam foto ainda bloqueada",
+   "description": "Em serviço, um convidado grava reação em foto pendente. A UI não oferece o caminho.",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A1-007 · natureza: produto",
+   "acceptance": [
+    "[A1-007] Corrigir: Recusar react/report se não revelada e o ator não for host.",
+    "[A1-007] Teste de regressão: unit no serviço"
+   ],
+   "files": [
+    "web/src/features/photos/service.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "a1-exposure-roles.json (E3 reacao_gravada_em_foto_bloqueada true)"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A1-007"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-121",
+   "type": "BUG",
+   "title": "Contagem zera enquanto a tela segue 'Aguardando' por até 15 s",
+   "description": "WaitingReveal usa relógio de 1 s e o layout de 15 s; sem visibilitychange/focus para sincronizar. Aba suspensa mostra 00h 00min 00s e nada muda.",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A1-008 · natureza: produto",
+   "acceptance": [
+    "[A1-008] Corrigir: Sincronizar no visibilitychange/focus e usar uma única fonte.",
+    "[A1-008] Teste de regressão: e2e: visibilitychange após revealAt revela"
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/layout.tsx",
+    "web/src/features/app/hooks.ts",
+    "web/src/features/reveal/WaitingReveal.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "a1-reveal.json (R13)"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A1-008"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-122",
+   "type": "BUG",
+   "title": "Sem limite superior para a data da revelação; troca de fuso com erro genérico e prévia da versão salva",
+   "description": "Ano 9999 é aceito; o timer ignora mais de 2^31 ms. Cuiabá→Lisboa manteve 12h00 e caiu no passado: o aviso é 'Confira a data, a hora e o fuso' e o resumo diz 'Escolha a data e a hora' com campos preenchidos. A prévia usa o evento salvo, não o formulário. Coerente com INTEGRATION-PLAN linha 103, mas não explicado.",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A1-009, A1-010 · natureza: produto",
+   "acceptance": [
+    "[A1-009] Corrigir: Limitar (ex. 1 ano ou fim + 30 dias).",
+    "[A1-010] Corrigir: Dizer 'o horário ficou no passado neste fuso'; explicar que a hora de parede é mantida.",
+    "[A1-009] Teste de regressão: unit",
+    "[A1-010] Teste de regressão: e2e do texto"
+   ],
+   "files": [
+    "web/src/domain/reveal.ts",
+    "web/src/features/events/RevealForm.tsx",
+    "web/src/features/events/RevealSettings.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "a1-reveal.json (R3_dominio 'ano 9999')",
+    "a1-reveal.json (R4); screenshots/a1-r4-troca-fuso.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A1-009",
+    "A1-010"
+   ],
+   "severity_audit": [
+    "P3",
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-123",
+   "type": "BUG",
+   "title": "Denúncia não é única por pessoa",
+   "description": "report() soma 1 a cada chamada; o estado 'enviado' vale por abertura da folha. Por leitura de código.",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A1-012 · natureza: produto",
+   "acceptance": [
+    "[A1-012] Corrigir: Guardar (photoId, userId) e contar únicos.",
+    "[A1-012] Teste de regressão: unit"
+   ],
+   "files": [
+    "web/src/domain/photo.ts",
+    "web/src/features/photos/service.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "web/src/domain/photo.ts:report; web/src/features/photos/service.ts:reportPhoto"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A1-012"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-124",
+   "type": "BUG",
+   "title": "Textos inexatos na interface",
+   "description": "'Suas 1 fotos estão guardadas' (offline) e '23 fotos restantes' em evento encerrado.",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A1-013 · natureza: produto",
+   "acceptance": [
+    "[A1-013] Corrigir: Plural; esconder contador quando encerrado.",
+    "[A1-013] Teste de regressão: e2e dos textos"
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/layout.tsx",
+    "web/src/app/e/[code]/(app)/postar/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "a1-journeys.json (J4, J2)"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A1-013"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-125",
+   "type": "BUG",
+   "title": "Fontes decorativas pré-carregadas em todas as rotas; fonte da interface sem preload",
+   "description": "Birthstone, Pinyon e Great Vibes (latin, cerca de 90 KB) têm preload em todas as páginas, inclusive / e /entrar, e só servem ao nome do evento. Bricolage (77 KB) vem de /fonts por @font-face e não tem preload. /fonts, /brand e /pwa respondem `max-age=0`. Fontes somam 163 KB por rota. O LCP mobile simulado (h1, 2,9 a 3,3 s) provavelmente sofre com isso (hipótese, não isolada).",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-006 · natureza: produto",
+   "acceptance": [
+    "[A2-006] Corrigir: Carregar fontes do evento só nas rotas de evento e usar a fonte do evento escolhida; preload do Bricolage; Cache-Control immutable para /fonts.",
+    "[A2-006] Teste de regressão: Playwright: / não requisita woff2 de Birthstone, Pinyon ou Great Vibes."
+   ],
+   "files": [
+    "web/next.config.ts",
+    "web/src/app/layout.tsx",
+    "web/src/styles/tokens.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "a2-perf-routes-mobile.json (fonts); HTML de /entrar; Lighthouse a2-lighthouse-home-mobile.json"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-006"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-126",
+   "type": "BUG",
+   "title": "jszip carregado ao abrir Downloads; sem import dinâmico",
+   "description": "jszip tem 190 KB brutos (cerca de 55 KB gzip) e entra no carregamento de /painel/ID/downloads, embora só seja usado ao clicar. O código de demo (seed) vai no chunk da home (25 KB). Nenhum import() no projeto.",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-007 · natureza: produto",
+   "acceptance": [
+    "[A2-007] Corrigir: import('jszip') dentro do handler do ZIP; idem para seed na home.",
+    "[A2-007] Teste de regressão: Playwright: ao abrir /downloads, nenhum script contém 'JSZip' antes do clique."
+   ],
+   "files": [
+    "web/src/app/page.tsx",
+    "web/src/app/painel/[id]/downloads/page.tsx",
+    "web/src/features/admin/export.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "a2-perf-routes-desktop.json (jsFiles: 0_t7ot-9xac4y.js 190 KB); build em /tmp/a2-build"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-007"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-127",
+   "type": "BUG",
+   "title": "Links abaixo de 44 px: 'Guia de componentes' e skip link",
+   "description": "O link 'Guia de componentes' no rodapé da home mede 173×21, vive dentro de um parágrafo sem estilo de link e expõe a página /design em produção. O skip link mede 169×43.",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-009 · natureza: produto",
+   "acceptance": [
+    "[A2-009] Corrigir: Usar alvo de 44px ou remover o link em produção; skip link com min-height 44.",
+    "[A2-009] Teste de regressão: Playwright: nenhum a[href] visível <44px na home."
+   ],
+   "files": [
+    "web/src/app/page.tsx",
+    "web/src/styles/mm.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "a2-crawl-375-dia.json (home, targets.small); screenshots/a2-home-1440-dia.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-009"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-128",
+   "type": "BUG",
+   "title": "Borda de chip abaixo de 3:1 (vem do CSS do kit) e tamanhos fixos fora dos tokens",
+   "description": "A borda 1px de `mm-chip` mede 1,46:1 (Dia) e 1,54:1 (Noite), contra a regra de 3:1 para bordas de controle; vem do CSS do kit. A home usa h1 de 36px inline (token `display` tem 40px) e o nome do evento usa 30px inline (`nome-evento` tem 54px).",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-010 · natureza: produto",
+   "acceptance": [
+    "[A2-010] Corrigir: Decidir no DS (borda tinta ou 3:1) e usar as classes de texto do kit.",
+    "[A2-010] Teste de regressão: Teste de contraste de bordas de controle no crawl."
+   ],
+   "files": [
+    "web/src/app/criar/pronto/[id]/page.tsx",
+    "web/src/app/e/[code]/(app)/agora/page.tsx",
+    "web/src/app/page.tsx",
+    "web/src/styles/mm.css"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "a2-crawl-390-dia.json (design, postar-preview: nonTextContrast); src/app/page.tsx:68"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-010"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-129",
+   "type": "BUG",
+   "title": "Faixa de abas do painel no mobile corta itens sem indício; CLS e h1 duplicado",
+   "description": "No 390px as abas do painel rolam na horizontal com itens cortados e sem indicação. O painel com id desconhecido em desktop tem CLS 0,322 (Lighthouse). O convite tem dois h1 (nome do evento e 'Entrar na festa').",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-011 · natureza: produto",
+   "acceptance": [
+    "[A2-011] Corrigir: Fade na borda ou quebra em linhas; reservar altura do estado de erro; um só h1.",
+    "[A2-011] Teste de regressão: Lighthouse e axe no estado de erro; 1 h1 por rota."
+   ],
+   "files": [
+    "web/src/app/e/[code]/page.tsx",
+    "web/src/app/painel/[id]/layout.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "screenshots/a2-painel-configuracoes-390-dia.png; a2-lighthouse-painel-desktop.json; a2-crawl-390-dia.json (convite.h1)"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-011"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-130",
+   "type": "BUG",
+   "title": "Exemplo com revelação em 2 minutos não mostra a espera ao anfitrião",
+   "description": "O botão da home cria o exemplo como anfitrião, que vê tudo e só recebe um aviso. Para ver a tela de espera é preciso Você, 'Entrar como outra pessoa' e digitar um nome.",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-012 · natureza: produto",
+   "acceptance": [
+    "[A2-012] Corrigir: Entrar já como convidado de exemplo com atalho para o painel.",
+    "[A2-012] Teste de regressão: Playwright: do botão até [data-testid=aguardando-revelacao] sem cliques extras."
+   ],
+   "files": [
+    "web/src/app/page.tsx",
+    "web/src/features/demo/seed.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "a2-revelacao-host-agora-390-dia.png; a2-revelacao-espera-390-dia.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-012"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-131",
+   "type": "BUG",
+   "title": "Imagens do feed sem lazy/decoding e /voce sem paginação",
+   "description": "Nenhum <img> usa loading=lazy ou decoding=async; /voce renderiza todas as fotos próprias de uma vez (150 em 307 ms, sem throttling). O feed é paginado (20 por vez), o que limita o custo. Redimensionamento 1600px e JPEG 0,85 confirmados no código (capture.ts).",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A2-013 · natureza: produto",
+   "acceptance": [
+    "[A2-013] Corrigir: loading=lazy, decoding=async e paginar /voce.",
+    "[A2-013] Teste de regressão: Playwright: imagens fora da viewport sem decode inicial e /voce com no máximo 20 imagens iniciais."
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/voce/page.tsx",
+    "web/src/components/memoriesmt/PostCard.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A2.md",
+    "a2-perf-200fotos-b.json; src/features/photos/capture.ts"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A2-013"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-132",
+   "type": "BUG",
+   "title": "Sem limite de dimensão/bytes de entrada no upload (PNG 20000×20000 aceito)",
+   "description": "SVG com script é rasterizado (sem execução); não-imagem rejeitada; EXIF/GPS removido; 40 MB aleatório rejeitado em 2,6 s; PNG 20000x20000 (48 KB) aceito em 1 s no Chromium. Sem limite de file.size nem de pixels antes de decodificar; MAX_PHOTO_BYTES só vale na saída.",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-010 · natureza: produto",
+   "acceptance": [
+    "[A3-010] Corrigir: Limitar bytes e pixels antes de decodificar; backend valida magic bytes e dimensão.",
+    "[A3-010] Teste de regressão: —"
+   ],
+   "files": [
+    "web/e2e/audit-a3-upload.spec.ts",
+    "web/src/features/photos/capture.ts",
+    "web/src/features/photos/service.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "a3-upload-results.json"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-010"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-133",
+   "type": "BUG",
+   "title": "CSP com 'unsafe-inline', sem COOP/CORP",
+   "description": "Headers idênticos no build de teste e de produção. CSP tem frame-ancestors 'none', object-src 'none', base-uri 'self'; script-src/style-src com 'unsafe-inline' sem nonce; sem COOP/CORP; X-Powered-By ativo. connect-src/img-src 'self' bloquearão o Supabase.",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-011 · natureza: produto",
+   "acceptance": [
+    "[A3-011] Corrigir: Nonce ou hash; origem Supabase; COOP; poweredByHeader:false.",
+    "[A3-011] Teste de regressão: —"
+   ],
+   "files": [
+    "web/next.config.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "logs/a3-headers-*.txt"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-011"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-134",
+   "type": "BUG",
+   "title": "npm audit: 5 altas em dependências de desenvolvimento (cadeia do eslint-config-next)",
+   "description": "Cadeia braces, micromatch, fast-glob, eslint-config-next (DoS por padrão aninhado, GHSA-vfj7-8cjw-p6xm). audit --omit=dev: 0. O 'fix --force' sugere downgrade para eslint-config-next@14: não aplicar.",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-012 · natureza: produto",
+   "acceptance": [
+    "[A3-012] Corrigir: Registrar exceção; audit --omit=dev no CI.",
+    "[A3-012] Teste de regressão: —"
+   ],
+   "files": [
+    "web/package.json"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "logs/a3-npm-audit*.txt"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-012"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-135",
+   "type": "BUG",
+   "title": "Dependências e exports não usados; contratos especulativos",
+   "description": "depcheck marca tailwindcss e @tailwindcss/turbopack (usados via @import: falso positivo). knip: 19 exports e 20 tipos sem uso; AuthService, BillingService, SyncService, MasterRepository sem consumidor. 131 testes passam; eslint limpo.",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-013 · natureza: produto",
+   "acceptance": [
+    "[A3-013] Corrigir: Remover ou ligar contratos.",
+    "[A3-013] Teste de regressão: —"
+   ],
+   "files": [
+    "web/src/domain/roles.ts",
+    "web/src/lib/services/index.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "logs/a3-depcheck.txt, a3-knip.txt"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-013"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-136",
+   "type": "BUG",
+   "title": "Escapes de tipo (7 asserções): revisar",
+   "description": "reveal.ts:124 (as unknown as, forma legada); indexeddb: as never x2 e db as unknown as (wipe dinâmico). '!' em editor (getContext, stage.current) e Sheet. Sem bug observado.",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-014 · natureza: produto",
+   "acceptance": [
+    "[A3-014] Corrigir: Tipo LegacyEvent; wipe tipado.",
+    "[A3-014] Teste de regressão: —"
+   ],
+   "files": [
+    "web/src/domain/reveal.ts",
+    "web/src/features/photos/editor.tsx",
+    "web/src/repositories/indexeddb/index.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "grep as never|as unknown as."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-014"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-137",
+   "type": "BUG",
+   "title": "8 catch vazios; câmera não distingue a causa da falha",
+   "description": "sessionStorage, tema e SW são aceitáveis. Em postar, getUserMedia trata NotAllowed, NotFound e NotReadable do mesmo jeito e a mensagem só cita permissão.",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-015 · natureza: produto",
+   "acceptance": [
+    "[A3-015] Corrigir: Mapear error.name.",
+    "[A3-015] Teste de regressão: —"
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/postar/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "postar/page.tsx:54,75,89."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-015"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-138",
+   "type": "BUG",
+   "title": "URLs de objeto sem revogação no editor e no feed",
+   "description": "editor.tsx load() nunca revoga blob URLs; usePhotoUrls só revoga ao desmontar. Tracks da câmera e listeners são liberados corretamente.",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-016 · natureza: produto",
+   "acceptance": [
+    "[A3-016] Corrigir: Revogar após decodificar.",
+    "[A3-016] Teste de regressão: —"
+   ],
+   "files": [
+    "web/src/features/app/hooks.ts",
+    "web/src/features/photos/editor.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "editor.tsx:28-34; hooks.ts:78-100."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-016"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-139",
+   "type": "BUG",
+   "title": "CSV separado por vírgula; Excel pt-BR espera ponto e vírgula",
+   "description": "guestsCsv usa ',' e o Excel pt-BR espera ';'. Proteção contra fórmula e slug no ZIP corretos (sem path traversal).",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-017 · natureza: produto",
+   "acceptance": [
+    "[A3-017] Corrigir: Usar ';'.",
+    "[A3-017] Teste de regressão: —"
+   ],
+   "files": [
+    "web/src/features/admin/export.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "admin/export.ts."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-017"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-140",
+   "type": "BUG",
+   "title": "Datas no fuso do aparelho, não do evento; formatação manual",
+   "description": "formatDate/formatTime usam o fuso do aparelho, não event.timezone; scheduler de notificações usa Date.now() em vez do relógio da app.",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-018 · natureza: produto",
+   "acceptance": [
+    "[A3-018] Corrigir: Intl com event.timezone.",
+    "[A3-018] Teste de regressão: —"
+   ],
+   "files": [
+    "web/src/features/app/hooks.ts",
+    "web/src/lib/services/notifications.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "hooks.ts:110-125."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-018"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-141",
+   "type": "BUG",
+   "title": "Todas as páginas são Client Components; /design e /master públicos em produção",
+   "description": "Todas as páginas de dados são 'use client' (useApp/IndexedDB); AppProvider envolve tudo. Rotas [id]/[code] são dinâmicas. /design (catálogo) é servido em produção.",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-019 · natureza: produto",
+   "acceptance": [
+    "[A3-019] Corrigir: Barrar /design.",
+    "[A3-019] Teste de regressão: —"
+   ],
+   "files": [
+    "web/src/app/design/page.tsx",
+    "web/src/app/layout.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "grep use client; a3-xss-network.json."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A3-019"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-142",
+   "type": "BUG",
+   "title": "tsconfig inclui e2e/: erro de tipo em spec quebra next build (reproduzido nesta auditoria)",
+   "description": "Na cópia de produção, specs A1 com erro de tipo fizeram 'next build' falhar; passou ao removê-los. Com a flag do relógio em 1 em produção, o gate de hostname localhost ainda limita.",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-020 · natureza: produto",
+   "acceptance": [
+    "[A3-020] Corrigir: Excluir e2e do build.",
+    "[A3-020] Teste de regressão: —"
+   ],
+   "files": [
+    "web/tsconfig.json"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "logs/a3-prod-build.txt (build final)."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-020"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-143",
+   "type": "BUG",
+   "title": "Nome e fotos persistem localmente depois de 'sair'",
+   "description": "users.clear() mantém 'known' por desenho; authorName/name denormalizados; sem apagar-meus-dados. Sem tokens nem console.*; localStorage só guarda o tema.",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A3-021 · natureza: produto",
+   "acceptance": [
+    "[A3-021] Corrigir: Ação 'esquecer'; erasure no backend.",
+    "[A3-021] Teste de regressão: —"
+   ],
+   "files": [
+    "web/src/repositories/indexeddb/index.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "indexeddb users.*; a3-xss-network.json."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A3-021"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "BG-150",
+   "type": "TASK",
+   "title": "Risco aceito pré-backend: alterar meta.user para o hostId vira anfitrião",
+   "description": "Gravar meta.user com o hostId (legível no evento) abre painel e fotos antes da revelação. Registrado em ROLES.md como não segurança. Não existe senha fixa, URL secreta ou caminho master no código ou bundle.",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P3",
+   "status": "DEFERRED",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A1-015 · natureza: produto",
+   "acceptance": [
+    "[A1-015] Corrigir: Auth do Supabase com RLS; master só por claim.",
+    "[A1-015] Teste de regressão: teste de RLS no backend"
+   ],
+   "files": [
+    "web/src/domain/roles.ts",
+    "web/src/repositories/indexeddb/index.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A1.md",
+    "a1-exposure-roles.json (P2); a1-grep-roles.txt"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "L",
+   "sources": [
+    "A1-015"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "ITG-101",
+   "type": "FEATURE",
+   "title": "Leitura escopada por papel: serviços recebem Actor; fotos bloqueadas nunca chegam ao cliente; convite sem expor evento",
+   "description": "useEventData carrega todas as fotos do evento para qualquer participante e visiblePhotos() filtra depois (revelação, oculta). getData(id) devolve bytes de qualquer id. moderate/removeGuest/reportPhoto/react/updateSettings não recebem Actor; can() só é chamado em painel/[id]/layout.tsx. listByEvent devolve todas as fotos; GuestCtx.photos carrega todas, e visiblePhotos filtra na tela. Sem método do tipo listVisible(eventId, viewer), a troca para Supabase pode herdar um filtro só de cliente. reveal.configure, photo.moderate, event.delete e event.view não são usadas; os serviços (updateReveal, moderate, deleteEvent, updateSettings, setEndIn, endEventNow, removeGuest) não recebem ator; o layout do convidado calcula isHost por conta própria; /master não usa can() nem MasterRepository. LOCAL_ACTOR é sempre 'organizador'. useEventData({code}) lê getByCode + listas; layout do evento faz o mesmo.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "BG-101",
+    "BG-102",
+    "ITG-106"
+   ],
+   "origin": "auditoria AUD-001 · A3-001, A1-005, A1-004, A4-006 · natureza: integração",
+   "acceptance": [
+    "[A3-001] Corrigir: Filtrar no servidor (RLS), URL assinada só se visível, serviços com Actor.",
+    "[A1-005] Corrigir: Definir listVisible/getData(viewer) no contrato e seguir o plano (policy is_revealed, bucket privado).",
+    "[A1-004] Corrigir: Passar Actor às funções de serviço e checar a ação correspondente; unificar isHost com can('event.view').",
+    "[A4-006] Corrigir: EventRepository.preview(code): EventPreview via RPC; separar hook de prévia do hook de membro.",
+    "[A3-001] Teste de regressão: Teste RLS: convidado não lê foto pendente nem modera.",
+    "[A1-005] Teste de regressão: teste de contrato do repositório: não-host não recebe fotos pendentes",
+    "[A1-004] Teste de regressão: unit: cada serviço recusa ator sem permissão",
+    "[A4-006] Teste de regressão: Não-membro só recebe campos de EventPreview; rate limit de preview."
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/layout.tsx",
+    "web/src/app/e/[code]/page.tsx",
+    "web/src/app/master/page.tsx",
+    "web/src/domain/photo.ts",
+    "web/src/domain/roles.ts",
+    "web/src/features/admin/service.ts",
+    "web/src/features/app/hooks.ts",
+    "web/src/features/events/service.ts",
+    "web/src/features/photos/service.ts",
+    "web/src/repositories/types.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "hooks.ts useEventData; photo.ts visiblePhotos; grep can( = 1 uso.",
+    "a1-exposure-roles.json (E3 repositorio_lista_tudo_sem_filtro_de_papel); web/src/repositories/types.ts",
+    "docs/audit/evidence/logs/a1-grep-roles.txt; web/src/app/painel/[id]/layout.tsx:51"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "L",
+   "sources": [
+    "A3-001",
+    "A1-005",
+    "A1-004",
+    "A4-006"
+   ],
+   "severity_audit": [
+    "P1",
+    "P2",
+    "P2",
+    "P1"
+   ]
+  },
+  {
+   "id": "ITG-102",
+   "type": "FEATURE",
+   "title": "Contratos de repositório v2: paginação, contagem, erros tipados, versão e idempotência",
+   "description": "(1) getData devolve bytes completos e a UI cria blob URL (feed, editor, ZIP) sem URL assinada nem miniatura; (2) list sem paginação (o 'limit' do feed fatia no cliente); (3) events.list() em app/page.tsx assume todos visíveis; (4) getByCode assume leitura pública; (5) save(event) grava o objeto inteiro; (6) now() do cliente decide canPost/canJoin/revelação; (7) identidade é UUID local sem sessão e o único erro tipado é StorageUnavailableError. Pontos bons: interfaces async, domain puro. listByEvent devolve tudo; stats, ranking e rolo usam length. Só StorageUnavailableError existe; save() é upsert da linha inteira; modelos sem updatedAt/version; reports é contador lido-incrementado-gravado.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "ITG-106",
+    "BG-113"
+   ],
+   "origin": "auditoria AUD-001 · A3-003, A4-002, A4-003 · natureza: integração",
+   "acceptance": [
+    "[A3-003] Corrigir: PhotoRef com URL/miniatura, cursor, patch, erros tipados, hora do servidor, RPC por código, AuthService.",
+    "[A4-002] Corrigir: Page<T> com cursor, count()/RPCs agregadas, filtros por autor/status.",
+    "[A4-003] Corrigir: RepositoryError {network,conflict,forbidden,limit,notfound}; create/update(patch,expectedVersion); report(photoId,reporterId); remover Photo.reports gravável.",
+    "[A3-003] Teste de regressão: Mesma suíte de contrato em memory e supabase.",
+    "[A4-002] Teste de regressão: Contrato com 1200 fotos: contagem exata e paginação completa.",
+    "[A4-003] Teste de regressão: Contrato: update com versão velha falha com conflict; mesma pessoa"
+   ],
+   "files": [
+    "web/src/app/page.tsx",
+    "web/src/domain/event.ts",
+    "web/src/features/admin/service.ts",
+    "web/src/features/app/hooks.ts",
+    "web/src/features/photos/editor.tsx",
+    "web/src/features/photos/service.ts",
+    "web/src/repositories/types.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "types.ts; hooks.ts:74-100; app/page.tsx:24; editor.tsx:61.",
+    "types.ts:44,53; hooks.ts:65; admin/service.ts:15-21; photos/service.ts:11",
+    "types.ts:29-35,84-91; events/service.ts:93-94; photos/service.ts:51-58; a4-static-checks.txt"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "L",
+   "sources": [
+    "A3-003",
+    "A4-002",
+    "A4-003"
+   ],
+   "severity_audit": [
+    "P2",
+    "P1",
+    "P1"
+   ]
+  },
+  {
+   "id": "ITG-103",
+   "type": "FEATURE",
+   "title": "Fotos por URL/miniatura e upload em duas fases com created_at do servidor",
+   "description": "add/getData movem ArrayBuffer; usePhotoUrls baixa todas as fotos em sequência. Sem estado de upload; linha antes do objeto conta no rolo; createdAt vem do cliente e o trigger usa now().",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "ITG-102"
+   ],
+   "origin": "auditoria AUD-001 · A4-001, A4-009 · natureza: integração",
+   "acceptance": [
+    "[A4-001] Corrigir: getPhotoUrl(id,variant) com expiração, miniaturas, carga sob demanda; separar fila local de upload do cache.",
+    "[A4-009] Corrigir: upload_status + finalize_photo; captured_at do cliente com tolerância; created_at do servidor; outbox com bytes e backoff.",
+    "[A4-001] Teste de regressão: Contrato: getPhotoUrl devolve URL válida; hook renova após expirar;",
+    "[A4-009] Teste de regressão: Falha no meio do upload não consome rolo; foto tirada antes do fim,"
+   ],
+   "files": [
+    "docs/supabase/INTEGRATION-PLAN.md",
+    "web/src/features/app/hooks.ts",
+    "web/src/features/photos/service.ts",
+    "web/src/repositories/types.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A4.md",
+    "types.ts:24,46,48; hooks.ts:83-92",
+    "indexeddb:108-112; photos/service.ts:24-32; INTEGRATION-PLAN §4,§7"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "L",
+   "sources": [
+    "A4-001",
+    "A4-009"
+   ],
+   "severity_audit": [
+    "P1",
+    "P1"
+   ]
+  },
+  {
+   "id": "ITG-104",
+   "type": "FEATURE",
+   "title": "Autoridade do servidor: revelação, rolo, limites e relógio",
+   "description": "Efeito do layout do convidado chama events.save com status recalculado. used vem das fotos visíveis; antes da revelação o convidado não lê as próprias (§4.1) mas §5 diz 'autor: as suas'. Só no cliente: rolo, capacidade (e não encolher abaixo de convidados), evento encerrado, não reabrir, revelação (1 min, imutável após revelada), título 60, legenda 140, momento 30, aviso 90, mesas 0-60, mime/8 MB, reação só em foto visível, denúncia única, event_id da reação = o da foto. setEndIn/endEventNow não movem revealAt; o preset 'ao terminar' vira data fixa; o tempo passando não gera evento postgres_changes; relógio do cliente decide a UI.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "BG-101",
+    "BG-102",
+    "ITG-106"
+   ],
+   "origin": "auditoria AUD-001 · A4-004, A4-005, A4-010, A4-011 · natureza: integração",
+   "acceptance": [
+    "[A4-004] Corrigir: Remover reveal_status gravável; derivar de reveal_at; manter job só para push/idempotência.",
+    "[A4-005] Corrigir: RPC my_shot_count(event); policy do autor também exige is_revealed; corrigir §5.",
+    "[A4-010] Corrigir: Checks e triggers para cada item; FK composta (photo_id,event_id).",
+    "[A4-011] Corrigir: Definir invariante; offset servidor-cliente via RPC; refetch em reveal_at+skew, realtime só acelera.",
+    "[A4-004] Teste de regressão: Convidado nunca chama events.save; teste RLS: update de reveal_* por",
+    "[A4-005] Teste de regressão: pgTAP: autor não lê foto própria pré-revelação; my_shot_count",
+    "[A4-010] Teste de regressão: pgTAP por regra, com ator malicioso.",
+    "[A4-011] Teste de regressão: Cliente 5 min adiantado não revela; encerrar antes não deixa"
+   ],
+   "files": [
+    "docs/supabase/INTEGRATION-PLAN.md",
+    "web/src/app/e/[code]/(app)/layout.tsx",
+    "web/src/app/e/[code]/(app)/postar/page.tsx",
+    "web/src/domain/event.ts",
+    "web/src/domain/photo.ts",
+    "web/src/features/events/service.ts",
+    "web/src/features/reveal/RevealTransition.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A4.md",
+    "(app)/layout.tsx:65-68; events/service.ts:124-131",
+    "postar/page.tsx:29; photos/service.ts:10-12; domain/photo.ts:55; INTEGRATION-PLAN §4.1 x §5",
+    "photo.ts:30,38; event.ts:18,26; events/service.ts:92; configuracoes/page.tsx:48,73; qr/page.tsx:36; photos/service.ts:16,40-42"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A4-004",
+    "A4-005",
+    "A4-010",
+    "A4-011"
+   ],
+   "severity_audit": [
+    "P1",
+    "P1",
+    "P1",
+    "P2"
+   ]
+  },
+  {
+   "id": "ITG-105",
+   "type": "FEATURE",
+   "title": "Identidade (auth.uid) e migração local→nuvem compatíveis com o esquema",
+   "description": "User.id é UUID local; known/switchTo/clear; AuthService nunca usado; signOut anônimo perde a conta. photos.author_id not null FK profiles, mas autores convidados locais não têm perfil; triggers de evento encerrado/rolo barram importação; hostId local precisa de remapeamento; várias identidades por aparelho.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "ITG-102"
+   ],
+   "origin": "auditoria AUD-001 · A4-007, A4-008 · natureza: integração",
+   "acceptance": [
+    "[A4-007] Corrigir: Usar AuthService no provider; anônimo + linkIdentity; remover switchTo do produto (demo à parte); função de fusão para Google já existente.",
+    "[A4-008] Corrigir: author_id nullable + author_name; RPC import_event security definer que ignora triggers; escolher identidade; manifesto com contagens e versão de formato.",
+    "[A4-007] Teste de regressão: Anônimo vincula Google mantendo uid e fotos.",
+    "[A4-008] Teste de regressão: Importar evento encerrado com fotos de 3 autores: contagens iguais,"
+   ],
+   "files": [
+    "docs/supabase/INTEGRATION-PLAN.md",
+    "web/src/features/app/provider.tsx",
+    "web/src/lib/services/index.ts",
+    "web/src/repositories/types.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A4.md",
+    "provider.tsx:65-86; types.ts:65-73; services/index.ts:9; KnownPeople",
+    "INTEGRATION-PLAN §3 (photos), §4, §10; types.ts:65-73"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A4-007",
+    "A4-008"
+   ],
+   "severity_audit": [
+    "P1",
+    "P1"
+   ]
+  },
+  {
+   "id": "ITG-106",
+   "type": "TASK",
+   "title": "Corrigir contradições do INTEGRATION-PLAN e fechar decisões de produto pendentes",
+   "description": "used vem das fotos visíveis; antes da revelação o convidado não lê as próprias (§4.1) mas §5 diz 'autor: as suas'. photos.author_id not null FK profiles, mas autores convidados locais não têm perfil; triggers de evento encerrado/rolo barram importação; hostId local precisa de remapeamento; várias identidades por aparelho.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · A4-005, A4-008 · natureza: integração",
+   "acceptance": [
+    "[A4-005] Corrigir: RPC my_shot_count(event); policy do autor também exige is_revealed; corrigir §5.",
+    "[A4-008] Corrigir: author_id nullable + author_name; RPC import_event security definer que ignora triggers; escolher identidade; manifesto com contagens e versão de formato.",
+    "[A4-005] Teste de regressão: pgTAP: autor não lê foto própria pré-revelação; my_shot_count",
+    "[A4-008] Teste de regressão: Importar evento encerrado com fotos de 3 autores: contagens iguais,"
+   ],
+   "files": [
+    "docs/supabase/INTEGRATION-PLAN.md",
+    "web/src/app/e/[code]/(app)/postar/page.tsx"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A4.md",
+    "postar/page.tsx:29; photos/service.ts:10-12; domain/photo.ts:55; INTEGRATION-PLAN §4.1 x §5",
+    "INTEGRATION-PLAN §3 (photos), §4, §10; types.ts:65-73"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A4-005",
+    "A4-008"
+   ],
+   "severity_audit": [
+    "P1",
+    "P1"
+   ]
+  },
+  {
+   "id": "ITG-107",
+   "type": "FEATURE",
+   "title": "Convites: id, rotação, expiração, ?mesa= confiável e limite de tentativas (código ~39,6 bits)",
+   "description": "Código é segredo permanente; link carrega rótulo livre, não invitation id; invitations só no seed. 31^8 = 8,5e11 (39,6 bits), gerado com getRandomValues sem viés. Com leitura por código, é enumerável sem rate limit e /e/[code] revela título, anfitrião e local.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "ITG-106"
+   ],
+   "origin": "auditoria AUD-001 · A4-014, A3-005 · natureza: integração",
+   "acceptance": [
+    "[A4-014] Corrigir: Decidir: id no link + invitation_id, ou cortar. RPC rotate_code, rate limit em preview/join, table_label só informativo.",
+    "[A3-005] Corrigir: RPC por código com rate limit, backoff e captcha; não expor eventos por id; avaliar 10+ caracteres.",
+    "[A4-014] Teste de regressão: Código rotacionado invalida o antigo; 100 previews/min são limitados.",
+    "[A3-005] Teste de regressão: 100 códigos inválidos geram 429."
+   ],
+   "files": [
+    "web/src/domain/share-code.ts",
+    "web/src/features/invitations/links.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A4.md",
+    "links.ts:3-12; seed.ts:56; e/[code]/page.tsx:54",
+    "share-code.ts; log2(31^8)=39,63."
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A4-014",
+    "A3-005"
+   ],
+   "severity_audit": [
+    "P2",
+    "P2"
+   ]
+  },
+  {
+   "id": "ITG-108",
+   "type": "TASK",
+   "title": "Ambiente (env), CSP para o Supabase e suíte de contrato reutilizável",
+   "description": "connect-src e img-src 'self'; sem supabase/ ou tipos gerados; fixtures usam ids 'e1','p1' e inserem reação sem foto.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "ITG-106"
+   ],
+   "origin": "auditoria AUD-001 · A4-013 · natureza: integração",
+   "acceptance": [
+    "[A4-013] Corrigir: CSP com host Supabase (https e wss) e env NEXT_PUBLIC_*; service role só servidor; fábrica de fixtures UUID com dois atores; supabase start no CI.",
+    "[A4-013] Teste de regressão: Mesma suíte roda em memória, IDB e Supabase local."
+   ],
+   "files": [
+    "web/next.config.ts",
+    "web/src/repositories/repositories.test.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A4.md",
+    "next.config.ts:12,15; a4-contract-fixtures.txt; repositories.test.ts:15-18,52-54,61-63"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A4-013"
+   ],
+   "severity_audit": [
+    "P2"
+   ]
+  },
+  {
+   "id": "ITG-109",
+   "type": "TASK",
+   "title": "Matriz de papéis × RLS e proteção de servidor para /master",
+   "description": "event.view é true para qualquer convidado sem checar participação; sem ações postar/reagir/denunciar/baixar; LOCAL_ACTOR dá organizador a qualquer um; master true para tudo sem motivo/auditoria; sem papel participante nem co-organizador. IDOR futuro por event id (/painel/[id] só protegido pela UI). Serviços não checam ator; não há proxy/middleware; claim master tem TTL do JWT.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "ITG-106"
+   ],
+   "origin": "auditoria AUD-001 · A3-002, A4-012 · natureza: integração",
+   "acceptance": [
+    "[A3-002] Corrigir: RLS por tabela: events (dono; leitura por RPC de código), participants (próprio/dono), photos (autor/dono/revelada), reactions (membro), invitations (dono), storage por evento; master por claim + audit_logs.",
+    "[A4-012] Corrigir: Matriz can×RLS como teste; proxy validando claim; ações master via RPC com audit_logs.",
+    "[A3-002] Teste de regressão: Matriz papel x ação x tabela.",
+    "[A4-012] Teste de regressão: Dois usuários x 6 ações x tabelas; master revogado perde acesso no"
+   ],
+   "files": [
+    "docs/architecture/ROLES.md",
+    "web/src/app/master/page.tsx",
+    "web/src/domain/roles.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A3.md",
+    "roles.ts:19-37; painel/[id]/layout.tsx:47.",
+    "roles.ts:19; painel/layout.tsx:49; ls src/proxy.ts ausente; ROLES.md regra 4"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "M",
+   "sources": [
+    "A3-002",
+    "A4-012"
+   ],
+   "severity_audit": [
+    "P2",
+    "P2"
+   ]
+  },
+  {
+   "id": "ITG-110",
+   "type": "TASK",
+   "title": "Tipos TypeScript × Postgres (datas, enums, opcionais)",
+   "description": "notice com expiresAt em epoch ms; durationHours+endedAt em vez de ends_at; palette/eventFont sem enum; moment texto livre; moments:[] com fallback 'Agora'.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "ITG-102"
+   ],
+   "origin": "auditoria AUD-001 · A4-015 · natureza: integração",
+   "acceptance": [
+    "[A4-015] Corrigir: notice_text+notice_expires_at; ends_at; checks nos enums; mapper único camel/snake e epoch↔timestamptz.",
+    "[A4-015] Teste de regressão: Roundtrip mapper para todos os campos."
+   ],
+   "files": [
+    "web/src/domain/event.ts"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/audit/drafts/A4.md",
+    "event.ts:17,28-33,39-42; postar/page.tsx:22"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [
+    "A4-015"
+   ],
+   "severity_audit": [
+    "P3"
+   ]
+  },
+  {
+   "id": "INF-002",
+   "type": "TASK",
+   "title": "Produção serve o build antigo (3a8bf89): sem headers/CSP e sem correções da auditoria anterior",
+   "description": "O alias de produção aponta para o primeiro deploy. Resolver promovendo o preview validado, só com autorização (REL-001).",
+   "epic": "EP-10",
+   "parent": null,
+   "priority": "P2",
+   "status": "BLOCKED",
+   "dependencies": [
+    "REL-001"
+   ],
+   "origin": "auditoria AUD-001 · infraestrutura",
+   "acceptance": [
+    "O alias de produção aponta para o primeiro deploy. Resolver promovendo o preview validado, só com autorização (REL-001)."
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "docs/audit/07-VERCEL-DEPLOYMENT.md"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [],
+   "severity_audit": []
+  },
+  {
+   "id": "INF-003",
+   "type": "TASK",
+   "title": "Projeto Vercel sem repositório vinculado: deploys foram criados por API com gitSource",
+   "description": "Sem integração Git automática. Decidir se vincula o repositório (Root Directory web) ou mantém deploy manual documentado.",
+   "epic": "EP-10",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria AUD-001 · infraestrutura",
+   "acceptance": [
+    "Sem integração Git automática. Decidir se vincula o repositório (Root Directory web) ou mantém deploy manual documentado."
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "docs/audit/07-VERCEL-DEPLOYMENT.md"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [],
+   "severity_audit": []
+  },
+  {
+   "id": "AUD-002",
+   "type": "TASK",
+   "title": "Reauditoria dos P1 após as correções (gate para iniciar a fase Supabase)",
+   "description": "Reexecutar as frentes A1 e A4 e os testes de exposição sobre as correções; só então liberar EP-09.",
+   "epic": "EP-10",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "BG-101",
+    "ITG-101",
+    "ITG-102",
+    "ITG-103",
+    "ITG-104",
+    "ITG-105",
+    "ITG-106"
+   ],
+   "origin": "auditoria AUD-001 · infraestrutura",
+   "acceptance": [
+    "Reexecutar as frentes A1 e A4 e os testes de exposição sobre as correções; só então liberar EP-09."
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "docs/audit/07-VERCEL-DEPLOYMENT.md"
+   ],
+   "commit": null,
+   "environment": null,
+   "effort": "S",
+   "sources": [],
+   "severity_audit": []
   }
  ],
  "requirements": [

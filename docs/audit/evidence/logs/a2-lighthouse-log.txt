@@ -1,0 +1,13 @@
+done home mobile
+done home desktop
+done entrar mobile
+done entrar desktop
+done criar mobile
+done criar desktop
+done design mobile
+done design desktop
+done e-agora mobile
+done e-agora desktop
+done painel mobile
+done painel desktop
+ALLDONE

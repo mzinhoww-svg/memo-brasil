@@ -1,0 +1,142 @@
+{
+ "env": "Apple M4, Chromium Playwright, produção 3312, 390x844@3x, sem throttling, SW bloqueado, 200 fotos JPEG 1200x1600 q0.85",
+ "results": {
+  "jpegBytesSample": {
+   "avgBytes": 468762,
+   "min": 434315,
+   "max": 481683
+  },
+  "agora": {
+   "firstImgMs": 83,
+   "allImgsLoadedMs": -1,
+   "scrollToEndMs": 323,
+   "dom": {
+    "imgs": 20,
+    "blobImgs": 20,
+    "nodes": 468,
+    "lazy": 0,
+    "heapMB": 9.5,
+    "pageH": 12484,
+    "p": {
+     "lcp": 76,
+     "cls": 0,
+     "fcp": 16,
+     "long": [],
+     "inp": 0,
+     "lcpEl": "IMG:blob:http://localhost:3312/9fd97ddb-b516"
+    }
+   },
+   "cdpAfterLoad": {
+    "jsHeapMB": 4.6,
+    "jsHeapTotalMB": 5.2,
+    "nodes": 665,
+    "layoutCount": 11,
+    "taskSec": 0.14,
+    "scriptSec": 0.06
+   },
+   "cdpAfterScroll": {
+    "jsHeapMB": 4.7,
+    "taskSec": 0.15
+   }
+  },
+  "explorar": {
+   "firstImgMs": 92,
+   "allImgsLoadedMs": -1,
+   "scrollToEndMs": 354,
+   "dom": {
+    "imgs": 20,
+    "blobImgs": 20,
+    "nodes": 479,
+    "lazy": 0,
+    "heapMB": 9.5,
+    "pageH": 12801,
+    "p": {
+     "lcp": 88,
+     "cls": 0,
+     "fcp": 28,
+     "long": [],
+     "inp": 0,
+     "lcpEl": "IMG:blob:http://localhost:3312/1bea23e7-0d04"
+    }
+   },
+   "cdpAfterLoad": {
+    "jsHeapMB": 4.7,
+    "jsHeapTotalMB": 5.7,
+    "nodes": 707,
+    "layoutCount": 9,
+    "taskSec": 0.13,
+    "scriptSec": 0.05
+   },
+   "cdpAfterScroll": {
+    "jsHeapMB": 4.7,
+    "taskSec": 0.13
+   }
+  },
+  "voce": {
+   "firstImgMs": -1,
+   "allImgsLoadedMs": -1,
+   "scrollToEndMs": 17,
+   "dom": {
+    "imgs": 0,
+    "blobImgs": 0,
+    "nodes": 107,
+    "lazy": 0,
+    "heapMB": 9.5,
+    "pageH": 1067,
+    "p": {
+     "lcp": 60,
+     "cls": 0,
+     "fcp": 24,
+     "long": [],
+     "inp": 0,
+     "lcpEl": "P:"
+    }
+   },
+   "cdpAfterLoad": {
+    "jsHeapMB": 4.4,
+    "jsHeapTotalMB": 5.7,
+    "nodes": 146,
+    "layoutCount": 5,
+    "taskSec": 0.12,
+    "scriptSec": 0.03
+   },
+   "cdpAfterScroll": {
+    "jsHeapMB": 4.5,
+    "taskSec": 0.12
+   }
+  },
+  "painel-conteudo": {
+   "firstImgMs": 87,
+   "allImgsLoadedMs": -1,
+   "scrollToEndMs": 9,
+   "dom": {
+    "imgs": 3,
+    "blobImgs": 1,
+    "nodes": 106,
+    "lazy": 0,
+    "heapMB": 9.5,
+    "pageH": 872,
+    "p": {
+     "lcp": 72,
+     "cls": 0,
+     "fcp": 28,
+     "long": [],
+     "inp": 0,
+     "lcpEl": "H1:"
+    }
+   },
+   "cdpAfterLoad": {
+    "jsHeapMB": 4.2,
+    "jsHeapTotalMB": 5.2,
+    "nodes": 176,
+    "layoutCount": 6,
+    "taskSec": 0.1,
+    "scriptSec": 0.04
+   },
+   "cdpAfterScroll": {
+    "jsHeapMB": 4.3,
+    "taskSec": 0.11
+   }
+  }
+ }
+}
