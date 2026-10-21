@@ -79,3 +79,52 @@ begin
     raise notice 'pg_cron indisponível: agende expire_pending_assets() a cada 15 min por outro meio';
   end if;
 end $$;
+
+-- (5) Integridade da trilha sem depender de superusuário. Se o event trigger não puder ser criado (Supabase gerenciado: o papel `postgres`
+-- não é superusuário), a proteção NÃO some em silêncio: o estado fica consultável e uma violação real é gravada na própria auditoria.
+--   ok          = triggers de imutabilidade ENABLE ALWAYS e event triggers presentes
+--   degraded    = triggers ok, mas sem event trigger (DDL que desliga a proteção não é barrada, só detectada)
+--   compromised = algum trigger de proteção ausente ou desligado
+create function public.audit_integrity() returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare ev boolean; trg_ok boolean; expected int := 6; found int;
+begin
+  select count(*) = 2 into ev from pg_event_trigger where evtname in ('audit_ddl_end', 'audit_ddl_drop') and evtenabled <> 'D';
+  select count(*), coalesce(bool_and(t.tgenabled = 'A'), false) into found, trg_ok from pg_trigger t
+   where not t.tgisinternal
+     and ((t.tgrelid = 'public.audit_logs'::regclass and t.tgname in ('audit_logs_no_update', 'audit_logs_no_delete', 'audit_logs_no_truncate'))
+       or (t.tgrelid = 'public.platform_roles'::regclass and t.tgname in ('platform_roles_guard_iud', 'platform_roles_guard_del', 'platform_roles_keep_last_master')));
+  return jsonb_build_object('status', case when found < expected or not trg_ok then 'compromised' when not ev then 'degraded' else 'ok' end,
+                            'eventTriggers', ev, 'protectiveTriggers', found, 'alwaysEnabled', trg_ok, 'checkedAt', now());
+end $$;
+revoke execute on function public.audit_integrity() from public, anon, authenticated;
+
+-- master consulta o estado (leitura; não grava)
+create function public.admin_audit_integrity() returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  if not public.is_master() then raise exception 'forbidden' using errcode = 'MM004'; end if;
+  return public.audit_integrity();
+end $$;
+revoke execute on function public.admin_audit_integrity() from public, anon;
+grant execute on function public.admin_audit_integrity() to authenticated;
+
+-- job: grava `audit.integrity_failed` (prefixo reservado) quando comprometido, no máximo uma vez por hora
+create function public.audit_integrity_check() returns text
+language plpgsql security definer set search_path = '' as $$
+declare r jsonb := public.audit_integrity();
+begin
+  if r ->> 'status' = 'compromised'
+     and not exists (select 1 from public.audit_logs where action = 'audit.integrity_failed' and at > now() - interval '1 hour') then
+    insert into public.audit_logs (actor_role, action, target_type, target_id, detail) values ('sistema', 'audit.integrity_failed', 'audit', 'triggers', r);
+  end if;
+  return r ->> 'status';
+end $$;
+revoke execute on function public.audit_integrity_check() from public, anon, authenticated;
+
+do $$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    perform cron.schedule('mm-audit-integrity', '*/10 * * * *', 'select public.audit_integrity_check()');
+  end if;
+end $$;

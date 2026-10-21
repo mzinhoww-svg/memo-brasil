@@ -42,5 +42,34 @@ select throws_ok($$select public.admin_log('audit.purged', 'user', 'x', 'tentati
 select throws_ok($$select public.admin_log('lgpd.exported', 'user', 'x', 'tentativa de forjar entrada do sistema')$$, 'MM005', null, 'nem lgpd.*');
 select lives_ok($$select public.admin_log('event.note', 'event', 'x', 'anotação operacional legítima')$$, 'ação comum continua válida');
 
+
+-- (5) integridade sem superusuário
+reset role;
+select is(public.audit_integrity() ->> 'status', 'ok', 'integridade: ok com event triggers e triggers ALWAYS');
+select is(public.audit_integrity_check(), 'ok', 'job não grava nada quando está ok');
+select is((select count(*)::int from public.audit_logs where action = 'audit.integrity_failed'), 0, 'sem alerta quando ok');
+-- simula ambiente gerenciado sem event trigger: degradado, sem alerta
+alter event trigger audit_ddl_end disable;
+select is(public.audit_integrity() ->> 'status', 'degraded', 'sem event trigger: degradado (visível, não silencioso)');
+select is((select count(*)::int from public.audit_logs where action = 'audit.integrity_failed'), 0, 'degradado não gera alerta');
+-- trigger de proteção desligado (só possível porque o event trigger está desligado aqui): comprometido e alerta uma vez
+alter table public.audit_logs disable trigger audit_logs_no_delete;
+select is(public.audit_integrity() ->> 'status', 'compromised', 'trigger desligado: comprometido');
+select is(public.audit_integrity_check(), 'compromised', 'job reporta comprometido');
+select is((select count(*)::int from public.audit_logs where action = 'audit.integrity_failed'), 1, 'alerta gravado na auditoria');
+select is(public.audit_integrity_check(), 'compromised', 'segunda rodada na mesma hora');
+select is((select count(*)::int from public.audit_logs where action = 'audit.integrity_failed'), 1, 'sem alerta duplicado na hora');
+alter table public.audit_logs enable always trigger audit_logs_no_delete;
+alter event trigger audit_ddl_end enable;
+-- RPC do master
+select tests.login('00000000-0000-4000-8000-0000000000e1', 'master');
+select is(public.admin_audit_integrity() ->> 'status', 'ok', 'master lê o estado');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000000e2', 'master');
+select throws_ok($$select public.admin_audit_integrity()$$, 'MM004', null, 'claim sem linha ativa não lê');
+reset role;
+select ok(not has_function_privilege('authenticated', 'public.audit_integrity_check()', 'execute'), 'job não é executável por cliente');
+select ok(not has_function_privilege('anon', 'public.admin_audit_integrity()', 'execute'), 'anon não executa a RPC');
+
 select * from finish();
 rollback;

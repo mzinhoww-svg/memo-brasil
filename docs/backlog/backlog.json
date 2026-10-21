@@ -6011,6 +6011,7 @@
     "supabase/tests/database/03_audit_hardening.test.sql"
    ],
    "evidence": [
+    "audit_integrity()/job mm-audit-integrity cobrem ambiente gerenciado sem event trigger; pgTAP 430/430",
     "pgTAP 416/416 local; migration 20261022001000"
    ],
    "commit": "3a1a79d",
