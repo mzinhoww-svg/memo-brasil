@@ -15,6 +15,16 @@ export function validateAssetFile(kind: AssetKind, file: { type: string; size: n
   return { ok: true };
 }
 
+const REJECTED: Record<string, string> = { assinatura: "O arquivo não é uma imagem PNG, JPEG ou WebP válida.", tipo: "O tipo do arquivo não confere com o conteúdo.", tamanho: "Arquivo vazio ou acima do limite (logo 2 MB, capa 5 MB).", dimensoes: "A imagem precisa ter entre 16 e 8192 px de lado.", pixels: "Imagem grande demais (acima de 36 milhões de pixels)." };
+async function finalizeMessage(err: unknown): Promise<string> {
+  try {
+    const ctx = (err as { context?: Response }).context;
+    const body = ctx ? ((await ctx.json()) as { reason?: string }) : undefined;
+    if (body?.reason && REJECTED[body.reason]) return REJECTED[body.reason];
+  } catch { /* corpo ilegível: mensagem genérica */ }
+  return "Não foi possível validar o arquivo enviado.";
+}
+
 export interface BrandAsset { id: string; kind: AssetKind; storagePath: string }
 
 /** Envio em duas fases (como as fotos): reserva a linha, sobe o objeto, confirma. Substitui o ativo anterior do mesmo tipo. */
@@ -28,8 +38,13 @@ export async function uploadBrandAsset(sb: SupabaseClient, eventId: string, kind
   const storagePath = (begun.data as { storagePath: string }).storagePath;
   const up = await sb.storage.from("event-branding").upload(storagePath, file, { contentType: file.type, upsert: false });
   if (up.error) { await sb.rpc("discard_asset", { p_id: id }); throw new Error(up.error.message); }
-  const done = await sb.rpc("finalize_asset", { p_id: id });
-  if (done.error) { await sb.storage.from("event-branding").remove([storagePath]); await sb.rpc("discard_asset", { p_id: id }); throw new Error(done.error.message); }
+  // quem confirma é a Edge Function, depois de ler os bytes (assinatura, tipo e dimensões reais); o cliente não finaliza sozinho
+  const done = await sb.functions.invoke("finalize-asset", { body: { assetId: id } });
+  if (done.error) {
+    await sb.storage.from("event-branding").remove([storagePath]);
+    await sb.rpc("discard_asset", { p_id: id });
+    throw new Error(await finalizeMessage(done.error));
+  }
   if (previous) { await sb.rpc("discard_asset", { p_id: previous.id }); await sb.storage.from("event-branding").remove([previous.storagePath]); }
   return { id, kind, storagePath };
 }

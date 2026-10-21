@@ -308,12 +308,12 @@ select throws_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000a
 select throws_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000a02', '10000000-0000-4000-8000-00000000000a', 'cover', 'image/png', 0, 400)$$, 'MM005', 'invalid', 'dimensão inválida');
 select throws_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000a02', '10000000-0000-4000-8000-00000000000a', 'cover', 'image/png', 9000, 400)$$, 'MM005', 'invalid', 'dimensão acima do limite');
 select throws_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000a02', '10000000-0000-4000-8000-00000000000b', 'logo', 'image/png', 400, 400)$$, 'MM004', 'forbidden', 'host de A não abre asset em B');
-select throws_ok($$select public.finalize_asset('20000000-0000-4000-8000-000000000a01')$$, 'MM005', 'invalid', 'finalize sem objeto no Storage');
+select throws_ok($$select public.finalize_asset('20000000-0000-4000-8000-000000000a01')$$, '42501', null, 'cliente não finaliza (sem objeto no Storage): função revogada; a verificação do objeto é da Edge Function');
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000000a2');
 select throws_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000a03', '10000000-0000-4000-8000-00000000000a', 'logo', 'image/png', 400, 400)$$, 'MM004', 'forbidden', 'outro host não abre asset em A');
 select throws_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000a01', '10000000-0000-4000-8000-00000000000a', 'logo', 'image/png', 400, 400)$$, 'MM004', 'forbidden', 'não se assume o asset de outro');
-select throws_ok($$select public.finalize_asset('20000000-0000-4000-8000-000000000a01')$$, 'MM004', 'forbidden', 'outro host não finaliza asset de A');
+select throws_ok($$select public.finalize_asset('20000000-0000-4000-8000-000000000a01')$$, '42501', null, 'outro host não finaliza asset de A (função revogada ao cliente)');
 select is((select count(*)::int from public.event_assets), 0, 'outro host não lê assets de A');
 select is(public.can_upload_branding('10000000-0000-4000-8000-00000000000a/20000000-0000-4000-8000-000000000a01'), false, 'outro host não sobe no caminho de A');
 reset role;
@@ -326,12 +326,12 @@ reset role;
 -- objeto com MIME errado (declarado png, subiu jpeg) e logo grande demais
 select tests.fake_object('event-branding', '10000000-0000-4000-8000-00000000000a/20000000-0000-4000-8000-000000000a01', 1000, 'image/jpeg');
 select tests.login('00000000-0000-4000-8000-0000000000a1');
-select throws_ok($$select public.finalize_asset('20000000-0000-4000-8000-000000000a01')$$, 'MM005', 'invalid', 'MIME real diferente do declarado é recusado');
+select throws_ok($$select public.finalize_asset('20000000-0000-4000-8000-000000000a01')$$, '42501', null, 'MIME mentiroso não passa por finalize do cliente (revogado)');
 reset role;
 select tests.clear_branding();
 select tests.fake_object('event-branding', '10000000-0000-4000-8000-00000000000a/20000000-0000-4000-8000-000000000a01', 3000000, 'image/png');
 select tests.login('00000000-0000-4000-8000-0000000000a1');
-select throws_ok($$select public.finalize_asset('20000000-0000-4000-8000-000000000a01')$$, 'MM005', 'invalid', 'logo acima de 2 MiB é recusado');
+select throws_ok($$select public.finalize_asset('20000000-0000-4000-8000-000000000a01')$$, '42501', null, 'logo grande não passa por finalize do cliente (revogado)');
 reset role;
 select tests.clear_branding();
 
@@ -353,8 +353,11 @@ select throws_ok($$insert into storage.objects (bucket_id, name, metadata) value
   '23505', null, 'Storage: sem sobrescrever (nome já existe)');
 update storage.objects set metadata = '{"size":1,"mimetype":"image/png"}' where bucket_id = 'event-branding';
 select is((select (metadata ->> 'size')::int from storage.objects where bucket_id = 'event-branding'), 1000, 'Storage: sem UPDATE (ninguém altera objeto existente)');
-select is((public.finalize_asset('20000000-0000-4000-8000-000000000a01') ->> 'uploadStatus'), 'pronta', 'finalize publica o logo com objeto válido');
-select is((select bytes from public.event_assets where id = '20000000-0000-4000-8000-000000000a01'), 1000, 'bytes vêm do objeto real');
+set local role service_role;
+select lives_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000a01', '00000000-0000-4000-8000-0000000000a1', 200, 200, 1000, 'image/png')$$, 'validação do servidor publica o logo');
+set local role authenticated;
+select is((select upload_status from public.event_assets where id = '20000000-0000-4000-8000-000000000a01'), 'pronta', 'ativo publicado após validação do servidor');
+select is((select bytes from public.event_assets where id = '20000000-0000-4000-8000-000000000a01'), 1000, 'bytes vêm da validação do servidor');
 select throws_ok($$insert into storage.objects (bucket_id, name, metadata) values ('event-branding', '10000000-0000-4000-8000-00000000000a/20000000-0000-4000-8000-000000000a01', '{}')$$,
   '42501', null, 'Storage: depois de publicado não há mais upload no caminho');
 reset role;
@@ -613,6 +616,26 @@ select is((select count(*)::int from pg_trigger where tgrelid = 'public.audit_lo
 select is(has_table_privilege('service_role', 'public.audit_logs', 'UPDATE') or has_table_privilege('service_role', 'public.audit_logs', 'DELETE') or has_table_privilege('service_role', 'public.audit_logs', 'TRUNCATE'), false, 'service_role não altera nem apaga a auditoria');
 select has_column('public', 'storage_purge_queue', 'bucket', 'fila de purga conhece o bucket');
 select is(has_function_privilege('authenticated', 'public.expire_pending_assets()', 'EXECUTE'), false, 'expiração de assets não é chamável pelo cliente');
+
+-- ===================================================== validação real de logo/capa (migration 0800)
+select is(has_function_privilege('authenticated', 'public.mark_asset_validated(uuid, uuid, int, int, int, text)', 'EXECUTE'), false, 'cliente não confirma ativo (só a Edge Function / service_role)');
+select is(has_function_privilege('anon', 'public.mark_asset_validated(uuid, uuid, int, int, int, text)', 'EXECUTE'), false, 'anon não confirma ativo');
+select is(has_function_privilege('service_role', 'public.mark_asset_validated(uuid, uuid, int, int, int, text)', 'EXECUTE'), true, 'service_role confirma ativo');
+select is(has_function_privilege('authenticated', 'public.finalize_asset(uuid)', 'EXECUTE'), false, 'finalize_asset não é mais chamável pelo cliente');
+
+-- mark_asset_validated (chamada só pela Edge Function): regras do servidor, sem confiar no cliente
+reset role;
+insert into public.event_assets (id, event_id, kind, storage_path, mime, width, height, created_by)
+values ('20000000-0000-4000-8000-000000000b01', '10000000-0000-4000-8000-00000000000a', 'logo', '10000000-0000-4000-8000-00000000000a/20000000-0000-4000-8000-000000000b01', 'image/png', 200, 200, '00000000-0000-4000-8000-0000000000a1');
+set local role service_role;
+select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a2', 200, 200, 1000, 'image/png')$$, 'MM004', 'forbidden', 'validação em nome de outro host é recusada');
+select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 200, 200, 1000, 'image/gif')$$, 'MM005', 'invalid', 'tipo fora da lista é recusado (gif)');
+select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 200, 200, 2097153, 'image/png')$$, 'MM005', 'invalid', 'logo acima de 2 MiB é recusado');
+select throws_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 8, 200, 1000, 'image/png')$$, 'MM005', 'invalid', 'dimensão real fora de 16–8192 é recusada');
+select lives_ok($$select public.mark_asset_validated('20000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-0000000000a1', 320, 240, 5000, 'image/webp')$$, 'validação correta publica o ativo');
+select is((select upload_status || ':' || width || 'x' || height || ':' || mime from public.event_assets where id = '20000000-0000-4000-8000-000000000b01'), 'pronta:320x240:image/webp', 'dimensões e tipo gravados são os REAIS, não os declarados');
+select is((select count(*)::int from public.audit_logs where action = 'asset.published' and target_id = '20000000-0000-4000-8000-000000000b01' and (detail ->> 'validated')::boolean), 1, 'publicação validada auditada');
+reset role;
 
 select * from finish();
 rollback;

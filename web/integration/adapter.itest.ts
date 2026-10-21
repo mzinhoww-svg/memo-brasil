@@ -151,18 +151,37 @@ describe("adaptador Supabase atrás do contrato de repositório", () => {
       await expect(host.events.save({ ...h, theme: bad })).rejects.toBeInstanceOf(RepositoryError);
       expect((await host.events.get(tEvent))?.theme?.preset).toBe("oceano");
     });
-    it("logo e capa: host envia em duas fases, membro assina a URL, estranho não; SVG e tipo falso são recusados", async () => {
+    it("logo e capa: o servidor valida o ARQUIVO REAL (assinatura, tipo, dimensões); membro assina a URL, estranho não", async () => {
       const png = fs.readFileSync(path.resolve(__dirname, "../public/pwa/icon-192.png"));
       const file = (type = "image/png", body: Buffer | string = png) => new File([body as BlobPart], "x", { type });
-      const a = await uploadBrandAsset(hostSb, tEvent, "logo", file(), { width: 192, height: 192 });
+      const JPEG1 = Buffer.from("/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=", "base64");
+      // dimensões declaradas FALSAS (100x100): o servidor grava as reais (192x192)
+      const a = await uploadBrandAsset(hostSb, tEvent, "logo", file(), { width: 100, height: 100 });
+      const row = await admin.from("event_assets").select("width,height,mime,upload_status").eq("id", a.id).single();
+      expect(row.data).toMatchObject({ width: 192, height: 192, mime: "image/png", upload_status: "pronta" });
       expect((await currentAsset(hostSb, tEvent, "logo"))?.id).toBe(a.id);
       expect(await assetUrl(guestSb, a)).toMatch(/^http/); // membro do evento
       expect(await assetUrl(strangerSb, a)).toBeUndefined(); // quem não entrou
-      await expect(uploadBrandAsset(guestSb, tEvent, "cover", file(), { width: 192, height: 192 })).rejects.toThrow(); // membro não é host
-      await expect(uploadBrandAsset(hostSb, tEvent, "cover", file("image/svg+xml", "<svg xmlns='http://www.w3.org/2000/svg'/>"), { width: 192, height: 192 })).rejects.toThrow(/PNG, JPEG ou WebP/);
-      const dup = await uploadBrandAsset(hostSb, tEvent, "logo", file(), { width: 192, height: 192 }); // substitui
+      // arquivos hostis com Content-Type de imagem
+      const antes = (await admin.from("event_assets").select("id").eq("event_id", tEvent)).data!.length;
+      await expect(uploadBrandAsset(hostSb, tEvent, "cover", file("image/png", "<html><script>alert(1)</script></html>"), { width: 400, height: 300 })).rejects.toThrow(/não é uma imagem/);
+      await expect(uploadBrandAsset(hostSb, tEvent, "cover", file("image/png", "GIF89a\x01\x00\x01\x00"), { width: 400, height: 300 })).rejects.toThrow(/não é uma imagem/);
+      await expect(uploadBrandAsset(hostSb, tEvent, "cover", file("image/png", JPEG1), { width: 400, height: 300 })).rejects.toThrow(/não confere|dimensões|PNG/); // JPEG declarado como PNG (e 1x1)
+      await expect(uploadBrandAsset(hostSb, tEvent, "cover", file("image/svg+xml", "<svg xmlns='http://www.w3.org/2000/svg'/>"), { width: 400, height: 300 })).rejects.toThrow(/PNG, JPEG ou WebP/);
+      expect((await admin.from("event_assets").select("id").eq("event_id", tEvent)).data).toHaveLength(antes); // nenhuma linha órfã
+      const objs = await admin.storage.from("event-branding").list(tEvent);
+      expect((objs.data ?? []).filter((o) => o.name !== a.storagePath.split("/")[1])).toHaveLength(0); // nenhum objeto órfão
+      // quem não é o host não finaliza nem aciona a função; anônimo é recusado
+      const mine = crypto.randomUUID();
+      expect((await hostSb.rpc("begin_asset", { p_id: mine, p_event: tEvent, p_kind: "cover", p_mime: "image/png", p_width: 192, p_height: 192 })).error).toBeNull();
+      const byGuest = await guestSb.functions.invoke("finalize-asset", { body: { assetId: mine } });
+      expect(byGuest.error).toBeTruthy();
+      const viaRpc = await hostSb.rpc("finalize_asset", { p_id: mine });
+      expect(viaRpc.error?.code).toBe("42501"); // o cliente não finaliza por RPC
+      await hostSb.rpc("discard_asset", { p_id: mine });
+      // substituir: o ativo anterior some
+      const dup = await uploadBrandAsset(hostSb, tEvent, "logo", file(), { width: 192, height: 192 });
       expect(dup.id).not.toBe(a.id);
-      expect((await currentAsset(hostSb, tEvent, "logo"))?.id).toBe(dup.id);
       const { data } = await admin.from("event_assets").select("id").eq("event_id", tEvent).eq("kind", "logo");
       expect(data).toHaveLength(1);
     });
