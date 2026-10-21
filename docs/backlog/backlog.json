@@ -1,0 +1,2504 @@
+{
+ "meta": {
+  "project": "MemoriesMT",
+  "version": 1,
+  "updated": "2026-10-21",
+  "branch": "feat/memoriesmt",
+  "workflow": [
+   "BACKLOG",
+   "READY",
+   "IN_PROGRESS",
+   "IN_REVIEW",
+   "TESTING",
+   "DONE"
+  ],
+  "extra": [
+   "BLOCKED",
+   "DEFERRED",
+   "CANCELLED"
+  ],
+  "rule": "DONE exige implementação, testes, evidências e documentação atualizada."
+ },
+ "epics": {
+  "EP-01": "Eventos e convites",
+  "EP-02": "Captura, fotos e moderação",
+  "EP-03": "Revelação programada",
+  "EP-04": "Design system e experiência",
+  "EP-05": "PWA e offline",
+  "EP-06": "Segurança e papéis",
+  "EP-07": "Qualidade e testes",
+  "EP-08": "Prontidão para o Supabase",
+  "EP-09": "Fase Supabase (exclusivo do backend)",
+  "EP-10": "Governança e release"
+ },
+ "items": [
+  {
+   "id": "EP-01",
+   "type": "EPIC",
+   "title": "Eventos e convites",
+   "description": "Eventos e convites",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P2",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-01 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-02",
+   "type": "EPIC",
+   "title": "Captura, fotos e moderação",
+   "description": "Captura, fotos e moderação",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P2",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-02 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-03",
+   "type": "EPIC",
+   "title": "Revelação programada",
+   "description": "Revelação programada",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P1",
+   "status": "IN_PROGRESS",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-03 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-04",
+   "type": "EPIC",
+   "title": "Design system e experiência",
+   "description": "Design system e experiência",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P2",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-04 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-05",
+   "type": "EPIC",
+   "title": "PWA e offline",
+   "description": "PWA e offline",
+   "epic": "EP-05",
+   "parent": null,
+   "priority": "P2",
+   "status": "IN_PROGRESS",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-05 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-06",
+   "type": "EPIC",
+   "title": "Segurança e papéis",
+   "description": "Segurança e papéis",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P2",
+   "status": "IN_PROGRESS",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-06 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-07",
+   "type": "EPIC",
+   "title": "Qualidade e testes",
+   "description": "Qualidade e testes",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P2",
+   "status": "IN_PROGRESS",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-07 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-08",
+   "type": "EPIC",
+   "title": "Prontidão para o Supabase",
+   "description": "Prontidão para o Supabase",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P2",
+   "status": "IN_PROGRESS",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-08 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-09",
+   "type": "EPIC",
+   "title": "Fase Supabase (exclusivo do backend)",
+   "description": "Fase Supabase (exclusivo do backend)",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P2",
+   "status": "DEFERRED",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-09 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-10",
+   "type": "EPIC",
+   "title": "Governança e release",
+   "description": "Governança e release",
+   "epic": "EP-10",
+   "parent": null,
+   "priority": "P1",
+   "status": "IN_PROGRESS",
+   "dependencies": [],
+   "origin": "projeto",
+   "acceptance": [
+    "Todos os itens do epic EP-10 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-001",
+   "type": "FEATURE",
+   "title": "Criar evento (wizard de 6 passos)",
+   "description": "Criar evento (wizard de 6 passos)",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-13..F-21",
+   "acceptance": [
+    "Nome, categoria, término ≥30 min, revelação, câmera/cor, convidados e fotos por pessoa",
+    "Mensagens de erro dizem o que fazer"
+   ],
+   "files": [
+    "web/src/features/events/wizard.tsx",
+    "web/src/features/events/service.ts"
+   ],
+   "tests": [
+    "web/src/features/features.test.ts",
+    "web/e2e/flows.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/TRACEABILITY-MATRIX.md"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-002",
+   "type": "FEATURE",
+   "title": "Convite por código, link e QR (e QR por mesa)",
+   "description": "Convite por código, link e QR (e QR por mesa)",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-11,F-12,F-24,F-25",
+   "acceptance": [
+    "Código de 8 caracteres sem 0/O/1/I/L",
+    "Link /e/CODE?mesa=…"
+   ],
+   "files": [
+    "web/src/features/invitations/",
+    "web/src/app/painel/[id]/qr/page.tsx"
+   ],
+   "tests": [
+    "web/src/domain/domain.test.ts",
+    "web/src/features/invitations/qr.test.ts",
+    "web/e2e/flows.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/390-dia-qr.png"
+   ],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-003",
+   "type": "FEATURE",
+   "title": "Entrar no evento (código/link) com identidade local",
+   "description": "Entrar no evento (código/link) com identidade local",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-05,F-06",
+   "acceptance": [
+    "Rejeita código inválido, evento encerrado e lotado",
+    "Entradas simultâneas não passam da capacidade"
+   ],
+   "files": [
+    "web/src/features/participants/service.ts",
+    "web/src/app/e/[code]/page.tsx"
+   ],
+   "tests": [
+    "web/src/features/features.test.ts"
+   ],
+   "evidence": [
+    "docs/qa/FINAL-AUDIT.md"
+   ],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-004",
+   "type": "FEATURE",
+   "title": "Painel do organizador (visão geral, conteúdo, convidados, momentos, QR, configurações, downloads)",
+   "description": "Painel do organizador (visão geral, conteúdo, convidados, momentos, QR, configurações, downloads)",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-34,F-36; DS AdminNav",
+   "acceptance": [
+    "Só o organizador do evento abre o painel (contrato can())"
+   ],
+   "files": [
+    "web/src/app/painel/"
+   ],
+   "tests": [
+    "web/e2e/flows.spec.ts",
+    "web/e2e/a11y.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/1440-dia-painel-visao-geral.png"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-005",
+   "type": "FEATURE",
+   "title": "Capacidade, fotos por pessoa e regra de preço (sem cobrança)",
+   "description": "Capacidade, fotos por pessoa e regra de preço (sem cobrança)",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P2",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-21,F-22",
+   "acceptance": [
+    "≤10 grátis; >10 mostra aviso de demonstração e não cobra"
+   ],
+   "files": [
+    "web/src/domain/pricing.ts",
+    "web/src/domain/options.ts"
+   ],
+   "tests": [
+    "web/src/domain/domain.test.ts"
+   ],
+   "evidence": [],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-006",
+   "type": "FEATURE",
+   "title": "Onboarding de propósito do evento",
+   "description": "A categoria já existe no wizard; falta a tela de propósito no primeiro acesso.",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "REA F-07",
+   "acceptance": [
+    "Escolha de propósito reaproveita as categorias",
+    "Pulável"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-007",
+   "type": "FEATURE",
+   "title": "Capa do convite por imagem (upload e recorte)",
+   "description": "Hoje a identidade do evento é paleta + fonte (kit). Capa por imagem depende de decisão de produto.",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "REA F-20",
+   "acceptance": [
+    "Upload local com recorte",
+    "Validação de tipo e tamanho"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-008",
+   "type": "FEATURE",
+   "title": "Encerrar agora, estender término e excluir evento",
+   "description": "Encerrar agora, estender término e excluir evento",
+   "epic": "EP-01",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-36",
+   "acceptance": [
+    "Álbum encerrado com fotos não reabre",
+    "Excluir exige confirmação e apaga em cascata"
+   ],
+   "files": [
+    "web/src/features/events/service.ts",
+    "web/src/app/painel/[id]/configuracoes/page.tsx"
+   ],
+   "tests": [
+    "web/src/features/features.test.ts",
+    "web/e2e/flows.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-010",
+   "type": "FEATURE",
+   "title": "Câmera web (virar, rolo, permissão, fallback por arquivo)",
+   "description": "Câmera web (virar, rolo, permissão, fallback por arquivo)",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-26",
+   "acceptance": [
+    "Permissão negada mostra caminho alternativo",
+    "Última foto do rolo mostra a confirmação"
+   ],
+   "files": [
+    "web/src/app/e/[code]/(app)/postar/page.tsx"
+   ],
+   "tests": [
+    "web/e2e/flows.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/390-dia-postar.png"
+   ],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "TK-010a",
+   "type": "TASK",
+   "title": "Zoom 1×/2× via constraints do track (onde suportado)",
+   "description": "Zoom 1×/2× via constraints do track (onde suportado)",
+   "epic": "EP-02",
+   "parent": "FT-010",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "FT-010"
+   ],
+   "origin": "REA F-26",
+   "acceptance": [
+    "Chips só aparecem quando track.getCapabilities().zoom existe"
+   ],
+   "files": [],
+   "tests": [
+    "a criar: E2E com câmera sintética + teste unitário do helper"
+   ],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-011",
+   "type": "FEATURE",
+   "title": "Rolo limitado por pessoa (cliente) com exclusão mútua",
+   "description": "Rolo limitado por pessoa (cliente) com exclusão mútua",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-28",
+   "acceptance": [
+    "12 postagens simultâneas = rolo"
+   ],
+   "files": [
+    "web/src/lib/lock.ts",
+    "web/src/features/photos/service.ts"
+   ],
+   "tests": [
+    "web/src/features/features.test.ts",
+    "web/src/lib/lock.test.ts"
+   ],
+   "evidence": [],
+   "commit": "7e0f9ec",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-012",
+   "type": "FEATURE",
+   "title": "Reações (1 por pessoa/foto) e Quem reagiu",
+   "description": "Reações (1 por pessoa/foto) e Quem reagiu",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P2",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-32",
+   "acceptance": [],
+   "files": [
+    "web/src/domain/photo.ts",
+    "web/src/features/photos/components.tsx"
+   ],
+   "tests": [
+    "web/src/domain/domain.test.ts",
+    "web/e2e/flows.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-013",
+   "type": "FEATURE",
+   "title": "Editor de fotos (desenho, texto, borracha, colagem, desfazer)",
+   "description": "Editor de fotos (desenho, texto, borracha, colagem, desfazer)",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P2",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-33",
+   "acceptance": [
+    "Concluir baixa a versão editada (decisão D10)"
+   ],
+   "files": [
+    "web/src/features/photos/editor.tsx",
+    "web/src/domain/collage.ts"
+   ],
+   "tests": [
+    "web/src/domain/collage.test.ts",
+    "web/e2e/flows.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-014",
+   "type": "FEATURE",
+   "title": "Exportar álbum (ZIP) e lista (CSV) e baixar foto",
+   "description": "Exportar álbum (ZIP) e lista (CSV) e baixar foto",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P2",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA F-34",
+   "acceptance": [],
+   "files": [
+    "web/src/features/admin/export.ts"
+   ],
+   "tests": [
+    "web/src/features/admin/export.test.ts",
+    "web/e2e/flows.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-015",
+   "type": "FEATURE",
+   "title": "Compartilhar fotos pelo Web Share",
+   "description": "Compartilhar fotos pelo Web Share",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "REA F-35",
+   "acceptance": [
+    "navigator.share com arquivos quando suportado; fallback para baixar"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-016",
+   "type": "FEATURE",
+   "title": "Moderação (pedido de remoção, ocultar, destacar, remover)",
+   "description": "Moderação (pedido de remoção, ocultar, destacar, remover)",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "decisão de produto; DS Tabs/CountBadge",
+   "acceptance": [],
+   "files": [
+    "web/src/app/painel/[id]/conteudo/page.tsx",
+    "web/src/features/admin/service.ts"
+   ],
+   "tests": [
+    "web/e2e/flows.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-017",
+   "type": "FEATURE",
+   "title": "Fotos e estado locais em IndexedDB (cascata, migração versionada)",
+   "description": "Fotos e estado locais em IndexedDB (cascata, migração versionada)",
+   "epic": "EP-02",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito do pedido",
+   "acceptance": [
+    "Migração v1→v2 converte eventos antigos"
+   ],
+   "files": [
+    "web/src/repositories/"
+   ],
+   "tests": [
+    "web/src/repositories/repositories.test.ts"
+   ],
+   "evidence": [],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-030",
+   "type": "FEATURE",
+   "title": "Contrato de revelação programada",
+   "description": "Contrato de revelação programada",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito novo (correção de escopo)",
+   "acceptance": [
+    "Campos reveal_enabled, reveal_at, timezone, reveal_status tipados",
+    "Estado = f(now, reveal_at), nunca só timer"
+   ],
+   "files": [],
+   "tests": [
+    "web/src/domain/reveal.test.ts",
+    "web/src/repositories/repositories.test.ts"
+   ],
+   "evidence": [
+    "web/src/domain/reveal.ts",
+    "web/src/domain/event.ts"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "US-030a",
+   "type": "USER_STORY",
+   "title": "Como organizador, quero que o evento tenha revelação opcional com data, hora e fuso",
+   "description": "Como organizador, quero que o evento tenha revelação opcional com data, hora e fuso",
+   "epic": "EP-03",
+   "parent": "FT-030",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "FT-030"
+   ],
+   "origin": "requisito novo",
+   "acceptance": [
+    "Desligada = fotos na hora",
+    "Ligada exige reveal_at"
+   ],
+   "files": [],
+   "tests": [
+    "web/src/domain/reveal.test.ts",
+    "web/src/features/features.test.ts"
+   ],
+   "evidence": [],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "TK-030a1",
+   "type": "TASK",
+   "title": "Domínio de revelação (status, validação, travas, contagem, fuso)",
+   "description": "Domínio de revelação (status, validação, travas, contagem, fuso)",
+   "epic": "EP-03",
+   "parent": "US-030a",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA",
+   "acceptance": [
+    "Fuso Cuiabá −4, São Paulo −3, Lisboa com DST",
+    "Fronteira now===reveal_at é revelada"
+   ],
+   "files": [
+    "web/src/domain/reveal.ts"
+   ],
+   "tests": [
+    "web/src/domain/reveal.test.ts"
+   ],
+   "evidence": [
+    "web/src/domain/reveal.test.ts"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "TK-030a2",
+   "type": "TASK",
+   "title": "Migração v2 do IndexedDB (revealTiming → novo contrato) e tipos do evento",
+   "description": "Migração v2 do IndexedDB (revealTiming → novo contrato) e tipos do evento",
+   "epic": "EP-03",
+   "parent": "US-030a",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "TK-030a1"
+   ],
+   "origin": "REA",
+   "acceptance": [],
+   "files": [
+    "web/src/repositories/indexeddb/index.ts",
+    "web/src/domain/event.ts"
+   ],
+   "tests": [
+    "web/src/repositories/repositories.test.ts"
+   ],
+   "evidence": [],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "TK-030a3",
+   "type": "TASK",
+   "title": "Serviços: criar com revelação, updateReveal com travas, reconcileReveal idempotente",
+   "description": "Serviços: criar com revelação, updateReveal com travas, reconcileReveal idempotente",
+   "epic": "EP-03",
+   "parent": "US-030a",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "TK-030a1"
+   ],
+   "origin": "REA",
+   "acceptance": [],
+   "files": [
+    "web/src/features/events/service.ts",
+    "web/src/features/events/reveal-input.ts"
+   ],
+   "tests": [
+    "web/src/features/features.test.ts"
+   ],
+   "evidence": [],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-031",
+   "type": "FEATURE",
+   "title": "Configuração pelo organizador",
+   "description": "Configuração pelo organizador",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "FT-030"
+   ],
+   "origin": "requisito novo; DS Field/OptionGroup",
+   "acceptance": [],
+   "files": [],
+   "tests": [
+    "web/e2e/reveal.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/revelacao-390-dia-config.png"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "US-031a",
+   "type": "USER_STORY",
+   "title": "Como organizador, quero ligar, desligar, escolher data/hora/fuso, ver o resumo e pré-visualizar",
+   "description": "Como organizador, quero ligar, desligar, escolher data/hora/fuso, ver o resumo e pré-visualizar",
+   "epic": "EP-03",
+   "parent": "FT-031",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "TK-030a3"
+   ],
+   "origin": "REA",
+   "acceptance": [
+    "Resumo no fuso do evento",
+    "Prévia mostra a tela do convidado",
+    "Após a revelação não altera"
+   ],
+   "files": [],
+   "tests": [
+    "web/e2e/reveal.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/revelacao-1440-dia-config.png"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "TK-031a1",
+   "type": "TASK",
+   "title": "RevealForm (wizard passo 3) e Select do kit",
+   "description": "RevealForm (wizard passo 3) e Select do kit",
+   "epic": "EP-03",
+   "parent": "US-031a",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA",
+   "acceptance": [],
+   "files": [
+    "web/src/features/events/RevealForm.tsx",
+    "web/src/components/memoriesmt/Select.tsx"
+   ],
+   "tests": [
+    "web/e2e/reveal.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "TK-031a2",
+   "type": "TASK",
+   "title": "RevealSettings no painel (salvar, travas, prévia)",
+   "description": "RevealSettings no painel (salvar, travas, prévia)",
+   "epic": "EP-03",
+   "parent": "US-031a",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "TK-031a1"
+   ],
+   "origin": "REA",
+   "acceptance": [],
+   "files": [
+    "web/src/features/events/RevealSettings.tsx"
+   ],
+   "tests": [
+    "web/e2e/reveal.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/revelacao-390-dia-config.png"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-032",
+   "type": "FEATURE",
+   "title": "Experiência do convidado: espera, contagem, revelação e galeria",
+   "description": "Experiência do convidado: espera, contagem, revelação e galeria",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "FT-030"
+   ],
+   "origin": "requisito novo",
+   "acceptance": [],
+   "files": [],
+   "tests": [
+    "web/e2e/reveal.spec.ts",
+    "web/e2e/reveal-visual.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/revelacao-390-dia-espera.png"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "US-032a",
+   "type": "USER_STORY",
+   "title": "Como convidado, quero fotografar sem ver fotos bloqueadas e ver a espera com contagem",
+   "description": "Como convidado, quero fotografar sem ver fotos bloqueadas e ver a espera com contagem",
+   "epic": "EP-03",
+   "parent": "FT-032",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "TK-030a1"
+   ],
+   "origin": "REA",
+   "acceptance": [
+    "Nenhuma foto na galeria antes da revelação, nem as próprias",
+    "Contagem no fuso do evento",
+    "Mostra quantidade quando autorizado"
+   ],
+   "files": [],
+   "tests": [
+    "web/e2e/reveal.spec.ts",
+    "web/src/domain/domain.test.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/revelacao-390-dia-espera.png"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "US-032b",
+   "type": "USER_STORY",
+   "title": "Como convidado, quero que a galeria abra sozinha na hora, mesmo offline, sem recarregar",
+   "description": "Como convidado, quero que a galeria abra sozinha na hora, mesmo offline, sem recarregar",
+   "epic": "EP-03",
+   "parent": "FT-032",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "US-032a"
+   ],
+   "origin": "REA",
+   "acceptance": [
+    "Transição de revelação",
+    "Navegação e estado preservados",
+    "Funciona offline e ao reabrir o app depois do horário"
+   ],
+   "files": [],
+   "tests": [
+    "web/e2e/reveal.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/revelacao-390-noite-transicao.png"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "TK-032a",
+   "type": "TASK",
+   "title": "WaitingReveal, RevealTransition e integração no layout do convidado",
+   "description": "WaitingReveal, RevealTransition e integração no layout do convidado",
+   "epic": "EP-03",
+   "parent": "US-032a",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA",
+   "acceptance": [],
+   "files": [
+    "web/src/features/reveal/",
+    "web/src/app/e/[code]/(app)/layout.tsx"
+   ],
+   "tests": [
+    "web/e2e/reveal.spec.ts",
+    "web/e2e/reveal-visual.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "US-032c",
+   "type": "USER_STORY",
+   "title": "Modo sem revelação: fotos aparecem na hora",
+   "description": "Modo sem revelação: fotos aparecem na hora",
+   "epic": "EP-03",
+   "parent": "FT-032",
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "REA",
+   "acceptance": [],
+   "files": [],
+   "tests": [
+    "web/e2e/reveal.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/revelacao-390-dia-sem-revelacao.png"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-033",
+   "type": "FEATURE",
+   "title": "Casos especiais de revelação",
+   "description": "Casos especiais de revelação",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [
+    "TK-030a3"
+   ],
+   "origin": "requisito novo",
+   "acceptance": [
+    "Horário já ultrapassado",
+    "Evento encerrado antes da revelação",
+    "Alteração de data e de fuso",
+    "Entrada depois da revelação",
+    "App fechado na hora",
+    "Offline e reconexão",
+    "Foto removida",
+    "Dois participantes",
+    "Organizador após a revelação"
+   ],
+   "files": [],
+   "tests": [
+    "web/src/features/features.test.ts",
+    "web/e2e/reveal.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-034",
+   "type": "FEATURE",
+   "title": "Papéis: organizador × administrador master (contrato)",
+   "description": "Papéis: organizador × administrador master (contrato)",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P0",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito novo",
+   "acceptance": [
+    "Sem senha fixa nem parâmetro de URL para master",
+    "Organizador só administra os próprios eventos"
+   ],
+   "files": [
+    "web/src/domain/roles.ts",
+    "web/src/app/master/page.tsx",
+    "docs/architecture/ROLES.md"
+   ],
+   "tests": [
+    "web/src/domain/reveal.test.ts",
+    "web/e2e/reveal.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-035",
+   "type": "FEATURE",
+   "title": "Documentar a revelação no servidor (permissões, storage privado, URLs assinadas, idempotência, sincronização)",
+   "description": "Documentar a revelação no servidor (permissões, storage privado, URLs assinadas, idempotência, sincronização)",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito novo",
+   "acceptance": [],
+   "files": [
+    "docs/supabase/INTEGRATION-PLAN.md"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/supabase/INTEGRATION-PLAN.md §4.1"
+   ],
+   "commit": "0e818dd",
+   "environment": null
+  },
+  {
+   "id": "FT-036",
+   "type": "FEATURE",
+   "title": "Validação visual e de acessibilidade da revelação (dia/noite, mobile/desktop)",
+   "description": "Validação visual e de acessibilidade da revelação (dia/noite, mobile/desktop)",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [
+    "FT-032"
+   ],
+   "origin": "REA",
+   "acceptance": [],
+   "files": [],
+   "tests": [
+    "web/e2e/reveal-visual.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/screenshots/revelacao-1440-noite-galeria.png"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-037",
+   "type": "FEATURE",
+   "title": "Validar a revelação no preview Vercel",
+   "description": "Validar a revelação no preview Vercel",
+   "epic": "EP-03",
+   "parent": null,
+   "priority": "P1",
+   "status": "TESTING",
+   "dependencies": [
+    "FT-036"
+   ],
+   "origin": "requisito novo",
+   "acceptance": [
+    "Preview no commit atual",
+    "Smoke remoto cobre revelação com relógio do navegador"
+   ],
+   "files": [],
+   "tests": [
+    "web/e2e/remote.spec.ts"
+   ],
+   "evidence": [],
+   "commit": null,
+   "environment": "preview Vercel (protegido)"
+  },
+  {
+   "id": "FT-020",
+   "type": "FEATURE",
+   "title": "Tokens, temas Dia/Noite, fontes locais e logos oficiais",
+   "description": "Tokens, temas Dia/Noite, fontes locais e logos oficiais",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "DS-01..DS-04",
+   "acceptance": [],
+   "files": [
+    "web/src/styles/tokens.css",
+    "web/src/app/globals.css"
+   ],
+   "tests": [
+    "web/e2e/visual.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/VISUAL-VALIDATION.md"
+   ],
+   "commit": "ac290ea",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-021",
+   "type": "FEATURE",
+   "title": "Biblioteca de componentes MemoriesMT (22 + Select, Sheet, KnownPeople)",
+   "description": "Biblioteca de componentes MemoriesMT (22 + Select, Sheet, KnownPeople)",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "DS-05",
+   "acceptance": [],
+   "files": [
+    "web/src/components/memoriesmt/"
+   ],
+   "tests": [
+    "web/src/components/memoriesmt/components.test.tsx",
+    "web/e2e/visual.spec.ts"
+   ],
+   "evidence": [
+    "paridade de 15 estilos com os previews do kit"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-022",
+   "type": "FEATURE",
+   "title": "Regras visuais e voz do kit (sem sombra/gradiente/emoji, pt-BR)",
+   "description": "Regras visuais e voz do kit (sem sombra/gradiente/emoji, pt-BR)",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "DS-06,DS-07",
+   "acceptance": [],
+   "files": [],
+   "tests": [
+    "web/e2e/a11y.spec.ts"
+   ],
+   "evidence": [
+    "docs/qa/FINAL-AUDIT.md"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "BG-020",
+   "type": "BUG",
+   "title": "theme_color do manifest fixo (não acompanha Noite)",
+   "description": "theme_color do manifest fixo (não acompanha Noite)",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Meta theme-color por esquema já existe; manifest dinâmico por tema não é possível: documentar ou aceitar"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "BG-021",
+   "type": "BUG",
+   "title": "Nome de evento longo a 375 px não medido",
+   "description": "Nome de evento longo a 375 px não medido",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Evento com 60 caracteres sem rolagem horizontal em 375 px nos dois temas"
+   ],
+   "files": [
+    "web/src/styles/app.css"
+   ],
+   "tests": [
+    "a criar: e2e/visual com título de 60 caracteres"
+   ],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "BG-022",
+   "type": "BUG",
+   "title": "Sem validação em Safari/iOS e Firefox",
+   "description": "Sem validação em Safari/iOS e Firefox",
+   "epic": "EP-04",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Projetos WebKit e Firefox no Playwright rodam o smoke e o fluxo de convidado",
+    "Registrar o que falhar"
+   ],
+   "files": [
+    "web/playwright.config.ts"
+   ],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-040",
+   "type": "FEATURE",
+   "title": "PWA instalável (manifest, ícones, maskable)",
+   "description": "PWA instalável (manifest, ícones, maskable)",
+   "epic": "EP-05",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito do pedido",
+   "acceptance": [],
+   "files": [
+    "web/src/app/manifest.ts",
+    "web/public/pwa/"
+   ],
+   "tests": [
+    "web/e2e/smoke.spec.ts",
+    "web/e2e/pwa.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "7e0f9ec",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-041",
+   "type": "FEATURE",
+   "title": "Service worker versionado por deploy, shell offline e dados em IndexedDB",
+   "description": "Service worker versionado por deploy, shell offline e dados em IndexedDB",
+   "epic": "EP-05",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito do pedido",
+   "acceptance": [],
+   "files": [
+    "web/public/sw.js",
+    "web/src/lib/register-sw.tsx"
+   ],
+   "tests": [
+    "web/e2e/pwa.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "7e0f9ec",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "BG-040",
+   "type": "BUG",
+   "title": "Rota dinâmica nunca visitada não abre offline",
+   "description": "Rota dinâmica nunca visitada não abre offline",
+   "epic": "EP-05",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Shell genérico para /e/* e /painel/* servido offline",
+    "Teste E2E com rota não visitada"
+   ],
+   "files": [
+    "web/public/sw.js"
+   ],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "BG-041",
+   "type": "BUG",
+   "title": "Atualização do SW num segundo deploy não verificada",
+   "description": "Atualização do SW num segundo deploy não verificada",
+   "epic": "EP-05",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Dois builds consecutivos: cache antigo some e o novo assume"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "BG-042",
+   "type": "BUG",
+   "title": "Lógica do SW sem teste unitário",
+   "description": "Lógica do SW sem teste unitário",
+   "epic": "EP-05",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Estratégias testadas em ambiente de worker simulado"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-050",
+   "type": "FEATURE",
+   "title": "Headers de segurança e CSP em produção",
+   "description": "Headers de segurança e CSP em produção",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [],
+   "files": [
+    "web/next.config.ts"
+   ],
+   "tests": [
+    "web/e2e/flows.spec.ts",
+    "web/e2e/remote.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "7e0f9ec",
+   "environment": "preview Vercel + local"
+  },
+  {
+   "id": "BG-050",
+   "type": "BUG",
+   "title": "CSP com unsafe-inline",
+   "description": "CSP com unsafe-inline",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Nonce por requisição em script e estilo inline"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "BG-051",
+   "type": "BUG",
+   "title": "Dependências sem auditoria de vulnerabilidades",
+   "description": "Dependências sem auditoria de vulnerabilidades",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P2",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "requisito de auditoria",
+   "acceptance": [
+    "npm audit sem alta/crítica em produção, ou exceção documentada"
+   ],
+   "files": [
+    "web/package.json"
+   ],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-051",
+   "type": "FEATURE",
+   "title": "Identidades locais e 'Continuar como'",
+   "description": "Identidades locais e 'Continuar como'",
+   "epic": "EP-06",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [],
+   "files": [],
+   "tests": [
+    "web/src/repositories/repositories.test.ts",
+    "web/e2e/flows.spec.ts"
+   ],
+   "evidence": [],
+   "commit": "7e0f9ec",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-060",
+   "type": "FEATURE",
+   "title": "Suíte unitária (domínio, repositórios, serviços, componentes)",
+   "description": "Suíte unitária (domínio, repositórios, serviços, componentes)",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito do pedido",
+   "acceptance": [],
+   "files": [],
+   "tests": [
+    "131 testes Vitest"
+   ],
+   "evidence": [
+    "npm test: 131 passed"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "FT-061",
+   "type": "FEATURE",
+   "title": "Suíte E2E (fluxos, PWA, visual, paridade, axe, revelação)",
+   "description": "Suíte E2E (fluxos, PWA, visual, paridade, axe, revelação)",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito do pedido",
+   "acceptance": [],
+   "files": [],
+   "tests": [
+    "50 testes Playwright (4 remotos pulados sem URL)"
+   ],
+   "evidence": [
+    "npx playwright test: 46 passed"
+   ],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "BG-060",
+   "type": "BUG",
+   "title": "Sem testes de useEventData e usePhotoUrls",
+   "description": "Sem testes de useEventData e usePhotoUrls",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Hooks testados com repositório em memória"
+   ],
+   "files": [
+    "web/src/features/app/hooks.ts"
+   ],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "BG-061",
+   "type": "BUG",
+   "title": "axe só em 390 px",
+   "description": "axe só em 390 px",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "axe também em 375, 768 e 1440"
+   ],
+   "files": [
+    "web/e2e/a11y.spec.ts"
+   ],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "BG-062",
+   "type": "BUG",
+   "title": "Evento grande (milhares de fotos) não medido",
+   "description": "Evento grande (milhares de fotos) não medido",
+   "epic": "EP-07",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Agora com 7.200 fotos mantém interação fluida; medir e registrar"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-070",
+   "type": "FEATURE",
+   "title": "Plano de integração Supabase (ERD, RLS, Auth, Storage, realtime, migração, conflitos)",
+   "description": "Plano de integração Supabase (ERD, RLS, Auth, Storage, realtime, migração, conflitos)",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito do pedido",
+   "acceptance": [],
+   "files": [
+    "docs/supabase/INTEGRATION-PLAN.md"
+   ],
+   "tests": [],
+   "evidence": [
+    "docs/supabase/INTEGRATION-PLAN.md"
+   ],
+   "commit": "0e818dd",
+   "environment": null
+  },
+  {
+   "id": "FT-071",
+   "type": "FEATURE",
+   "title": "Contratos de repositório e serviços atrás de interfaces",
+   "description": "Contratos de repositório e serviços atrás de interfaces",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "DONE",
+   "dependencies": [],
+   "origin": "requisito do pedido",
+   "acceptance": [],
+   "files": [
+    "web/src/repositories/types.ts",
+    "web/src/lib/services/index.ts"
+   ],
+   "tests": [
+    "web/src/repositories/repositories.test.ts"
+   ],
+   "evidence": [],
+   "commit": "0e818dd",
+   "environment": "local (build de produção, Chromium)"
+  },
+  {
+   "id": "BG-070",
+   "type": "BUG",
+   "title": "Exclusão em cascata não é atômica",
+   "description": "Exclusão em cascata não é atômica",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Cascata numa transação IndexedDB"
+   ],
+   "files": [
+    "web/src/repositories/index.ts"
+   ],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "BG-071",
+   "type": "BUG",
+   "title": "Outbox de sincronização offline ainda é só desenho",
+   "description": "Necessária antes de ligar upload remoto.",
+   "epic": "EP-08",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "AUD-001"
+   ],
+   "origin": "auditoria",
+   "acceptance": [
+    "Interface Outbox com testes e implementação local"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "AUD-001",
+   "type": "TASK",
+   "title": "Auditoria independente pré-Supabase (docs/audit/00..11)",
+   "description": "Auditoria independente pré-Supabase (docs/audit/00..11)",
+   "epic": "EP-10",
+   "parent": null,
+   "priority": "P0",
+   "status": "READY",
+   "dependencies": [
+    "FT-037"
+   ],
+   "origin": "auditoria",
+   "acceptance": [
+    "12 relatórios + evidências",
+    "Registro de achados classificado P0–P3",
+    "Release gate GO/CONDITIONAL/NO-GO",
+    "Achados consolidados neste backlog sem duplicar"
+   ],
+   "files": [
+    "docs/audit/"
+   ],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "REL-001",
+   "type": "TASK",
+   "title": "Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção",
+   "description": "Bloqueado: o destino foi inferido e a promoção exige autorização.",
+   "epic": "EP-10",
+   "parent": null,
+   "priority": "P1",
+   "status": "BLOCKED",
+   "dependencies": [],
+   "origin": "auditoria",
+   "acceptance": [
+    "Confirmação explícita de Aurimar",
+    "Commit e URL de produção verificados"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "REL-002",
+   "type": "TASK",
+   "title": "Manter preview como ambiente de validação e registrar commit/URL",
+   "description": "Manter preview como ambiente de validação e registrar commit/URL",
+   "epic": "EP-10",
+   "parent": null,
+   "priority": "P1",
+   "status": "TESTING",
+   "dependencies": [
+    "FT-037"
+   ],
+   "origin": "REA",
+   "acceptance": [
+    "Preview no commit mais recente",
+    "Acesso por link temporário oficial"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "preview Vercel (protegido)"
+  },
+  {
+   "id": "FT-080",
+   "type": "FEATURE",
+   "title": "Auth: Google (organizador) e anônima (convidado)",
+   "description": "Auth: Google (organizador) e anônima (convidado)",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-081",
+   "type": "FEATURE",
+   "title": "Web Push real e permissão de notificações",
+   "description": "Web Push real e permissão de notificações",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-082",
+   "type": "FEATURE",
+   "title": "Esquema, RLS e testes de RLS",
+   "description": "Esquema, RLS e testes de RLS",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-083",
+   "type": "FEATURE",
+   "title": "Revelação no servidor: reveal_due_events (pg_cron), idempotente, e avisos agendados",
+   "description": "Revelação no servidor: reveal_due_events (pg_cron), idempotente, e avisos agendados",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001",
+    "FT-082"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-084",
+   "type": "FEATURE",
+   "title": "Realtime e sincronização offline-first entre aparelhos",
+   "description": "Realtime e sincronização offline-first entre aparelhos",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001",
+    "BG-071",
+    "FT-082"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-085",
+   "type": "FEATURE",
+   "title": "Storage privado e URLs assinadas",
+   "description": "Storage privado e URLs assinadas",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001",
+    "FT-082"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-086",
+   "type": "FEATURE",
+   "title": "Pagamento, entitlements e Memo+ (gateway)",
+   "description": "Pagamento, entitlements e Memo+ (gateway)",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-087",
+   "type": "FEATURE",
+   "title": "Excluir conta e LGPD",
+   "description": "Excluir conta e LGPD",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001",
+    "FT-082"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-088",
+   "type": "FEATURE",
+   "title": "Administrador master real (claim, middleware, audit_logs)",
+   "description": "Administrador master real (claim, middleware, audit_logs)",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001",
+    "FT-080",
+    "FT-082"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "FT-089",
+   "type": "FEATURE",
+   "title": "Migração local → nuvem",
+   "description": "Migração local → nuvem",
+   "epic": "EP-09",
+   "parent": null,
+   "priority": "P1",
+   "status": "DEFERRED",
+   "dependencies": [
+    "AUD-001",
+    "FT-080",
+    "FT-082",
+    "FT-085"
+   ],
+   "origin": "fase Supabase",
+   "acceptance": [
+    "Depende do backend; não iniciar antes do release gate"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  }
+ ],
+ "requirements": [
+  {
+   "id": "F-01",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Splash",
+   "covers": [],
+   "exclusion": "Substituído pela capa do kit (decisão D11)"
+  },
+  {
+   "id": "F-02",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "3 slides de intro",
+   "covers": [],
+   "exclusion": "Substituído por capa e frase de assinatura (D11)"
+  },
+  {
+   "id": "F-03",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Entrar com Google",
+   "covers": [
+    "FT-080"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-04",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "E-mail e senha",
+   "covers": [],
+   "exclusion": "Inativo no original; sem evidência de funcionamento"
+  },
+  {
+   "id": "F-05",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Convidado por código",
+   "covers": [
+    "FT-003"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-06",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Nome do usuário",
+   "covers": [
+    "FT-003"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-07",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Propósito",
+   "covers": [
+    "FT-006"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-08",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Home com eventos",
+   "covers": [
+    "FT-004"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-09",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Álbuns",
+   "covers": [
+    "FT-032"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-10",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Abas FILMES/SCRAPBOOK",
+   "covers": [],
+   "exclusion": "Substituído por Agora/Explorar/Você do kit; Scrapbook era placeholder"
+  },
+  {
+   "id": "F-11",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Entrar com código",
+   "covers": [
+    "FT-002"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-12",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Deep link",
+   "covers": [
+    "FT-002"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-13",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Wizard de criação",
+   "covers": [
+    "FT-001"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-14",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Permissão de notificações",
+   "covers": [
+    "FT-081"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-15",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Nome do evento",
+   "covers": [
+    "FT-001"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-16",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Categoria",
+   "covers": [
+    "FT-001"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-17",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Término ≥30 min",
+   "covers": [
+    "FT-001"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-18",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Revelação",
+   "covers": [
+    "FT-030",
+    "FT-031",
+    "FT-032",
+    "FT-033"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-19",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Estilo de câmera",
+   "covers": [
+    "FT-010"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-20",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Capa do convite",
+   "covers": [
+    "FT-007"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-21",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Capacidade e fotos por pessoa",
+   "covers": [
+    "FT-005"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-22",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Preço",
+   "covers": [
+    "FT-005",
+    "FT-086"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-23",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Paywall Memo+",
+   "covers": [
+    "FT-086"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-24",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Evento criado e compartilhar",
+   "covers": [
+    "FT-002"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-25",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Convite por QR",
+   "covers": [
+    "FT-002"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-26",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Câmera",
+   "covers": [
+    "FT-010",
+    "TK-010a"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-27",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Estilos aplicados à foto",
+   "covers": [
+    "FT-010"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-28",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Rolo limitado",
+   "covers": [
+    "FT-011"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-29",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Sync offline-first",
+   "covers": [
+    "FT-017",
+    "BG-071",
+    "FT-084"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-30",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Galeria",
+   "covers": [
+    "FT-032"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-31",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Revelação (gating)",
+   "covers": [
+    "FT-032",
+    "FT-033"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-32",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Reações e Quem reagiu",
+   "covers": [
+    "FT-012"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-33",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Editor de fotos",
+   "covers": [
+    "FT-013"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-34",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Exportar álbum",
+   "covers": [
+    "FT-014"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-35",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Compartilhar fotos",
+   "covers": [
+    "FT-015"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-36",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Configurações do evento",
+   "covers": [
+    "FT-004",
+    "FT-008"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-37",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Perfil, sair, excluir conta",
+   "covers": [
+    "FT-051",
+    "FT-087"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "F-38",
+   "source": "REA 02-FEATURE-INVENTORY",
+   "text": "Notificações",
+   "covers": [
+    "FT-081",
+    "FT-083"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "DS-01",
+   "source": "MemoriesMT Design System v1",
+   "text": "Marca: logos oficiais, tamanhos mínimos, nome MemoriesMT",
+   "covers": [
+    "FT-020"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "DS-02",
+   "source": "MemoriesMT Design System v1",
+   "text": "Tipografia: Bricolage + Instrument Serif locais",
+   "covers": [
+    "FT-020"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "DS-03",
+   "source": "MemoriesMT Design System v1",
+   "text": "Temas Dia e Noite por tokens",
+   "covers": [
+    "FT-020"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "DS-04",
+   "source": "MemoriesMT Design System v1",
+   "text": "Tokens oficiais (Tailwind v4 adaptado)",
+   "covers": [
+    "FT-020"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "DS-05",
+   "source": "MemoriesMT Design System v1",
+   "text": "Componentes do kit reutilizáveis",
+   "covers": [
+    "FT-021"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "DS-06",
+   "source": "MemoriesMT Design System v1",
+   "text": "Regras visuais (sem sombra/gradiente/emoji, REC controlado, alvos 44 px)",
+   "covers": [
+    "FT-022"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "DS-07",
+   "source": "MemoriesMT Design System v1",
+   "text": "Voz e nomenclatura (Agora, Explorar, Você)",
+   "covers": [
+    "FT-022"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-01",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Ativar/desativar revelação por evento",
+   "covers": [
+    "FT-031"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-02",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Data, horário e fuso",
+   "covers": [
+    "FT-031"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-03",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Resumo, alteração conforme estado e prévia",
+   "covers": [
+    "FT-031"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-04",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Fotografar sem ver fotos bloqueadas; estado Aguardando revelação",
+   "covers": [
+    "FT-032"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-05",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Contagem regressiva no fuso configurado",
+   "covers": [
+    "FT-032"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-06",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Atualização automática e transição na hora",
+   "covers": [
+    "FT-032"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-07",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Revelação desativada = visibilidade imediata",
+   "covers": [
+    "FT-032"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-08",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Casos especiais (9)",
+   "covers": [
+    "FT-033"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-09",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Modelagem reveal_enabled/reveal_at/timezone/reveal_status sem depender de timers",
+   "covers": [
+    "FT-030"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-10",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Documentar revelação server-side",
+   "covers": [
+    "FT-035"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-11",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Papéis organizador × master sem senha fixa nem URL",
+   "covers": [
+    "FT-034"
+   ],
+   "exclusion": null
+  },
+  {
+   "id": "RV-12",
+   "source": "correção de escopo 2026-10-21",
+   "text": "Validação em browser, Dia/Noite, mobile/desktop, e preview Vercel",
+   "covers": [
+    "FT-036",
+    "FT-037"
+   ],
+   "exclusion": null
+  }
+ ]
+}

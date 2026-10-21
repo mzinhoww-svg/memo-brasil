@@ -72,3 +72,22 @@ test("publicado: headers de segurança, 404 em português e relógio de teste fo
   expect(chunks.length).toBeGreaterThan(0);
   expect(leaked).toBe(0);
 });
+
+test("publicado: revelação programada (espera, contagem, revelação sem rede) com relógio do navegador", async ({ page, context }) => {
+  const t0 = Date.now();
+  await page.clock.install({ time: t0 });
+  const d = new Date(t0 + 3 * 60_000);
+  const { code } = await createViaWizard(page, { title: "Revelação publicada", reveal: { date: d.toISOString().slice(0, 10), time: d.toISOString().slice(11, 16), tz: "UTC" } });
+  await switchPerson(page, code, "Ana");
+  await postViaFile(page, code);
+  await page.goto(`/e/${code}/agora`);
+  await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+  await expect(page.getByTestId("contagem")).toContainText(/\d{2}h \d{2}min \d{2}s/);
+  await expect(page.locator(".mm-media img")).toHaveCount(0);
+  await context.setOffline(true);
+  await page.clock.fastForward("04:00");
+  await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
+  await page.getByRole("button", { name: "Ver as fotos" }).click({ timeout: 8000 });
+  await expect(page.locator(".mm-media img").first()).toBeVisible();
+  await context.setOffline(false);
+});
