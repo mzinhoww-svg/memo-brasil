@@ -163,7 +163,8 @@ describe("Realtime respeita a RLS", () => {
     const chG = gB.channel(`g-${tag}`).on("postgres_changes", { event: "*", schema: "public", table: "photos", filter: `event_id=eq.${e2.data.id}` }, (m) => rtGuest.push(m.eventType));
     await new Promise((res) => chH.subscribe((s) => s === "SUBSCRIBED" && res()));
     await new Promise((res) => chG.subscribe((s) => s === "SUBSCRIBED" && res()));
-    await new Promise((r) => setTimeout(r, 800));
+    // o remoto leva mais que o local para registrar a assinatura postgres_changes depois do SUBSCRIBED
+    await new Promise((r) => setTimeout(r, Number(process.env.RT_SETTLE_MS ?? 3000)));
     const pid = randomUUID();
     const b = await gA.rpc("begin_photo", { p_id: pid, p_event: e2.data.id });
     assert.ifError((await upload(gA, b.data.storagePath)).error);

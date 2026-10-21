@@ -9,6 +9,7 @@ import { formatDate, useEventData } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { tableFromSearch } from "@/features/invitations/links";
 import { joinEvent } from "@/features/participants/service";
+import { BackendNotice } from "@/features/app/backend-notice";
 
 const MESSAGES = {
   codigo: "Código não confere. Confira no card da mesa.",
@@ -88,7 +89,7 @@ export default function Convite() {
             </form>
           )}
 
-          <p className="app-p app-muted">Versão local: tudo fica guardado neste aparelho. Fotos de outros aparelhos só aparecem quando o servidor entrar.</p>
+          <BackendNotice localText="Versão local: tudo fica guardado neste aparelho. Fotos de outros aparelhos só aparecem quando o servidor entrar." />
           <div style={{ marginTop: "auto" }}><Signature /></div>
         </div>
       </main>

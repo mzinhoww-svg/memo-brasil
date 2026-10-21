@@ -9,6 +9,7 @@ import { eventStatus } from "@/domain/event";
 import { formatDate } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { seedDemoEvent } from "@/features/demo/seed";
+import { BackendNotice } from "@/features/app/backend-notice";
 
 export default function Home() {
   const { repos, ready, user, signIn, now, persistent, storageError, known, switchTo, canSwitchIdentity } = useApp();
@@ -97,7 +98,8 @@ export default function Home() {
           </section>
         )}
 
-        <p className="app-p app-muted">Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor. <Link href="/design">Guia de componentes</Link></p>
+        <BackendNotice localText="Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor." />
+        <p className="app-p app-muted"><Link href="/design">Guia de componentes</Link></p>
         <div style={{ marginTop: "auto" }}><Signature /></div>
       </div>
     </main>

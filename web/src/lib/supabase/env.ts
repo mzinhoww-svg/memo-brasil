@@ -12,3 +12,9 @@ export function supabaseConfig(): SupabaseConfig | null {
 export function backendMode(): "local" | "supabase" {
   return process.env.NEXT_PUBLIC_MM_BACKEND === "supabase" && supabaseConfig() ? "supabase" : "local";
 }
+
+/** Distingue o modo local escolhido de um servidor pedido e não configurado, que nunca deve passar por modo local sem aviso. */
+export function backendStatus(): "local" | "supabase" | "misconfigured" {
+  if (process.env.NEXT_PUBLIC_MM_BACKEND !== "supabase") return "local";
+  return supabaseConfig() ? "supabase" : "misconfigured";
+}
