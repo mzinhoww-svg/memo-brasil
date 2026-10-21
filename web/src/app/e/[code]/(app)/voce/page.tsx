@@ -17,7 +17,7 @@ export default function Voce() {
   const [avisos, setAvisos] = useState<string | undefined>();
   const router = useRouter();
   const mine = photos.filter((p) => p.authorId === user.id && p.status !== "removida");
-  const urls = usePhotoUrls(mine);
+  const urls = usePhotoUrls(isRevealed(event, now) ? mine : []);
   const left = shotsLeft(event, mine.length);
   const revealed = isRevealed(event, now);
   const total = event.shotsPerPerson;
@@ -51,12 +51,12 @@ export default function Voce() {
             {mine.map((p) => (
               <div key={p.id} className="app-thumb">
                 {urls[p.id] && <img src={urls[p.id]} alt={`Sua foto, momento ${p.moment}`} />}
-                <span className="app-thumb-badge">{p.status === "oculta" ? "Oculta" : revealed ? "Publicada" : "Só você"}</span>
+                <span className="app-thumb-badge">{p.status === "oculta" ? "Oculta" : revealed ? "Publicada" : "Guardada"}</span>
               </div>
             ))}
           </div>
         )}
-        {mine.length > 0 && !revealed && event.everyoneSeesAll && <p className="app-p app-muted meta">Só você vê suas fotos por enquanto. Os outros veem quando as fotos forem reveladas.</p>}
+        {mine.length > 0 && !revealed && <p className="app-p app-muted">Suas fotos estão guardadas no escuro. Elas aparecem na revelação.</p>}
       </section>
 
       <section className="app-stack-sm" aria-labelledby="avisos">

@@ -2,15 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Chip, Chips, Field, OptionGroup, Progress, Signature, Stepper } from "@/components/memoriesmt";
+import { Button, Chip, Chips, Field, OptionGroup, Progress, Signature } from "@/components/memoriesmt";
 import { priceRule } from "@/domain/pricing";
-import { CAMERA_STYLE_LABEL, CAPACITY_OPTIONS, CATEGORY_LABEL, REVEAL_LABEL, SHOTS_OPTIONS, MIN_DURATION_HOURS, type CameraStyle, type Capacity, type EventCategory, type RevealTiming, type Shots } from "@/domain/options";
+import { CAMERA_STYLE_LABEL, CAPACITY_OPTIONS, CATEGORY_LABEL, SHOTS_OPTIONS, MIN_DURATION_HOURS, type CameraStyle, type Capacity, type EventCategory, type Shots } from "@/domain/options";
 import type { EventFontId, PaletteId } from "@/domain/event";
 import { EVENT_FONT_LABEL, PALETTES } from "@/lib/event-theme";
 import { useApp } from "@/features/app/provider";
 import { localBilling } from "@/lib/services";
 import { createEvent } from "./service";
 import { resolveDuration } from "./duration";
+import { RevealForm } from "./RevealForm";
+import { defaultRevealInput, resolveReveal, type RevealInput } from "./reveal-input";
+import { formatInZone, zoneLabel, type RevealErrors } from "@/domain/reveal";
 
 const STEPS = ["Nome", "Término", "Revelação", "Identidade", "Convidados", "Resumo"] as const;
 const DURATIONS = [1, 3, 6, 12, 24, 48];
@@ -30,8 +33,7 @@ export function CreateWizard() {
   const [place, setPlace] = useState("");
   const [hours, setHours] = useState<number>(6);
   const [until, setUntil] = useState("");
-  const [reveal, setReveal] = useState<RevealTiming>("ao-terminar");
-  const [delayDays, setDelayDays] = useState(1);
+  const [reveal, setReveal] = useState<RevealInput>(defaultRevealInput);
   const [camera, setCamera] = useState<CameraStyle>("original");
   const [palette, setPalette] = useState<PaletteId>("salvia");
   const [font, setFont] = useState<EventFontId>("birthstone");
@@ -45,6 +47,7 @@ export function CreateWizard() {
 
   const untilMs = until ? new Date(until).getTime() : undefined;
   const [previewHours, setPreviewHours] = useState(6);
+  const [revealErrors, setRevealErrors] = useState<RevealErrors | undefined>();
   const price = priceRule(capacity, false);
 
   function next() {
@@ -54,6 +57,14 @@ export function CreateWizard() {
       if (!title.trim()) e.title = "Escolha o nome do evento. Todos os convidados vão ver.";
     }
     if (step === 1 && resolveDuration({ untilMs, presetHours: hours }, now()) < MIN_DURATION_HOURS) e.termino = "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.";
+    if (step === 2) {
+      const r = resolveReveal(reveal, now() + previewHours * 3_600_000, now());
+      setRevealErrors(r.ok ? undefined : r.errors);
+      if (!r.ok) {
+        setErrors(e);
+        return;
+      }
+    }
     setErrors(e);
     if (Object.keys(e).length === 0) {
       if (step === 1) setPreviewHours(resolveDuration({ untilMs, presetHours: hours }, now()));
@@ -69,13 +80,22 @@ export function CreateWizard() {
     const r = await createEvent(
       repos,
       me,
-      { title, category, durationHours, revealTiming: reveal, revealDelayDays: delayDays, cameraStyle: camera, capacity, shotsPerPerson: shots, everyoneSeesAll: everyone, palette, eventFont: font, place },
+      { title, category, durationHours, reveal, cameraStyle: camera, capacity, shotsPerPerson: shots, everyoneSeesAll: everyone, palette, eventFont: font, place },
       startNow,
     );
     setBusy(false);
-    if (!r.ok) return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
+    if (!r.ok) {
+      if (r.errors.reveal) {
+        setRevealErrors(r.errors.reveal);
+        setStep(2);
+      }
+      return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
+    }
     router.push(`/criar/pronto/${r.event.id}`);
   }
+
+  const resolved = resolveReveal(reveal, now() + previewHours * 3_600_000, now());
+  const summaryReveal = !reveal.enabled ? "fotos aparecem na hora" : resolved.ok && resolved.enabled ? `revelação em ${formatInZone(resolved.at, resolved.timezone).date} às ${formatInZone(resolved.at, resolved.timezone).time} (${zoneLabel(resolved.timezone).split(" (")[0]})` : "revelação a definir";
 
   if (!ready) return <p className="app-screen app-muted">Carregando…</p>;
   const last = step === STEPS.length - 1;
@@ -109,9 +129,8 @@ export function CreateWizard() {
         {step === 2 && (
           <>
             <h1 className="titulo-tela app-h1">Quando revelar as fotos?</h1>
-            <p className="app-p app-muted">Escolha quando os convidados passam a ver as fotos dos outros.</p>
-            <OptionGroup<RevealTiming> list label="Revelação" value={reveal} onChange={setReveal} options={(Object.keys(REVEAL_LABEL) as RevealTiming[]).map((r) => ({ value: r, label: REVEAL_LABEL[r] }))} />
-            {reveal === "depois" && <Stepper label="Dias depois do fim" value={delayDays} min={1} max={30} onChange={setDelayDays} decrementLabel="Menos um dia" incrementLabel="Mais um dia" format={(n) => String(n)} />}
+            <p className="app-p app-muted">Como numa câmera descartável: as fotos ficam guardadas e aparecem para todos juntas, na hora que você escolher.</p>
+            <RevealForm value={reveal} onChange={(v) => { setReveal(v); setRevealErrors(undefined); }} endMs={now() + previewHours * 3_600_000} now={now()} errors={revealErrors} />
           </>
         )}
         {step === 3 && (
@@ -148,7 +167,7 @@ export function CreateWizard() {
             <div className="app-card">
               <span className="titulo-card">{title}</span>
               <span className="app-muted">{CATEGORY_LABEL[category]}{place ? ` · ${place}` : ""}</span>
-              <span>Termina em {Math.round(previewHours * 10) / 10} h · {REVEAL_LABEL[reveal].toLowerCase()}{reveal === "depois" ? ` (${delayDays} d)` : ""}</span>
+              <span>Termina em {Math.round(previewHours * 10) / 10} h · {summaryReveal}</span>
               <span>{capacity === null ? "Convidados ilimitados" : `Até ${capacity} convidados`} · {shots === null ? "fotos ilimitadas" : `${shots} fotos por pessoa`}</span>
             </div>
             {price.kind === "gratis" ? (

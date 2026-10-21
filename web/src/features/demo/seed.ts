@@ -1,5 +1,6 @@
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, ReactionKind } from "@/domain/photo";
+import { defaultTimezone } from "@/domain/reveal";
 import { generateShareCode } from "@/domain/share-code";
 import type { Repositories, User } from "@/repositories";
 
@@ -27,12 +28,13 @@ const MOMENTS = ["Chegada", "O sim", "Pôr do sol", "Pista"];
 const KINDS: ReactionKind[] = ["amei", "esse-momento", "risada", "uau"];
 
 /** Cria o evento de exemplo "Emy e Igor" com dados fictícios, todos marcados como exemplo na interface. */
-export async function seedDemoEvent(repos: Repositories, host: User, now: number): Promise<MemoEvent> {
+export async function seedDemoEvent(repos: Repositories, host: User, now: number, opts: { reveal?: "desativada" | "pendente" } = {}): Promise<MemoEvent> {
+  const pending = opts.reveal === "pendente";
   let code = generateShareCode();
   while (await repos.events.getByCode(code)) code = generateShareCode();
   const event: MemoEvent = {
     id: crypto.randomUUID(), code, title: "Emy e Igor", category: "casamento", hostId: host.id, hostName: host.name,
-    startAt: now - 3 * 3_600_000, durationHours: 8, cameraStyle: "original", revealTiming: "durante", revealDelayDays: 0,
+    startAt: now - 3 * 3_600_000, durationHours: 8, cameraStyle: "original", revealEnabled: pending, revealAt: pending ? now + 2 * 60_000 : null, timezone: defaultTimezone(), revealStatus: pending ? "pendente" : "desativada",
     capacity: 100, shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone",
     place: "Chalés Taíba, CE", moments: MOMENTS, tables: 10, createdAt: now - 3 * 3_600_000,
     notice: { text: "Pôr do sol na areia em 10 minutos." },

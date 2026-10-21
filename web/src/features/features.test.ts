@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { endAt } from "@/domain/event";
 import { createMemoryRepositories, type Repositories, type User } from "@/repositories";
 import { eventStats, moderate } from "./admin/service";
 import { seedDemoEvent } from "./demo/seed";
-import { createEvent, endEventNow, setEndIn, updateSettings, type EventInput } from "./events/service";
+import { createEvent, endEventNow, reconcileReveal, setEndIn, updateReveal, updateSettings, type EventInput } from "./events/service";
 import { inviteUrl, tableFromSearch } from "./invitations/links";
 import { joinEvent } from "./participants/service";
 import { loadFeed, postPhoto, react, usedShots } from "./photos/service";
@@ -13,7 +13,7 @@ const host: User = { id: "host", name: "Emy", createdAt: 1 };
 const guest: User = { id: "g1", name: "Ana", createdAt: 1 };
 const img = { bytes: new Uint8Array([1, 2, 3]).buffer, type: "image/jpeg" };
 const input: EventInput = {
-  title: "Emy e Igor", category: "casamento", durationHours: 6, revealTiming: "ao-terminar", revealDelayDays: 0, cameraStyle: "original",
+  title: "Emy e Igor", category: "casamento", durationHours: 6, reveal: { enabled: true, kind: "ao-terminar", days: 1, date: "", time: "", timezone: "America/Cuiaba" }, cameraStyle: "original",
   capacity: 5, shotsPerPerson: 5, everyoneSeesAll: true, palette: "salvia", eventFont: "birthstone",
 };
 let repos: Repositories;
@@ -143,9 +143,100 @@ describe("concorrência (rolo e vagas)", () => {
     expect((await updateSettings(repos, r.event.id, { capacity: 10 })).ok).toBe(true);
   });
   it("reagir em foto inexistente ou removida não grava", async () => {
-    const r = await createEvent(repos, host, { ...input, revealTiming: "durante" }, NOW);
+    const r = await createEvent(repos, host, { ...input, reveal: { ...input.reveal, enabled: false } }, NOW);
     if (!r.ok) throw new Error();
     expect(await react(repos, r.event, "nao-existe", guest.id, "amei")).toEqual([]);
     expect(await repos.reactions.listByEvent(r.event.id)).toEqual([]);
+  });
+});
+
+describe("revelação programada (serviços; o tempo é simulado pelo parâmetro `now`)", () => {
+  const H = 3_600_000;
+  const rev = (o: Partial<EventInput["reveal"]> = {}) => ({ enabled: true, kind: "data" as const, days: 1, date: "", time: "", timezone: "UTC", ...o });
+  const at = (h: number) => new Date(NOW + h * H);
+  const dt = (h: number) => ({ date: at(h).toISOString().slice(0, 10), time: at(h).toISOString().slice(11, 16) });
+
+  it("cria com data e hora no fuso e guarda reveal_at em UTC", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rev({ ...dt(10), timezone: "America/Cuiaba" }) }, NOW);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.event.revealEnabled).toBe(true);
+    expect(r.event.timezone).toBe("America/Cuiaba");
+    expect(r.event.revealStatus).toBe("pendente");
+    expect(r.event.revealAt).toBeGreaterThan(NOW + 10 * H); // 21h40 em Cuiabá é depois de 21h40 UTC
+  });
+  it("recusa data passada ou inválida sem gravar", async () => {
+    expect(await createEvent(repos, host, { ...input, reveal: rev({ ...dt(-5) }) }, NOW)).toMatchObject({ ok: false, errors: { reveal: { data: "passado" } } });
+    expect(await createEvent(repos, host, { ...input, reveal: rev({ date: "", time: "" }) }, NOW)).toMatchObject({ ok: false, errors: { reveal: { data: "invalida" } } });
+    expect(await repos.events.list()).toHaveLength(0);
+  });
+  it("desligada: fotos visíveis na hora, sem reveal_at", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rev({ enabled: false }) }, NOW);
+    if (!r.ok) throw new Error();
+    expect(r.event).toMatchObject({ revealEnabled: false, revealAt: null, revealStatus: "desativada" });
+  });
+  it("ao terminar e N dias depois derivam do fim do evento", async () => {
+    const a = await createEvent(repos, host, { ...input, reveal: rev({ kind: "ao-terminar" }) }, NOW);
+    const b = await createEvent(repos, host, { ...input, reveal: rev({ kind: "depois", days: 2 }) }, NOW);
+    if (!a.ok || !b.ok) throw new Error();
+    expect(a.event.revealAt).toBe(endAt(a.event));
+    expect(b.event.revealAt).toBe(endAt(b.event) + 2 * 24 * H);
+  });
+  it("altera data e fuso enquanto pendente; depois de revelada o organizador não consegue", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rev({ ...dt(5) }) }, NOW);
+    if (!r.ok) throw new Error();
+    const moved = await updateReveal(repos, r.event.id, rev({ ...dt(8), timezone: "America/Sao_Paulo" }), NOW + H);
+    expect(moved.ok && moved.event.timezone).toBe("America/Sao_Paulo");
+    const late = await updateReveal(repos, r.event.id, rev({ ...dt(20) }), NOW + 30 * H);
+    expect(late).toEqual({ ok: false, reason: "ja-revelada" });
+    expect(await updateReveal(repos, r.event.id, rev({ enabled: false }), NOW + 30 * H)).toEqual({ ok: false, reason: "ja-revelada" });
+  });
+  it("não liga a revelação se já há fotos visíveis (não esconde o que já foi visto)", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rev({ enabled: false }) }, NOW);
+    if (!r.ok) throw new Error();
+    await postPhoto(repos, r.event, guest, img, { moment: "O sim" }, NOW + 1);
+    expect(await updateReveal(repos, r.event.id, rev({ ...dt(5) }), NOW + 2)).toEqual({ ok: false, reason: "fotos-ja-visiveis" });
+  });
+  it("evento encerrado antes da revelação continua pendente e bloqueia postagem", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rev({ ...dt(10) }) }, NOW);
+    if (!r.ok) throw new Error();
+    const ended = await endEventNow(repos, r.event.id, NOW + 2 * H);
+    expect(ended).toBeDefined();
+    expect(await postPhoto(repos, ended!, guest, img, { moment: "O sim" }, NOW + 3 * H)).toEqual({ ok: false, reason: "encerrado" });
+    expect((await reconcileReveal(repos, r.event.id, NOW + 3 * H))?.revealStatus).toBe("pendente");
+  });
+  it("reconciliação é idempotente e reflete 'app fechado na hora da revelação' na próxima abertura", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rev({ ...dt(5) }) }, NOW);
+    if (!r.ok) throw new Error();
+    const spy = vi.spyOn(repos.events, "save");
+    const first = await reconcileReveal(repos, r.event.id, NOW + 6 * H); // abriu o app depois do horário
+    expect(first?.revealStatus).toBe("revelada");
+    const saves = spy.mock.calls.length;
+    await reconcileReveal(repos, r.event.id, NOW + 7 * H);
+    await reconcileReveal(repos, r.event.id, NOW + 8 * H);
+    expect(spy.mock.calls.length).toBe(saves); // nada novo a gravar
+  });
+  it("dois participantes: antes da revelação nenhum vê foto; depois ambos veem; removida some para todos", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rev({ ...dt(5) }) }, NOW);
+    if (!r.ok) throw new Error();
+    const ana = { ...guest, id: "ana" }, beto = { ...guest, id: "beto" };
+    const pa = await postPhoto(repos, r.event, ana, img, { moment: "O sim" }, NOW + 1);
+    await postPhoto(repos, r.event, beto, img, { moment: "O sim" }, NOW + 2);
+    if (!pa.ok) throw new Error();
+    expect(await loadFeed(repos, r.event, { id: "ana", host: false }, NOW + H)).toHaveLength(0);
+    expect(await loadFeed(repos, r.event, { id: "beto", host: false }, NOW + H)).toHaveLength(0);
+    expect(await loadFeed(repos, r.event, { id: "ana", host: false }, NOW + 6 * H)).toHaveLength(2);
+    await moderate(repos, pa.photo.id, "remover");
+    expect(await loadFeed(repos, r.event, { id: "beto", host: false }, NOW + 6 * H)).toHaveLength(1);
+  });
+  it("participante que entra depois da revelação já vê a galeria", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rev({ ...dt(5) }) }, NOW);
+    if (!r.ok) throw new Error();
+    await postPhoto(repos, r.event, guest, img, { moment: "O sim" }, NOW + 1);
+    const t = NOW + 5.5 * H; // depois da revelação (5 h), antes do fim do evento (6 h)
+    expect((await joinEvent(repos, { ...guest, id: "tarde" }, r.event.code, "Tarde", t)).ok).toBe(true);
+    expect(await loadFeed(repos, r.event, { id: "tarde", host: false }, t)).toHaveLength(1);
+    // depois do fim do evento ninguém novo entra (regra do REA), mesmo com a galeria liberada
+    expect(await joinEvent(repos, { ...guest, id: "muito-tarde" }, r.event.code, "X", NOW + 7 * H)).toEqual({ ok: false, reason: "encerrado" });
   });
 });

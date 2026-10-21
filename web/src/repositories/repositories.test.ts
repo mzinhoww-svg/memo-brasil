@@ -5,7 +5,7 @@ import { createIndexedDbRepositories, createMemoryRepositories, deleteEventCasca
 
 const ev = (id: string, code: string): MemoEvent => ({
   id, code, title: "Emy e Igor", category: "casamento", hostId: "h", hostName: "Emy", startAt: 1, durationHours: 6,
-  cameraStyle: "original", revealTiming: "ao-terminar", revealDelayDays: 0, capacity: 50, shotsPerPerson: 24,
+  cameraStyle: "original", revealEnabled: true, revealAt: 6, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24,
   everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 1,
 });
 const photo = (id: string, eventId: string, createdAt = 1): Photo => ({ id, eventId, authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false });
@@ -122,5 +122,31 @@ describe("migração de schema do IndexedDB", () => {
     expect((await v2.events.get("e1"))?.id).toBe("e1");
     expect(Array.from(new Uint8Array((await v2.photos.getData("p1"))!.bytes))).toEqual([7]);
     expect(ran).toBe(1);
+  });
+});
+
+describe("migração v1 → v2 (revelação programada)", () => {
+  it("converte eventos antigos (revealTiming) no contrato novo ao abrir o banco", async () => {
+    const { openDB } = await import("idb");
+    const dbName = `legado-${n++}`;
+    const old = await openDB(dbName, 1, {
+      upgrade(db) {
+        db.createObjectStore("events", { keyPath: "id" }).createIndex("code", "code", { unique: true });
+        for (const s of ["participants", "photos", "photoData", "reactions", "invitations", "meta"]) db.createObjectStore(s, s === "photoData" || s === "meta" ? undefined : { keyPath: s === "participants" ? ["eventId", "userId"] : s === "reactions" ? ["photoId", "authorId"] : "id" });
+      },
+    });
+    const H = 3_600_000;
+    const base = { title: "Antigo", category: "casamento", hostId: "h", hostName: "Emy", startAt: 0, durationHours: 6, cameraStyle: "original", revealDelayDays: 0, capacity: 50, shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 0 };
+    await old.put("events", { ...base, id: "a", code: "AAAAAAAA", revealTiming: "ao-terminar" });
+    await old.put("events", { ...base, id: "b", code: "BBBBBBBB", revealTiming: "durante" });
+    await old.put("events", { ...base, id: "c", code: "CCCCCCCC", revealTiming: "depois", revealDelayDays: 2 });
+    old.close();
+    const repos = createIndexedDbRepositories(dbName);
+    const a = (await repos.events.get("a"))!, b = (await repos.events.get("b"))!, c = (await repos.events.get("c"))!;
+    expect(a).toMatchObject({ revealEnabled: true, revealAt: 6 * H, revealStatus: "revelada" }); // 1970: já passou
+    expect(b).toMatchObject({ revealEnabled: false, revealAt: null, revealStatus: "desativada" });
+    expect(c.revealAt).toBe(6 * H + 2 * 24 * H);
+    expect("revealTiming" in a).toBe(false);
+    expect(typeof a.timezone).toBe("string");
   });
 });

@@ -5,7 +5,7 @@ import { notificationPlan } from "./notifications";
 const H = 3_600_000;
 const ev = (o: Partial<MemoEvent> = {}): MemoEvent => ({
   id: "e", code: "AAAAAAAA", title: "Emy e Igor", category: "casamento", hostId: "h", hostName: "Emy", startAt: 0, durationHours: 6,
-  cameraStyle: "original", revealTiming: "ao-terminar", revealDelayDays: 0, capacity: 50, shotsPerPerson: 24, everyoneSeesAll: true,
+  cameraStyle: "original", revealEnabled: true, revealAt: 6 * H, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24, everyoneSeesAll: true,
   reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 0, ...o,
 });
 
@@ -20,11 +20,11 @@ describe("agenda de avisos (REA E-18)", () => {
     expect(plan.every((n) => n.at > 5.5 * H)).toBe(true);
     expect(plan.map((n) => n.kind)).toContain("ultima-chamada");
   });
-  it("modo 'durante' não agenda aviso de revelação", () => {
-    expect(notificationPlan(ev({ revealTiming: "durante" }), 0).some((n) => n.kind === "revelou" || n.kind === "revela-em-breve")).toBe(false);
+  it("revelação desligada não agenda aviso de revelação", () => {
+    expect(notificationPlan(ev({ revealEnabled: false, revealAt: null }), 0).some((n) => n.kind === "revelou" || n.kind === "revela-em-breve")).toBe(false);
   });
   it("revelação com atraso cai em fim + N dias", () => {
-    const plan = notificationPlan(ev({ revealTiming: "depois", revealDelayDays: 2 }), 0);
+    const plan = notificationPlan(ev({ revealAt: 6 * H + 2 * 24 * H }), 0);
     expect(plan.find((n) => n.kind === "revelou")!.at).toBe(6 * H + 2 * 24 * H);
   });
   it("evento encerrado não agenda nada", () => {

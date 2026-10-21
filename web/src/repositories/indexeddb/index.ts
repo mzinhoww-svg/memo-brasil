@@ -1,4 +1,5 @@
-import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import { openDB, type DBSchema, type IDBPDatabase, type IDBPTransaction, type StoreNames } from "idb";
+import { migrateLegacyReveal } from "@/domain/reveal";
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { StorageUnavailableError, type Invitation, type Participant, type PhotoData, type Repositories, type User } from "../types";
@@ -16,7 +17,7 @@ interface Schema extends DBSchema {
 export const DB_NAME = "memoriesmt";
 
 /** Migrações por versão: MIGRATIONS[i] leva o schema da versão i para i+1. Nunca edite uma já publicada. */
-export type Migration = (db: IDBPDatabase<Schema>) => void;
+export type Migration = (db: IDBPDatabase<Schema>, tx: IDBPTransaction<Schema, StoreNames<Schema>[], "versionchange">) => void | Promise<void>;
 export const MIGRATIONS: Migration[] = [
   (db) => {
     db.createObjectStore("events", { keyPath: "id" }).createIndex("code", "code", { unique: true });
@@ -29,6 +30,14 @@ export const MIGRATIONS: Migration[] = [
     db.createObjectStore("invitations", { keyPath: "id" }).createIndex("eventId", "eventId");
     db.createObjectStore("meta");
   },
+  // v2: revelação programada (reveal_enabled, reveal_at, timezone, reveal_status) no lugar de revealTiming/revealDelayDays
+  async (_db, tx) => {
+    const store = tx.objectStore("events");
+    const now = Date.now();
+    for (let cur = await store.openCursor(); cur; cur = await cur.continue()) {
+      await cur.update(migrateLegacyReveal(cur.value as never, now) as never);
+    }
+  },
 ];
 export const DB_VERSION = MIGRATIONS.length;
 
@@ -36,8 +45,8 @@ async function open(name: string, migrations: Migration[]): Promise<IDBPDatabase
   if (typeof indexedDB === "undefined") throw new StorageUnavailableError();
   try {
     return await openDB<Schema>(name, migrations.length, {
-      upgrade(db, oldVersion, newVersion) {
-        for (let v = oldVersion; v < (newVersion ?? migrations.length); v++) migrations[v]?.(db);
+      async upgrade(db, oldVersion, newVersion, tx) {
+        for (let v = oldVersion; v < (newVersion ?? migrations.length); v++) await migrations[v]?.(db, tx as never);
       },
       // outra aba com versão antiga não pode travar a atualização, e esta não pode travar as novas
       blocking() {

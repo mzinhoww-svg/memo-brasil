@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { LiveIndicator, Notice, Progress, StatGrid, StatTile, Button } from "@/components/memoriesmt";
 import { endAt } from "@/domain/event";
+import { computeRevealStatus, formatInZone, zoneLabel } from "@/domain/reveal";
 import { eventStats, type EventStats } from "@/features/admin/service";
 import { useAdmin } from "@/features/admin/context";
 import { formatDate, formatTime } from "@/features/app/hooks";
@@ -29,6 +30,15 @@ export default function VisaoGeral() {
         <StatTile value={nf(stats.reactions)} label="reações" />
         <StatTile value={event.capacity === null ? nf(stats.guests) : `${nf(stats.guests)} de ${nf(event.capacity)}`} label="vagas usadas" />
       </StatGrid>
+      <section className="app-card" aria-labelledby="rv" data-testid="resumo-revelacao">
+        <h2 id="rv" className="titulo-card app-h1">Revelação</h2>
+        {(() => {
+          const st = computeRevealStatus(event, now);
+          const at = event.revealAt !== null ? formatInZone(event.revealAt, event.timezone) : undefined;
+          return st === "desativada" ? <p className="app-p">Desligada. As fotos aparecem na hora.</p> : st === "revelada" ? <p className="app-p">Revelada em {at?.date} às {at?.time}. Todos veem as fotos.</p> : <p className="app-p">Pendente. Revela em {at?.date} às {at?.time}, {zoneLabel(event.timezone).split(" (")[0]}.</p>;
+        })()}
+        <Button variant="pequeno" href={`/painel/${event.id}/configuracoes`}>Configurar revelação</Button>
+      </section>
       {event.notice && <Notice text={event.notice.text} />}
       <section className="app-stack-sm" aria-labelledby="mom">
         <h2 id="mom" className="titulo-card app-h1">Momentos</h2>

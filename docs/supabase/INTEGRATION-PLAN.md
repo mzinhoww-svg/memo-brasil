@@ -36,7 +36,7 @@ erDiagram
 
 ## 3. Esquema (rascunho de DDL; tipos inferidos do REA e do domínio local)
 ```sql
-create type reveal_timing as enum ('durante','ao-terminar','depois');          -- [REA] DURING/AFTER/ADDITIONAL_DELAY
+create type reveal_status as enum ('desativada','pendente','revelada');          -- [DEC] espelho persistido; a verdade é now() >= reveal_at
 create type camera_style  as enum ('original','vintage','preto-e-branco');      -- [REA]
 create type event_category as enum ('casamento','festa','empresa','viagem','outro'); -- [REA] MemoPurpose
 create type photo_status  as enum ('visivel','oculta','removida');
@@ -54,8 +54,11 @@ create table events (
   duration_hours numeric not null check (duration_hours >= 0.5),                      -- [REA] mínimo 30 min
   ended_at timestamptz,                                                                -- "encerrar agora"
   camera_style camera_style not null default 'original',
-  reveal_timing reveal_timing not null default 'ao-terminar',
-  reveal_delay_days int not null default 0 check (reveal_delay_days between 0 and 30),
+  reveal_enabled boolean not null default true,                                        -- [DEC] desligada = fotos visíveis na hora
+  reveal_at timestamptz,                                                                -- UTC; obrigatório quando reveal_enabled
+  timezone text not null default 'America/Cuiaba',                                      -- IANA: só para exibir e contar no fuso do evento
+  reveal_status reveal_status not null default 'pendente',
+  constraint reveal_consistente check ((reveal_enabled and reveal_at is not null) or (not reveal_enabled and reveal_at is null)),
   capacity int check (capacity in (5,10,20,50,100,150,200)),                           -- null = ilimitado [REA]
   shots_per_person int check (shots_per_person in (5,10,16,24,36)),                    -- null = ilimitado [REA]
   everyone_sees_all boolean not null default true,
@@ -85,11 +88,21 @@ Contagem de pedidos de remoção = `count(*) from photo_reports` (evita contar d
 - **`resolve_event_by_code(code)`** `security definer`: devolve só `title, category, host name, place, palette, event_font, start/end, status`. Sem lista de participantes. [REA E-06]
 - **`join_event(code, guest_name, table_label)`** `security definer`: exige `auth.uid()` (sessão anônima conta); erros `codenotfound`, `eventended`, `eventfull`, `notauthenticated` [REA]; idempotente para quem já é membro; capacidade contada **dentro da transação** (`select … for update` no evento) para não estourar sob concorrência.
 - **Limite de fotos**: trigger `before insert on photos` conta fotos não removidas do autor no evento e levanta `shotlimitreached` [REA E-15]; também bloqueia evento encerrado (`now() >= least(ended_at, start_at + duration_hours)`).
-- **Revelação**: função `is_revealed(event)` = `now() >= reveal_at` com `reveal_at` = `start_at` (durante) | `end_at` (ao terminar) | `end_at + delay_days` (depois). Usada nas policies; o horário é o do servidor (não o relógio do cliente).
+- **Revelação**: função `is_revealed(event)` = `not reveal_enabled or now() >= reveal_at`. Usada nas policies; o horário é o do servidor, nunca o relógio do cliente. Ver §4.1.
 - **Reação única**: PK `(photo_id, author_id)` + `upsert`.
 - **Não reabrir álbum encerrado com fotos**: trigger em `update events` bloqueia aumentar `duration_hours`/limpar `ended_at` se encerrado e há fotos. [REA F-36]
 - **Exclusão de evento** em cascata (fotos, reações, participantes, convites) + remoção de objetos do Storage por Edge Function (`on delete`/job), porque o Postgres não apaga objetos sozinho. [REA E-S]
 - **`delete_account()`** `security definer`: apaga perfil, eventos que organiza e fotos; mantém reações/fotos de terceiros só se a política LGPD decidir (por padrão apaga as do usuário). [REA E-04]
+
+## 4.1 Revelação programada no servidor (contrato já modelado no cliente)
+Cliente hoje: `reveal_enabled`, `reveal_at`, `timezone`, `reveal_status` em `MemoEvent`; `computeRevealStatus(now)` decide a visibilidade; `reconcileReveal` espelha o estado de forma idempotente; os timers do navegador só acordam a interface. **Nada disso é segurança**: no cliente a foto bloqueada existe no aparelho. No servidor:
+- **Quem configura**: só o organizador do evento (`is_host`) ou master com auditoria (`audit_logs`). Trigger recusa `update` de `reveal_*` quando `reveal_status = 'revelada'` (não esconder o que já foi visto) e recusa ligar a revelação se já existem fotos visíveis. `reveal_at` precisa estar ≥ `now() + 1 min` na gravação.
+- **Revelação idempotente**: `pg_cron` a cada minuto executa `reveal_due_events()`: `update events set reveal_status='revelada' where reveal_enabled and reveal_status='pendente' and reveal_at <= now()` (idempotente, sem efeito se repetido) e publica via Realtime (`events` canal por `event_id`) e Web Push ("As fotos foram reveladas"). Se o job atrasar, a RLS continua correta porque ela usa `now() >= reveal_at`, não o status.
+- **Controle de acesso das fotos**: a policy de `photos` só devolve linha a não-host se `is_revealed(event)`; o bucket `event-photos` é **privado** e o cliente só obtém **URL assinada** (curta, 60 s) por RPC `get_photo_url(photo_id)` que reaplica a mesma regra. Antes da revelação nem a linha nem o objeto são acessíveis, nem para o autor (câmera descartável); o host vê tudo para moderar.
+- **Sincronização entre dispositivos**: o cliente assina o canal do evento; ao receber `reveal_status = 'revelada'` roda a transição. Offline: ao reconectar, relê `events` e recalcula; nunca confia em contagem local.
+- **Fuso**: `reveal_at` é sempre UTC; `timezone` só formata. Alterar o fuso sem mudar a hora de parede recalcula `reveal_at` no cliente e grava o novo UTC.
+- **Papéis**: `profiles.role` não existe no cliente; `master` vem de claim `app_metadata.role` emitida só pelo servidor. Ver `docs/architecture/ROLES.md`.
+- **Testes de backend a escrever**: convidado não lê foto antes de `reveal_at` (linha e objeto); URL assinada recusa antes; job idempotente sob repetição; organizador de outro evento não altera `reveal_*`; edição após revelada recusada; relógio do cliente adiantado não adianta a revelação.
 
 ## 5. RLS (todas as tabelas com RLS ligado; nenhuma policy `using (true)`)
 | Tabela | select | insert | update | delete |

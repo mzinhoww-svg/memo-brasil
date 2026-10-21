@@ -1,4 +1,5 @@
-import type { CameraStyle, Capacity, EventCategory, RevealTiming, Shots } from "./options";
+import type { CameraStyle, Capacity, EventCategory, Shots } from "./options";
+import { computeRevealStatus, type RevealStatus } from "./reveal";
 import { MIN_DURATION_HOURS } from "./options";
 
 export type PaletteId = "salvia" | "terracota" | "oceano" | "ameixa";
@@ -15,8 +16,11 @@ export interface MemoEvent {
   durationHours: number;
   endedAt?: number; // "Encerrar agora"
   cameraStyle: CameraStyle;
-  revealTiming: RevealTiming;
-  revealDelayDays: number;
+  /** Revelação programada: desligada = fotos visíveis na hora. */
+  revealEnabled: boolean;
+  revealAt: number | null; // epoch UTC
+  timezone: string; // IANA, usado para mostrar e contar a revelação
+  revealStatus: RevealStatus; // espelho persistido de computeRevealStatus (idempotente)
   capacity: Capacity;
   shotsPerPerson: Shots;
   everyoneSeesAll: boolean;
@@ -31,7 +35,6 @@ export interface MemoEvent {
 }
 
 const HOUR = 3_600_000;
-const DAY = 24 * HOUR;
 
 export function endAt(e: Pick<MemoEvent, "startAt" | "durationHours" | "endedAt">): number {
   const planned = e.startAt + e.durationHours * HOUR;
@@ -42,15 +45,13 @@ export function eventStatus(e: MemoEvent, now: number): "ativo" | "encerrado" {
   return now >= endAt(e) ? "encerrado" : "ativo";
 }
 
-/** Momento em que as fotos passam a ser vistas por todos. `durante` = na hora (INF: feed Agora do DS). */
-export function revealAt(e: MemoEvent): number {
-  if (e.revealTiming === "durante") return e.startAt;
-  if (e.revealTiming === "ao-terminar") return endAt(e);
-  return endAt(e) + e.revealDelayDays * DAY;
+/** Quando as fotos passam a ser vistas por todos: desligada = desde o início; ligada = `revealAt`. */
+export function revealAt(e: Pick<MemoEvent, "revealEnabled" | "revealAt" | "startAt">): number {
+  return e.revealEnabled ? (e.revealAt ?? Number.POSITIVE_INFINITY) : e.startAt;
 }
 
-export function isRevealed(e: MemoEvent, now: number): boolean {
-  return now >= revealAt(e);
+export function isRevealed(e: Pick<MemoEvent, "revealEnabled" | "revealAt">, now: number): boolean {
+  return computeRevealStatus(e, now) !== "pendente";
 }
 
 /** Fotos restantes no rolo; `null` = ilimitado. */

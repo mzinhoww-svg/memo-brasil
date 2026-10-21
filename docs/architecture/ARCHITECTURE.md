@@ -20,7 +20,7 @@
 | D3 | Tailwind v4 com `@theme inline` apontando para as variáveis do kit; classes `mm-*` do kit copiadas sem alteração | o preset do kit é v3; fidelidade por construção |
 | D4 | `ArrayBuffer` (não `Blob`) no IndexedDB | Safari instável com Blob; testável em jsdom |
 | D5 | Rótulos de reação em texto (Amei, Esse momento, Rachei, Uau) | o kit proíbe emoji; REA define 4 tipos, 1 por pessoa/foto |
-| D6 | `durante` = fotos visíveis na hora | o feed Agora do kit mostra "cada foto na hora" (INF; REA não define "aos poucos") |
+| D6 | Revelação desligada = fotos visíveis na hora; ligada = bloqueio total (inclusive das próprias fotos do convidado) até `reveal_at` | câmera descartável; feed Agora do kit mostra "cada foto na hora" quando não há revelação |
 | D7 | Criar evento >10 convidados é permitido como **demonstração sem cobrança** | proibido habilitar cobrança; regra de preço fica no domínio |
 | D8 | Identidade local + "Entrar como outra pessoa" | simular mais de uma pessoa no aparelho, rotulado como demonstração |
 | D9 | Relógio de teste só em build com `NEXT_PUBLIC_MM_TEST_CLOCK=1` | produção usa `Date.now()` |
@@ -29,6 +29,10 @@
 | D13 | `withLock` (Web Locks + fila) em postar, entrar e denunciar | evita passar do rolo/vagas com toques rápidos ou duas abas |
 | D14 | CSP/headers só em produção; relógio de teste fixado em `"0"` no build | CSP exige `unsafe-inline` em dev; teste não pode ligar em produção |
 | D15 | Service worker versionado por deploy (`/sw.js?v=<build>`), aquecimento das rotas do evento 1×/sessão | cache antigo some; rotas dinâmicas precisam de uma visita para abrir offline |
+| D16 | Modelo `revealEnabled` + `revealAt` (UTC) + `timezone` (IANA) + `revealStatus`, no lugar de `revealTiming`/`revealDelayDays`; presets ("ao terminar", "N dias depois") viram data absoluta na gravação | contrato igual ao do Supabase; migração v2 do IndexedDB converte eventos antigos |
+| D17 | A visibilidade vem de `now >= revealAt` a cada renderização; timer só acorda a interface; `reconcileReveal` espelha o estado de forma idempotente | funciona com app fechado, offline e ao reabrir; no backend vira `pg_cron` |
+| D18 | Organizador não altera a revelação depois de revelada nem liga a revelação com fotos já visíveis | mesma lógica de "não reabrir álbum encerrado" |
+| D19 | Papéis em `domain/roles.ts` como contrato; `/master` sem login | master só por claim do servidor (ROLES.md) |
 | D11 | Sem splash, intro de 3 slides, Scrapbook, e-mail/senha | splash/slides foram trocados pela capa do kit; Scrapbook era placeholder; e-mail inativo no original |
 
 ## O que é local, simulado ou depende do backend

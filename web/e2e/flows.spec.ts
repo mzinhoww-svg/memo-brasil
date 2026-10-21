@@ -38,7 +38,7 @@ test("código inválido mostra erro; código válido leva ao convite", async ({ 
 });
 
 test("convidado entra, posta com a câmera de teste, gasta o rolo e reage uma vez por foto", async ({ page }) => {
-  const { code } = await createViaWizard(page, { reveal: "Na hora, durante o evento", shots: "5" });
+  const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
   await switchPerson(page, code, "Ana");
   await expect(page.getByRole("heading", { name: "Agora" })).toBeVisible();
 
@@ -72,8 +72,8 @@ test("revelação: outras pessoas só veem depois do fim do evento (relógio de 
   await postViaFile(page, code);
   await switchPerson(page, code, "Beto");
   await page.goto(`/e/${code}/agora`);
-  await expect(page.getByText("Ainda sem fotos.")).toBeVisible();
-  await expect(page.getByText(/As fotos dos outros aparecem quando o evento terminar/)).toBeVisible();
+  await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+  await expect(page.getByText("Ainda sem fotos.")).toBeHidden();
 
   const after = Date.now() + 7 * 3_600_000; // evento dura 6 h
   await page.goto(`/e/${code}/agora?agora=${after}`);
@@ -84,7 +84,7 @@ test("revelação: outras pessoas só veem depois do fim do evento (relógio de 
 });
 
 test("pedido de remoção cai na fila do anfitrião, que oculta e depois remove a foto", async ({ page }) => {
-  const { code, id } = await createViaWizard(page, { reveal: "Na hora, durante o evento", title: "Moderação" });
+  const { code, id } = await createViaWizard(page, { reveal: "desligada", title: "Moderação" });
   await switchPerson(page, code, "Ana");
   await postViaFile(page, code);
   await switchPerson(page, code, "Beto");
@@ -120,7 +120,7 @@ test("tema Noite persiste ao recarregar e vale para o app inteiro", async ({ pag
 });
 
 test("sem sinal: aviso na área do convidado e fotos continuam guardadas", async ({ page, context }) => {
-  const { code } = await createViaWizard(page, { reveal: "Na hora, durante o evento" });
+  const { code } = await createViaWizard(page, { reveal: "desligada" });
   await page.goto(`/e/${code}/agora`);
   await context.setOffline(true);
   await expect(page.getByText(/Sem sinal agora\. Suas \d+ fotos estão guardadas\./)).toBeVisible();

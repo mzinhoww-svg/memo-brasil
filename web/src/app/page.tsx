@@ -32,10 +32,10 @@ export default function Home() {
     };
   }, [repos, ready, user]);
 
-  async function demo() {
+  async function demo(reveal: "desativada" | "pendente" = "desativada") {
     setBusy(true);
     const u = user ?? (await signIn("Emy"));
-    const e = await seedDemoEvent(repos, u, now());
+    const e = await seedDemoEvent(repos, u, now(), { reveal });
     router.push(`/e/${e.code}/agora`);
   }
 
@@ -71,7 +71,8 @@ export default function Home() {
         <div className="app-stack-sm">
           <Button href="/entrar" variant="cta" icon="camera" block>Entrar na festa</Button>
           <Button href="/criar" variant="secundario" block>Criar evento</Button>
-          <Button variant="texto" onClick={demo} disabled={busy || !ready}>{busy ? "Preparando…" : "Ver uma festa de exemplo"}</Button>
+          <Button variant="texto" onClick={() => demo()} disabled={busy || !ready}>{busy ? "Preparando…" : "Ver uma festa de exemplo"}</Button>
+          <Button variant="texto" onClick={() => demo("pendente")} disabled={busy || !ready}>Ver exemplo com revelação em 2 minutos</Button>
         </div>
 
         {ready && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}

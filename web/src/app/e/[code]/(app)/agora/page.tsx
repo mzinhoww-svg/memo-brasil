@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button, Icon, LiveIndicator, Notice, PostCard } from "@/components/memoriesmt";
-import { eventStatus, isRevealed, retrospectiveOpen, revealAt } from "@/domain/event";
+import { eventStatus, isRevealed, retrospectiveOpen } from "@/domain/event";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
-import { formatDate, formatTime, relativeTime, usePhotoUrls } from "@/features/app/hooks";
+import { relativeTime, usePhotoUrls } from "@/features/app/hooks";
+import { WaitingReveal } from "@/features/reveal/WaitingReveal";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
 import { MoreSheet, PhotoReactions } from "@/features/photos/components";
@@ -15,14 +16,14 @@ import { downloadPhoto, reactorsOf } from "@/features/photos/share";
 
 export default function Agora() {
   const { repos } = useApp();
-  const { event, user, viewer, now, photos, reactions, participants, refresh } = useGuest();
+  const { event, user, viewer, now, photos, reactions, participants, refresh, revealStatus, developed } = useGuest();
   const [more, setMore] = useState<string | undefined>();
   const [limit, setLimit] = useState(20);
   const shown = visiblePhotos(event, photos, viewer, now);
   const page = shown.slice(0, limit);
   const urls = usePhotoUrls(page);
   const live = eventStatus(event, now) === "ativo";
-  const hiddenOthers = !viewer.host && !isRevealed(event, now);
+  const pending = !viewer.host && !isRevealed(event, now);
 
   async function onReact(photoId: string, kind: ReactionKind) {
     await react(repos, event, photoId, user.id, kind);
@@ -34,7 +35,7 @@ export default function Agora() {
       <div className="app-stack-sm">
         <div className="app-between">
           {live ? <LiveIndicator /> : <span className="eyebrow app-muted">Encerrado</span>}
-          <span className="meta app-muted">{shown.length.toLocaleString("pt-BR")} fotos</span>
+          {!pending && <span className="meta app-muted">{shown.length.toLocaleString("pt-BR")} fotos</span>}
         </div>
         <h1 className="titulo-tela app-h1">Agora</h1>
         <p className="app-p app-muted" style={{ fontFamily: "var(--font-evento)", fontSize: 30, lineHeight: 1.05, color: "var(--evento-profundo)" }}>{event.title}</p>
@@ -44,23 +45,23 @@ export default function Agora() {
 
       {event.notice && (!event.notice.expiresAt || event.notice.expiresAt > now) && <Notice text={event.notice.text} eyebrow={event.category === "casamento" ? "Aviso · cerimonial" : "Aviso · organização"} />}
 
-      {hiddenOthers && event.everyoneSeesAll && (
+      {pending ? (
+        <WaitingReveal event={event} ownCount={photos.filter((p) => p.authorId === user.id && p.status !== "removida").length} totalCount={photos.filter((p) => p.status !== "removida").length} />
+      ) : viewer.host && revealStatus === "pendente" ? (
         <div className="app-banner" role="status">
           <Icon name="agora" decorative size={22} />
-          <span>
-            As fotos dos outros aparecem {event.revealTiming === "ao-terminar" ? "quando o evento terminar" : `em ${formatDate(revealAt(event))} · ${formatTime(revealAt(event))}`}. As suas já estão aqui.
-          </span>
+          <span>Revelação pendente: os convidados ainda não veem as fotos. Você vê tudo como anfitrião.</span>
         </div>
-      )}
+      ) : null}
 
-      {shown.length === 0 ? (
+      {pending ? null : shown.length === 0 ? (
         <div className="app-empty">
           <Icon name="camera" label="Câmera" size={28} />
           <p className="corpo app-p">Ainda sem fotos.</p>
           <p className="app-p">Viu alguma coisa boa? Posta.</p>
         </div>
       ) : (
-        <div className="app-stack" style={{ gap: "var(--space-8)" }}>
+        <div className={developed ? "app-stack reveal-in" : "app-stack"} style={{ gap: "var(--space-8)" }}>
           {page.map((p) => (
             <PostCard
               key={p.id}

@@ -2,9 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Chip, Chips, Field, Notice, OptionGroup, Sheet, Stepper } from "@/components/memoriesmt";
+import { Button, Chip, Chips, Field, Notice, OptionGroup, Sheet } from "@/components/memoriesmt";
 import { canEditEnd, endAt, eventStatus, type EventFontId, type PaletteId } from "@/domain/event";
-import { CAPACITY_OPTIONS, REVEAL_LABEL, SHOTS_OPTIONS, type Capacity, type RevealTiming, type Shots } from "@/domain/options";
+import { CAPACITY_OPTIONS, SHOTS_OPTIONS, type Capacity, type Shots } from "@/domain/options";
+import { RevealSettings } from "@/features/events/RevealSettings";
 import { EVENT_FONT_LABEL, PALETTES } from "@/lib/event-theme";
 import { useAdmin } from "@/features/admin/context";
 import { formatDate, formatTime } from "@/features/app/hooks";
@@ -57,14 +58,14 @@ export default function Configuracoes() {
 
       <section className="app-stack" style={{ maxWidth: 343 }} aria-labelledby="regras">
         <h2 id="regras" className="titulo-card app-h1">Regras da festa</h2>
-        <OptionGroup<RevealTiming> list label="Revelação" value={event.revealTiming} onChange={(v) => save({ revealTiming: v, revealDelayDays: v === "depois" ? Math.max(1, event.revealDelayDays) : 0 })} options={(Object.keys(REVEAL_LABEL) as RevealTiming[]).map((r) => ({ value: r, label: REVEAL_LABEL[r] }))} />
-        {event.revealTiming === "depois" && <Stepper label="Dias depois do fim" value={event.revealDelayDays} min={1} max={30} format={(n) => String(n)} decrementLabel="Menos um dia" incrementLabel="Mais um dia" onChange={(n) => save({ revealDelayDays: n })} />}
         <OptionGroup<Shots> label="Fotos por pessoa" value={event.shotsPerPerson} onChange={(v) => save({ shotsPerPerson: v })} options={SHOTS_OPTIONS.map((s) => ({ value: s, label: s === null ? "Ilimitadas" : String(s) }))} />
         <OptionGroup<Capacity> label="Convidados" value={event.capacity} onChange={(v) => save({ capacity: v })} options={CAPACITY_OPTIONS.map((c) => ({ value: c, label: c === null ? "Ilimitado" : String(c) }))} />
         {event.capacity !== null && event.capacity > 10 || event.capacity === null ? <p className="app-p app-muted">Passar de 10 convidados teria valor. Nesta versão de demonstração, nada é cobrado.</p> : null}
         <OptionGroup<boolean> list label="Quem vê as fotos" value={event.everyoneSeesAll} onChange={(v) => save({ everyoneSeesAll: v })} options={[{ value: true, label: "Todos veem todas as fotos" }, { value: false, label: "Cada um vê só as suas" }]} />
         <OptionGroup<boolean> label="Reações nas fotos" value={event.reactionsEnabled} onChange={(v) => save({ reactionsEnabled: v })} options={[{ value: true, label: "Ligadas" }, { value: false, label: "Desligadas" }]} />
       </section>
+
+      <div style={{ maxWidth: 343 }}><RevealSettings event={event} now={now} photoCount={photoCount} onSaved={refresh} /></div>
 
       <section className="app-stack" style={{ maxWidth: 343 }} aria-labelledby="aviso">
         <h2 id="aviso" className="titulo-card app-h1">Aviso no Agora</h2>
@@ -98,7 +99,7 @@ export default function Configuracoes() {
 
       {confirm === "encerrar" && (
         <Sheet title="Encerrar agora?" onClose={() => setConfirm(undefined)}>
-          <p className="corpo app-p">Ninguém posta mais. {event.revealTiming === "ao-terminar" ? "As fotos passam a aparecer para todos." : ""}</p>
+          <p className="corpo app-p">Ninguém posta mais. A revelação segue o horário que você configurou.</p>
           <div className="app-stack-sm">
             <Button variant="destrutivo" block onClick={async () => { await endEventNow(repos, event.id, clock()); scheduler.cancel(event.id); setConfirm(undefined); await refresh(); }}>Encerrar agora</Button>
             <Button variant="secundario" block onClick={() => setConfirm(undefined)}>Voltar</Button>

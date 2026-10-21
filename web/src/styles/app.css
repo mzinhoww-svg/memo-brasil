@@ -44,3 +44,14 @@
 .mm-tabbar { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
 .app-topbar { padding-top: calc(var(--space-4) + env(safe-area-inset-top)); }
 .mm-event-nome, .nome-evento, .mm-card-mesa-nome { overflow-wrap: anywhere; }
+
+/* Revelação programada: tela de revelação e "revelar" das fotos (filme analógico). Só tokens do kit, sem sombra/gradiente. */
+.app-reveal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: var(--tinta); color: var(--fundo); padding: var(--space-6); }
+.app-reveal-inner { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: var(--space-5); }
+.app-reveal-frame { height: 8px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--fundo) 25%, transparent); overflow: hidden; }
+.app-reveal-bar { display: block; height: 8px; width: 0; background: var(--fundo); border-radius: var(--radius-pill); animation: mm-bar 2200ms linear forwards; }
+.app-reveal-bar--done { width: 100%; animation: none; }
+@keyframes mm-bar { to { width: 100%; } }
+@keyframes mm-develop { from { filter: brightness(0.15) grayscale(1); opacity: 0.2; } to { filter: none; opacity: 1; } }
+.reveal-in .mm-media img { animation: mm-develop 1600ms ease-out both; }
+@media (prefers-reduced-motion: reduce) { .app-reveal-bar { animation: none; width: 100%; } .reveal-in .mm-media img { animation: none; } }

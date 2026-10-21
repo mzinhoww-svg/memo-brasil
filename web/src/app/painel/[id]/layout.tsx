@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useCallback, useMemo, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { AdminNav, Button, CountBadge, EventTheme } from "@/components/memoriesmt";
 import { eventStatus } from "@/domain/event";
+import { LOCAL_ACTOR, can } from "@/domain/roles";
+import { computeRevealStatus } from "@/domain/reveal";
+import { reconcileReveal } from "@/features/events/service";
 import { moderationQueue } from "@/domain/photo";
 import { formatDate, useClock, useEventData } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
@@ -24,7 +27,7 @@ const SECTIONS = [
 export default function PainelLayout({ children }: { children: ReactNode }) {
   const { id } = useParams<{ id: string }>();
   const path = usePathname();
-  const { user, ready } = useApp();
+  const { user, ready, repos, now: clock } = useApp();
   const data = useEventData({ id });
   const { now, sync } = useClock();
   const { refresh: reload } = data;
@@ -32,11 +35,18 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
     await reload();
     sync();
   }, [reload, sync]);
+  const evId = data.event?.id;
+  const stored = data.event?.revealStatus;
+  const computed = data.event ? computeRevealStatus(data.event, now) : undefined;
+  useEffect(() => {
+    if (!evId || !stored || !computed || stored === computed) return;
+    void reconcileReveal(repos, evId, clock()).then(reload);
+  }, [evId, stored, computed, repos, clock, reload]);
   const pending = useMemo(() => moderationQueue(data.photos).length, [data.photos]);
 
   if (!ready || data.loading) return <main className="app-admin"><p className="app-admin-main app-muted">Abrindo o painel…</p></main>;
   if (!data.event) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Não achamos esse evento.</h1><p className="app-p app-muted">Esta versão só abre eventos criados neste aparelho.</p><Button href="/" block>Voltar ao início</Button></div></main>;
-  if (!user || user.id !== data.event.hostId) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Só o anfitrião abre o painel.</h1><Button href={`/e/${data.event.code}`} block>Entrar na festa</Button></div></main>;
+  if (!can(LOCAL_ACTOR(user?.id ?? null), "event.configure", data.event)) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Só o anfitrião abre o painel.</h1><Button href={`/e/${data.event.code}`} block>Entrar na festa</Button></div></main>;
 
   const event = data.event;
   const base = `/painel/${id}`;

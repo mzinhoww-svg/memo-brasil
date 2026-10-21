@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { Button, Chip, Chips, Icon, PostCard, VisionGrid, VisionTile } from "@/components/memoriesmt";
+import { isRevealed } from "@/domain/event";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
+import { WaitingReveal } from "@/features/reveal/WaitingReveal";
 import { relativeTime, usePhotoUrls } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
@@ -13,7 +15,7 @@ import { downloadPhoto, reactorsOf } from "@/features/photos/share";
 
 export default function Explorar() {
   const { repos } = useApp();
-  const { event, user, viewer, now, photos, reactions, participants, refresh } = useGuest();
+  const { event, user, viewer, now, photos, reactions, participants, refresh, developed } = useGuest();
   const shown = useMemo(() => visiblePhotos(event, photos, viewer, now), [event, photos, viewer, now]);
   const [moment, setMoment] = useState<string | undefined>();
   const [vision, setVision] = useState<string | undefined>();
@@ -47,7 +49,9 @@ export default function Explorar() {
         <h1 className="titulo-tela app-h1">Explorar</h1>
       </div>
 
-      {shown.length === 0 ? (
+      {!viewer.host && !isRevealed(event, now) ? (
+        <WaitingReveal event={event} ownCount={photos.filter((p) => p.authorId === user.id && p.status !== "removida").length} totalCount={photos.filter((p) => p.status !== "removida").length} />
+      ) : shown.length === 0 ? (
         <div className="app-empty">
           <Icon name="explorar" label="Explorar" size={28} />
           <p className="corpo app-p">Nada para explorar ainda.</p>
@@ -73,7 +77,7 @@ export default function Explorar() {
               ))}
             </VisionGrid>
           </div>
-          <div className="app-stack" style={{ gap: "var(--space-8)" }}>
+          <div className={developed ? "app-stack reveal-in" : "app-stack"} style={{ gap: "var(--space-8)" }}>
             {pageList.map((p) => (
               <PostCard
                 key={p.id}

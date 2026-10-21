@@ -52,8 +52,8 @@ export function visiblePhotos(e: MemoEvent, photos: Photo[], viewer: Viewer, now
     if (p.status === "removida") return false;
     if (viewer.host) return true;
     if (p.status === "oculta") return false;
-    if (p.authorId === viewer.id) return true;
-    return e.everyoneSeesAll && isRevealed(e, now);
+    if (!isRevealed(e, now)) return false; // câmera descartável: nem as próprias fotos antes da revelação
+    return p.authorId === viewer.id || e.everyoneSeesAll;
   });
 }
 

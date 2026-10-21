@@ -23,7 +23,7 @@ test("publicado: home, fontes, tema, manifest e service worker", async ({ page }
 });
 
 test("publicado: criar evento, entrar como convidado, postar e reagir", async ({ page }) => {
-  const { code, id } = await createViaWizard(page, { reveal: "Na hora, durante o evento", title: "Smoke publicado" });
+  const { code, id } = await createViaWizard(page, { reveal: "desligada", title: "Smoke publicado" });
   await expect(page.getByAltText(/QR Code do convite/)).toBeVisible();
   await switchPerson(page, code, "Ana");
   await postViaFile(page, code);

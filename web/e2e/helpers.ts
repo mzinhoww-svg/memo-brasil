@@ -19,13 +19,25 @@ export async function openDemo(page: Page): Promise<string> {
 }
 
 /** Cria um evento pelo wizard e devolve o código. Parâmetros avançam passo a passo pela UI real. */
-export async function createViaWizard(page: Page, opts: { title?: string; reveal?: RegExp | string; shots?: string; capacity?: string } = {}): Promise<{ code: string; id: string }> {
+export type RevealOpt = "ao-terminar" | "desligada" | { date: string; time: string; tz?: string };
+
+/** Cria um evento pelo wizard e devolve o código. Cada passo usa a interface real. */
+export async function createViaWizard(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string } = {}): Promise<{ code: string; id: string }> {
   await page.goto("/criar");
   await page.getByLabel("Nome do evento").fill(opts.title ?? "Emy e Igor");
   await page.getByLabel("Seu nome").fill("Emy");
   await page.getByRole("button", { name: "Próximo" }).click();
   await page.getByRole("button", { name: "Próximo" }).click(); // término: 6 horas
-  await page.getByRole("button", { name: opts.reveal ?? "Quando o evento terminar" }).click();
+  const reveal = opts.reveal ?? "ao-terminar";
+  const group = page.getByRole("group", { name: "Revelação programada" });
+  if (reveal === "desligada") await group.getByRole("button", { name: /^Desligada/ }).click();
+  else if (reveal === "ao-terminar") await page.getByRole("button", { name: "Quando o evento terminar" }).click();
+  else {
+    await page.getByRole("button", { name: "Escolher data e hora" }).click();
+    await page.getByLabel("Data", { exact: true }).fill(reveal.date);
+    await page.getByLabel("Horário", { exact: true }).fill(reveal.time);
+    if (reveal.tz) await page.getByLabel("Fuso horário").selectOption(reveal.tz);
+  }
   await page.getByRole("button", { name: "Próximo" }).click();
   await page.getByRole("button", { name: "Próximo" }).click(); // identidade
   if (opts.capacity) await page.getByRole("group", { name: "Convidados" }).getByRole("button", { name: opts.capacity, exact: true }).click();

@@ -10,7 +10,7 @@ const H = 3600000;
 const D = 24 * H;
 const base: MemoEvent = {
   id: "e1", code: "NFVARBQX", title: "Emy e Igor", category: "casamento", hostId: "h1", hostName: "Emy",
-  startAt: 1_000_000, durationHours: 6, cameraStyle: "original", revealTiming: "ao-terminar", revealDelayDays: 0,
+  startAt: 1_000_000, durationHours: 6, cameraStyle: "original", revealEnabled: true, revealAt: 6 * 3_600_000, timezone: "America/Cuiaba", revealStatus: "pendente",
   capacity: 50, shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone",
   place: "Chalés Taíba, CE", moments: ["O sim", "Pôr do sol"], tables: 10, createdAt: 1_000_000,
 };
@@ -51,12 +51,12 @@ describe("tempo do evento", () => {
     expect(eventStatus(base, endAt(base) - 1)).toBe("ativo");
     expect(eventStatus(base, endAt(base))).toBe("encerrado");
   });
-  it("revelação: durante = início; ao terminar = fim; depois = fim + N dias", () => {
-    expect(revealAt({ ...base, revealTiming: "durante" })).toBe(base.startAt);
-    expect(revealAt(base)).toBe(endAt(base));
-    expect(revealAt({ ...base, revealTiming: "depois", revealDelayDays: 2 })).toBe(endAt(base) + 2 * D);
-    expect(isRevealed({ ...base, revealTiming: "depois", revealDelayDays: 2 }, endAt(base) + 2 * D - 1)).toBe(false);
-    expect(isRevealed({ ...base, revealTiming: "depois", revealDelayDays: 2 }, endAt(base) + 2 * D)).toBe(true);
+  it("revelação: desligada = visível desde o início; ligada = no horário configurado", () => {
+    expect(revealAt({ ...base, revealEnabled: false, revealAt: null })).toBe(base.startAt);
+    expect(revealAt(base)).toBe(base.revealAt);
+    expect(isRevealed(base, base.revealAt! - 1)).toBe(false);
+    expect(isRevealed(base, base.revealAt!)).toBe(true);
+    expect(isRevealed({ ...base, revealEnabled: false, revealAt: null }, base.startAt)).toBe(true);
   });
   it("rolo: ilimitado é null; senão desconta usadas sem ficar negativo", () => {
     expect(shotsLeft({ ...base, shotsPerPerson: null }, 99)).toBeNull();
@@ -142,18 +142,19 @@ describe("visibilidade e moderação", () => {
   const gone = ph({ id: "g", authorId: "x", status: "removida" });
   const all = [mine, other, hidden, gone];
   const viewer = { id: "me", host: false };
-  it("antes da revelação o convidado só vê as próprias fotos", () => {
-    const now = base.startAt + H;
-    expect(visiblePhotos(base, all, viewer, now).map((p) => p.id)).toEqual(["m"]);
+  it("antes da revelação o convidado não vê nenhuma foto, nem as próprias (câmera descartável)", () => {
+    expect(visiblePhotos(base, all, viewer, base.startAt + H).map((p) => p.id)).toEqual([]);
   });
-  it("depois da revelação vê as visíveis dos outros, nunca ocultas ou removidas", () => {
-    expect(visiblePhotos(base, all, viewer, endAt(base)).map((p) => p.id)).toEqual(["m", "o"]);
+  it("depois da revelação vê as visíveis, nunca ocultas ou removidas", () => {
+    expect(visiblePhotos(base, all, viewer, base.revealAt!).map((p) => p.id)).toEqual(["m", "o"]);
   });
-  it("modo durante mostra na hora", () => {
-    expect(visiblePhotos({ ...base, revealTiming: "durante" }, all, viewer, base.startAt).map((p) => p.id)).toEqual(["m", "o"]);
+  it("revelação desligada mostra na hora", () => {
+    expect(visiblePhotos({ ...base, revealEnabled: false, revealAt: null }, all, viewer, base.startAt).map((p) => p.id)).toEqual(["m", "o"]);
   });
-  it("sem 'todos veem todas' o convidado só vê as próprias", () => {
-    expect(visiblePhotos({ ...base, everyoneSeesAll: false }, all, viewer, endAt(base)).map((p) => p.id)).toEqual(["m"]);
+  it("sem 'todos veem todas' o convidado só vê as próprias, e só depois da revelação", () => {
+    const e = { ...base, everyoneSeesAll: false };
+    expect(visiblePhotos(e, all, viewer, base.startAt).map((p) => p.id)).toEqual([]);
+    expect(visiblePhotos(e, all, viewer, base.revealAt!).map((p) => p.id)).toEqual(["m"]);
   });
   it("anfitrião vê tudo, menos removidas", () => {
     expect(visiblePhotos(base, all, { id: "h1", host: true }, base.startAt).map((p) => p.id)).toEqual(["m", "o", "h"]);
@@ -168,11 +169,12 @@ describe("visibilidade e moderação", () => {
 
 describe("retrospectiva", () => {
   it("só abre para convidados depois do fim E da revelação; anfitrião sempre", () => {
-    const durante = { ...base, revealTiming: "durante" as const };
-    expect(retrospectiveOpen(durante, base.startAt + H, false)).toBe(false); // revelada, mas o evento segue
-    expect(retrospectiveOpen(durante, endAt(base), false)).toBe(true);
-    const depois = { ...base, revealTiming: "depois" as const, revealDelayDays: 1 };
+    const imediata = { ...base, revealEnabled: false, revealAt: null };
+    expect(retrospectiveOpen(imediata, base.startAt + H, false)).toBe(false); // revelada, mas o evento segue
+    expect(retrospectiveOpen(imediata, endAt(base), false)).toBe(true);
+    const depois = { ...base, revealAt: endAt(base) + D };
     expect(retrospectiveOpen(depois, endAt(base), false)).toBe(false);
+    expect(retrospectiveOpen(depois, endAt(base) + D, true)).toBe(true);
     expect(retrospectiveOpen(depois, endAt(base) + D, false)).toBe(true);
     expect(retrospectiveOpen(base, base.startAt, true)).toBe(true);
   });

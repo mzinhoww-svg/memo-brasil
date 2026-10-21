@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Chip, Chips, Field, Progress } from "@/components/memoriesmt";
-import { eventStatus, shotsLeft } from "@/domain/event";
+import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
 import { fileToImage, renderPhoto } from "@/features/photos/capture";
@@ -123,6 +123,7 @@ export default function Postar() {
       {phase === "publicada" ? (
         <div className="app-stack">
           <p className="emocao-lg app-emocao">Sua visão entrou na história.</p>
+          {!isRevealed(event, now) && <p className="corpo app-p app-muted" data-testid="guardada-no-escuro">Sua foto ficou guardada no escuro. Ela aparece para todos na revelação.</p>}
           <div className="app-stack-sm">
             <Button href={`${base}/agora`} block>Ver no Agora</Button>
             {(left === null || left > 0) && <Button variant="secundario" block onClick={again}>Postar outra</Button>}

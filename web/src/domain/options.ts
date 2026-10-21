@@ -8,7 +8,6 @@ export const FREE_GUEST_LIMIT = 10;
 export const PLUS_GUEST_LIMIT = 200;
 export const MIN_DURATION_HOURS = 0.5; // término a pelo menos 30 minutos (REA F-17)
 
-export type RevealTiming = "durante" | "ao-terminar" | "depois"; // DURING_EVENT | AFTER_EVENT | ADDITIONAL_DELAY
 export type CameraStyle = "original" | "vintage" | "preto-e-branco"; // ORIGINAL | VINTAGE | BLACK_WHITE
 export type EventCategory = "casamento" | "festa" | "empresa" | "viagem" | "outro";
 
@@ -23,9 +22,4 @@ export const CAMERA_STYLE_LABEL: Record<CameraStyle, string> = {
   original: "Original",
   vintage: "Vintage",
   "preto-e-branco": "Preto e branco",
-};
-export const REVEAL_LABEL: Record<RevealTiming, string> = {
-  durante: "Na hora, durante o evento",
-  "ao-terminar": "Quando o evento terminar",
-  depois: "Alguns dias depois do fim",
 };
