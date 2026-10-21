@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P3 47. Status: BACKLOG 88, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, IN_REVIEW 15, READY 11.
+Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P3 47. Status: BACKLOG 99, BLOCKED 5, CANCELLED 2, DEFERRED 11, DONE 58, IN_REVIEW 16, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -369,6 +369,7 @@ Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P
 | UXA-124 | FEATURE | [Administrativa] /painel/[id]/qr · QR Code Studio: Cards A6 com ~35% de vazio entre texto e assinatura; em 375 empilha 10 cards (5,2k px); a grade de desktop está boa | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-125 | FEATURE | [Administrativa] /painel/[id]/aparencia (WIP de outro agente): Em 375 a 'Prévia do convite' fica no fim, após ~1,4k px de formulário: edita-se sem ver o efeito (≥1024 a prévia é lateral e boa) | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-126 | FEATURE | [Anfitrião] /criar · passo 6 (resumo): CTA 'Criar evento de demonstração' quebra em 2 linhas em 320; aviso de cobrança longo antes do CTA | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
+| UXA-127 | FEATURE | Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fonte | P2 | BACKLOG | EST-004 | revisão independente A1–A5 2026-10-21 | - | - |
 
 **UXA-001** critérios: Inventário em docs/audit/ux com severidade, causa e solução; inclui Evento criado, Câmera, Espera, Revelação, Galeria, Painel, erros, loading, vazio, sessão expirada
 
@@ -420,6 +421,8 @@ Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P
 
 **UXA-126** critérios: Rótulo curto 'Criar evento' e nota de demonstração como texto auxiliar. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (criar-6-320.png, criar-6-375.png) em docs/audit/ux/screens.
 
+**UXA-127** critérios: Amostras visíveis; estado personalizado marcado
+
 ## EP-12 · Design System v2 (BACKLOG)
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
@@ -427,12 +430,15 @@ Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P
 | DSV-001 | FEATURE | Tokens v2 por camada (Platform/Event/Admin) e breakpoints | P0 | IN_REVIEW | UXA-001 | missão design/studio/master 2026-10-21 | c9269c6 | local |
 | DSV-002 | FEATURE | Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /design | P1 | BACKLOG | DSV-001 | missão design/studio/master 2026-10-21 | - | - |
 | DSV-003 | FEATURE | Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste | P0 | BACKLOG | DSV-002 | missão design/studio/master 2026-10-21 | - | - |
+| DSV-004 | FEATURE | Tokens --mm-* v2 completos (espaço, raio, sombra, movimento) e documentação do DS v2 em /design (Studio, Admin DS, tema) | P1 | BACKLOG | DSV-001 | revisão independente A1–A5 2026-10-21 | - | - |
 
 **DSV-001** critérios: Tokens documentados; evento não altera :root nem outros eventos (teste) · testes: src/lib/event-theme/event-theme.test.ts
 
 **DSV-002** critérios: Componentes reutilizáveis com testes e doc de uso; sem biblioteca redundante
 
 **DSV-003** critérios: axe sem violações sérias nas rotas; contraste validado em todos os presets
+
+**DSV-004** critérios: Tokens e componentes documentados; testes visuais
 
 ## EP-13 · Event Studio (BACKLOG)
 
@@ -441,8 +447,10 @@ Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P
 | EST-001 | FEATURE | Migrations v2: event_themes, event_assets, bucket event-branding privado | P0 | IN_REVIEW | DSV-001 | missão design/studio/master 2026-10-21 | 198e2eb | local-supabase |
 | EST-002 | FEATURE | Renderer de tema isolado por evento (tokens, sem CSS arbitrário) + assinatura Powered by MemoriesMT | P0 | IN_REVIEW | DSV-001 | missão design/studio/master 2026-10-21 | c9269c6 | local |
 | EST-003 | FEATURE | Criação de evento completa (nome, tipo, data/hora, local, timezone, limites, revelação, prévia do convite) | P1 | BACKLOG | EST-002 | missão design/studio/master 2026-10-21 | - | - |
-| EST-004 | FEATURE | Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estilo de QR, restaurar padrão | P0 | BACKLOG | EST-001, EST-002 | missão design/studio/master 2026-10-21 | - | - |
+| EST-004 | FEATURE | Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estilo de QR, restaurar padrão | P0 | IN_REVIEW | EST-001, EST-002 | missão design/studio/master 2026-10-21 | 901fdb0 | local |
 | EST-005 | FEATURE | Gestão do evento: indicadores, compartilhar/baixar QR, participantes, revogar convites, uploads, limites, contagem regressiva, status, exportação autorizada | P1 | BACKLOG | EST-003 | missão design/studio/master 2026-10-21 | - | - |
+| EST-006 | FEATURE | Logo e capa nas demais telas do convidado e na prévia do convite (assinatura de URL fora da RLS para quem ainda não entrou) | P1 | BACKLOG | EST-004, SCV-006 | revisão independente A1–A5 2026-10-21 | - | - |
+| EST-007 | FEATURE | Tema com cores por modo (dia/noite) no Event Theme personalizado | P2 | BACKLOG | EST-002 | revisão independente A1–A5 2026-10-21 | - | - |
 
 **EST-001** critérios: Migrations aditivas; pgTAP de RLS (host/membro/master/anônimo); CHECKs de cor/fonte/mensagem; sem SVG · testes: pgTAP 366/366 local
 
@@ -450,9 +458,13 @@ Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P
 
 **EST-003** critérios: Prévia em tempo real; validação; E2E
 
-**EST-004** critérios: Upload validado (MIME, tamanho, dimensões); bloqueio de edição após o limite; E2E de personalização
+**EST-004** critérios: Upload validado (MIME, tamanho, dimensões); bloqueio de edição após o limite; E2E de personalização · testes: e2e/studio-local.spec.ts, src/features/studio/AppearanceStudio.test.tsx
 
 **EST-005** critérios: Permissões e estados definidos; testes de autorização
+
+**EST-006** critérios: Imagens aparecem em convite, entrada, galeria; sem vazamento a não membros
+
+**EST-007** critérios: Duas paletas validadas em contraste; teste de isolamento nos dois modos
 
 ## EP-14 · Master Admin (BACKLOG)
 
@@ -462,6 +474,8 @@ Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P
 | MAD-002 | FEATURE | Auditoria v2: reason obrigatório, imutabilidade, actor_role, confirmação de ações destrutivas | P0 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 198e2eb | local-supabase |
 | MAD-003 | FEATURE | Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações, segurança, configurações, analytics, LGPD, saúde | P1 | IN_REVIEW | MAD-001, MAD-002, ANL-001 | missão design/studio/master 2026-10-21 | 1d862dc | local-supabase |
 | MAD-004 | FEATURE | Acesso excepcional a foto privada por admin com justificativa e auditoria | P1 | BACKLOG | MAD-002 | missão design/studio/master 2026-10-21 | - | - |
+| MAD-005 | FEATURE | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | P1 | BACKLOG | MAD-003 | revisão independente A1–A5 2026-10-21 | - | - |
+| MAD-006 | FEATURE | UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revogação de papéis | P2 | BACKLOG | MAD-004, SCV-005 | revisão independente A1–A5 2026-10-21 | - | - |
 
 **MAD-001** critérios: Sem credencial padrão; provisionamento auditado; organizador não acessa /master (teste) · testes: pgTAP 366/366 local
 
@@ -470,6 +484,10 @@ Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P
 **MAD-003** critérios: 12 módulos com estados loading/vazio/erro/sem permissão; Admin DS desktop-first · testes: e2e/master-studio.spec.ts (5/5 Supabase local)
 
 **MAD-004** critérios: URL de 60 s só após registro de auditoria; sem miniaturas no dashboard
+
+**MAD-005** critérios: UI chama admin_set_*; justificativa obrigatória; E2E
+
+**MAD-006** critérios: Serviço assina só o caminho devolvido pela RPC; E2E
 
 ## EP-15 · Analytics (BACKLOG)
 
@@ -485,10 +503,28 @@ Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P
 |---|---|---|---|---|---|---|---|---|
 | SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 198e2eb | local-supabase |
 | SCV-002 | FEATURE | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG | EST-004, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
+| SCV-003 | FEATURE | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha | P0 | BACKLOG | MAD-001 | revisão independente A1–A5 2026-10-21 | - | - |
+| SCV-004 | FEATURE | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD | P1 | BACKLOG | SB-005 | revisão independente A1–A5 2026-10-21 | - | - |
+| SCV-005 | FEATURE | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava do último master | P2 | BACKLOG | MAD-002 | revisão independente A1–A5 2026-10-21 | - | - |
+| SCV-006 | FEATURE | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | BACKLOG | SB-005, EST-004 | revisão independente A1–A5 2026-10-21 | - | - |
+| SCV-007 | FEATURE | Middleware de refresh de sessão para Server Components (evitar deslogar o console após ~1 h) | P2 | BACKLOG | MAD-003 | revisão independente A1–A5 2026-10-21 | - | - |
+| SCV-008 | FEATURE | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP | P0 | BLOCKED | SCV-003 | revisão independente A1–A5 2026-10-21 | - | - |
 
 **SCV-001** critérios: RLS; testes de escalada de privilégio · testes: pgTAP 366/366 local
 
 **SCV-002** critérios: Sem P0/P1 abertos
+
+**SCV-003** critérios: Config remota registrada; provision_master recusa conta com senha/sem Google (teste)
+
+**SCV-004** critérios: Objetos de event-branding removidos após purga/LGPD; teste de ponta a ponta
+
+**SCV-005** critérios: pgTAP cobre os três; sem contorno silencioso
+
+**SCV-006** critérios: Edge Function valida; arquivo falso/bomba de descompressão recusado
+
+**SCV-007** critérios: Sessão do console renova sem logout; teste E2E com expiração
+
+**SCV-008** critérios: supabase db reset + test db verdes; contagem documentada
 
 ## EP-17 · QA v2 (BACKLOG)
 
@@ -496,10 +532,13 @@ Total: **189** itens (sem contar 19 épicos). Prioridade: P0 35, P1 61, P2 46, P
 |---|---|---|---|---|---|---|---|---|
 | QAV-001 | FEATURE | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots antes/depois; três identidades | P0 | BACKLOG | EST-005, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
 | QAV-002 | FEATURE | Revisão independente A1–A5 e correção de P0/P1 | P0 | BACKLOG | QAV-001 | missão design/studio/master 2026-10-21 | - | - |
+| QAV-003 | FEATURE | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador | P1 | BACKLOG | EST-004, SCV-008 | revisão independente A1–A5 2026-10-21 | - | - |
 
 **QAV-001** critérios: Regressão v1 intacta; evidências anexadas
 
 **QAV-002** critérios: Relatório consolidado; P0/P1 corrigidos
+
+**QAV-003** critérios: Testes rodando em Supabase local; falha de permissão coberta
 
 ## EP-18 · Release v2 (BACKLOG)
 

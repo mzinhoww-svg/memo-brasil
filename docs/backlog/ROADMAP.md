@@ -24,7 +24,7 @@ Itens abertos: **9** · P0 2, P1 5, P2 2, P3 0 · BACKLOG 4, BLOCKED 4, READY 1
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **60** · P0 13, P1 9, P2 25, P3 13 · BACKLOG 37, IN_REVIEW 15, READY 8
+Itens abertos: **73** · P0 15, P1 15, P2 30, P3 13 · BACKLOG 48, BLOCKED 1, IN_REVIEW 16, READY 8
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -33,21 +33,29 @@ Itens abertos: **60** · P0 13, P1 9, P2 25, P3 13 · BACKLOG 37, IN_REVIEW 15, 
 | DSV-003 | P0 | BACKLOG | Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste | DSV-002 |
 | EST-001 | P0 | IN_REVIEW | Migrations v2: event_themes, event_assets, bucket event-branding privado | DSV-001 |
 | EST-002 | P0 | IN_REVIEW | Renderer de tema isolado por evento (tokens, sem CSS arbitrário) + assinatura Powered by M | DSV-001 |
-| EST-004 | P0 | BACKLOG | Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estil | EST-001, EST-002 |
+| EST-004 | P0 | IN_REVIEW | Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estil | EST-001, EST-002 |
 | MAD-001 | P0 | IN_REVIEW | Papéis de plataforma no servidor: platform_roles, is_master com linha ativa, provisionamen | EST-001 |
 | MAD-002 | P0 | IN_REVIEW | Auditoria v2: reason obrigatório, imutabilidade, actor_role, confirmação de ações destruti | MAD-001 |
 | QAV-001 | P0 | BACKLOG | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots ant | EST-005, MAD-003 |
 | QAV-002 | P0 | BACKLOG | Revisão independente A1–A5 e correção de P0/P1 | QAV-001 |
 | RLV-001 | P0 | BACKLOG | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboa | QAV-002, SB-004, SB-008 |
 | SCV-002 | P0 | BACKLOG | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | EST-004, MAD-003 |
+| SCV-003 | P0 | BACKLOG | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e val | MAD-001 |
+| SCV-008 | P0 | BLOCKED | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento | SCV-003 |
 | UXA-001 | P0 | IN_REVIEW | Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e est | - |
 | ANL-001 | P1 | IN_REVIEW | RPCs/views agregadas reais para o dashboard (eventos, participantes, fotos, falhas, revela | MAD-001 |
 | COM-009 | P1 | BACKLOG | Backup, PITR e teste de restauração; política de retenção de fotos | SB-008 |
 | DSV-002 | P1 | BACKLOG | Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /de | DSV-001 |
+| DSV-004 | P1 | BACKLOG | Tokens --mm-* v2 completos (espaço, raio, sombra, movimento) e documentação do DS v2 em /d | DSV-001 |
 | EST-003 | P1 | BACKLOG | Criação de evento completa (nome, tipo, data/hora, local, timezone, limites, revelação, pr | EST-002 |
 | EST-005 | P1 | BACKLOG | Gestão do evento: indicadores, compartilhar/baixar QR, participantes, revogar convites, up | EST-003 |
+| EST-006 | P1 | BACKLOG | Logo e capa nas demais telas do convidado e na prévia do convite (assinatura de URL fora d | EST-004, SCV-006 |
 | MAD-003 | P1 | IN_REVIEW | Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações | MAD-001, MAD-002, ANL-001 |
 | MAD-004 | P1 | BACKLOG | Acesso excepcional a foto privada por admin com justificativa e auditoria | MAD-002 |
+| MAD-005 | P1 | BACKLOG | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | MAD-003 |
+| QAV-003 | P1 | BACKLOG | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e per | EST-004, SCV-008 |
+| SCV-004 | P1 | BACKLOG | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
+| SCV-006 | P1 | BACKLOG | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
 | UXA-002 | P1 | IN_REVIEW | Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com ca | UXA-001 |
 | UXA-104 | P1 | BACKLOG | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostr | UXA-001 |
 | BG-022 | P2 | READY | Sem validação em Safari/iOS e Firefox | - |
@@ -65,7 +73,11 @@ Itens abertos: **60** · P0 13, P1 9, P2 25, P3 13 · BACKLOG 37, IN_REVIEW 15, 
 | BG-111 | P2 | BACKLOG | Atualização do service worker apaga as páginas guardadas; pré-cache só de HTML | BG-040 |
 | BG-112 | P2 | READY | Limites de campos só em maxLength; domínio e serviços não validam | - |
 | COM-011 | P2 | BACKLOG | Domínio próprio e e-mail de marca | REL-001 |
+| EST-007 | P2 | BACKLOG | Tema com cores por modo (dia/noite) no Event Theme personalizado | EST-002 |
+| MAD-006 | P2 | BACKLOG | UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revoga | MAD-004, SCV-005 |
 | SCV-001 | P2 | IN_REVIEW | Feature flags e platform_settings com escrita só do master | MAD-001 |
+| SCV-005 | P2 | BACKLOG | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava  | MAD-002 |
+| SCV-007 | P2 | BACKLOG | Middleware de refresh de sessão para Server Components (evitar deslogar o console após ~1  | MAD-003 |
 | UXA-105 | P2 | IN_REVIEW | [Administrativa] /painel/[id] e abas (visão, convidados, momentos, configurações, download | UXA-001 |
 | UXA-107 | P2 | IN_REVIEW | [Administrativa] /painel/[id] · navegação < 900px: Abas do painel cortadas ('Convidad…', ' | UXA-001 |
 | UXA-108 | P2 | BACKLOG | [Anfitrião] /criar · passos 1–6: Wizard em coluna de 480px: sem prévia do convite/tema nem | UXA-001 |
@@ -75,6 +87,7 @@ Itens abertos: **60** · P0 13, P1 9, P2 25, P3 13 · BACKLOG 37, IN_REVIEW 15, 
 | UXA-112 | P2 | BACKLOG | [Todas] Sessão expirada / sem identidade: Anfitrião sem sessão vê 'Só o anfitrião abre o p | UXA-001 |
 | UXA-113 | P2 | IN_REVIEW | [Convidado] Chips de reação, momento e sugestão (/agora, /explorar, /editar, /postar): Con | UXA-001 |
 | UXA-114 | P2 | IN_REVIEW | [Todas] Alvos de toque < 44px: Link 'Guia de componentes' 174×21px na home (3 estados); li | UXA-001 |
+| UXA-127 | P2 | BACKLOG | Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fon | EST-004 |
 | UXA-106 | P3 | BACKLOG | [Administrativa] /painel/[id]/convidados: Lista de convidados repetida: tabela 'Convidados | UXA-001 |
 | UXA-115 | P3 | BACKLOG | [Todas] Botão de texto (Voltar, Cancelar, Voltar ao início): Botão texto recuado 8px do ei | UXA-001 |
 | UXA-116 | P3 | BACKLOG | [Todas] Datas (cabeçalho, resumo, revelação): '21 · 10 · 2026' quebra entre os dígitos ('2 | UXA-001 |

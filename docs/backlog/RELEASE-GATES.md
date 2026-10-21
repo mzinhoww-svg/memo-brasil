@@ -14,7 +14,7 @@
 | G10 | V2: revisão independente A1–A5 e correção de P0/P1 | EM ANDAMENTO | docs/audit/ux/INVENTARIO.md; revisões da sessão |
 | G11 | Acesso do conector Supabase ao projeto (INF-001) | ABERTO | INF-001 |
 
-## Itens P0/P1 em aberto (34)
+## Itens P0/P1 em aberto (42)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -32,7 +32,7 @@
 | EST-001 | Migrations v2: event_themes, event_assets, bucket event-branding privado | P0 | IN_REVIEW |
 | EST-002 | Renderer de tema isolado por evento (tokens, sem CSS arbitrário) + assinatura Powered by MemoriesMT | P0 | IN_REVIEW |
 | EST-003 | Criação de evento completa (nome, tipo, data/hora, local, timezone, limites, revelação, prévia do convite) | P1 | BACKLOG |
-| EST-004 | Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estilo de QR, restaurar padrão | P0 | BACKLOG |
+| EST-004 | Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estilo de QR, restaurar padrão | P0 | IN_REVIEW |
 | EST-005 | Gestão do evento: indicadores, compartilhar/baixar QR, participantes, revogar convites, uploads, limites, contagem regressiva, status, exportação autorizada | P1 | BACKLOG |
 | MAD-001 | Papéis de plataforma no servidor: platform_roles, is_master com linha ativa, provisionamento seguro do primeiro master | P0 | IN_REVIEW |
 | MAD-002 | Auditoria v2: reason obrigatório, imutabilidade, actor_role, confirmação de ações destrutivas | P0 | IN_REVIEW |
@@ -51,6 +51,14 @@
 | COM-006 | Página de planos e checkout do organizador | P1 | BACKLOG |
 | COM-005 | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG |
 | COM-009 | Backup, PITR e teste de restauração; política de retenção de fotos | P1 | BACKLOG |
+| SCV-003 | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha | P0 | BACKLOG |
+| SCV-004 | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD | P1 | BACKLOG |
+| SCV-006 | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | BACKLOG |
+| SCV-008 | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP | P0 | BLOCKED |
+| EST-006 | Logo e capa nas demais telas do convidado e na prévia do convite (assinatura de URL fora da RLS para quem ainda não entrou) | P1 | BACKLOG |
+| DSV-004 | Tokens --mm-* v2 completos (espaço, raio, sombra, movimento) e documentação do DS v2 em /design (Studio, Admin DS, tema) | P1 | BACKLOG |
+| MAD-005 | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | P1 | BACKLOG |
+| QAV-003 | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador | P1 | BACKLOG |
 
 ## Decisão atual
 **V1: NO-GO para produção** até REL-001/SB-008 (domínio serve o app legado e as variáveis de Production não foram verificadas) e G7 (fluxo de convidado no preview remoto). **V2: GO para preview** (nunca promover antes da V1 e da revisão independente). Itens da V2 em IN_REVIEW dependem da revisão A1–A5; nada aqui está DONE por ter sido codificado.

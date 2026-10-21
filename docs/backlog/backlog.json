@@ -4645,7 +4645,7 @@
    "epic": "EP-13",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "EST-001",
     "EST-002"
@@ -4655,10 +4655,15 @@
     "Upload validado (MIME, tamanho, dimensões); bloqueio de edição após o limite; E2E de personalização"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "tests": [
+    "e2e/studio-local.spec.ts",
+    "src/features/studio/AppearanceStudio.test.tsx"
+   ],
+   "evidence": [
+    "docs/architecture/DESIGN-V2-STUDIO-ADMIN.md"
+   ],
+   "commit": "901fdb0",
+   "environment": "local",
    "release": "R2"
   },
   {
@@ -5905,6 +5910,309 @@
    "commit": null,
    "environment": null,
    "release": "R3"
+  },
+  {
+   "id": "SCV-003",
+   "type": "FEATURE",
+   "title": "Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha",
+   "description": "Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-001"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Config remota registrada; provision_master recusa conta com senha/sem Google (teste)"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "SCV-004",
+   "type": "FEATURE",
+   "title": "Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD",
+   "description": "Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-005"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Objetos de event-branding removidos após purga/LGPD; teste de ponta a ponta"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "SCV-005",
+   "type": "FEATURE",
+   "title": "Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava do último master",
+   "description": "Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava do último master",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-002"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "pgTAP cobre os três; sem contorno silencioso"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "SCV-006",
+   "type": "FEATURE",
+   "title": "Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados",
+   "description": "Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SB-005",
+    "EST-004"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Edge Function valida; arquivo falso/bomba de descompressão recusado"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "SCV-007",
+   "type": "FEATURE",
+   "title": "Middleware de refresh de sessão para Server Components (evitar deslogar o console após ~1 h)",
+   "description": "Middleware de refresh de sessão para Server Components (evitar deslogar o console após ~1 h)",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-003"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Sessão do console renova sem logout; teste E2E com expiração"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "SCV-008",
+   "type": "FEATURE",
+   "title": "Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP",
+   "description": "Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P0",
+   "status": "BLOCKED",
+   "dependencies": [
+    "SCV-003"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "supabase db reset + test db verdes; contagem documentada"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "EST-006",
+   "type": "FEATURE",
+   "title": "Logo e capa nas demais telas do convidado e na prévia do convite (assinatura de URL fora da RLS para quem ainda não entrou)",
+   "description": "Logo e capa nas demais telas do convidado e na prévia do convite (assinatura de URL fora da RLS para quem ainda não entrou)",
+   "epic": "EP-13",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-004",
+    "SCV-006"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Imagens aparecem em convite, entrada, galeria; sem vazamento a não membros"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "EST-007",
+   "type": "FEATURE",
+   "title": "Tema com cores por modo (dia/noite) no Event Theme personalizado",
+   "description": "Tema com cores por modo (dia/noite) no Event Theme personalizado",
+   "epic": "EP-13",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-002"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Duas paletas validadas em contraste; teste de isolamento nos dois modos"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "DSV-004",
+   "type": "FEATURE",
+   "title": "Tokens --mm-* v2 completos (espaço, raio, sombra, movimento) e documentação do DS v2 em /design (Studio, Admin DS, tema)",
+   "description": "Tokens --mm-* v2 completos (espaço, raio, sombra, movimento) e documentação do DS v2 em /design (Studio, Admin DS, tema)",
+   "epic": "EP-12",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "DSV-001"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Tokens e componentes documentados; testes visuais"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "MAD-005",
+   "type": "FEATURE",
+   "title": "Escrita de settings e feature flags no console com justificativa, confirmação e auditoria",
+   "description": "Escrita de settings e feature flags no console com justificativa, confirmação e auditoria",
+   "epic": "EP-14",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-003"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "UI chama admin_set_*; justificativa obrigatória; E2E"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "MAD-006",
+   "type": "FEATURE",
+   "title": "UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revogação de papéis",
+   "description": "UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revogação de papéis",
+   "epic": "EP-14",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-004",
+    "SCV-005"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Serviço assina só o caminho devolvido pela RPC; E2E"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "QAV-003",
+   "type": "FEATURE",
+   "title": "Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador",
+   "description": "Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador",
+   "epic": "EP-17",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-004",
+    "SCV-008"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Testes rodando em Supabase local; falha de permissão coberta"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "UXA-127",
+   "type": "FEATURE",
+   "title": "Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fonte",
+   "description": "Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fonte",
+   "epic": "EP-11",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-004"
+   ],
+   "origin": "revisão independente A1–A5 2026-10-21",
+   "acceptance": [
+    "Amostras visíveis; estado personalizado marcado"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
   }
  ],
  "requirements": [

@@ -67,7 +67,7 @@ flowchart LR
   EST_001["EST-001<br/>IN_REVIEW"]:::back
   EST_002["EST-002<br/>IN_REVIEW"]:::back
   EST_003["EST-003<br/>BACKLOG"]:::back
-  EST_004["EST-004<br/>BACKLOG"]:::back
+  EST_004["EST-004<br/>IN_REVIEW"]:::back
   EST_005["EST-005<br/>BACKLOG"]:::back
   MAD_001["MAD-001<br/>IN_REVIEW"]:::back
   MAD_002["MAD-002<br/>IN_REVIEW"]:::back
@@ -115,6 +115,19 @@ flowchart LR
   COM_013["COM-013<br/>BACKLOG"]:::back
   COM_011["COM-011<br/>BACKLOG"]:::back
   COM_012["COM-012<br/>BACKLOG"]:::back
+  SCV_003["SCV-003<br/>BACKLOG"]:::back
+  SCV_004["SCV-004<br/>BACKLOG"]:::back
+  SCV_005["SCV-005<br/>BACKLOG"]:::back
+  SCV_006["SCV-006<br/>BACKLOG"]:::back
+  SCV_007["SCV-007<br/>BACKLOG"]:::back
+  SCV_008["SCV-008<br/>BLOCKED"]:::block
+  EST_006["EST-006<br/>BACKLOG"]:::back
+  EST_007["EST-007<br/>BACKLOG"]:::back
+  DSV_004["DSV-004<br/>BACKLOG"]:::back
+  MAD_005["MAD-005<br/>BACKLOG"]:::back
+  MAD_006["MAD-006<br/>BACKLOG"]:::back
+  QAV_003["QAV-003<br/>BACKLOG"]:::back
+  UXA_127["UXA-127<br/>BACKLOG"]:::back
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -270,6 +283,23 @@ flowchart LR
   SB_005 --> COM_013
   REL_001 --> COM_011
   COM_008 --> COM_012
+  MAD_001 --> SCV_003
+  SB_005 --> SCV_004
+  MAD_002 --> SCV_005
+  SB_005 --> SCV_006
+  EST_004 --> SCV_006
+  MAD_003 --> SCV_007
+  SCV_003 --> SCV_008
+  EST_004 --> EST_006
+  SCV_006 --> EST_006
+  EST_002 --> EST_007
+  DSV_001 --> DSV_004
+  MAD_003 --> MAD_005
+  MAD_004 --> MAD_006
+  SCV_005 --> MAD_006
+  EST_004 --> QAV_003
+  SCV_008 --> QAV_003
+  EST_004 --> UXA_127
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;

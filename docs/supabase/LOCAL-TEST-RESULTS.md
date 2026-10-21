@@ -56,3 +56,7 @@ Branch `feat/memoriesmt-studio`. Somente banco local descartável (portas 55420�
 
 ## Não coberto no v2 (ver `MIGRATIONS-V2.md`, "Fora do escopo")
 Limpeza dos objetos de `event-branding` de eventos apagados (a fila `storage_purge_queue` não tem coluna de bucket), validação de conteúdo/dimensões reais da imagem (magic bytes; largura/altura são as declaradas), assinatura da URL de 60 s (feita fora do banco, pelo serviço com `service_role`), rotas `/master` e UI, testes de API (supabase-js) e E2E dos novos fluxos.
+
+
+## Reconciliação (2026-10-21)
+O total de pgTAP medido depois das correções de contraste, do DELETE de `event_themes` e das listagens admin foi **366/366** (75 da v1 + 291 da v2). O número 342 (75 + 267) era anterior a essas mudanças. O endurecimento posterior à revisão A4 (migration `…0700` e edições em `…0100/0400/0500`) **não foi executado** (Docker indisponível): o total deve ser remedido (SCV-008).
