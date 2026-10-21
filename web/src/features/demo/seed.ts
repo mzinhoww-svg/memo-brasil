@@ -34,7 +34,7 @@ export async function seedDemoEvent(repos: Repositories, host: User, now: number
   while (await repos.events.getByCode(code)) code = generateShareCode();
   const event: MemoEvent = {
     id: crypto.randomUUID(), code, title: "Emy e Igor", category: "casamento", hostId: host.id, hostName: host.name,
-    startAt: now - 3 * 3_600_000, durationHours: 8, cameraStyle: "original", revealEnabled: pending, revealAt: pending ? now + 2 * 60_000 : null, timezone: defaultTimezone(), revealStatus: pending ? "pendente" : "desativada",
+    startAt: now - 3 * 3_600_000, durationHours: 8, cameraStyle: "original", revealEnabled: pending, revealAt: pending ? now + 2 * 60_000 : null, revealAnchor: "data", revealOffsetDays: 0, timezone: defaultTimezone(), revealStatus: pending ? "pendente" : "desativada",
     capacity: 100, shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone",
     place: "Chalés Taíba, CE", moments: MOMENTS, tables: 10, createdAt: now - 3 * 3_600_000,
     notice: { text: "Pôr do sol na areia em 10 minutos." },

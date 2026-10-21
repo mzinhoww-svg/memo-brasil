@@ -5,7 +5,7 @@ import { createIndexedDbRepositories, createMemoryRepositories, deleteEventCasca
 
 const ev = (id: string, code: string): MemoEvent => ({
   id, code, title: "Emy e Igor", category: "casamento", hostId: "h", hostName: "Emy", startAt: 1, durationHours: 6,
-  cameraStyle: "original", revealEnabled: true, revealAt: 6, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24,
+  cameraStyle: "original", revealEnabled: true, revealAt: 6, revealAnchor: "fim", revealOffsetDays: 0, timezone: "UTC", revealStatus: "pendente", capacity: 50, shotsPerPerson: 24,
   everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 1,
 });
 const photo = (id: string, eventId: string, createdAt = 1): Photo => ({ id, eventId, authorId: "a", authorName: "Ana", createdAt, moment: "O sim", status: "visivel", reports: 0, highlighted: false });
@@ -148,5 +148,26 @@ describe("migração v1 → v2 (revelação programada)", () => {
     expect(c.revealAt).toBe(6 * H + 2 * 24 * H);
     expect("revealTiming" in a).toBe(false);
     expect(typeof a.timezone).toBe("string");
+  });
+});
+
+describe("BG-101: migração v3 (âncora da revelação)", () => {
+  it("deduz a âncora dos eventos salvos; sem a v3 ela não existe (controle)", async () => {
+    const { MIGRATIONS } = await import("./indexeddb");
+    const H = 3_600_000;
+    const dbName = `ancora-${n++}`;
+    const v2 = createIndexedDbRepositories(dbName, MIGRATIONS.slice(0, 2));
+    const legacy = (id: string, code: string, revealAt: number | null) => ({ ...ev(id, code), startAt: 0, revealEnabled: revealAt !== null, revealAt, revealAnchor: undefined, revealOffsetDays: undefined }) as never;
+    await v2.events.save(legacy("a", "AAAAAAAA", 6 * H)); // = fim → fim, 0
+    await v2.events.save(legacy("b", "BBBBBBBB", 6 * H + 2 * 24 * H)); // fim + 2 d
+    await v2.events.save(legacy("c", "CCCCCCCC", 6 * H + 90 * 60_000)); // não casa: data fixa
+    await v2.events.save(legacy("d", "DDDDDDDD", null)); // desligada
+    expect((await v2.events.get("a"))!.revealAnchor).toBeUndefined(); // controle: antes da v3
+
+    const v3 = createIndexedDbRepositories(dbName); // abre com todas as migrações
+    expect(await v3.events.get("a")).toMatchObject({ revealAnchor: "fim", revealOffsetDays: 0 });
+    expect(await v3.events.get("b")).toMatchObject({ revealAnchor: "fim", revealOffsetDays: 2 });
+    expect(await v3.events.get("c")).toMatchObject({ revealAnchor: "data", revealOffsetDays: 0 });
+    expect(await v3.events.get("d")).toMatchObject({ revealAnchor: "data", revealOffsetDays: 0 });
   });
 });

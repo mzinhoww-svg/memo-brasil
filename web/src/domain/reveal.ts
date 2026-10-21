@@ -9,6 +9,33 @@ import type { MemoEvent } from "./event";
 export type RevealStatus = "desativada" | "pendente" | "revelada";
 
 export const MIN_REVEAL_LEAD_MS = 60_000;
+export const DAY_MS = 86_400_000;
+
+/** `fim`: revelação = fim do evento + N dias (acompanha o fim). `data`: instante fixo escolhido pelo organizador. */
+export type RevealAnchor = "fim" | "data";
+export interface RevealAnchorFields { revealAnchor: RevealAnchor; revealOffsetDays: number }
+
+/** Para eventos salvos antes da âncora existir: deduz pela distância entre a revelação e o fim. */
+export function inferRevealAnchor(e: { startAt: number; durationHours: number; endedAt?: number; revealEnabled: boolean; revealAt: number | null }): RevealAnchorFields {
+  if (!e.revealEnabled || e.revealAt === null) return { revealAnchor: "data", revealOffsetDays: 0 };
+  const planned = e.startAt + e.durationHours * 3_600_000;
+  const end = e.endedAt !== undefined ? Math.min(e.endedAt, planned) : planned;
+  const diff = e.revealAt - end;
+  if (diff >= 0 && diff % DAY_MS === 0 && diff / DAY_MS <= 30) return { revealAnchor: "fim", revealOffsetDays: diff / DAY_MS };
+  return { revealAnchor: "data", revealOffsetDays: 0 };
+}
+
+/**
+ * Recalcula `revealAt` quando o fim do evento muda e a revelação está ancorada no fim. Nunca altera uma revelação
+ * que já aconteceu (não se esconde de novo o que foi visto) nem uma data fixa.
+ */
+export function syncRevealWithEnd<T extends Pick<MemoEvent, "revealEnabled" | "revealAt" | "revealAnchor" | "revealOffsetDays" | "startAt" | "durationHours" | "endedAt">>(e: T, now: number): T {
+  if (!e.revealEnabled || e.revealAnchor !== "fim") return e;
+  if (computeRevealStatus(e, now) === "revelada") return e;
+  const planned = e.startAt + e.durationHours * 3_600_000;
+  const end = e.endedAt !== undefined ? Math.min(e.endedAt, planned) : planned;
+  return { ...e, revealAt: end + e.revealOffsetDays * DAY_MS };
+}
 
 export const TIMEZONES: { id: string; label: string }[] = [
   { id: "America/Cuiaba", label: "Cuiabá (MT, UTC−4)" },

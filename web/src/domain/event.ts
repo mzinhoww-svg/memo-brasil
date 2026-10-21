@@ -1,5 +1,5 @@
 import type { CameraStyle, Capacity, EventCategory, Shots } from "./options";
-import { computeRevealStatus, type RevealStatus } from "./reveal";
+import { computeRevealStatus, type RevealAnchor, type RevealStatus } from "./reveal";
 import { MIN_DURATION_HOURS } from "./options";
 
 export type PaletteId = "salvia" | "terracota" | "oceano" | "ameixa";
@@ -19,6 +19,9 @@ export interface MemoEvent {
   /** Revelação programada: desligada = fotos visíveis na hora. */
   revealEnabled: boolean;
   revealAt: number | null; // epoch UTC
+  /** `fim` = acompanha o fim do evento (+ revealOffsetDays); `data` = instante fixo. */
+  revealAnchor: RevealAnchor;
+  revealOffsetDays: number;
   timezone: string; // IANA, usado para mostrar e contar a revelação
   revealStatus: RevealStatus; // espelho persistido de computeRevealStatus (idempotente)
   capacity: Capacity;

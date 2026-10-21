@@ -156,3 +156,19 @@ test("administrador master: rota é só um ponto de integração, sem login e se
   await page.goto(`/painel/${id}/configuracoes?role=master`);
   await expect(page.getByRole("heading", { name: "Só o anfitrião abre o painel." })).toBeVisible();
 });
+
+test("BG-101: 'ao terminar' acompanha o fim ao estender e ao encerrar agora (pela interface)", async ({ page }) => {
+  const { id } = await createViaWizard(page, { title: "Acompanha o fim", reveal: "ao-terminar" });
+  await page.goto(`/painel/${id}/configuracoes`);
+  const cfg = page.getByTestId("config-revelacao");
+  const fim = async () => (await cfg.getByText(/Fim do evento:/).textContent())!.replace(/^.*Fim do evento: /, "").replace(/\.$/, "");
+  const revela = async () => (await cfg.getByText(/Ligada: revela em/).textContent())!.replace(/^.*Ligada: revela em /, "").split(". Fim do evento")[0];
+  expect(await revela()).toBe(await fim());
+  const antes = await fim();
+  await page.getByRole("button", { name: "1 dia" }).click(); // estende o fim para daqui a 1 dia
+  await expect.poll(fim).not.toBe(antes);
+  expect(await revela()).toBe(await fim()); // a revelação foi junto
+  await page.getByRole("button", { name: "Encerrar agora" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Encerrar agora" }).click();
+  await expect(cfg).toContainText("A revelação aconteceu em"); // revelou no encerramento, sem esperar horas
+});

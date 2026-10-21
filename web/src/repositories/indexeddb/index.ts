@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase, type IDBPTransaction, type StoreNames } from "idb";
-import { migrateLegacyReveal } from "@/domain/reveal";
+import { inferRevealAnchor, migrateLegacyReveal } from "@/domain/reveal";
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { StorageUnavailableError, type Invitation, type Participant, type PhotoData, type Repositories, type User } from "../types";
@@ -36,6 +36,14 @@ export const MIGRATIONS: Migration[] = [
     const now = Date.now();
     for (let cur = await store.openCursor(); cur; cur = await cur.continue()) {
       await cur.update(migrateLegacyReveal(cur.value as never, now) as never);
+    }
+  },
+  // v3: âncora da revelação (fim + N dias, ou data fixa), deduzida dos eventos já salvos
+  async (_db, tx) => {
+    const store = tx.objectStore("events");
+    for (let cur = await store.openCursor(); cur; cur = await cur.continue()) {
+      const e = cur.value as unknown as { revealAnchor?: string; startAt: number; durationHours: number; endedAt?: number; revealEnabled: boolean; revealAt: number | null };
+      if (e.revealAnchor === undefined) await cur.update({ ...cur.value, ...inferRevealAnchor(e) } as never);
     }
   },
 ];

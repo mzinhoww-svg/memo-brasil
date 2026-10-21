@@ -1,7 +1,7 @@
 import { canEditEnd, endAt, validateDraft, type DraftErrors, type MemoEvent, type EventFontId, type PaletteId } from "@/domain/event";
 import { generateShareCode } from "@/domain/share-code";
 import type { CameraStyle, Capacity, EventCategory, Shots } from "@/domain/options";
-import { canEditReveal, computeRevealStatus, type RevealErrors } from "@/domain/reveal";
+import { canEditReveal, computeRevealStatus, syncRevealWithEnd, type RevealErrors } from "@/domain/reveal";
 import { resolveReveal, type RevealInput } from "./reveal-input";
 import { deleteEventCascade, type Repositories, type User } from "@/repositories";
 
@@ -45,6 +45,8 @@ export async function createEvent(repos: Repositories, host: User, input: EventI
     cameraStyle: input.cameraStyle,
     revealEnabled: reveal.enabled,
     revealAt: reveal.at,
+    revealAnchor: reveal.anchor,
+    revealOffsetDays: reveal.offsetDays,
     timezone: reveal.timezone,
     revealStatus: computeRevealStatus({ revealEnabled: reveal.enabled, revealAt: reveal.at }, now),
     capacity: input.capacity,
@@ -71,15 +73,19 @@ export async function setEndIn(repos: Repositories, eventId: string, hoursFromNo
   const photoCount = (await repos.photos.listByEvent(eventId)).filter((p) => p.status !== "removida").length;
   if (!canEditEnd(e, photoCount, now)) return { ok: false, reason: "encerrado-com-fotos" };
   if (hoursFromNow < 0.5) return { ok: false, reason: "termino-curto" };
-  const next: MemoEvent = { ...e, endedAt: undefined, durationHours: (now + hoursFromNow * 3_600_000 - e.startAt) / 3_600_000 };
+  const moved: MemoEvent = { ...e, endedAt: undefined, durationHours: (now + hoursFromNow * 3_600_000 - e.startAt) / 3_600_000 };
+  const next = withStatus(syncRevealWithEnd(moved, now), now);
   await repos.events.save(next);
   return { ok: true, event: next };
 }
 
+/** Recalcula o espelho `revealStatus` a partir do relógio. */
+const withStatus = (e: MemoEvent, now: number): MemoEvent => ({ ...e, revealStatus: computeRevealStatus(e, now) });
+
 export async function endEventNow(repos: Repositories, eventId: string, now: number): Promise<MemoEvent | undefined> {
   const e = await repos.events.get(eventId);
   if (!e || now >= endAt(e)) return e;
-  const next = { ...e, endedAt: now };
+  const next = withStatus(syncRevealWithEnd({ ...e, endedAt: now }, now), now);
   await repos.events.save(next);
   return next;
 }
@@ -112,7 +118,7 @@ export async function updateReveal(repos: Repositories, eventId: string, input: 
   if (!verdict.ok) return { ok: false, reason: verdict.reason };
   const r = resolveReveal(input, endAt(e), now);
   if (!r.ok) return { ok: false, reason: "invalido", errors: r.errors };
-  const next: MemoEvent = { ...e, revealEnabled: r.enabled, revealAt: r.at, timezone: r.timezone, revealStatus: computeRevealStatus({ revealEnabled: r.enabled, revealAt: r.at }, now) };
+  const next: MemoEvent = { ...e, revealEnabled: r.enabled, revealAt: r.at, revealAnchor: r.anchor, revealOffsetDays: r.offsetDays, timezone: r.timezone, revealStatus: computeRevealStatus({ revealEnabled: r.enabled, revealAt: r.at }, now) };
   await repos.events.save(next);
   return { ok: true, event: next };
 }

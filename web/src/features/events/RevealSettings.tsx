@@ -20,6 +20,7 @@ const MESSAGES = {
 function fromEvent(e: MemoEvent): RevealInput {
   if (!e.revealEnabled || e.revealAt === null) return { ...defaultRevealInput(), enabled: false, timezone: e.timezone };
   const z = epochToZoned(e.revealAt, e.timezone);
+  if (e.revealAnchor === "fim") return { enabled: true, kind: e.revealOffsetDays > 0 ? "depois" : "ao-terminar", days: Math.max(1, e.revealOffsetDays), date: z.date, time: z.time, timezone: e.timezone };
   return { enabled: true, kind: "data", days: 1, date: z.date, time: z.time, timezone: e.timezone };
 }
 

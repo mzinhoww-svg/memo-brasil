@@ -9,7 +9,7 @@ const H = 3_600_000;
 const D = 24 * H;
 const ev = (o: Partial<MemoEvent> = {}): MemoEvent => ({
   id: "e", code: "AAAAAAAA", title: "Emy e Igor", category: "casamento", hostId: "host", hostName: "Emy", startAt: 0, durationHours: 6,
-  cameraStyle: "original", revealEnabled: true, revealAt: 10 * H, timezone: "America/Cuiaba", revealStatus: "pendente", capacity: 50,
+  cameraStyle: "original", revealEnabled: true, revealAt: 10 * H, revealAnchor: "fim", revealOffsetDays: 0, timezone: "America/Cuiaba", revealStatus: "pendente", capacity: 50,
   shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone", moments: [], tables: 0, createdAt: 0, ...o,
 });
 
@@ -107,5 +107,24 @@ describe("papéis (contrato, não segurança)", () => {
     expect(can(master, "platform.supervise")).toBe(true);
     expect(can(owner, "platform.supervise")).toBe(false);
     expect(can(master, "reveal.configure", ev())).toBe(true);
+  });
+});
+
+import { inferRevealAnchor, syncRevealWithEnd } from "./reveal";
+
+describe("BG-101: âncora da revelação", () => {
+  const base = { startAt: 0, durationHours: 6 };
+  it("infere âncora de eventos já salvos pela distância ao fim", () => {
+    expect(inferRevealAnchor({ ...base, revealEnabled: true, revealAt: 6 * H })).toEqual({ revealAnchor: "fim", revealOffsetDays: 0 });
+    expect(inferRevealAnchor({ ...base, revealEnabled: true, revealAt: 6 * H + 2 * D })).toEqual({ revealAnchor: "fim", revealOffsetDays: 2 });
+    expect(inferRevealAnchor({ ...base, revealEnabled: true, revealAt: 6 * H + 90 * 60_000 })).toEqual({ revealAnchor: "data", revealOffsetDays: 0 });
+    expect(inferRevealAnchor({ ...base, revealEnabled: true, revealAt: 5 * H })).toEqual({ revealAnchor: "data", revealOffsetDays: 0 });
+    expect(inferRevealAnchor({ ...base, revealEnabled: false, revealAt: null })).toEqual({ revealAnchor: "data", revealOffsetDays: 0 });
+  });
+  it("não mexe na revelação já ocorrida nem em âncora 'data'", () => {
+    const e = ev({ revealAnchor: "fim", revealOffsetDays: 0, revealAt: 6 * H });
+    expect(syncRevealWithEnd({ ...e, durationHours: 30 }, 5 * H).revealAt).toBe(30 * H);
+    expect(syncRevealWithEnd({ ...e, durationHours: 30 }, 7 * H).revealAt).toBe(6 * H); // já revelada: fica
+    expect(syncRevealWithEnd({ ...ev({ revealAnchor: "data", revealAt: 9 * H }), durationHours: 30 }, 0).revealAt).toBe(9 * H);
   });
 });

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { endAt } from "@/domain/event";
+import { computeRevealStatus } from "@/domain/reveal";
 import { createMemoryRepositories, type Repositories, type User } from "@/repositories";
 import { eventStats, moderate } from "./admin/service";
 import { seedDemoEvent } from "./demo/seed";
@@ -238,5 +239,56 @@ describe("revelação programada (serviços; o tempo é simulado pelo parâmetro
     expect(await loadFeed(repos, r.event, { id: "tarde", host: false }, t)).toHaveLength(1);
     // depois do fim do evento ninguém novo entra (regra do REA), mesmo com a galeria liberada
     expect(await joinEvent(repos, { ...guest, id: "muito-tarde" }, r.event.code, "X", NOW + 7 * H)).toEqual({ ok: false, reason: "encerrado" });
+  });
+});
+
+describe("BG-101: revelação relativa ao término acompanha o fim do evento", () => {
+  const H = 3_600_000, DAY = 24 * H;
+  const rel = (o: Partial<EventInput["reveal"]> = {}) => ({ enabled: true, kind: "ao-terminar" as const, days: 1, date: "", time: "", timezone: "UTC", ...o });
+
+  it("'ao terminar' guarda âncora no fim; estender o fim move a revelação junto", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rel() }, NOW);
+    if (!r.ok) throw new Error();
+    expect(r.event).toMatchObject({ revealAnchor: "fim", revealOffsetDays: 0 });
+    const ext = await setEndIn(repos, r.event.id, 30, NOW + H); // novo fim = NOW + 31 h
+    if (!ext.ok) throw new Error();
+    expect(ext.event.revealAt).toBe(endAt(ext.event));
+    expect((await repos.events.get(r.event.id))!.revealAt).toBe(endAt(ext.event));
+  });
+  it("'Encerrar agora' revela no instante do encerramento, sem esperar as horas que sobravam", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rel() }, NOW);
+    if (!r.ok) throw new Error();
+    const ended = await endEventNow(repos, r.event.id, NOW + 2 * H);
+    expect(ended!.revealAt).toBe(NOW + 2 * H);
+    expect(computeRevealStatus(ended!, NOW + 2 * H)).toBe("revelada");
+  });
+  it("'N dias depois' soma N dias ao novo fim", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rel({ kind: "depois", days: 2 }) }, NOW);
+    if (!r.ok) throw new Error();
+    expect(r.event).toMatchObject({ revealAnchor: "fim", revealOffsetDays: 2 });
+    const ext = await setEndIn(repos, r.event.id, 10, NOW + H);
+    if (!ext.ok) throw new Error();
+    expect(ext.event.revealAt).toBe(endAt(ext.event) + 2 * DAY);
+  });
+  it("data escolhida (âncora 'data') não muda quando o fim muda", async () => {
+    const d = new Date(NOW + 20 * H);
+    const r = await createEvent(repos, host, { ...input, reveal: rel({ kind: "data", date: d.toISOString().slice(0, 10), time: d.toISOString().slice(11, 16) }) }, NOW);
+    if (!r.ok) throw new Error();
+    expect(r.event.revealAnchor).toBe("data");
+    const before = r.event.revealAt;
+    const ext = await setEndIn(repos, r.event.id, 40, NOW + H);
+    expect(ext.ok && ext.event.revealAt).toBe(before);
+  });
+  it("revelação desligada não ganha data ao estender o fim", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rel({ enabled: false }) }, NOW);
+    if (!r.ok) throw new Error();
+    const ext = await setEndIn(repos, r.event.id, 10, NOW + H);
+    expect(ext.ok && ext.event.revealAt).toBeNull();
+  });
+  it("trocar o tipo na configuração atualiza a âncora", async () => {
+    const r = await createEvent(repos, host, { ...input, reveal: rel() }, NOW);
+    if (!r.ok) throw new Error();
+    const u = await updateReveal(repos, r.event.id, rel({ kind: "depois", days: 3 }), NOW + H);
+    expect(u.ok && u.event).toMatchObject({ revealAnchor: "fim", revealOffsetDays: 3 });
   });
 });
