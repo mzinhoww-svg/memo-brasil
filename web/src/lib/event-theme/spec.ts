@@ -49,3 +49,14 @@ export function qrDarkColor(t: ThemeSpec | undefined): string {
   const c = t?.colors.profundo;
   return c && /^#[0-9A-Fa-f]{6}$/.test(c) && contrastRatio(c, "#FFFFFF") >= 7 ? c.toUpperCase() : QR_PADRAO;
 }
+
+const fmt = (n: number) => n.toFixed(1).replace(".", ",");
+/** Problemas de contraste por cor, para marcar o campo certo (mesmos limites de validateTheme). */
+export function colorIssues(c: ThemeSpec["colors"]): Partial<Record<"texto" | "profundo" | "controle", string>> {
+  const out: Partial<Record<"texto" | "profundo" | "controle", string>> = {};
+  if (!Object.values(c).every((v) => HEX.test(v ?? ""))) return out;
+  const t = contrastRatio(c.texto, c.superficie); if (t < 4.5) out.texto = `contraste ${fmt(t)}:1 sobre o fundo (mínimo 4,5:1)`;
+  const p = contrastRatio(c.profundo, c.superficie); if (p < 4.5) out.profundo = `contraste ${fmt(p)}:1 sobre o fundo (mínimo 4,5:1)`;
+  const k = contrastRatio(onColor(c.controle), c.controle); if (k < 3) out.controle = `rótulo com contraste ${fmt(k)}:1 (mínimo 3:1)`;
+  return out;
+}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PALETTES } from "@/lib/event-theme";
 import { contrastRatio, onColor } from "./contrast";
-import { PRESETS, qrDarkColor, themeStyle, validateTheme, type ThemeSpec } from "./spec";
+import { PRESETS, colorIssues, qrDarkColor, themeStyle, validateTheme, type ThemeSpec } from "./spec";
 
 const base: ThemeSpec = { preset: "salvia", colors: { ...PRESETS.salvia.dia }, font: "birthstone", welcomeMessage: "Bem-vindos!", qrStyle: "classico" };
 
@@ -72,5 +72,13 @@ describe("qrDarkColor", () => {
     expect(qrDarkColor({ ...base, colors: { ...base.colors, profundo: "#102A43" } })).toBe("#102A43");
     expect(qrDarkColor({ ...base, colors: { ...base.colors, profundo: "#AAB4A2" } })).toBe("#1C1917");
     expect(qrDarkColor(undefined)).toBe("#1C1917");
+  });
+});
+
+describe("colorIssues", () => {
+  it("aponta a cor culpada com a razão medida e fica vazio nos presets", () => {
+    expect(colorIssues({ ...base.colors, texto: "#EEEEEE" }).texto).toMatch(/contraste \d,\d:1 sobre o fundo \(mínimo 4,5:1\)/);
+    expect(colorIssues({ ...base.colors, profundo: "#F5F5F5" }).profundo).toBeTruthy();
+    for (const id of Object.keys(PRESETS)) for (const m of ["dia", "noite"] as const) expect(colorIssues(PRESETS[id][m]), `${id}/${m}`).toEqual({});
   });
 });

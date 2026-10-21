@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Chip, Chips, Field, Notice, OptionGroup, Sheet } from "@/components/memoriesmt";
@@ -47,13 +48,7 @@ export default function Configuracoes() {
         <h2 id="nome" className="titulo-card app-h1">Nome e aparência</h2>
         <Field label="Nome do evento" value={title} maxLength={60} onChange={(e) => setTitle(e.target.value)} />
         <Button variant="secundario" disabled={!title.trim() || title === event.title} onClick={() => save({ title: title.trim() })}>Salvar nome</Button>
-        <div className="app-stack-sm">
-          <span className="mm-group-label">Cor do evento</span>
-          <Chips label="Cor do evento">
-            {(Object.keys(PALETTES) as PaletteId[]).map((p) => <Chip key={p} variant="filtro" pressed={event.palette === p} onClick={() => save({ palette: p })}>{PALETTES[p].label}</Chip>)}
-          </Chips>
-        </div>
-        <OptionGroup<EventFontId> label="Fonte do nome do evento" value={event.eventFont} onChange={(v) => save({ eventFont: v })} options={(Object.keys(EVENT_FONT_LABEL) as EventFontId[]).map((f) => ({ value: f, label: EVENT_FONT_LABEL[f] }))} />
+        <p className="app-p app-muted">Cores, fonte, mensagem e QR ficam em <Link href={`/painel/${event.id}/aparencia`}>Aparência</Link>.</p>
       </section>
 
       <section className="app-stack app-form-col" aria-labelledby="regras">

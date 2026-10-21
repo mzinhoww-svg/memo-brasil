@@ -66,8 +66,8 @@
 .studio-msg { resize: vertical; min-height: 88px; font: inherit; }
 .studio-acoes { display: flex; flex-wrap: wrap; gap: 12px; }
 .studio-cartao-corpo { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 32px 24px; border-radius: 20px; text-align: center; }
-.studio-qr { width: 120px; height: 120px; border: 6px solid; background: repeating-conic-gradient(currentColor 0 25%, transparent 0 50%) 0 0 / 24px 24px; border-radius: 8px; }
-.studio-qr[data-estilo="pontos"] { border-radius: 50%; } .studio-qr[data-estilo="arredondado"] { border-radius: 24px; }
+.studio-qr { width: 144px; height: 144px; border-radius: 8px; background: #fff; }
+.studio-qr[data-estilo="pontos"] { border-radius: 50%; padding: 14px; box-sizing: border-box; } .studio-qr[data-estilo="arredondado"] { border-radius: 24px; padding: 6px; box-sizing: border-box; }
 .studio-botao { display: inline-flex; align-items: center; min-height: 44px; padding: 0 24px; border-radius: 999px; font-weight: 600; }
 .studio-capa { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; }
 .studio-logo { max-width: 96px; max-height: 96px; object-fit: contain; }
@@ -86,3 +86,10 @@
 .pronto-qr { align-self: center; border-radius: var(--radius-md); width: min(100%, 240px); height: auto; }
 .pronto-url { display: flex; gap: var(--space-2); align-items: stretch; }
 .pronto-url input { flex: 1; min-width: 0; font: inherit; font-size: 14px; padding: 0 var(--space-3); height: var(--size-alvo); border: 1.5px solid var(--borda-controle); border-radius: var(--radius-md); background: var(--fundo); color: var(--tinta); box-sizing: border-box; }
+
+/* Studio: no celular a prévia fica visível no topo enquanto se edita; cor inválida marcada no próprio campo */
+@media (max-width: 1023px) { .studio-previa { order: -1; position: sticky; top: 0; z-index: 5; max-height: 42vh; overflow: auto; background: var(--fundo); padding-bottom: var(--space-2); } .studio-cartao-corpo { padding: 16px; gap: 8px; } }
+.studio-cores { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.studio-cor code { font-size: 12px; color: var(--apoio); }
+.studio-cor[data-invalid="true"] input[type="color"] { border: 2px solid var(--erro, #A3231B); }
+.studio-cor small { font-size: 12px; line-height: 1.3; }

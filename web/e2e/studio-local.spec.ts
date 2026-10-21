@@ -10,10 +10,10 @@ test("tema personalizado vale nas telas do convidado, não vaza para o painel ne
   await page.getByRole("button", { name: "Salvar aparência" }).click();
   await expect(page.getByText("Aparência salva.")).toBeVisible();
 
-  const superficie = async () => page.evaluate(() => {
+  const superficie = async () => { await page.locator("[data-event-theme]").first().waitFor(); return page.evaluate(() => {
     const w = document.querySelector("[data-event-theme]")!;
     return { modo: w.getAttribute("data-event-theme"), v: getComputedStyle(w).getPropertyValue("--evento-superficie").trim().toUpperCase(), root: getComputedStyle(document.documentElement).getPropertyValue("--evento-superficie").trim().toUpperCase() };
-  });
+  }); };
   // painel do organizador: Platform DS, não herda o tema personalizado
   await page.goto(`/painel/${id}`);
   expect((await superficie()).modo).toBe("palette");
@@ -22,9 +22,7 @@ test("tema personalizado vale nas telas do convidado, não vaza para o painel ne
   await expect(page.getByTestId("mensagem-evento")).toHaveText("Bem-vindos ao nosso dia!");
   const entrada = await superficie();
   expect(entrada.modo).toBe("custom"); expect(entrada.v).toBe("#E2ECF1");
-  await page.getByLabel("Como te chamam na festa?").fill("Ana");
-  await page.getByRole("button", { name: "Entrar na festa" }).click();
-  await page.waitForURL(/agora$/);
+  // o organizador também percorre as telas do convidado neste aparelho (modo local)
   for (const rota of ["agora", "postar", "explorar", "voce", "retrospectiva"]) {
     await page.goto(`/e/${code}/${rota}`);
     await page.waitForLoadState("networkidle");

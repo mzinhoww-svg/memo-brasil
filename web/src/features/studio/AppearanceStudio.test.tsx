@@ -11,8 +11,12 @@ describe("AppearanceStudio", () => {
   it("cor sem contraste mostra o erro e bloqueia o salvamento; a prévia não aplica o tema inválido", () => {
     const onSave = vi.fn();
     render(<AppearanceStudio event={ev} locked={false} onSave={onSave} onRestore={vi.fn()} />);
-    fireEvent.change(screen.getByLabelText("Texto"), { target: { value: "#e8ece4" } });
-    expect(screen.getByRole("alert").textContent).toMatch(/contraste/i);
+    const campo = screen.getByLabelText(/^Texto/);
+    fireEvent.change(campo, { target: { value: "#e8ece4" } });
+    expect(screen.getAllByRole("alert").map((a) => a.textContent).join(" ")).toMatch(/contraste/i);
+    expect(campo.getAttribute("aria-invalid")).toBe("true"); // o erro é ligado ao campo certo
+    expect(campo.getAttribute("aria-describedby")).toMatch(/ap-cor-erro-texto/);
+    expect(screen.getByText(/mostrando o último tema válido/)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Salvar aparência" }) as HTMLButtonElement).disabled).toBe(true);
     const cartao = document.querySelector(".studio-cartao") as HTMLElement;
     expect(cartao.getAttribute("data-event-theme")).toBe("palette");
