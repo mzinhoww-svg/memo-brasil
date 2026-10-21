@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   AdminNav, Button, Chip, Chips, Cover, CountBadge, DataList, EventHeader, EventTheme, Field, Icon, LiveIndicator, Logo, Notice, OptionGroup, PostCard,
-  Progress, Signature, StatGrid, StatTile, Stepper, TabBar, TableCard, Tabs, ThemeToggle, VisionGrid, VisionTile, type IconName,
+  Progress, Signature, StatGrid, StatTile, Stepper, TabBar, TableCard, Tabs, ThemeToggle, VisionGrid, VisionTile, panelId, tabId, type IconName,
 } from "@/components/memoriesmt";
 import { PALETTES } from "@/lib/event-theme";
 import type { PaletteId } from "@/domain/event";
@@ -89,6 +89,7 @@ export default function Design() {
       <section aria-labelledby="g-adm" className="app-stack">
         <h2 id="g-adm" className="titulo-card app-h1">Painel</h2>
         <Tabs base="g" label="Filas" value={tab} onChange={setTab} tabs={[{ id: "a", label: "Pedidos de remoção", count: 3 }, { id: "b", label: "Ocultas" }]} />
+        <div role="tabpanel" id={panelId("g", tab)} aria-labelledby={tabId("g", tab)}><p className="app-p app-muted">{tab === "a" ? "Nenhum pedido de remoção em aberto." : "Nenhuma foto oculta."}</p></div>
         <StatGrid><StatTile value="1.284" label="fotos" /><StatTile value="112" label="convidados postaram" /><StatTile value="3.960" label="reações" /><StatTile value="18 de 20" label="mesas participando" /></StatGrid>
         <DataList head={["QR do evento", "Acessos"]} rows={[{ key: "a", name: "Convite digital", kind: "WhatsApp", value: "203" }, { key: "b", name: "Mesa 12", kind: "mesa", value: "12", alert: true }]} note="Mesa 12 participando menos. Vale um aviso." />
         <div className="app-row" style={{ alignItems: "flex-start" }}><AdminNav eventName="Emy e Igor" eventState="12.12.2026 · ao vivo" switchHref="/" items={[{ href: "#a", label: "Visão geral" }, { href: "#b", label: "Conteúdo", current: true, count: 3 }, { href: "#c", label: "Convidados" }]} /><CountBadge count={3} /></div>
