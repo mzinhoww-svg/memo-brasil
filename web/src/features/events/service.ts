@@ -71,7 +71,7 @@ type Step<R> = { fail: R } | { next: MemoEvent; done: (saved: MemoEvent) => R };
  * Leitura-modificação-gravação com concorrência otimista: grava com a versão lida e, se outra escrita passou na frente
  * (`conflict`), relê e refaz a decisão sobre o estado novo. Nenhuma atualização concorrente se perde (BG-113).
  */
-async function mutateEvent<R>(repos: Repositories, eventId: string, notFound: R, step: (e: MemoEvent) => Promise<Step<R>>): Promise<R> {
+export async function mutateEvent<R>(repos: Repositories, eventId: string, notFound: R, step: (e: MemoEvent) => Promise<Step<R>>): Promise<R> {
   for (let attempt = 0; attempt < 8; attempt++) {
     const e = await repos.events.get(eventId);
     if (!e) return notFound;

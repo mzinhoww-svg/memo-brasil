@@ -66,6 +66,7 @@ export interface EventPreview {
   place?: string;
   palette: MemoEvent["palette"];
   eventFont: MemoEvent["eventFont"];
+  theme?: MemoEvent["theme"];
   capacity: MemoEvent["capacity"];
   status: "ativo" | "encerrado";
   full: boolean;

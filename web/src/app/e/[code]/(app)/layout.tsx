@@ -115,7 +115,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const onPost = path.endsWith("/postar") || path.includes("/editar/");
   return (
     <GuestProvider value={ctx}>
-      <EventTheme palette={data.event.palette} font={data.event.eventFont} className="app-col app-col--card app-fluid">
+      <EventTheme palette={data.event.palette} font={data.event.eventFont} theme={data.event.theme} className="app-col app-col--card app-fluid">
         {celebrate && <RevealTransition title={data.event.title} onClose={() => setCelebrate(false)} />}
         {!online && (
           <div className="app-banner" role="status" style={{ margin: "var(--space-4)" }}>

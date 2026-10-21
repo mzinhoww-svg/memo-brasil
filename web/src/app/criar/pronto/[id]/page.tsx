@@ -37,7 +37,7 @@ export default function Pronto() {
   }
 
   return (
-    <EventTheme palette={event.palette} font={event.eventFont} className="app-col app-col--card app-fluid">
+    <EventTheme palette={event.palette} font={event.eventFont} theme={event.theme} className="app-col app-col--card app-fluid">
       <main style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <EventHeader meta={[formatDate(event.startAt), event.place].filter(Boolean).join(" · ")} name={event.title} />
         <div className="app-screen">

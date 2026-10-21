@@ -65,11 +65,12 @@ export default function Convite() {
   const ended = (data.preview?.status ?? (data.event ? eventStatus(data.event, now()) : "ativo")) === "encerrado";
   const meta = [formatDate(event.startAt), event.place].filter(Boolean).join(" · ");
   return (
-    <EventTheme palette={event.palette} font={event.eventFont} className="app-col app-col--card app-fluid">
+    <EventTheme palette={event.palette} font={event.eventFont} theme={event.theme} className="app-col app-col--card app-fluid">
       <main style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <EventHeader meta={meta} name={event.title} />
         <div className="app-screen">
           <p className="emocao app-emocao">A visão de {event.hostName}. Agora, a sua.</p>
+          {event.theme?.welcomeMessage && <p className="app-p" data-testid="mensagem-evento">{event.theme.welcomeMessage}</p>}
 
           {!user && canSwitchIdentity && <KnownPeople people={known} onPick={(id) => void switchTo(id)} />}
 

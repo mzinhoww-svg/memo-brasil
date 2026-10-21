@@ -55,3 +55,17 @@
 @keyframes mm-develop { from { filter: brightness(0.15) grayscale(1); opacity: 0.2; } to { filter: none; opacity: 1; } }
 .reveal-in .mm-media img { animation: mm-develop 1600ms ease-out both; }
 @media (prefers-reduced-motion: reduce) { .app-reveal-bar { animation: none; width: 100%; } .reveal-in .mm-media img { animation: none; } }
+
+/* Event Studio: editor de aparência com prévia (camada Event Theme só dentro de .studio-cartao) */
+.studio-grid { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1024px) { .studio-grid { grid-template-columns: minmax(0, 560px) minmax(320px, 1fr); } .studio-previa { position: sticky; top: 24px; } }
+.studio-fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.studio-cores { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
+.studio-cor { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.studio-cor input[type="color"] { width: 100%; height: 44px; padding: 2px; border-radius: 10px; border: 1px solid var(--divisor); background: var(--fundo); cursor: pointer; }
+.studio-msg { resize: vertical; min-height: 88px; font: inherit; }
+.studio-acoes { display: flex; flex-wrap: wrap; gap: 12px; }
+.studio-cartao-corpo { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 32px 24px; border-radius: 20px; text-align: center; }
+.studio-qr { width: 120px; height: 120px; border: 6px solid; background: repeating-conic-gradient(currentColor 0 25%, transparent 0 50%) 0 0 / 24px 24px; border-radius: 8px; }
+.studio-qr[data-estilo="pontos"] { border-radius: 50%; } .studio-qr[data-estilo="suave"] { border-radius: 24px; }
+.studio-botao { display: inline-flex; align-items: center; min-height: 44px; padding: 0 24px; border-radius: 999px; font-weight: 600; }

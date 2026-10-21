@@ -78,6 +78,13 @@ describe("ITG-101: leitura escopada por papel", () => {
     expect(v.preview).toMatchObject({ code, title: "Emy e Igor", hostName: "Emy", full: false });
     expect(Object.keys(v.preview!).sort()).toEqual(["capacity", "category", "code", "eventFont", "full", "hostName", "palette", "place", "startAt", "status", "title"].sort());
   });
+  it("com tema personalizado a prévia ganha só a chave theme, sem expor nada além", async () => {
+    const { PRESETS } = await import("@/lib/event-theme/spec");
+    const { saveTheme } = await import("@/features/events/theme");
+    await saveTheme(repos, id, { preset: "oceano", colors: { ...PRESETS.oceano.dia }, font: "vibes", welcomeMessage: "Oi!", qrStyle: "suave" }, NOW);
+    const v = await readEventScoped(repos, { code }, asGuest(null), NOW + 1);
+    expect(Object.keys(v.preview!).sort()).toEqual(["capacity", "category", "code", "eventFont", "full", "hostName", "palette", "place", "startAt", "status", "theme", "title"].sort());
+  });
   it("preview indica lotação sem listar quem está dentro", async () => {
     await updateSettings(repos, id, { capacity: 5 });
     for (let i = 0; i < 3; i++) await joinEvent(repos, { id: `x${i}`, name: `X${i}`, createdAt: 1 }, code, `X${i}`, NOW + 3);

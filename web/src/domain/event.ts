@@ -1,6 +1,7 @@
 import type { CameraStyle, Capacity, EventCategory, Shots } from "./options";
 import { computeRevealStatus, type RevealAnchor, type RevealStatus } from "./reveal";
 import { MIN_DURATION_HOURS } from "./options";
+import type { ThemeSpec } from "./theme";
 
 export type PaletteId = "salvia" | "terracota" | "oceano" | "ameixa";
 export type EventFontId = "birthstone" | "pinyon" | "vibes";
@@ -34,6 +35,8 @@ export interface MemoEvent {
   reactionsEnabled: boolean;
   palette: PaletteId;
   eventFont: EventFontId;
+  /** Identidade personalizada (Event Studio); ausente = paleta/fonte do evento. */
+  theme?: ThemeSpec;
   place?: string;
   moments: string[];
   tables: number;

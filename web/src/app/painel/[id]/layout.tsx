@@ -18,6 +18,7 @@ const SECTIONS = [
   { slug: "convidados", label: "Convidados" },
   { slug: "momentos", label: "Momentos" },
   { slug: "qr", label: "QR Code Studio" },
+  { slug: "aparencia", label: "Aparência" },
   { slug: "configuracoes", label: "Configurações" },
   { slug: "downloads", label: "Downloads" },
 ] as const;
@@ -58,7 +59,7 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
 
   return (
     <AdminProvider value={{ event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh }}>
-      <EventTheme palette={event.palette} font={event.eventFont} className="app-admin app-fluid">
+      <EventTheme palette={event.palette} font={event.eventFont} theme={event.theme} className="app-admin app-fluid">
         <div className="app-admin-side no-print"><AdminNav eventName={event.title} eventState={state} switchHref="/" items={items} /></div>
         <main className="app-admin-main">
           <nav className="app-admin-navm no-print" aria-label="Administração do evento">

@@ -7,6 +7,7 @@ import { useApp } from "@/features/app/provider";
 import { updateSettings } from "@/features/events/service";
 import { inviteUrl } from "@/features/invitations/links";
 import { qrDataUrl } from "@/features/invitations/qr";
+import { qrDarkColor } from "@/lib/event-theme/spec";
 
 export default function QrStudio() {
   const { repos } = useApp();
@@ -18,7 +19,7 @@ export default function QrStudio() {
     let alive = true;
     (async () => {
       const out: Record<string, string> = {};
-      for (const l of labels) out[l] = await qrDataUrl(inviteUrl(window.location.origin, event.code, l === "Convite" ? undefined : l));
+      for (const l of labels) out[l] = await qrDataUrl(inviteUrl(window.location.origin, event.code, l === "Convite" ? undefined : l), 336, qrDarkColor(event.theme));
       if (alive) setQrs(out);
     })();
     return () => {
