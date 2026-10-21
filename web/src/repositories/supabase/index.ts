@@ -3,6 +3,7 @@ import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { paginate, sortNewestFirst } from "../paging";
 import type { ThemeSpec } from "@/domain/theme";
+import { isMissingThemeSchema } from "./compat";
 import { RepositoryError, type EventPreview, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryErrorCode, type User } from "../types";
 
 /**
@@ -88,9 +89,21 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
     if (!p) throw new RepositoryError("not-found", `Foto ${id}: begin() não foi chamado neste cliente`);
     return `${p.eventId}/${id}`;
   };
+  /** Lê o evento com o tema; se o servidor ainda não tem `event_themes` (V1), lê sem ele. */
+  const readEvent = async (col: "id" | "code", val: string): Promise<Row | null> => {
+    const r = await sb.from("events").select("*, event_themes(*)").eq(col, val).maybeSingle();
+    if (r.error && isMissingThemeSchema(r.error)) return ok(await sb.from("events").select("*").eq(col, val).maybeSingle());
+    return ok(r);
+  };
+
   /** Grava/apaga a linha de `event_themes` só se mudou em relação ao banco (a RLS bloqueia a escrita depois da revelação). */
   const syncTheme = async (e: MemoEvent) => {
-    const cur = themeFromRow(ok(await sb.from("event_themes").select("*").eq("event_id", e.id).maybeSingle()));
+    const read = await sb.from("event_themes").select("*").eq("event_id", e.id).maybeSingle();
+    if (read.error && isMissingThemeSchema(read.error)) {
+      if (!e.theme) return; // servidor na V1: nada a sincronizar
+      throw new RepositoryError("unavailable", "A aparência personalizada ainda não está disponível neste servidor.", read.error);
+    }
+    const cur = themeFromRow(ok(read));
     if (sameTheme(cur, e.theme)) return;
     if (e.theme) ok(await sb.from("event_themes").upsert(themeRow(e.id, e.theme), { onConflict: "event_id" }));
     else ok(await sb.from("event_themes").delete().eq("event_id", e.id));
@@ -124,13 +137,16 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         const d = ok(await sb.rpc("join_event", { p_code: code, p_name: name, p_table: table ?? null, p_token: token ?? null })) as { role: "organizador" | "membro"; eventId: string };
         return d;
       },
-      list: async () => (await selectAll("events", (q) => q.select("*, event_themes(*)").order("created_at", { ascending: false }))).map(toEvent),
+      list: async () => {
+        try { return (await selectAll("events", (q) => q.select("*, event_themes(*)").order("created_at", { ascending: false }))).map(toEvent); }
+        catch (e) { if (!isMissingThemeSchema((e as RepositoryError).cause)) throw e; return (await selectAll("events", (q) => q.select("*").order("created_at", { ascending: false }))).map(toEvent); }
+      },
       get: async (id) => {
-        const r = ok(await sb.from("events").select("*, event_themes(*)").eq("id", id).maybeSingle());
+        const r = await readEvent("id", id);
         return r ? toEvent(r) : undefined;
       },
       getByCode: async (code) => {
-        const r = ok(await sb.from("events").select("*, event_themes(*)").eq("code", code).maybeSingle());
+        const r = await readEvent("code", code);
         return r ? toEvent(r) : undefined;
       },
       save: async (e, opts) => {
