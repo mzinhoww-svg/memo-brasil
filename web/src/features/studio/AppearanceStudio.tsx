@@ -8,7 +8,7 @@ import { EVENT_FONT_LABEL } from "@/lib/event-theme";
 import { PRESETS, validateTheme } from "@/lib/event-theme/spec";
 
 const COLOR_LABEL = { superficie: "Fundo", grafismo: "Detalhes", controle: "Botões", texto: "Texto", profundo: "Destaque" } as const;
-const QR_LABEL: Record<QrStyle, string> = { classico: "Clássico", pontos: "Pontos", suave: "Suave" };
+const QR_LABEL: Record<QrStyle, string> = { classico: "Clássico", pontos: "Pontos", arredondado: "Arredondado" };
 
 export function initialTheme(event: Pick<MemoEvent, "theme" | "palette" | "eventFont">): ThemeSpec {
   return event.theme ?? { preset: event.palette, colors: { ...PRESETS[event.palette].dia }, font: event.eventFont, welcomeMessage: "", qrStyle: "classico" };

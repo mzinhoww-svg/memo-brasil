@@ -67,5 +67,5 @@
 .studio-acoes { display: flex; flex-wrap: wrap; gap: 12px; }
 .studio-cartao-corpo { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 32px 24px; border-radius: 20px; text-align: center; }
 .studio-qr { width: 120px; height: 120px; border: 6px solid; background: repeating-conic-gradient(currentColor 0 25%, transparent 0 50%) 0 0 / 24px 24px; border-radius: 8px; }
-.studio-qr[data-estilo="pontos"] { border-radius: 50%; } .studio-qr[data-estilo="suave"] { border-radius: 24px; }
+.studio-qr[data-estilo="pontos"] { border-radius: 50%; } .studio-qr[data-estilo="arredondado"] { border-radius: 24px; }
 .studio-botao { display: inline-flex; align-items: center; min-height: 44px; padding: 0 24px; border-radius: 999px; font-weight: 600; }

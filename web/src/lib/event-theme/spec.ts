@@ -11,7 +11,7 @@ const COLOR_KEYS = ["superficie", "grafismo", "controle", "texto", "profundo"] a
 /** Os presets são as paletas da v1 (mesma fonte de dados dos testes de contraste). */
 export const PRESETS: Record<string, { label: string; dia: EventColors; noite: EventColors }> = PALETTES;
 
-/** Regras de contraste (espelhadas no CHECK do banco): texto e profundo ≥ 4.5 sobre a superfície; rótulo do controle ≥ 3. */
+/** Regras de contraste, iguais às do CHECK `event_themes_colors_contrast`: texto e profundo ≥ 4.5 sobre a superfície; rótulo do controle ≥ 3. */
 export function validateTheme(t: ThemeSpec): { ok: boolean; errors: string[] } {
   const errors: string[] = [];
   for (const k of COLOR_KEYS) if (!HEX.test(t.colors?.[k] ?? "")) errors.push(`cor ${k} inválida (use #RRGGBB)`);

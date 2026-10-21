@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { paginate, sortNewestFirst } from "../paging";
+import type { ThemeSpec } from "@/domain/theme";
 import { RepositoryError, type EventPreview, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryErrorCode, type User } from "../types";
 
 /**
@@ -37,6 +38,14 @@ function ok<T>(res: { data: T | null; error: unknown }): T {
   return res.data as T;
 }
 
+const themeFromRow = (t: Row | Row[] | null | undefined): ThemeSpec | undefined => {
+  const r = Array.isArray(t) ? t[0] : t;
+  if (!r) return undefined;
+  return { preset: r.preset as string, colors: r.colors as ThemeSpec["colors"], font: r.font as ThemeSpec["font"], welcomeMessage: (r.welcome_message as string | null) ?? "", qrStyle: r.qr_style as ThemeSpec["qrStyle"] };
+};
+const themeRow = (eventId: string, t: ThemeSpec): Row => ({ event_id: eventId, preset: t.preset, colors: t.colors, font: t.font, welcome_message: t.welcomeMessage || null, qr_style: t.qrStyle });
+const sameTheme = (a?: ThemeSpec, b?: ThemeSpec) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
 const toEvent = (r: Row): MemoEvent => ({
   id: r.id as string, code: r.code as string, title: r.title as string, category: r.category as MemoEvent["category"],
   hostId: r.host_id as string, hostName: r.host_name as string, startAt: ms(r.start_at)!, durationHours: Number(r.duration_hours),
@@ -49,6 +58,7 @@ const toEvent = (r: Row): MemoEvent => ({
   palette: r.palette as MemoEvent["palette"], eventFont: r.event_font as MemoEvent["eventFont"], place: (r.place as string | null) ?? undefined,
   moments: (r.moments as string[]) ?? [], tables: r.tables as number,
   notice: (r.notice as MemoEvent["notice"] | null) ?? undefined, createdAt: ms(r.created_at)!,
+  ...(r.event_themes ? { theme: themeFromRow(r.event_themes as Row | Row[]) } : {}),
 });
 
 /** Colunas editáveis pelo cliente. host_id, code, version, revealed_at, reveal_status e created_at são do servidor. */
@@ -78,6 +88,14 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
     if (!p) throw new RepositoryError("not-found", `Foto ${id}: begin() não foi chamado neste cliente`);
     return `${p.eventId}/${id}`;
   };
+  /** Grava/apaga a linha de `event_themes` só se mudou em relação ao banco (a RLS bloqueia a escrita depois da revelação). */
+  const syncTheme = async (e: MemoEvent) => {
+    const cur = themeFromRow(ok(await sb.from("event_themes").select("*").eq("event_id", e.id).maybeSingle()));
+    if (sameTheme(cur, e.theme)) return;
+    if (e.theme) ok(await sb.from("event_themes").upsert(themeRow(e.id, e.theme), { onConflict: "event_id" }));
+    else ok(await sb.from("event_themes").delete().eq("event_id", e.id));
+  };
+
   const selectAll = async (table: string, build: (q: ReturnType<typeof sb.from>) => unknown): Promise<Row[]> => {
     const out: Row[] = [];
     for (let from = 0; ; from += PAGE) {
@@ -92,7 +110,11 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
     events: {
       preview: async (code) => {
         const d = ok(await sb.rpc("event_preview", { p_code: code }));
-        return d ? ({ ...(d as EventPreview), startAt: Date.parse(d.startAt as string), place: d.place ?? undefined } as EventPreview) : undefined;
+        if (!d) return undefined;
+        const { theme, ...rest } = d as Row;
+        const th = theme as Row | null;
+        const t: ThemeSpec | undefined = th ? { preset: th.preset as string, colors: th.colors as ThemeSpec["colors"], font: th.font as ThemeSpec["font"], welcomeMessage: (th.welcomeMessage as string | null) ?? "", qrStyle: th.qrStyle as ThemeSpec["qrStyle"] } : undefined;
+        return { ...(rest as unknown as EventPreview), startAt: Date.parse(d.startAt as string), place: d.place ?? undefined, ...(t ? { theme: t } : {}) } as EventPreview;
       },
       counts: async (eventId) => {
         const d = ok(await sb.rpc("event_counts", { p_event: eventId })) as { mine: number; total: number };
@@ -102,25 +124,30 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         const d = ok(await sb.rpc("join_event", { p_code: code, p_name: name, p_table: table ?? null, p_token: token ?? null })) as { role: "organizador" | "membro"; eventId: string };
         return d;
       },
-      list: async () => (await selectAll("events", (q) => q.select("*").order("created_at", { ascending: false }))).map(toEvent),
+      list: async () => (await selectAll("events", (q) => q.select("*, event_themes(*)").order("created_at", { ascending: false }))).map(toEvent),
       get: async (id) => {
-        const r = ok(await sb.from("events").select("*").eq("id", id).maybeSingle());
+        const r = ok(await sb.from("events").select("*, event_themes(*)").eq("id", id).maybeSingle());
         return r ? toEvent(r) : undefined;
       },
       getByCode: async (code) => {
-        const r = ok(await sb.from("events").select("*").eq("code", code).maybeSingle());
+        const r = ok(await sb.from("events").select("*, event_themes(*)").eq("code", code).maybeSingle());
         return r ? toEvent(r) : undefined;
       },
       save: async (e, opts) => {
         const exists = opts?.expectedVersion !== undefined || ok(await sb.from("events").select("id").eq("id", e.id).maybeSingle()) !== null;
         if (!exists) {
           // code, version e horários de controle são do servidor; o cliente só informa quem cria e as configurações
-          return toEvent(ok(await sb.from("events").insert({ ...eventPatch(e), id: e.id, host_id: e.hostId }).select("*").single()));
+          const created = toEvent(ok(await sb.from("events").insert({ ...eventPatch(e), id: e.id, host_id: e.hostId }).select("*").single()));
+          await syncTheme(e);
+          return { ...created, ...(e.theme ? { theme: e.theme } : {}) };
         }
         let q = sb.from("events").update(eventPatch(e)).eq("id", e.id);
         if (opts?.expectedVersion !== undefined) q = q.eq("version", opts.expectedVersion);
         const rows = ok(await q.select("*"));
-        if (rows?.length) return toEvent(rows[0]);
+        if (rows?.length) {
+          await syncTheme(e); // só grava quando mudou: salvar outras configurações depois do bloqueio não esbarra na RLS do tema
+          return { ...toEvent(rows[0]), ...(e.theme ? { theme: e.theme } : {}) };
+        }
         const cur = ok(await sb.from("events").select("version").eq("id", e.id).maybeSingle());
         if (!cur) throw new RepositoryError("not-found", `Evento ${e.id} não existe (apagado?)`);
         throw new RepositoryError("conflict", `Evento ${e.id}: versão ${opts?.expectedVersion} desatualizada (atual ${(cur as Row).version})`);
