@@ -57,17 +57,26 @@ supabase functions list --project-ref asyaegeodyttttaubvxh                      
 Opcional, se usar domínio próprio: `supabase secrets set ALLOWED_ORIGINS=https://seu.dominio --project-ref asyaegeodyttttaubvxh`.
 Verificação (sem credencial = deve recusar): `curl -s -o /dev/null -w "%{http_code}\n" -X POST https://asyaegeodyttttaubvxh.supabase.co/functions/v1/purge-storage` → `403`.
 
-## 5. Agendar a purga do Storage (SCV-004)
-O segredo fica no Vault do próprio banco, nunca no Git. No SQL Editor (cole a chave só na sessão do painel):
+## 5. Agendar a purga do Storage (SCV-004) — etapa A.3.5
+Estado remoto conferido (somente leitura, 2026-10-21): 5 jobs das migrations ativos e executando (`mm-reveal-due`, `mm-expire-uploads`, `mm-purge-deleted`, `mm-expire-assets`, `mm-audit-integrity`); `pg_cron` e `supabase_vault` instalados; **`pg_net` NÃO instalada**; **Vault vazio**; fila `storage_purge_queue` com 6 itens (3 objetos de teste, todos já no backup); `mm-purge-storage` ainda não existe.
+
+Contrato da função (código real): `POST https://asyaegeodyttttaubvxh.supabase.co/functions/v1/purge-storage`, `verify_jwt=false`, sem corpo útil. Autoriza só se `Authorization: Bearer <x>` for **igual** a `SUPABASE_SERVICE_ROLE_KEY` do ambiente da função; senão `403`. Processa até 100 itens por chamada (mais antigos primeiro), remove no bucket certo e só então apaga a linha da fila; objeto inexistente não é erro; reexecução e chamadas sobrepostas são seguras (idempotente).
+
+1. **Criar o segredo no painel** (não por SQL, para a chave não ir ao histórico do editor): Integrations → Vault → Add new secret, nome `mm_purge_service_role`, valor = service_role **legada** (JWT que começa com `eyJ`, Settings → API). A chave nova `sb_secret_…` não serve: a função compara por igualdade com a variável de ambiente. Nunca cole a chave em arquivo, chat ou Git.
+2. **Agendar**: rodar `supabase/ops/schedule_purge_storage.sql` no SQL Editor. Ele instala `pg_net`, recusa com erro claro se o segredo não existir e usa `cron.schedule` com nome fixo (idempotente: reexecutar atualiza o job, não duplica).
+3. **Prova imediata (sem esperar 30 min)**, no SQL Editor:
 ```sql
-select vault.create_secret('<SERVICE_ROLE_KEY do projeto>', 'mm_service_role');
-select cron.schedule('mm-purge-storage', '*/30 * * * *', $$
-  select net.http_post(
-    url := 'https://asyaegeodyttttaubvxh.supabase.co/functions/v1/purge-storage',
-    headers := jsonb_build_object('Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'mm_service_role'))
-  ) $$);
+select net.http_post(url := 'https://asyaegeodyttttaubvxh.supabase.co/functions/v1/purge-storage',
+  headers := jsonb_build_object('Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'mm_purge_service_role' limit 1)),
+  body := '{}'::jsonb);
+-- 5 s depois:
+select status_code, content, error_msg from net._http_response order by created desc limit 1;   -- esperado: 200 {"ok":true,"removidos":6,"falhas":0,...}
+select count(*) from public.storage_purge_queue;                                                 -- 0
 ```
-Verificação: `select * from cron.job where jobname='mm-purge-storage';` e, após 30 min, `select status, return_message from cron.job_run_details order by start_time desc limit 3;` e `select count(*) from storage_purge_queue;` (tende a zero).
+   `403` = o segredo do Vault não é a mesma chave da função (provavelmente colou a `sb_secret_`).
+4. **Verificação contínua**: `supabase/ops/verify_purge_storage.sql` (6 jobs `mm-*` ativos, fila, últimas respostas HTTP).
+
+Falhas (testadas localmente): chave errada → `403` e a fila é preservada; função fora do ar → `503/erro de rede` e a fila é preservada; segredo ausente → o script de agendamento aborta. **Atenção:** `cron.job_run_details` mostra `succeeded` mesmo quando o HTTP falha (o cron só enfileira a chamada); a falha só aparece em `net._http_response` (retenção ~6 h) e no corpo `{"ok":false,...}` (a função responde 200 mesmo com `falhas>0`; melhoria registrada como SCV-009). Observação: há 12 objetos de teste em `event-photos` sem foto correspondente e fora da fila; não serão purgados por este job.
 
 ## 6. Auth e produção (fora do banco)
 - Auth → Providers → Email: desligar login por e-mail/senha (deixar Google). 
