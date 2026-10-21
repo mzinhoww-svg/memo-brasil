@@ -9,7 +9,6 @@ import { GuestProvider } from "@/features/events/guest-context";
 import { normalizeShareCode } from "@/domain/share-code";
 import { notificationPlan } from "@/domain/notifications";
 import { computeRevealStatus } from "@/domain/reveal";
-import { reconcileReveal } from "@/features/events/service";
 import { RevealTransition } from "@/features/reveal/RevealTransition";
 
 /** Área do convidado: guarda de acesso, tema do evento e barra de navegação com "Postar daqui". */
@@ -18,7 +17,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const code = normalizeShareCode(params.code ?? "") ?? "";
   const path = usePathname();
   const router = useRouter();
-  const { ready, user, scheduler, now: clock, repos } = useApp();
+  const { ready, user, scheduler, now: clock, repos, authority } = useApp();
   const data = useEventData({ code });
   const { now, sync } = useClock();
   const { refresh: reload } = data;
@@ -64,8 +63,8 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const stored = ev?.revealStatus;
   useEffect(() => {
     if (!evId || stored === undefined || stored === status) return;
-    void reconcileReveal(repos, evId, clock()).then(reload);
-  }, [evId, stored, status, repos, clock, reload]);
+    void authority.tick(repos, evId, clock()).then(reload);
+  }, [evId, stored, status, repos, authority, clock, reload]);
   useEffect(() => {
     if (!ev || typeof Notification === "undefined" || Notification.permission !== "granted") return;
     scheduler.schedule(ev.id, notificationPlan(ev, clock()));

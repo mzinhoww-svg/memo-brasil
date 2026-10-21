@@ -39,7 +39,7 @@ flowchart LR
   BG_102["BG-102<br/>DONE"]:::done
   BG_111["BG-111<br/>BACKLOG"]:::back
   BG_113["BG-113<br/>DONE"]:::done
-  ITG_101["ITG-101<br/>BACKLOG"]:::back
+  ITG_101["ITG-101<br/>DONE"]:::done
   ITG_102["ITG-102<br/>DONE"]:::done
   ITG_103["ITG-103<br/>BACKLOG"]:::back
   ITG_104["ITG-104<br/>BACKLOG"]:::back

@@ -27,7 +27,10 @@ export interface PhotoData {
 }
 
 /** Código do erro: o chamador decide o que fazer sem inspecionar mensagens. */
-export type RepositoryErrorCode = "conflict" | "not-found" | "unavailable" | "invalid";
+export type RepositoryErrorCode =
+  | "conflict" | "not-found" | "unavailable" | "invalid"
+  /** Recusas do servidor (trigger/RLS): o rolo da pessoa acabou, o evento terminou, a lotação fechou. */
+  | "shot-limit" | "event-ended" | "capacity-full";
 export class RepositoryError extends Error {
   readonly code: RepositoryErrorCode;
   constructor(code: RepositoryErrorCode, message: string, cause?: unknown) {

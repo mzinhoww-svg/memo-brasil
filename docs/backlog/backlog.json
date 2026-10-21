@@ -3404,7 +3404,7 @@
    "epic": "EP-08",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [
     "BG-101",
     "BG-102",
@@ -3433,15 +3433,19 @@
     "web/src/features/photos/service.ts",
     "web/src/repositories/types.ts"
    ],
-   "tests": [],
-   "evidence": [
-    "docs/audit/drafts/A3.md",
-    "hooks.ts useEventData; photo.ts visiblePhotos; grep can( = 1 uso.",
-    "a1-exposure-roles.json (E3 repositorio_lista_tudo_sem_filtro_de_papel); web/src/repositories/types.ts",
-    "docs/audit/evidence/logs/a1-grep-roles.txt; web/src/app/painel/[id]/layout.tsx:51"
+   "tests": [
+    "web/e2e/reveal.spec.ts",
+    "web/src/features/access/access.test.ts"
    ],
-   "commit": null,
-   "environment": null,
+   "evidence": [
+    "a1-exposure-roles.json (E3 repositorio_lista_tudo_sem_filtro_de_papel); web/src/repositories/types.ts",
+    "docs/audit/drafts/A3.md",
+    "docs/audit/evidence/logs/a1-grep-roles.txt; web/src/app/painel/[id]/layout.tsx:51",
+    "docs/audit/remediation/ITG-101.md",
+    "hooks.ts useEventData; photo.ts visiblePhotos; grep can( = 1 uso."
+   ],
+   "commit": "20c4950",
+   "environment": "local (Vitest + Chromium)",
    "effort": "L",
    "sources": [
     "A3-001",

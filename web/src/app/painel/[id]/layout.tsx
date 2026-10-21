@@ -7,7 +7,6 @@ import { AdminNav, Button, CountBadge, EventTheme } from "@/components/memoriesm
 import { eventStatus } from "@/domain/event";
 import { LOCAL_ACTOR, can } from "@/domain/roles";
 import { computeRevealStatus } from "@/domain/reveal";
-import { reconcileReveal } from "@/features/events/service";
 import { moderationQueue } from "@/domain/photo";
 import { formatDate, useClock, useEventData } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
@@ -27,7 +26,7 @@ const SECTIONS = [
 export default function PainelLayout({ children }: { children: ReactNode }) {
   const { id } = useParams<{ id: string }>();
   const path = usePathname();
-  const { user, ready, repos, now: clock } = useApp();
+  const { user, ready, repos, now: clock, authority } = useApp();
   const data = useEventData({ id });
   const { now, sync } = useClock();
   const { refresh: reload } = data;
@@ -40,8 +39,8 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
   const computed = data.event ? computeRevealStatus(data.event, now) : undefined;
   useEffect(() => {
     if (!evId || !stored || !computed || stored === computed) return;
-    void reconcileReveal(repos, evId, clock()).then(reload);
-  }, [evId, stored, computed, repos, clock, reload]);
+    void authority.tick(repos, evId, clock()).then(reload);
+  }, [evId, stored, computed, repos, authority, clock, reload]);
   const pending = useMemo(() => moderationQueue(data.photos).length, [data.photos]);
 
   if (!ready || data.loading) return <main className="app-admin"><p className="app-admin-main app-muted">Abrindo o painel…</p></main>;

@@ -8,7 +8,7 @@ export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" };
 
 export async function usedShots(repos: Repositories, eventId: string, userId: string): Promise<number> {
-  return (await repos.photos.listByEvent(eventId)).filter((p) => p.authorId === userId && p.status !== "removida").length;
+  return repos.photos.count(eventId, { authorId: userId, excludeStatus: "removida" });
 }
 
 /** Publica a foto no rolo do convidado. Valida rolo, evento e tamanho antes de gravar. */
@@ -26,7 +26,10 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
   };
   try {
     await repos.photos.add(photo, data);
-  } catch {
+  } catch (e) {
+    // o servidor tem a palavra final sobre rolo e encerramento (AC-07): a recusa vira a mesma razão da interface
+    if (e instanceof RepositoryError && e.code === "shot-limit") return { ok: false, reason: "rolo" };
+    if (e instanceof RepositoryError && e.code === "event-ended") return { ok: false, reason: "encerrado" };
     return { ok: false, reason: "armazenamento" };
   }
   return { ok: true, photo };

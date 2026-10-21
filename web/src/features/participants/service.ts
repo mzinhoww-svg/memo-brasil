@@ -1,6 +1,6 @@
 import { canJoin, type MemoEvent } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
-import type { Participant, Repositories, User } from "@/repositories";
+import { RepositoryError, type Participant, type Repositories, type User } from "@/repositories";
 import { withLock } from "@/lib/lock";
 
 export type JoinOutcome =
@@ -20,10 +20,16 @@ async function joinLocked(repos: Repositories, event: MemoEvent, user: User, nam
   const trimmed = name.trim();
   if (!trimmed) return { ok: false, reason: "nome" };
   const existing = await repos.participants.get(event.id, user.id);
-  const count = (await repos.participants.listByEvent(event.id)).length;
+  const count = await repos.participants.count(event.id);
   const verdict = canJoin(event, count, now, Boolean(existing) || event.hostId === user.id);
   if (!verdict.ok) return { ok: false, reason: verdict.reason };
   const participant: Participant = { eventId: event.id, userId: user.id, name: trimmed, joinedAt: existing?.joinedAt ?? now, tableLabel: tableLabel ?? existing?.tableLabel };
-  await repos.participants.put(participant);
+  try {
+    await repos.participants.put(participant);
+  } catch (e) {
+    if (e instanceof RepositoryError && e.code === "capacity-full") return { ok: false, reason: "lotado" }; // o servidor fechou a lotação
+    if (e instanceof RepositoryError && e.code === "event-ended") return { ok: false, reason: "encerrado" };
+    throw e;
+  }
   return { ok: true, event, participant };
 }

@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { now as clockNow } from "@/lib/clock";
+import { createServerClock, type ServerClock } from "@/lib/server-clock";
+import { localRevealAuthority, type RevealAuthority } from "@/features/authority";
 import { createLocalScheduler } from "@/lib/services/notifications";
 import type { NotificationScheduler } from "@/lib/services";
 import { createLocalRepositories, createMemoryRepositories, StorageUnavailableError, type Repositories, type User } from "@/repositories";
@@ -14,6 +16,10 @@ interface AppState {
   user: User | undefined;
   storageError: boolean;
   scheduler: NotificationScheduler;
+  /** Quem faz a revelação acontecer: local nesta fase, a tarefa agendada do servidor depois. */
+  authority: RevealAuthority;
+  /** Relógio corrigido pelo servidor (sem sincronização vale o do aparelho). */
+  clock: ServerClock;
   now: () => number;
   /** Cria (ou renomeia) a identidade local. Autenticação real depende do backend. */
   signIn: (name: string) => Promise<User>;
@@ -35,6 +41,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const scheduler = useMemo(() => createLocalScheduler(), []);
+  const clock = useMemo(() => createServerClock({ read: clockNow }), []);
 
   useEffect(() => {
     let alive = true;
@@ -98,8 +105,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AppState>(
-    () => ({ repos, persistent, ready, user, storageError, scheduler, now: clockNow, signIn, signOut, known, switchTo, reportStorageError: () => setStorageError(true) }),
-    [repos, persistent, ready, user, known, storageError, scheduler, signIn, signOut, switchTo],
+    () => ({ repos, persistent, ready, user, storageError, scheduler, authority: localRevealAuthority, clock, now: clock.now, signIn, signOut, known, switchTo, reportStorageError: () => setStorageError(true) }),
+    [repos, persistent, ready, user, known, storageError, scheduler, clock, signIn, signOut, switchTo],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
