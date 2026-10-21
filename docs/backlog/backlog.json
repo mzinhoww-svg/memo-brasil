@@ -6258,6 +6258,144 @@
    "commit": null,
    "environment": null,
    "release": "R2"
+  },
+  {
+   "id": "DSV-005",
+   "type": "FEATURE",
+   "title": "Contraste do limite do controle (WCAG 1.4.11, ex.: Sálvia ~2,6:1) e token separado para o rótulo do controle (--on-controle) sem quebrar a paridade do kit",
+   "description": "Contraste do limite do controle (WCAG 1.4.11, ex.: Sálvia ~2,6:1) e token separado para o rótulo do controle (--on-controle) sem quebrar a paridade do kit",
+   "epic": "EP-12",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "DSV-001"
+   ],
+   "origin": "revisão independente arquitetura/perf/a11y 2026-10-21",
+   "acceptance": [
+    "Regra decidida e implementada no cliente e no CHECK; presets ajustados ou exceção documentada; teste de paridade"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "DSV-006",
+   "type": "FEATURE",
+   "title": "Sheet com fundo inert e trava de scroll; OptionGroup como radiogroup; legenda e rótulos por campo no Studio",
+   "description": "Sheet com fundo inert e trava de scroll; OptionGroup como radiogroup; legenda e rótulos por campo no Studio",
+   "epic": "EP-12",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "DSV-002"
+   ],
+   "origin": "revisão independente arquitetura/perf/a11y 2026-10-21",
+   "acceptance": [
+    "axe sem violações; teste de teclado e leitor de tela"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "PRF-001",
+   "type": "FEATURE",
+   "title": "Bundle: import dinâmico do SDK Supabase e do qrcode; AppProvider fora do /master; rotas client-only com casca renderizada no servidor para melhorar o LCP",
+   "description": "Bundle: import dinâmico do SDK Supabase e do qrcode; AppProvider fora do /master; rotas client-only com casca renderizada no servidor para melhorar o LCP",
+   "epic": "EP-17",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "QAV-001"
+   ],
+   "origin": "revisão independente arquitetura/perf/a11y 2026-10-21",
+   "acceptance": [
+    "Orçamento de JS por rota medido em build de produção; LCP mobile ≤ 2,5 s nas rotas principais"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "PRF-002",
+   "type": "FEATURE",
+   "title": "Estudio: debounce do QR, validateTheme sem repetição, paletteCss em CSS estático, jszip sob demanda",
+   "description": "Estudio: debounce do QR, validateTheme sem repetição, paletteCss em CSS estático, jszip sob demanda",
+   "epic": "EP-17",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "PRF-001"
+   ],
+   "origin": "revisão independente arquitetura/perf/a11y 2026-10-21",
+   "acceptance": [
+    "Sem regressão visual; medição antes/depois"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "ARQ-001",
+   "type": "FEATURE",
+   "title": "Consolidar duplicações: limites de upload compartilhados, useBrandImages com refresh, sameTheme por campo, syncTheme atômico com o update do evento",
+   "description": "Consolidar duplicações: limites de upload compartilhados, useBrandImages com refresh, sameTheme por campo, syncTheme atômico com o update do evento",
+   "epic": "EP-17",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-004"
+   ],
+   "origin": "revisão independente arquitetura/perf/a11y 2026-10-21",
+   "acceptance": [
+    "Um só lugar para cada regra; teste de paridade com o SQL"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "UXA-128",
+   "type": "FEATURE",
+   "title": "Erro de upload de logo/capa persistente por campo (aria-describedby) e prévia móvel como painel recolhível",
+   "description": "Erro de upload de logo/capa persistente por campo (aria-describedby) e prévia móvel como painel recolhível",
+   "epic": "EP-11",
+   "parent": null,
+   "priority": "P3",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-004"
+   ],
+   "origin": "revisão independente arquitetura/perf/a11y 2026-10-21",
+   "acceptance": [
+    "Mensagem permanece até corrigir; E2E"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
   }
  ],
  "requirements": [

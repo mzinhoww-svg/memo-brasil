@@ -49,3 +49,7 @@ Revisões independentes executadas: A4 segurança, A5 cobertura/regressão, A1/A
 
 ## Recomendação
 **Não promover a V2.** Sequência: (1) restaurar Docker/ambiente e rodar SCV-008 (pgTAP completo + hardening); (2) fechar a V1 (SB-004/SB-008/REL-001, G7); (3) aplicar migrations V2 no remoto **depois** de validadas (front V2 já tolera servidor V1); (4) refazer o preview V2 contra o remoto e executar QAV-003; (5) só então avaliar release.
+
+## Atualização final (rodada de bloqueios)
+Revisões independentes concluídas: A4 segurança (2 rodadas), A5 cobertura, A1/A2 design e a11y, e a de **arquitetura, performance e acessibilidade**. Nenhum P0 em nenhuma. Corrigido nesta rodada: foco coberto pela prévia no celular (WCAG 2.4.11), região live fixa para "Aparência salva." (e limpa ao editar), resumo único de erro de contraste (sem `ul role=alert` nem alerta duplicado), prévia sem região rolável, `lastValid` na prévia, legenda do fieldset, `React.cache` em `masterAccess`, `Sheet` com `onClose` em ref, caixa do QR reservada em "Evento criado" (CLS), contraste único (cópia morta removida), comentário do SQL fiel à regra. Revertido: `--on-evento` por paleta (quebrava a paridade com o kit e o contraste dos avatares). Itens restantes viraram DSV-005/006, PRF-001/002, ARQ-001, UXA-128.
+Evidência local: unitários 260, E2E local 51 (0 falhas, 11 pulados), E2E Supabase 5/5, adaptador 14/14, integração 12/12, pgTAP 398/398, provisionamento 20 checagens, E2E remoto desktop + Android emulado (commit anterior).

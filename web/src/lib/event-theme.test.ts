@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contrastRatio } from "@/domain/contrast";
+import { contrastRatio } from "@/lib/event-theme/contrast";
 import type { PaletteId } from "@/domain/event";
 import { ON_EVENTO, PALETTES, THEME_BASE, paletteCss } from "./event-theme";
 

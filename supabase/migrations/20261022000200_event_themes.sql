@@ -23,7 +23,7 @@ language sql immutable set search_path = '' as $$
   end
 $$;
 
--- ---------------------------------------------------------------- cores e contraste WCAG 2.x (espelha web/src/domain/contrast.ts)
+-- ---------------------------------------------------------------- cores e contraste WCAG 2.x (espelha web/src/lib/event-theme/contrast.ts)
 create function public.event_theme_colors_valid(p jsonb) returns boolean
 language sql immutable set search_path = '' as $$
   select case
@@ -56,12 +56,12 @@ language sql immutable set search_path = '' as $$
        / (least(public.hex_luminance(p_a), public.hex_luminance(p_b)) + 0.05)
 $$;
 
--- Contrato (WCAG AA), sobre as 5 cores:
+-- Contrato (WCAG AA), sobre as 5 cores (idêntico a web/src/lib/event-theme/spec.ts):
 --   texto × superficie          ≥ 4.5  (corpo de texto)
---   superficie × profundo       ≥ 4.5  (texto claro sobre áreas profundas: rodapé, cabeçalho escuro)
---   controle × superficie       ≥ 3.0  (limite visual de componente, WCAG 1.4.11)
---   rótulo do controle          ≥ 4.5  (o melhor entre superficie e profundo sobre a cor de controle)
--- grafismo é decorativo: sem exigência. Robusta a JSON inválido (devolve false em vez de erro de cast).
+--   profundo × superficie       ≥ 4.5  (nome do evento e títulos)
+--   rótulo do controle          ≥ 3.0  (branco ou #141211, o de maior contraste, sobre a cor de controle; sempre atendido na prática)
+-- NÃO exigido: contraste do limite do controle sobre a superfície (WCAG 1.4.11): o preset Sálvia tem ~2,6:1; decisão registrada como lacuna (DSV-005).
+-- grafismo é decorativo. Robusta a JSON inválido (devolve false em vez de erro de cast).
 create function public.event_theme_contrast_ok(p jsonb) returns boolean
 language sql immutable set search_path = '' as $$
   -- Regra única, idêntica à do cliente (web/src/lib/event-theme/spec.ts): texto e profundo >= 4.5 sobre a superfície;

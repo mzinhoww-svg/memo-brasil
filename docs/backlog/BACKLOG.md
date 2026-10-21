@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P3 47. Status: BACKLOG 93, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 61, IN_REVIEW 20, READY 11.
+Total: **208** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 54, P3 50. Status: BACKLOG 99, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 61, IN_REVIEW 20, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -368,6 +368,7 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 | UXA-125 | FEATURE | [Administrativa] /painel/[id]/aparencia (WIP de outro agente): Em 375 a 'Prévia do convite' fica no fim, após ~1,4k px de formulário: edita-se sem ver o efeito (≥1024 a prévia é lateral e boa) | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-126 | FEATURE | [Anfitrião] /criar · passo 6 (resumo): CTA 'Criar evento de demonstração' quebra em 2 linhas em 320; aviso de cobrança longo antes do CTA | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-127 | FEATURE | Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fonte | P2 | BACKLOG | EST-004 | revisão independente A1–A5 2026-10-21 | - | - |
+| UXA-128 | FEATURE | Erro de upload de logo/capa persistente por campo (aria-describedby) e prévia móvel como painel recolhível | P3 | BACKLOG | EST-004 | revisão independente arquitetura/perf/a11y 2026-10-21 | - | - |
 
 **UXA-104** critérios: Grade 3–4 colunas ≥1024 com cartão compacto (miniatura, motivo, ações), seleção em massa, atalhos e painel lateral de detalhe. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-conteudo-1440.png, painel-conteudo-todas-1440.png) em docs/audit/ux/screens.
 
@@ -417,6 +418,8 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 
 **UXA-127** critérios: Amostras visíveis; estado personalizado marcado
 
+**UXA-128** critérios: Mensagem permanece até corrigir; E2E
+
 ## EP-12 · Design System v2 (BACKLOG)
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
@@ -425,6 +428,8 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 | DSV-002 | FEATURE | Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /design | P1 | BACKLOG | DSV-001 | missão design/studio/master 2026-10-21 | - | - |
 | DSV-003 | FEATURE | Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste | P0 | BACKLOG | DSV-002 | missão design/studio/master 2026-10-21 | - | - |
 | DSV-004 | FEATURE | Tokens --mm-* v2 completos (espaço, raio, sombra, movimento) e documentação do DS v2 em /design (Studio, Admin DS, tema) | P1 | BACKLOG | DSV-001 | revisão independente A1–A5 2026-10-21 | - | - |
+| DSV-005 | FEATURE | Contraste do limite do controle (WCAG 1.4.11, ex.: Sálvia ~2,6:1) e token separado para o rótulo do controle (--on-controle) sem quebrar a paridade do kit | P2 | BACKLOG | DSV-001 | revisão independente arquitetura/perf/a11y 2026-10-21 | - | - |
+| DSV-006 | FEATURE | Sheet com fundo inert e trava de scroll; OptionGroup como radiogroup; legenda e rótulos por campo no Studio | P2 | BACKLOG | DSV-002 | revisão independente arquitetura/perf/a11y 2026-10-21 | - | - |
 
 **DSV-001** critérios: Tokens documentados; evento não altera :root nem outros eventos (teste) · testes: src/lib/event-theme/event-theme.test.ts
 
@@ -433,6 +438,10 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 **DSV-003** critérios: axe sem violações sérias nas rotas; contraste validado em todos os presets
 
 **DSV-004** critérios: Tokens e componentes documentados; testes visuais
+
+**DSV-005** critérios: Regra decidida e implementada no cliente e no CHECK; presets ajustados ou exceção documentada; teste de paridade
+
+**DSV-006** critérios: axe sem violações; teste de teclado e leitor de tela
 
 ## EP-13 · Event Studio (BACKLOG)
 
@@ -524,6 +533,9 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
+| ARQ-001 | FEATURE | Consolidar duplicações: limites de upload compartilhados, useBrandImages com refresh, sameTheme por campo, syncTheme atômico com o update do evento | P3 | BACKLOG | EST-004 | revisão independente arquitetura/perf/a11y 2026-10-21 | - | - |
+| PRF-001 | FEATURE | Bundle: import dinâmico do SDK Supabase e do qrcode; AppProvider fora do /master; rotas client-only com casca renderizada no servidor para melhorar o LCP | P2 | BACKLOG | QAV-001 | revisão independente arquitetura/perf/a11y 2026-10-21 | - | - |
+| PRF-002 | FEATURE | Estudio: debounce do QR, validateTheme sem repetição, paletteCss em CSS estático, jszip sob demanda | P3 | BACKLOG | PRF-001 | revisão independente arquitetura/perf/a11y 2026-10-21 | - | - |
 | QAV-001 | FEATURE | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots antes/depois; três identidades | P0 | IN_REVIEW | EST-005, MAD-003 | missão design/studio/master 2026-10-21 | ed63bc4 | local |
 | QAV-002 | FEATURE | Revisão independente A1–A5 e correção de P0/P1 | P0 | IN_REVIEW | QAV-001 | missão design/studio/master 2026-10-21 | ed63bc4 | local |
 | QAV-003 | FEATURE | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador | P1 | IN_REVIEW | EST-004, SCV-008 | revisão independente A1–A5 2026-10-21 | 5374f89 | remote-preview |
@@ -533,6 +545,12 @@ Total: **202** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 51, P
 **QAV-002** critérios: Relatório consolidado; P0/P1 corrigidos · testes: vitest 245; playwright local 51; pgTAP 366 (pré-hardening)
 
 **QAV-003** critérios: Testes rodando em Supabase local; falha de permissão coberta · testes: web/e2e/remote-flow.spec.ts (desktop + Android emulado)
+
+**PRF-001** critérios: Orçamento de JS por rota medido em build de produção; LCP mobile ≤ 2,5 s nas rotas principais
+
+**PRF-002** critérios: Sem regressão visual; medição antes/depois
+
+**ARQ-001** critérios: Um só lugar para cada regra; teste de paridade com o SQL
 
 ## EP-18 · Release v2 (BACKLOG)
 

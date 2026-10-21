@@ -128,6 +128,12 @@ flowchart LR
   MAD_006["MAD-006<br/>BACKLOG"]:::back
   QAV_003["QAV-003<br/>IN_REVIEW"]:::back
   UXA_127["UXA-127<br/>BACKLOG"]:::back
+  DSV_005["DSV-005<br/>BACKLOG"]:::back
+  DSV_006["DSV-006<br/>BACKLOG"]:::back
+  PRF_001["PRF-001<br/>BACKLOG"]:::back
+  PRF_002["PRF-002<br/>BACKLOG"]:::back
+  ARQ_001["ARQ-001<br/>BACKLOG"]:::back
+  UXA_128["UXA-128<br/>BACKLOG"]:::back
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -300,6 +306,12 @@ flowchart LR
   EST_004 --> QAV_003
   SCV_008 --> QAV_003
   EST_004 --> UXA_127
+  DSV_001 --> DSV_005
+  DSV_002 --> DSV_006
+  QAV_001 --> PRF_001
+  PRF_001 --> PRF_002
+  EST_004 --> ARQ_001
+  EST_004 --> UXA_128
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;

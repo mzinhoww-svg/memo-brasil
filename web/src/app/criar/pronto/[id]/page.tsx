@@ -50,7 +50,7 @@ export default function Pronto() {
               <span className="eyebrow app-muted">Código da festa</span>
               <span data-testid="codigo" style={{ fontSize: 30, fontWeight: 800, letterSpacing: "0.12em" }}>{event.code}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {qr && <img className="pronto-qr" src={qr} alt={`QR Code do convite de ${event.title}`} width={240} height={240} />}
+              <div className="pronto-qr-caixa">{qr && <img className="pronto-qr" src={qr} alt={`QR Code do convite de ${event.title}`} width={240} height={240} />}</div>
             </div>
             <div className="app-stack">
               <div className="app-stack-sm">

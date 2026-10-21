@@ -1,10 +1,12 @@
 import "server-only";
+import { cache } from "react";
 import { backendStatus } from "@/lib/supabase/env";
 import { serverSupabase } from "@/lib/supabase/server";
 import { decideMasterAccess, type MasterAccess } from "./access";
 
 /** Resolve o acesso no servidor a cada requisição (getUser valida o JWT no Auth; `is_master()` confere o papel ativo no banco). */
-export async function masterAccess(): Promise<{ access: MasterAccess; sb: Awaited<ReturnType<typeof serverSupabase>> | null }> {
+export const masterAccess = cache(masterAccessUncached);
+async function masterAccessUncached(): Promise<{ access: MasterAccess; sb: Awaited<ReturnType<typeof serverSupabase>> | null }> {
   const backend = backendStatus();
   if (backend !== "supabase") return { access: "local", sb: null };
   const sb = await serverSupabase();

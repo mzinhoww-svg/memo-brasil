@@ -13,13 +13,23 @@ describe("AppearanceStudio", () => {
     render(<AppearanceStudio event={ev} locked={false} onSave={onSave} onRestore={vi.fn()} />);
     const campo = screen.getByLabelText(/^Texto/);
     fireEvent.change(campo, { target: { value: "#e8ece4" } });
-    expect(screen.getAllByRole("alert").map((a) => a.textContent).join(" ")).toMatch(/contraste/i);
+    expect(screen.getByTestId("studio-erros").textContent).toMatch(/contraste/i);
     expect(campo.getAttribute("aria-invalid")).toBe("true"); // o erro é ligado ao campo certo
     expect(campo.getAttribute("aria-describedby")).toMatch(/ap-cor-erro-texto/);
     expect(screen.getByText(/mostrando o último tema válido/)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Salvar aparência" }) as HTMLButtonElement).disabled).toBe(true);
     const cartao = document.querySelector(".studio-cartao") as HTMLElement;
-    expect(cartao.getAttribute("data-event-theme")).toBe("palette");
+    expect(cartao.style.getPropertyValue("--evento-texto").toUpperCase()).toBe("#5B6752"); // a prévia mostra o ÚLTIMO tema válido, não a cor inválida
+  });
+  it("aviso de salvo fica numa região live sempre montada e some ao editar", async () => {
+    render(<AppearanceStudio event={ev} locked={false} onSave={vi.fn().mockResolvedValue(undefined)} onRestore={vi.fn()} />);
+    const msg = screen.getByTestId("studio-msg");
+    expect(msg.getAttribute("aria-live")).toBe("polite"); expect(msg.textContent).toBe("");
+    fireEvent.click(screen.getByRole("button", { name: "Salvar aparência" }));
+    await waitFor(() => expect(msg.textContent).toBe("Aparência salva."));
+    fireEvent.change(screen.getByLabelText("Mensagem de boas-vindas"), { target: { value: "novo" } });
+    expect(msg.textContent).toBe(""); // não fica "salvo" depois de editar
+    expect(screen.getByTestId("studio-msg")).toBe(msg); // mesmo elemento: a região live não foi remontada
   });
   it("tema válido salva o rascunho e mostra a mensagem na prévia", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);

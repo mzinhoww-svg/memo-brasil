@@ -5,6 +5,7 @@ import { Button, Chip, Chips, EventTheme, Notice, OptionGroup } from "@/componen
 import type { MemoEvent } from "@/domain/event";
 import { MESSAGE_MAX, QR_STYLES, THEME_FONTS, type QrStyle, type ThemeFont, type ThemeSpec } from "@/domain/theme";
 import { EVENT_FONT_LABEL } from "@/lib/event-theme";
+import { onColor } from "@/lib/event-theme/contrast";
 import { PRESETS, colorIssues, qrDarkColor, validateTheme } from "@/lib/event-theme/spec";
 import { qrDataUrl } from "@/features/invitations/qr";
 import type { AssetKind } from "./assets";
@@ -24,6 +25,9 @@ export function AppearanceStudio({ event, locked, onSave, onRestore, images }: {
   const [draft, setDraft] = useState<ThemeSpec>(() => initialTheme(event));
   const [msg, setMsg] = useState<string | undefined>();
   const verdict = useMemo(() => validateTheme(draft), [draft]);
+  // último tema válido (estado, não ref: é lido na renderização da prévia)
+  const [lastValid, setLastValid] = useState<ThemeSpec>(draft);
+  if (verdict.ok && lastValid !== draft) setLastValid(draft);
   const issues = useMemo(() => colorIssues(draft.colors), [draft.colors]);
   const [qr, setQr] = useState<string | undefined>();
   const dark = qrDarkColor(draft);
@@ -32,7 +36,7 @@ export function AppearanceStudio({ event, locked, onSave, onRestore, images }: {
     void qrDataUrl(`https://memoriesmt.app/e/${event.code ?? "CODIGO"}`, 240, dark).then((u) => { if (alive) setQr(u); });
     return () => { alive = false; };
   }, [event.code, dark]);
-  const set = (patch: Partial<ThemeSpec>) => setDraft((d) => ({ ...d, ...patch }));
+  const set = (patch: Partial<ThemeSpec>) => { setMsg(undefined); setDraft((d) => ({ ...d, ...patch })); };
 
   return (
     <div className="studio-grid">
@@ -40,6 +44,7 @@ export function AppearanceStudio({ event, locked, onSave, onRestore, images }: {
         <h1 id="ap-titulo" className="titulo-pagina app-h1">Aparência do evento</h1>
         {locked && <Notice text="A revelação já aconteceu: a identidade do evento não pode mais mudar." />}
         <fieldset disabled={locked} className="studio-fieldset">
+          <legend className="sr-only">Aparência do evento</legend>
           <div className="app-stack-sm">
             <span className="mm-group-label">Tema pronto</span>
             <Chips label="Tema pronto">
@@ -56,7 +61,7 @@ export function AppearanceStudio({ event, locked, onSave, onRestore, images }: {
                   <label htmlFor={`ap-cor-${k}`}>{COLOR_LABEL[k]} <code>{draft.colors[k]}</code></label>
                   <input id={`ap-cor-${k}`} type="color" value={draft.colors[k]} aria-invalid={issues[k as keyof typeof issues] ? true : undefined} aria-describedby={issues[k as keyof typeof issues] ? `ap-cor-erro-${k}` : undefined} onChange={(e) => set({ preset: "personalizado", colors: { ...draft.colors, [k]: e.target.value.toUpperCase() } })} />
                   <small className="app-muted">{COLOR_HELP[k]}</small>
-                  {issues[k as keyof typeof issues] && <small id={`ap-cor-erro-${k}`} className="mm-field-erro" role="alert">{issues[k as keyof typeof issues]}</small>}
+                  {issues[k as keyof typeof issues] && <small id={`ap-cor-erro-${k}`} className="mm-field-erro">{issues[k as keyof typeof issues]}</small>}
                 </div>
               ))}
             </div>
@@ -82,10 +87,10 @@ export function AppearanceStudio({ event, locked, onSave, onRestore, images }: {
             )}
           </div>
         </fieldset>
-        {!verdict.ok && (
-          <ul className="mm-field-erro" role="alert">{verdict.errors.map((e) => <li key={e}>{e}</li>)}</ul>
-        )}
-        {msg && <p className="app-p" role="status">{msg}</p>}
+        <div role="status" aria-live="polite" className={verdict.ok ? "sr-only" : "mm-field-erro"} data-testid="studio-erros">
+          {verdict.ok ? "" : <><strong>Corrija as cores marcadas:</strong><ul style={{ margin: 0 }}>{verdict.errors.map((e) => <li key={e}>{e}</li>)}</ul></>}
+        </div>
+        <p className="app-p" role="status" aria-live="polite" data-testid="studio-msg">{msg ?? ""}</p>
         <div className="studio-acoes">
           <Button variant="primario" disabled={locked || !verdict.ok} onClick={async () => setMsg((await onSave(draft)) ?? "Aparência salva.")}>Salvar aparência</Button>
           {!event.theme && !locked && <span className="app-muted" style={{ fontSize: 13, alignSelf: "center" }}>Ainda não há aparência salva para restaurar.</span>}
@@ -95,7 +100,7 @@ export function AppearanceStudio({ event, locked, onSave, onRestore, images }: {
 
       <aside className="studio-previa" aria-label="Prévia do convite">
         <p className="mm-group-label">Prévia do convite{!verdict.ok && <span className="app-muted"> · mostrando o último tema válido (corrija as cores marcadas)</span>}</p>
-        <EventTheme palette={event.palette} font={draft.font} theme={verdict.ok ? draft : undefined} className="studio-cartao">
+        <EventTheme palette={event.palette} font={draft.font} theme={verdict.ok ? draft : lastValid} className="studio-cartao">
           <div className="studio-cartao-corpo" style={{ background: "var(--evento-superficie)", color: "var(--evento-texto)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element -- URL assinada do Storage, sem otimizador */}
             {images?.coverUrl && <img className="studio-capa" src={images.coverUrl} alt="" />}
@@ -105,7 +110,7 @@ export function AppearanceStudio({ event, locked, onSave, onRestore, images }: {
             {draft.welcomeMessage && <p className="app-p">{draft.welcomeMessage}</p>}
             {/* eslint-disable-next-line @next/next/no-img-element -- data URL local */}
             {qr ? <img className="studio-qr" data-estilo={draft.qrStyle} src={qr} alt="" aria-hidden="true" /> : <span className="studio-qr" aria-hidden="true" />}
-            <span className="studio-botao" style={{ background: "var(--evento-controle)", color: "var(--on-evento)" }}>Entrar na festa</span>
+            <span className="studio-botao" style={{ background: "var(--evento-controle)", color: onColor((verdict.ok ? draft : lastValid).colors.controle) }}>Entrar na festa</span>
             <small>Powered by MemoriesMT</small>
           </div>
         </EventTheme>

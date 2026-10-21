@@ -6,13 +6,15 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  useEffect(() => { closeRef.current = onClose; });
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const panel = ref.current!;
     const focusables = () => Array.from(panel.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter((el) => !el.hasAttribute("disabled"));
     focusables()[0]?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") closeRef.current();
       if (e.key !== "Tab") return;
       const f = focusables();
       if (!f.length) return;
@@ -31,7 +33,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
       document.removeEventListener("keydown", onKey);
       previous?.focus();
     };
-  }, [onClose]);
+  }, []); // onClose vem por ref: re-render do pai não devolve o foco ao gatilho
   return (
     <div className="app-dialog" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div ref={ref} className="app-dialog-panel" role="dialog" aria-modal="true" aria-labelledby={id}>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contrastRatio } from "./contrast";
+import { contrastRatio } from "@/lib/event-theme/contrast";
 import { CAPACITY_OPTIONS, SHOTS_OPTIONS } from "./options";
 import { canEditEnd, canJoin, endAt, eventStatus, isRevealed, retrospectiveOpen, revealAt, shotsLeft, validateDraft, type MemoEvent } from "./event";
 import { priceRule } from "./pricing";

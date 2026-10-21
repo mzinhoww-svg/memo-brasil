@@ -23,7 +23,7 @@ Itens abertos: **8** · P0 1, P1 5, P2 2, P3 0 · BACKLOG 4, BLOCKED 3, READY 1
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **71** · P0 14, P1 14, P2 30, P3 13 · BACKLOG 42, BLOCKED 1, IN_REVIEW 20, READY 8
+Itens abertos: **77** · P0 14, P1 14, P2 33, P3 16 · BACKLOG 48, BLOCKED 1, IN_REVIEW 20, READY 8
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -70,8 +70,11 @@ Itens abertos: **71** · P0 14, P1 14, P2 30, P3 13 · BACKLOG 42, BLOCKED 1, IN
 | BG-111 | P2 | BACKLOG | Atualização do service worker apaga as páginas guardadas; pré-cache só de HTML | BG-040 |
 | BG-112 | P2 | READY | Limites de campos só em maxLength; domínio e serviços não validam | - |
 | COM-011 | P2 | BACKLOG | Domínio próprio e e-mail de marca | REL-001 |
+| DSV-005 | P2 | BACKLOG | Contraste do limite do controle (WCAG 1.4.11, ex.: Sálvia ~2,6:1) e token separado para o  | DSV-001 |
+| DSV-006 | P2 | BACKLOG | Sheet com fundo inert e trava de scroll; OptionGroup como radiogroup; legenda e rótulos po | DSV-002 |
 | EST-007 | P2 | BACKLOG | Tema com cores por modo (dia/noite) no Event Theme personalizado | EST-002 |
 | MAD-006 | P2 | BACKLOG | UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revoga | MAD-004, SCV-005 |
+| PRF-001 | P2 | BACKLOG | Bundle: import dinâmico do SDK Supabase e do qrcode; AppProvider fora do /master; rotas cl | QAV-001 |
 | SCV-001 | P2 | IN_REVIEW | Feature flags e platform_settings com escrita só do master | MAD-001 |
 | SCV-005 | P2 | BACKLOG | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava  | MAD-002 |
 | SCV-007 | P2 | BACKLOG | Middleware de refresh de sessão para Server Components (evitar deslogar o console após ~1  | MAD-003 |
@@ -85,6 +88,8 @@ Itens abertos: **71** · P0 14, P1 14, P2 30, P3 13 · BACKLOG 42, BLOCKED 1, IN
 | UXA-113 | P2 | IN_REVIEW | [Convidado] Chips de reação, momento e sugestão (/agora, /explorar, /editar, /postar): Con | UXA-001 |
 | UXA-114 | P2 | IN_REVIEW | [Todas] Alvos de toque < 44px: Link 'Guia de componentes' 174×21px na home (3 estados); li | UXA-001 |
 | UXA-127 | P2 | BACKLOG | Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fon | EST-004 |
+| ARQ-001 | P3 | BACKLOG | Consolidar duplicações: limites de upload compartilhados, useBrandImages com refresh, same | EST-004 |
+| PRF-002 | P3 | BACKLOG | Estudio: debounce do QR, validateTheme sem repetição, paletteCss em CSS estático, jszip so | PRF-001 |
 | UXA-106 | P3 | BACKLOG | [Administrativa] /painel/[id]/convidados: Lista de convidados repetida: tabela 'Convidados | UXA-001 |
 | UXA-115 | P3 | BACKLOG | [Todas] Botão de texto (Voltar, Cancelar, Voltar ao início): Botão texto recuado 8px do ei | UXA-001 |
 | UXA-116 | P3 | BACKLOG | [Todas] Datas (cabeçalho, resumo, revelação): '21 · 10 · 2026' quebra entre os dígitos ('2 | UXA-001 |
@@ -98,6 +103,7 @@ Itens abertos: **71** · P0 14, P1 14, P2 30, P3 13 · BACKLOG 42, BLOCKED 1, IN
 | UXA-124 | P3 | BACKLOG | [Administrativa] /painel/[id]/qr · QR Code Studio: Cards A6 com ~35% de vazio entre texto  | UXA-001 |
 | UXA-125 | P3 | BACKLOG | [Administrativa] /painel/[id]/aparencia (WIP de outro agente): Em 375 a 'Prévia do convite | UXA-001 |
 | UXA-126 | P3 | BACKLOG | [Anfitrião] /criar · passo 6 (resumo): CTA 'Criar evento de demonstração' quebra em 2 linh | UXA-001 |
+| UXA-128 | P3 | BACKLOG | Erro de upload de logo/capa persistente por campo (aria-describedby) e prévia móvel como p | EST-004 |
 
 ## R3 · Monetização e escala (60–90 dias)
 
