@@ -78,6 +78,14 @@ select count(*) from public.storage_purge_queue;                                
 
 Falhas (testadas localmente): chave errada → `403` e a fila é preservada; função fora do ar → `503/erro de rede` e a fila é preservada; segredo ausente → o script de agendamento aborta. **Atenção:** `cron.job_run_details` mostra `succeeded` mesmo quando o HTTP falha (o cron só enfileira a chamada); a falha só aparece em `net._http_response` (retenção ~6 h) e no corpo `{"ok":false,...}` (a função responde 200 mesmo com `falhas>0`; melhoria registrada como SCV-009). Observação: há 12 objetos de teste em `event-photos` sem foto correspondente e fora da fila; não serão purgados por este job.
 
+### Evidência A.3.5 (remoto, 2026-10-21, projeto `asyaegeodyttttaubvxh`; nenhuma chave exibida)
+- Job: `mm-purge-storage` (jobid 6), `*/30 * * * *`, ativo, **um único**; 6 jobs `mm-*` ativos no total.
+- Prova imediata do operador: 6 itens removidos. Execução agendada de 19:00 UTC: `net._http_response` 200 `{"ok":true,"removidos":6,"falhas":0,"restante":0}`, `cron.job_run_details` `succeeded`.
+- Fila `storage_purge_queue`: 6 → 0. Vault: 1 segredo `mm_purge_service_role` (só a contagem foi lida).
+- `event-photos`: 13 → 10 objetos (os 3 objetos de teste enfileirados; os `.thumb` nunca existiram). Backup dos 13 permanece em `~/Backups/memoriesmt/`.
+- Limite da evidência: o caminho `event-branding` foi exercitado só localmente (`web/integration/purge.integration.test.mjs`); no remoto o bucket ainda não tem objetos.
+- Pendências separadas: SCV-009 (falha visível/alerta de fila parada) e **9 objetos órfãos** em `event-photos` (sem linha em `photos`, fora da fila; eram 12 antes da purga), a tratar à parte com decisão do dono.
+
 ## 6. Auth e produção (fora do banco)
 - Auth → Providers → Email: desligar login por e-mail/senha (deixar Google). 
 - Vercel (projeto `newmemocuiaba`): confirmar `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `NEXT_PUBLIC_MM_BACKEND=supabase` em Production; `service_role` NUNCA na Vercel.

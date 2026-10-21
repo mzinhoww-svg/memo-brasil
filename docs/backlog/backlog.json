@@ -5971,7 +5971,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P1",
-   "status": "IN_REVIEW",
+   "status": "DONE",
    "dependencies": [
     "SB-005"
    ],
@@ -5984,10 +5984,12 @@
     "web/integration/purge.integration.test.mjs"
    ],
    "evidence": [
+    "event-branding provado só no local",
+    "remoto: mm-purge-storage */30 ativo, HTTP 200 removidos 6, fila 6->0 (OPERATOR-COMMANDS.md, evidência A.3.5)",
     "worker purge-storage testado local (2/2); falta deploy e agendamento no remoto"
    ],
-   "commit": null,
-   "environment": "local",
+   "commit": "HEAD",
+   "environment": "local+remoto",
    "release": "R2"
   },
   {
@@ -6398,6 +6400,30 @@
    "origin": "revisão independente arquitetura/perf/a11y 2026-10-21",
    "acceptance": [
     "Mensagem permanece até corrigir; E2E"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R2"
+  },
+  {
+   "id": "SCV-009",
+   "type": "FEATURE",
+   "title": "purge-storage: responder não-2xx quando falhas>0 e alertar fila parada",
+   "description": "A função responde 200 mesmo com falhas>0 e o cron mostra succeeded com HTTP falhando; só net._http_response revela. Retornar 207/500 com falhas>0 e criar checagem de fila antiga (>2 h) no admin_health.",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "SCV-004"
+   ],
+   "origin": "etapa A.3.5 2026-10-21",
+   "acceptance": [
+    "Falha de Storage gera status não-2xx visível em net._http_response",
+    "admin_health sinaliza fila com item mais antigo que 2 h"
    ],
    "files": [],
    "tests": [],

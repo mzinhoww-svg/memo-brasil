@@ -13,3 +13,4 @@ scripts/ci-output.txt
 .maestri/
 supabase/.temp/
 supabase/.branches/
+.DS_Store
