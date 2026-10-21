@@ -115,6 +115,7 @@ describe("contraste", () => {
 
 const ph = (o: Partial<Photo>): Photo => ({ id: "p", eventId: "e1", authorId: "a", authorName: "Ana", createdAt: 1, moment: "O sim", status: "visivel", reports: 0, highlighted: false, ...o });
 
+const T = (authorId: string) => ({ eventId: "e1", photoId: "p1", authorId });
 describe("postar e reagir", () => {
   it("bloqueia rolo esgotado e evento encerrado", () => {
     expect(canPost(base, 23, base.startAt + 1)).toEqual({ ok: true });
@@ -124,13 +125,13 @@ describe("postar e reagir", () => {
   });
   it("uma reação por autor e foto; mesma reação desfaz; outra troca", () => {
     let r: Reaction[] = [];
-    r = setReaction(r, "p1", "u1", "amei");
-    r = setReaction(r, "p1", "u1", "uau");
-    expect(r).toEqual([{ photoId: "p1", authorId: "u1", kind: "uau" }]);
-    r = setReaction(r, "p1", "u2", "amei");
+    r = setReaction(r, T("u1"), "amei");
+    r = setReaction(r, T("u1"), "uau");
+    expect(r).toEqual([{ eventId: "e1", photoId: "p1", authorId: "u1", kind: "uau" }]);
+    r = setReaction(r, T("u2"), "amei");
     expect(r).toHaveLength(2);
-    r = setReaction(r, "p1", "u1", "uau");
-    expect(r).toEqual([{ photoId: "p1", authorId: "u2", kind: "amei" }]);
+    r = setReaction(r, T("u1"), "uau");
+    expect(r).toEqual([{ eventId: "e1", photoId: "p1", authorId: "u2", kind: "amei" }]);
   });
 });
 

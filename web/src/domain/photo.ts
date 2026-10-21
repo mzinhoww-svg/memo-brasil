@@ -19,6 +19,7 @@ export interface Photo {
 }
 
 export interface Reaction {
+  eventId: string;
   photoId: string;
   authorId: string;
   kind: ReactionKind;
@@ -34,10 +35,11 @@ export function canPost(e: MemoEvent, usedShots: number, now: number): PostResul
 }
 
 /** Uma reação por autor e foto (REA E-17): repetir a mesma desfaz, outra troca. */
-export function setReaction(list: Reaction[], photoId: string, authorId: string, kind: ReactionKind): Reaction[] {
+export function setReaction(list: Reaction[], target: { eventId: string; photoId: string; authorId: string }, kind: ReactionKind): Reaction[] {
+  const { eventId, photoId, authorId } = target;
   const current = list.find((r) => r.photoId === photoId && r.authorId === authorId);
   const rest = list.filter((r) => !(r.photoId === photoId && r.authorId === authorId));
-  return current?.kind === kind ? rest : [...rest, { photoId, authorId, kind }];
+  return current?.kind === kind ? rest : [...rest, { eventId, photoId, authorId, kind }];
 }
 
 export interface Viewer {
