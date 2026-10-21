@@ -120,19 +120,19 @@ export default function Postar() {
         <span className="eyebrow app-muted" aria-live="polite">{left === null ? "Rolo ilimitado" : left === 1 ? "1 foto restante" : `${left} fotos restantes`}</span>
       </div>
 
-      {blocked ? (
-        <div className="app-stack">
-          <h1 className="titulo-tela app-h1">{ended ? "O evento terminou." : "Seu rolo acabou."}</h1>
-          <p className="corpo app-p">{ended ? "Não dá mais para postar. As fotos estão no Agora." : "Você usou todas as suas fotos deste evento."}</p>
-          <Button href={`${base}/agora`} block>Ver no Agora</Button>
-        </div>
-      ) : phase === "publicada" ? (
+      {phase === "publicada" ? (
         <div className="app-stack">
           <p className="emocao-lg app-emocao">Sua visão entrou na história.</p>
           <div className="app-stack-sm">
             <Button href={`${base}/agora`} block>Ver no Agora</Button>
-            {(left === null || left > 1) && <Button variant="secundario" block onClick={again}>Postar outra</Button>}
+            {(left === null || left > 0) && <Button variant="secundario" block onClick={again}>Postar outra</Button>}
           </div>
+        </div>
+      ) : blocked ? (
+        <div className="app-stack">
+          <h1 className="titulo-tela app-h1">{ended ? "O evento terminou." : "Seu rolo acabou."}</h1>
+          <p className="corpo app-p">{ended ? "Não dá mais para postar. As fotos estão no Agora." : "Você usou todas as suas fotos deste evento."}</p>
+          <Button href={`${base}/agora`} block>Ver no Agora</Button>
         </div>
       ) : (
         <>

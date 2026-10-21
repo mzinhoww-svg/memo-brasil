@@ -1,10 +1,10 @@
 "use client";
 
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { TabBar, EventTheme, Button, Icon } from "@/components/memoriesmt";
 import { useApp } from "@/features/app/provider";
-import { useEventData, useNow, useOnline } from "@/features/app/hooks";
+import { useClock, useEventData, useOnline } from "@/features/app/hooks";
 import { GuestProvider } from "@/features/events/guest-context";
 import { normalizeShareCode } from "@/domain/share-code";
 
@@ -16,7 +16,12 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { ready, user } = useApp();
   const data = useEventData({ code });
-  const now = useNow();
+  const { now, sync } = useClock();
+  const { refresh: reload } = data;
+  const refresh = useCallback(async () => {
+    await reload();
+    sync();
+  }, [reload, sync]);
   const online = useOnline();
   const participant = data.participants.find((p) => p.userId === user?.id);
   const isHost = Boolean(data.event && user && data.event.hostId === user.id);
@@ -25,7 +30,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     if (ready && !data.loading && data.event && (!user || (!participant && !isHost))) router.replace(`/e/${code}`);
   }, [ready, data.loading, data.event, user, participant, isHost, router, code]);
 
-  const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh: data.refresh } : null), [data, user, participant, isHost, now]);
+  const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh } : null), [data, user, participant, isHost, now, refresh]);
 
   if (!ready || data.loading) return <main className="app-col"><p className="app-screen app-muted">Carregando a festa…</p></main>;
   if (!data.event) {

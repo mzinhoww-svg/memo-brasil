@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useMemo, type ReactNode } from "react";
+import { useCallback, useMemo, type ReactNode } from "react";
 import { AdminNav, Button, CountBadge, EventTheme } from "@/components/memoriesmt";
 import { eventStatus } from "@/domain/event";
 import { moderationQueue } from "@/domain/photo";
-import { formatDate, useEventData, useNow } from "@/features/app/hooks";
+import { formatDate, useClock, useEventData } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { AdminProvider } from "@/features/admin/context";
 
@@ -26,7 +26,12 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
   const path = usePathname();
   const { user, ready } = useApp();
   const data = useEventData({ id });
-  const now = useNow();
+  const { now, sync } = useClock();
+  const { refresh: reload } = data;
+  const refresh = useCallback(async () => {
+    await reload();
+    sync();
+  }, [reload, sync]);
   const pending = useMemo(() => moderationQueue(data.photos).length, [data.photos]);
 
   if (!ready || data.loading) return <main className="app-admin"><p className="app-admin-main app-muted">Abrindo o painel…</p></main>;
@@ -42,7 +47,7 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
   });
 
   return (
-    <AdminProvider value={{ event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh: data.refresh }}>
+    <AdminProvider value={{ event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh }}>
       <EventTheme palette={event.palette} font={event.eventFont} className="app-admin app-fluid">
         <div className="app-admin-side no-print"><AdminNav eventName={event.title} eventState={state} switchHref="/" items={items} /></div>
         <main className="app-admin-main">

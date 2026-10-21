@@ -2,6 +2,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useApp } from "@/features/app/provider";
 import { Button, Icon, Progress, Signature } from "@/components/memoriesmt";
 import { isRevealed, shotsLeft } from "@/domain/event";
 import { usePhotoUrls } from "@/features/app/hooks";
@@ -9,6 +11,8 @@ import { useGuest } from "@/features/events/guest-context";
 
 export default function Voce() {
   const { event, user, now, photos, isHost } = useGuest();
+  const { signOut } = useApp();
+  const router = useRouter();
   const mine = photos.filter((p) => p.authorId === user.id && p.status !== "removida");
   const urls = usePhotoUrls(mine);
   const left = shotsLeft(event, mine.length);
@@ -55,6 +59,10 @@ export default function Voce() {
       <div className="app-stack-sm">
         {isHost && <Button href={`/painel/${event.id}`} variant="secundario" block>Abrir o painel do evento</Button>}
         <Link href="/" className="mm-btn mm-btn--texto" style={{ alignSelf: "flex-start" }}>Voltar ao início</Link>
+        <div className="app-stack-sm">
+          <Button variant="secundario" block onClick={async () => { await signOut(); router.push(`/e/${event.code}`); }}>Entrar como outra pessoa</Button>
+          <p className="mm-field-ajuda">Demonstração: serve para testar a festa com mais de uma pessoa neste aparelho. Suas fotos continuam guardadas.</p>
+        </div>
       </div>
       <div style={{ marginTop: "auto" }}><Signature /></div>
     </div>

@@ -6,15 +6,20 @@ import type { Photo, Reaction } from "@/domain/photo";
 import type { Participant } from "@/repositories";
 import { useApp } from "./provider";
 
-/** Relógio reativo: atualiza a cada `ms` para o estado do evento (ao vivo, encerrou, revelou) acompanhar o tempo. */
-export function useNow(ms = 15_000): number {
+/** Relógio reativo: atualiza a cada `ms`; `sync()` força a leitura imediata depois de uma ação que muda o tempo do evento. */
+export function useClock(ms = 15_000): { now: number; sync: () => void } {
   const { now } = useApp();
   const [t, setT] = useState(() => now());
   useEffect(() => {
     const id = setInterval(() => setT(now()), ms);
     return () => clearInterval(id);
   }, [now, ms]);
-  return t;
+  const sync = useCallback(() => setT(now()), [now]);
+  return { now: t, sync };
+}
+
+export function useNow(ms = 15_000): number {
+  return useClock(ms).now;
 }
 
 function subscribeOnline(cb: () => void) {
