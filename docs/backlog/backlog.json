@@ -1131,7 +1131,7 @@
    "epic": "EP-03",
    "parent": null,
    "priority": "P1",
-   "status": "TESTING",
+   "status": "DONE",
    "dependencies": [
     "FT-036"
    ],
@@ -1142,11 +1142,13 @@
    ],
    "files": [],
    "tests": [
-    "web/e2e/remote.spec.ts"
+    "web/e2e/remote.spec.ts (5 testes remotos, 5 passaram)"
    ],
-   "evidence": [],
-   "commit": null,
-   "environment": "preview Vercel (protegido)"
+   "evidence": [
+    "smoke remoto: espera, contagem, revelação sem rede, headers, 404, relógio de teste fora do bundle"
+   ],
+   "commit": "5d8df4a",
+   "environment": "preview Vercel newmemocuiaba (dpl_Cq1otDUS9DsuZVFqthubBfGLEEAz, protegido; acesso por link temporário oficial)"
   },
   {
    "id": "FT-020",
@@ -1736,7 +1738,7 @@
    "epic": "EP-10",
    "parent": null,
    "priority": "P1",
-   "status": "TESTING",
+   "status": "DONE",
    "dependencies": [
     "FT-037"
    ],
@@ -1746,10 +1748,14 @@
     "Acesso por link temporário oficial"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": "preview Vercel (protegido)"
+   "tests": [
+    "web/e2e/remote.spec.ts"
+   ],
+   "evidence": [
+    "commit publicado 5d8df4a; commits posteriores só tocam documentação"
+   ],
+   "commit": "5d8df4a",
+   "environment": "preview Vercel newmemocuiaba (dpl_Cq1otDUS9DsuZVFqthubBfGLEEAz, protegido; acesso por link temporário oficial)"
   },
   {
    "id": "FT-080",
