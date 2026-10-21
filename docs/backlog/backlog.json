@@ -29,7 +29,15 @@
   "EP-07": "Qualidade e testes",
   "EP-08": "Prontidão para o Supabase",
   "EP-09": "Fase Supabase (exclusivo do backend)",
-  "EP-10": "Governança e release"
+  "EP-10": "Governança e release",
+  "EP-11": "UX/UI Audit",
+  "EP-12": "Design System v2",
+  "EP-13": "Event Studio",
+  "EP-14": "Master Admin",
+  "EP-15": "Analytics",
+  "EP-16": "Security v2",
+  "EP-17": "QA v2",
+  "EP-18": "Release v2"
  },
  "items": [
   {
@@ -4172,6 +4180,611 @@
    ],
    "commit": "4ab85f8",
    "environment": "vercel"
+  },
+  {
+   "id": "EP-11",
+   "type": "EPIC",
+   "title": "UX/UI Audit",
+   "description": "UX/UI Audit",
+   "epic": "EP-11",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Todos os itens do epic EP-11 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-12",
+   "type": "EPIC",
+   "title": "Design System v2",
+   "description": "Design System v2",
+   "epic": "EP-12",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Todos os itens do epic EP-12 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-13",
+   "type": "EPIC",
+   "title": "Event Studio",
+   "description": "Event Studio",
+   "epic": "EP-13",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Todos os itens do epic EP-13 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-14",
+   "type": "EPIC",
+   "title": "Master Admin",
+   "description": "Master Admin",
+   "epic": "EP-14",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Todos os itens do epic EP-14 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-15",
+   "type": "EPIC",
+   "title": "Analytics",
+   "description": "Analytics",
+   "epic": "EP-15",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Todos os itens do epic EP-15 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-16",
+   "type": "EPIC",
+   "title": "Security v2",
+   "description": "Security v2",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Todos os itens do epic EP-16 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-17",
+   "type": "EPIC",
+   "title": "QA v2",
+   "description": "QA v2",
+   "epic": "EP-17",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Todos os itens do epic EP-17 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EP-18",
+   "type": "EPIC",
+   "title": "Release v2",
+   "description": "Release v2",
+   "epic": "EP-18",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Todos os itens do epic EP-18 DONE, DEFERRED ou CANCELLED com justificativa"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-001",
+   "type": "FEATURE",
+   "title": "Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e estados",
+   "description": "Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e estados",
+   "epic": "EP-11",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Inventário em docs/audit/ux com severidade, causa e solução; inclui Evento criado, Câmera, Espera, Revelação, Galeria, Painel, erros, loading, vazio, sessão expirada"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "UXA-002",
+   "type": "FEATURE",
+   "title": "Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com campo e copiar",
+   "description": "Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com campo e copiar",
+   "epic": "EP-11",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Sem quebra de título em 320–1920; URL legível e copiável; screenshots antes/depois"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "DSV-001",
+   "type": "FEATURE",
+   "title": "Tokens v2 por camada (Platform/Event/Admin) e breakpoints",
+   "description": "Tokens v2 por camada (Platform/Event/Admin) e breakpoints",
+   "epic": "EP-12",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "UXA-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Tokens documentados; evento não altera :root nem outros eventos (teste)"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "DSV-002",
+   "type": "FEATURE",
+   "title": "Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /design",
+   "description": "Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /design",
+   "epic": "EP-12",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "DSV-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Componentes reutilizáveis com testes e doc de uso; sem biblioteca redundante"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "DSV-003",
+   "type": "FEATURE",
+   "title": "Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste",
+   "description": "Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste",
+   "epic": "EP-12",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "DSV-002"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "axe sem violações sérias nas rotas; contraste validado em todos os presets"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EST-001",
+   "type": "FEATURE",
+   "title": "Migrations v2: event_themes, event_assets, bucket event-branding privado",
+   "description": "Migrations v2: event_themes, event_assets, bucket event-branding privado",
+   "epic": "EP-13",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "DSV-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Migrations aditivas; pgTAP de RLS (host/membro/master/anônimo); CHECKs de cor/fonte/mensagem; sem SVG"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EST-002",
+   "type": "FEATURE",
+   "title": "Renderer de tema isolado por evento (tokens, sem CSS arbitrário) + assinatura Powered by MemoriesMT",
+   "description": "Renderer de tema isolado por evento (tokens, sem CSS arbitrário) + assinatura Powered by MemoriesMT",
+   "epic": "EP-13",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "DSV-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Tema aplicado só no wrapper do evento; teste de isolamento; marca MemoriesMT intacta"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EST-003",
+   "type": "FEATURE",
+   "title": "Criação de evento completa (nome, tipo, data/hora, local, timezone, limites, revelação, prévia do convite)",
+   "description": "Criação de evento completa (nome, tipo, data/hora, local, timezone, limites, revelação, prévia do convite)",
+   "epic": "EP-13",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-002"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Prévia em tempo real; validação; E2E"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EST-004",
+   "type": "FEATURE",
+   "title": "Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estilo de QR, restaurar padrão",
+   "description": "Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estilo de QR, restaurar padrão",
+   "epic": "EP-13",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-001",
+    "EST-002"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Upload validado (MIME, tamanho, dimensões); bloqueio de edição após o limite; E2E de personalização"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "EST-005",
+   "type": "FEATURE",
+   "title": "Gestão do evento: indicadores, compartilhar/baixar QR, participantes, revogar convites, uploads, limites, contagem regressiva, status, exportação autorizada",
+   "description": "Gestão do evento: indicadores, compartilhar/baixar QR, participantes, revogar convites, uploads, limites, contagem regressiva, status, exportação autorizada",
+   "epic": "EP-13",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-003"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Permissões e estados definidos; testes de autorização"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "MAD-001",
+   "type": "FEATURE",
+   "title": "Papéis de plataforma no servidor: platform_roles, is_master com linha ativa, provisionamento seguro do primeiro master",
+   "description": "Papéis de plataforma no servidor: platform_roles, is_master com linha ativa, provisionamento seguro do primeiro master",
+   "epic": "EP-14",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Sem credencial padrão; provisionamento auditado; organizador não acessa /master (teste)"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "MAD-002",
+   "type": "FEATURE",
+   "title": "Auditoria v2: reason obrigatório, imutabilidade, actor_role, confirmação de ações destrutivas",
+   "description": "Auditoria v2: reason obrigatório, imutabilidade, actor_role, confirmação de ações destrutivas",
+   "epic": "EP-14",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "audit_logs sem UPDATE/DELETE; pgTAP"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "MAD-003",
+   "type": "FEATURE",
+   "title": "Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações, segurança, configurações, analytics, LGPD, saúde",
+   "description": "Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações, segurança, configurações, analytics, LGPD, saúde",
+   "epic": "EP-14",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-001",
+    "MAD-002",
+    "ANL-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "12 módulos com estados loading/vazio/erro/sem permissão; Admin DS desktop-first"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "MAD-004",
+   "type": "FEATURE",
+   "title": "Acesso excepcional a foto privada por admin com justificativa e auditoria",
+   "description": "Acesso excepcional a foto privada por admin com justificativa e auditoria",
+   "epic": "EP-14",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-002"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "URL de 60 s só após registro de auditoria; sem miniaturas no dashboard"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "ANL-001",
+   "type": "FEATURE",
+   "title": "RPCs/views agregadas reais para o dashboard (eventos, participantes, fotos, falhas, revelações, Storage, tendências)",
+   "description": "RPCs/views agregadas reais para o dashboard (eventos, participantes, fotos, falhas, revelações, Storage, tendências)",
+   "epic": "EP-15",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Somente master; sem métricas inventadas; testes com dados reais de teste"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "SCV-001",
+   "type": "FEATURE",
+   "title": "Feature flags e platform_settings com escrita só do master",
+   "description": "Feature flags e platform_settings com escrita só do master",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "MAD-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "RLS; testes de escalada de privilégio"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "SCV-002",
+   "type": "FEATURE",
+   "title": "Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR",
+   "description": "Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR",
+   "epic": "EP-16",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-004",
+    "MAD-003"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Sem P0/P1 abertos"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "QAV-001",
+   "type": "FEATURE",
+   "title": "Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots antes/depois; três identidades",
+   "description": "Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots antes/depois; três identidades",
+   "epic": "EP-17",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "EST-005",
+    "MAD-003"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Regressão v1 intacta; evidências anexadas"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "QAV-002",
+   "type": "FEATURE",
+   "title": "Revisão independente A1–A5 e correção de P0/P1",
+   "description": "Revisão independente A1–A5 e correção de P0/P1",
+   "epic": "EP-17",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "QAV-001"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Relatório consolidado; P0/P1 corrigidos"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
+  },
+  {
+   "id": "RLV-001",
+   "type": "FEATURE",
+   "title": "Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs)",
+   "description": "Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs)",
+   "epic": "EP-18",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "QAV-002",
+    "SB-004",
+    "SB-008"
+   ],
+   "origin": "missão design/studio/master 2026-10-21",
+   "acceptance": [
+    "Preview funcional; sem promoção enquanto SB-004/SB-008 e a homologação v1 estiverem pendentes"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": null
   }
  ],
  "requirements": [

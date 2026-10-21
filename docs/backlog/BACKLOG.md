@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **133** itens (sem contar 10 épicos). Prioridade: P0 22, P1 47, P2 30, P3 34. Status: BACKLOG 47, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, READY 11.
+Total: **153** itens (sem contar 18 épicos). Prioridade: P0 34, P1 54, P2 31, P3 34. Status: BACKLOG 67, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 58, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -339,3 +339,103 @@ Total: **133** itens (sem contar 10 épicos). Prioridade: P0 22, P1 47, P2 30, P
 **INF-002** critérios: O alias de produção aponta para o primeiro deploy. Resolver promovendo o preview validado, só com autorização (REL-001).
 
 **INF-003** critérios: Sem integração Git automática. Decidir se vincula o repositório (Root Directory web) ou mantém deploy manual documentado.
+
+## EP-11 · UX/UI Audit (BACKLOG)
+
+| ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
+|---|---|---|---|---|---|---|---|---|
+| UXA-001 | FEATURE | Auditoria UX/UI: screenshots em 320/375/390/430/768/1024/1440/1920 de todas as rotas e estados | P0 | BACKLOG | - | missão design/studio/master 2026-10-21 | - | - |
+| UXA-002 | FEATURE | Corrigir tela 'Evento criado': coluna larga em desktop, título sem quebra ruim, URL com campo e copiar | P1 | BACKLOG | UXA-001 | missão design/studio/master 2026-10-21 | - | - |
+
+**UXA-001** critérios: Inventário em docs/audit/ux com severidade, causa e solução; inclui Evento criado, Câmera, Espera, Revelação, Galeria, Painel, erros, loading, vazio, sessão expirada
+
+**UXA-002** critérios: Sem quebra de título em 320–1920; URL legível e copiável; screenshots antes/depois
+
+## EP-12 · Design System v2 (BACKLOG)
+
+| ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
+|---|---|---|---|---|---|---|---|---|
+| DSV-001 | FEATURE | Tokens v2 por camada (Platform/Event/Admin) e breakpoints | P0 | BACKLOG | UXA-001 | missão design/studio/master 2026-10-21 | - | - |
+| DSV-002 | FEATURE | Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /design | P1 | BACKLOG | DSV-001 | missão design/studio/master 2026-10-21 | - | - |
+| DSV-003 | FEATURE | Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste | P0 | BACKLOG | DSV-002 | missão design/studio/master 2026-10-21 | - | - |
+
+**DSV-001** critérios: Tokens documentados; evento não altera :root nem outros eventos (teste)
+
+**DSV-002** critérios: Componentes reutilizáveis com testes e doc de uso; sem biblioteca redundante
+
+**DSV-003** critérios: axe sem violações sérias nas rotas; contraste validado em todos os presets
+
+## EP-13 · Event Studio (BACKLOG)
+
+| ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
+|---|---|---|---|---|---|---|---|---|
+| EST-001 | FEATURE | Migrations v2: event_themes, event_assets, bucket event-branding privado | P0 | BACKLOG | DSV-001 | missão design/studio/master 2026-10-21 | - | - |
+| EST-002 | FEATURE | Renderer de tema isolado por evento (tokens, sem CSS arbitrário) + assinatura Powered by MemoriesMT | P0 | BACKLOG | DSV-001 | missão design/studio/master 2026-10-21 | - | - |
+| EST-003 | FEATURE | Criação de evento completa (nome, tipo, data/hora, local, timezone, limites, revelação, prévia do convite) | P1 | BACKLOG | EST-002 | missão design/studio/master 2026-10-21 | - | - |
+| EST-004 | FEATURE | Personalização: presets, paleta com contraste validado, fonte, logo, capa, mensagem, estilo de QR, restaurar padrão | P0 | BACKLOG | EST-001, EST-002 | missão design/studio/master 2026-10-21 | - | - |
+| EST-005 | FEATURE | Gestão do evento: indicadores, compartilhar/baixar QR, participantes, revogar convites, uploads, limites, contagem regressiva, status, exportação autorizada | P1 | BACKLOG | EST-003 | missão design/studio/master 2026-10-21 | - | - |
+
+**EST-001** critérios: Migrations aditivas; pgTAP de RLS (host/membro/master/anônimo); CHECKs de cor/fonte/mensagem; sem SVG
+
+**EST-002** critérios: Tema aplicado só no wrapper do evento; teste de isolamento; marca MemoriesMT intacta
+
+**EST-003** critérios: Prévia em tempo real; validação; E2E
+
+**EST-004** critérios: Upload validado (MIME, tamanho, dimensões); bloqueio de edição após o limite; E2E de personalização
+
+**EST-005** critérios: Permissões e estados definidos; testes de autorização
+
+## EP-14 · Master Admin (BACKLOG)
+
+| ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
+|---|---|---|---|---|---|---|---|---|
+| MAD-001 | FEATURE | Papéis de plataforma no servidor: platform_roles, is_master com linha ativa, provisionamento seguro do primeiro master | P0 | BACKLOG | EST-001 | missão design/studio/master 2026-10-21 | - | - |
+| MAD-002 | FEATURE | Auditoria v2: reason obrigatório, imutabilidade, actor_role, confirmação de ações destrutivas | P0 | BACKLOG | MAD-001 | missão design/studio/master 2026-10-21 | - | - |
+| MAD-003 | FEATURE | Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações, segurança, configurações, analytics, LGPD, saúde | P1 | BACKLOG | MAD-001, MAD-002, ANL-001 | missão design/studio/master 2026-10-21 | - | - |
+| MAD-004 | FEATURE | Acesso excepcional a foto privada por admin com justificativa e auditoria | P1 | BACKLOG | MAD-002 | missão design/studio/master 2026-10-21 | - | - |
+
+**MAD-001** critérios: Sem credencial padrão; provisionamento auditado; organizador não acessa /master (teste)
+
+**MAD-002** critérios: audit_logs sem UPDATE/DELETE; pgTAP
+
+**MAD-003** critérios: 12 módulos com estados loading/vazio/erro/sem permissão; Admin DS desktop-first
+
+**MAD-004** critérios: URL de 60 s só após registro de auditoria; sem miniaturas no dashboard
+
+## EP-15 · Analytics (BACKLOG)
+
+| ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
+|---|---|---|---|---|---|---|---|---|
+| ANL-001 | FEATURE | RPCs/views agregadas reais para o dashboard (eventos, participantes, fotos, falhas, revelações, Storage, tendências) | P1 | BACKLOG | MAD-001 | missão design/studio/master 2026-10-21 | - | - |
+
+**ANL-001** critérios: Somente master; sem métricas inventadas; testes com dados reais de teste
+
+## EP-16 · Security v2 (BACKLOG)
+
+| ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
+|---|---|---|---|---|---|---|---|---|
+| SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | BACKLOG | MAD-001 | missão design/studio/master 2026-10-21 | - | - |
+| SCV-002 | FEATURE | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG | EST-004, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
+
+**SCV-001** critérios: RLS; testes de escalada de privilégio
+
+**SCV-002** critérios: Sem P0/P1 abertos
+
+## EP-17 · QA v2 (BACKLOG)
+
+| ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
+|---|---|---|---|---|---|---|---|---|
+| QAV-001 | FEATURE | Testes: unit, integração, E2E, autorização, RLS, upload, responsivo, a11y; screenshots antes/depois; três identidades | P0 | BACKLOG | EST-005, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
+| QAV-002 | FEATURE | Revisão independente A1–A5 e correção de P0/P1 | P0 | BACKLOG | QAV-001 | missão design/studio/master 2026-10-21 | - | - |
+
+**QAV-001** critérios: Regressão v1 intacta; evidências anexadas
+
+**QAV-002** critérios: Relatório consolidado; P0/P1 corrigidos
+
+## EP-18 · Release v2 (BACKLOG)
+
+| ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
+|---|---|---|---|---|---|---|---|---|
+| RLV-001 | FEATURE | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BACKLOG | QAV-002, SB-004, SB-008 | missão design/studio/master 2026-10-21 | - | - |
+
+**RLV-001** critérios: Preview funcional; sem promoção enquanto SB-004/SB-008 e a homologação v1 estiverem pendentes

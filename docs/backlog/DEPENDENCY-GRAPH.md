@@ -59,6 +59,26 @@ flowchart LR
   SB_006["SB-006<br/>BACKLOG"]:::back
   SB_007["SB-007<br/>BACKLOG"]:::back
   SB_008["SB-008<br/>BLOCKED"]:::block
+  UXA_001["UXA-001<br/>BACKLOG"]:::back
+  UXA_002["UXA-002<br/>BACKLOG"]:::back
+  DSV_001["DSV-001<br/>BACKLOG"]:::back
+  DSV_002["DSV-002<br/>BACKLOG"]:::back
+  DSV_003["DSV-003<br/>BACKLOG"]:::back
+  EST_001["EST-001<br/>BACKLOG"]:::back
+  EST_002["EST-002<br/>BACKLOG"]:::back
+  EST_003["EST-003<br/>BACKLOG"]:::back
+  EST_004["EST-004<br/>BACKLOG"]:::back
+  EST_005["EST-005<br/>BACKLOG"]:::back
+  MAD_001["MAD-001<br/>BACKLOG"]:::back
+  MAD_002["MAD-002<br/>BACKLOG"]:::back
+  MAD_003["MAD-003<br/>BACKLOG"]:::back
+  MAD_004["MAD-004<br/>BACKLOG"]:::back
+  ANL_001["ANL-001<br/>BACKLOG"]:::back
+  SCV_001["SCV-001<br/>BACKLOG"]:::back
+  SCV_002["SCV-002<br/>BACKLOG"]:::back
+  QAV_001["QAV-001<br/>BACKLOG"]:::back
+  QAV_002["QAV-002<br/>BACKLOG"]:::back
+  RLV_001["RLV-001<br/>BACKLOG"]:::back
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -149,6 +169,32 @@ flowchart LR
   SB_003 --> SB_008
   SB_004 --> SB_008
   REL_001 --> SB_008
+  UXA_001 --> UXA_002
+  UXA_001 --> DSV_001
+  DSV_001 --> DSV_002
+  DSV_002 --> DSV_003
+  DSV_001 --> EST_001
+  DSV_001 --> EST_002
+  EST_002 --> EST_003
+  EST_001 --> EST_004
+  EST_002 --> EST_004
+  EST_003 --> EST_005
+  EST_001 --> MAD_001
+  MAD_001 --> MAD_002
+  MAD_001 --> MAD_003
+  MAD_002 --> MAD_003
+  ANL_001 --> MAD_003
+  MAD_002 --> MAD_004
+  MAD_001 --> ANL_001
+  MAD_001 --> SCV_001
+  EST_004 --> SCV_002
+  MAD_003 --> SCV_002
+  EST_005 --> QAV_001
+  MAD_003 --> QAV_001
+  QAV_001 --> QAV_002
+  QAV_002 --> RLV_001
+  SB_004 --> RLV_001
+  SB_008 --> RLV_001
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;
