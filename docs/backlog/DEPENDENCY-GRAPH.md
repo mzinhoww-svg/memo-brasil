@@ -102,7 +102,7 @@ flowchart LR
   UXA_124["UXA-124<br/>BACKLOG"]:::back
   UXA_125["UXA-125<br/>BACKLOG"]:::back
   UXA_126["UXA-126<br/>BACKLOG"]:::back
-  COM_004["COM-004<br/>BACKLOG"]:::back
+  COM_004["COM-004<br/>IN_REVIEW"]:::back
   COM_001["COM-001<br/>BACKLOG"]:::back
   COM_003["COM-003<br/>BACKLOG"]:::back
   COM_002["COM-002<br/>BACKLOG"]:::back
@@ -136,7 +136,7 @@ flowchart LR
   UXA_128["UXA-128<br/>BACKLOG"]:::back
   SCV_009["SCV-009<br/>IN_REVIEW"]:::back
   SCV_010["SCV-010<br/>DONE"]:::done
-  INF_005["INF-005<br/>BLOCKED"]:::block
+  INF_005["INF-005<br/>IN_REVIEW"]:::back
   QAV_004["QAV-004<br/>BLOCKED"]:::block
   FT_010 --> TK_010a
   FT_030 --> US_030a

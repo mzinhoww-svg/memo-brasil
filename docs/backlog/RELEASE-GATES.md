@@ -42,7 +42,7 @@
 | QAV-002 | Revisão independente A1–A5 e correção de P0/P1 | P0 | IN_REVIEW |
 | RLV-001 | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BLOCKED |
 | UXA-104 | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rol | P1 | BACKLOG |
-| COM-004 | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | BACKLOG |
+| COM-004 | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | IN_REVIEW |
 | COM-001 | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | BACKLOG |
 | COM-003 | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | BACKLOG |
 | COM-002 | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | BACKLOG |

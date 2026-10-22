@@ -6,7 +6,7 @@
 
 Homologação real concluída e V1 em produção (Google OAuth, callback, variáveis de Production, smoke público).
 
-Itens abertos: **11** · P0 1, P1 6, P2 3, P3 1 · BACKLOG 4, BLOCKED 6, READY 1
+Itens abertos: **11** · P0 1, P1 6, P2 3, P3 1 · BACKLOG 4, BLOCKED 5, IN_REVIEW 1, READY 1
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -18,7 +18,7 @@ Itens abertos: **11** · P0 1, P1 6, P2 3, P3 1 · BACKLOG 4, BLOCKED 6, READY 1
 | SB-005 | P1 | BACKLOG | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | SB-003 |
 | SB-006 | P1 | BACKLOG | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexã | SB-002 |
 | INF-002 | P2 | BLOCKED | Produção serve o build antigo (3a8bf89): sem headers/CSP e sem correções da auditoria ante | REL-001 |
-| INF-005 | P2 | BLOCKED | Preview por API exige rootDirectory=web e framework=nextjs | REL-001 |
+| INF-005 | P2 | IN_REVIEW | Preview por API exige rootDirectory=web e framework=nextjs | REL-001 |
 | SB-007 | P2 | BACKLOG | Relógio do servidor no app e observabilidade (logs estruturados, monitor da revelação, run | SB-003 |
 | QAV-004 | P3 | BLOCKED | Limpar usuários e dados de teste do remoto | SCV-010 |
 
@@ -26,11 +26,11 @@ Itens abertos: **11** · P0 1, P1 6, P2 3, P3 1 · BACKLOG 4, BLOCKED 6, READY 1
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **78** · P0 14, P1 14, P2 34, P3 16 · BACKLOG 46, BLOCKED 1, IN_REVIEW 23, READY 8
+Itens abertos: **78** · P0 14, P1 14, P2 34, P3 16 · BACKLOG 45, BLOCKED 1, IN_REVIEW 24, READY 8
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
-| COM-004 | P0 | BACKLOG | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | SB-004 |
+| COM-004 | P0 | IN_REVIEW | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | SB-004 |
 | DSV-001 | P0 | IN_REVIEW | Tokens v2 por camada (Platform/Event/Admin) e breakpoints | UXA-001 |
 | DSV-003 | P0 | BACKLOG | Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste | DSV-002 |
 | EST-001 | P0 | IN_REVIEW | Migrations v2: event_themes, event_assets, bucket event-branding privado | DSV-001 |

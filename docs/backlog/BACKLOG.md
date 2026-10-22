@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P3 51. Status: BACKLOG 97, BLOCKED 7, CANCELLED 2, DEFERRED 11, DONE 62, IN_REVIEW 23, READY 11.
+Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P3 51. Status: BACKLOG 96, BLOCKED 6, CANCELLED 2, DEFERRED 11, DONE 62, IN_REVIEW 25, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -505,7 +505,7 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
 | INF-004 | BUG | Variável SUPABASE_SERVICEROLE_KEY (sensível) no ambiente Production da Vercel | P1 | BLOCKED | - | A.4 2026-10-21 | - | remoto |
-| INF-005 | TASK | Preview por API exige rootDirectory=web e framework=nextjs | P2 | BLOCKED | REL-001 | A.4 2026-10-21 | - | remoto |
+| INF-005 | TASK | Preview por API exige rootDirectory=web e framework=nextjs | P2 | IN_REVIEW | REL-001 | A.4 2026-10-21 | - | remoto |
 | QAV-004 | TASK | Limpar usuários e dados de teste do remoto | P3 | BLOCKED | SCV-010 | A.4 2026-10-21 | - | remoto |
 | SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 5374f89 | local-supabase |
 | SCV-002 | FEATURE | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG | EST-004, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
@@ -534,7 +534,7 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 
 **SCV-008** critérios: supabase db reset + test db verdes; contagem documentada · testes: pgTAP 385/385 com endurecimento (Supabase local), pgTAP 398/398; adapter 14/14; test_provision_master.sh
 
-**SCV-009** critérios: Falha de Storage gera status não-2xx visível em net._http_response; admin_health sinaliza fila com item mais antigo que 2 h · testes: docs/supabase/evidence/a5-20261021/purge-red.txt, docs/supabase/evidence/a5-20261021/purge-green.txt, docs/supabase/evidence/a5-20261021/unit-final.txt
+**SCV-009** critérios: Falha de Storage gera status não-2xx visível em net._http_response; admin_health sinaliza fila com item mais antigo que 2 h · testes: docs/supabase/evidence/a5-20261021/purge-green.txt, docs/supabase/evidence/a5-20261021/purge-red.txt, docs/supabase/evidence/a5-20261021/unit-final.txt
 
 **INF-004** critérios: Variável removida de Production ou justificada por escrito; Nenhuma service_role em Preview/Production do MemoriesMT
 
@@ -580,7 +580,7 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 | COM-001 | FEATURE | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | BACKLOG | SB-004, SB-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-002 | FEATURE | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | BACKLOG | COM-001, COM-004 | consolidação do backlog 2026-10-21 | - | - |
 | COM-003 | FEATURE | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | BACKLOG | COM-001 | consolidação do backlog 2026-10-21 | - | - |
-| COM-004 | FEATURE | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | BACKLOG | SB-004 | consolidação do backlog 2026-10-21 | - | - |
+| COM-004 | FEATURE | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | IN_REVIEW | SB-004 | consolidação do backlog 2026-10-21 | - | - |
 | COM-005 | FEATURE | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG | SB-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-006 | FEATURE | Página de planos e checkout do organizador | P1 | BACKLOG | COM-002 | consolidação do backlog 2026-10-21 | - | - |
 | COM-007 | FEATURE | Faturamento e financeiro no console master (recibos, reembolso, conciliação) | P2 | BACKLOG | COM-002, MAD-003 | consolidação do backlog 2026-10-21 | - | - |
@@ -591,7 +591,7 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 | COM-012 | FEATURE | Suporte e operação: canal de contato, SLA e runbook de incidentes | P2 | BACKLOG | COM-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-013 | FEATURE | Abuso e antifraude: rate limit na borda e moderação automática de imagens | P2 | BACKLOG | SB-005 | consolidação do backlog 2026-10-21 | - | - |
 
-**COM-004** critérios: Páginas publicadas; aceite versionado e auditado; revisão jurídica registrada
+**COM-004** critérios: Páginas publicadas; aceite versionado e auditado; revisão jurídica registrada · testes: supabase/tests/database/04_consents.test.sql (24 asserts), web/e2e/consent.spec.ts (3), web/src/lib/consent.test.ts (6)
 
 **COM-001** critérios: Tabelas e RLS; pgTAP; sem cobrança ainda
 

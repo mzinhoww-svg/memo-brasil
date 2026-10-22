@@ -1,0 +1,200 @@
+{
+  "observedAt": "2026-10-22T02:48:00.441Z",
+  "project": "asyaegeodyttttaubvxh",
+  "origin": "https://asyaegeodyttttaubvxh.supabase.co",
+  "mode": "Public key; read-only probes plus explicit negative signup attempt",
+  "tests": 30,
+  "passed": 30,
+  "results": [
+    {
+      "name": "auth-settings",
+      "status": 200,
+      "pass": true,
+      "errorCode": null,
+      "settings": {
+        "google": true,
+        "email": false,
+        "disable_signup": false,
+        "anonymous": true
+      },
+      "scv010ProviderDisabled": true,
+      "scv010Closed": true
+    },
+    {
+      "name": "email-signup-disabled",
+      "status": 400,
+      "pass": true,
+      "errorCode": "email_provider_disabled",
+      "errorMessage": "Email signups are disabled",
+      "userCreated": false
+    },
+    {
+      "name": "anon-table-events",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-photos",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-participants",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-profiles",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-audit_logs",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-platform_roles",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-event_themes",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-event_assets",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-platform_settings",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-feature_flags",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-storage_purge_queue",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-rate_limits",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-invitations",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-photo_reports",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-reactions",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-table-account_deletion_requests",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-rpc-admin_health",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-rpc-admin_audit_integrity",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-rpc-admin_dashboard_metrics",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-rpc-admin_list_events",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-rpc-is_master",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-rpc-get_enabled_flags",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "anon-rpc-event_preview",
+      "status": 401,
+      "pass": true,
+      "errorCode": "42501"
+    },
+    {
+      "name": "finalize-asset-no-jwt",
+      "status": 401,
+      "pass": true,
+      "errorCode": null
+    },
+    {
+      "name": "purge-storage-no-credential",
+      "status": 403,
+      "pass": true,
+      "errorCode": null
+    },
+    {
+      "name": "purge-storage-get",
+      "status": 405,
+      "pass": true,
+      "errorCode": null
+    },
+    {
+      "name": "public-event-photos",
+      "status": 400,
+      "pass": true,
+      "errorCode": "NoSuchBucket"
+    },
+    {
+      "name": "public-event-branding",
+      "status": 400,
+      "pass": true,
+      "errorCode": "NoSuchBucket"
+    }
+  ]
+}

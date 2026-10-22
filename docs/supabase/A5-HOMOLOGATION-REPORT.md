@@ -1,5 +1,38 @@
 # A.5 — Homologação E2E — checkpoint de 21/10/2026
 
+
+## Rodada 2 (21–22/10/2026): execução do plano operacional — parecer **NO-GO operacional**
+
+Código testado: `ff712e3` (branch `feat/memoriesmt-studio`, integrada com `qa/a5-homologation-20261021`). Preview anterior: `dpl_B91ajh2QfZVrd6jc4KLfHwWxFA38` (`8ea3518`, sem aceite). Preview do candidato final: ver `docs/supabase/A5-EXECUTION-LEDGER.md`. Procedimento de publicação e rollback: `PUBLISH-AND-ROLLBACK.md`. Recuperação: `OPERATIONAL-RECOVERY.md`.
+
+### Matriz de aceite (nove critérios da spec)
+| # | Critério | Situação | Evidência |
+|---|---|---|---|
+| 1 | Organizador: Google, cria, personaliza, salva/reabre, link/código/QR | **Parcial** | Local: `flows` 16/16 e `studio-local` (tema isolado e restaurável), zero skips, Chromium oficial. **Falta:** login Google real e evento sintético no preview |
+| 2 | Convidado em aparelho independente, câmera/fototeca, confirmação só após persistir, retry sem duplicar | **Parcial** | Integração: reenvio = 1 foto e 1 unidade de rolo; sexta foto recusada (quota 5); MIME e tamanho recusados. E2E Supabase com contexto independente. **Falta:** aparelhos reais |
+| 3 | Quotas e permissões no servidor; sem acesso a evento alheio; sem sessão só prévia | **Comprovado (local + remoto anônimo)** | pgTAP 454/454; organizador B não lê/escreve/assina mídia de A (integração); probe remoto 30/30 com `scv010Closed: true`. **Falta:** matriz com sessões autenticadas remotas |
+| 4 | Foto privada inacessível antes da revelação; job libera; downloads por papel | **Parcial** | Integração: antes não lista/baixa/assina; depois membro vê e estranho segue negado; fuso America/Cuiabá segue o instante do servidor. **Falta:** cron real do remoto com evento sintético |
+| 5 | Token vencido + refresh válido renova; refresh inválido encerra; Master no backend | **Comprovado localmente** | `session.spec` 3/3 (inclui requisição sem JS e controle negativo) e `master-studio` 3/3. SCV-007 **não reproduzido**; sem `proxy.ts`. **Falta:** sessão Google real |
+| 6 | iPhone/Safari e Android/Chrome reais | **PENDENTE** | Nenhum aparelho disponível. Roteiro: `A5-MANUAL-RUNBOOK.md` |
+| 7 | Termos/privacidade, aceite versionado e auditado, revisão registrada, retenção explícita | **Não atendido** | Implementado e testado: páginas, `record_consent`, auditoria (pgTAP, vitest, E2E). **Falta:** revisão jurídica registrada e retenção definida (texto é rascunho); migration `_1100` não aplicada no remoto |
+| 8 | Backup de banco e objetos; restauração isolada; saúde consultável | **Parcial** | Backup manual 15/15 checksums; restauração em container isolado, 0 erros de schema; `auth.*` exige stack Supabase. Backup automático/PITR não verificados |
+| 9 | Preview = SHA; publicação e rollback comprováveis; sem falha crítica aberta | **Parcial** | Preview por API reproduzido 2×, SHA conferido. Procedimento escrito, não executado. Falha crítica aberta: INF-004 |
+
+### Executado nesta rodada
+- Suítes: pgTAP 454/454 (430 + 24 de consentimento); vitest 272/272; integração 15/15 (adapter + Supabase) e purga 2/2; E2E padrão 53 passaram e 14 foram pulados por exigirem Supabase local; E2E Supabase 8/8; `tsc` e build 0; eslint 0 erros (11 avisos preexistentes).
+- Falhas reproduzidas e tratadas: (a) `GoogleButton` mudou o rótulo e o E2E ficou defasado (RED→GREEN); (b) BG-102 falhava por seletor ambíguo, **já na linha de base sem as mudanças desta rodada** (provado em worktree descartável); (c) servidor local de funções com flag errada devolvia 401 no lugar de 403 (ambiente, corrigido); (d) o teste de fuso falhou por premissa errada sobre o recálculo de `reveal_at` (o servidor está certo; teste ajustado).
+- A falha do wizard do runner alternativo da QA **não se reproduz** no Chromium oficial do Playwright: `flows.spec.ts` 16/16.
+- Testes novos que passaram de primeira porque o comportamento já existia (caracterização, sem RED): isolamento do organizador B, reenvio/quota, fuso, sessão.
+
+### Pendências originais de A (não encerradas)
+INF-004 (chave service_role em Production; verificado que nem o fonte nem o build de `3a8bf89` a leem; remoção cabe ao dono), SCV-009 (correção local; faltam publicar e provar no remoto, e o alerta), INF-005 (caminho por API comprovado; push→deploy segue aberto), QAV-004 (adiado, inventário preservado), SCV-007 (não reproduzido), COM-004 (falta revisão jurídica), testes com Google real e aparelhos.
+
+### Intervenções manuais necessárias
+1. Operador: `supabase db push --linked` para aplicar `20261022001100_user_consents.sql` (aditiva) e `supabase functions deploy purge-storage --project-ref asyaegeodyttttaubvxh`, depois de backup. Conferir com `supabase migration list --linked` e as respostas 403/405 da purga.
+2. Dono: remover `SUPABASE_SERVICEROLE_KEY` de Production na Vercel (Settings → Environment Variables).
+3. Dono/jurídico: revisar `/termos` e `/privacidade`, definir retenção e canal de contato; então publicar nova versão em `legal_documents`.
+4. Qualquer pessoa com os aparelhos: roteiro de `A5-MANUAL-RUNBOOK.md`, passos 3–7 em iPhone/Safari e Android/Chrome, e o login Google no preview.
+
 **Decisão: NO-GO para produção. A frente A não está concluída.** Esta rodada concluiu as verificações possíveis no ambiente disponível; não concluiu a homologação autenticada nem os testes físicos. Nenhuma produção, configuração Auth, dado real, Edge Function remota ou migration remota foi alterada nesta sessão.
 
 ## Fonte e escopo

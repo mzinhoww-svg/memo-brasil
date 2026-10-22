@@ -1,5 +1,8 @@
 # Retomar A.5
 
+## Rodada 2 (22/10/2026) — leia primeiro
+Parecer **NO-GO operacional**. Fonte: `../supabase/A5-HOMOLOGATION-REPORT.md` (matriz dos nove critérios), `../supabase/OPERATIONAL-RECOVERY.md`, `../supabase/PUBLISH-AND-ROLLBACK.md`, `../supabase/A5-EXECUTION-LEDGER.md`. Código testado `ff712e3`. Falta, por ordem: (1) operador aplica a migration `_1100` e republica `purge-storage`; (2) dono remove a service key da Vercel e revisa termos/retenção; (3) login Google real, evento sintético no preview e cron real de revelação; (4) iPhone/Safari e Android/Chrome. Só então reavaliar o GO. B, Codex e C seguem **não iniciados**.
+
 ## Direção vigente: entregar e evoluir
 
 O operador autorizou criar o plano e executar as fases técnicas autonomamente, sem novas aprovações intermediárias. Ler `../superpowers/specs/2026-10-21-operational-release-design.md` e executar `../superpowers/plans/2026-10-21-memoriesmt-ready-for-use.md`. O plano fixa sete entregas para uso operacional assistido; B → Codex → C seguem depois do fechamento formal de A. Não exigir todo o roadmap para disponibilizar a primeira versão utilizável. Pendências adiadas permanecem abertas e o parecer precisa distingui-las de pontos originais de A efetivamente concluídos.

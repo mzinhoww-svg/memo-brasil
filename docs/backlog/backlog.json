@@ -5643,7 +5643,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "SB-004"
    ],
@@ -5652,8 +5652,14 @@
     "Páginas publicadas; aceite versionado e auditado; revisão jurídica registrada"
    ],
    "files": [],
-   "tests": [],
-   "evidence": [],
+   "tests": [
+    "supabase/tests/database/04_consents.test.sql (24 asserts)",
+    "web/e2e/consent.spec.ts (3)",
+    "web/src/lib/consent.test.ts (6)"
+   ],
+   "evidence": [
+    "A.5 r2: páginas /termos e /privacidade (rascunho), aceite obrigatório, record_consent auditado. NÃO atendido: revisão jurídica registrada e retenção definida; migration 20261022001100 ainda não aplicada no remoto"
+   ],
    "commit": null,
    "environment": null,
    "release": "R2"
@@ -6076,7 +6082,9 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "A.5 r2: web/e2e/session.spec.ts 3/3 (token vencido + refresh válido renova também na 2ª requisição sem JS, fora da janela de 10 s; controle negativo). Não reproduzido localmente; sem proxy.ts. Reavaliar com sessão Google real no remoto"
+   ],
    "commit": null,
    "environment": null,
    "release": "R2"
@@ -6437,13 +6445,14 @@
     "web/src/lib/purge-worker.test.ts"
    ],
    "tests": [
-    "docs/supabase/evidence/a5-20261021/purge-red.txt",
     "docs/supabase/evidence/a5-20261021/purge-green.txt",
+    "docs/supabase/evidence/a5-20261021/purge-red.txt",
     "docs/supabase/evidence/a5-20261021/unit-final.txt"
    ],
    "evidence": [
-    "docs/supabase/A5-HOMOLOGATION-REPORT.md",
-    "A.5 21/10/2026: Correção HTTP 500 local com regressão RED→GREEN e suíte 266/266; sem deploy remoto, alerta >2 h e teste de falha remota ainda pendentes."
+    "A.5 21/10/2026: Correção HTTP 500 local com regressão RED→GREEN e suíte 266/266; sem deploy remoto, alerta >2 h e teste de falha remota ainda pendentes.",
+    "A.5 r2: purge-worker 4/4 e integração da purga 2/2 com o código atual; correção HTTP 500 ainda NÃO publicada no remoto (comando do operador em PUBLISH-AND-ROLLBACK.md); alerta >2 h segue aberto",
+    "docs/supabase/A5-HOMOLOGATION-REPORT.md"
    ],
    "commit": "c0fd33b43bc201cacb6eb652d6e6541e75f6911b",
    "environment": "local (correção não publicada)",
@@ -6497,9 +6506,10 @@
    "files": [],
    "tests": [],
    "evidence": [
-    "filter_project_envs 2026-10-21: chave presente em production, tipo sensitive",
+    "A.5 21/10/2026: Metadados Vercel confirmam SUPABASE_SERVICEROLE_KEY em Production, tipo sensitive; dependência do legado não validada; sem remoção.",
+    "A.5 r2: git grep SERVICEROLE/SERVICE_ROLE no commit de produção 3a8bf89 (fonte e bundles .next) sem ocorrência; nenhuma dependência do legado encontrada. Variável segue em Production (sensitive, valor não recuperável): remoção é decisão do dono",
     "docs/supabase/A5-HOMOLOGATION-REPORT.md",
-    "A.5 21/10/2026: Metadados Vercel confirmam SUPABASE_SERVICEROLE_KEY em Production, tipo sensitive; dependência do legado não validada; sem remoção."
+    "filter_project_envs 2026-10-21: chave presente em production, tipo sensitive"
    ],
    "commit": null,
    "environment": "remoto",
@@ -6513,7 +6523,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P2",
-   "status": "BLOCKED",
+   "status": "IN_REVIEW",
    "dependencies": [
     "REL-001"
    ],
@@ -6524,9 +6534,10 @@
    "files": [],
    "tests": [],
    "evidence": [
-    "dpl_AQwY… vazio; dpl_2v3G… correto",
+    "A.5 21/10/2026: Framework do projeto null; escopo Vercel negou listagem/logs com 403; Git integration/rootDirectory/preview automático por push não homologados.",
+    "A.5 r2: preview por API com rootDirectory=web e framework=nextjs reproduzido (dpl_2v3GF6rj… ca7a274; dpl_B91ajh2Q… 8ea3518, READY, /entrar 200 x-matched-path). Procedimento em PUBLISH-AND-ROLLBACK.md. Push→deploy automático segue não homologado",
     "docs/supabase/A5-HOMOLOGATION-REPORT.md",
-    "A.5 21/10/2026: Framework do projeto null; escopo Vercel negou listagem/logs com 403; Git integration/rootDirectory/preview automático por push não homologados."
+    "dpl_AQwY… vazio; dpl_2v3G… correto"
    ],
    "commit": null,
    "environment": "remoto",
