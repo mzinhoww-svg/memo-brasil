@@ -23,6 +23,18 @@ alter table public.plans enable row level security;
 revoke all on public.plans from public, anon, authenticated; -- leitura de cliente só via list_public_plans (Task 7)
 create trigger plans_touch before insert or update on public.plans for each row execute function public.settings_touch();
 
+-- o plano 'gratis' é o piso de effective_entitlement: não pode ser apagado nem renomeado
+create function public.plans_protect_free() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  if old.code = 'gratis' and (tg_op = 'DELETE' or new.code is distinct from old.code) then
+    raise exception 'gratisprotected' using errcode = 'MM005';
+  end if;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end $$;
+create trigger plans_protect_free before update or delete on public.plans for each row execute function public.plans_protect_free();
+
 -- planos aprovados em 22/10/2026 (D1). O executor não altera esses valores; o dono altera pelo Master (M2).
 insert into public.plans (code, name, max_guests, max_shots, price_cents, sort, is_free, sandbox_active, production_active) values
   ('gratis',     'Grátis',     10,  10,   0,     0, true,  true, true),
@@ -79,10 +91,13 @@ $$;
 
 -- Considera direitos ativos do ambiente vigente ou de env 'nenhum'. Limites: o maior valor; null (sem limite) vence.
 -- plan_code/source: do direito de maior plano (plans.sort), desempate pelo mais recente.
--- Sem direito válido: o plano grátis, com source 'gratis'.
+-- Sem direito válido: o plano grátis, com source 'gratis'. Se nem o grátis existir: MM090 (nunca devolve vazio).
 create function public.effective_entitlement(p_event uuid)
 returns table (plan_code text, max_guests int, max_shots int, source text)
-language sql stable security definer set search_path = '' as $$
+language plpgsql stable security definer set search_path = '' as $$
+#variable_conflict use_column
+begin
+  return query
   with env as (select public.payments_env() as v),
   valid as (
     select ee.*, p.sort
@@ -100,11 +115,13 @@ language sql stable security definer set search_path = '' as $$
   union all
   select p.code, p.max_guests, p.max_shots, 'gratis'
   from public.plans p
-  where p.code = 'gratis' and not exists (select 1 from valid)
-$$;
+  where p.code = 'gratis' and not exists (select 1 from valid);
+  -- sempre exatamente uma linha: zero linhas seria lido como "sem limite" (falha aberta). Falha fechada.
+  if not found then raise exception 'entitlementunavailable' using errcode = 'MM090'; end if;
+end $$;
 
 -- ---------------------------------------------------------------- backfill legado
--- Um direito legado/nenhum/ativo por evento existente, com capacity/shots_per_person atuais (null continua sem limite).
+-- Um direito legado/nenhum/ativo por evento existente (não apagado), com capacity/shots_per_person atuais (null continua sem limite).
 -- plan_code = 'gratis' é só referência obrigatória da FK: os limites vêm de max_* do próprio direito, e o preço de
 -- referência 0 faz um upgrade de evento legado cobrar o preço cheio do plano escolhido.
 -- Idempotente (não duplica legado). Só o dono roda: chamá-lo depois marcaria eventos novos como legado.
@@ -116,7 +133,8 @@ begin
   select e.id, 'gratis', e.capacity, e.shots_per_person, 'legado', 'nenhum', 'ativo',
          'COM-001: limites vigentes antes dos planos'
   from public.events e
-  where not exists (select 1 from public.event_entitlements x where x.event_id = e.id and x.source = 'legado');
+  where e.deleted_at is null
+    and not exists (select 1 from public.event_entitlements x where x.event_id = e.id and x.source = 'legado');
   get diagnostics n = row_count;
   return n;
 end $$;
@@ -130,4 +148,5 @@ select public.entitlements_backfill_legacy();
 -- event_preview já expõe a lotação a quem tem o código. anon não executa nenhuma das duas.
 revoke execute on function public.payments_env(), public.effective_entitlement(uuid), public.entitlements_backfill_legacy()
   from public, anon, authenticated, service_role;
+revoke execute on function public.plans_protect_free() from public, anon, authenticated, service_role;
 grant execute on function public.payments_env(), public.effective_entitlement(uuid) to authenticated, service_role;

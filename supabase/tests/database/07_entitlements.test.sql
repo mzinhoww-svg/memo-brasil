@@ -154,5 +154,27 @@ delete from public.events where id = '00000000-0000-4000-8000-0000000006e2';
 select is((select count(*)::int from public.event_entitlements where event_id = '00000000-0000-4000-8000-0000000006e2'), 0,
           'apagar o evento apaga seus direitos');
 
+
+-- ===================================================== backfill ignora evento apagado
+insert into public.events (id, title, category, host_id, host_name, duration_hours, capacity, shots_per_person, deleted_at) values
+  ('00000000-0000-4000-8000-0000000006e5', 'Apagado', 'festa', '00000000-0000-4000-8000-0000000006a1', 'H', 6, 50, 20, now());
+select is(public.entitlements_backfill_legacy(), 2, 'backfill pula evento apagado (só e3/e4, vivos e sem legado)');
+select is((select count(*)::int from public.event_entitlements where event_id = '00000000-0000-4000-8000-0000000006e5'), 0,
+          'evento apagado não recebe direito legado');
+
+-- ===================================================== plano grátis protegido e direito efetivo nunca vazio
+select throws_ok($$delete from public.plans where code = 'gratis'$$, 'MM005', 'gratisprotected', 'não apaga o plano grátis');
+select throws_ok($$update public.plans set code = 'free' where code = 'gratis'$$, 'MM005', 'gratisprotected', 'não renomeia o plano grátis');
+select lives_ok($$update public.plans set name = 'Grátis' where code = 'gratis'$$, 'outros campos do grátis seguem editáveis');
+-- sem o grátis (proteção contornada desligando triggers/FKs só nesta transação), a função falha fechada em vez de devolver vazio
+set local session_replication_role = replica;
+delete from public.plans where code = 'gratis';
+set local session_replication_role = origin;
+select is((select count(*)::int from public.plans where code = 'gratis'), 0, 'cenário: grátis ausente');
+select throws_ok($$select * from public.effective_entitlement(gen_random_uuid())$$, 'MM090', 'entitlementunavailable',
+  'sem direito e sem grátis: erro, nunca zero linhas (zero seria lido como sem limite)');
+select results_eq($$select * from tests.ent('00000000-0000-4000-8000-0000000006e4')$$,
+  $$values ('festa', 30, 24, 'cortesia')$$, 'com direito válido continua devolvendo uma linha');
+
 select * from finish();
 rollback;
