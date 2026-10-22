@@ -7,6 +7,8 @@ test("termos e privacidade são páginas públicas, em rascunho até a revisão 
     expect(r?.status(), rota).toBe(200);
     await expect(page.getByRole("heading", { level: 1, name: titulo })).toBeVisible();
     await expect(page.getByText(/rascunho/i).first()).toBeVisible();
+    await expect(page.getByText("mazinhoww@gmail.com")).toBeVisible();
+    await expect(page).toHaveTitle(`${titulo} · MemoriesMT`);
   }
 });
 

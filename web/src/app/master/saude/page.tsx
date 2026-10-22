@@ -1,3 +1,4 @@
+import { healthAlerts } from "@/lib/master/health-alerts";
 import { num, requireMaster, rpc, when } from "../data";
 import { Badge, Metric, PageHead, StateBox, Table } from "../ui";
 
@@ -10,6 +11,7 @@ export default async function Saude() {
       <PageHead titulo="Saúde operacional" texto="Tarefas agendadas, filas e atrasos medidos no banco." />
       {r.state !== "ok" ? <StateBox load={r} /> : (
         <>
+          {healthAlerts(r.data).map((a) => <div key={a.id} className="adm-state" role="alert" data-testid="alerta-saude">{a.text}</div>)}
           <div className="adm-grid" style={{ marginBottom: 20 }}>
             <Metric rotulo="Revelações atrasadas" valor={num(r.data.reveals.overdue)} nota={r.data.reveals.overdue ? `maior atraso ${Math.round(r.data.reveals.maxDelaySeconds / 60)} min` : undefined} />
             <Metric rotulo="Fila de limpeza" valor={num(r.data.purgeQueue.size)} />

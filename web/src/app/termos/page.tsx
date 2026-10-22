@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/features/consent/LegalPage";
 
-export const metadata: Metadata = { title: "Termos de uso · MemoriesMT" };
+export const metadata: Metadata = { title: "Termos de uso" };
 
 export default function Termos() {
   return (
@@ -16,7 +16,7 @@ export default function Termos() {
       <h2 className="titulo-card">Disponibilidade</h2>
       <p className="corpo app-p">O serviço está em uso acompanhado, em evolução. Não há garantia de disponibilidade contínua. Baixe as fotos que quiser guardar.</p>
       <h2 className="titulo-card">Dúvidas</h2>
-      <p className="corpo app-p">Fale com quem organizou o evento. O canal oficial de contato será informado na versão final deste texto.</p>
+      <p className="corpo app-p">Para dúvidas sobre estes termos, fale com quem organizou o evento ou escreva para mazinhoww@gmail.com.</p>
     </LegalPage>
   );
 }

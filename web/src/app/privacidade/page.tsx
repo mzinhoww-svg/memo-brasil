@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/features/consent/LegalPage";
 
-export const metadata: Metadata = { title: "Política de privacidade · MemoriesMT" };
+export const metadata: Metadata = { title: "Política de privacidade" };
 
 export default function Privacidade() {
   return (
@@ -16,7 +16,7 @@ export default function Privacidade() {
       <h2 className="titulo-card">Por quanto tempo</h2>
       <p className="corpo app-p">O prazo de guarda das fotos e as regras de exclusão serão definidos na revisão jurídica. Quando um evento é excluído, as fotos entram na fila de remoção do armazenamento.</p>
       <h2 className="titulo-card">Seus direitos</h2>
-      <p className="corpo app-p">Você pode pedir acesso, correção ou exclusão dos seus dados. O canal oficial será informado na versão final deste texto.</p>
+      <p className="corpo app-p">Você pode pedir acesso, correção ou exclusão dos seus dados escrevendo para mazinhoww@gmail.com.</p>
     </LegalPage>
   );
 }
