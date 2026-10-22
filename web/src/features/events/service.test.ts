@@ -12,3 +12,18 @@ describe("createEvent", () => {
     expect(r.ok).toBe(false);
   });
 });
+
+import { createMemoryRepositories } from "@/repositories/memory";
+import { updateSettings } from "./service";
+
+describe("updateSettings hostName", () => {
+  it("o anfitrião edita o nome que aparece no convite", async () => {
+    const repos = createMemoryRepositories();
+    const c = await createEvent(repos, host, { ...input, reveal: { enabled: false } as never }, Date.now());
+    expect(c.ok).toBe(true);
+    if (!c.ok) return;
+    const r = await updateSettings(repos, c.event.id, { hostName: "Emy e Igor" });
+    expect(r.ok && r.event.hostName).toBe("Emy e Igor");
+    expect((await repos.events.get(c.event.id))?.hostName).toBe("Emy e Igor");
+  });
+});

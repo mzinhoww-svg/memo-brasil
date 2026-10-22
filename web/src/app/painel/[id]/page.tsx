@@ -9,11 +9,14 @@ import { useAdmin } from "@/features/admin/context";
 import { formatDate, formatTime } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { plural } from "@/lib/plural";
+import { CapacityBanner, PlanSummaryCard, PreEventChecklist, usePlanInfo } from "@/features/admin/PlanInfo";
+import { capacityState } from "@/features/billing/capacity";
 
 export default function VisaoGeral() {
   const { repos } = useApp();
   const { event, now, photos, reactions, participants } = useAdmin();
   const [stats, setStats] = useState<EventStats | undefined>();
+  const info = usePlanInfo(event.id, event.version);
   useEffect(() => void eventStats(repos, event, now).then(setStats), [repos, event, now, photos, reactions, participants]);
   if (!stats) return <Skeleton label="Carregando a visão geral…" />;
   const max = Math.max(1, ...stats.byMoment.map((m) => m.count));
@@ -31,6 +34,16 @@ export default function VisaoGeral() {
         <StatTile value={nf(stats.reactions)} label={plural(stats.reactions, "reação", "reações")} />
         <StatTile value={event.capacity === null ? nf(stats.guests) : `${nf(stats.guests)} de ${nf(event.capacity)}`} label="vagas usadas" />
       </StatGrid>
+      {(() => {
+        const cap = capacityState(stats.guests, event.capacity, info.settings?.capacityGracePct ?? 0);
+        return info.loaded && cap.near && event.capacity !== null && cap.limit !== null
+          ? <CapacityBanner guests={stats.guests} capacity={event.capacity} limit={cap.limit} planHref={`/painel/${event.id}/plano`} />
+          : null;
+      })()}
+      {info.loaded && info.current && (
+        <PlanSummaryCard planName={info.current.name} guests={stats.guests} capacity={event.capacity} planHref={`/painel/${event.id}/plano`} canUpgrade={info.plans.some((p, i) => i > info.plans.findIndex((x) => x.code === info.current?.code))} />
+      )}
+      <PreEventChecklist eventId={event.id} eventCode={event.code} hasPhoto={stats.photos > 0} order={info.order} />
       <section className="app-card" aria-labelledby="rv" data-testid="resumo-revelacao">
         <h2 id="rv" className="titulo-card app-h1">Revelação</h2>
         {(() => {

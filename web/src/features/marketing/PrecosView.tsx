@@ -2,7 +2,6 @@
 
 import { Breadcrumbs, Button, Logo, Skeleton } from "@/components/memoriesmt";
 import { formatBRL } from "@/features/billing/api";
-import { joinGuests } from "@/features/billing/flow";
 import { TrustBlock } from "@/features/billing/TrustBlock";
 import type { PublicPlan } from "@/features/billing/types";
 import { hasPaidPlans } from "@/features/events/plan-catalog";
