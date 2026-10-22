@@ -8,7 +8,7 @@ import type { MemoEvent } from "@/domain/event";
 import { eventStatus } from "@/domain/event";
 import { formatDate } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
-import { PricingLine } from "@/features/marketing/PricingLine";
+import { LivePricingLine } from "@/features/marketing/PricingLine";
 import { BackendNotice } from "@/features/app/backend-notice";
 
 const STEPS: { icon: IconName; text: string }[] = [
@@ -101,7 +101,7 @@ export default function Home() {
         <div className="app-stack-sm">
           <Button href="/criar" variant="cta" block>Criar meu evento grátis</Button>
           <Button href="/entrar" variant="texto">Tenho um código</Button>
-          <PricingLine />
+          <LivePricingLine />
         </div>
 
         {ready && canSwitchIdentity && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
