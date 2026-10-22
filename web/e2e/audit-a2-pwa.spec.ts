@@ -56,7 +56,7 @@ test("service worker: registro, cache, offline", async ({ browser }) => {
   // 1a. vai offline logo após a 1a visita, sem recarregar online antes
   await ctx.setOffline(true);
   const r1 = await page.reload().then(() => true).catch((e) => String(e).slice(0, 80));
-  res.firstVisitReloadOffline = { navigated: r1, hasHeading: await bodyHas(page, "A festa vista por todo mundo."), interactive: await page.getByRole("button", { name: "Ver uma festa de exemplo" }).isEnabled().catch(() => false) };
+  res.firstVisitReloadOffline = { navigated: r1, hasHeading: await bodyHas(page, "Seu evento pelo olhar de cada convidado."), interactive: await page.getByRole("link", { name: "Experimente a câmera agora" }).isEnabled().catch(() => false) };
   await page.screenshot({ path: path.join(SHOTS, "a2-pwa-offline-primeira-visita-390-dia.png") });
   await ctx.setOffline(false);
 
@@ -206,7 +206,7 @@ test("IndexedDB indisponível", async ({ browser }) => {
     await page.goto("/"); await page.waitForTimeout(1200);
     const res: Record<string, unknown> = { homeText: (await page.locator("body").innerText()).slice(0, 500) };
     await page.screenshot({ path: path.join(SHOTS, `a2-idb-${mode}-home-390-dia.png`) });
-    const demo = page.getByRole("button", { name: "Ver uma festa de exemplo" });
+    const demo = page.getByRole("link", { name: "Experimente a câmera agora" });
     res.demoEnabled = await demo.isEnabled();
     if (res.demoEnabled) {
       await demo.click(); await page.waitForTimeout(2500);

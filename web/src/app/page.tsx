@@ -1,13 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { Button, Cover, Icon, KnownPeople, LiveIndicator, Signature, ThemeToggle, Logo } from "@/components/memoriesmt";
+import { Button, Cover, Icon, type IconName, KnownPeople, LiveIndicator, Signature, ThemeToggle, Logo } from "@/components/memoriesmt";
 import type { MemoEvent } from "@/domain/event";
 import { eventStatus } from "@/domain/event";
 import { formatDate } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
+import { PricingLine } from "@/features/marketing/PricingLine";
 import { BackendNotice } from "@/features/app/backend-notice";
+
+const STEPS: { icon: IconName; text: string }[] = [
+  { icon: "explorar", text: "Aponta para o QR da mesa" },
+  { icon: "camera", text: "Cada um tem seu rolo" },
+  { icon: "agora", text: "Tudo revela junto" },
+];
 
 /** Retorno do OAuth com falha (`/?erro=login`, vindo de auth/callback): aviso dispensável no topo (tela E6). */
 function LoginErrorBanner() {
@@ -74,13 +82,26 @@ export default function Home() {
       <div className="app-landing-hero"><Cover /></div>
       <div className="app-screen">
         <div className="app-stack-sm">
-          <h1 className="display app-h1" style={{ fontSize: 36 }}>A festa vista por todo mundo.</h1>
-          <p className="corpo app-p app-muted">Todo mundo viu um casamento diferente. Agora dá para ver todos.</p>
+          <p className="eyebrow app-eyebrow">CÂMERA DESCARTÁVEL COLETIVA</p>
+          <h1 className="display app-h1" style={{ fontSize: 36 }}>Seu evento pelo olhar de cada convidado.</h1>
+          <p className="corpo app-p app-muted">Sem baixar app. As fotos ficam no escuro e aparecem juntas, na hora que você escolher.</p>
         </div>
+        <ol className="app-stack-sm" aria-label="Como funciona" style={{ padding: 0, margin: 0 }}>
+          {STEPS.map((st) => (
+            <li key={st.text} className="app-card" style={{ listStyle: "none", flexDirection: "row", alignItems: "center", gap: "var(--space-4)" }}>
+              <Icon name={st.icon} decorative size={24} />
+              <span className="titulo-card">{st.text}</span>
+            </li>
+          ))}
+        </ol>
+        <Link href="/exemplo" className="app-card" style={{ textDecoration: "none", color: "inherit" }}>
+          <span className="titulo-card">Experimente a câmera agora</span>
+          <span className="meta app-muted">Sem cadastro · nada é salvo</span>
+        </Link>
         <div className="app-stack-sm">
-          <Button href="/entrar" variant="cta" icon="camera" block>Entrar na festa</Button>
-          <Button href="/criar" variant="secundario" block>Criar evento</Button>
-          <Button href="/exemplo" variant="texto">Ver como funciona</Button>
+          <Button href="/criar" variant="cta" block>Criar meu evento grátis</Button>
+          <Button href="/entrar" variant="texto">Tenho um código</Button>
+          <PricingLine />
         </div>
 
         {ready && canSwitchIdentity && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}

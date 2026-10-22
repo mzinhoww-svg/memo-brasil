@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 
 test("publicado: home, fontes, tema, manifest e service worker", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "A festa vista por todo mundo." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Seu evento pelo olhar de cada convidado." })).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   expect(await page.evaluate(() => document.fonts.check('800 20px "Bricolage Grotesque"'))).toBe(true);
   await page.getByRole("button", { name: "Mudar para o tema Noite" }).click();

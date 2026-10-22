@@ -31,7 +31,7 @@ for (const vp of VIEWPORTS) {
       const key = `${vp.name}-${theme}`;
 
       await page.goto("/");
-      await expect(page.getByRole("heading", { name: "A festa vista por todo mundo." })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Seu evento pelo olhar de cada convidado." })).toBeVisible();
       await noOverflow(page, `home ${key}`);
       await shot(page, `${key}-home`);
 
