@@ -2,23 +2,27 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Breadcrumbs, Button, Chip, Chips, Field, GoogleButton, OptionGroup, Progress, Signature } from "@/components/memoriesmt";
-import { CAMERA_STYLE_LABEL, CAPACITY_OPTIONS, CATEGORY_LABEL, SHOTS_OPTIONS, MIN_DURATION_HOURS, type CameraStyle, type Capacity, type EventCategory, type Shots } from "@/domain/options";
-import type { EventFontId, PaletteId } from "@/domain/event";
-import { EVENT_FONT_LABEL, PALETTES } from "@/lib/event-theme";
+import { Breadcrumbs, Button, Chip, Chips, Field, GoogleButton, OptionGroup, Progress, Select, Signature } from "@/components/memoriesmt";
+import { CATEGORY_LABEL, MIN_DURATION_HOURS, type EventCategory } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
 import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
 import { currentConsent, recordConsent } from "@/lib/consent";
 import { createEvent } from "./service";
 import { resolveDuration } from "./duration";
-import { RevealForm } from "./RevealForm";
-import { defaultRevealInput, resolveReveal, type RevealInput } from "./reveal-input";
-import { formatInZone, zoneLabel, type RevealErrors } from "@/domain/reveal";
+import { REVEAL_ERROR_TEXT, resolveReveal } from "./reveal-input";
+import { REVEAL_CHOICES, buildRevealInput, type RevealChoice } from "./reveal-choice";
+import { hostFallbackName, suggestEventNames } from "./name-suggestions";
+import { FREE_LIMITS, planHintForShots, shotsOptionHint } from "./plan-hint";
+import { PAID_PLAN_LINE, PlanChoice, STATIC_PLANS, hasPaidPlan } from "./PlanChoice";
+import { buildCreateInput, WIZARD_DEFAULTS } from "./wizard-input";
+import { TIMEZONES, defaultTimezone, formatInZone, zoneLabel, type RevealErrors } from "@/domain/reveal";
 
-const STEPS = ["Nome", "Término", "Revelação", "Identidade", "Convidados", "Resumo"] as const;
+export { WIZARD_DEFAULTS };
+
+const STEPS = ["Nome", "Quando", "Fotos", "Convidados"] as const;
 const DURATIONS = [1, 3, 6, 12, 24, 48];
-/** Padrões no limite do plano grátis (10/10): o servidor recusa acima do plano efetivo (COM-003, MM012). Task 12 redesenha. */
-export const WIZARD_DEFAULTS: { capacity: Capacity; shots: Shots } = { capacity: 10, shots: 10 };
+const SHOTS_CHOICES = [10, 16, 24, 36];
+const OTHER_DATE = -1;
 
 const toLocalInput = (ts: number) => {
   const d = new Date(ts - new Date(ts).getTimezoneOffset() * 60_000);
@@ -31,48 +35,41 @@ export function CreateWizard() {
   const [step, setStep] = useState(0);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [ackedPrivacy, setAckedPrivacy] = useState(false);
-  const [hostInput, setHostName] = useState<string | undefined>();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<EventCategory>("casamento");
-  const [place, setPlace] = useState("");
   const [hours, setHours] = useState<number>(6);
   const [until, setUntil] = useState("");
-  const [reveal, setReveal] = useState<RevealInput>(defaultRevealInput);
-  const [camera, setCamera] = useState<CameraStyle>("original");
-  const [palette, setPalette] = useState<PaletteId>("salvia");
-  const [font, setFont] = useState<EventFontId>("birthstone");
-  const [capacity, setCapacity] = useState<Capacity>(WIZARD_DEFAULTS.capacity);
-  const [shots, setShots] = useState<Shots>(WIZARD_DEFAULTS.shots);
-  const [everyone, setEveryone] = useState(true);
-  const [errors, setErrors] = useState<{ title?: string; host?: string; termino?: string; create?: string }>({});
+  const [otherDate, setOtherDate] = useState(false);
+  const [choice, setChoice] = useState<RevealChoice>("manha");
+  const [revDate, setRevDate] = useState("");
+  const [revTime, setRevTime] = useState("");
+  const [timezone, setTimezone] = useState(defaultTimezone);
+  const [desiredShots, setDesiredShots] = useState<number>(WIZARD_DEFAULTS.shots);
+  const [planCode, setPlanCode] = useState(STATIC_PLANS[0].code);
+  const [errors, setErrors] = useState<{ title?: string; termino?: string; create?: string }>({});
+  const [revealErrors, setRevealErrors] = useState<RevealErrors | undefined>();
   const [busy, setBusy] = useState(false);
 
-  const hostName = hostInput ?? user?.name ?? "";
-
+  // o nome de quem organiza vem da conta Google (editável depois no painel); padrão seguro quando vazio
+  const hostName = hostFallbackName(user?.name);
   const untilMs = until ? new Date(until).getTime() : undefined;
-  const [previewHours, setPreviewHours] = useState(6);
-  const [revealErrors, setRevealErrors] = useState<RevealErrors | undefined>();
+  const durationHours = () => resolveDuration({ untilMs: otherDate ? untilMs : undefined, presetHours: hours }, now());
+  const endMs = () => now() + durationHours() * 3_600_000;
+  const revealInput = () => buildRevealInput(choice, endMs(), { date: revDate, time: revTime, timezone });
 
   function next() {
     const e: typeof errors = {};
-    if (step === 0) {
-      if (!hostName.trim()) e.host = "Escreva seu nome para organizar a festa.";
-      if (!title.trim()) e.title = "Escolha o nome do evento. Todos os convidados vão ver.";
-    }
-    if (step === 1 && resolveDuration({ untilMs, presetHours: hours }, now()) < MIN_DURATION_HOURS) e.termino = "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.";
-    if (step === 2) {
-      const r = resolveReveal(reveal, now() + previewHours * 3_600_000, now());
-      setRevealErrors(r.ok ? undefined : r.errors);
-      if (!r.ok) {
-        setErrors(e);
-        return;
+    if (step === 0 && !title.trim()) e.title = "Escolha o nome do evento. Todos os convidados vão ver.";
+    if (step === 1) {
+      if (durationHours() < MIN_DURATION_HOURS) e.termino = "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.";
+      else {
+        const r = resolveReveal(revealInput(), endMs(), now());
+        setRevealErrors(r.ok ? undefined : r.errors);
+        if (!r.ok) return setErrors(e);
       }
     }
     setErrors(e);
-    if (Object.keys(e).length === 0) {
-      if (step === 1) setPreviewHours(resolveDuration({ untilMs, presetHours: hours }, now()));
-      setStep((s) => Math.min(STEPS.length - 1, s + 1));
-    }
+    if (Object.keys(e).length === 0) setStep((s) => Math.min(STEPS.length - 1, s + 1));
   }
 
   async function create() {
@@ -83,26 +80,24 @@ export function CreateWizard() {
       try { await recordConsent(currentConsent("organizador", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); } catch { setBusy(false); return setErrors({ create: CONSENT_FAILED }); }
     }
     const startNow = now();
-    const durationHours = resolveDuration({ untilMs, presetHours: hours }, startNow);
-    const r = await createEvent(
-      repos,
-      me,
-      { title, category, durationHours, reveal, cameraStyle: camera, capacity, shotsPerPerson: shots, everyoneSeesAll: everyone, palette, eventFont: font, place },
-      startNow,
-    );
+    const hoursNow = resolveDuration({ untilMs: otherDate ? untilMs : undefined, presetHours: hours }, startNow);
+    const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, startNow + hoursNow * 3_600_000, { date: revDate, time: revTime, timezone }), desiredShots });
+    const r = await createEvent(repos, me, input, startNow);
     setBusy(false);
     if (!r.ok) {
       if (r.errors.reveal) {
         setRevealErrors(r.errors.reveal);
-        setStep(2);
+        setStep(1);
       }
       return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
     }
     router.push(`/criar/pronto/${r.event.id}`);
   }
 
-  const resolved = resolveReveal(reveal, now() + previewHours * 3_600_000, now());
-  const summaryReveal = !reveal.enabled ? "fotos aparecem na hora" : resolved.ok && resolved.enabled ? `revelação em ${formatInZone(resolved.at, resolved.timezone).date} às ${formatInZone(resolved.at, resolved.timezone).time} (${zoneLabel(resolved.timezone).split(" (")[0]})` : "revelação a definir";
+  const resolved = step === 1 ? resolveReveal(revealInput(), endMs(), now()) : undefined;
+  const revealWhen = resolved?.ok && resolved.enabled ? formatInZone(resolved.at, resolved.timezone) : undefined;
+  const eventName = title.trim() || "sua festa";
+  const shotsPlan = planHintForShots(desiredShots);
 
   if (!ready) return <p className="app-screen app-muted">Carregando…</p>;
   const last = step === STEPS.length - 1;
@@ -130,73 +125,88 @@ export function CreateWizard() {
       <form className="app-stack" noValidate onSubmit={(e) => { e.preventDefault(); if (last) void create(); else next(); }}>
         {step === 0 && (
           <>
-            <h1 className="titulo-tela app-h1">Qual é o nome do seu evento?</h1>
-            <p className="app-p app-muted">Ele aparece para todos os convidados.</p>
-            <Field label="Nome do evento" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: undefined })); }} maxLength={60} placeholder="Ex.: Emy e Igor" error={errors.title} />
-            <Field label="Seu nome" value={hostName} onChange={(e) => { setHostName(e.target.value); setErrors((x) => ({ ...x, host: undefined })); }} maxLength={40} autoComplete="given-name" error={errors.host} />
+            <h1 className="titulo-tela app-h1">Como se chama a festa?</h1>
+            <Field label="Nome que os convidados vão ver" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: undefined })); }} maxLength={60} placeholder="Ex.: Emy e Igor" error={errors.title} />
+            <div className="app-stack-sm">
+              <span className="mm-group-label">Sugestões</span>
+              <Chips label="Sugestões de nome">
+                {suggestEventNames(category, user?.name ?? "", now()).map((s) => (
+                  <Chip key={s} variant="filtro" pressed={title === s} onClick={() => { setTitle(s); setErrors((x) => ({ ...x, title: undefined })); }}>{s}</Chip>
+                ))}
+              </Chips>
+            </div>
             <OptionGroup<EventCategory> label="Tipo de evento" value={category} onChange={setCategory} options={(Object.keys(CATEGORY_LABEL) as EventCategory[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c] }))} />
-            <Field label="Local (opcional)" value={place} onChange={(e) => setPlace(e.target.value)} maxLength={60} placeholder="Ex.: Chalés Taíba, CE" />
+            <p className="app-p app-muted">Local, capa e estilo ficam para depois, no painel.</p>
           </>
         )}
         {step === 1 && (
           <>
-            <h1 className="titulo-tela app-h1">Quando o seu evento termina?</h1>
-            <p className="app-p app-muted">O evento abre agora. Os convidados postam até ele fechar.</p>
-            <OptionGroup<number> label="Termina em" value={until ? -1 : hours} onChange={(v) => { setHours(v); setUntil(""); setErrors((x) => ({ ...x, termino: undefined })); }} options={DURATIONS.map((h) => ({ value: h, label: h === 1 ? "1 hora" : `${h} horas` }))} />
-            <Field label="Ou escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => { setUntil(e.target.value); setErrors((x) => ({ ...x, termino: undefined })); }} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." />
+            <h1 className="titulo-tela app-h1">Quando a festa acaba?</h1>
+            <OptionGroup<number> label="Termina em" value={otherDate ? OTHER_DATE : hours} onChange={(v) => { if (v === OTHER_DATE) setOtherDate(true); else { setOtherDate(false); setHours(v); } setErrors((x) => ({ ...x, termino: undefined })); }} options={[...DURATIONS.map((h) => ({ value: h, label: h === 1 ? "1 hora" : `${h} horas` })), { value: OTHER_DATE, label: "Outra data" }]} />
+            {otherDate && <Field label="Escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => { setUntil(e.target.value); setErrors((x) => ({ ...x, termino: undefined })); }} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." />}
+            {!otherDate && errors.termino && <p className="mm-field-erro" role="alert">{errors.termino}</p>}
+            <OptionGroup<RevealChoice> label="E quando as fotos aparecem?" value={choice} onChange={(c) => { setChoice(c); setRevealErrors(undefined); }} options={REVEAL_CHOICES} />
+            {choice === "dia" && (
+              <>
+                <Field label="Data" type="date" value={revDate} onChange={(e) => setRevDate(e.target.value)} error={revealErrors?.data ? REVEAL_ERROR_TEXT[revealErrors.data] : undefined} />
+                <Field label="Horário" type="time" value={revTime} onChange={(e) => setRevTime(e.target.value)} />
+                <Select label="Fuso horário" value={timezone} onChange={(e) => setTimezone(e.target.value)} options={(TIMEZONES.some((z) => z.id === timezone) ? TIMEZONES : [{ id: timezone, label: timezone }, ...TIMEZONES]).map((z) => ({ value: z.id, label: z.label }))} help="A contagem regressiva dos convidados usa este fuso." />
+              </>
+            )}
+            {choice !== "dia" && revealErrors?.data && <p className="mm-field-erro" role="alert">{REVEAL_ERROR_TEXT[revealErrors.data]}</p>}
+            <div className="app-card" aria-live="polite" style={{ background: "var(--tinta)", color: "var(--fundo)" }}>
+              <span className="eyebrow">Como o convidado recebe</span>
+              {choice === "na-hora" ? (
+                <span className="corpo">As fotos aparecem para todos assim que são postadas.</span>
+              ) : (
+                <>
+                  <span className="titulo-card">O filme de {eventName} foi revelado.</span>
+                  <span className="corpo">{revealWhen ? `${revealWhen.date} às ${revealWhen.time}, ${zoneLabel(timezone).split(" (")[0]}.` : "Escolha a data e a hora para ver quando."}</span>
+                </>
+              )}
+            </div>
+            {choice === "manha" && <p className="app-p app-muted">Revelar na manhã seguinte deixa a noite para a pista.</p>}
           </>
         )}
         {step === 2 && (
           <>
-            <h1 className="titulo-tela app-h1">Quando revelar as fotos?</h1>
-            <p className="app-p app-muted">Como numa câmera descartável: as fotos ficam guardadas e aparecem para todos juntas, na hora que você escolher.</p>
-            <RevealForm value={reveal} onChange={(v) => { setReveal(v); setRevealErrors(undefined); }} endMs={now() + previewHours * 3_600_000} now={now()} errors={revealErrors} />
+            <h1 className="titulo-tela app-h1">Quantas fotos cada pessoa tira?</h1>
+            <p className="app-p app-muted">Como num filme: poucas fotos fazem cada uma valer.</p>
+            <div className="app-card" style={{ background: "var(--tinta)", color: "var(--fundo)" }} aria-live="polite">
+              <span className="titulo-tela" data-testid="contador-previa"><strong style={{ fontSize: 40 }}>{desiredShots}</strong> FOTOS RESTANTES</span>
+            </div>
+            <div className="mm-group" role="group" aria-label="Fotos por pessoa">
+              <div className="mm-opts" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+                {SHOTS_CHOICES.map((n) => {
+                  const hint = shotsOptionHint(n);
+                  return (
+                    <button key={n} type="button" className="mm-opt" aria-pressed={desiredShots === n} onClick={() => setDesiredShots(n)} style={{ height: "auto", minHeight: "var(--size-opcao)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "8px 14px" }}>
+                      <span>{n}</span>
+                      {hint && <span data-testid="selo-plano" style={{ fontSize: 12, fontWeight: 700 }}>{`Plano ${hint}`}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <p className="app-p app-muted">
+              {shotsPlan
+                ? `Acima de ${FREE_LIMITS.shots} fotos pede o plano ${shotsPlan.name} (R$ ${shotsPlan.priceBrl}). O evento nasce Grátis, com ${FREE_LIMITS.shots} fotos por pessoa.`
+                : `${FREE_LIMITS.shots} fotos por pessoa cabem no plano Grátis.`}
+            </p>
           </>
         )}
         {step === 3 && (
           <>
-            <h1 className="titulo-tela app-h1">Qual é a cara do seu evento?</h1>
-            <OptionGroup<CameraStyle> label="Câmera" value={camera} onChange={setCamera} options={(Object.keys(CAMERA_STYLE_LABEL) as CameraStyle[]).map((c) => ({ value: c, label: CAMERA_STYLE_LABEL[c] }))} />
-            <p className="app-p app-muted">Estilos mudam o visual da foto postada.</p>
-            <div className="app-stack-sm">
-              <span className="mm-group-label">Cor do evento</span>
-              <Chips label="Cor do evento">
-                {(Object.keys(PALETTES) as PaletteId[]).map((p) => (
-                  <Chip key={p} variant="filtro" pressed={palette === p} onClick={() => setPalette(p)}>{PALETTES[p].label}</Chip>
-                ))}
-              </Chips>
-            </div>
-            <OptionGroup<EventFontId> label="Fonte do nome do evento" value={font} onChange={setFont} options={(Object.keys(EVENT_FONT_LABEL) as EventFontId[]).map((f) => ({ value: f, label: EVENT_FONT_LABEL[f] }))} />
-            <div data-palette={palette} className="mm-event-header" style={{ ["--font-evento" as string]: `var(--fonte-${font}), cursive` }}>
-              <span className="mm-event-meta">Prévia</span>
-              <span className="mm-event-nome">{title || "Seu evento"}</span>
-            </div>
-          </>
-        )}
-        {step === 4 && (
-          <>
-            <h1 className="titulo-tela app-h1">Quantos convidados no seu evento?</h1>
-            <OptionGroup<Capacity> label="Convidados" value={capacity} onChange={setCapacity} options={CAPACITY_OPTIONS.map((c) => ({ value: c, label: c === null ? "Ilimitado" : String(c) }))} />
-            <OptionGroup<Shots> label="Fotos por pessoa" value={shots} onChange={setShots} options={SHOTS_OPTIONS.map((s) => ({ value: s, label: s === null ? "Ilimitadas" : String(s) }))} />
-            <OptionGroup<boolean> list label="Quem vê as fotos" value={everyone} onChange={setEveryone} options={[{ value: true, label: "Todos veem todas as fotos" }, { value: false, label: "Cada um vê só as suas" }]} />
-          </>
-        )}
-        {step === 5 && (
-          <>
-            <h1 className="titulo-tela app-h1">Confirme o seu evento</h1>
-            <div className="app-card">
-              <span className="titulo-card">{title}</span>
-              <span className="app-muted">{CATEGORY_LABEL[category]}{place ? ` · ${place}` : ""}</span>
-              <span>Termina em {Math.round(previewHours * 10) / 10} h · {summaryReveal}</span>
-              <span>{capacity === null ? "Convidados ilimitados" : `Até ${capacity} convidados`} · {shots === null ? "fotos ilimitadas" : `${shots} fotos por pessoa`}</span>
-            </div>
+            <h1 className="titulo-tela app-h1">Quantos convidados vão fotografar?</h1>
+            <PlanChoice plans={STATIC_PLANS} selected={planCode} onSelect={setPlanCode} />
             <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); setErrors((e) => ({ ...e, create: undefined })); }} onPrivacy={(v) => { setAckedPrivacy(v); setErrors((e) => ({ ...e, create: undefined })); }} />
             {errors.create && <p className="mm-field-erro" role="alert">{errors.create}</p>}
           </>
         )}
 
         <div className="app-stack-sm">
-          <Button type="submit" variant="primario" block disabled={busy}>{last ? "Criar evento" : "Próximo"}</Button>
+          <Button type="submit" variant="primario" block disabled={busy}>{last ? "Criar evento" : "Continuar"}</Button>
+          {last && hasPaidPlan(STATIC_PLANS) && <p className="app-p app-muted">{PAID_PLAN_LINE}</p>}
           {step > 0 && <Button variant="texto" onClick={() => setStep(step - 1)}>Voltar</Button>}
         </div>
       </form>
