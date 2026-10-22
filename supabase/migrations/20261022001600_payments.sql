@@ -14,11 +14,11 @@ create type public.payment_status as enum
   ('criado', 'pendente', 'pago', 'expirado', 'cancelado', 'falhou', 'estornado', 'em_disputa', 'perdido');
 
 -- ---------------------------------------------------------------- pedidos
--- event_id em cascata: o expurgo de eventos apagados (retention) apaga o evento de verdade após 30 dias; a trilha
--- financeira continua em audit_logs e payment_events (order_id vira null).
+-- event_id null = evento purgado (retention apaga o evento de verdade após 30 dias). O pedido é registro financeiro
+-- (cobrança, needs_refund, estorno) e sobrevive à purga; payments_apply_status continua aplicando status nele.
 create table public.payment_orders (
   id uuid primary key default gen_random_uuid(),
-  event_id uuid not null references public.events on delete cascade,
+  event_id uuid null references public.events on delete set null,
   host_id uuid not null,
   plan_code text not null references public.plans,
   from_plan_code text null,
@@ -85,7 +85,8 @@ alter table public.event_entitlements
 create unique index event_entitlements_order_idx on public.event_entitlements (order_id) where order_id is not null;
 
 -- ---------------------------------------------------------------- auxiliares (sem grant a clientes)
--- Remove, em qualquer profundidade, chaves que costumam carregar dado pessoal do pagador.
+-- Allowlist: em qualquer profundidade, só ficam chaves operacionais (ids, status, valores, ambiente, datas, tipo do
+-- evento) e os contêineres que as carregam. Qualquer outra chave (customer, payerName, email, taxId...) é descartada.
 create function public.payments_scrub(p jsonb) returns jsonb
 language plpgsql immutable set search_path = '' as $$
 declare k text; v jsonb; r jsonb;
@@ -94,8 +95,9 @@ begin
   if jsonb_typeof(p) = 'object' then
     r := '{}';
     for k, v in select * from jsonb_each(p) loop
-      if lower(k) in ('customer', 'payer', 'email', 'name', 'cpf', 'cnpj', 'taxid', 'tax_id', 'document', 'cellphone',
-                      'phone', 'address', 'metadata', 'fullname', 'full_name') then
+      if k not in ('id', 'status', 'amount', 'paidAmount', 'platformFee', 'fee', 'devMode', 'dev_mode', 'event', 'type', 'kind',
+                   'method', 'currency', 'createdAt', 'updatedAt', 'paidAt', 'expiresAt', 'created_at', 'updated_at', 'paid_at',
+                   'expires_at', 'data', 'transparent', 'pixQrCode', 'payment', 'billing', 'outcome', 'source', 'from', 'to') then
         continue;
       end if;
       r := r || jsonb_build_object(k, public.payments_scrub(v));
@@ -117,8 +119,11 @@ language sql stable security definer set search_path = '' as $$
   where p.code = p_plan
 $$;
 
--- Cotação sem checagem de acesso (as RPCs públicas checam antes). Preço de referência do plano atual: o do plano pago
--- efetivo; grátis/legado/cortesia/código valem 0 (Ruling 6: upgrade de legado paga o preço cheio).
+-- Cotação sem checagem de acesso (as RPCs públicas checam antes). Preço de referência do plano atual: o preço de
+-- CATÁLOGO vigente (plans.price_cents) do plano pago efetivo — literal da spec, não o valor pago no pedido original
+-- (decisão do controlador); grátis/legado/cortesia/código valem 0 (Ruling 6: upgrade de legado paga o preço cheio).
+-- reason: evento_encerrado | plano_inativo | ja_incluido | valor_minimo (diferença > 0 e < 100 centavos, não cobrável
+-- pelo Pix; extensão do enum do contrato 3.2) | ok.
 create function public.payments_quote_internal(p_event uuid, p_plan text) returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
 declare
@@ -143,8 +148,10 @@ begin
     reason := 'evento_encerrado';
   elsif env = 'desligado' or (env = 'sandbox' and not pl.sandbox_active) or (env = 'production' and not pl.production_active) then
     reason := 'plano_inativo';
-  elsif pl.is_free or public.payments_plan_covered(p_event, p_plan) or amount < 100 then
+  elsif pl.is_free or public.payments_plan_covered(p_event, p_plan) or amount = 0 then
     reason := 'ja_incluido';
+  elsif amount < 100 then
+    reason := 'valor_minimo';
   end if;
   return jsonb_build_object('planCode', pl.code, 'fromPlanCode', eff.plan_code, 'amountCents', amount,
                             'payable', reason = 'ok', 'reason', reason);
@@ -191,6 +198,7 @@ declare
   o public.payment_orders;
   q jsonb;
   env text;
+  stale text;
 begin
   if uid is null or p_idempotency_key is null then raise exception 'forbidden' using errcode = 'MM004'; end if;
   select * into ev from public.events where id = p_event and deleted_at is null for update; -- serializa pedidos do evento
@@ -205,14 +213,16 @@ begin
     return public.payments_order_json(o, true);
   end if;
 
-  -- vencidos por tempo deixam de estar abertos
+  -- vencidos por tempo deixam de estar abertos (expirado); aberto de outro ambiente de pagamento não é reusado (cancelado)
   for o in select * from public.payment_orders
            where event_id = p_event and status in ('criado', 'pendente')
-             and (expires_at <= now() or (expires_at is null and provider_charge_id is null and created_at < now() - interval '30 minutes'))
+             and (provider_env <> env or expires_at <= now()
+                  or (expires_at is null and provider_charge_id is null and created_at < now() - interval '30 minutes'))
            for update loop
-    update public.payment_orders set status = 'expirado' where id = o.id;
-    perform public.audit(p_event, 'payment.expirado',
-      jsonb_build_object('orderId', o.id, 'plan', o.plan_code, 'amountCents', o.amount_cents, 'env', o.provider_env));
+    stale := case when o.provider_env <> env then 'cancelado' else 'expirado' end;
+    update public.payment_orders set status = stale::public.payment_status where id = o.id;
+    perform public.audit(p_event, 'payment.' || stale,
+      jsonb_build_object('orderId', o.id, 'plan', o.plan_code, 'amountCents', o.amount_cents, 'env', o.provider_env, 'source', 'open_order'));
   end loop;
 
   select * into o from public.payment_orders where event_id = p_event and status in ('criado', 'pendente') for update;
@@ -229,9 +239,13 @@ begin
     else raise exception 'invalid' using errcode = 'MM005'; -- ja_incluido
   end case;
 
-  insert into public.payment_orders (event_id, host_id, plan_code, from_plan_code, amount_cents, provider_env, idempotency_key)
-  values (p_event, uid, p_plan, q ->> 'fromPlanCode', (q ->> 'amountCents')::int, env, p_idempotency_key)
-  returning * into o;
+  begin
+    insert into public.payment_orders (event_id, host_id, plan_code, from_plan_code, amount_cents, provider_env, idempotency_key)
+    values (p_event, uid, p_plan, q ->> 'fromPlanCode', (q ->> 'amountCents')::int, env, p_idempotency_key)
+    returning * into o;
+  exception when unique_violation then
+    raise exception 'invalid' using errcode = 'MM005'; -- corrida na chave de idempotência (mesma chave em outro evento)
+  end;
   perform public.audit(p_event, 'payment.criado',
     jsonb_build_object('orderId', o.id, 'plan', o.plan_code, 'amountCents', o.amount_cents, 'env', o.provider_env));
   return public.payments_order_json(o, false);
@@ -273,25 +287,35 @@ begin
 end $$;
 
 -- Aplica o estado reconsultado no provedor. Toda chamada grava uma linha em payment_events com o resultado:
--- aplicado | duplicado | transicao_ignorada | divergencia_valor | divergencia_ambiente | divergencia_cobranca.
+-- aplicado | duplicado | transicao_ignorada | pago_ignorado_reembolsar | divergencia_valor | divergencia_ambiente |
+-- divergencia_cobranca; e, no estorno/perda de um plano base, upgrade_base_estornado no pedido de upgrade apoiado nele.
+-- Dinheiro recebido sem direito concedido sempre marca needs_refund: plano já coberto, evento excluído/encerrado/purgado,
+-- ou PAID reconsultado num pedido já cancelado/estornado/perdido.
 create function public.payments_apply_status(p_order uuid, p_charge_id text, p_status public.payment_status, p_amount_cents int,
                                              p_dev_mode boolean, p_source text) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
   o public.payment_orders;
+  ev public.events;
   pl public.plans;
+  u public.payment_orders;
   outcome text;
   ent_id uuid;
   refund boolean := false;
   allowed boolean;
+  event_live boolean := false;
 begin
   if p_source is null or p_source not in ('webhook', 'status', 'reconcile') or p_status is null then
     raise exception 'invalid' using errcode = 'MM005';
   end if;
-  -- mesma ordem de travas de payments_open_order (evento → pedido): evita deadlock e serializa direitos do evento
-  perform 1 from public.events e where e.id = (select x.event_id from public.payment_orders x where x.id = p_order) for update;
+  -- mesma ordem de travas de payments_open_order (evento → pedido): evita deadlock e serializa direitos do evento.
+  -- Pedido de evento purgado (event_id null): sem trava de evento e sem direito, mas o status continua sendo aplicado.
+  select * into ev from public.events e where e.id = (select x.event_id from public.payment_orders x where x.id = p_order) for update;
   select * into o from public.payment_orders where id = p_order for update;
   if not found then raise exception 'invalid' using errcode = 'MM005'; end if;
+  if o.event_id is not null and ev.id = o.event_id then
+    event_live := ev.deleted_at is null and now() < public.event_end(ev.start_at, ev.duration_hours, ev.ended_at);
+  end if;
 
   allowed := (o.status, p_status) in (
     ('criado', 'pendente'), ('criado', 'falhou'),
@@ -309,21 +333,30 @@ begin
     outcome := 'divergencia_valor';
   elsif o.status = p_status then
     outcome := 'duplicado';
+  elsif p_status = 'pago' and o.status in ('cancelado', 'estornado', 'perdido') then
+    outcome := 'pago_ignorado_reembolsar'; -- transição não aplicada, mas o dinheiro entrou
+    refund := true;
   elsif not allowed then
     outcome := 'transicao_ignorada';
   else
     outcome := 'aplicado';
   end if;
 
-  update public.payment_orders set last_checked_at = now() where id = o.id;
+  update public.payment_orders set last_checked_at = now(), needs_refund = needs_refund or refund where id = o.id;
+  if outcome = 'pago_ignorado_reembolsar' then
+    perform public.audit(o.event_id, 'payment.pago_ignorado_reembolsar',
+      jsonb_build_object('orderId', o.id, 'plan', o.plan_code, 'amountCents', o.amount_cents, 'env', o.provider_env,
+                         'from', o.status, 'source', p_source, 'needsRefund', true));
+  end if;
 
   if outcome = 'aplicado' then
     select * into pl from public.plans where code = o.plan_code;
     if p_status = 'pago' then
       select id into ent_id from public.event_entitlements where order_id = o.id;
       if ent_id is null then
-        if public.payments_plan_covered(o.event_id, o.plan_code) then
-          refund := true; -- pagou algo que o evento já tem (pagamento tardio, cortesia no meio): sem direito novo
+        if not event_live or public.payments_plan_covered(o.event_id, o.plan_code) then
+          -- evento excluído/encerrado/purgado, ou já tem o plano (pagamento tardio, cortesia no meio): sem direito novo
+          refund := true;
         else
           insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, order_id, env, created_by, reason)
           values (o.event_id, o.plan_code, pl.max_guests, pl.max_shots, 'pago', o.id, o.provider_env, o.host_id, 'pedido ' || o.id)
@@ -342,7 +375,21 @@ begin
     elsif p_status in ('estornado', 'perdido') then
       update public.event_entitlements set status = 'estornado' where order_id = o.id and status = 'ativo' returning id into ent_id;
       update public.payment_orders set status = p_status, needs_refund = false where id = o.id;
-      if ent_id is not null then perform public.payments_reapply_limits(o.event_id); end if;
+      if ent_id is not null and o.event_id is not null then perform public.payments_reapply_limits(o.event_id); end if;
+      -- upgrade apoiado neste plano (cotado com desconto dele) ainda vale ou está aberto: não revoga (Task 7 decide), mas sinaliza
+      if o.event_id is not null then
+        for u in select x.* from public.payment_orders x
+                 where x.event_id = o.event_id and x.id <> o.id and x.from_plan_code = o.plan_code
+                   and (x.status in ('criado', 'pendente')
+                        or exists (select 1 from public.event_entitlements z where z.order_id = x.id and z.status = 'ativo')) loop
+          insert into public.payment_events (provider, event_type, order_id, outcome, detail)
+          values (u.provider, 'apply.' || p_source, u.id, 'upgrade_base_estornado',
+                  jsonb_build_object('baseOrderId', o.id, 'baseTo', p_status, 'upgradeStatus', u.status, 'env', u.provider_env));
+          perform public.audit(o.event_id, 'payment.upgrade_base_estornado',
+            jsonb_build_object('orderId', u.id, 'baseOrderId', o.id, 'plan', u.plan_code, 'amountCents', u.amount_cents,
+                               'env', u.provider_env));
+        end loop;
+      end if;
     else
       update public.payment_orders set status = p_status where id = o.id;
     end if;
@@ -359,6 +406,7 @@ begin
 
   return jsonb_build_object('applied', outcome = 'aplicado', 'from', o.status, 'to', p_status, 'entitlementId', ent_id);
 end $$;
+
 
 -- Deduplicação de eventos do provedor (webhook): false se (provider, provider_event_id) já foi gravado.
 create function public.payments_record_event(p_provider_event_id text, p_type text, p_order uuid, p_outcome text, p_detail jsonb)

@@ -37,7 +37,11 @@ insert into public.events (id, title, category, host_id, host_name, duration_hou
   ('00000000-0000-4000-8000-0000000008e2', 'Tardio', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now()),
   ('00000000-0000-4000-8000-0000000008e3', 'Reembolso', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now()),
   ('00000000-0000-4000-8000-0000000008e4', 'Vencido', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now()),
-  ('00000000-0000-4000-8000-0000000008e5', 'Encerrado', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now() - interval '3 days');
+  ('00000000-0000-4000-8000-0000000008e5', 'Encerrado', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now() - interval '3 days'),
+  ('00000000-0000-4000-8000-0000000008e6', 'Upgrade', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now()),
+  ('00000000-0000-4000-8000-0000000008e7', 'Excluído', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now()),
+  ('00000000-0000-4000-8000-0000000008e8', 'Termina', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now()),
+  ('00000000-0000-4000-8000-0000000008e9', 'Purgado', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now());
 
 -- ===================================================== estrutura
 select has_table('public', 'payment_orders', 'payment_orders existe');
@@ -139,10 +143,10 @@ select is((public.payments_apply_status(:'o1'::uuid, 'ch1', 'expirado', 8900, tr
 select is(public.payments_record_event('evt_1', 'transparent.completed', :'o1'::uuid, 'aplicado', '{"amount":8900}'), true, 'record_event grava');
 select is(public.payments_record_event('evt_1', 'transparent.completed', :'o1'::uuid, 'aplicado', '{"amount":8900}'), false, 'record_event_dedup: duplicado → false');
 select is(public.payments_record_event('evt_2', 'transparent.completed', null, 'sem_pedido',
-  '{"amount":1,"customer":{"email":"a@b.c","taxId":"123"},"data":{"name":"Fulano","cpf":"1","status":"PAID"}}'), true, 'record_event sem pedido');
+  '{"amount":1,"payerName":"Fulano","customer":{"email":"a@b.c","taxId":"123"},"data":{"name":"Fulano","cpf":"1","status":"PAID"}}'), true, 'record_event sem pedido');
 reset role;
 select is((select detail from public.payment_events where provider_event_id = 'evt_2'), '{"amount":1,"data":{"status":"PAID"}}'::jsonb,
-  'detail sem dados pessoais (customer, email, taxId, name, cpf removidos)');
+  'detail só com chaves permitidas (payerName, customer, email, taxId, name, cpf removidos)');
 select is((select count(*)::int from public.event_entitlements where order_id = :'o1'::uuid), 1, 'um único direito por pedido');
 select is((select (:'a1'::jsonb) ->> 'entitlementId'), (select id::text from public.event_entitlements where order_id = :'o1'::uuid), 'entitlementId devolvido');
 select results_eq($$select source, status, env, plan_code from public.event_entitlements where order_id = '$$ || :'o1' || $$'$$,
@@ -167,6 +171,15 @@ select is(public.payments_quote('00000000-0000-4000-8000-0000000008e1', 'casamen
   '{"planCode":"casamento","fromPlanCode":"celebracao","amountCents":10000,"payable":true,"reason":"ok"}'::jsonb,
   'quote_difference: celebracao pago → casamento = 10000');
 select is(public.payments_quote('00000000-0000-4000-8000-0000000008e1', 'festa') ->> 'reason', 'ja_incluido', 'plano menor já incluído');
+reset role;
+update public.plans set price_cents = 8950 where code = 'casamento';
+select tests.login('00000000-0000-4000-8000-0000000008a1');
+select is(public.payments_quote('00000000-0000-4000-8000-0000000008e1', 'casamento') - 'fromPlanCode',
+  '{"planCode":"casamento","amountCents":50,"payable":false,"reason":"valor_minimo"}'::jsonb,
+  'diferença abaixo de 100 centavos: valor_minimo (não é ja_incluido)');
+reset role;
+update public.plans set price_cents = 18900 where code = 'casamento';
+select tests.login('00000000-0000-4000-8000-0000000008a1');
 select is(public.payments_order_status(:'o1'::uuid) ->> 'status', 'pago', 'order_status pago');
 select ok(public.payments_order_status(:'o1'::uuid) ->> 'paidAt' is not null, 'order_status traz paidAt');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.payments_order_status(:'o1'::uuid)) k),
@@ -237,6 +250,47 @@ reset role;
 select results_eq($$select capacity, shots_per_person from public.events where id = '00000000-0000-4000-8000-0000000008e2'$$,
   $$values (10, 10)$$, 'disputa perdida volta ao grátis');
 
+-- ===================================================== pago em evento excluído (soft delete) ou encerrado
+select tests.login('00000000-0000-4000-8000-0000000008a1');
+select public.payments_open_order('00000000-0000-4000-8000-0000000008e7', 'festa', 'a7a7a7a7-a7a7-4a7a-8a7a-a7a7a7a7a7a7') ->> 'orderId' as o7 \gset
+select public.payments_open_order('00000000-0000-4000-8000-0000000008e8', 'festa', 'a8a8a8a8-a8a8-4a8a-8a8a-a8a8a8a8a8a8') ->> 'orderId' as o8 \gset
+reset role;
+update public.events set deleted_at = now() where id = '00000000-0000-4000-8000-0000000008e7';
+update public.events set start_at = now() - interval '10 hours' where id = '00000000-0000-4000-8000-0000000008e8';
+set local role service_role;
+select public.payments_attach_charge(:'o7'::uuid, 'ch7', 'B', 'B', now() + interval '1 hour', true);
+select public.payments_attach_charge(:'o8'::uuid, 'ch8', 'B', 'B', now() + interval '1 hour', true);
+select is(public.payments_apply_status(:'o7'::uuid, 'ch7', 'pago', 2900, true, 'webhook') - 'from', '{"applied":true,"to":"pago","entitlementId":null}'::jsonb,
+  'pago em evento excluído: aplica sem direito');
+select is(public.payments_apply_status(:'o8'::uuid, 'ch8', 'pago', 2900, true, 'webhook') - 'from', '{"applied":true,"to":"pago","entitlementId":null}'::jsonb,
+  'pago em evento encerrado: aplica sem direito');
+reset role;
+select results_eq(format('select status::text, needs_refund from public.payment_orders where id in (%L, %L)', :'o7', :'o8'),
+  $$values ('pago', true), ('pago', true)$$, 'excluído/encerrado: needs_refund=true');
+select is((select count(*)::int from public.event_entitlements where order_id in (:'o7'::uuid, :'o8'::uuid)), 0, 'nenhum direito em evento excluído/encerrado');
+
+-- ===================================================== estorno da base de um upgrade não é silencioso
+select tests.login('00000000-0000-4000-8000-0000000008a1');
+select public.payments_open_order('00000000-0000-4000-8000-0000000008e6', 'celebracao', 'a6a6a6a6-a6a6-4a6a-8a6a-a6a6a6a6a6a6') ->> 'orderId' as o6 \gset
+reset role;
+set local role service_role;
+select public.payments_attach_charge(:'o6'::uuid, 'ch6', 'B', 'B', now() + interval '1 hour', true);
+select public.payments_apply_status(:'o6'::uuid, 'ch6', 'pago', 8900, true, 'webhook');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000008a1');
+select public.payments_open_order('00000000-0000-4000-8000-0000000008e6', 'casamento', 'b6b6b6b6-b6b6-4b6b-8b6b-b6b6b6b6b6b6') ->> 'orderId' as o6u \gset
+reset role;
+set local role service_role;
+select public.payments_attach_charge(:'o6u'::uuid, 'ch6u', 'B', 'B', now() + interval '1 hour', true);
+select is(public.payments_apply_status(:'o6u'::uuid, 'ch6u', 'pago', 10000, true, 'webhook') ->> 'applied', 'true', 'upgrade pago');
+select is(public.payments_apply_status(:'o6'::uuid, 'ch6', 'estornado', 8900, true, 'webhook') ->> 'applied', 'true', 'base do upgrade estornada');
+reset role;
+select is((select count(*)::int from public.payment_events where order_id = :'o6u'::uuid and outcome = 'upgrade_base_estornado'), 1,
+  'upgrade_base_estornado registrado no pedido de upgrade');
+select ok(exists (select 1 from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000008e6' and action = 'payment.upgrade_base_estornado'
+  and detail ->> 'orderId' = :'o6u' and detail ->> 'baseOrderId' = :'o6'), 'auditoria do upgrade com base estornada');
+select is((select status from public.event_entitlements where order_id = :'o6u'::uuid), 'ativo', 'direito do upgrade não é revogado aqui (Task 7)');
+
 -- ===================================================== pedido vencido por tempo não está aberto
 select tests.login('00000000-0000-4000-8000-0000000008a1');
 select public.payments_open_order('00000000-0000-4000-8000-0000000008e4', 'festa', '77777777-7777-4777-8777-777777777777') ->> 'orderId' as o4 \gset
@@ -245,12 +299,49 @@ set local role service_role;
 select public.payments_attach_charge(:'o4'::uuid, 'ch4', 'B', 'B', now() - interval '1 minute', true);
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000008a1');
-select isnt(public.payments_open_order('00000000-0000-4000-8000-0000000008e4', 'celebracao', '88888888-8888-4888-8888-888888888888') ->> 'orderId', :'o4',
-  'Pix vencido não bloqueia outro plano: novo pedido');
+select public.payments_open_order('00000000-0000-4000-8000-0000000008e4', 'celebracao', '88888888-8888-4888-8888-888888888888') ->> 'orderId' as o4n \gset
+select isnt(:'o4n'::text, :'o4'::text, 'Pix vencido não bloqueia outro plano: novo pedido');
 reset role;
 select is((select status::text from public.payment_orders where id = :'o4'::uuid), 'expirado', 'pedido vencido marcado expirado');
 
--- ===================================================== plano inativo no ambiente
+-- PAID reconsultado em pedido cancelado: transição ignorada, mas dinheiro recebido vira needs_refund
+set local role service_role;
+select public.payments_attach_charge(:'o4n'::uuid, 'ch4n', 'B', 'B', now() + interval '1 hour', true);
+select public.payments_apply_status(:'o4n'::uuid, 'ch4n', 'cancelado', null, true, 'status');
+select is(public.payments_apply_status(:'o4n'::uuid, 'ch4n', 'pago', 8900, true, 'reconcile') ->> 'applied', 'false', 'cancelado → pago não aplica');
+reset role;
+select results_eq(format('select status::text, needs_refund from public.payment_orders where id = %L', :'o4n'),
+  $$values ('cancelado', true)$$, 'pago sobre cancelado: needs_refund=true');
+select is((select outcome from public.payment_events where order_id = :'o4n'::uuid order by id desc limit 1), 'pago_ignorado_reembolsar',
+  'outcome pago_ignorado_reembolsar');
+select is((select count(*)::int from public.event_entitlements where order_id = :'o4n'::uuid), 0, 'sem direito');
+
+-- ===================================================== purga do evento não apaga pedidos
+select tests.login('00000000-0000-4000-8000-0000000008a1');
+select public.payments_open_order('00000000-0000-4000-8000-0000000008e9', 'festa', 'a9a9a9a9-a9a9-4a9a-8a9a-a9a9a9a9a9a9') ->> 'orderId' as o9 \gset
+reset role;
+set local role service_role;
+select public.payments_attach_charge(:'o9'::uuid, 'ch9', 'B', 'B', now() + interval '1 hour', true);
+reset role;
+delete from public.events where id in ('00000000-0000-4000-8000-0000000008e3', '00000000-0000-4000-8000-0000000008e6', '00000000-0000-4000-8000-0000000008e9');
+select results_eq(format('select status::text, needs_refund, event_id from public.payment_orders where id in (%L, %L, %L, %L) order by amount_cents, status',
+    :'o3', :'o6u', :'o6', :'o9'),
+  $$values ('pago', true, null::uuid), ('pendente', false, null::uuid), ('estornado', false, null::uuid), ('pago', false, null::uuid)$$,
+  'pedidos sobrevivem à purga com event_id null (pago, needs_refund, estornado, pendente)');
+select is((select provider_charge_id from public.payment_orders where id = :'o3'::uuid), 'ch3', 'charge id preservado');
+set local role service_role;
+select is(public.payments_apply_status(:'o6u'::uuid, 'ch6u', 'estornado', 10000, true, 'webhook') ->> 'applied', 'true', 'estorno aplica após a purga');
+select is(public.payments_apply_status(:'o3'::uuid, 'ch3', 'estornado', 2900, true, 'webhook') ->> 'applied', 'true', 'estorno do needs_refund após a purga');
+select is(public.payments_apply_status(:'o9'::uuid, 'ch9', 'pago', 2900, true, 'webhook') - 'from', '{"applied":true,"to":"pago","entitlementId":null}'::jsonb,
+  'pago em pedido sem evento: aplica sem direito');
+reset role;
+select results_eq(format('select status::text, needs_refund from public.payment_orders where id in (%L, %L, %L) order by amount_cents, status', :'o3', :'o9', :'o6u'),
+  $$values ('estornado', false), ('pago', true), ('estornado', false)$$, 'estados após a purga; pago sem evento → needs_refund');
+
+-- ===================================================== plano inativo no ambiente; pedido aberto de outro ambiente
+select tests.login('00000000-0000-4000-8000-0000000008a1');
+select public.payments_open_order('00000000-0000-4000-8000-0000000008e2', 'festa', 'c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2') ->> 'orderId' as o2s \gset
+reset role;
 select tests.set_env('production');
 update public.plans set production_active = false where code = 'grande';
 select tests.login('00000000-0000-4000-8000-0000000008a1');
@@ -264,6 +355,8 @@ reset role;
 select is((select provider_env from public.payment_orders where event_id = '00000000-0000-4000-8000-0000000008e2' and status = 'criado'),
   'production', 'provider_env = payments_env() na criação');
 select is((select provider_env from public.payment_orders where id = :'o2'::uuid), 'sandbox', 'pedido anterior segue sandbox');
+select is((select status::text from public.payment_orders where id = :'o2s'::uuid), 'cancelado', 'pedido aberto de outro ambiente não é reusado: cancelado');
+select ok(exists (select 1 from public.audit_logs where action = 'payment.cancelado' and detail ->> 'orderId' = :'o2s'), 'cancelamento auditado');
 
 select * from finish();
 rollback;
