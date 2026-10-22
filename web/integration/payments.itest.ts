@@ -227,6 +227,33 @@ describe("payments-checkout", () => {
   });
 });
 
+describe("reconcile com busca incompleta", () => {
+  it("findChargeForOrder complete:false (10 páginas sem fim da lista) não falha o pedido; a rodada seguinte, completa, falha", async () => {
+    const ev = await newEvent();
+    await ctl("config", { failCreate: 500 });
+    let r: Awaited<ReturnType<typeof checkout>>;
+    try {
+      r = await checkout(ev);
+    } finally {
+      await ctl("config", { failCreate: null });
+    }
+    const id = String(r.body.orderId);
+    for (let i = 0; i < 12; i++) { const other = randomUUID(); await ctl("charge", { externalId: other, metadata: { orderId: other }, amount: 18900 }); }
+    await backdate(id, 6);
+    await ctl("config", { maxPageSize: 1 }); // 10 páginas de 1 item não chegam ao fim da lista
+    try {
+      expect((await reconcile()).status).toBe(200);
+    } finally {
+      await ctl("config", { maxPageSize: 100 });
+    }
+    expect(await order(id)).toMatchObject({ status: "criado", provider_charge_id: null });
+    const ev1 = await admin.from("payment_events").select("outcome").eq("order_id", id);
+    expect((ev1.data ?? []).map((x) => x.outcome)).not.toContain("sem_cobranca");
+    expect((await reconcile()).status).toBe(200);
+    expect((await order(id)).status).toBe("falhou");
+  });
+});
+
 describe("cobrança criada com a resposta perdida (create sem resposta)", () => {
   async function lostCreate() {
     const ev = await newEvent();
@@ -484,6 +511,27 @@ describe("payments-refund", () => {
     } finally {
       await admin.from("platform_settings").update({ value: "sandbox" }).eq("key", "payments_env");
     }
+  });
+
+  it("PAID com valor divergente: needs_refund sem mudar o status, reembolsável pelo Master e fechado em estornado", async () => {
+    const ev = await newEvent();
+    const id = String((await checkout(ev)).body.orderId);
+    const charge = String((await order(id)).provider_charge_id);
+    // o provedor cobra 18900; o pedido espera 18800 → divergencia_valor no PAID
+    expect((await admin.from("payment_orders").update({ amount_cents: 18800 }).eq("id", id)).error).toBeNull();
+    await fetch(`${FAKE}/v2/transparents/simulate-payment?id=${charge}`, { method: "POST", headers: { authorization: `Bearer ${fnEnv.ABACATEPAY_API_KEY}` } });
+    const flagged = await waitFor(() => order(id), (x) => x.needs_refund === true);
+    expect(flagged).toMatchObject({ status: "pendente", needs_refund: true });
+    expect(await plan(ev)).toBe("gratis");
+
+    const rpc = (fn: string, args: Json) => fetch(`${URL_}/rest/v1/rpc/${fn}`, {
+      method: "POST", headers: { "content-type": "application/json", apikey: PUB, authorization: `Bearer ${master}` }, body: JSON.stringify(args) });
+    expect((await rpc("admin_request_refund", { p_order: id, p_reason: "Pix pago com valor divergente" })).status).toBe(204);
+    const before = Number((await ctl("calls")).refund);
+    expect(await call("payments-refund", master, { orderId: id })).toEqual({ status: 200, body: { ok: true } });
+    expect(Number((await ctl("calls")).refund) - before).toBe(1);
+    const o = await waitFor(() => order(id), (x) => x.status === "estornado");
+    expect(o).toMatchObject({ status: "estornado", needs_refund: false });
   });
 
   it("payments-refund reconsulta a cobrança: sem PAID no provedor não reembolsa", async () => {

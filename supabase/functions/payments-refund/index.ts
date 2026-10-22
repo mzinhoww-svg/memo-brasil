@@ -1,8 +1,8 @@
 // Reembolso disparado pelo Master (verify_jwt=true; o chamador precisa de is_master()). Só para pedido com
-// refund_requested_at (gravado por admin_request_refund, Task 7) em pedido 'pago' ou 'cancelado' com needs_refund (Ruling 16);
-// reconsulta a cobrança (PAID e do pedido) antes de reembolsar. Como webhook e reconciliação (Ruling 13), roda para
-// pedidos do ambiente da chave configurada (ABACATEPAY_ENV) mesmo com payments_env='desligado': desligar a cobrança para
-// novas compras não pode prender dinheiro já recebido. Chama o provedor e NÃO muda o estado: o 'estornado'
+// refund_requested_at (gravado por admin_request_refund, Task 7) em pedido 'pago' ou ainda não pago com needs_refund
+// (Ruling 16; PAID divergente); reconsulta a cobrança (PAID e do pedido) antes de reembolsar. Como webhook e reconciliação
+// (Ruling 13), roda para pedidos do ambiente da chave configurada (ABACATEPAY_ENV) mesmo com payments_env='desligado':
+// desligar a cobrança para novas compras não pode prender dinheiro já recebido. Chama o provedor e NÃO muda o estado: o 'estornado'
 // chega pelo webhook transparent.refunded ou pela reconciliação. Idempotente: pedido já estornado não chama o provedor,
 // e "já reembolsada" do provedor conta como sucesso (refundCharge).
 import { getPixCharge, refundCharge } from "../_shared/abacatepay.ts";
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     log(FN, order.id, order.status, "ja_estornado");
     return json({ ok: true });
   }
-  // 'pago', ou 'cancelado' com needs_refund (Ruling 16); nunca em disputa (o provedor recusa), perdido ou estornado
+  // 'pago', ou ainda não pago com needs_refund (Ruling 16, PAID divergente); nunca em disputa (o provedor recusa), perdido ou estornado
   const blocked = refundBlocker(order);
   if (blocked) return json({ error: blocked }, 422);
   if (order.provider_env !== provider.env) return json({ error: "pagamento_indisponivel" }, 503); // chave de outro ambiente

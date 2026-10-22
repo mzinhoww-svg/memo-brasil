@@ -5,7 +5,7 @@ import { AbacateError, checkPixCharge, getPixCharge, type AbacateConfig, type Pi
 import { corsHeaders } from "./cors.ts";
 import { resolveAbacateConfig, type ProviderEnv } from "./payments-config.ts";
 import { mapProviderStatus, type PaymentStatus } from "./payments-status.ts";
-export { findChargeForOrder } from "./payments-status.ts";
+export { findChargeForOrder, unattachedAction } from "./payments-status.ts";
 
 export type { AbacateConfig, PaymentStatus, PixListItem, ProviderEnv };
 export { AbacateError };

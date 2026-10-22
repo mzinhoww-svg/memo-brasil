@@ -330,6 +330,50 @@ select ok((select (p ->> 'refundRequestedAt') is not null and p ->> 'status' = '
            where p ->> 'orderId' = '00000000-0000-4000-8000-000000009d11'), 'lista mostra a disputa com o reembolso solicitado');
 reset role;
 
+-- ===================================================== dinheiro divergente sempre reembolsável
+-- d12: PAID com valor divergente; d13: PAID de outra cobrança; d14: divergência sem PAID (não marca reembolso)
+insert into public.payment_orders (id, event_id, host_id, plan_code, amount_cents, status, provider_env, provider_charge_id, idempotency_key, created_at) values
+  ('00000000-0000-4000-8000-000000009d12', '00000000-0000-4000-8000-0000000009e4', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'pendente', 'sandbox', 'pix_char_d12', gen_random_uuid(), now() - interval '50 days'),
+  ('00000000-0000-4000-8000-000000009d13', '00000000-0000-4000-8000-0000000009e4', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'expirado', 'sandbox', 'pix_char_d13', gen_random_uuid(), now() - interval '50 days'),
+  ('00000000-0000-4000-8000-000000009d14', '00000000-0000-4000-8000-0000000009e4', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'expirado', 'sandbox', 'pix_char_d14', gen_random_uuid(), now() - interval '50 days');
+set local role service_role;
+select public.payments_apply_status('00000000-0000-4000-8000-000000009d12', 'pix_char_d12', 'pago', 2800, true, 'webhook');
+select public.payments_apply_status('00000000-0000-4000-8000-000000009d13', 'pix_char_outra', 'pago', 2900, true, 'webhook');
+reset role;
+-- eventos de divergência antigos (> 30 dias): continuam visíveis enquanto o pedido precisa de reembolso
+update public.payment_events set received_at = now() - interval '40 days'
+ where order_id in ('00000000-0000-4000-8000-000000009d12', '00000000-0000-4000-8000-000000009d13');
+insert into public.payment_events (event_type, order_id, outcome, detail, received_at) values
+  ('apply.reconcile', '00000000-0000-4000-8000-000000009d14', 'divergencia_valor', '{"from":"expirado","to":"pago"}', now() - interval '40 days');
+select is((select string_agg(status::text || '/' || needs_refund, ',' order by id) from public.payment_orders
+           where id in ('00000000-0000-4000-8000-000000009d12', '00000000-0000-4000-8000-000000009d13', '00000000-0000-4000-8000-000000009d14')),
+  'pendente/true,expirado/true,expirado/false', 'PAID divergente marca needs_refund e mantém o status');
+select tests.login('00000000-0000-4000-8000-0000000009c1', 'master');
+select ok(exists (select 1 from public.admin_payment_divergences() d where d ->> 'orderId' = '00000000-0000-4000-8000-000000009d12' and d ->> 'kind' = 'divergencia_valor'),
+  'divergência de valor com PAID e needs_refund não expira em 30 dias');
+select ok(exists (select 1 from public.admin_payment_divergences() d where d ->> 'orderId' = '00000000-0000-4000-8000-000000009d13' and d ->> 'kind' = 'divergencia_cobranca'),
+  'divergência de cobrança com PAID e needs_refund não expira em 30 dias');
+select ok(not exists (select 1 from public.admin_payment_divergences() d where d ->> 'orderId' = '00000000-0000-4000-8000-000000009d14'),
+  'divergência antiga sem needs_refund expira em 30 dias');
+select throws_ok($$select public.admin_request_refund('00000000-0000-4000-8000-000000009d14', 'motivo longo o bastante')$$,
+  'MM005', null, 'expirado sem needs_refund não aceita reembolso: MM005');
+select lives_ok($$select public.admin_request_refund('00000000-0000-4000-8000-000000009d12', 'Pix pago com valor divergente')$$,
+  'pendente com needs_refund (PAID divergente) aceita reembolso');
+select lives_ok($$select public.admin_request_refund('00000000-0000-4000-8000-000000009d13', 'Pix pago em outra cobrança')$$,
+  'expirado com needs_refund aceita reembolso');
+select ok((select bool_and((d ->> 'refundInProgress')::boolean) from public.admin_payment_divergences() d
+           where d ->> 'orderId' in ('00000000-0000-4000-8000-000000009d12', '00000000-0000-4000-8000-000000009d13')),
+  'reembolso de pedido divergente fica "em andamento"');
+reset role;
+set local role service_role;
+select is((public.payments_apply_status('00000000-0000-4000-8000-000000009d12', 'pix_char_d12', 'estornado', 2800, true, 'webhook') ->> 'applied')::boolean, true,
+  'estorno do PAID divergente fecha o pedido');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000009c1', 'master');
+select ok(not exists (select 1 from public.admin_payment_divergences() d where d ->> 'orderId' = '00000000-0000-4000-8000-000000009d12'),
+  'depois do estorno a divergência antiga volta a expirar');
+reset role;
+
 -- ===================================================== job de conciliação
 select ok(not exists (select 1 from cron.job where jobname = 'mm-payments-reconcile'), 'sem segredo no Vault: job não existe');
 select is(public.payments_schedule_reconcile(), false, 'sem segredo: não agenda');

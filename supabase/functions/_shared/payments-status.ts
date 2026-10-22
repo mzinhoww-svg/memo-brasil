@@ -36,24 +36,42 @@ export function chargeMatchesOrder(
   return identity && c.amount === order.amount_cents && c.devMode === (order.provider_env === "sandbox");
 }
 
+/** Estados ainda não pagos em que needs_refund significa dinheiro recebido sem plano (Ruling 16 e PAID divergente). */
+const UNPAID_WITH_MONEY: ReadonlySet<PaymentStatus> = new Set(["criado", "pendente", "expirado", "cancelado", "falhou"]);
+
 /**
- * Por que payments-refund não pode reembolsar este pedido (null = pode). Ruling 16: 'pago', ou 'cancelado' com needs_refund
- * (Pix pago depois do cancelamento); nunca em_disputa (o provedor recusa), perdido ou estornado. Exige a solicitação gravada
- * por admin_request_refund e a cobrança. Com `charge` (reconsulta antes do refundCharge): PAID, mesma cobrança e
- * chargeMatchesOrder (identidade, valor e ambiente).
+ * Por que payments-refund não pode reembolsar este pedido (null = pode). Mesma regra de admin_request_refund: 'pago', ou
+ * pedido ainda não pago com needs_refund (Ruling 16: Pix pago depois do cancelamento; PAID com valor ou cobrança
+ * divergente); nunca em_disputa (o provedor recusa), perdido ou estornado. Exige a solicitação gravada por
+ * admin_request_refund e a cobrança. Com `charge` (reconsulta antes do refundCharge, sempre obrigatória): PAID, mesma
+ * cobrança e chargeMatchesOrder (identidade, valor e ambiente) — o valor é dispensado só no pedido ainda não pago com
+ * needs_refund, porque o PAID
+ * divergente é justamente dinheiro com valor diferente do pedido; identidade e ambiente nunca são dispensados.
  */
 export function refundBlocker(
   order: { id: string; status: PaymentStatus; needs_refund: boolean; provider_charge_id: string | null; refund_requested_at: string | null;
            amount_cents: number; provider_env: "sandbox" | "production" },
   charge?: { id: string; status: string; externalId?: string | null; metadataOrderId?: string | null; amount?: number | null; devMode: boolean },
 ): "reembolso_nao_solicitado" | "estado_invalido" | "cobranca_nao_paga" | "cobranca_nao_confere" | null {
-  const refundable = order.status === "pago" || (order.status === "cancelado" && order.needs_refund === true);
+  const divergentMoney = order.needs_refund === true && UNPAID_WITH_MONEY.has(order.status);
+  const refundable = order.status === "pago" || divergentMoney;
   if (!refundable || !order.provider_charge_id) return "estado_invalido";
   if (!order.refund_requested_at) return "reembolso_nao_solicitado";
   if (!charge) return null;
   if (charge.status !== "PAID") return "cobranca_nao_paga";
-  if (charge.id !== order.provider_charge_id || !chargeMatchesOrder(charge, order)) return "cobranca_nao_confere";
+  const amount = divergentMoney ? { ...charge, amount: order.amount_cents } : charge;
+  if (charge.id !== order.provider_charge_id || !chargeMatchesOrder(amount, order)) return "cobranca_nao_confere";
   return null;
+}
+
+/**
+ * Pedido 'criado' sem cobrança na reconciliação: adota a encontrada; sem ela, só falha (payments_fail_unattached) quando a
+ * busca viu a lista inteira. Busca incompleta (cursor parado ou limite de páginas) não prova que a cobrança não existe:
+ * tenta de novo na próxima rodada.
+ */
+export function unattachedAction(r: { charge: unknown | null; complete: boolean }): "adotar" | "falhar" | "tentar_depois" {
+  if (r.charge) return "adotar";
+  return r.complete ? "falhar" : "tentar_depois";
 }
 
 const LIST_MAX_PAGES = 10;

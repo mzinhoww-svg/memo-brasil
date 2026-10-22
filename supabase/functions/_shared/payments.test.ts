@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { AbacateError, checkPixCharge, createPixCharge, getPixCharge, listPixCharges, refundCharge, simulatePixPayment, type AbacateConfig } from "./abacatepay";
 import { verifyWebhookRequest } from "./payments-webhook-auth";
-import { chargeMatchesOrder, findChargeForOrder, mapProviderStatus, refundBlocker } from "./payments-status";
+import { chargeMatchesOrder, findChargeForOrder, mapProviderStatus, refundBlocker, unattachedAction } from "./payments-status";
 
 // Chaves fictícias, só para teste (nunca chaves reais).
 const DEV_KEY = "abc_dev_TESTE_fake_0000000000";
@@ -416,5 +416,32 @@ describe("refundBlocker (payments-refund, Ruling 16)", () => {
   });
   it("sem a cobrança (antes da reconsulta) só confere o pedido", () => {
     expect(refundBlocker({ ...base, status: "pago" })).toBeNull();
+  });
+  it("PAID divergente (needs_refund em pedido ainda não pago): liberado, inclusive com o valor divergente do provedor", () => {
+    for (const status of ["criado", "pendente", "expirado", "falhou", "cancelado"] as const) {
+      expect(refundBlocker({ ...base, status, needs_refund: true }, paid), status).toBeNull();
+      expect(refundBlocker({ ...base, status, needs_refund: true }, { ...paid, amount: 18800 }), `${status} valor divergente`).toBeNull();
+    }
+  });
+  it("needs_refund não dispensa a reconsulta: PAID, mesma cobrança, identidade e ambiente", () => {
+    const o = { ...base, status: "pendente" as const, needs_refund: true };
+    expect(refundBlocker(o, { ...paid, status: "PENDING" })).toBe("cobranca_nao_paga");
+    expect(refundBlocker(o, { ...paid, id: "pix_char_outra" })).toBe("cobranca_nao_confere");
+    expect(refundBlocker(o, { ...paid, externalId: undefined })).toBe("cobranca_nao_confere");
+    expect(refundBlocker(o, { ...paid, devMode: false })).toBe("cobranca_nao_confere");
+    expect(refundBlocker({ ...o, provider_charge_id: null }, paid)).toBe("estado_invalido");
+    expect(refundBlocker({ ...base, status: "em_disputa", needs_refund: true }, paid)).toBe("estado_invalido");
+  });
+});
+
+describe("unattachedAction (payments-reconcile, pedido 'criado' sem cobrança)", () => {
+  it("adota a cobrança encontrada", () => {
+    expect(unattachedAction({ charge: { id: "pix_x" }, complete: true })).toBe("adotar");
+  });
+  it("só falha o pedido quando a busca viu a lista inteira", () => {
+    expect(unattachedAction({ charge: null, complete: true })).toBe("falhar");
+  });
+  it("busca incompleta (cursor parado ou limite de páginas): tenta de novo na próxima rodada, sem falhar", () => {
+    expect(unattachedAction({ charge: null, complete: false })).toBe("tentar_depois");
   });
 });
