@@ -31,3 +31,9 @@ Não mudar Root Directory/framework do projeto antes da promoção: o legado em 
 - Falha crítica após a promoção: `npx vercel --scope mzinhoww-gmailcoms-projects rollback dpl_CX5GuvrnNSgjySpjBPpEGpX6hbKD` (ou Promote no deployment anterior). A reversão é instantânea e não mexe no banco.
 - Migrations são aditivas e ficam aplicadas: o app legado ignora as tabelas novas. Não reverter migrations em produção; se necessário, corrigir à frente.
 - Eventos sintéticos criados no teste de fumaça: excluir pela própria UI do organizador.
+
+## 5. Atualização 2026-10-22 (rodada 5)
+- **Caminho operacional vigente:** deploy manual por API (seção 1), no projeto `newmemocuiaba` (login Google funciona nos previews dele) ou no `memoriesmt-v2` (rotas/backend; o login exige `OPS-A5-001`). Previews homologados: `dpl_59rEWBMxuud3m9STBssRUtd9hgic` e `dpl_HpaBRySf9RzetNukhku4JUMfHTRL`, SHA `975a49c`.
+- **Push → deploy:** o projeto `memoriesmt-v2` está ligado a `memo-brasil` e recebe o push, mas a Vercel Hobby bloqueia (`BLOCKED`) quando o autor do commit não pertence ao time. Intervenção do dono: verificar o e-mail do autor na conta GitHub `mzinhoww-svg`.
+- **Flags de build:** `NEXT_PUBLIC_MM_DEV_TOOLS` e `NEXT_PUBLIC_MM_TEST_CLOCK` só existem no build de E2E; nunca configurá-las na Vercel.
+- Produção segue o app legado; nada foi promovido. Rollback: seção 4, inalterada.

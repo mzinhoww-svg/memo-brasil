@@ -1,5 +1,8 @@
 # Retomar A.5
 
+## Rodada 5 (22/10/2026) — leia primeiro
+Parecer **NO-GO operacional por um único requisito**: texto jurídico final/retenção (as páginas seguem como rascunho). SHA `975a49c`; previews `dpl_HpaBRySf9RzetNukhku4JUMfHTRL` (memoriesmt-v2) e `dpl_59rEWBMxuud3m9STBssRUtd9hgic` (newmemocuiaba, fluxo autenticado). Provado: login Google, aceite, evento Festa, QR, convidado, upload, cron real de revelação, galeria, download, bloqueio de não membro, Master, chave removida da Vercel, telas sem itens de homologação. Abertos: texto jurídico/retenção (operador), INF-005 (e-mail do autor do commit no GitHub), OPS-A5-001 (Redirect URLs do Auth para memoriesmt-v2), PITR e limpeza (adiados). Detalhes: `../supabase/A5-HOMOLOGATION-REPORT.md` (Rodada 5). B, Codex e C seguem **não iniciados**; AppLlama/AbacatePay têm planejamento próprio.
+
 ## Rodada 3 (22/10/2026) — leia primeiro
 Parecer **NO-GO operacional**; SHA `26d9674`, preview `dpl_25h3hDg1NjF7Q6bhe3fwqfBRSr1m`. Feito: migration `_1100` aplicada no remoto, `purge-storage` v2, alerta em `/master/saude`, contato nos textos. **Falta:** (1) `SUPABASE_SERVICEROLE_KEY` ainda aparece em Production nos metadados (reconferir após o operador remover); (2) o dono escolhe a conta Google do organizador para o fluxo remoto sintético e o cron real; (3) revisão jurídica e retenção; (4) iPhone/Safari e Android/Chrome. Detalhes: `../supabase/A5-HOMOLOGATION-REPORT.md` (Rodada 3). B, Codex e C seguem **não iniciados**.
 

@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P3 51. Status: BACKLOG 96, BLOCKED 6, CANCELLED 2, DEFERRED 11, DONE 62, IN_REVIEW 25, READY 11.
+Total: **217** itens (sem contar 19 épicos). Prioridade: P0 37, P1 71, P2 56, P3 53. Status: BACKLOG 98, BLOCKED 6, CANCELLED 2, DEFERRED 12, DONE 63, IN_REVIEW 25, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -504,8 +504,10 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| INF-004 | BUG | Variável SUPABASE_SERVICEROLE_KEY (sensível) no ambiente Production da Vercel | P1 | BLOCKED | - | A.4 2026-10-21 | - | remoto |
+| INF-004 | BUG | Variável SUPABASE_SERVICEROLE_KEY (sensível) no ambiente Production da Vercel | P1 | DONE | - | A.4 2026-10-21 | 975a49c8ea026c4e98f704b7a085f2039649a68d | remoto (Vercel Production) |
 | INF-005 | TASK | Preview por API exige rootDirectory=web e framework=nextjs | P2 | IN_REVIEW | REL-001 | A.4 2026-10-21 | - | remoto |
+| OPS-A5-001 | BUG | Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs | P1 | BLOCKED | - | A.5 rodada 5 2026-10-22 | - | remoto |
+| OPS-A5-002 | FEATURE | Backup gerenciado e PITR do projeto Supabase | P1 | DEFERRED | - | A.5 rodada 5 2026-10-22 | - | remoto |
 | QAV-004 | TASK | Limpar usuários e dados de teste do remoto | P3 | BLOCKED | SCV-010 | A.4 2026-10-21 | - | remoto |
 | SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 5374f89 | local-supabase |
 | SCV-002 | FEATURE | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG | EST-004, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
@@ -517,6 +519,8 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 | SCV-008 | FEATURE | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP | P0 | IN_REVIEW | SCV-003 | revisão independente A1–A5 2026-10-21 | 23af55c | local-supabase |
 | SCV-009 | FEATURE | purge-storage: responder não-2xx quando falhas>0 e alertar fila parada | P2 | IN_REVIEW | SCV-004 | etapa A.3.5 2026-10-21 | c0fd33b43bc201cacb6eb652d6e6541e75f6911b | remoto: função v2 publicada; falha real não exercida |
 | SCV-010 | BUG | Auth remoto com login e-mail/senha e cadastro abertos | P1 | DONE | - | A.4 2026-10-21 | c0fd33b43bc201cacb6eb652d6e6541e75f6911b | supabase-remoto |
+| UI-A5-001 | BUG | Nome do organizador aparece duplicado no wizard em um navegador | P3 | BACKLOG | - | A.5 rodada 5 2026-10-22 | - | remoto |
+| UI-A5-002 | BUG | Texto repetido em Configurações: 'Revelação programada' como título e rótulo | P3 | BACKLOG | - | A.5 rodada 5 2026-10-22 | - | remoto |
 
 **SCV-001** critérios: RLS; testes de escalada de privilégio · testes: pgTAP 366/366 local, pgTAP 385/385; adaptador 13/13
 
@@ -536,11 +540,17 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 
 **SCV-009** critérios: Falha de Storage gera status não-2xx visível em net._http_response; admin_health sinaliza fila com item mais antigo que 2 h · testes: docs/supabase/evidence/a5-20261021/purge-green.txt, docs/supabase/evidence/a5-20261021/purge-red.txt, docs/supabase/evidence/a5-20261021/unit-final.txt, web/src/lib/master/health-alerts.test.ts (5)
 
-**INF-004** critérios: Variável removida de Production ou justificada por escrito; Nenhuma service_role em Preview/Production do MemoriesMT
-
 **INF-005** critérios: Push da branch gera preview com o app de web/ sem parâmetros manuais
 
 **QAV-004** critérios: Remoto sem usuários/objetos de teste; backup anterior guardado
+
+**OPS-A5-001** critérios: Login Google em preview do memoriesmt-v2 volta para /auth/callback do próprio preview; Redirect URLs estreitas: só domínios necessários, sem curinga amplo
+
+**OPS-A5-002** critérios: PITR ativo ou decisão registrada de manter só backup manual antes de cada evento; Restauração do Storage por API testada
+
+**UI-A5-001** critérios: Reproduzir (Chrome com autofill) e corrigir com regressão mínima, ou fechar como não reproduzível
+
+**UI-A5-002** critérios: Título e rótulo distintos ou um deles removido, sem quebrar os testes de acessibilidade
 
 ## EP-17 · QA v2 (BACKLOG)
 

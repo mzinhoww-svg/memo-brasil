@@ -6,14 +6,13 @@
 
 Homologação real concluída e V1 em produção (Google OAuth, callback, variáveis de Production, smoke público).
 
-Itens abertos: **11** · P0 1, P1 6, P2 3, P3 1 · BACKLOG 4, BLOCKED 5, IN_REVIEW 1, READY 1
+Itens abertos: **10** · P0 1, P1 5, P2 3, P3 1 · BACKLOG 4, BLOCKED 4, IN_REVIEW 1, READY 1
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
 | SB-008 | P0 | BLOCKED | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | SB-003, SB-004, REL-001 |
 | BG-071 | P1 | BACKLOG | Outbox de sincronização offline ainda é só desenho | AUD-001, ITG-102 |
 | INF-001 | P1 | READY | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh  | - |
-| INF-004 | P1 | BLOCKED | Variável SUPABASE_SERVICEROLE_KEY (sensível) no ambiente Production da Vercel | - |
 | REL-001 | P1 | BLOCKED | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | - |
 | SB-005 | P1 | BACKLOG | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | SB-003 |
 | SB-006 | P1 | BACKLOG | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexã | SB-002 |
@@ -26,7 +25,7 @@ Itens abertos: **11** · P0 1, P1 6, P2 3, P3 1 · BACKLOG 4, BLOCKED 5, IN_REVI
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **78** · P0 14, P1 14, P2 34, P3 16 · BACKLOG 45, BLOCKED 1, IN_REVIEW 24, READY 8
+Itens abertos: **82** · P0 14, P1 16, P2 34, P3 18 · BACKLOG 47, BLOCKED 2, DEFERRED 1, IN_REVIEW 24, READY 8
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -54,6 +53,8 @@ Itens abertos: **78** · P0 14, P1 14, P2 34, P3 16 · BACKLOG 45, BLOCKED 1, IN
 | MAD-003 | P1 | IN_REVIEW | Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações | MAD-001, MAD-002, ANL-001 |
 | MAD-004 | P1 | BACKLOG | Acesso excepcional a foto privada por admin com justificativa e auditoria | MAD-002 |
 | MAD-005 | P1 | BACKLOG | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | MAD-003 |
+| OPS-A5-001 | P1 | BLOCKED | Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs | - |
+| OPS-A5-002 | P1 | DEFERRED | Backup gerenciado e PITR do projeto Supabase | - |
 | QAV-003 | P1 | IN_REVIEW | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e per | EST-004, SCV-008 |
 | SCV-004 | P1 | IN_REVIEW | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
 | SCV-006 | P1 | IN_REVIEW | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
@@ -94,6 +95,8 @@ Itens abertos: **78** · P0 14, P1 14, P2 34, P3 16 · BACKLOG 45, BLOCKED 1, IN
 | UXA-127 | P2 | BACKLOG | Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fon | EST-004 |
 | ARQ-001 | P3 | BACKLOG | Consolidar duplicações: limites de upload compartilhados, useBrandImages com refresh, same | EST-004 |
 | PRF-002 | P3 | BACKLOG | Estudio: debounce do QR, validateTheme sem repetição, paletteCss em CSS estático, jszip so | PRF-001 |
+| UI-A5-001 | P3 | BACKLOG | Nome do organizador aparece duplicado no wizard em um navegador | - |
+| UI-A5-002 | P3 | BACKLOG | Texto repetido em Configurações: 'Revelação programada' como título e rótulo | - |
 | UXA-106 | P3 | BACKLOG | [Administrativa] /painel/[id]/convidados: Lista de convidados repetida: tabela 'Convidados | UXA-001 |
 | UXA-115 | P3 | BACKLOG | [Todas] Botão de texto (Voltar, Cancelar, Voltar ao início): Botão texto recuado 8px do ei | UXA-001 |
 | UXA-116 | P3 | BACKLOG | [Todas] Datas (cabeçalho, resumo, revelação): '21 · 10 · 2026' quebra entre os dígitos ('2 | UXA-001 |

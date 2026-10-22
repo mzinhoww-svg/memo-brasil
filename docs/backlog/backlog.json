@@ -5660,7 +5660,8 @@
    ],
    "evidence": [
     "A.5 r2: páginas /termos e /privacidade (rascunho), aceite obrigatório, record_consent auditado. NÃO atendido: revisão jurídica registrada e retenção definida; migration 20261022001100 ainda não aplicada no remoto",
-    "A.5 r3 (2026-10-22): migration 20261022001100 aplicada no remoto (list: local=remote; RLS ligada em legal_documents/user_consents; record_consent só authenticated; 2 documentos, 0 aceites). Contato mazinhoww@gmail.com nos dois textos (define contato; NÃO é revisão jurídica). Retenção: nenhuma decisão aprovada para a V2 (o 365 d de docs/deploy.md é do legado) — PENDENTE, sem prazo inventado"
+    "A.5 r3 (2026-10-22): migration 20261022001100 aplicada no remoto (list: local=remote; RLS ligada em legal_documents/user_consents; record_consent só authenticated; 2 documentos, 0 aceites). Contato mazinhoww@gmail.com nos dois textos (define contato; NÃO é revisão jurídica). Retenção: nenhuma decisão aprovada para a V2 (o 365 d de docs/deploy.md é do legado) — PENDENTE, sem prazo inventado",
+    "A.5 r5: o dono informou revisão jurídica e retenção como feitas, sem texto final, versão nem prazo. As páginas seguem marcadas como rascunho e dizem que a retenção será definida: nada foi publicado em legal_documents. Para fechar: o operador informa o texto final e o prazo; publicar versão nova (migration/DML de legal_documents + TERMS_VERSION/PRIVACY_VERSION) e remover o aviso de rascunho"
    ],
    "commit": null,
    "environment": null,
@@ -6458,7 +6459,8 @@
     "A.5 21/10/2026: Correção HTTP 500 local com regressão RED→GREEN e suíte 266/266; sem deploy remoto, alerta >2 h e teste de falha remota ainda pendentes.",
     "A.5 r2: purge-worker 4/4 e integração da purga 2/2 com o código atual; correção HTTP 500 ainda NÃO publicada no remoto (comando do operador em PUBLISH-AND-ROLLBACK.md); alerta >2 h segue aberto",
     "docs/supabase/A5-HOMOLOGATION-REPORT.md",
-    "A.5 r3 (2026-10-22): purge-storage v2 publicada (verify_jwt=false); HTTP: POST sem token 403, GET 405, token falso 403; fila vazia e jobs mm-* ativos. Alerta de fila >7200 s e demais gatilhos em /master/saude (web/src/lib/master/health-alerts.ts, vitest 5/5, sem DDL). NÃO provado: HTTP 500 em falha real de Storage (não se injeta falha em dado compartilhado) nem alerta exercido com fila parada real"
+    "A.5 r3 (2026-10-22): purge-storage v2 publicada (verify_jwt=false); HTTP: POST sem token 403, GET 405, token falso 403; fila vazia e jobs mm-* ativos. Alerta de fila >7200 s e demais gatilhos em /master/saude (web/src/lib/master/health-alerts.ts, vitest 5/5, sem DDL). NÃO provado: HTTP 500 em falha real de Storage (não se injeta falha em dado compartilhado) nem alerta exercido com fila parada real",
+    "A.5 r5: execuções reais do cron mm-reveal-due e mm-purge-storage `succeeded`; /master/saude autenticado mostra 6 jobs ativos, 0 atraso, sem alerta. Falha real de Storage não exercida (sem injeção em dado compartilhado)"
    ],
    "commit": "c0fd33b43bc201cacb6eb652d6e6541e75f6911b",
    "environment": "remoto: função v2 publicada; falha real não exercida",
@@ -6502,7 +6504,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P1",
-   "status": "BLOCKED",
+   "status": "DONE",
    "dependencies": [],
    "origin": "A.4 2026-10-21",
    "acceptance": [
@@ -6516,10 +6518,11 @@
     "A.5 r2: git grep SERVICEROLE/SERVICE_ROLE no commit de produção 3a8bf89 (fonte e bundles .next) sem ocorrência; nenhuma dependência do legado encontrada. Variável segue em Production (sensitive, valor não recuperável): remoção é decisão do dono",
     "docs/supabase/A5-HOMOLOGATION-REPORT.md",
     "filter_project_envs 2026-10-21: chave presente em production, tipo sensitive",
-    "A.5 r3 (2026-10-22): operador informou remoção, mas filter_project_envs de 2026-10-22 ainda lista SUPABASE_SERVICEROLE_KEY em production (id CPm04k6Py9oib7U5, sensitive, updatedAt inalterado). Remoção NÃO confirmada por metadados; item permanece BLOCKED"
+    "A.5 r3 (2026-10-22): operador informou remoção, mas filter_project_envs de 2026-10-22 ainda lista SUPABASE_SERVICEROLE_KEY em production (id CPm04k6Py9oib7U5, sensitive, updatedAt inalterado). Remoção NÃO confirmada por metadados; item permanece BLOCKED",
+    "A.5 r5 (2026-10-22): filter_project_envs por metadados (sem ler valores): Production lista só NEXT_PUBLIC_MM_BACKEND, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY e NEXT_PUBLIC_SUPABASE_URL; SUPABASE_SERVICEROLE_KEY ausente (antes presente, id CPm04k6Py9oib7U5). Remoção feita pelo dono. Rotação da chave fica a critério do dono (sem indício de exposição)"
    ],
-   "commit": null,
-   "environment": "remoto",
+   "commit": "975a49c8ea026c4e98f704b7a085f2039649a68d",
+   "environment": "remoto (Vercel Production)",
    "release": "R1"
   },
   {
@@ -6544,7 +6547,8 @@
     "A.5 21/10/2026: Framework do projeto null; escopo Vercel negou listagem/logs com 403; Git integration/rootDirectory/preview automático por push não homologados.",
     "A.5 r2: preview por API com rootDirectory=web e framework=nextjs reproduzido (dpl_2v3GF6rj… ca7a274; dpl_B91ajh2Q… 8ea3518, READY, /entrar 200 x-matched-path). Procedimento em PUBLISH-AND-ROLLBACK.md. Push→deploy automático segue não homologado",
     "docs/supabase/A5-HOMOLOGATION-REPORT.md",
-    "dpl_AQwY… vazio; dpl_2v3G… correto"
+    "dpl_AQwY… vazio; dpl_2v3G… correto",
+    "A.5 r5: causa raiz: o projeto newmemocuiaba está ligado ao repositório mzinhoww-svg/newmemocuiaba (não ao memo-brasil). Criado memoriesmt-v2 (prj_udH3tmy4ZU5vAEIPVH61UVP6GEgs) ligado a memo-brasil, raiz web, Next.js, SSO em todos os domínios, backend Supabase em Preview. Push dispara deploy sozinho (dpl_6VKc7…, dpl_FGfLR…) mas a Vercel Hobby os BLOQUEIA porque o autor do commit (e-mail do yahoo) não pertence ao time. Intervenção do dono: associar/verificar esse e-mail na conta GitHub mzinhoww-svg (Settings → Emails) ou commitar com e-mail já associado; depois um push de teste. Caminho operacional documentado até lá: deploy manual por API (PUBLISH-AND-ROLLBACK.md). Não se alterou autoria nem histórico"
    ],
    "commit": null,
    "environment": "remoto",
@@ -6575,6 +6579,100 @@
    "commit": null,
    "environment": "remoto",
    "release": "R1"
+  },
+  {
+   "type": "BUG",
+   "epic": "EP-16",
+   "parent": null,
+   "dependencies": [],
+   "origin": "A.5 rodada 5 2026-10-22",
+   "files": [],
+   "tests": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R2",
+   "id": "OPS-A5-001",
+   "title": "Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs",
+   "description": "Login Google em memoriesmt-v2-*.vercel.app volta para o Site URL (newmemocuiaba.vercel.app, app legado) porque o domínio não está nas Redirect URLs do Supabase Auth. Necessário para o fluxo autenticado no projeto novo.",
+   "priority": "P1",
+   "status": "BLOCKED",
+   "acceptance": [
+    "Login Google em preview do memoriesmt-v2 volta para /auth/callback do próprio preview",
+    "Redirect URLs estreitas: só domínios necessários, sem curinga amplo"
+   ],
+   "evidence": [
+    "A.5 r5: navegação Google→callback em memoriesmt-v2-1xq3b4zig terminou em newmemocuiaba.vercel.app/?code=…. Alterar Auth exige autorização do dono; homologação autenticada feita no projeto antigo no mesmo SHA"
+   ]
+  },
+  {
+   "type": "FEATURE",
+   "epic": "EP-16",
+   "parent": null,
+   "dependencies": [],
+   "origin": "A.5 rodada 5 2026-10-22",
+   "files": [],
+   "tests": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R2",
+   "id": "OPS-A5-002",
+   "title": "Backup gerenciado e PITR do projeto Supabase",
+   "description": "supabase backups list: pitr_enabled=false, backups=[]. Só existe backup manual. Contratar/ativar PITR é decisão de plano e custo do dono.",
+   "priority": "P1",
+   "status": "DEFERRED",
+   "acceptance": [
+    "PITR ativo ou decisão registrada de manter só backup manual antes de cada evento",
+    "Restauração do Storage por API testada"
+   ],
+   "evidence": [
+    "A.5 r4/r5 (2026-10-22): leitura via CLI: pitr_enabled=false, walg_enabled=true, backups=[]. Mitigação: backup manual antes de cada evento (OPERATIONAL-RECOVERY.md)"
+   ]
+  },
+  {
+   "type": "BUG",
+   "epic": "EP-16",
+   "parent": null,
+   "dependencies": [],
+   "origin": "A.5 rodada 5 2026-10-22",
+   "files": [],
+   "tests": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R2",
+   "id": "UI-A5-001",
+   "title": "Nome do organizador aparece duplicado no wizard em um navegador",
+   "description": "Na primeira entrada com Google, o campo Seu nome mostrou 'Aurimar NogueiraAurimar'. O código usa full_name do Google sem concatenar; indício de autofill do Chrome em autocomplete=given-name. Não reproduzido por teste.",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "acceptance": [
+    "Reproduzir (Chrome com autofill) e corrigir com regressão mínima, ou fechar como não reproduzível"
+   ],
+   "evidence": [
+    "A.5 r4/r5: observado uma vez; segunda e terceira entradas sem duplicação"
+   ]
+  },
+  {
+   "type": "BUG",
+   "epic": "EP-16",
+   "parent": null,
+   "dependencies": [],
+   "origin": "A.5 rodada 5 2026-10-22",
+   "files": [],
+   "tests": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R2",
+   "id": "UI-A5-002",
+   "title": "Texto repetido em Configurações: 'Revelação programada' como título e rótulo",
+   "description": "Na tela de configurações do painel o título da seção e o rótulo do grupo repetem 'Revelação programada'.",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "acceptance": [
+    "Título e rótulo distintos ou um deles removido, sem quebrar os testes de acessibilidade"
+   ],
+   "evidence": [
+    "Captura docs/supabase/evidence/a5-r5/screens/desktop-24-configuracoes.png"
+   ]
   }
  ],
  "requirements": [

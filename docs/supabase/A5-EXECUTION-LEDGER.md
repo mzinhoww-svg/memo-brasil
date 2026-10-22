@@ -65,3 +65,16 @@ Ruling: não escolher conta Google no seletor — são várias identidades reais
 Ruling: alerta de purga na camada do app, sem nova migration — autorização remota cobria só `_1100` — custo: alerta só vale com o painel aberto, não notifica.
 Ruling: versão legal mantida `2026-10-21-rascunho` ao incluir contato — sem DML autorizado e 0 aceites — custo: publicar versão nova após revisão jurídica.
 - **Preview do candidato (r3):** `dpl_25h3hDg1NjF7Q6bhe3fwqfBRSr1m`, SHA `26d9674e47b1dfde7fd871063bfa5de19e4e2c97`, `newmemocuiaba-la9u9il5p-mzinhoww-gmailcoms-projects.vercel.app`.
+
+## Rodada 5 — corte final (22/10/2026)
+- [x] `_1200` aplicada após backup `20261022-0235`; cinco categorias provadas pela UI (Festa `N5585DH5`).
+- [x] `memoriesmt-v2` configurado; push cria deploy mas fica BLOCKED (autor do commit fora do time). INF-005 aberto.
+- [x] Telas: remoção de homologação, plural, moldura desktop; `public-surface` 4/4; 48 capturas locais + 3 remotas.
+- [x] Cron real revelou `5YXYRX57` às 07:14:00 UTC; galeria, download e bloqueio de não membro comprovados; QR decodificado.
+- [x] INF-004 DONE (chave ausente de Production por metadados).
+- [ ] A concluída — NÃO (requisito 7: texto jurídico final e retenção).
+
+Ruling: não trocar autoria/histórico para passar pela Vercel — o classificador negou e seria contornar a checagem — custo: push não gera preview utilizável até o dono associar o e-mail.
+Ruling: homologar o login autenticado no projeto antigo no mesmo SHA — Redirect URLs do Auth não incluem memoriesmt-v2 e alterar Auth não foi autorizado — custo: o login no projeto novo só funciona após OPS-A5-001.
+Ruling: GO só com requisito 7 aplicado — não invento texto, versão nem prazo jurídicos — custo: A fica NO-GO por um passo curto.
+- **Preview final:** SHA `975a49c8ea026c4e98f704b7a085f2039649a68d`; `dpl_HpaBRySf9RzetNukhku4JUMfHTRL` e `dpl_59rEWBMxuud3m9STBssRUtd9hgic`.
