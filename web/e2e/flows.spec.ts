@@ -52,7 +52,8 @@ test("cria evento grátis em 4 passos e chega em 'Evento criado'", async ({ page
   await expect(page.getByTestId("contador-previa")).toHaveText("10 FOTOS RESTANTES");
   await page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: /^24/ }).click();
   await expect(page.getByTestId("contador-previa")).toHaveText("24 FOTOS RESTANTES");
-  await expect(page.getByTestId("selo-plano")).toHaveText(["Plano Festa", "Plano Festa", "Plano Casamento"]);
+  // o selo vem do catálogo (listPublicPlans): no modo local só existe o Grátis, então nenhuma opção ganha selo
+  await expect(page.getByTestId("selo-plano")).toHaveCount(0);
   await expect(page.getByText(/galeria depois da festa/)).toHaveCount(0);
   await page.getByRole("button", { name: "Continuar" }).click();
 

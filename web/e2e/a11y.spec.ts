@@ -3,11 +3,11 @@ import { expect, test } from "@playwright/test";
 import { createViaWizard, openDemo, setTheme } from "./helpers";
 
 for (const width of [390, 1280]) {
-  test(`axe: 0 violações em /, /ajuda e /painel/[id] a ${width}px`, async ({ page }) => {
+  test(`axe: 0 violações em /, /precos, /ajuda, /painel/[id] e /painel/[id]/configuracoes a ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     const { id } = await createViaWizard(page, { title: "Axe" });
     const problems: string[] = [];
-    for (const route of ["/", "/ajuda", `/painel/${id}`]) {
+    for (const route of ["/", "/precos", "/ajuda", `/painel/${id}`, `/painel/${id}/configuracoes`]) {
       await page.goto(route);
       await page.locator("h1").first().waitFor();
       await page.evaluate(() => document.fonts.ready);
