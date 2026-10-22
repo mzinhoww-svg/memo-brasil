@@ -5,7 +5,6 @@ export const SHOTS_OPTIONS = [5, 10, 16, 24, 36, null] as const;
 export type Capacity = (typeof CAPACITY_OPTIONS)[number];
 export type Shots = (typeof SHOTS_OPTIONS)[number];
 
-export const FREE_GUEST_LIMIT = 10;
 export const MIN_DURATION_HOURS = 0.5; // término a pelo menos 30 minutos (REA F-17)
 
 export type CameraStyle = "original" | "vintage" | "preto-e-branco"; // ORIGINAL | VINTAGE | BLACK_WHITE

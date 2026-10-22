@@ -304,6 +304,32 @@ select ok(not exists (select 1 from public.admin_payment_divergences() d where d
   'needs_refund some das divergências depois do estorno');
 reset role;
 
+-- ===================================================== fix 2: sem auditoria repetida; disputa não é "reembolso em andamento"
+insert into public.payment_orders (id, event_id, host_id, plan_code, amount_cents, status, provider_env, provider_charge_id, idempotency_key, created_at, paid_at, needs_refund, refund_requested_at) values
+  ('00000000-0000-4000-8000-000000009d10', '00000000-0000-4000-8000-0000000009e4', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'cancelado', 'sandbox', 'pix_char_d10', gen_random_uuid(), now() - interval '1 day', null, false, null),
+  ('00000000-0000-4000-8000-000000009d11', '00000000-0000-4000-8000-0000000009e4', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'em_disputa', 'sandbox', 'pix_char_d11', gen_random_uuid(), now() - interval '1 day', now() - interval '1 day', false, now());
+set local role service_role;
+select is((public.payments_apply_status('00000000-0000-4000-8000-000000009d10', 'pix_char_d10', 'pago', 2900, true, 'webhook') ->> 'applied')::boolean, false,
+  'PAID em pedido cancelado: não aplicado');
+select public.payments_apply_status('00000000-0000-4000-8000-000000009d10', 'pix_char_d10', 'pago', 2900, true, 'reconcile');
+select public.payments_apply_status('00000000-0000-4000-8000-000000009d10', 'pix_char_d10', 'pago', 2900, true, 'reconcile');
+reset role;
+select is((select count(*)::int from public.audit_logs where action = 'payment.pago_ignorado_reembolsar' and detail ->> 'orderId' = '00000000-0000-4000-8000-000000009d10'), 1,
+  'PAID repetido em cancelado com needs_refund não grava nova auditoria');
+select is((select array_agg(outcome order by id) from public.payment_events where order_id = '00000000-0000-4000-8000-000000009d10'),
+  array['pago_ignorado_reembolsar', 'duplicado', 'duplicado'], 'PAID repetido vira duplicado');
+select is((select needs_refund from public.payment_orders where id = '00000000-0000-4000-8000-000000009d10'), true, 'needs_refund continua marcado');
+select tests.login('00000000-0000-4000-8000-0000000009c1', 'master');
+select is((select (d ->> 'refundInProgress')::boolean from public.admin_payment_divergences() d
+           where d ->> 'orderId' = '00000000-0000-4000-8000-000000009d11' and d ->> 'kind' = 'em_disputa'), false,
+  'pedido com reembolso solicitado que entrou em disputa não fica "em andamento"');
+select is((public.admin_payments_summary() ->> 'divergences')::int,
+  (select count(*)::int from public.admin_payment_divergences() d where not (d ->> 'refundInProgress')::boolean),
+  'disputa conta em "precisa de ação"');
+select ok((select (p ->> 'refundRequestedAt') is not null and p ->> 'status' = 'em_disputa' from public.admin_list_payments() p
+           where p ->> 'orderId' = '00000000-0000-4000-8000-000000009d11'), 'lista mostra a disputa com o reembolso solicitado');
+reset role;
+
 -- ===================================================== job de conciliação
 select ok(not exists (select 1 from cron.job where jobname = 'mm-payments-reconcile'), 'sem segredo no Vault: job não existe');
 select is(public.payments_schedule_reconcile(), false, 'sem segredo: não agenda');

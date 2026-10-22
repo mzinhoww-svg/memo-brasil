@@ -303,7 +303,9 @@ Qualquer outra transição é ignorada (no-op idempotente) e registrada em `paym
 - Código: `MMT-XXXX-XXXX` com alfabeto sem ambiguidade (`ABCDEFGHJKMNPQRSTUVWXYZ23456789`), 8 caracteres aleatórios de `gen_random_bytes`. Guardado só como `code_hash = encode(digest(upper(regexp_replace(code,'[^A-Za-z0-9]','','g')),'sha256'),'hex')`; `code_hint` = primeiros 8 caracteres (`MMT-7KQ4`).
 - `public.admin_create_code(p_plan text, p_max_uses int, p_expires_at timestamptz, p_note text) returns text`: só Master; nota de 3 a 200 caracteres; devolve o código inteiro **uma única vez**; audita sem o código.
 - `public.admin_list_codes() returns setof jsonb` e `public.admin_revoke_code(p_code_id uuid, p_reason text) returns void` (motivo 10–500).
-- `public.redeem_code(p_event uuid, p_code text) returns jsonb` (`authenticated`, só anfitrião): `{applied boolean, planCode, reason}` com `reason` ∈ `ok | ja_incluido | invalido | muitas_tentativas`.
+- `public.redeem_code(p_event uuid, p_code text) returns jsonb` (`authenticated`, só anfitrião): `{applied boolean, planCode, reason}` com `reason` ∈ `ok | ja_incluido | invalido | muitas_tentativas | evento_encerrado`.
+  - evento encerrado → `evento_encerrado` (Ruling 21): não conta como tentativa inválida e não consome uso;
+  - resgates do mesmo usuário serializados por `pg_advisory_xact_lock` antes da contagem de tentativas;
   - inexistente, expirado, esgotado e revogado → todos `invalido` (mesma resposta);
   - 5 `invalido` por usuário em 10 min → `muitas_tentativas` por 10 min (contagem em `audit_logs` ou tabela própria);
   - evento já com plano igual ou maior → `ja_incluido`, sem consumir uso;

@@ -86,7 +86,7 @@ begin
       'kind', d.kind, 'orderId', o.id, 'eventId', o.event_id, 'eventTitle', e.title, 'planCode', o.plan_code,
       'amountCents', o.amount_cents, 'status', o.status, 'providerChargeId', o.provider_charge_id,
       'needsRefund', o.needs_refund, 'refundRequestedAt', o.refund_requested_at,
-      'refundInProgress', o.refund_requested_at is not null and o.status <> 'estornado',
+      'refundInProgress', o.refund_requested_at is not null and o.status in ('pago', 'cancelado'), -- disputa/perda não se esconde
       'detectedAt', d.detected_at, 'occurrences', d.occurrences)
     from d join public.payment_orders o on o.id = d.order_id
     left join public.events e on e.id = o.event_id

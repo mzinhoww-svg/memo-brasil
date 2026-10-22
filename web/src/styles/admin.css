@@ -56,6 +56,11 @@
 .adm-eyebrow { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--apoio, #6B645C); margin-bottom: 4px; }
 .adm-history { margin: 0; padding: 0; list-style: none; font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
 .adm-sheet-nota { margin: 0; font-size: 14px; line-height: 1.45; }
+.adm-code-card { display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 12px; background: var(--adm-cabecalho); }
+.adm-code-card .adm-eyebrow { margin-bottom: 0; }
+.adm-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 26px; font-weight: 700; letter-spacing: 0.08em; overflow-wrap: anywhere; }
+.adm-code-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.adm-code-hint { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.04em; white-space: nowrap; }
 @media (max-width: 900px) {
   .adm-shell { grid-template-columns: 1fr; }
   .adm-side { position: static; height: auto; flex-direction: column; border-right: 0; border-bottom: 1px solid var(--adm-linha); }

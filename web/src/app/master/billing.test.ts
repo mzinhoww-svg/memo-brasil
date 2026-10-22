@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MODULES } from "./modules";
 import {
-  brl, canRefund, chargeHint, lastChange, divergenceText, envLabel, orderStatus, parseBrl, planPreview, reasonError, REASON_MAX, REASON_MIN,
+  brl, canRefund, refundFailureText, chargeHint, lastChange, divergenceText, envLabel, orderStatus, parseBrl, planPreview, reasonError, REASON_MAX, REASON_MIN,
 } from "./billing";
 
 describe("dinheiro", () => {
@@ -44,6 +44,8 @@ describe("rótulos", () => {
     expect(orderStatus({ status: "cancelado", refundRequestedAt: "2026-10-22T10:00:00Z" })).toEqual({ label: "reembolso em andamento", tone: "aviso" });
     expect(orderStatus({ status: "em_disputa", refundRequestedAt: null })).toEqual({ label: "em disputa", tone: "erro" });
     expect(orderStatus({ status: "estornado", refundRequestedAt: "x" }).label).toBe("estornado");
+    expect(orderStatus({ status: "em_disputa", refundRequestedAt: "x" })).toEqual({ label: "em disputa", tone: "erro" });
+    expect(orderStatus({ status: "perdido", refundRequestedAt: "x" }).label).toBe("perdido");
   });
   it("cobrança abreviada", () => {
     expect(chargeHint("pix_char_abcdef0123456789c1")).toBe("pix_char_…9c1");
@@ -78,9 +80,19 @@ describe("última alteração de preço", () => {
   });
 });
 
+describe("falha do reembolso", () => {
+  it("cobrança que já não está paga no provedor tem texto próprio", () => {
+    const t = "A AbacatePay já não mostra a cobrança como paga; a conciliação atualiza em até 5 minutos.";
+    expect(refundFailureText("cobranca_nao_paga")).toBe(t);
+    expect(refundFailureText("cobranca_nao_confere")).toBe(t);
+    expect(refundFailureText("provedor_indisponivel")).toMatch(/Solicitação registrada/);
+    expect(refundFailureText(undefined)).toMatch(/Solicitação registrada/);
+  });
+});
+
 describe("módulos do console", () => {
   it("inclui Pagamentos e Planos e preços", () => {
-    expect(MODULES).toHaveLength(14);
+    expect(MODULES).toHaveLength(15);
     expect(MODULES).toEqual(expect.arrayContaining([{ rota: "pagamentos", rotulo: "Pagamentos" }, { rota: "planos", rotulo: "Planos e preços" }]));
   });
 });
