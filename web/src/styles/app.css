@@ -109,3 +109,54 @@
 .app-contador .display { font-variant-numeric: tabular-nums; }
 .app-passos { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: var(--space-2); font-size: 17px; line-height: 1.4; }
 .app-convite { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); font-size: 17px; line-height: 1.4; }
+
+/* COM-006: página de plano e checkout Pix (B1-B9) */
+.plano-pagina { display: flex; flex-direction: column; gap: var(--space-4); max-width: 1040px; }
+.plano-eyebrow { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--apoio); }
+.plano-escolha, .plano-estado { display: flex; flex-direction: column; gap: var(--space-4); max-width: 520px; }
+.plano-colunas { display: flex; flex-direction: column; gap: var(--space-6); }
+@media (min-width: 900px) { .plano-escolha { max-width: none; } .plano-colunas { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: var(--space-8); } .plano-resumo { position: sticky; top: var(--space-4); } .plano-pix { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: var(--space-8); align-items: start; } .plano-estado:has(.plano-pix) { max-width: 880px; } }
+.plano-lista { display: flex; flex-direction: column; gap: var(--space-2); border: 0; padding: 0; margin: 0; }
+.plano-card { position: relative; display: flex; align-items: center; gap: var(--space-3); min-height: var(--size-alvo); padding: var(--space-3) var(--space-4); border: 1.5px solid var(--borda-controle); border-radius: var(--radius-panel); background: var(--fundo); cursor: pointer; }
+.plano-card[data-selected] { border-width: 2px; border-color: var(--tinta); background: var(--neutro); }
+.plano-card[data-disabled] { cursor: default; color: var(--on-desabilitado); border-color: var(--borda); }
+.plano-card:focus-within { outline: 3px solid var(--foco); outline-offset: 2px; }
+.plano-radio { width: 24px; height: 24px; flex: none; accent-color: var(--tinta); }
+.plano-card-corpo { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.plano-card-titulo { font-weight: 700; font-size: 17px; }
+.plano-card-sub { font-size: 14px; color: var(--apoio); }
+.plano-badge { flex: none; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border: 1.5px solid var(--tinta); border-radius: var(--radius-pill); }
+.plano-links { display: flex; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; font-size: 15px; font-weight: 700; }
+.plano-links a, .plano-link { color: var(--tinta); text-decoration: underline; min-height: var(--size-alvo); display: inline-flex; align-items: center; background: none; border: 0; padding: 0; font: inherit; font-weight: 700; cursor: pointer; }
+.plano-trust { background: var(--evento-superficie); color: var(--evento-profundo); border-radius: var(--radius-panel); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.plano-trust-titulo { margin: 0; font-family: var(--font-serif); font-style: italic; font-size: 26px; line-height: 1.15; }
+.plano-trust-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); font-size: 17px; line-height: 1.35; }
+.plano-trust-lista li { display: flex; gap: var(--space-2); align-items: flex-start; }
+.plano-check { flex: none; margin-top: 2px; }
+.plano-cartao, .plano-codigo { background: var(--neutro); border-radius: var(--radius-panel); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.plano-codigo-topo { display: flex; justify-content: space-between; align-items: center; }
+.plano-codigo-linha { display: flex; gap: var(--space-2); align-items: flex-start; flex-wrap: wrap; }
+.plano-codigo-linha .mm-field { flex: 1; min-width: 180px; }
+.plano-codigo-linha .mm-btn { margin-top: 28px; }
+.plano-fechar { width: var(--size-alvo); height: var(--size-alvo); border: 0; background: none; font-size: 28px; line-height: 1; color: var(--tinta); cursor: pointer; }
+.plano-aviso { background: #FFF3D6; color: #5C3D00; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: 16px; line-height: 1.35; }
+.plano-erro { margin: 0; color: var(--rec-texto); font-weight: 600; }
+.plano-nota { font-size: 14px; text-align: center; }
+.plano-qr { display: grid; place-items: center; min-height: 260px; border: 1.5px solid var(--borda); border-radius: var(--radius-lg); padding: var(--space-4); background: #fff; }
+.plano-qr img { max-width: 100%; height: auto; image-rendering: pixelated; }
+.plano-copia { font: inherit; font-size: 14px; padding: 0 var(--space-3); height: var(--size-alvo); border: 1.5px solid var(--borda-controle); border-radius: var(--radius-md); background: var(--fundo); color: var(--tinta); width: 100%; box-sizing: border-box; }
+.plano-copia--oculta { position: absolute; left: -9999px; }
+.plano-espera { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); background: var(--neutro); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); flex-wrap: wrap; }
+.plano-aguardando { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-size: 14px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #7A4B00; }
+.plano-ponto { width: 8px; height: 8px; border-radius: 50%; background: #B7791F; }
+.plano-timer { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.plano-como { border: 1.5px solid var(--borda); border-radius: var(--radius-panel); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
+.plano-selo { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--neutro); font-size: 32px; }
+.plano-selo--erro { background: #FBE4E2; color: var(--rec-texto); }
+.plano-selo--aviso { background: #FFF1CC; color: #7A4B00; }
+.plano-recibo { margin: 0; background: var(--neutro); border-radius: var(--radius-panel); display: flex; flex-direction: column; }
+.plano-recibo > div { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--divisor); }
+.plano-recibo > div:last-child { border-bottom: 0; }
+.plano-recibo dt { font-size: 14px; color: var(--apoio); }
+.plano-recibo dd { margin: 0; font-weight: 700; font-size: 17px; }
+.plano-acoes { margin-top: var(--space-4); }

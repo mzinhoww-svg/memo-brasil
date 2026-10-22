@@ -15,6 +15,7 @@ import { AdminProvider } from "@/features/admin/context";
 
 const SECTIONS = [
   { slug: "", label: "Visão geral" },
+  { slug: "plano", label: "Plano" },
   { slug: "conteudo", label: "Conteúdo" },
   { slug: "convidados", label: "Convidados" },
   { slug: "momentos", label: "Momentos" },
