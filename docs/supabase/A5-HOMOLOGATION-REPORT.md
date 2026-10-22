@@ -1,6 +1,32 @@
 # A.5 — Homologação E2E — checkpoint de 21/10/2026
 
 
+## Rodada 4 (22/10/2026): fluxo remoto com `mazinhoww@gmail.com`, achados e pendências operacionais — parecer **NO-GO operacional**
+
+**Código:** `1117239efd37dd283fc9ea91b5a73417ad8122be` (push feito). **Preview:** `dpl_5f7JwTrDK7vhRnNJg4UVzza72MnD`, `newmemocuiaba-ifvr9b4fn-mzinhoww-gmailcoms-projects.vercel.app`, READY, SHA conferido. Itens que o dono mandou considerar feitos (variável da Vercel, revisão jurídica, retenção, aparelhos) **não foram reverificados** e seguem registrados como informados, não comprovados por mim.
+
+| Item | Resultado | Evidência |
+|---|---|---|
+| Login Google real (`mazinhoww@gmail.com`) no preview | **Executado** | seletor de contas → `/criar` autenticado |
+| Aceite + criação + personalização | **Executado** (Casamento, 1 h, Vintage/Oceano/Pinyon, 10 convidados, 5 fotos) | evento `5YXYRX57` no remoto; aceites `organizador` e `convidado` em `user_consents` |
+| Convite/código | **Executado** | tela "Evento criado" com código; QR não conferido visualmente |
+| Convidado anônimo + upload | **Executado** | entrada com aceite, foto enviada pelo fallback de arquivo (câmera simulada como indisponível; a permissão real de câmera não foi concedida), quota "restam 4 de 5"; foto `pronta` no banco |
+| Revelação pelo cron real | **PENDENTE** | `reveal_at` = 2026-10-22 07:13 UTC; conferir `revealed_at` e a galeria depois dessa hora |
+| Download autorizado | **PENDENTE** | depende da revelação |
+
+**Defeitos reais achados e corrigidos no código (commit `1117239`):**
+1. `events_category_check` recusava `festa`, `empresa` e `viagem` (3 de 5 categorias do wizard). O primeiro teste remoto com "Festa" falhou. Correção: migration `20261022001200_event_categories.sql` (relaxa o CHECK; mantém as do esquema) + pgTAP `05_event_categories` (RED: falharam 2–4; GREEN: 463/463). **A migration NÃO está aplicada no remoto**: o `db push` foi bloqueado pelo classificador (fora da autorização). Até lá, no remoto, só Casamento e Outro funcionam.
+2. A falha de gravação travava o botão "Criar" sem mensagem. `createEvent` agora devolve erro e a tela destrava (vitest `service.test.ts`; suíte 278/278, `tsc` 0, E2E 54 passaram).
+3. Pré-preenchimento do nome do organizador sai duplicado ("Aurimar NogueiraAurimar") com a conta Google: **não corrigido** (anotado).
+
+**Backup/PITR (leitura):** `supabase backups list`: `pitr_enabled:false`, `walg_enabled:true`, `backups:[]`. Não há backup gerenciado nem PITR; só o backup manual. Ativar PITR é decisão de plano/custo do dono.
+
+**Resíduos (QAV-004):** inventário: 4 contas `@memoriesmt.test`, 25 sessões anônimas anteriores a 22/10, 9 objetos órfãos em `event-photos`. Há também um evento com título de uso real ("Aurimar & Leticia") e a conta master, **fora do alvo**. Exclusão definitiva não foi executada (ação que não faço mesmo a pedido). Entregue `supabase/ops/cleanup_test_residues.sql` (dry-run + execução guardada, enfileira órfãos na fila de purga), validado no banco local: contou 1/1/1/1 e preservou master, evento real, anônima vinculada e a de hoje. Falta o operador rodar, após backup do dia.
+
+**INF-005 (deploy por push):** causa raiz: o projeto `newmemocuiaba` está ligado ao repositório `mzinhoww-svg/newmemocuiaba`, não ao `memo-brasil`; por isso push nunca disparou deploy. Criei o projeto `memoriesmt-v2` (`prj_udH3tmy4ZU5vAEIPVH61UVP6GEgs`) ligado a `memo-brasil`, raiz `web`, produção = `main`, sem deploy. Variáveis de Preview criadas: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. **Bloqueado pelo classificador:** `NEXT_PUBLIC_MM_BACKEND=supabase` (sem ela o build roda em modo local), framework `nextjs` e SSO "todos os domínios". Push→deploy **não comprovado** (0 deployments no projeto novo; o commit/push seguinte também foi bloqueado). Não promovi nada; a produção do `newmemocuiaba` não foi tocada.
+
+**Para o GO:** (a) aplicar `_1200` no remoto; (b) completar a configuração do `memoriesmt-v2` e provar um push→deploy; (c) conferir a revelação às 07:13 UTC e o download; (d) rodar a limpeza; (e) decidir PITR; (f) reconferir `SUPABASE_SERVICEROLE_KEY` em Production.
+
 ## Rodada 3 (22/10/2026): aplicação da migration, purga v2, alerta e preview atualizado — parecer **NO-GO operacional**
 
 **SHA candidato:** `26d9674e47b1dfde7fd871063bfa5de19e4e2c97` (branch `feat/memoriesmt-studio`). **Preview:** `dpl_25h3hDg1NjF7Q6bhe3fwqfBRSr1m`, `newmemocuiaba-la9u9il5p-mzinhoww-gmailcoms-projects.vercel.app` (SSO mantido), READY, `meta.githubCommitSha` igual ao SHA; `/termos` 200 com a V2, contato e título com um só sufixo. Produção intocada (legado `3a8bf89`, não promovida).
