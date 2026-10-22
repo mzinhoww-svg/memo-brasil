@@ -18,11 +18,11 @@
 
 -- ---------------------------------------------------------------- tolerância de lotação
 -- capacity_grace_pct vem de platform_settings (alterável no Master sem deploy, D4). Ausente, não numérico ou negativo
--- vale 0 (sem folga: falha fechada para a lotação). Devolve quantas vagas extras a capacidade ganha.
+-- vale 0 (sem folga: falha fechada para a lotação); acima de 100 vale 100. Devolve quantas vagas extras a capacidade ganha.
 create function public.capacity_grace_slots(p_capacity int) returns int
 language sql stable security definer set search_path = '' as $$
   select case when p_capacity is null then 0 else ceil(p_capacity * coalesce(
-    (select greatest((s.value #>> '{}')::numeric, 0) from public.platform_settings s
+    (select least(greatest((s.value #>> '{}')::numeric, 0), 100) from public.platform_settings s
       where s.key = 'capacity_grace_pct' and jsonb_typeof(s.value) = 'number'), 0) / 100.0)::int end
 $$;
 revoke execute on function public.capacity_grace_slots(int) from public, anon, authenticated, service_role;
@@ -36,31 +36,32 @@ declare
   was_revealed boolean;
   new_end timestamptz := public.event_end(new.start_at, new.duration_hours, new.ended_at);
   ev_id uuid;
-  cap_changed boolean := false;
-  shots_changed boolean := false;
+  cap_up boolean := false;
+  shots_up boolean := false;
   ent record;
 begin
-  -- COM-003: limites do plano efetivo. Só confere o campo cujo valor mudou (sempre no INSERT): editar outros campos de
-  -- um evento que ficou acima do plano (por exemplo, depois de um estorno) nunca é bloqueado.
+  -- COM-003: limites do plano efetivo. No INSERT confere sempre; no UPDATE só o campo que AUMENTA (ou vira null = sem
+  -- limite) em relação ao valor antigo. Editar outros campos ou reduzir um limite de um evento que ficou acima do plano
+  -- (por exemplo, depois de um estorno: 100 → 90 no grátis) nunca é bloqueado (ruling 7).
   if not privileged then
     if tg_op = 'INSERT' then
-      ev_id := new.id; cap_changed := true; shots_changed := true;
+      ev_id := new.id; cap_up := true; shots_up := true;
     else
       ev_id := old.id;
-      cap_changed := new.capacity is distinct from old.capacity;
-      shots_changed := new.shots_per_person is distinct from old.shots_per_person;
+      cap_up := old.capacity is not null and (new.capacity is null or new.capacity > old.capacity);
+      shots_up := old.shots_per_person is not null and (new.shots_per_person is null or new.shots_per_person > old.shots_per_person);
     end if;
-    if cap_changed or shots_changed then
+    if cap_up or shots_up then
       select * into ent from public.effective_entitlement(ev_id); -- uma linha ou MM090
       if tg_op = 'INSERT' then
         -- evento novo ainda não tem direito: o efetivo é o grátis. Sem limite informado, nasce com o do grátis.
         new.capacity := coalesce(new.capacity, ent.max_guests);
         new.shots_per_person := coalesce(new.shots_per_person, ent.max_shots);
       end if;
-      if cap_changed and ent.max_guests is not null and (new.capacity is null or new.capacity > ent.max_guests) then
+      if cap_up and ent.max_guests is not null and (new.capacity is null or new.capacity > ent.max_guests) then
         raise exception 'notentitled' using errcode = 'MM012';
       end if;
-      if shots_changed and ent.max_shots is not null and (new.shots_per_person is null or new.shots_per_person > ent.max_shots) then
+      if shots_up and ent.max_shots is not null and (new.shots_per_person is null or new.shots_per_person > ent.max_shots) then
         raise exception 'notentitled' using errcode = 'MM012';
       end if;
     end if;

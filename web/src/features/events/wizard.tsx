@@ -17,6 +17,8 @@ import { formatInZone, zoneLabel, type RevealErrors } from "@/domain/reveal";
 
 const STEPS = ["Nome", "Término", "Revelação", "Identidade", "Convidados", "Resumo"] as const;
 const DURATIONS = [1, 3, 6, 12, 24, 48];
+/** Padrões no limite do plano grátis (10/10): o servidor recusa acima do plano efetivo (COM-003, MM012). Task 12 redesenha. */
+export const WIZARD_DEFAULTS: { capacity: Capacity; shots: Shots } = { capacity: 10, shots: 10 };
 
 const toLocalInput = (ts: number) => {
   const d = new Date(ts - new Date(ts).getTimezoneOffset() * 60_000);
@@ -39,8 +41,8 @@ export function CreateWizard() {
   const [camera, setCamera] = useState<CameraStyle>("original");
   const [palette, setPalette] = useState<PaletteId>("salvia");
   const [font, setFont] = useState<EventFontId>("birthstone");
-  const [capacity, setCapacity] = useState<Capacity>(50);
-  const [shots, setShots] = useState<Shots>(24);
+  const [capacity, setCapacity] = useState<Capacity>(WIZARD_DEFAULTS.capacity);
+  const [shots, setShots] = useState<Shots>(WIZARD_DEFAULTS.shots);
   const [everyone, setEveryone] = useState(true);
   const [errors, setErrors] = useState<{ title?: string; host?: string; termino?: string; create?: string }>({});
   const [busy, setBusy] = useState(false);

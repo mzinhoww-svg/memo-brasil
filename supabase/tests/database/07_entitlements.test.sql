@@ -205,6 +205,16 @@ select tests.login('00000000-0000-4000-8000-0000000006a1');
 select lives_ok($$update public.events set title = 'Renomeado' where id = '00000000-0000-4000-8000-0000000006e7'$$,
   'edit_title_over_plan_allowed: só o título muda num evento acima do plano');
 select is((select title from public.events where id = '00000000-0000-4000-8000-0000000006e7'), 'Renomeado', 'título gravado');
+select lives_ok($$update public.events set capacity = 90 where id = '00000000-0000-4000-8000-0000000006e7'$$,
+  'host_can_lower_over_plan_capacity: 100 → 90 no grátis passa (ruling 7)');
+select lives_ok($$update public.events set shots_per_person = 16 where id = '00000000-0000-4000-8000-0000000006e7'$$,
+  'host_can_lower_over_plan_shots: 24 → 16 no grátis passa (ruling 7)');
+select results_eq($$select capacity, shots_per_person from public.events where id = '00000000-0000-4000-8000-0000000006e7'$$,
+  $$values (90, 16)$$, 'reduções acima do plano gravadas');
+select throws_ok($$update public.events set capacity = 95 where id = '00000000-0000-4000-8000-0000000006e7'$$,
+  'MM012', 'notentitled', 'acima do plano, voltar a subir (90 → 95) é recusado');
+select throws_ok($$update public.events set shots_per_person = null where id = '00000000-0000-4000-8000-0000000006e7'$$,
+  'MM012', 'notentitled', 'acima do plano, virar sem limite é recusado');
 reset role;
 
 -- chamador privilegiado (service_role; RPC security definer roda como o dono) não passa pela checagem MM012
@@ -237,6 +247,10 @@ select tests.login('00000000-0000-4000-8000-000000000711');
 select throws_ok(format($$select public.join_event(%L, 'Onze')$$, :'e6_code'), 'MM003', 'capacityfull',
   'tolerância lida de platform_settings: com 0% o 11º é recusado');
 reset role;
+update public.platform_settings set value = '250' where key = 'capacity_grace_pct';
+select is(public.capacity_grace_slots(10), 10, 'capacity_grace_pct acima de 100 é limitado a 100%');
+update public.platform_settings set value = '-5' where key = 'capacity_grace_pct';
+select is(public.capacity_grace_slots(10), 0, 'capacity_grace_pct negativo vale 0');
 update public.platform_settings set value = '10' where key = 'capacity_grace_pct';
 select tests.login('00000000-0000-4000-8000-000000000711');
 select is((public.join_event(:'e6_code', 'Onze') ->> 'role'), 'membro', 'grace_allows_eleventh: grátis com 10 participantes aceita o 11º');
