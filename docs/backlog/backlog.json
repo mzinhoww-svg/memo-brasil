@@ -6440,7 +6440,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P1",
-   "status": "BLOCKED",
+   "status": "DONE",
    "dependencies": [],
    "origin": "A.4 2026-10-21",
    "acceptance": [
@@ -6448,8 +6448,12 @@
     "Teste: POST /auth/v1/signup com e-mail recusado"
    ],
    "files": [],
-   "tests": [],
+   "tests": [
+    "POST /auth/v1/otp phone -> 400 phone_provider_disabled",
+    "POST /auth/v1/signup email -> 400 email_provider_disabled"
+   ],
    "evidence": [
+    "auth/v1/settings 2026-10-21: externos ativos = anonymous_users, google (A5-HOMOLOGATION-REPORT.md)",
     "config diff 2026-10-21: email habilitado"
    ],
    "commit": null,
