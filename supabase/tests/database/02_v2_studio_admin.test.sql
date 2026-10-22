@@ -20,6 +20,10 @@ begin -- o Storage bloqueia DELETE direto em storage.objects; o teste limpa como
   delete from storage.objects where bucket_id = 'event-branding';
   set local session_replication_role = origin;
 end $$;
+-- total real de settings (as migrations semeiam chaves; o teste não fixa quantas)
+create function tests.settings_total() returns int language sql security definer set search_path = '' as $$
+  select count(*)::int from public.platform_settings
+$$;
 create function tests.palette(p_texto text default '#3A4660') returns jsonb language sql as $$
   select jsonb_build_object('superficie', '#FFFFFF', 'grafismo', '#2DB7C9', 'controle', '#FF5A5F', 'texto', p_texto, 'profundo', '#10204A')
 $$;
@@ -460,7 +464,8 @@ select lives_ok($$select public.admin_set_feature_flag('master.experimental', fa
 select throws_ok($$select public.admin_set_feature_flag('Chave Inválida', true, '{}', 'chave com espaços e maiúsculas')$$, '23514', null, 'chave fora do formato');
 select throws_ok($$select public.admin_set_feature_flag('x.y', true, '[1]', 'rollout precisa ser objeto')$$, '23514', null, 'rollout não-objeto recusado');
 select throws_ok($$insert into public.platform_settings (key, value) values ('a.b', '1')$$, '42501', null, 'master não escreve setting direto (só RPC auditada)');
-select is((select count(*)::int from public.platform_settings), 1, 'master lê settings');
+select is((select count(*)::int from public.platform_settings), tests.settings_total(), 'master lê settings (todas, inclusive as semeadas por migration)');
+select is((select count(*)::int from public.platform_settings where key = 'limites.fotos'), 1, 'master lê a setting gravada');
 select is((select count(*)::int from public.feature_flags), 2, 'master lê todas as flags');
 reset role;
 select is((select count(*)::int from public.audit_logs where action in ('platform_settings.insert', 'platform_settings.update', 'feature_flags.insert') and reason is not null and actor_role = 'master'), 4, 'escritas de setting/flag auditadas com motivo');
@@ -474,7 +479,7 @@ select throws_ok($$update public.feature_flags set enabled = false$$, '42501', n
 select throws_ok($$select public.admin_set_feature_flag('studio.v2', false, '{}', 'convidado tentando desligar')$$, 'MM004', 'forbidden', 'convidado não usa RPC de flags');
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000000d1', false, 'support');
-select is((select count(*)::int from public.platform_settings), 1, 'support lê settings (somente leitura)');
+select is((select count(*)::int from public.platform_settings), tests.settings_total(), 'support lê settings (somente leitura)');
 select throws_ok($$select public.admin_set_setting('limites.fotos', '{"max":1}', 'support não altera configurações')$$, 'MM004', 'forbidden', 'support não altera settings');
 select throws_ok($$select public.admin_set_feature_flag('studio.v2', false, '{}', 'support não altera flags aqui')$$, 'MM004', 'forbidden', 'support não altera flags');
 reset role;
