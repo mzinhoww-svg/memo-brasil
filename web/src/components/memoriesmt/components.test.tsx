@@ -116,6 +116,12 @@ describe("Icon, Logo, CountBadge, Progress, Notice, DataList, PostCard", () => {
     render(<Progress label="Foto 2" status="62%" value={162} />);
     expect(screen.getByRole("progressbar", { name: "Foto 2" })).toHaveAttribute("aria-valuenow", "100");
   });
+  it("Progress sem valor é indeterminado: sem aria-valuenow fixo", () => {
+    render(<Progress label="Foto 1" status="Enviando…" />);
+    const bar = screen.getByRole("progressbar", { name: "Foto 1" });
+    expect(bar).not.toHaveAttribute("aria-valuenow");
+    expect(bar).toHaveAttribute("aria-busy", "true");
+  });
   it("Notice avisa como status", () => {
     render(<Notice text="Pôr do sol na areia em 10 minutos." />);
     expect(screen.getByRole("status")).toHaveTextContent("Pôr do sol");

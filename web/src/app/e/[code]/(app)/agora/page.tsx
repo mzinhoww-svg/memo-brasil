@@ -6,6 +6,7 @@ import { Button, Icon, LiveIndicator, Notice, PostCard } from "@/components/memo
 import { eventStatus, isRevealed, retrospectiveOpen } from "@/domain/event";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
 import { relativeTime, usePhotoUrls } from "@/features/app/hooks";
+import { CreateYourOwn } from "@/features/reveal/CreateYourOwn";
 import { WaitingReveal } from "@/features/reveal/WaitingReveal";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
@@ -54,6 +55,8 @@ export default function Agora() {
           <span>Revelação pendente: os convidados ainda não veem as fotos. Você vê tudo como anfitrião.</span>
         </div>
       ) : null}
+
+      {!pending && !viewer.host && <CreateYourOwn eventId={event.id} userId={user.id} />}
 
       {pending ? null : shown.length === 0 ? (
         <div className="app-empty">

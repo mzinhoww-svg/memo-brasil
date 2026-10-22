@@ -62,6 +62,10 @@
 .mm-progress-head .mm-progress-fila { color: var(--apoio); }
 .mm-progress-track { height: 8px; border-radius: var(--radius-pill); background: var(--divisor); overflow: hidden; }
 .mm-progress-fill { height: 8px; border-radius: var(--radius-pill); background: var(--acao); }
+.mm-progress-track { position: relative; }
+.mm-progress-fill--indeterminada { position: absolute; inset-block: 0; width: 40%; animation: mm-progress-vai 1.3s ease-in-out infinite; }
+@keyframes mm-progress-vai { from { left: -40%; } to { left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .mm-progress-fill--indeterminada { animation: none; left: 0; width: 100%; opacity: .5; } }
 .mm-progress--evento .mm-progress-head { font-size: 14px; }
 .mm-progress--evento .mm-progress-track { background: var(--evento-superficie); }
 .mm-progress--evento .mm-progress-fill { background: var(--evento-texto); }
