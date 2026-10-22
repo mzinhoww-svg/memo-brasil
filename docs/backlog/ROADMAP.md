@@ -25,7 +25,7 @@ Itens abertos: **10** · P0 1, P1 5, P2 3, P3 1 · BACKLOG 4, BLOCKED 4, IN_REVI
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **82** · P0 14, P1 16, P2 34, P3 18 · BACKLOG 47, BLOCKED 2, DEFERRED 1, IN_REVIEW 24, READY 8
+Itens abertos: **84** · P0 14, P1 16, P2 36, P3 18 · BACKLOG 47, BLOCKED 1, DEFERRED 3, IN_REVIEW 24, READY 9
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -53,8 +53,8 @@ Itens abertos: **82** · P0 14, P1 16, P2 34, P3 18 · BACKLOG 47, BLOCKED 2, DE
 | MAD-003 | P1 | IN_REVIEW | Console master: dashboard, eventos, usuários, organizadores, convites, storage, revelações | MAD-001, MAD-002, ANL-001 |
 | MAD-004 | P1 | BACKLOG | Acesso excepcional a foto privada por admin com justificativa e auditoria | MAD-002 |
 | MAD-005 | P1 | BACKLOG | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | MAD-003 |
-| OPS-A5-001 | P1 | BLOCKED | Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs | - |
 | OPS-A5-002 | P1 | DEFERRED | Backup gerenciado e PITR do projeto Supabase | - |
+| OPS-A5-003 | P1 | READY | Rotação de cópias de segurança manuais a cada ≤ 30 dias | - |
 | QAV-003 | P1 | IN_REVIEW | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e per | EST-004, SCV-008 |
 | SCV-004 | P1 | IN_REVIEW | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
 | SCV-006 | P1 | IN_REVIEW | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
@@ -78,6 +78,8 @@ Itens abertos: **82** · P0 14, P1 16, P2 34, P3 18 · BACKLOG 47, BLOCKED 2, DE
 | DSV-006 | P2 | BACKLOG | Sheet com fundo inert e trava de scroll; OptionGroup como radiogroup; legenda e rótulos po | DSV-002 |
 | EST-007 | P2 | BACKLOG | Tema com cores por modo (dia/noite) no Event Theme personalizado | EST-002 |
 | MAD-006 | P2 | BACKLOG | UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revoga | MAD-004, SCV-005 |
+| OPS-A5-004 | P2 | DEFERRED | Eventos anteriores a 22/10/2026 sem expiração automática | - |
+| OPS-A5-005 | P2 | DEFERRED | Pedidos de exclusão do titular em até 30 dias (processo manual) | - |
 | PRF-001 | P2 | BACKLOG | Bundle: import dinâmico do SDK Supabase e do qrcode; AppProvider fora do /master; rotas cl | QAV-001 |
 | SCV-001 | P2 | IN_REVIEW | Feature flags e platform_settings com escrita só do master | MAD-001 |
 | SCV-005 | P2 | IN_REVIEW | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava  | MAD-002 |
