@@ -17,7 +17,7 @@ describe("ContactEmail", () => {
     await new Promise((r) => setTimeout(r, 10));
     expect(screen.getByRole("link", { name: CONTACT_EMAIL })).toBeInTheDocument();
     unmount();
-    api.getPublicSettings.mockRejectedValue(new Error("x"));
+    api.getPublicSettings.mockImplementation(() => Promise.reject(new Error("x")));
     render(<ContactEmail />);
     await new Promise((r) => setTimeout(r, 10));
     expect(screen.getByRole("link", { name: CONTACT_EMAIL })).toBeInTheDocument();
