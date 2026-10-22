@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
-import { AdminNav, Breadcrumbs, Button, CountBadge, EventTheme, GoogleButton, Icon } from "@/components/memoriesmt";
+import { AdminNav, Breadcrumbs, Button, CountBadge, EventTheme, GoogleButton, Icon, Skeleton } from "@/components/memoriesmt";
 import { eventStatus } from "@/domain/event";
 import { LOCAL_ACTOR, can } from "@/domain/roles";
 import { computeRevealStatus } from "@/domain/reveal";
@@ -45,7 +45,7 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
   }, [evId, stored, computed, repos, authority, clock, reload]);
   const pending = useMemo(() => moderationQueue(data.photos).length, [data.photos]);
 
-  if (!ready || data.loading) return <main className="app-admin"><p className="app-admin-main app-muted">Abrindo o painel…</p></main>;
+  if (!ready || data.loading) return <main className="app-admin"><div className="app-admin-main"><Skeleton label="Abrindo o painel…" /></div></main>;
   if (data.access === "convite" && data.preview) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Só o anfitrião abre o painel.</h1><Button href={`/e/${data.preview.code}`} block>Entrar na festa</Button></div></main>;
   if (!data.event) {
     // na nuvem, sem a conta do organizador o servidor não devolve o evento: pedir o login é mais útil que "não existe"

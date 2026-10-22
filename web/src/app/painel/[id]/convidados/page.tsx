@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/lib/plural";
 import { useEffect, useState } from "react";
 import { Button, DataList, Sheet } from "@/components/memoriesmt";
 import { guestRanking, removeGuest } from "@/features/admin/service";
@@ -22,7 +23,7 @@ export default function Convidados() {
         <p className="app-p app-muted">Ninguém entrou ainda. Compartilhe o código <strong>{event.code}</strong> ou imprima os QR Codes.</p>
       ) : (
         <>
-          <DataList head={["Convidados", "Fotos"]} rows={rows.map((r) => ({ key: r.participant.userId, name: r.participant.name, kind: r.participant.tableLabel, value: String(r.photos), alert: r.photos === 0 }))} note={silent ? `${silent} ${silent === 1 ? "convidado ainda não postou" : "convidados ainda não postaram"}. Vale um aviso no Agora.` : undefined} />
+          <DataList head={["Convidados", "Fotos"]} rows={rows.map((r) => ({ key: r.participant.userId, name: r.participant.name, kind: r.participant.tableLabel, value: String(r.photos), alert: r.photos === 0 }))} note={silent ? `${silent} ${plural(silent, "convidado ainda não postou", "convidados ainda não postaram")}. Vale um aviso no Agora.` : undefined} />
           <section className="app-stack-sm" aria-labelledby="rem">
             <h2 id="rem" className="titulo-card app-h1">Remover da festa</h2>
             {rows.map((r) => (

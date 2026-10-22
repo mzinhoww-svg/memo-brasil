@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LiveIndicator, Notice, Progress, StatGrid, StatTile, Button } from "@/components/memoriesmt";
+import { LiveIndicator, Notice, Progress, StatGrid, StatTile, Button, Skeleton } from "@/components/memoriesmt";
 import { endAt } from "@/domain/event";
 import { computeRevealStatus, formatInZone, zoneLabel } from "@/domain/reveal";
 import { eventStats, type EventStats } from "@/features/admin/service";
@@ -15,7 +15,7 @@ export default function VisaoGeral() {
   const { event, now, photos, reactions, participants } = useAdmin();
   const [stats, setStats] = useState<EventStats | undefined>();
   useEffect(() => void eventStats(repos, event, now).then(setStats), [repos, event, now, photos, reactions, participants]);
-  if (!stats) return null;
+  if (!stats) return <Skeleton label="Carregando a visão geral…" />;
   const max = Math.max(1, ...stats.byMoment.map((m) => m.count));
   const live = stats.status === "ativo";
   const nf = (n: number) => n.toLocaleString("pt-BR");
