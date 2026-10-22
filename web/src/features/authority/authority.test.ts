@@ -48,7 +48,7 @@ describe("ITG-104: limites e relógio decididos pelo servidor", () => {
     if (!r.ok) throw new Error();
     expect(await postPhoto(failing("shot-limit"), r.event, ana, img, { moment: "O sim" }, NOW + 1)).toEqual({ ok: false, reason: "rolo" });
     expect(await postPhoto(failing("event-ended"), r.event, ana, img, { moment: "O sim" }, NOW + 1)).toEqual({ ok: false, reason: "encerrado" });
-    expect(await postPhoto(failing("unavailable"), r.event, ana, img, { moment: "O sim" }, NOW + 1)).toEqual({ ok: false, reason: "armazenamento" });
+    expect(await postPhoto(failing("unavailable"), r.event, ana, img, { moment: "O sim" }, NOW + 1)).toEqual({ ok: false, reason: "rede" }); // indisponível = rede: a tela tenta de novo
     expect(await repos.photos.count(r.event.id)).toBe(0);
   });
   it("lotação recusada no servidor vira 'lotado' na entrada", async () => {

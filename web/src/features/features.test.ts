@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { endAt } from "@/domain/event";
 import { computeRevealStatus } from "@/domain/reveal";
-import { createMemoryRepositories, type Repositories, type User } from "@/repositories";
+import { createMemoryRepositories, RepositoryError, StorageUnavailableError, type Repositories, type User } from "@/repositories";
 import { eventStats, moderate } from "./admin/service";
 import { seedDemoEvent } from "./demo/seed";
 import { createEvent, endEventNow, reconcileReveal, setEndIn, updateReveal, updateSettings, type EventInput } from "./events/service";
 import { inviteUrl, tableFromSearch } from "./invitations/links";
 import { joinEvent } from "./participants/service";
-import { loadFeed, postPhoto, react, usedShots } from "./photos/service";
+import { loadFeed, postPhoto, react, retryDelayMs, usedShots } from "./photos/service";
 
 const NOW = 1_800_000_000_000;
 const host: User = { id: "host", name: "Emy", createdAt: 1 };
@@ -359,5 +359,66 @@ describe("BG-113: escritas concorrentes não perdem atualização", () => {
     if (!q.ok) throw new Error();
     const racing = { ...repos, photos: { ...repos.photos, update: async () => { await repos.photos.remove(q.photo.id); return repos.photos.update(q.photo); } } } as typeof repos;
     await expect(moderate(racing, q.photo.id, "ocultar")).resolves.toBeUndefined();
+  });
+});
+
+describe("jornada do convidado: entrada e envio com falhas", () => {
+  const failing = (code: "rate-limited" | "forbidden" | "unavailable"): Repositories => {
+    const base = createMemoryRepositories();
+    return { ...base, events: { ...base.events, join: async () => { throw new RepositoryError(code, code); } } };
+  };
+  it("rate-limited, forbidden e falha de rede na entrada não viram 'código não confere'", async () => {
+    expect(await joinEvent(failing("rate-limited"), guest, "ABCD2345", "Ana", NOW)).toEqual({ ok: false, reason: "ocupado" });
+    expect(await joinEvent(failing("forbidden"), guest, "ABCD2345", "Ana", NOW)).toEqual({ ok: false, reason: "inativo" });
+    expect(await joinEvent(failing("unavailable"), guest, "ABCD2345", "Ana", NOW)).toEqual({ ok: false, reason: "rede" });
+  });
+
+  /** Repositório cujo envio de bytes falha `times` vezes com o erro dado e depois funciona. */
+  const flaky = (error: () => Error, times: number) => {
+    const base = createMemoryRepositories();
+    const state = { left: times };
+    const attach = base.photos.attach.bind(base.photos);
+    return { ...base, state, photos: { ...base.photos, attach: async (id: string, d: Parameters<typeof attach>[1]) => { if (state.left-- > 0) throw error(); return attach(id, d); } } } as Repositories & { state: { left: number } };
+  };
+  const makeEvent = async (r: Repositories, shots: EventInput["shotsPerPerson"]) => {
+    const c = await createEvent(r, host, { ...input, shotsPerPerson: shots }, NOW);
+    if (!c.ok) throw new Error();
+    return c.event;
+  };
+
+  it("queda de rede: a foto fica reservada e a nova tentativa usa a mesma photoId, descontando 1 do rolo", async () => {
+    const r = flaky(() => new RepositoryError("unavailable", "sem rede"), 2);
+    const e = await makeEvent(r, 5);
+    const meta = { moment: "O sim" };
+    const photoId = crypto.randomUUID();
+    expect(await postPhoto(r, e, guest, img, meta, NOW + 1, { photoId })).toEqual({ ok: false, reason: "rede" });
+    expect((await r.photos.get(photoId))?.uploadStatus).toBe("enviando"); // não apagou: a próxima tentativa continua dela
+    expect(await postPhoto(r, e, guest, img, meta, NOW + 2, { photoId, resume: true })).toEqual({ ok: false, reason: "rede" });
+    const done = await postPhoto(r, e, guest, img, meta, NOW + 3, { photoId, resume: true });
+    expect(done.ok && done.photo.id).toBe(photoId);
+    expect(await usedShots(r, e.id, guest.id)).toBe(1);
+    expect((await r.photos.listByEvent(e.id)).filter((p) => p.uploadStatus === "pronta")).toHaveLength(1);
+  });
+  it("nova tentativa da última foto do rolo não é barrada pela própria reserva", async () => {
+    const r = flaky(() => new RepositoryError("unavailable", "sem rede"), 0);
+    const e = await makeEvent(r, 5);
+    for (let i = 0; i < 4; i++) expect((await postPhoto(r, e, guest, img, { moment: "O sim" }, NOW + i)).ok).toBe(true);
+    r.state.left = 1;
+    const photoId = crypto.randomUUID();
+    expect(await postPhoto(r, e, guest, img, { moment: "O sim" }, NOW + 1, { photoId })).toEqual({ ok: false, reason: "rede" });
+    expect((await postPhoto(r, e, guest, img, { moment: "O sim" }, NOW + 2, { photoId, resume: true })).ok).toBe(true);
+  });
+  it("'verifique o espaço livre' só para erro de armazenamento; erro desconhecido é genérico e libera o rolo", async () => {
+    const quota = flaky(() => new StorageUnavailableError(), 1);
+    const e1 = await makeEvent(quota, 5);
+    expect(await postPhoto(quota, e1, guest, img, { moment: "O sim" }, NOW + 1)).toEqual({ ok: false, reason: "armazenamento" });
+    expect(await usedShots(quota, e1.id, guest.id)).toBe(0);
+    const odd = flaky(() => new Error("boom"), 1);
+    const e2 = await makeEvent(odd, 5);
+    expect(await postPhoto(odd, e2, guest, img, { moment: "O sim" }, NOW + 1)).toEqual({ ok: false, reason: "falha" });
+    expect(await usedShots(odd, e2.id, guest.id)).toBe(0);
+  });
+  it("tentativas automáticas em 2 s, 5 s e 15 s; depois só manual", () => {
+    expect([1, 2, 3, 4].map(retryDelayMs)).toEqual([2000, 5000, 15000, null]);
   });
 });

@@ -47,14 +47,20 @@ export interface EventData {
   photos: Photo[];
   reactions: Reaction[];
   counts: { mine: number; total: number };
+  /** Código do erro quando a PRIMEIRA leitura falhou (ex.: `rate-limited`); releituras que falham mantêm os dados na tela. */
+  error?: string;
   refresh: () => Promise<void>;
 }
+
+/** Releitura periódica do evento com a aba visível. */
+export const EVENT_POLL_MS = 45_000;
 
 /** Carrega o evento (por código ou id) já escopado ao papel da pessoa atual: o que ela não pode ver não chega aqui. */
 export function useEventData(key: { code?: string; id?: string }): EventData {
   const { repos, ready, user, now } = useApp();
   const userId = user?.id ?? null;
   const [state, setState] = useState<Omit<EventData, "refresh">>({ loading: true, access: "inexistente", event: undefined, preview: undefined, participants: [], photos: [], reactions: [], counts: { mine: 0, total: 0 } });
+  const [failure, setFailure] = useState<string | undefined>();
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -63,18 +69,39 @@ export function useEventData(key: { code?: string; id?: string }): EventData {
     };
   }, []);
 
-  const refresh = useCallback(async () => {
+  const loaded = useRef(false);
+  const read = useCallback(async () => {
     if (!ready) return;
     const k = key.code ? { code: key.code } : key.id ? { id: key.id } : undefined;
     const v = k ? await readEventScoped(repos, k, LOCAL_ACTOR(userId), now()) : undefined;
+    loaded.current = true;
     if (alive.current) setState({ loading: false, access: v?.access ?? "inexistente", event: v?.event, preview: v?.preview, participants: v?.participants ?? [], photos: v?.photos ?? [], reactions: v?.reactions ?? [], counts: v?.counts ?? { mine: 0, total: 0 } });
+    if (alive.current) setFailure(undefined);
   }, [repos, ready, key.code, key.id, userId, now]);
+  // a primeira leitura que falha vira erro tipado para a tela explicar; depois de carregada, falha de rede não derruba nada
+  const refresh = useCallback(() => read().catch((e: unknown) => {
+    if (loaded.current || !alive.current) return;
+    setFailure(e instanceof Error && "code" in e ? String((e as { code: unknown }).code) : "unavailable");
+  }), [read]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
-  return { ...state, refresh };
+  // Mantém o Agora e o painel vivos: volta para a aba e a cada 45 s com a aba visível (UX-10).
+  useEffect(() => {
+    if (!ready) return;
+    const visible = () => document.visibilityState === "visible";
+    const onVisible = () => { if (visible()) void refresh(); };
+    document.addEventListener("visibilitychange", onVisible);
+    const id = setInterval(() => { if (visible()) void refresh(); }, EVENT_POLL_MS);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(id);
+    };
+  }, [ready, refresh]);
+
+  return { ...state, loading: state.loading && failure === undefined, error: failure, refresh };
 }
 
 /** URLs para exibir as fotos (miniatura nas grades, inteira nas telas cheias); libera ao sair. */

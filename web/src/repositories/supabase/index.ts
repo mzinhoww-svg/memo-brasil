@@ -127,7 +127,7 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         const { theme, ...rest } = d as Row;
         const th = theme as Row | null;
         const t: ThemeSpec | undefined = th ? { preset: th.preset as string, colors: th.colors as ThemeSpec["colors"], font: th.font as ThemeSpec["font"], welcomeMessage: (th.welcomeMessage as string | null) ?? "", qrStyle: th.qrStyle as ThemeSpec["qrStyle"] } : undefined;
-        return { ...(rest as unknown as EventPreview), startAt: Date.parse(d.startAt as string), place: d.place ?? undefined, ...(t ? { theme: t } : {}) } as EventPreview;
+        return { ...(rest as unknown as EventPreview), startAt: Date.parse(d.startAt as string), place: d.place ?? undefined, revealAt: d.revealAt ? Date.parse(d.revealAt as string) : null, shotsPerPerson: (d.shotsPerPerson as number | null) ?? null, ...(t ? { theme: t } : {}) } as EventPreview;
       },
       counts: async (eventId) => {
         const d = ok(await sb.rpc("event_counts", { p_event: eventId })) as { mine: number; total: number };
@@ -217,7 +217,7 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       },
       attach: async (id, data) => {
         const r = await sb.storage.from(BUCKET).upload(pathOf(id), new Blob([data.bytes], { type: data.type }), { contentType: data.type, upsert: false });
-        if (r.error) throw toRepositoryError(r.error);
+        if (r.error && !/already exists|Duplicate/i.test(r.error.message)) throw toRepositoryError(r.error); // nova tentativa depois de a resposta se perder: os bytes já estão lá
       },
       finalize: async (id) => {
         ok(await sb.rpc("finalize_photo", { p_id: id }));
