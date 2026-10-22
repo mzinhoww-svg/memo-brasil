@@ -1,6 +1,25 @@
 # A.5 — Homologação E2E — checkpoint de 21/10/2026
 
 
+## Rodada 7 (22/10/2026): entrega final integrada — **candidato pronto, produção BLOQUEADA por permissão no remoto**
+
+Branch `feat/final-ui` (origin) integra, por merge e sem rebase: A (rodadas 5 e 6), produto (Tasks 2–8, 7, 7A, da sessão de pagamentos, `feat/product-production` HEAD `1a6c982`), UI das Tasks 9–14 e os scripts de operação. Projeto Vercel **original** `newmemocuiaba` religado ao repositório `mzinhoww-svg/memo-brasil`, Root Directory `web`, framework Next.js, branch de produção `main`. O `memoriesmt-v2` foi preservado e não é mais operacional.
+
+**Implementado (telas/funções):** home com proposta e 3 passos; `/exemplo` sem escrita no banco; `/ajuda`; `/precos` (catálogo vindo do servidor); rodapé público; assistente em 4 passos com plano e `/c/<código>`; painel com cartão Plano, aviso de lotação e checklist; configurações limitadas ao plano efetivo, código de presente e nome do anfitrião editável; página de plano e checkout Pix (B1–B9, estornado, em disputa); convite explicativo, pré-permissão de câmera, câmera/galeria, envio com nova tentativa e atualização periódica do Agora; confirmação ao remover; Master com Pagamentos, Planos e Códigos (15 módulos). Aceite em duas caixas, retenção de 90 dias e textos legais v1 preservados.
+
+**Evidências medidas no estado integrado (`feat/final-ui`):**
+- `vitest` 486/486; `tsc --noEmit` 0 erros; `eslint` 0 erros (12 avisos preexistentes).
+- Playwright padrão com build: **96 passaram, 38 pulados (exigem Supabase), 0 falhas**; axe 0 violações em `/`, `/precos`, `/ajuda`, `/painel/[id]`, configurações, plano e nos 4 passos do assistente a 390 e 1280 px.
+- Playwright em modo Supabase **local** (stack 554xx, Edge Functions reais, provedor AbacatePay **fake**): **29/29**, incluindo pagamento Pix até o plano ativo, retomada de pedido, Pix expirado, clique duplo, provedor fora, isolamento entre organizadores, 5 planos lidos do servidor e `payments_env=desligado`.
+- Defeitos reais achados e corrigidos nesta rodada: tela de postar ignorava o resultado do envio sob StrictMode (`useAlive`); teste de contagem do Pix dependia da carga da máquina (relógio fixo).
+- Backup `20261022-1902` (checksums 13/13): restaurado em Postgres descartável; schema 0 erros; dados públicos íntegros (6 eventos, 2 fotos, 32 perfis, 3 aceites, 4 documentos legais); os únicos erros são `auth.*`/`storage.*`, limite conhecido de um Postgres puro.
+
+**Impedimentos externos comprovados**
+1. **Migrations de produto no remoto (`20261022001400`…`001800`) NÃO aplicadas.** `supabase db push --linked --yes` foi negado pelo classificador de permissões nas duas sessões (`Protected-Scope IaC Apply`) e não foi contornado. Revisão feita: aditivas (sem DROP/TRUNCATE/DELETE de dados existentes); dry-run lista exatamente as cinco; o backfill cria um direito `legado` por evento existente copiando os limites atuais (não reduz direitos). Sem elas o remoto não tem `list_public_plans`, `get_public_settings`, `payments_quote`, `redeem_code` nem os campos novos de `event_preview`; portanto **não promovi**.
+2. **Credencial AbacatePay:** inexistente no ambiente e nos segredos do Supabase. O ciclo sandbox real não foi executado; só contra o fake. Cobrança pública permanece desligada (`payments_env='desligado'`).
+3. **Limite de entradas anônimas** do Supabase Auth: padrão 30 por hora por IP; só o painel altera (Authentication → Rate Limits). Evento com mais de 30 convidados no mesmo Wi-Fi/CGNAT é afetado.
+4. **Backup automatizado:** não há infraestrutura persistente com credenciais; a rotação segue como rotina do operador (`backup_and_rotate.sh`, ≥ a cada 30 dias). INF-005 (e-mail do autor dos commits) segue aberto; deploys por push ficam `BLOCKED` e o caminho é o deploy por API.
+
 ## Rodada 6 (22/10/2026): textos legais v1, aceite separado e retenção — parecer **GO operacional condicionado (uso acompanhado)**
 
 Código `67fef3ceeec9d6467b51a05b6d1cadc708b8c1f1` (push na branch `feat/memoriesmt-studio`, autoria dos commits inalterada). Preview manual `dpl_BGLvn1MhU1bSsbBWCteNNu92ik51` (memoriesmt-v2, READY, SHA conferido). O deploy disparado pelo push segue `BLOCKED` (INF-005, e-mail do autor; o operador está corrigindo; não contornado).
