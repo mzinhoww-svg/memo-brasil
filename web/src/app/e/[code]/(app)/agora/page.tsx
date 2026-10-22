@@ -13,6 +13,7 @@ import { MoreSheet, PhotoReactions } from "@/features/photos/components";
 import { avatarOf, tagFor, visionName } from "@/features/photos/labels";
 import { react, reportPhoto } from "@/features/photos/service";
 import { downloadPhoto, reactorsOf } from "@/features/photos/share";
+import { plural } from "@/lib/plural";
 
 export default function Agora() {
   const { repos } = useApp();
@@ -35,7 +36,7 @@ export default function Agora() {
       <div className="app-stack-sm">
         <div className="app-between">
           {live ? <LiveIndicator /> : <span className="eyebrow app-muted">Encerrado</span>}
-          {!pending && <span className="meta app-muted">{shown.length.toLocaleString("pt-BR")} fotos</span>}
+          {!pending && <span className="meta app-muted">{shown.length.toLocaleString("pt-BR")} {plural(shown.length, "foto", "fotos")}</span>}
         </div>
         <h1 className="titulo-tela app-h1">Agora</h1>
         <p className="app-p app-muted" style={{ fontFamily: "var(--font-evento)", fontSize: 30, lineHeight: 1.05, color: "var(--evento-profundo)" }}>{event.title}</p>

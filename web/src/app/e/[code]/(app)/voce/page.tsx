@@ -10,6 +10,7 @@ import { Button, Icon, Progress, Signature } from "@/components/memoriesmt";
 import { isRevealed, shotsLeft } from "@/domain/event";
 import { usePhotoUrls } from "@/features/app/hooks";
 import { useGuest } from "@/features/events/guest-context";
+import { devToolsEnabled } from "@/lib/dev-tools";
 
 export default function Voce() {
   const { event, user, now, photos, counts, isHost } = useGuest();
@@ -32,7 +33,7 @@ export default function Voce() {
       <section className="app-stack-sm" aria-labelledby="rolo">
         <h2 id="rolo" className="titulo-card app-h1">Seu rolo</h2>
         {total === null ? (
-          <p className="corpo app-p">Rolo ilimitado. Já são {counts.mine.toLocaleString("pt-BR")} fotos.</p>
+          <p className="corpo app-p">Rolo ilimitado. {counts.mine === 1 ? "Já é 1 foto." : `Já são ${counts.mine.toLocaleString("pt-BR")} fotos.`}</p>
         ) : (
           <Progress variant="evento" label={`Restam ${left} de ${total}`} status={`${counts.mine} usadas`} value={(counts.mine / total) * 100} />
         )}
@@ -88,10 +89,12 @@ export default function Voce() {
       <div className="app-stack-sm">
         {isHost && <Button href={`/painel/${event.id}`} variant="secundario" block>Abrir o painel do evento</Button>}
         <Link href="/" className="mm-btn mm-btn--texto" style={{ alignSelf: "flex-start" }}>Voltar ao início</Link>
+        {devToolsEnabled() && (
         <div className="app-stack-sm">
-          <Button variant="secundario" block onClick={async () => { await signOut(); router.push(`/e/${event.code}`); }}>Entrar como outra pessoa</Button>
-          <p className="app-p app-muted">Demonstração: serve para testar a festa com mais de uma pessoa neste aparelho. Você volta para {user.name} pela tela inicial ou pelo convite, na lista Continuar como.</p>
-        </div>
+            <Button variant="secundario" block onClick={async () => { await signOut(); router.push(`/e/${event.code}`); }}>Entrar como outra pessoa</Button>
+            <p className="app-p app-muted">Demonstração: serve para testar a festa com mais de uma pessoa neste aparelho. Você volta para {user.name} pela tela inicial ou pelo convite, na lista Continuar como.</p>
+          </div>
+        )}
       </div>
       <div style={{ marginTop: "auto" }}><Signature /></div>
     </div>

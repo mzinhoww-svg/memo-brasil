@@ -4,7 +4,7 @@ const PORT = Number(process.env.E2E_PORT ?? 3187);
 
 export default defineConfig({
   testDir: "./e2e",
-  testIgnore: /audit-.*\.spec\.ts/, // specs da auditoria rodam só com playwright.audit.config.ts
+  testIgnore: [/audit-.*\.spec\.ts/, /public-surface\.spec\.ts/], // specs da auditoria rodam só com playwright.audit.config.ts
   timeout: 60_000,
   fullyParallel: false,
   workers: 1,
@@ -18,7 +18,7 @@ export default defineConfig({
   },
   // Build com relógio de teste ligado (só neste build): permite simular fim e revelação.
   webServer: {
-    command: `NEXT_PUBLIC_MM_TEST_CLOCK=1 npm run build && npx next start -p ${PORT}`,
+    command: `NEXT_PUBLIC_MM_DEV_TOOLS=1 NEXT_PUBLIC_MM_TEST_CLOCK=1 npm run build && npx next start -p ${PORT}`,
     port: PORT,
     reuseExistingServer: false,
     timeout: 300_000,

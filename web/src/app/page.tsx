@@ -10,6 +10,7 @@ import { formatDate } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { seedDemoEvent } from "@/features/demo/seed";
 import { BackendNotice } from "@/features/app/backend-notice";
+import { devToolsEnabled } from "@/lib/dev-tools";
 
 export default function Home() {
   const { repos, ready, user, signIn, now, persistent, storageError, known, switchTo, canSwitchIdentity } = useApp();
@@ -72,8 +73,8 @@ export default function Home() {
         <div className="app-stack-sm">
           <Button href="/entrar" variant="cta" icon="camera" block>Entrar na festa</Button>
           <Button href="/criar" variant="secundario" block>Criar evento</Button>
-          <Button variant="texto" onClick={() => demo()} disabled={busy || !ready}>{busy ? "Preparando…" : "Ver uma festa de exemplo"}</Button>
-          <Button variant="texto" onClick={() => demo("pendente")} disabled={busy || !ready}>Ver exemplo com revelação em 2 minutos</Button>
+          {devToolsEnabled() && <Button variant="texto" onClick={() => demo()} disabled={busy || !ready}>{busy ? "Preparando…" : "Ver uma festa de exemplo"}</Button>}
+          {devToolsEnabled() && <Button variant="texto" onClick={() => demo("pendente")} disabled={busy || !ready}>Ver exemplo com revelação em 2 minutos</Button>}
         </div>
 
         {ready && canSwitchIdentity && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
@@ -99,7 +100,7 @@ export default function Home() {
         )}
 
         <BackendNotice localText="Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor." />
-        <p className="app-p app-muted"><Link className="app-link" href="/design">Guia de componentes</Link></p>
+        {devToolsEnabled() && <p className="app-p app-muted"><Link className="app-link" href="/design">Guia de componentes</Link></p>}
         <div style={{ marginTop: "auto" }}><Signature /></div>
       </div>
     </main>

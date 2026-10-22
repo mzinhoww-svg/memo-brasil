@@ -3,12 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Breadcrumbs, Button, Chip, Chips, Field, GoogleButton, OptionGroup, Progress, Signature } from "@/components/memoriesmt";
-import { priceRule } from "@/domain/pricing";
 import { CAMERA_STYLE_LABEL, CAPACITY_OPTIONS, CATEGORY_LABEL, SHOTS_OPTIONS, MIN_DURATION_HOURS, type CameraStyle, type Capacity, type EventCategory, type Shots } from "@/domain/options";
 import type { EventFontId, PaletteId } from "@/domain/event";
 import { EVENT_FONT_LABEL, PALETTES } from "@/lib/event-theme";
 import { useApp } from "@/features/app/provider";
-import { localBilling } from "@/lib/services";
 import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentCheck } from "@/features/consent/ConsentCheck";
 import { currentConsent, recordConsent } from "@/lib/consent";
 import { createEvent } from "./service";
@@ -51,7 +49,6 @@ export function CreateWizard() {
   const untilMs = until ? new Date(until).getTime() : undefined;
   const [previewHours, setPreviewHours] = useState(6);
   const [revealErrors, setRevealErrors] = useState<RevealErrors | undefined>();
-  const price = priceRule(capacity, false);
 
   function next() {
     const e: typeof errors = {};
@@ -190,20 +187,13 @@ export function CreateWizard() {
               <span>Termina em {Math.round(previewHours * 10) / 10} h · {summaryReveal}</span>
               <span>{capacity === null ? "Convidados ilimitados" : `Até ${capacity} convidados`} · {shots === null ? "fotos ilimitadas" : `${shots} fotos por pessoa`}</span>
             </div>
-            {price.kind === "gratis" ? (
-              <p className="corpo app-p">Eventos com até 10 convidados são gratuitos.</p>
-            ) : (
-              <div className="app-banner" role="status">
-                <span>Este evento passaria de 10 convidados e teria valor. {localBilling.mode === "demo" ? "Nesta versão de demonstração, nada é cobrado." : ""}</span>
-              </div>
-            )}
             <ConsentCheck checked={accepted} onChange={(v) => { setAccepted(v); if (v) setErrors((e) => ({ ...e, create: undefined })); }} />
             {errors.create && <p className="mm-field-erro" role="alert">{errors.create}</p>}
           </>
         )}
 
         <div className="app-stack-sm">
-          <Button type="submit" variant="primario" block disabled={busy}>{last ? (price.kind === "gratis" ? "Criar evento grátis" : "Criar evento de demonstração") : "Próximo"}</Button>
+          <Button type="submit" variant="primario" block disabled={busy}>{last ? "Criar evento" : "Próximo"}</Button>
           {step > 0 && <Button variant="texto" onClick={() => setStep(step - 1)}>Voltar</Button>}
         </div>
       </form>

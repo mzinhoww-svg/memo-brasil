@@ -120,7 +120,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
         {!online && (
           <div className="app-banner" role="status" style={{ margin: "var(--space-4)" }}>
             <Icon name="sem-sinal" label="Sem sinal" />
-            <span>Sem sinal agora. Suas {data.counts.mine} fotos estão guardadas.</span>
+            <span>Sem sinal agora. {data.counts.mine === 1 ? "Sua foto está guardada." : `Suas ${data.counts.mine} fotos estão guardadas.`}</span>
           </div>
         )}
         <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>{children}</main>

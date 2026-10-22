@@ -8,6 +8,7 @@ import { eventStats, type EventStats } from "@/features/admin/service";
 import { useAdmin } from "@/features/admin/context";
 import { formatDate, formatTime } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
+import { plural } from "@/lib/plural";
 
 export default function VisaoGeral() {
   const { repos } = useApp();
@@ -25,9 +26,9 @@ export default function VisaoGeral() {
         <h1 className="titulo-pagina app-h1">Seu {event.category === "casamento" ? "casamento" : "evento"} por todos os ângulos.</h1>
       </div>
       <StatGrid>
-        <StatTile value={nf(stats.photos)} label="fotos" />
-        <StatTile value={nf(stats.guests)} label="convidados entraram" />
-        <StatTile value={nf(stats.reactions)} label="reações" />
+        <StatTile value={nf(stats.photos)} label={plural(stats.photos, "foto", "fotos")} />
+        <StatTile value={nf(stats.guests)} label={plural(stats.guests, "convidado entrou", "convidados entraram")} />
+        <StatTile value={nf(stats.reactions)} label={plural(stats.reactions, "reação", "reações")} />
         <StatTile value={event.capacity === null ? nf(stats.guests) : `${nf(stats.guests)} de ${nf(event.capacity)}`} label="vagas usadas" />
       </StatGrid>
       <section className="app-card" aria-labelledby="rv" data-testid="resumo-revelacao">
