@@ -1,7 +1,7 @@
 # Homologação do lote produto/pagamentos: parte de pagamentos, backend e segurança
 
 - **Data:** 22/10/2026.
-- **Código:** branch `feat/product-production`, SHA `1a6c982`, com o mesmo código da Task 7A. Este relatório e o runbook são só documentação.
+- **Código:** branch `feat/product-production`, SHA `0abaf9a` (onda final de correções da revisão do lote: `c036b9a` e `0abaf9a`, sobre a Task 7A `1a6c982`). Este relatório e o runbook são só documentação.
 - **Plano:** `docs/superpowers/plans/2026-10-22-memoriesmt-product-production.md`, seções 5 e 7.
 - **Runbook:** `docs/supabase/PAYMENTS-RUNBOOK.md`.
 
@@ -17,26 +17,32 @@
   - **Lacuna:** o bucket `event-branding` não foi copiado, porque o script não o inclui. O runbook (passo 1) já traz o comando.
 - **Rotação de backups:** rotação de backups é manual, executada pelo operador a cada ≤ 30 dias; não é automação ativa.
 
-## Evidência local (22/10/2026, SHA `1a6c982`)
+## Evidência local (22/10/2026, SHA `0abaf9a`)
 
 | Suíte | Comando | Resultado |
 |---|---|---|
-| pgTAP | `sb db reset && sb test db` (stack isolado 564xx) | **Files=10, Tests=935, PASS** |
-| Web unit | `cd web && npm test` | **39 arquivos, 340 testes, PASS** |
+| pgTAP | `sb db reset && sb test db` (stack isolado 564xx) | **Files=10, Tests=968, PASS** (935 antes da onda final) |
+| Web unit | `cd web && npm test` | **39 arquivos, 342 testes, PASS** |
 | Typecheck | `npm run typecheck` | saída 0 |
 | Lint | `npm run lint` | **0 erros**, 11 avisos (todos anteriores, variáveis não usadas) |
 | Build | `npm run build` | saída 0 |
-| Unit das functions | `npx vitest run --config vitest.functions.config.ts` | **2 arquivos, 46 testes, PASS** |
-| Integração de pagamentos | `sb functions serve --env-file <fictício>` + `vitest.integration.config.ts integration/payments.itest.ts` | **23/23 PASS** (fake AbacatePay; serve parado no fim) |
+| Unit das functions | `npx vitest run --config vitest.functions.config.ts` | **2 arquivos, 51 testes, PASS** |
+| Integração de pagamentos | `sb functions serve --env-file <fictício>` + `vitest.integration.config.ts integration/payments.itest.ts` | **26/26 PASS** (fake AbacatePay; serve parado no fim) |
 | Bundle sem segredo | `grep -rE "abc_(dev\|prod)_\|ABACATEPAY\|service_role\|PAYMENTS_CRON" web/.next/static` | **0 ocorrências** (0 arquivos) |
 | Log das functions | grep `abc_dev`, `brCode` e `webhookSecret=` no log do `functions serve` da integração | **0 ocorrências**; só `{fn, orderId, status, outcome}` |
-| Repositório | `gitleaks detect --source . --no-banner` | **"no leaks found"**, 258 commits, ~16 MB |
+| Repositório | `gitleaks detect --source . --no-banner` | **"no leaks found"**, 264 commits, ~16 MB |
 | Janela sandbox | `admin_set_setting('payments_env', …)` com claim de Master, no stack local, em transação com ROLLBACK | `sandbox` → `desligado`; valor final `desligado` |
+| Fechamento da janela (runbook 8.1) | no stack local, em transação com ROLLBACK: `admin_set_setting` → `desligado`, listagem dos eventos com direito `sandbox/pago/ativo`, `payments_reapply_limits` | evento de teste 250/36 → 10/10, plano efetivo `gratis`; auditoria com o uuid de `'sub'` como ator e o motivo |
 
-**Distribuição dos `outcome` no log da integração:**
-- `cobranca_criada` 15, `aplicado` 10, `nao_aplicado` 4, `nao_autenticado` 4, `provedor_provider` 4;
-- `duplicado` 2, `reusado` 2, `reembolso_solicitado` 2;
-- 1 de cada: `ambiente_divergente`, `cobranca_adotada`, `cobranca_nao_confere`, `cobranca_nao_paga`, `ja_estornado`, `pagamento_indisponivel`, `pedido_desconhecido`, `sem_cobranca`.
+**Distribuição dos `outcome` no log da integração (rodada verde de 26 testes):**
+- `cobranca_criada` 17, `aplicado` 13, `nao_aplicado` 5, `provedor_provider` 5, `nao_autenticado` 4, `reembolso_solicitado` 4;
+- `duplicado` 2, `reusado` 2, `sem_cobranca` 2;
+- 1 de cada: `ambiente_divergente`, `busca_incompleta`, `cobranca_adotada`, `cobranca_nao_confere`, `cobranca_nao_paga`, `ja_estornado`, `pagamento_indisponivel`, `pedido_desconhecido`.
+
+**Coberto pela onda final (revisão do lote inteiro):**
+- **Interruptor `desligado`:** direito `production` continua valendo e o Pix de produção pago com `desligado` sobe os limites (pgTAP 07 e 08); `sandbox` não vale em `production` nem em `desligado`; `redeem_code` em evento pago em produção com `desligado` → `ja_incluido` (pgTAP 10); `payments-refund` funciona com `desligado` (integração).
+- **Conciliação incompleta:** `complete:false` não falha o pedido; a rodada completa seguinte falha (unit + integração).
+- **Dinheiro divergente:** PAID com valor ou cobrança divergente marca `needs_refund` sem mudar o status, é reembolsável pelo Master com reconsulta PAID e fecha em `estornado` (pgTAP 08 e 09, unit, integração); a divergência não expira em 30 dias enquanto houver `needs_refund`.
 
 **E2E de interface:** `master-payments`, `master-studio` e `master-codes` não foram reexecutados nesta rodada. O último resultado verde é o da Task 7 (4/4) e o da Task 7A (5/5), sem mudança de código desde então.
 
@@ -54,14 +60,14 @@ O critério do plano exige, para fechar cada linha, a jornada pela interface no 
 | H-06 | Isolamento | Integração: organizador B → `payments-checkout` 403 e `payments-status` 404; convidado anônimo → 403; pgTAP 07–10 (RPCs Master → MM004 para não-master; `redeem_code` → MM004 para quem não é anfitrião) | local, fake AbacatePay | emulado | **Backend aprovado localmente.** `/painel/<A>/plano` por B: **pendente — sessão memo-reverse-65 (feat/final-ui)** |
 | H-07 | Quotas no servidor | pgTAP 07_entitlements e 01/02: excesso de `shots_per_person` → MM001; 12º convidado no Grátis → MM003; 11º entra pela tolerância (com 0% o 11º é recusado) | local (pgTAP) | emulado | **Aprovado localmente.** Repetir no remoto depois do `db push` |
 | H-08 | Falha do provedor tem recuperação | Integração: "webhook perdido: reconcile aplica pago"; reconcile sem token → 401; pgTAP 09: `payments_schedule_reconcile()` só agenda com os dois segredos do Vault | local, fake AbacatePay | emulado | **Backend aprovado localmente.** Webhook desativado no sandbox e job real a cada 5 min: **BLOQUEIO EXTERNO** (sem chave; Vault e job não criados no remoto) |
-| H-09 | Reembolso | Integração: `admin_request_refund` + `payments-refund` + webhook refunded → pedido e direito `estornado`, evento volta ao Grátis; repetido → 200 sem nova chamada; cancelado com `needs_refund` → `estornado` (Ruling 16); cobrança sem PAID → 422 `cobranca_nao_paga`; pgTAP 09: `audit_logs payment.refund_requested` | local, fake AbacatePay | emulado | **Backend aprovado localmente.** Reembolso no sandbox: **BLOQUEIO EXTERNO**. "Fotos e participantes intactos" não foi verificado explicitamente nesta rodada. Tela do Master: e2e da Task 7 (verde, não reexecutado) |
+| H-09 | Reembolso | Integração: `admin_request_refund` + `payments-refund` + webhook refunded → pedido e direito `estornado`, evento volta ao Grátis; repetido → 200 sem nova chamada; cancelado com `needs_refund` → `estornado` (Ruling 16); cobrança sem PAID → 422 `cobranca_nao_paga`; PAID com valor divergente → `needs_refund` → reembolso → `estornado`; reembolso com `payments_env='desligado'`; pgTAP 09: `audit_logs payment.refund_requested` | local, fake AbacatePay | emulado | **Backend aprovado localmente.** Reembolso no sandbox: **BLOQUEIO EXTERNO**. "Fotos e participantes intactos" não foi verificado explicitamente nesta rodada. Tela do Master: e2e da Task 7 (verde, não reexecutado) |
 | H-10 | Cortesia | pgTAP 09: `admin_grant_courtesy` cria direito `cortesia/nenhum` com os limites do plano, audita `entitlement.courtesy_granted` e recusa não-master (MM004) e plano grátis (MM005) | local (pgTAP) | emulado | **Backend aprovado localmente.** UI M1: e2e da Task 7 (verde, não reexecutado). Remoto: depois do `db push` |
 | H-11 | Convidado continua funcionando | — | — | — | **pendente — sessão memo-reverse-65 (feat/final-ui)** |
 | H-12 | Câmera negada e rede caindo | — | — | — | **pendente — sessão memo-reverse-65 (feat/final-ui)** |
 | H-13 | Acabamento visual | — | — | — | **pendente — sessão memo-reverse-65 (feat/final-ui)** |
 | H-14 | Aparelhos físicos | — | — | — | **pendente — sessão memo-reverse-65 (feat/final-ui)**; sem aparelho registrado: **NO-GO físico** |
 | H-15 | Segredos | Bundle 0 ocorrências; gitleaks "no leaks found" (258 commits); log das functions 0 ocorrências de chave, brCode ou segredo; runbook e relatório só com nomes de segredo | local | — | **Aprovado localmente.** Repetir o grep no build candidato do `newmemocuiaba` e nos prints da sessão memo-reverse-65 |
-| H-16 | Modo desligado | Integração: `payments_env='desligado'` → checkout 503 `pagamento_indisponivel`; pgTAP 09: `list_public_plans()` com desligado → só o Grátis; stack local depois do reset: `payments_env()` = `desligado`, 1 plano público | local, fake AbacatePay | emulado | **Backend aprovado localmente.** Tela "só Grátis e Fale com a gente": **pendente — sessão memo-reverse-65 (feat/final-ui)** |
+| H-16 | Modo desligado | Integração: `payments_env='desligado'` → checkout 503 `pagamento_indisponivel`, refund continua; pgTAP 09: `list_public_plans()` com desligado → só o Grátis; pgTAP 07/08/10: compra de produção continua valendo e Pix de produção pago sobe os limites; stack local depois do reset: `payments_env()` = `desligado`, 1 plano público | local, fake AbacatePay | emulado | **Backend aprovado localmente.** Tela "só Grátis e Fale com a gente": **pendente — sessão memo-reverse-65 (feat/final-ui)** |
 | H-17 | Código de cortesia | pgTAP 10_courtesy_codes: código guardado só como hash e `code_hint`; resgate libera `codigo/nenhum` e audita `code.redeemed`; segundo evento ou código esgotado → `invalido` neutro; 5 falhas em 10 min → `muitas_tentativas` (serializado por usuário); evento encerrado → `evento_encerrado`; auditoria sem o texto tentado. M3: e2e da Task 7A (verde, não reexecutado) | local (pgTAP) | emulado | **Backend aprovado localmente.** Resgate em Ajustes: **pendente — sessão memo-reverse-65 (feat/final-ui)** |
 
 ### Linhas com bloqueio externo (sandbox real)
@@ -82,7 +88,7 @@ Têm só evidência local contra a fake. Os pontos que **só o sandbox real conf
 3. Com a chave sandbox: executar H-02, H-03, H-05, H-08 e H-09 pela interface do preview `newmemocuiaba` do SHA candidato, com prints sanitizados, contagens SQL e `orderId` nos logs. Depois, voltar `payments_env` para `"desligado"`.
 4. Sessão memo-reverse-65: H-01, H-11–H-14 e a parte de interface de H-02, H-03, H-04, H-06, H-16 e H-17, no preview `newmemocuiaba`. Também o teste de restauração do backup `20261022-1902`.
 5. Acrescentar `event-branding` ao script de backup (`backup_and_rotate.sh`, branch `feat/final-ops`).
-6. Itens menores adiados no ledger: link "Revisar" nas divergências; busca de eventos na cortesia; limite de 200 linhas na lista de pagamentos; cancelamento de solicitação de reembolso que falhou; verificar se `complete:false` do reconcile é "tentar depois".
+6. Itens menores adiados no ledger: link "Revisar" nas divergências; busca de eventos na cortesia; limite de 200 linhas na lista de pagamentos; cancelamento de solicitação de reembolso que falhou. (`complete:false` do reconcile como "tentar depois": feito na onda final.)
 
 ## Obrigações que exigem atendimento humano
 
@@ -97,7 +103,7 @@ Separadas das pendências técnicas: nenhuma delas pode ser feita pelo agente.
 5. **Backup e rotação.** Rotação de backups é manual, executada pelo operador a cada ≤ 30 dias; não é automação ativa. A alternativa persistente é instalar o LaunchAgent no Mac do operador, a partir do exemplo em `feat/final-ops` (persiste só com o Mac ligado). Também cabe ao operador incluir `event-branding` no backup.
 6. **Legal e fiscal.** D3 (termos com cláusula de pagamento e reembolso), D5 (CNPJ e dados da empresa no rodapé e em `/ajuda`) e D6 (NFS-e). São decisões do dono e não foram tomadas pelo agente.
 7. **Aparelhos físicos.** iPhone/Safari e Android/Chrome reais para H-11, H-12 e H-02 a partir do celular (H-14), com modelo e versão registrados.
-8. **Janela de homologação.** Abrir e fechar `payments_env = "sandbox"` com motivo (passo 8) e voltar a `"desligado"` ao terminar.
+8. **Janela de homologação.** Abrir `payments_env = "sandbox"` com motivo (passo 8) e fechá-la pelo passo 8.1: voltar a `"desligado"` e rodar `payments_reapply_limits` nos eventos de teste pagos no sandbox, listados pela consulta do runbook (nada é apagado). Não há tela no Master para mudar `payments_env`; a auditoria registra como ator o uuid posto em `'sub'`.
 
 ## Parecer GO/NO-GO do lote de pagamentos (seção 7 do plano)
 
@@ -107,7 +113,7 @@ Separadas das pendências técnicas: nenhuma delas pode ser feita pelo agente.
 3. A matriz não tem evidência pela interface no preview do SHA candidato: H-01 e H-11–H-14 são da sessão memo-reverse-65. Sem aparelho físico, o parecer é também **NO-GO físico**.
 
 **Prontidão técnica comprovada localmente:**
-- pgTAP 935/935, web 340/340, functions 46/46 e integração de pagamentos 23/23 contra a fake;
+- pgTAP 968/968, web 342/342, functions 51/51 e integração de pagamentos 26/26 contra a fake;
 - typecheck, lint (0 erros) e build com saída 0;
 - bundle e log sem segredo; gitleaks limpo.
 - A integração cobre, contra a fake AbacatePay e sem chave real:
@@ -115,7 +121,7 @@ Separadas das pendências técnicas: nenhuma delas pode ser feita pelo agente.
   - webhook autenticado e deduplicado;
   - divergência de ambiente;
   - recuperação por conciliação, inclusive do create sem resposta;
-  - reembolso com reconsulta do provedor;
+  - reembolso com reconsulta do provedor, inclusive de PAID divergente e com `desligado`;
   - isolamento entre organizadores;
   - modo desligado.
 
