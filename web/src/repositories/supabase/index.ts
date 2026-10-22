@@ -19,7 +19,7 @@ const iso = (v: number | null | undefined): string | null => (v === null || v ==
 
 const PG_CODES: Record<string, RepositoryErrorCode> = {
   MM001: "shot-limit", MM002: "event-ended", MM003: "capacity-full", MM004: "forbidden", MM005: "invalid", MM006: "rate-limited",
-  MM007: "invalid-invite", MM008: "reveal-locked", MM009: "reopen-forbidden", "42501": "forbidden", "23505": "conflict", PGRST116: "not-found",
+  MM007: "invalid-invite", MM008: "reveal-locked", MM009: "reopen-forbidden", MM012: "not-entitled", "42501": "forbidden", "23505": "conflict", PGRST116: "not-found",
 };
 
 /** Traduz erro do PostgREST/Storage para o erro tipado do contrato. Falha de rede é `unavailable`. */

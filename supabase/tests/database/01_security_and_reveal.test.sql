@@ -64,7 +64,8 @@ select code as ev_code from public.events where id = '10000000-0000-4000-8000-00
 select tests.login('00000000-0000-4000-8000-0000000000b1', true);
 select is((public.event_preview(:'ev_code') ->> 'title'), 'Emy & Igor', 'prévia devolve título');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.event_preview(:'ev_code')) k),
-  array['capacity','category','code','eventFont','full','hostName','palette','place','startAt','status','theme','title'], 'prévia só tem os 11 campos seguros da v1 + theme (v2)');
+  array['capacity','category','code','eventFont','everyoneSeesAll','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
+  'prévia só tem os 11 campos seguros da v1 + theme (v2) + campos de plano/revelação (COM-003)');
 select throws_ok($$select public.join_event('ZZZZZZZZ', 'Ana')$$, 'MM005', 'invalid', 'código inexistente');
 select throws_ok(format($$select public.join_event(%L, '  ')$$, :'ev_code'), 'MM005', 'invalid', 'nome vazio');
 select is((public.join_event(:'ev_code', 'Ana') ->> 'role'), 'membro', 'convidado anônimo entra com o código');
@@ -74,9 +75,12 @@ select is((select count(*)::int from public.participants), 1, 'um participante s
 select tests.login('00000000-0000-4000-8000-0000000000b2', true);
 select public.join_event(:'ev_code', 'Bia');
 reset role;
+-- sem folga (COM-003): aqui só a lotação no servidor; a tolerância capacity_grace_pct é coberta em 07_entitlements
+update public.platform_settings set value = '0' where key = 'capacity_grace_pct';
 select tests.login('00000000-0000-4000-8000-0000000000b3', true);
 select throws_ok(format($$select public.join_event(%L, 'Caio')$$, :'ev_code'), 'MM003', 'capacityfull', 'lotação decidida no servidor');
 reset role;
+update public.platform_settings set value = '10' where key = 'capacity_grace_pct';
 select tests.login('00000000-0000-4000-8000-0000000000a1');
 select is((public.join_event(:'ev_code', 'Emy') ->> 'role'), 'organizador', 'organizador não vira participante');
 reset role;

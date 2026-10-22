@@ -280,7 +280,8 @@ select is((select count(*)::int from pg_publication_tables where pubname = 'supa
 -- ===================================================== prévia segura com tema
 select tests.login('00000000-0000-4000-8000-0000000000b3', true);
 select is((select array_agg(k order by k) from jsonb_object_keys(public.event_preview(:'code_a')) k),
-  array['capacity','category','code','eventFont','full','hostName','palette','place','startAt','status','theme','title'], 'prévia: 11 campos da v1 + theme');
+  array['capacity','category','code','eventFont','everyoneSeesAll','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
+  'prévia: 11 campos da v1 + theme + campos de plano/revelação (COM-003)');
 select is(public.event_preview(:'code_a') #>> '{theme,font}', 'pinyon', 'prévia devolve o tema ao convidado que ainda não entrou');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.event_preview(:'code_a') -> 'theme') k),
   array['colors','decor','font','preset','qrStyle','welcomeMessage'], 'tema na prévia: só campos de apresentação');

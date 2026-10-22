@@ -162,6 +162,106 @@ select is(public.entitlements_backfill_legacy(), 2, 'backfill pula evento apagad
 select is((select count(*)::int from public.event_entitlements where event_id = '00000000-0000-4000-8000-0000000006e5'), 0,
           'evento apagado não recebe direito legado');
 
+-- ===================================================== COM-003: limites impostos pelo servidor (events_guard)
+-- e6: evento novo do a1 criado pelo próprio anfitrião (caminho INSERT não privilegiado)
+select tests.login('00000000-0000-4000-8000-0000000006a1');
+insert into public.events (id, title, category, host_id, host_name, duration_hours) values
+  ('00000000-0000-4000-8000-0000000006e6', 'Sem limites informados', 'festa', '00000000-0000-4000-8000-0000000006a1', 'H', 48);
+select results_eq($$select capacity, shots_per_person from public.events where id = '00000000-0000-4000-8000-0000000006e6'$$,
+  $$values (10, 10)$$, 'insert_defaults_free: sem capacity/shots o evento nasce com os limites do grátis (10/10)');
+select throws_ok($$insert into public.events (title, category, host_id, host_name, duration_hours, capacity) values ('X', 'festa', '00000000-0000-4000-8000-0000000006a1', 'H', 6, 50)$$,
+  'MM012', 'notentitled', 'insert_over_plan: anfitrião não cria evento com capacity acima do grátis');
+select throws_ok($$insert into public.events (title, category, host_id, host_name, duration_hours, shots_per_person) values ('X', 'festa', '00000000-0000-4000-8000-0000000006a1', 'H', 6, 24)$$,
+  'MM012', 'notentitled', 'insert_over_plan: anfitrião não cria evento com fotos acima do grátis');
+select lives_ok($$insert into public.events (title, category, host_id, host_name, duration_hours, capacity, shots_per_person) values ('X', 'festa', '00000000-0000-4000-8000-0000000006a1', 'H', 6, 10, 5)$$,
+  'insert dentro do grátis passa');
+select throws_ok($$update public.events set capacity = 200 where id = '00000000-0000-4000-8000-0000000006e6'$$,
+  'MM012', 'notentitled', 'host_cannot_raise_capacity_without_plan: capacity 200 sem plano');
+select throws_ok($$update public.events set capacity = null where id = '00000000-0000-4000-8000-0000000006e6'$$,
+  'MM012', 'notentitled', 'host_cannot_raise_capacity_without_plan: capacity null (sem limite) sem plano');
+select throws_ok($$update public.events set shots_per_person = null where id = '00000000-0000-4000-8000-0000000006e6'$$,
+  'MM012', 'notentitled', 'shots_per_person null (sem limite) sem plano');
+select lives_ok($$update public.events set capacity = 8 where id = '00000000-0000-4000-8000-0000000006e6'$$,
+  'host_can_lower_capacity: 10 → 8 passa');
+select is((select capacity from public.events where id = '00000000-0000-4000-8000-0000000006e6'), 8, 'capacity ficou 8');
+reset role;
+
+-- e4 (de a2) tem cortesia festa 30/24: o anfitrião sobe até o plano, não além
+select tests.login('00000000-0000-4000-8000-0000000006a2');
+select throws_ok($$update public.events set shots_per_person = 36 where id = '00000000-0000-4000-8000-0000000006e4'$$,
+  'MM012', 'notentitled', 'host_cannot_raise_shots: 36 fotos com direito de 24');
+select lives_ok($$update public.events set capacity = 30, shots_per_person = 24 where id = '00000000-0000-4000-8000-0000000006e4'$$,
+  'dentro do direito (cortesia festa) o anfitrião sobe os limites');
+select throws_ok($$update public.events set capacity = 31 where id = '00000000-0000-4000-8000-0000000006e4'$$,
+  'MM012', 'notentitled', 'capacity 31 com direito de 30');
+reset role;
+
+-- e7: capacity 100 com direito estornado (efetivo = grátis): editar outros campos nunca é bloqueado
+insert into public.events (id, title, category, host_id, host_name, duration_hours, capacity, shots_per_person) values
+  ('00000000-0000-4000-8000-0000000006e7', 'Pós-estorno', 'festa', '00000000-0000-4000-8000-0000000006a1', 'H', 48, 100, 24);
+insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, env, status) values
+  ('00000000-0000-4000-8000-0000000006e7', 'celebracao', 100, 24, 'pago', 'production', 'estornado');
+select tests.login('00000000-0000-4000-8000-0000000006a1');
+select lives_ok($$update public.events set title = 'Renomeado' where id = '00000000-0000-4000-8000-0000000006e7'$$,
+  'edit_title_over_plan_allowed: só o título muda num evento acima do plano');
+select is((select title from public.events where id = '00000000-0000-4000-8000-0000000006e7'), 'Renomeado', 'título gravado');
+reset role;
+
+-- chamador privilegiado (service_role; RPC security definer roda como o dono) não passa pela checagem MM012
+set local role service_role;
+select lives_ok($$update public.events set capacity = 500, shots_per_person = null where id = '00000000-0000-4000-8000-0000000006e6'$$,
+  'service_role_can_set_capacity');
+reset role;
+select results_eq($$select capacity, shots_per_person from public.events where id = '00000000-0000-4000-8000-0000000006e6'$$,
+  $$values (500, null::int)$$, 'service_role gravou 500/sem limite');
+select lives_ok($$update public.events set capacity = 250 where id = '00000000-0000-4000-8000-0000000006e6'$$,
+  'dono (postgres, como nas RPCs security definer) também grava');
+update public.events set capacity = 10, shots_per_person = 10 where id = '00000000-0000-4000-8000-0000000006e6';
+
+-- ===================================================== COM-003: tolerância de lotação (join_event)
+insert into auth.users (id, aud, role, email, is_anonymous)
+  select ('00000000-0000-4000-8000-0000000007' || lpad(g::text, 2, '0'))::uuid, 'authenticated', 'authenticated', null, true
+  from generate_series(1, 12) g;
+insert into public.profiles (id)
+  select ('00000000-0000-4000-8000-0000000007' || lpad(g::text, 2, '0'))::uuid from generate_series(1, 12) g on conflict do nothing;
+insert into public.participants (event_id, user_id, name)
+  select '00000000-0000-4000-8000-0000000006e6', ('00000000-0000-4000-8000-0000000007' || lpad(g::text, 2, '0'))::uuid, 'G' || g
+  from generate_series(1, 10) g;
+select code as e6_code from public.events where id = '00000000-0000-4000-8000-0000000006e6' \gset
+
+select tests.login('00000000-0000-4000-8000-000000000711');
+select is((public.event_preview(:'e6_code') ->> 'full')::boolean, false, 'com 10/10 e tolerância livre a prévia ainda não está lotada');
+reset role;
+update public.platform_settings set value = '0' where key = 'capacity_grace_pct';
+select tests.login('00000000-0000-4000-8000-000000000711');
+select throws_ok(format($$select public.join_event(%L, 'Onze')$$, :'e6_code'), 'MM003', 'capacityfull',
+  'tolerância lida de platform_settings: com 0% o 11º é recusado');
+reset role;
+update public.platform_settings set value = '10' where key = 'capacity_grace_pct';
+select tests.login('00000000-0000-4000-8000-000000000711');
+select is((public.join_event(:'e6_code', 'Onze') ->> 'role'), 'membro', 'grace_allows_eleventh: grátis com 10 participantes aceita o 11º');
+select is((public.event_preview(:'e6_code') ->> 'full')::boolean, true, 'prévia lotada ao esgotar a tolerância');
+reset role;
+select results_eq($$select detail from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000006e6' and action = 'capacity.grace_used'$$,
+  $$values ('{"count": 11}'::jsonb)$$, 'passar de capacity grava capacity.grace_used com a contagem');
+select tests.login('00000000-0000-4000-8000-000000000712');
+select throws_ok(format($$select public.join_event(%L, 'Doze')$$, :'e6_code'), 'MM003', 'capacityfull', 'grace: o 12º é recusado');
+reset role;
+
+-- ===================================================== COM-003: prévia com os campos novos
+select code as e4_code from public.events where id = '00000000-0000-4000-8000-0000000006e4' \gset
+select tests.login('00000000-0000-4000-8000-000000000712');
+select is((select array_agg(k order by k) from jsonb_object_keys(public.event_preview(:'e6_code')) k),
+  array['capacity','category','code','eventFont','everyoneSeesAll','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
+  'event_preview mantém as chaves e acrescenta shotsPerPerson, revealAt, revealStatus, timezone, everyoneSeesAll e planCode');
+select is(public.event_preview(:'e6_code') ->> 'planCode', 'gratis', 'planCode do grátis');
+select is(public.event_preview(:'e4_code') ->> 'planCode', 'festa', 'planCode vem do direito efetivo (cortesia festa)');
+select is((public.event_preview(:'e4_code') ->> 'shotsPerPerson')::int, 24, 'shotsPerPerson na prévia');
+select is(public.event_preview(:'e6_code') ->> 'revealStatus', 'desativada', 'revealStatus na prévia');
+select is(public.event_preview(:'e6_code') ->> 'timezone', 'America/Cuiaba', 'timezone na prévia');
+select is((public.event_preview(:'e6_code') ->> 'everyoneSeesAll')::boolean, true, 'everyoneSeesAll na prévia');
+reset role;
+
 -- ===================================================== plano grátis protegido e direito efetivo nunca vazio
 select throws_ok($$delete from public.plans where code = 'gratis'$$, 'MM005', 'gratisprotected', 'não apaga o plano grátis');
 select throws_ok($$update public.plans set code = 'free' where code = 'gratis'$$, 'MM005', 'gratisprotected', 'não renomeia o plano grátis');

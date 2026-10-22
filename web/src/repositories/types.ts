@@ -32,7 +32,9 @@ export type RepositoryErrorCode =
   /** Recusas do servidor (trigger/RLS): o rolo da pessoa acabou, o evento terminou, a lotação fechou. */
   | "shot-limit" | "event-ended" | "capacity-full"
   /** Recusas de política do servidor (RLS/trigger/RPC). */
-  | "forbidden" | "reveal-locked" | "rate-limited" | "invalid-invite" | "reopen-forbidden";
+  | "forbidden" | "reveal-locked" | "rate-limited" | "invalid-invite" | "reopen-forbidden"
+  /** Limite de convidados/fotos acima do plano efetivo do evento (MM012): o servidor recusa até haver direito. */
+  | "not-entitled";
 export class RepositoryError extends Error {
   readonly code: RepositoryErrorCode;
   constructor(code: RepositoryErrorCode, message: string, cause?: unknown) {
