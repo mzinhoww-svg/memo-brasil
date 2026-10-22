@@ -53,7 +53,7 @@ const toEvent = (r: Row): MemoEvent => ({
   endedAt: ms(r.ended_at), cameraStyle: r.camera_style as MemoEvent["cameraStyle"],
   revealEnabled: r.reveal_enabled as boolean, revealAt: ms(r.reveal_at) ?? null, revealAnchor: r.reveal_anchor as MemoEvent["revealAnchor"],
   revealOffsetDays: r.reveal_offset_days as number, timezone: r.timezone as string, revealStatus: r.reveal_status as MemoEvent["revealStatus"],
-  revealedAt: ms(r.revealed_at) ?? null, version: r.version as number,
+  revealedAt: ms(r.revealed_at) ?? null, version: r.version as number, retentionPolicy: (r.retention_policy as string | null) ?? undefined,
   capacity: r.capacity as MemoEvent["capacity"], shotsPerPerson: r.shots_per_person as MemoEvent["shotsPerPerson"],
   everyoneSeesAll: r.everyone_sees_all as boolean, reactionsEnabled: r.reactions_enabled as boolean,
   palette: r.palette as MemoEvent["palette"], eventFont: r.event_font as MemoEvent["eventFont"], place: (r.place as string | null) ?? undefined,

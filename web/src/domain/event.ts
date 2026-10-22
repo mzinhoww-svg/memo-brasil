@@ -42,6 +42,8 @@ export interface MemoEvent {
   tables: number;
   notice?: { text: string; expiresAt?: number };
   createdAt: number;
+  /** Política de retenção gravada pelo servidor na criação (ex.: "2026-10-22-v1"); ausente em eventos anteriores. */
+  retentionPolicy?: string;
 }
 
 const HOUR = 3_600_000;

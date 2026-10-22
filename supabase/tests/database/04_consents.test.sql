@@ -27,35 +27,52 @@ select ok(exists (select 1 from public.legal_documents where kind = 'terms') and
 
 -- sem sessão
 set local role anon;
-select throws_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'convidado', null)$$, '42501', null, 'anon não executa record_consent');
+select throws_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'convidado', null, true, true, 'entrar-evento')$$, '42501', null, 'anon não executa record_consent');
 reset role;
 
 -- organizador com conta grava; reenvio é idempotente; auditado
 select tests.login('00000000-0000-4000-8000-0000000000c1');
-select lives_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'organizador', null)$$, 'organizador grava o aceite');
-select lives_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'organizador', null)$$, 'reenvio após falha de rede não duplica');
+select lives_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'organizador', null, true, true, 'criar-evento')$$, 'organizador grava o aceite');
+select lives_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'organizador', null, true, true, 'criar-evento')$$, 'reenvio após falha de rede não duplica');
 select is((select count(*)::int from public.user_consents), 1, 'uma linha, do próprio usuário');
-select is((select terms_version || '|' || privacy_version || '|' || role from public.user_consents), '2026-10-21-rascunho|2026-10-21-rascunho|organizador', 'versões e papel gravados');
+select is((select terms_version || '|' || privacy_version || '|' || role from public.user_consents), '2026-10-22-v1|2026-10-22-v1|organizador', 'versões e papel gravados');
 reset role;
 select is((select count(*)::int from public.audit_logs where action = 'consent.recorded' and actor_id = '00000000-0000-4000-8000-0000000000c1'), 1, 'auditoria registra o aceite uma vez, com o ator autenticado');
 select ok((select accepted_at from public.user_consents) between now() - interval '1 minute' and now() + interval '1 minute', 'horário vem do servidor');
 
 -- recusas
 select tests.login('00000000-0000-4000-8000-0000000000c1');
-select throws_ok($$select public.record_consent('versao-inexistente', '2026-10-21-rascunho', 'organizador', null)$$, 'MM005', null, 'versão de termos desconhecida é recusada');
-select throws_ok($$select public.record_consent('2026-10-21-rascunho', 'versao-inexistente', 'organizador', null)$$, 'MM005', null, 'versão de privacidade desconhecida é recusada');
-select throws_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'master', null)$$, 'MM005', null, 'papel inválido é recusado');
-select throws_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'convidado', '00000000-0000-4000-8000-0000000000d1')$$, 'MM004', null, 'host não registra aceite de convidado do próprio evento sem ser membro');
-select lives_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'organizador', '00000000-0000-4000-8000-0000000000d1')$$, 'host registra o aceite de organizador vinculado ao próprio evento');
+select throws_ok($$select public.record_consent('versao-inexistente', '2026-10-22-v1', 'organizador', null, true, true, 'criar-evento')$$, 'MM005', null, 'versão de termos desconhecida é recusada');
+select throws_ok($$select public.record_consent('2026-10-22-v1', 'versao-inexistente', 'organizador', null, true, true, 'criar-evento')$$, 'MM005', null, 'versão de privacidade desconhecida é recusada');
+select throws_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'master', null, true, true, 'criar-evento')$$, 'MM005', null, 'papel inválido é recusado');
+select throws_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'convidado', '00000000-0000-4000-8000-0000000000d1', true, true, 'entrar-evento')$$, 'MM004', null, 'host não registra aceite de convidado do próprio evento sem ser membro');
+select lives_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'organizador', '00000000-0000-4000-8000-0000000000d1', true, true, 'criar-evento')$$, 'host registra o aceite de organizador vinculado ao próprio evento');
 reset role;
 
 -- convidado anônimo: grava como convidado; não como organizador
 select tests.login('00000000-0000-4000-8000-0000000000c3', true);
-select throws_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'organizador', null)$$, 'MM004', null, 'anônimo não aceita como organizador');
-select lives_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'convidado', null)$$, 'convidado anônimo aceita antes de entrar');
-select lives_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'convidado', '00000000-0000-4000-8000-0000000000d1')$$, 'membro registra o aceite vinculado ao evento');
-select throws_ok($$select public.record_consent('2026-10-21-rascunho', '2026-10-21-rascunho', 'convidado', '00000000-0000-4000-8000-0000000000ff')$$, 'MM004', null, 'evento inexistente ou alheio é recusado');
+select throws_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'organizador', null, true, true, 'criar-evento')$$, 'MM004', null, 'anônimo não aceita como organizador');
+select lives_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'convidado', null, true, true, 'entrar-evento')$$, 'convidado anônimo aceita antes de entrar');
+select lives_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'convidado', '00000000-0000-4000-8000-0000000000d1', true, true, 'entrar-evento')$$, 'membro registra o aceite vinculado ao evento');
+select throws_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'convidado', '00000000-0000-4000-8000-0000000000ff', true, true, 'entrar-evento')$$, 'MM004', null, 'evento inexistente ou alheio é recusado');
 reset role;
+
+-- aceite contratual e ciência da Política são separados, explícitos e obrigatórios (nada pré-marcado, nada implícito)
+select tests.login('00000000-0000-4000-8000-0000000000c1');
+select throws_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'organizador', null)$$, 'MM005', null, 'chamada sem as confirmações (padrão) é recusada');
+select throws_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'organizador', null, false, true, 'criar-evento')$$, 'MM005', null, 'sem aceite dos Termos é recusado');
+select throws_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'organizador', null, true, false, 'criar-evento')$$, 'MM005', null, 'sem ciência da Política é recusado');
+select throws_ok($$select public.record_consent('2026-10-22-v1', '2026-10-22-v1', 'organizador', null, true, true, 'qualquer-coisa')$$, 'MM005', null, 'contexto desconhecido é recusado');
+select is((select count(*)::int from public.user_consents), 2, 'as recusas não gravaram nada (1 do host sem evento + 1 vinculada)');
+select is((select count(*)::int from public.user_consents where terms_accepted_at is not null and privacy_acknowledged_at is not null and context = 'criar-evento'), 2, 'cada linha guarda aceite dos Termos, ciência da Política e contexto, em colunas separadas');
+reset role;
+select is((select detail ->> 'privacy' from public.audit_logs where action = 'consent.recorded' limit 1), 'ciencia', 'a auditoria descreve a Política como ciência, não como consentimento');
+
+-- documentos publicados: origem e ausência de revisão jurídica registradas; versões históricas intactas
+select is((select source from public.legal_documents where kind = 'terms' and version = '2026-10-22-v1'), 'texto fornecido pelo operador', 'origem dos Termos v1: texto fornecido pelo operador');
+select is((select source from public.legal_documents where kind = 'privacy' and version = '2026-10-22-v1'), 'texto fornecido pelo operador', 'origem da Política v1: texto fornecido pelo operador');
+select ok((select bool_and(legal_review ilike '%nenhuma%') from public.legal_documents where version = '2026-10-22-v1'), 'não registra revisão jurídica que não aconteceu');
+select is((select count(*)::int from public.legal_documents where version = '2026-10-21-rascunho'), 2, 'as versões de rascunho continuam publicadas (histórico preservado)');
 
 -- isolamento e escrita direta
 select tests.login('00000000-0000-4000-8000-0000000000c2');

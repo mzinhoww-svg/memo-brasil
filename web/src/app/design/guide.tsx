@@ -62,7 +62,7 @@ export function DesignGuide() {
 
       <section aria-labelledby="g-form" className="app-stack" style={{ maxWidth: 343 }}>
         <h2 id="g-form" className="titulo-card app-h1">Campos e opções</h2>
-        <Field label="Como te chamam na festa?" defaultValue="Ana" help="Ao postar, você autoriza os noivos a guardar e compartilhar a foto." />
+        <Field label="Como te chamam na festa?" defaultValue="Ana" help="Ao postar, você declara ter o direito de compartilhar a foto com as pessoas autorizadas neste evento." />
         <Field label="Código da festa" code defaultValue="NFVARBQX" error="Código não confere. Confira no card da mesa." />
         <OptionGroup<number | null> label="Fotos por pessoa" value={opt} onChange={setOpt} options={[{ value: 10, label: "10" }, { value: 16, label: "16" }, { value: 24, label: "24" }, { value: null, label: "Ilimitadas" }]} />
         <Stepper label="Mesa" value={step} min={1} max={20} onChange={setStep} decrementLabel="Mesa anterior" incrementLabel="Próxima mesa" />

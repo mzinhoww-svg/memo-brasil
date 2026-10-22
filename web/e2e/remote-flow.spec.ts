@@ -70,7 +70,8 @@ test("organizador cria → convidado entra e posta → servidor revela (cron) �
   const gp = await gctx.newPage();
   await gp.goto(link ? new URL(link).pathname : `/e/${code}`);
   await gp.getByLabel("Como te chamam na festa?").fill("Convidada Teste");
-  await gp.getByRole("checkbox", { name: /Li e aceito/ }).check();
+  await gp.getByRole("checkbox", { name: /Li e aceito os Termos/ }).check();
+  await gp.getByRole("checkbox", { name: /Li a Política/ }).check();
   await gp.getByRole("button", { name: "Entrar na festa" }).click();
   await gp.waitForURL(/agora$/);
   await expect(gp.getByTestId("aguardando-revelacao")).toBeVisible();

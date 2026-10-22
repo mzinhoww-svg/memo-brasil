@@ -45,9 +45,10 @@ export async function wizardToSummary(page: Page, opts: { title?: string; reveal
   await page.getByRole("button", { name: "Próximo" }).click();
 }
 
-/** Aceita os Termos e a Política (obrigatório para criar o evento e para entrar na festa). */
+/** Aceita os Termos e confirma a leitura da Política (duas caixas, ambas obrigatórias para criar o evento e para entrar na festa). */
 export async function acceptTerms(page: Page) {
-  await page.getByRole("checkbox", { name: /Li e aceito/ }).check();
+  await page.getByRole("checkbox", { name: /Li e aceito os Termos/ }).check();
+  await page.getByRole("checkbox", { name: /Li a Política/ }).check();
 }
 
 export async function createViaWizard(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string } = {}): Promise<{ code: string; id: string }> {

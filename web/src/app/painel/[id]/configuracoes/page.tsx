@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Chip, Chips, Field, Notice, OptionGroup, Sheet } from "@/components/memoriesmt";
+import { photosAvailableUntil } from "@/domain/retention";
 import { canEditEnd, endAt, eventStatus, type EventFontId, type PaletteId } from "@/domain/event";
 import { CAPACITY_OPTIONS, SHOTS_OPTIONS, type Capacity, type Shots } from "@/domain/options";
 import { RevealSettings } from "@/features/events/RevealSettings";
@@ -26,6 +27,7 @@ export default function Configuracoes() {
   const ended = eventStatus(event, now) === "encerrado";
   const photoCount = photos.filter((p) => p.status !== "removida").length;
   const locked = !canEditEnd(event, photoCount, now);
+  const availableUntil = photosAvailableUntil(event);
 
   const save = async (patch: Parameters<typeof updateSettings>[2]) => {
     const r = await updateSettings(repos, event.id, patch);
@@ -50,6 +52,13 @@ export default function Configuracoes() {
         <Button variant="secundario" disabled={!title.trim() || title === event.title} onClick={() => save({ title: title.trim() })}>Salvar nome</Button>
         <p className="app-p app-muted">Cores, fonte, mensagem e QR ficam em <Link href={`/painel/${event.id}/aparencia`}>Aparência</Link>.</p>
       </section>
+
+      {availableUntil !== null && (
+        <section className="app-stack app-form-col" aria-labelledby="guarda" data-testid="guarda-fotos">
+          <h2 id="guarda" className="titulo-card app-h1">Guarda das fotos</h2>
+          <p className="app-p">As fotos ficam disponíveis até {formatDate(availableUntil)}, 90 dias após o encerramento do evento. Baixe as que quiser guardar antes dessa data; depois dela o acesso é encerrado e as fotos são excluídas.</p>
+        </section>
+      )}
 
       <section className="app-stack app-form-col" aria-labelledby="regras">
         <h2 id="regras" className="titulo-card app-h1">Regras da festa</h2>

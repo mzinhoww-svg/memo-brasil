@@ -1,18 +1,25 @@
-import type { ReactNode } from "react";
 import { Breadcrumbs, Button, Signature } from "@/components/memoriesmt";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/consent";
+import { LEGAL_UPDATED_AT, type LegalSection } from "@/lib/legal-text";
 
-/** Moldura das páginas legais. Texto em rascunho até a revisão jurídica (COM-004). */
-export function LegalPage({ title, kind, children }: { title: string; kind: "terms" | "privacy"; children: ReactNode }) {
+/** Moldura das páginas legais (texto em lib/legal-text). Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
+export function LegalPage({ title, kind, sections }: { title: string; kind: "terms" | "privacy"; sections: LegalSection[] }) {
   return (
     <main className="app-col app-col--card app-fluid">
       <div className="app-screen">
         <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: title }]} />
         <h1 className="titulo-tela app-h1">{title}</h1>
-        <div className="app-banner" role="note">
-          <span>Rascunho em revisão jurídica. Versão {kind === "terms" ? TERMS_VERSION : PRIVACY_VERSION}. O texto pode mudar antes da versão final.</span>
+        <p className="app-p app-muted">Versão: {kind === "terms" ? TERMS_VERSION : PRIVACY_VERSION} · Atualização: {LEGAL_UPDATED_AT}</p>
+        <div className="app-stack">
+          {sections.map((s) => (
+            <section key={s.title} className="app-stack-sm">
+              <h2 className="titulo-card">{s.title}</h2>
+              {s.blocks.map((b, i) => Array.isArray(b)
+                ? <ul key={i} className="corpo app-p">{b.map((li) => <li key={li}>{li}</li>)}</ul>
+                : <p key={i} className="corpo app-p">{b}</p>)}
+            </section>
+          ))}
         </div>
-        <div className="app-stack">{children}</div>
         <Button href="/" variant="texto">Voltar ao início</Button>
         <div style={{ marginTop: "auto" }}><Signature /></div>
       </div>

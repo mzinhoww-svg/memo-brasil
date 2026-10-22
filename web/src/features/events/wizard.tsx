@@ -7,7 +7,7 @@ import { CAMERA_STYLE_LABEL, CAPACITY_OPTIONS, CATEGORY_LABEL, SHOTS_OPTIONS, MI
 import type { EventFontId, PaletteId } from "@/domain/event";
 import { EVENT_FONT_LABEL, PALETTES } from "@/lib/event-theme";
 import { useApp } from "@/features/app/provider";
-import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentCheck } from "@/features/consent/ConsentCheck";
+import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
 import { currentConsent, recordConsent } from "@/lib/consent";
 import { createEvent } from "./service";
 import { resolveDuration } from "./duration";
@@ -27,7 +27,8 @@ export function CreateWizard() {
   const router = useRouter();
   const { repos, user, signIn, now, ready, backend, canCreate, signInWithGoogle } = useApp();
   const [step, setStep] = useState(0);
-  const [accepted, setAccepted] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [ackedPrivacy, setAckedPrivacy] = useState(false);
   const [hostInput, setHostName] = useState<string | undefined>();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<EventCategory>("casamento");
@@ -73,11 +74,11 @@ export function CreateWizard() {
   }
 
   async function create() {
-    if (!accepted) return setErrors({ create: CONSENT_REQUIRED });
+    if (!acceptedTerms || !ackedPrivacy) return setErrors({ create: CONSENT_REQUIRED });
     setBusy(true);
     const me = await signIn(hostName);
     if (backend === "supabase") {
-      try { await recordConsent(currentConsent("organizador", null)); } catch { setBusy(false); return setErrors({ create: CONSENT_FAILED }); }
+      try { await recordConsent(currentConsent("organizador", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); } catch { setBusy(false); return setErrors({ create: CONSENT_FAILED }); }
     }
     const startNow = now();
     const durationHours = resolveDuration({ untilMs, presetHours: hours }, startNow);
@@ -187,7 +188,7 @@ export function CreateWizard() {
               <span>Termina em {Math.round(previewHours * 10) / 10} h · {summaryReveal}</span>
               <span>{capacity === null ? "Convidados ilimitados" : `Até ${capacity} convidados`} · {shots === null ? "fotos ilimitadas" : `${shots} fotos por pessoa`}</span>
             </div>
-            <ConsentCheck checked={accepted} onChange={(v) => { setAccepted(v); if (v) setErrors((e) => ({ ...e, create: undefined })); }} />
+            <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); setErrors((e) => ({ ...e, create: undefined })); }} onPrivacy={(v) => { setAckedPrivacy(v); setErrors((e) => ({ ...e, create: undefined })); }} />
             {errors.create && <p className="mm-field-erro" role="alert">{errors.create}</p>}
           </>
         )}

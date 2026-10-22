@@ -11,7 +11,7 @@ import { tableFromSearch } from "@/features/invitations/links";
 import { joinEvent } from "@/features/participants/service";
 import { BackendNotice } from "@/features/app/backend-notice";
 import { useBrandImages } from "@/features/studio/useBrandImages";
-import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentCheck } from "@/features/consent/ConsentCheck";
+import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
 import { currentConsent, recordConsent } from "@/lib/consent";
 
 const MESSAGES = {
@@ -36,7 +36,8 @@ export default function Convite() {
   const [nameInput, setName] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
-  const [accepted, setAccepted] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [ackedPrivacy, setAckedPrivacy] = useState(false);
   const [consentError, setConsentError] = useState<string | undefined>();
   const member = data.participants.find((p) => p.userId === user?.id);
   const event = data.event ?? data.preview; // quem ainda não entrou só recebe a prévia do convite
@@ -60,12 +61,12 @@ export default function Convite() {
 
   async function enter() {
     setError(undefined);
-    if (!accepted) return setConsentError(CONSENT_REQUIRED);
+    if (!acceptedTerms || !ackedPrivacy) return setConsentError(CONSENT_REQUIRED);
     setConsentError(undefined);
     setBusy(true);
     const me = await signIn(name || "");
     if (backend === "supabase") {
-      try { await recordConsent(currentConsent("convidado", null)); } catch { setBusy(false); return setConsentError(CONSENT_FAILED); }
+      try { await recordConsent(currentConsent("convidado", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); } catch { setBusy(false); return setConsentError(CONSENT_FAILED); }
     }
     const r = await joinEvent(repos, me, code, name, now(), tableFromSearch(window.location.search));
     setBusy(false);
@@ -95,9 +96,9 @@ export default function Convite() {
             <form className="app-stack" onSubmit={(e) => { e.preventDefault(); void enter(); }}>
               <h1 className="titulo-tela app-h1">Entrar na festa</h1>
               <Field label="Como te chamam na festa?" value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" maxLength={40} error={error} />
-              {!ended && <ConsentCheck checked={accepted} onChange={(v) => { setAccepted(v); if (v) setConsentError(undefined); }} />}
+              {!ended && <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); if (v) setConsentError(undefined); }} onPrivacy={(v) => { setAckedPrivacy(v); if (v) setConsentError(undefined); }} />}
               {consentError && <p className="mm-field-erro" role="alert">{consentError}</p>}
-              {!ended && <p className="app-p app-muted">Ao postar, você autoriza {event.category === "casamento" ? "os noivos" : "o anfitrião"} a guardar e compartilhar a foto.</p>}
+              {!ended && <p className="app-p app-muted">Ao postar, você declara ter o direito de compartilhar a foto com as pessoas autorizadas neste evento.</p>}
               <Button type="submit" variant="primario" block disabled={busy || ended}>{busy ? "Entrando…" : "Entrar na festa"}</Button>
               {ended && <p className="mm-field-erro">{MESSAGES.encerrado}</p>}
             </form>

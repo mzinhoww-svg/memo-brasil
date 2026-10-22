@@ -182,7 +182,7 @@ export default function Postar() {
                   <Chip key={s} variant="sugestao" onClick={() => setCaption(s)}>{s}</Chip>
                 ))}
               </Chips>
-              <p className="app-p app-muted">Ao postar, você autoriza {event.category === "casamento" ? "os noivos" : "o anfitrião"} a guardar e compartilhar a foto.</p>
+              <p className="app-p app-muted">Ao postar, você declara ter o direito de compartilhar a foto com as pessoas autorizadas neste evento.</p>
               <div className="app-stack-sm">
                 <Button variant="cta" icon="camera" block disabled={phase === "guardando"} onClick={publish}>{phase === "guardando" ? "Guardando…" : "Postar"}</Button>
                 <Button variant="texto" onClick={again} disabled={phase === "guardando"}>Tirar outra</Button>
