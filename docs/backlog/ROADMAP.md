@@ -6,24 +6,27 @@
 
 Homologação real concluída e V1 em produção (Google OAuth, callback, variáveis de Production, smoke público).
 
-Itens abertos: **8** · P0 1, P1 5, P2 2, P3 0 · BACKLOG 4, BLOCKED 3, READY 1
+Itens abertos: **11** · P0 1, P1 6, P2 3, P3 1 · BACKLOG 4, BLOCKED 6, READY 1
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
 | SB-008 | P0 | BLOCKED | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | SB-003, SB-004, REL-001 |
 | BG-071 | P1 | BACKLOG | Outbox de sincronização offline ainda é só desenho | AUD-001, ITG-102 |
 | INF-001 | P1 | READY | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh  | - |
+| INF-004 | P1 | BLOCKED | Variável SUPABASE_SERVICEROLE_KEY (sensível) no ambiente Production da Vercel | - |
 | REL-001 | P1 | BLOCKED | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | - |
 | SB-005 | P1 | BACKLOG | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | SB-003 |
 | SB-006 | P1 | BACKLOG | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexã | SB-002 |
 | INF-002 | P2 | BLOCKED | Produção serve o build antigo (3a8bf89): sem headers/CSP e sem correções da auditoria ante | REL-001 |
+| INF-005 | P2 | BLOCKED | Preview por API exige rootDirectory=web e framework=nextjs | REL-001 |
 | SB-007 | P2 | BACKLOG | Relógio do servidor no app e observabilidade (logs estruturados, monitor da revelação, run | SB-003 |
+| QAV-004 | P3 | BLOCKED | Limpar usuários e dados de teste do remoto | SCV-010 |
 
 ## R2 · Studio & Admin V2 em produção (30–60 dias)
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **77** · P0 14, P1 14, P2 33, P3 16 · BACKLOG 48, BLOCKED 1, IN_REVIEW 20, READY 8
+Itens abertos: **78** · P0 14, P1 14, P2 34, P3 16 · BACKLOG 46, BLOCKED 1, IN_REVIEW 23, READY 8
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -52,7 +55,7 @@ Itens abertos: **77** · P0 14, P1 14, P2 33, P3 16 · BACKLOG 48, BLOCKED 1, IN
 | MAD-004 | P1 | BACKLOG | Acesso excepcional a foto privada por admin com justificativa e auditoria | MAD-002 |
 | MAD-005 | P1 | BACKLOG | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | MAD-003 |
 | QAV-003 | P1 | IN_REVIEW | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e per | EST-004, SCV-008 |
-| SCV-004 | P1 | BACKLOG | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
+| SCV-004 | P1 | IN_REVIEW | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
 | SCV-006 | P1 | IN_REVIEW | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
 | UXA-104 | P1 | BACKLOG | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostr | UXA-001 |
 | BG-022 | P2 | READY | Sem validação em Safari/iOS e Firefox | - |
@@ -76,8 +79,9 @@ Itens abertos: **77** · P0 14, P1 14, P2 33, P3 16 · BACKLOG 48, BLOCKED 1, IN
 | MAD-006 | P2 | BACKLOG | UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revoga | MAD-004, SCV-005 |
 | PRF-001 | P2 | BACKLOG | Bundle: import dinâmico do SDK Supabase e do qrcode; AppProvider fora do /master; rotas cl | QAV-001 |
 | SCV-001 | P2 | IN_REVIEW | Feature flags e platform_settings com escrita só do master | MAD-001 |
-| SCV-005 | P2 | BACKLOG | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava  | MAD-002 |
+| SCV-005 | P2 | IN_REVIEW | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava  | MAD-002 |
 | SCV-007 | P2 | BACKLOG | Middleware de refresh de sessão para Server Components (evitar deslogar o console após ~1  | MAD-003 |
+| SCV-009 | P2 | IN_REVIEW | purge-storage: responder não-2xx quando falhas>0 e alertar fila parada | SCV-004 |
 | UXA-105 | P2 | IN_REVIEW | [Administrativa] /painel/[id] e abas (visão, convidados, momentos, configurações, download | UXA-001 |
 | UXA-107 | P2 | IN_REVIEW | [Administrativa] /painel/[id] · navegação < 900px: Abas do painel cortadas ('Convidad…', ' | UXA-001 |
 | UXA-108 | P2 | BACKLOG | [Anfitrião] /criar · passos 1–6: Wizard em coluna de 480px: sem prévia do convite/tema nem | UXA-001 |

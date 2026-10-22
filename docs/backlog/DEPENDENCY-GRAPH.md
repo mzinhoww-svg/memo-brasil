@@ -116,8 +116,8 @@ flowchart LR
   COM_011["COM-011<br/>BACKLOG"]:::back
   COM_012["COM-012<br/>BACKLOG"]:::back
   SCV_003["SCV-003<br/>IN_REVIEW"]:::back
-  SCV_004["SCV-004<br/>BACKLOG"]:::back
-  SCV_005["SCV-005<br/>BACKLOG"]:::back
+  SCV_004["SCV-004<br/>IN_REVIEW"]:::back
+  SCV_005["SCV-005<br/>IN_REVIEW"]:::back
   SCV_006["SCV-006<br/>IN_REVIEW"]:::back
   SCV_007["SCV-007<br/>BACKLOG"]:::back
   SCV_008["SCV-008<br/>IN_REVIEW"]:::back
@@ -134,6 +134,10 @@ flowchart LR
   PRF_002["PRF-002<br/>BACKLOG"]:::back
   ARQ_001["ARQ-001<br/>BACKLOG"]:::back
   UXA_128["UXA-128<br/>BACKLOG"]:::back
+  SCV_009["SCV-009<br/>IN_REVIEW"]:::back
+  SCV_010["SCV-010<br/>DONE"]:::done
+  INF_005["INF-005<br/>BLOCKED"]:::block
+  QAV_004["QAV-004<br/>BLOCKED"]:::block
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -312,6 +316,9 @@ flowchart LR
   PRF_001 --> PRF_002
   EST_004 --> ARQ_001
   EST_004 --> UXA_128
+  SCV_004 --> SCV_009
+  REL_001 --> INF_005
+  SCV_010 --> QAV_004
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;

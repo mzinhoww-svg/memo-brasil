@@ -52,7 +52,7 @@ Diagnóstico do E2E alternativo: o snapshot final permaneceu no passo Nome, com 
 
 | ID | Situação comprovada | Trabalho restante |
 |---|---|---|
-| SCV-010 | VALIDAÇÃO TÉCNICA PASSOU: Google ativo, Email inativo; POST de cadastro sintético recusado com 400 `email_provider_disabled`; sem usuário/sessão criados | Registrar fechamento com commit da evidência. `disable_signup=false` permanece para não bloquear o fluxo Google/convidado; não significa Email habilitado |
+| SCV-010 | DONE nesta branch de homologação: Google ativo, Email inativo; POST de cadastro sintético recusado com 400 `email_provider_disabled`; sem usuário/sessão criados | Evidência versionada em `c0fd33b`. `disable_signup=false` permanece para não bloquear o fluxo Google/convidado; não significa Email habilitado |
 | INF-004 | BLOCKED: `SUPABASE_SERVICEROLE_KEY` ainda em Production, tipo sensitive; valores não lidos | Operador confirmar dependência do Lume, remover a variável quando aprovado e validar metadados. Não houve remoção nem rotação nesta sessão |
 | SCV-009 | CORREÇÃO LOCAL PARCIAL: falhas do Storage ou da baixa de fila agora retornam HTTP 500; quatro testes novos | Sem deploy remoto. Falta alerta explícito para fila >2h e teste de falha em ambiente descartável. Oito últimas respostas reais observadas eram 200/zero falhas, fila vazia; isso não demonstra alerta |
 | INF-005 | BLOCKED: projeto retornou framework null; preview atual foi produzido com parâmetros manuais | Root directory/Git integration e preview automático por push não foram homologados; listagem/build/runtime logs falharam com 403 de escopo da equipe |
@@ -70,7 +70,7 @@ Diagnóstico do E2E alternativo: o snapshot final permaneceu no passo Nome, com 
 
 ## Backlog, B, Codex e C
 
-O backlog acessível tem **213 itens sem épicos**, não os 256 mencionados como reconciliação paralela nos anexos. O validador inicialmente falhou: SCV-004 estava DONE com SB-005 aberto; SCV-005 estava DONE com MAD-002 aberto. As evidências históricas são preservadas; esses fechamentos devem voltar a revisão até suas dependências serem reconciliadas. Não houve integração da frente B.
+O backlog acessível tem **213 itens sem épicos**, não os 256 mencionados como reconciliação paralela nos anexos. O validador inicialmente falhou: SCV-004 estava DONE com SB-005 aberto; SCV-005 estava DONE com MAD-002 aberto. As evidências históricas foram preservadas e somente esses fechamentos voltaram a IN_REVIEW até suas dependências serem reconciliadas. SCV-010 fechado com evidência `c0fd33b`; SCV-009 em revisão e demais intervenções bloqueadas. O validador voltou a passar. Não houve integração da proposta da frente B.
 
 | Frente | Estado que esta sessão permite afirmar | Aberto |
 |---|---|---|
