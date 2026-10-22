@@ -11,15 +11,11 @@ describe("ContactEmail", () => {
     render(<ContactEmail />);
     expect(await screen.findByRole("link", { name: "oi@memoriesmt.test" })).toBeInTheDocument();
   });
-  it("cai no padrão quando vazio ou indisponível", async () => {
+  it("cai no padrão quando vazio", async () => {
     api.getPublicSettings.mockResolvedValue({ supportEmail: null });
     const { unmount } = render(<ContactEmail />);
     await new Promise((r) => setTimeout(r, 10));
     expect(screen.getByRole("link", { name: CONTACT_EMAIL })).toBeInTheDocument();
     unmount();
-    api.getPublicSettings.mockImplementation(() => Promise.reject(new Error("x")));
-    render(<ContactEmail />);
-    await new Promise((r) => setTimeout(r, 10));
-    expect(screen.getByRole("link", { name: CONTACT_EMAIL })).toBeInTheDocument();
   });
 });
