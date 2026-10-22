@@ -92,7 +92,7 @@ describe("falha do reembolso", () => {
 
 describe("módulos do console", () => {
   it("inclui Pagamentos e Planos e preços", () => {
-    expect(MODULES).toHaveLength(14);
+    expect(MODULES).toHaveLength(15);
     expect(MODULES).toEqual(expect.arrayContaining([{ rota: "pagamentos", rotulo: "Pagamentos" }, { rota: "planos", rotulo: "Planos e preços" }]));
   });
 });

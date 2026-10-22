@@ -7,7 +7,7 @@ import { browserSupabase } from "@/lib/supabase/client";
 import { adminErrorText, brl, chargeHint, parseBrl, planPreview, reasonError, REASON_MAX, refundFailureText } from "./billing";
 
 /** Motivo obrigatório (10 a 500): o erro só aparece depois da primeira tentativa de enviar. */
-function ReasonField({ label, value, onChange, error }: { label: string; value: string; onChange: (v: string) => void; error: string | null }) {
+export function ReasonField({ label, value, onChange, error }: { label: string; value: string; onChange: (v: string) => void; error: string | null }) {
   const id = useId();
   return (
     <div className="mm-field">
