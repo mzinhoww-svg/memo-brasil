@@ -18,6 +18,24 @@ for (const width of [390, 1280]) {
   });
 }
 
+for (const width of [390, 1280]) {
+  test(`axe: 0 violações nos 4 passos do assistente de criação a ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/criar");
+    const problems: string[] = [];
+    for (let passo = 1; passo <= 4; passo++) {
+      await page.getByText(`Passo ${passo} de 4`).waitFor();
+      await page.evaluate(() => document.fonts.ready);
+      const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      for (const v of r.violations) problems.push(`passo ${passo} [${v.impact}] ${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);
+      if (passo === 1) await page.getByLabel("Nome que os convidados vão ver").fill("Axe");
+      if (passo === 3) await page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: /^36/ }).click();
+      if (passo < 4) await page.getByRole("button", { name: "Continuar" }).click();
+    }
+    expect(problems, problems.join("\n")).toEqual([]);
+  });
+}
+
 for (const theme of ["dia", "noite"] as const) {
   test(`acessibilidade (axe) sem violações graves, tema ${theme}`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });

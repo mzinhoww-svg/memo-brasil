@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
-import { acceptTerms, createViaWizard, dateIn, denyCamera, openInviteAsGuest, postViaFile, switchPerson, weekdayOf } from "./helpers";
+import { acceptTerms, createViaWizard, seedHost, dateIn, denyCamera, openInviteAsGuest, postViaFile, switchPerson, weekdayOf } from "./helpers";
 
 const PNG = fs.readFileSync(path.resolve(__dirname, "../public/pwa/icon-192.png"));
 const TZ = "America/Cuiaba";
@@ -16,18 +16,80 @@ test("anfitrião cria um evento pelo wizard e vê o convite com código e QR", a
 
 test("wizard valida nome do evento e término curto, com mensagens que dizem o que fazer", async ({ page }) => {
   await page.goto("/criar");
-  await page.getByRole("button", { name: "Próximo" }).click();
+  await page.getByRole("button", { name: "Continuar" }).click();
   await expect(page.getByText("Escolha o nome do evento. Todos os convidados vão ver.")).toBeVisible();
-  await expect(page.getByText("Escreva seu nome para organizar a festa.")).toBeVisible();
-  await page.getByLabel("Nome do evento").fill("Festa");
-  await page.getByLabel("Seu nome").fill("Emy");
-  await page.getByRole("button", { name: "Próximo" }).click();
+  await page.getByLabel("Nome que os convidados vão ver").fill("Festa");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByRole("button", { name: "Outra data" }).click();
   const soon = new Date(Date.now() + 10 * 60_000);
   const local = new Date(soon.getTime() - soon.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-  await page.getByLabel("Ou escolha o horário").evaluate((el) => { (el as HTMLInputElement).removeAttribute("min"); });
-  await page.getByLabel("Ou escolha o horário").fill(local);
-  await page.getByRole("button", { name: "Próximo" }).click();
+  await page.getByLabel("Escolha o horário").evaluate((el) => { (el as HTMLInputElement).removeAttribute("min"); });
+  await page.getByLabel("Escolha o horário").fill(local);
+  await page.getByRole("button", { name: "Continuar" }).click();
   await expect(page.getByText("Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.")).toBeVisible();
+});
+
+test("cria evento grátis em 4 passos e chega em 'Evento criado'", async ({ page }) => {
+  await page.goto("/criar");
+  await seedHost(page, "Emy");
+  await expect(page.getByText("Passo 1 de 4")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Como se chama a festa?" })).toBeVisible();
+  await expect(page.getByLabel("Seu nome")).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "Sugestões de nome" }).getByRole("button")).toHaveCount(3);
+  await page.getByRole("group", { name: "Sugestões de nome" }).getByRole("button").first().click();
+  await expect(page.getByLabel("Nome que os convidados vão ver")).toHaveValue("Casamento de Emy");
+  await page.getByRole("button", { name: "Continuar" }).click();
+
+  await expect(page.getByText("Passo 2 de 4")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Quando a festa acaba?" })).toBeVisible();
+  const quando = page.getByRole("group", { name: "E quando as fotos aparecem?" });
+  await expect(quando.getByRole("button")).toHaveText(["Na hora", "Quando acabar", "Na manhã seguinte (10h)", "Escolher dia"]);
+  await expect(page.getByText(/^O filme de Casamento.* foi revelado\.$/)).toBeVisible();
+  await expect(page.getByText("Revelar na manhã seguinte deixa a noite para a pista.")).toBeVisible();
+  await page.getByRole("button", { name: "Continuar" }).click();
+
+  await expect(page.getByText("Passo 3 de 4")).toBeVisible();
+  await expect(page.getByTestId("contador-previa")).toHaveText("10 FOTOS RESTANTES");
+  await page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: /^24/ }).click();
+  await expect(page.getByTestId("contador-previa")).toHaveText("24 FOTOS RESTANTES");
+  await expect(page.getByTestId("selo-plano")).toHaveText(["Plano Festa", "Plano Festa", "Plano Casamento"]);
+  await expect(page.getByText(/galeria depois da festa/)).toHaveCount(0);
+  await page.getByRole("button", { name: "Continuar" }).click();
+
+  await expect(page.getByText("Passo 4 de 4")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Quantos convidados vão fotografar?" })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Até 10 · Grátis/ })).toBeChecked();
+  await expect(page.getByRole("radio")).toHaveCount(1);
+  await expect(page.getByText(/paga no Pix/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Criar evento" })).toBeVisible();
+  await acceptTerms(page);
+  await page.getByRole("button", { name: "Criar evento" }).click();
+  await page.waitForURL(/\/criar\/pronto\//);
+  await expect(page.getByText("Evento criado.")).toBeVisible();
+  // nasce no Grátis mesmo com 24 fotos escolhidas no passo Fotos
+  const id = page.url().split("/").pop()!;
+  await page.goto(`/painel/${id}/configuracoes`);
+  await expect(page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: "10", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("group", { name: "Convidados" }).getByRole("button", { name: "10", exact: true })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("nenhum texto 'demonstração' ou 'teria valor' no assistente", async ({ page }) => {
+  await page.goto("/criar");
+  for (let i = 0; i < 4; i++) {
+    const t = (await page.locator("main, body").first().innerText()).toLowerCase();
+    expect(t).not.toContain("demonstração");
+    expect(t).not.toContain("teria valor");
+    if (i === 0) await page.getByLabel("Nome que os convidados vão ver").fill("Festa");
+    if (i < 3) await page.getByRole("button", { name: "Continuar" }).click();
+  }
+});
+
+test("manhã seguinte revela no dia seguinte às 10h no fuso do evento", async ({ page }) => {
+  await page.goto("/criar");
+  await page.getByLabel("Nome que os convidados vão ver").fill("Manhã");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByRole("group", { name: "E quando as fotos aparecem?" }).getByRole("button", { name: "Na manhã seguinte (10h)" }).click();
+  await expect(page.getByText(/às 10h00/)).toBeVisible();
 });
 
 test("código inválido mostra erro; código válido leva ao convite", async ({ page }) => {
@@ -377,8 +439,8 @@ test.describe("jornada do convidado (Task 13)", () => {
   });
 
   test("join rate-limited tenta de novo sozinho em 30 segundos", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" }); // relógio falso só depois de criar: o assistente usa o relógio real
     await page.clock.install();
-    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
     await openInviteAsGuest(page, code);
     await page.evaluate(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { join: "rate-limited" }; });
     await page.getByLabel("Como te chamam na festa?").fill("Ana");

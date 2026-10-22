@@ -21,28 +21,71 @@ export async function openDemo(page: Page): Promise<string> {
 /** Cria um evento pelo wizard e devolve o código. Parâmetros avançam passo a passo pela UI real. */
 export type RevealOpt = "ao-terminar" | "desligada" | { date: string; time: string; tz?: string };
 
-/** Cria um evento pelo wizard e devolve o código. Cada passo usa a interface real. */
-export async function wizardToSummary(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string } = {}): Promise<void> {
+/**
+ * O assistente não pergunta mais "Seu nome": o anfitrião vem da conta (Google na nuvem). No modo local não há conta,
+ * então o teste planta a identidade do aparelho (a mesma que `signIn` grava) e recarrega a tela.
+ */
+export async function seedHost(page: Page, name: string): Promise<void> {
+  await page.getByRole("heading", { level: 1, name: "Como se chama a festa?" }).waitFor();
+  type Result = "planted" | "has-user" | "retry";
+  const attempt = () => page.evaluate((n) => new Promise<Result>((res) => {
+    // nunca cria o banco (abrir sem versão criaria um v1 vazio e travaria a migração do app): só usa o que o app já abriu
+    void indexedDB.databases().then((dbs) => {
+      if (!dbs.some((d) => d.name === "memoriesmt")) return res("retry");
+      const r = indexedDB.open("memoriesmt");
+      r.onerror = () => res("retry");
+      r.onblocked = () => res("retry");
+      r.onsuccess = () => {
+        const db = r.result;
+        if (!db.objectStoreNames.contains("meta")) { db.close(); return res("retry"); }
+        const tx = db.transaction("meta", "readwrite");
+        const st = tx.objectStore("meta");
+        let result: Result = "has-user";
+        const cur = st.get("user");
+        cur.onsuccess = () => {
+          if (cur.result) return;
+          const u = { id: crypto.randomUUID(), name: n, createdAt: Date.now() };
+          st.put(u, "user");
+          st.put([u], "known");
+          result = "planted";
+        };
+        tx.oncomplete = () => { db.close(); res(result); };
+        tx.onerror = tx.onabort = () => { db.close(); res("retry"); };
+      };
+    }, () => res("retry"));
+  }), name);
+  let out: Result = "retry";
+  for (let i = 0; i < 40 && out === "retry"; i++) {
+    out = await attempt();
+    if (out === "retry") await page.waitForTimeout(250);
+  }
+  if (out === "retry") throw new Error("seedHost: o banco local do app não abriu");
+  if (out === "planted") { await page.reload(); await page.getByRole("heading", { level: 1, name: "Como se chama a festa?" }).waitFor(); }
+}
+
+/**
+ * Percorre os passos 1 a 3 do assistente (Nome, Quando, Fotos) pela interface real e para no passo 4 (Convidados).
+ * O evento sempre nasce no Grátis (10/10): `shots`/`capacity` fora disso são ajustados no painel por `createViaWizard`.
+ */
+export async function wizardToSummary(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string; host?: string } = {}): Promise<void> {
   await page.goto("/criar");
-  await page.getByLabel("Nome do evento").fill(opts.title ?? "Emy e Igor");
-  await page.getByLabel("Seu nome").fill("Emy");
-  await page.getByRole("button", { name: "Próximo" }).click();
-  await page.getByRole("button", { name: "Próximo" }).click(); // término: 6 horas
+  await seedHost(page, opts.host ?? "Emy");
+  await page.getByLabel("Nome que os convidados vão ver").fill(opts.title ?? "Emy e Igor");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  // passo Quando: término padrão de 6 horas
   const reveal = opts.reveal ?? "ao-terminar";
-  const group = page.getByRole("group", { name: "Revelação programada" });
-  if (reveal === "desligada") await group.getByRole("button", { name: /^Desligada/ }).click();
-  else if (reveal === "ao-terminar") await page.getByRole("button", { name: "Quando o evento terminar" }).click();
+  const group = page.getByRole("group", { name: "E quando as fotos aparecem?" });
+  if (reveal === "desligada") await group.getByRole("button", { name: "Na hora" }).click();
+  else if (reveal === "ao-terminar") await group.getByRole("button", { name: "Quando acabar" }).click();
   else {
-    await page.getByRole("button", { name: "Escolher data e hora" }).click();
+    await group.getByRole("button", { name: "Escolher dia" }).click();
     await page.getByLabel("Data", { exact: true }).fill(reveal.date);
     await page.getByLabel("Horário", { exact: true }).fill(reveal.time);
     if (reveal.tz) await page.getByLabel("Fuso horário").selectOption(reveal.tz);
   }
-  await page.getByRole("button", { name: "Próximo" }).click();
-  await page.getByRole("button", { name: "Próximo" }).click(); // identidade
-  if (opts.capacity) await page.getByRole("group", { name: "Convidados" }).getByRole("button", { name: opts.capacity, exact: true }).click();
-  if (opts.shots) await page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: opts.shots, exact: true }).click();
-  await page.getByRole("button", { name: "Próximo" }).click();
+  await page.getByRole("button", { name: "Continuar" }).click();
+  // passo Fotos: 10 (Grátis) por padrão
+  await page.getByRole("button", { name: "Continuar" }).click();
 }
 
 /** Aceita os Termos e confirma a leitura da Política (duas caixas, ambas obrigatórias para criar o evento e para entrar na festa). */
@@ -51,13 +94,24 @@ export async function acceptTerms(page: Page) {
   await page.getByRole("checkbox", { name: /Li a Política/ }).check();
 }
 
-export async function createViaWizard(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string } = {}): Promise<{ code: string; id: string }> {
+export async function createViaWizard(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string; host?: string } = {}): Promise<{ code: string; id: string }> {
   await wizardToSummary(page, opts);
   await acceptTerms(page);
-  await page.getByRole("button", { name: /Criar evento/ }).click();
+  await page.getByRole("button", { name: "Criar evento" }).click();
   await page.waitForURL(/\/criar\/pronto\//);
   const code = (await page.getByTestId("codigo").textContent())!.trim();
   const id = page.url().split("/").pop()!;
+  // o assistente só cria no Grátis (10/10); limites diferentes entram pelas configurações do painel
+  const wanted = [["Fotos por pessoa", opts.shots, "10"], ["Convidados", opts.capacity, "10"]] as const;
+  if (wanted.some(([, v, free]) => v && v !== free)) {
+    await page.goto(`/painel/${id}/configuracoes`);
+    for (const [group, value, free] of wanted) {
+      if (!value || value === free) continue;
+      const btn = page.getByRole("group", { name: group }).getByRole("button", { name: value, exact: true });
+      await btn.click();
+      await expect(btn).toHaveAttribute("aria-pressed", "true");
+    }
+  }
   return { code, id };
 }
 

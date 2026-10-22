@@ -97,26 +97,22 @@ test("R3 validações: 31/02, hora, fuso, passado, +1 minuto (domínio) e UI", a
   const ui: Record<string, string> = {};
   for (const [k, time] of Object.entries({ "11:00 (=agora)": "11:00", "11:01 (=+60s)": "11:01" })) {
     await page.goto("/criar");
-    await page.getByLabel("Nome do evento").fill("Teste");
-    await page.getByLabel("Seu nome").fill("Emy");
-    await page.getByRole("button", { name: "Próximo" }).click();
-    await page.getByRole("button", { name: "Próximo" }).click();
-    await page.getByRole("button", { name: "Escolher data e hora" }).click();
+    await page.getByLabel("Nome que os convidados vão ver").fill("Teste");
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await page.getByRole("button", { name: "Escolher dia" }).click();
     await page.getByLabel("Data", { exact: true }).fill("2026-11-10");
     await page.getByLabel("Horário", { exact: true }).fill(time);
     await page.getByLabel("Fuso horário").selectOption("America/Cuiaba");
-    await page.getByRole("button", { name: "Próximo" }).click();
+    await page.getByRole("button", { name: "Continuar" }).click();
     await page.waitForTimeout(200);
     ui[k] = (await page.getByRole("heading", { level: 1 }).first().innerText()) + " | alerta: " + ((await page.getByText(/pelo menos 1 minuto|data e uma hora/).count()) ? "erro mostrado" : "sem erro");
   }
   // data vazia no modo data
   await page.goto("/criar");
-  await page.getByLabel("Nome do evento").fill("Teste");
-  await page.getByLabel("Seu nome").fill("Emy");
-  await page.getByRole("button", { name: "Próximo" }).click();
-  await page.getByRole("button", { name: "Próximo" }).click();
-  await page.getByRole("button", { name: "Escolher data e hora" }).click();
-  await page.getByRole("button", { name: "Próximo" }).click();
+  await page.getByLabel("Nome que os convidados vão ver").fill("Teste");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByRole("button", { name: "Escolher dia" }).click();
+  await page.getByRole("button", { name: "Continuar" }).click();
   ui["data/hora vazias"] = (await page.getByText(/data e uma hora válidas/).count()) ? "erro mostrado" : "SEM ERRO";
   await shot(page, "r3-validacao");
   rec.R3_ui = ui;

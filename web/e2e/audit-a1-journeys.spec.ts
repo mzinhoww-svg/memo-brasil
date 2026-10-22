@@ -209,13 +209,13 @@ test("J6 editor: abrir foto visível, desenhar/texto, concluir e baixar; foto bl
 test("J7 remover convidado e reentrar; AC-01 término < 30 min; corrida do último tiro em duas abas", async ({ page, context }) => {
   // AC-01
   await page.goto("/criar");
-  await page.getByLabel("Nome do evento").fill("Curto");
-  await page.getByLabel("Seu nome").fill("Emy");
-  await page.getByRole("button", { name: "Próximo" }).click();
+  await page.getByLabel("Nome que os convidados vão ver").fill("Curto");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByRole("button", { name: "Outra data" }).click();
   const soon = new Date(Date.now() + 10 * 60_000 - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-  await page.getByLabel("Ou escolha o horário").fill(soon);
-  await page.getByRole("button", { name: "Próximo" }).click();
-  const ac01 = { ainda_no_passo_termino: await page.getByRole("heading", { name: "Quando o seu evento termina?" }).isVisible(), msg: await page.getByText(/pelo menos 30 minutos/).first().innerText() };
+  await page.getByLabel("Escolha o horário").fill(soon);
+  await page.getByRole("button", { name: "Continuar" }).click();
+  const ac01 = { ainda_no_passo_termino: await page.getByRole("heading", { name: "Quando a festa acaba?" }).isVisible(), msg: await page.getByText(/pelo menos 30 minutos/).first().innerText() };
   // remover convidado e reentrar
   const { code, id } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
   await switchPerson(page, code, "Ana");

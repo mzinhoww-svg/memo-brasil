@@ -16,11 +16,10 @@ test("falha de escrita no IndexedDB ao criar evento", async ({ page }) => {
     };
   });
   await page.goto("/criar");
-  await page.getByLabel("Nome do evento").fill("Falha");
-  await page.getByLabel("Seu nome").fill("Emy");
-  for (let i = 0; i < 5; i++) {
-    if (i === 2) await page.getByRole("button", { name: "Quando o evento terminar" }).click();
-    await page.getByRole("button", { name: "Próximo" }).click();
+  await page.getByLabel("Nome que os convidados vão ver").fill("Falha");
+  for (let i = 0; i < 3; i++) {
+    if (i === 1) await page.getByRole("button", { name: "Quando acabar" }).click();
+    await page.getByRole("button", { name: "Continuar" }).click();
   }
   await page.evaluate(() => ((window as unknown as { __failPut?: boolean }).__failPut = true));
   await page.getByRole("button", { name: /Criar evento/ }).click();

@@ -46,13 +46,11 @@ test("organizador cria → convidado entra e posta → servidor revela (cron) �
   const octx = await ctxWith(browser, org.session);
   const op = await octx.newPage();
   await op.goto("/criar");
-  await op.getByLabel("Nome do evento").fill(`Homolog ${tag}`);
-  await op.getByLabel("Seu nome").fill("Organizadora Teste");
-  await op.getByRole("button", { name: "Próximo" }).click();
-  await op.getByRole("button", { name: "Próximo" }).click(); // término (6 h)
-  await op.getByRole("button", { name: "Próximo" }).click(); // revelação ao terminar
-  await op.getByRole("button", { name: "Próximo" }).click(); // identidade
-  await op.getByRole("button", { name: "Próximo" }).click(); // convidados
+  await op.getByLabel("Nome que os convidados vão ver").fill(`Homolog ${tag}`);
+  await op.getByRole("button", { name: "Continuar" }).click();
+  await op.getByRole("group", { name: "E quando as fotos aparecem?" }).getByRole("button", { name: "Quando acabar" }).click(); // término 6 h, revelação ao terminar
+  await op.getByRole("button", { name: "Continuar" }).click();
+  await op.getByRole("button", { name: "Continuar" }).click(); // fotos: 10 (Grátis)
   await op.getByRole("button", { name: /Criar evento/ }).click();
   await op.waitForURL(/criar\/pronto\//);
   const code = (await op.getByTestId("codigo").textContent())!.trim();

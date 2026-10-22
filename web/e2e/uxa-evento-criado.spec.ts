@@ -26,8 +26,8 @@ test("UXA-101/102/103: Evento criado em 320 e 1440", async ({ page, context }) =
 
 test("UXA-110: o erro do campo some assim que o usuário corrige", async ({ page }) => {
   await page.goto("/criar");
-  await page.getByRole("button", { name: "Próximo" }).click();
+  await page.getByRole("button", { name: "Continuar" }).click();
   await expect(page.getByText("Escolha o nome do evento. Todos os convidados vão ver.")).toBeVisible();
-  await page.getByLabel("Nome do evento").fill("Emy e Igor");
+  await page.getByLabel("Nome que os convidados vão ver").fill("Emy e Igor");
   await expect(page.getByText("Escolha o nome do evento. Todos os convidados vão ver.")).toHaveCount(0);
 });
