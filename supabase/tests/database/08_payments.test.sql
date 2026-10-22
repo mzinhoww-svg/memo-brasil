@@ -385,5 +385,24 @@ select is((select provider_env from public.payment_orders where id = :'o2'::uuid
 select is((select status::text from public.payment_orders where id = :'o2s'::uuid), 'cancelado', 'pedido aberto de outro ambiente não é reusado: cancelado');
 select ok(exists (select 1 from public.audit_logs where action = 'payment.cancelado' and detail ->> 'orderId' = :'o2s'), 'cancelamento auditado');
 
+-- ===================================================== interruptor 'desligado' não rebaixa compras de produção
+insert into public.events (id, title, category, host_id, host_name, duration_hours, capacity, shots_per_person, start_at) values
+  ('00000000-0000-4000-8000-0000000008ea', 'Desligado', 'festa', '00000000-0000-4000-8000-0000000008a1', 'H', 6, 10, 10, now());
+select tests.login('00000000-0000-4000-8000-0000000008a1');
+select public.payments_open_order('00000000-0000-4000-8000-0000000008ea', 'festa', gen_random_uuid()) ->> 'orderId' as oa \gset
+reset role;
+set local role service_role;
+select public.payments_attach_charge(:'oa'::uuid, 'chA', 'B', 'B', now() + interval '1 hour', false);
+reset role;
+select tests.set_env('desligado');
+set local role service_role;
+select is(public.payments_apply_status(:'oa'::uuid, 'chA', 'pago', 2900, false, 'webhook') ->> 'applied', 'true',
+  'Pix de produção pago com pagamentos desligados: aplica');
+reset role;
+select results_eq($$select capacity, shots_per_person from public.events where id = '00000000-0000-4000-8000-0000000008ea'$$,
+  $$values (30, 24)$$, 'production pago com desligado sobe os limites do evento');
+select results_eq($$select * from tests.ent('00000000-0000-4000-8000-0000000008ea')$$, $$values ('festa', 30, 24, 'pago')$$,
+  'production pago stays valid when desligado (plano efetivo festa)');
+
 select * from finish();
 rollback;

@@ -173,6 +173,18 @@ begin
   where e.id = p_event;
 end $$;
 
+-- Sobe os limites do evento ao plano concedido (null = sem limite vence; nunca baixa). Única regra de subida de limites:
+-- payments_apply_status (direito pago válido pelo ambiente), admin_grant_courtesy e redeem_code chamam esta função.
+create function public.entitlement_raise_limits(p_event uuid, p_plan text) returns void
+language sql security definer set search_path = '' as $$
+  update public.events e set
+    capacity = case when e.capacity is null or p.max_guests is null then null else greatest(e.capacity, p.max_guests) end,
+    shots_per_person = case when e.shots_per_person is null or p.max_shots is null then null
+                            else greatest(e.shots_per_person, p.max_shots) end
+  from public.plans p
+  where e.id = p_event and p.code = p_plan
+$$;
+
 -- ---------------------------------------------------------------- RPCs do organizador
 create function public.payments_quote(p_event uuid, p_plan text) returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
@@ -367,12 +379,9 @@ begin
           insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, order_id, env, created_by, reason)
           values (o.event_id, o.plan_code, pl.max_guests, pl.max_shots, 'pago', o.id, o.provider_env, o.host_id, 'pedido ' || o.id)
           returning id into ent_id;
-          if o.provider_env = public.payments_env() then -- direito de outro ambiente não vale agora: não mexe no evento
-            update public.events e set
-              capacity = case when e.capacity is null or pl.max_guests is null then null else greatest(e.capacity, pl.max_guests) end,
-              shots_per_person = case when e.shots_per_person is null or pl.max_shots is null then null
-                                      else greatest(e.shots_per_person, pl.max_shots) end
-            where e.id = o.event_id;
+          -- direito que não vale agora (sandbox fora da homologação) não mexe no evento; produção vale mesmo 'desligado'
+          if public.entitlement_env_valid(o.provider_env) then
+            perform public.entitlement_raise_limits(o.event_id, o.plan_code);
           end if;
         end if;
       end if;
@@ -452,7 +461,8 @@ end $$;
 -- ---------------------------------------------------------------- privilégios
 revoke execute on function
   public.payments_scrub(jsonb), public.payments_plan_covered(uuid, text), public.payments_quote_internal(uuid, text),
-  public.payments_reapply_limits(uuid), public.payments_order_json(public.payment_orders, boolean), public.payment_orders_touch(),
+  public.payments_reapply_limits(uuid), public.entitlement_raise_limits(uuid, text),
+  public.payments_order_json(public.payment_orders, boolean), public.payment_orders_touch(),
   public.payments_quote(uuid, text), public.payments_open_order(uuid, text, uuid), public.payments_order_status(uuid),
   public.payments_attach_charge(uuid, text, text, text, timestamptz, boolean),
   public.payments_apply_status(uuid, text, public.payment_status, int, boolean, text),

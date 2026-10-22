@@ -181,6 +181,18 @@ select is((select uses from public.courtesy_codes where code_hint = left(:'c4', 
 select is((select count(*)::int from public.courtesy_redemptions where event_id = '00000000-0000-4000-8000-00000000a0e3'), 0, 'ja_incluido não registra resgate');
 select tests.set_env('desligado');
 
+-- evento já pago em produção, com pagamentos desligados: a compra continua valendo, o código não consome
+insert into public.events (id, title, category, host_id, host_name, duration_hours, capacity, shots_per_person, start_at) values
+  ('00000000-0000-4000-8000-00000000a0e6', 'Pago em produção', 'festa', '00000000-0000-4000-8000-00000000a0a1', 'H', 6, 250, 36, now());
+insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, env, reason)
+values ('00000000-0000-4000-8000-00000000a0e6', 'casamento', 250, 36, 'pago', 'production', 'teste');
+select tests.login('00000000-0000-4000-8000-00000000a0a1');
+select is(public.redeem_code('00000000-0000-4000-8000-00000000a0e6', :'c4'),
+  '{"applied": false, "planCode": "festa", "reason": "ja_incluido"}'::jsonb,
+  'evento pago em produção com pagamentos desligados resgata Festa: ja_incluido');
+reset role;
+select is((select uses from public.courtesy_codes where code_hint = left(:'c4', 8)), 0, 'ja_incluido (produção, desligado) não consome uso');
+
 -- ===================================================== só o anfitrião resgata
 select tests.login('00000000-0000-4000-8000-00000000a0b1');
 select throws_ok(format('select public.redeem_code(%L, %L)', '00000000-0000-4000-8000-00000000a0e1', :'c4'), 'MM004', 'forbidden', 'convidado resgata: MM004');

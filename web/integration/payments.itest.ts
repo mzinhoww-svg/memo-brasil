@@ -468,6 +468,24 @@ describe("payments-refund", () => {
     expect(o.needs_refund).toBe(false);
   });
 
+  it("com payments_env='desligado' o reembolso de pedido do ambiente da chave continua funcionando (Ruling 13)", async () => {
+    const ev = await newEvent();
+    const id = String((await checkout(ev)).body.orderId);
+    const charge = String((await order(id)).provider_charge_id);
+    await fetch(`${FAKE}/v2/transparents/simulate-payment?id=${charge}`, { method: "POST", headers: { authorization: `Bearer ${fnEnv.ABACATEPAY_API_KEY}` } });
+    await waitFor(() => order(id), (x) => x.status === "pago");
+    expect((await admin.from("payment_orders").update({ refund_requested_at: new Date().toISOString(), refund_reason: "Reembolso com cobrança desligada" }).eq("id", id)).error).toBeNull();
+    expect((await admin.from("platform_settings").update({ value: "desligado" }).eq("key", "payments_env")).error).toBeNull();
+    try {
+      const before = Number((await ctl("calls")).refund);
+      expect(await call("payments-refund", master, { orderId: id })).toEqual({ status: 200, body: { ok: true } });
+      expect(Number((await ctl("calls")).refund) - before).toBe(1);
+      expect((await waitFor(() => order(id), (x) => x.status === "estornado")).status).toBe("estornado");
+    } finally {
+      await admin.from("platform_settings").update({ value: "sandbox" }).eq("key", "payments_env");
+    }
+  });
+
   it("payments-refund reconsulta a cobrança: sem PAID no provedor não reembolsa", async () => {
     const ev = await newEvent();
     const id = String((await checkout(ev)).body.orderId);

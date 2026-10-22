@@ -112,7 +112,7 @@ end $$;
 
 -- ---------------------------------------------------------------- cortesia
 -- Direito cortesia/nenhum (vale em qualquer ambiente, inclusive com pagamentos desligados) com os limites do plano, e
--- sobe capacity/shots_per_person do evento pelo caminho privilegiado (SECURITY DEFINER), como payments_apply_status.
+-- sobe capacity/shots_per_person do evento por entitlement_raise_limits (a mesma regra de payments_apply_status).
 create function public.admin_grant_courtesy(p_event uuid, p_plan text, p_reason text) returns uuid
 language plpgsql security definer set search_path = '' as $$
 declare why text; ev public.events; pl public.plans; ent_id uuid;
@@ -127,11 +127,7 @@ begin
   insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, env, created_by, reason)
   values (ev.id, pl.code, pl.max_guests, pl.max_shots, 'cortesia', 'nenhum', auth.uid(), why)
   returning id into ent_id;
-  update public.events e set
-    capacity = case when e.capacity is null or pl.max_guests is null then null else greatest(e.capacity, pl.max_guests) end,
-    shots_per_person = case when e.shots_per_person is null or pl.max_shots is null then null
-                            else greatest(e.shots_per_person, pl.max_shots) end
-  where e.id = ev.id;
+  perform public.entitlement_raise_limits(ev.id, pl.code);
   insert into public.audit_logs (actor_id, actor_role, event_id, action, target_type, target_id, reason, detail)
   values (auth.uid(), 'master', ev.id, 'entitlement.courtesy_granted', 'event', ev.id::text, why,
           jsonb_build_object('entitlementId', ent_id, 'plan', pl.code, 'maxGuests', pl.max_guests, 'maxShots', pl.max_shots));

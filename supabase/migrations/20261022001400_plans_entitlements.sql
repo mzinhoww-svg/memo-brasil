@@ -89,7 +89,15 @@ language sql stable security definer set search_path = '' as $$
     'desligado')
 $$;
 
--- Considera direitos ativos do ambiente vigente ou de env 'nenhum'. Limites: o maior valor; null (sem limite) vence.
+-- Regra única de validade de um direito pelo ambiente (usada por effective_entitlement e por quem decide subir limites):
+-- 'nenhum' (legado/cortesia/código) e 'production' sempre valem — desligar a cobrança ('desligado') é interruptor de NOVAS
+-- cobranças e nunca rebaixa compras reais; 'sandbox' só vale enquanto payments_env() = 'sandbox' (homologação).
+create function public.entitlement_env_valid(p_env text) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select coalesce(p_env in ('nenhum', 'production') or (p_env = 'sandbox' and public.payments_env() = 'sandbox'), false)
+$$;
+
+-- Considera direitos ativos válidos pelo ambiente (entitlement_env_valid). Limites: o maior valor; null (sem limite) vence.
 -- plan_code/source: do direito de maior plano (plans.sort), desempate pelo mais recente.
 -- Sem direito válido: o plano grátis, com source 'gratis'. Se nem o grátis existir: MM090 (nunca devolve vazio).
 create function public.effective_entitlement(p_event uuid)
@@ -98,12 +106,11 @@ language plpgsql stable security definer set search_path = '' as $$
 #variable_conflict use_column
 begin
   return query
-  with env as (select public.payments_env() as v),
-  valid as (
+  with valid as (
     select ee.*, p.sort
     from public.event_entitlements ee
     join public.plans p on p.code = ee.plan_code
-    where ee.event_id = p_event and ee.status = 'ativo' and ee.env in ((select v from env), 'nenhum')
+    where ee.event_id = p_event and ee.status = 'ativo' and public.entitlement_env_valid(ee.env)
   ),
   top as (select v.plan_code, v.source from valid v order by v.sort desc, v.created_at desc, v.id desc limit 1),
   agg as (
@@ -146,7 +153,8 @@ select public.entitlements_backfill_legacy();
 -- e roda como o anfitrião; join_event (definer) não depende disso. Não há checagem de acesso dentro de
 -- effective_entitlement: no INSERT do evento is_host() ainda é falso, e o dado (plano e limites) não é sensível —
 -- event_preview já expõe a lotação a quem tem o código. anon não executa nenhuma das duas.
-revoke execute on function public.payments_env(), public.effective_entitlement(uuid), public.entitlements_backfill_legacy()
+revoke execute on function public.payments_env(), public.entitlement_env_valid(text), public.effective_entitlement(uuid),
+  public.entitlements_backfill_legacy()
   from public, anon, authenticated, service_role;
 revoke execute on function public.plans_protect_free() from public, anon, authenticated, service_role;
 grant execute on function public.payments_env(), public.effective_entitlement(uuid) to authenticated, service_role;
