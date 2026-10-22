@@ -1,9 +1,9 @@
 // Testes puros (sem rede) do cliente AbacatePay v2, da autenticação do webhook e do mapa de status.
 // Rodar: cd web && npx vitest run --config vitest.functions.config.ts
 import { describe, expect, it } from "vitest";
-import { AbacateError, checkPixCharge, createPixCharge, listPixCharges, refundCharge, simulatePixPayment, type AbacateConfig } from "./abacatepay";
+import { AbacateError, checkPixCharge, createPixCharge, getPixCharge, listPixCharges, refundCharge, simulatePixPayment, type AbacateConfig } from "./abacatepay";
 import { verifyWebhookRequest } from "./payments-webhook-auth";
-import { mapProviderStatus } from "./payments-status";
+import { chargeMatchesOrder, mapProviderStatus } from "./payments-status";
 
 // Chaves fictícias, só para teste (nunca chaves reais).
 const DEV_KEY = "abc_dev_TESTE_fake_0000000000";
@@ -169,28 +169,49 @@ describe("checkPixCharge", () => {
   });
 });
 
-describe("listPixCharges", () => {
-  it("faz GET /transparents/list filtrando por externalId e devolve os itens normalizados", async () => {
+describe("listPixCharges (só parâmetros documentados: limit, after, startDate)", () => {
+  const page = (data: unknown[], next: string | null) => ({ data, success: true, error: null, pagination: { hasMore: next !== null, next, before: null } });
+
+  it("faz GET /transparents/list com startDate/limit/after e devolve itens com externalId e o cursor seguinte", async () => {
     const calls: Call[] = [];
-    const r = await listPixCharges(cfg(fakeFetch(200, ok([pixData]), calls)), { externalId: "o 1" });
+    const r = await listPixCharges(cfg(fakeFetch(200, page([{ ...pixData, externalId: "o-1" }], "pix_char_cursor"), calls)), { startDate: "2026-10-21", limit: 100, after: "pix_char_prev" });
     expect(calls[0].method).toBe("GET");
-    expect(calls[0].url).toBe(`${BASE}/transparents/list?externalId=o+1&limit=10`);
-    expect(r).toEqual([{ id: pixData.id, status: "PENDING", devMode: true, amount: 2900, brCode: pixData.brCode, brCodeBase64: pixData.brCodeBase64, expiresAt: pixData.expiresAt }]);
+    expect(calls[0].url).toBe(`${BASE}/transparents/list?limit=100&startDate=2026-10-21&after=pix_char_prev`);
+    expect(r).toEqual({
+      items: [{ id: pixData.id, status: "PENDING", devMode: true, amount: 2900, externalId: "o-1", brCode: pixData.brCode, brCodeBase64: pixData.brCodeBase64, expiresAt: pixData.expiresAt }],
+      next: "pix_char_cursor",
+    });
   });
 
-  it("filtra por id; itens sem id ou status são descartados; lista vazia é []", async () => {
+  it("nunca envia filtros não documentados (id, externalId); itens sem id ou status são descartados; fim da lista → next null", async () => {
     const calls: Call[] = [];
-    const r = await listPixCharges(cfg(fakeFetch(200, ok([{ id: "x" }, { status: "PAID" }, { id: "pix_char_2", status: "PAID", amount: 2900 }]), calls)), { id: "pix_char_2" });
-    expect(calls[0].url).toBe(`${BASE}/transparents/list?id=pix_char_2&limit=10`);
-    expect(r).toEqual([{ id: "pix_char_2", status: "PAID", devMode: true, amount: 2900 }]);
-    expect(await listPixCharges(cfg(fakeFetch(200, ok([]))), { id: "pix_char_3" })).toEqual([]);
+    const r = await listPixCharges(cfg(fakeFetch(200, page([{ id: "x" }, { status: "PAID" }, { id: "pix_char_2", status: "PAID", amount: 2900, externalId: null }], null), calls)), { startDate: "2026-10-01" });
+    expect(calls[0].url).toBe(`${BASE}/transparents/list?limit=100&startDate=2026-10-01`);
+    expect(calls[0].url).not.toMatch(/[?&](id|externalId)=/);
+    expect(r).toEqual({ items: [{ id: "pix_char_2", status: "PAID", devMode: true, amount: 2900 }], next: null });
   });
 
-  it("sem filtro é invalid (nunca lista a loja inteira) e erro HTTP vira AbacateError", async () => {
+  it("startDate fora de YYYY-MM-DD é invalid sem rede; erro HTTP vira AbacateError", async () => {
     const calls: Call[] = [];
-    expect((await caught(listPixCharges(cfg(fakeFetch(200, ok([]), calls)), {}))).kind).toBe("invalid");
+    expect((await caught(listPixCharges(cfg(fakeFetch(200, page([], null), calls)), { startDate: "21/10/2026" }))).kind).toBe("invalid");
     expect(calls).toHaveLength(0);
-    expect((await caught(listPixCharges(cfg(fakeFetch(429, { data: null, success: false, error: "x" })), { id: "a" }))).kind).toBe("rate_limit");
+    expect((await caught(listPixCharges(cfg(fakeFetch(429, { data: null, success: false, error: "x" })), { startDate: "2026-10-21" }))).kind).toBe("rate_limit");
+  });
+});
+
+describe("getPixCharge", () => {
+  it("faz GET /transparents/get?id= e devolve status, valor, externalId e vencimento", async () => {
+    const calls: Call[] = [];
+    const r = await getPixCharge(cfg(fakeFetch(200, ok({ ...pixData, status: "PAID", externalId: "o-1" }), calls)), "pix_char_a/b");
+    expect(calls[0].method).toBe("GET");
+    expect(calls[0].url).toBe(`${BASE}/transparents/get?id=pix_char_a%2Fb`);
+    expect(r).toEqual({ id: pixData.id, status: "PAID", devMode: true, amount: 2900, externalId: "o-1", brCode: pixData.brCode, brCodeBase64: pixData.brCodeBase64, expiresAt: pixData.expiresAt });
+  });
+
+  it("sem status vira provider; id vazio é invalid; sem externalId o campo fica ausente", async () => {
+    expect((await caught(getPixCharge(cfg(fakeFetch(200, ok({ id: "x" }))), "x"))).kind).toBe("provider");
+    expect((await caught(getPixCharge(cfg(fakeFetch(200, ok({}))), ""))).kind).toBe("invalid");
+    expect(await getPixCharge(cfg(fakeFetch(200, ok({ status: "PENDING", amount: 100, externalId: null }))), "pix_1")).toEqual({ id: "pix_1", status: "PENDING", devMode: true, amount: 100 });
   });
 });
 
@@ -304,5 +325,19 @@ describe("mapProviderStatus", () => {
 
   it("não normaliza variações (minúsculas, espaços, nomes de propriedades do Object)", () => {
     for (const s of ["paid", " PAID", "", "toString", "__proto__", "constructor"]) expect(mapProviderStatus(s), s).toBe(null);
+  });
+});
+
+describe("chargeMatchesOrder", () => {
+  const order = { id: "aaaaaaaa-1111-4111-8111-11111111111b", amount_cents: 18900, provider_env: "sandbox" as const };
+  it("só casa com externalId exato, mesmo valor e mesmo ambiente", () => {
+    expect(chargeMatchesOrder({ externalId: order.id, amount: 18900, devMode: true }, order)).toBe(true);
+    expect(chargeMatchesOrder({ externalId: order.id.toUpperCase(), amount: 18900, devMode: true }, order)).toBe(false);
+    expect(chargeMatchesOrder({ externalId: "22222222-2222-4222-8222-222222222222", amount: 18900, devMode: true }, order)).toBe(false);
+    expect(chargeMatchesOrder({ externalId: undefined, amount: 18900, devMode: true }, order)).toBe(false);
+    expect(chargeMatchesOrder({ externalId: null, amount: 18900, devMode: true }, order)).toBe(false);
+    expect(chargeMatchesOrder({ externalId: order.id, amount: 100, devMode: true }, order)).toBe(false);
+    expect(chargeMatchesOrder({ externalId: order.id, devMode: true }, order)).toBe(false);
+    expect(chargeMatchesOrder({ externalId: order.id, amount: 18900, devMode: false }, order)).toBe(false);
   });
 });

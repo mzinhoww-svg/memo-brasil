@@ -1,13 +1,17 @@
 // AbacatePay v2 falsa, só para testes locais (integração/e2e). Estado em memória; nenhuma chamada sai da máquina.
-// Implementa /v2/transparents/create | check | list | refund | simulate-payment e envia webhooks assinados como o provedor:
+// Implementa /v2/transparents/create | check | get | list | refund | simulate-payment e envia webhooks assinados como o provedor:
 // POST <FAKE_ABACATEPAY_WEBHOOK_URL> (já com ?webhookSecret=) e X-Webhook-Signature = base64(HMAC-SHA256(ABACATEPAY_HMAC_KEY, corpo bruto)).
 //
 // Uso: node web/e2e/fixtures/fake-abacatepay.mjs   (variáveis: FAKE_ABACATEPAY_PORT, FAKE_ABACATEPAY_WEBHOOK_URL,
 //      ABACATEPAY_HMAC_KEY; opcional FAKE_ABACATEPAY_ENV_FILE com KEY=VALUE por linha)
 // ou:  import { startFakeAbacatePay } from "./fake-abacatepay.mjs"
 //
-// Controle (só testes): POST /__control/reset | /__control/config {failCreate, deliverWebhooks} | /__control/webhook
-// {chargeId, event?, id?, devMode?, sign?} ; GET /__control/calls | /__control/charges ; POST /__control/status {id, status}.
+// Como a documentação: `check` devolve só {status, expiresAt}; `list` pagina com limit/after/startDate, mais novas primeiro, e
+// IGNORA filtros não documentados (id, externalId) — a menos que config.honorUndocumentedFilters = true.
+// Controle (só testes): POST /__control/reset | /__control/config {failCreate, failCreateAfterCreate, deliverWebhooks,
+// maxPageSize, honorUndocumentedFilters} | /__control/webhook {chargeId, event?, id?, devMode?, sign?, secret?, externalId?}
+// | /__control/charge {externalId, amount, status?, devMode?} (cobrança avulsa) | /__control/status {id, status} ;
+// GET /__control/calls | /__control/charges | /__control/deliveries.
 import { createHmac, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import http from "node:http";
@@ -23,8 +27,11 @@ export function signBody(hmacKey, rawBody) {
 
 export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", host = "0.0.0.0" } = {}) {
   let charges = new Map();
-  let calls = { create: 0, check: 0, list: 0, refund: 0, simulate: 0 };
-  let config = { failCreate: null, deliverWebhooks: true };
+  const freshCalls = () => ({ create: 0, check: 0, get: 0, list: 0, refund: 0, simulate: 0 });
+  const freshConfig = () => ({ failCreate: null, failCreateAfterCreate: null, deliverWebhooks: true, maxPageSize: 100, honorUndocumentedFilters: false });
+  let calls = freshCalls();
+  let config = freshConfig();
+  let seq = 0;
   const deliveries = [];
 
   const send = (res, status, body) => {
@@ -38,14 +45,27 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
     platformFee: 80, receiptUrl: null, createdAt: c.createdAt, updatedAt: c.updatedAt, expiresAt: c.expiresAt, metadata: c.metadata,
   });
 
-  async function deliver(c, { event, id, devMode, sign = true, secretOverride } = {}) {
+  function newCharge({ amount, expiresIn = 3600, externalId = null, metadata = {}, status = "PENDING", devMode = true }) {
+    const now = new Date();
+    const id = `pix_char_fake_${randomBytes(9).toString("hex")}`;
+    const c = {
+      id, seq: ++seq, amount, status, devMode,
+      brCode: `00020101021226950014br.gov.bcb.pix-FAKE-${id}`, brCodeBase64: "data:image/png;base64,RkFLRQ==",
+      createdAt: now.toISOString(), updatedAt: now.toISOString(), expiresAt: new Date(now.getTime() + expiresIn * 1000).toISOString(),
+      externalId, metadata,
+    };
+    charges.set(id, c);
+    return c;
+  }
+
+  async function deliver(c, { event, id, devMode, sign = true, secretOverride, externalId } = {}) {
     const payload = {
       id: id ?? `log_fake_${randomBytes(8).toString("hex")}`,
       event: event ?? EVENT_FOR_STATUS[c.status] ?? "transparent.completed",
       apiVersion: 2,
       devMode: devMode ?? c.devMode,
       data: {
-        transparent: { ...view(c), externalId: c.externalId, paidAmount: null, items: [], methods: [], frequency: "ONE_TIME", coupons: [], customerId: null },
+        transparent: { ...view(c), externalId: externalId !== undefined ? externalId : c.externalId, paidAmount: null, items: [], methods: [], frequency: "ONE_TIME", coupons: [], customerId: null },
         customer: null,
         payerInformation: { method: "PIX", PIX: { name: "Pagador Ficticio", taxId: "000.***.000-**", isSameAsCustomer: false } },
       },
@@ -89,7 +109,7 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
       if (path.startsWith("/__control/")) {
         const body = req.method === "POST" ? await readBody(req) : {};
         if (path === "/__control/reset") {
-          charges = new Map(); calls = { create: 0, check: 0, list: 0, refund: 0, simulate: 0 }; config = { failCreate: null, deliverWebhooks: true };
+          charges = new Map(); calls = freshCalls(); config = freshConfig();
           deliveries.length = 0;
           return send(res, 200, { ok: true });
         }
@@ -106,7 +126,11 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
         if (path === "/__control/webhook") {
           const c = charges.get(body?.chargeId);
           if (!c) return send(res, 404, { error: "not_found" });
-          return send(res, 200, await deliver(c, { event: body.event, id: body.id, devMode: body.devMode, sign: body.sign !== false, secretOverride: body.secret }));
+          return send(res, 200, await deliver(c, { event: body.event, id: body.id, devMode: body.devMode, sign: body.sign !== false, secretOverride: body.secret, externalId: body.externalId }));
+        }
+        if (path === "/__control/charge") {
+          const c = newCharge({ amount: Number(body?.amount), externalId: body?.externalId ?? null, status: body?.status ?? "PENDING", devMode: body?.devMode ?? true });
+          return send(res, 200, { ...view(c), externalId: c.externalId });
         }
         return send(res, 404, { error: "not_found" });
       }
@@ -121,16 +145,8 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
         const body = await readBody(req);
         const d = body?.data ?? {};
         if (body?.method !== "PIX" || !Number.isInteger(d.amount) || d.amount < 100) return fail(res, 400, "Invalid body");
-        const now = new Date();
-        const id = `pix_char_fake_${randomBytes(9).toString("hex")}`;
-        const c = {
-          id, amount: d.amount, status: "PENDING", devMode: true,
-          brCode: `00020101021226950014br.gov.bcb.pix-FAKE-${id}`, brCodeBase64: "data:image/png;base64,RkFLRQ==",
-          createdAt: now.toISOString(), updatedAt: now.toISOString(),
-          expiresAt: new Date(now.getTime() + (Number(d.expiresIn) || 3600) * 1000).toISOString(),
-          externalId: typeof d.externalId === "string" ? d.externalId : null, metadata: d.metadata ?? {},
-        };
-        charges.set(id, c);
+        const c = newCharge({ amount: d.amount, expiresIn: Number(d.expiresIn) || 3600, externalId: typeof d.externalId === "string" ? d.externalId : null, metadata: d.metadata ?? {} });
+        if (config.failCreateAfterCreate) return fail(res, Number(config.failCreateAfterCreate), "Internal server error"); // criou, mas a resposta se perdeu
         return ok(res, view(c));
       }
       if (req.method === "GET" && path === "/v2/transparents/check") {
@@ -141,9 +157,26 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
       }
       if (req.method === "GET" && path === "/v2/transparents/list") {
         calls.list++;
+        const limit = Math.min(Math.max(Number(u.searchParams.get("limit")) || 20, 1), 100, Number(config.maxPageSize) || 100);
+        const startDate = u.searchParams.get("startDate"), after = u.searchParams.get("after");
         const id = u.searchParams.get("id"), ext = u.searchParams.get("externalId");
-        const items = [...charges.values()].filter((c) => (!id || c.id === id) && (!ext || c.externalId === ext)).map(view);
-        return send(res, 200, { data: items, success: true, error: null, pagination: { hasMore: false, next: null, before: null } });
+        const since = startDate ? Date.parse(`${startDate}T00:00:00-03:00`) : -Infinity; // fuso de São Paulo, como a doc
+        let all = [...charges.values()].sort((a, b) => b.seq - a.seq).filter((c) => Date.parse(c.createdAt) >= since);
+        if (config.honorUndocumentedFilters) all = all.filter((c) => (!id || c.id === id) && (!ext || c.externalId === ext));
+        let start = 0;
+        if (after) { const i = all.findIndex((c) => c.id === after); start = i < 0 ? all.length : i + 1; }
+        const pageItems = all.slice(start, start + limit);
+        const hasMore = start + limit < all.length;
+        return send(res, 200, {
+          data: pageItems.map((c) => ({ ...view(c), externalId: c.externalId })), success: true, error: null,
+          pagination: { hasMore, next: hasMore ? pageItems[pageItems.length - 1].id : null, before: start > 0 ? pageItems[0]?.id ?? null : null },
+        });
+      }
+      if (req.method === "GET" && path === "/v2/transparents/get") {
+        calls.get++;
+        const c = charges.get(u.searchParams.get("id") ?? "");
+        if (!c) return fail(res, 404, "Not found");
+        return ok(res, { ...view(c), externalId: c.externalId });
       }
       if (req.method === "POST" && path === "/v2/transparents/refund") {
         calls.refund++;

@@ -203,14 +203,81 @@ describe("payments-checkout", () => {
     expect(r.body.error).toBe("provedor_indisponivel");
     const id = String(r.body.orderId);
     expect((await order(id)).status).toBe("criado");
+    // cobranças mais novas de outros pedidos, e uma com o externalId certo mas valor errado: nenhuma pode ser adotada
+    await ctl("charge", { externalId: randomUUID(), amount: 18900 });
+    await ctl("charge", { externalId: id, amount: 100 });
+    await ctl("charge", { externalId: id, amount: 18900, devMode: false });
     await backdate(id, 6);
     const rc = await reconcile();
     expect(rc.status).toBe(200);
-    expect((await order(id)).status).toBe("falhou");
+    const failed = await order(id);
+    expect(failed.status).toBe("falhou");
+    expect(failed.provider_charge_id).toBeNull();
     const r2 = await checkout(ev);
     expect(r2.status).toBe(200);
     expect(r2.body.status).toBe("pendente");
     expect(r2.body.orderId).not.toBe(id);
+  });
+});
+
+describe("cobrança criada com a resposta perdida (create sem resposta)", () => {
+  async function lostCreate() {
+    const ev = await newEvent();
+    await ctl("config", { failCreateAfterCreate: 500 });
+    let r: Awaited<ReturnType<typeof checkout>>;
+    try {
+      r = await checkout(ev);
+    } finally {
+      await ctl("config", { failCreateAfterCreate: null });
+    }
+    expect(r.status).toBe(502);
+    const id = String(r.body.orderId);
+    const target = ((await ctl("charges")) as Json[]).find((c) => c.externalId === id)!;
+    expect(target).toBeTruthy();
+    expect((await order(id))).toMatchObject({ status: "criado", provider_charge_id: null });
+    return { ev, id, target };
+  }
+
+  it("reconcile acha na página 2, entre cobranças mais novas de outros pedidos, só a de externalId exato e adota", async () => {
+    const { id, target } = await lostCreate();
+    await ctl("charge", { externalId: randomUUID(), amount: 18900 });
+    await ctl("charge", { externalId: id, amount: 100 });
+    await ctl("charge", { externalId: id, amount: 18900, devMode: false });
+    await backdate(id, 6);
+    await ctl("config", { maxPageSize: 2 });
+    const lists = Number((await ctl("calls")).list);
+    try {
+      expect((await reconcile()).status).toBe(200);
+    } finally {
+      await ctl("config", { maxPageSize: 100 });
+    }
+    expect(Number((await ctl("calls")).list) - lists).toBeGreaterThanOrEqual(2);
+    const o = await order(id);
+    expect(o.provider_charge_id).toBe(target.id);
+    expect(o.status).toBe("pendente");
+    expect(o.brcode).toBe(target.brCode);
+  });
+
+  it("webhook adota a cobrança de pedido 'criado' só após reconsultar (get) com externalId e valor exatos", async () => {
+    const { ev, id, target } = await lostCreate();
+    await ctl("status", { id: target.id, status: "PAID" });
+    const gets = Number((await ctl("calls")).get);
+    expect(await ctl("webhook", { chargeId: target.id })).toMatchObject({ status: 200, body: { ok: true } });
+    expect(Number((await ctl("calls")).get) - gets).toBeGreaterThanOrEqual(1);
+    const o = await order(id);
+    expect(o).toMatchObject({ status: "pago", provider_charge_id: target.id });
+    expect(Date.parse(String(o.expires_at))).toBe(Date.parse(String(target.expiresAt)));
+    expect(await plan(ev)).toBe("casamento");
+  });
+
+  it("webhook com cobrança que não confere (externalId do corpo ≠ provedor) → 200 cobranca_nao_confere, nada adotado", async () => {
+    const { id } = await lostCreate();
+    const decoy = (await ctl("charge", { externalId: randomUUID(), amount: 18900, status: "PAID" })) as Json;
+    const eid = `log_fake_naoconfere_${tag}`;
+    expect(await ctl("webhook", { chargeId: decoy.id, externalId: id, id: eid })).toMatchObject({ status: 200, body: { ok: true } });
+    expect(await order(id)).toMatchObject({ status: "criado", provider_charge_id: null });
+    const e = await admin.from("payment_events").select("outcome").eq("provider_event_id", eid).single();
+    expect(e.data?.outcome).toBe("cobranca_nao_confere");
   });
 });
 
@@ -300,6 +367,7 @@ describe("payments-reconcile e payments-status", () => {
     }
     expect((await order(id)).status).toBe("pendente");
     await backdate(id, 2);
+    const gets = Number((await ctl("calls")).get);
     const r = await reconcile();
     expect(r.status).toBe(200);
     const body = (await r.json()) as Json;
@@ -308,6 +376,8 @@ describe("payments-reconcile e payments-status", () => {
     expect(Number(body.aplicados)).toBeGreaterThanOrEqual(1);
     expect((await order(id)).status).toBe("pago");
     expect(await plan(ev)).toBe("casamento");
+    // o check da fake não informa o valor (forma mínima documentada): o valor veio de GET /transparents/get
+    expect(Number((await ctl("calls")).get) - gets).toBeGreaterThanOrEqual(1);
   });
 
   it("reconcile sem o token do agendador → 401", async () => {

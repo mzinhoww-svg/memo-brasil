@@ -2,6 +2,8 @@
 // deduplica pelo id da entrega e aplica SEMPRE o status reconsultado no provedor: o tipo do evento só dispara a reconsulta.
 // Respostas: 200 {ok:true} (inclusive duplicado, ignorado ou pedido desconhecido); 401 sem autenticação válida;
 // 500 só quando o banco (ou a reconsulta) falha, para o provedor tentar de novo.
+import { getPixCharge } from "../_shared/abacatepay.ts";
+import { chargeMatchesOrder } from "../_shared/payments-status.ts";
 import { verifyWebhookRequest } from "../_shared/payments-webhook-auth.ts";
 import { applyStatus, loadOrder, log, providerConfig, recheck, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
 
@@ -73,7 +75,8 @@ Deno.serve(async (req) => {
     }
   }
   const finish = async (orderId: string | null, status: string | null, outcome: string) => {
-    await admin.from("payment_events").update({ outcome }).eq("provider", "abacatepay").eq("provider_event_id", deliveryId);
+    const u = await admin.from("payment_events").update({ outcome }).eq("provider", "abacatepay").eq("provider_event_id", deliveryId);
+    if (u.error) log(FN, orderId, status, "falha_ao_gravar_resultado");
     log(FN, orderId, status, outcome);
     return json({ ok: true });
   };
@@ -93,16 +96,24 @@ Deno.serve(async (req) => {
   if (!chargeId) return finish(order.id, order.status, "cobranca_ausente");
 
   try {
-    // cobrança criada mas não gravada (falha entre create e attach): adota a cobrança do evento autenticado
+    // cobrança criada mas não gravada (create sem resposta ou attach que falhou): o corpo do evento sozinho não basta.
+    // Reconsulta GET /transparents/get?id= e só adota com externalId === pedido, mesmo valor e mesmo ambiente.
     if (!order.provider_charge_id && order.status === "criado") {
-      const a = await admin.rpc("payments_attach_charge", {
-        p_order: order.id, p_charge_id: chargeId, p_brcode: null, p_brcode_base64: null, p_expires_at: null, p_dev_mode: devMode,
-      });
-      if (a.error && a.error.code !== "MM005") throw new Error("db");
-      if (!a.error) {
-        order.provider_charge_id = chargeId;
-        order.status = "pendente";
+      let charge;
+      try {
+        charge = await getPixCharge(provider.config, chargeId);
+      } catch {
+        log(FN, order.id, order.status, "reconsulta_falhou");
+        return json({ error: "provider" }, 500);
       }
+      if (!chargeMatchesOrder(charge, order)) return finish(order.id, order.status, "cobranca_nao_confere");
+      const a = await admin.rpc("payments_attach_charge", {
+        p_order: order.id, p_charge_id: charge.id, p_brcode: charge.brCode ?? null, p_brcode_base64: charge.brCodeBase64 ?? null,
+        p_expires_at: charge.expiresAt ?? null, p_dev_mode: charge.devMode,
+      });
+      if (a.error) throw new Error("db"); // inclusive 23505: nunca é sucesso
+      order.provider_charge_id = charge.id;
+      order.status = "pendente";
     }
     let state;
     try {

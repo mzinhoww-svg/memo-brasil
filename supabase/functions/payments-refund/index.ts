@@ -37,7 +37,8 @@ Deno.serve(async (req) => {
     return json({ ok: true });
   }
   if (!order.refund_requested_at) return json({ error: "reembolso_nao_solicitado" }, 422);
-  if (!order.provider_charge_id || (order.status !== "pago" && order.status !== "em_disputa")) return json({ error: "estado_invalido" }, 422);
+  // só 'pago': o provedor recusa reembolso de cobrança em disputa (ruling do controlador)
+  if (!order.provider_charge_id || order.status !== "pago") return json({ error: "estado_invalido" }, 422);
   if (order.provider_env !== provider.env) return json({ error: "pagamento_indisponivel" }, 503);
 
   try {

@@ -2,7 +2,8 @@
 // - Mesma chave de idempotência → mesmo pedido; o pedido único aberto por evento serializa cliques duplos.
 // - Quem não criou o pedido (reuso de pedido ainda 'criado') espera a cobrança aparecer; nunca chama create de novo.
 // - Erro na criação (inclusive rede/timeout, em que a cobrança pode existir) → 502 com o pedido mantido em 'criado';
-//   a reconciliação procura a cobrança pelo externalId e, sem achar, marca 'falhou' após 5 min (libera novo checkout).
+//   a reconciliação procura a cobrança na listagem (externalId exato + valor + ambiente) e, sem achar, marca 'falhou'
+//   após 5 min (libera novo checkout).
 import { createPixCharge } from "../_shared/abacatepay.ts";
 import { AbacateError, caller, guardEnv, log, preflight, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
 
@@ -104,7 +105,9 @@ Deno.serve(async (req) => {
   }
 
   let attached = false;
-  for (let i = 0; i < 3 && !attached; i++) {
+  const ATTACH_BACKOFF_MS = [200, 500, 1_000];
+  for (let i = 0; i <= ATTACH_BACKOFF_MS.length && !attached; i++) { // 1 tentativa + 3 novas com espera
+    if (i > 0) await new Promise((r) => setTimeout(r, ATTACH_BACKOFF_MS[i - 1]));
     const a = await admin.rpc("payments_attach_charge", {
       p_order: order.orderId,
       p_charge_id: charge.id,
@@ -117,7 +120,7 @@ Deno.serve(async (req) => {
     if (a.error?.code === "MM005") break; // recusa de regra (ex.: devMode divergente): não adianta repetir
   }
   if (!attached) {
-    // a cobrança existe no provedor mas não foi gravada: a reconciliação a acha pelo externalId e a adota
+    // a cobrança existe no provedor mas não foi gravada: a reconciliação (ou o webhook, após reconsulta) a adota
     log(FN, order.orderId, "criado", "falha_ao_gravar_cobranca");
     return json({ error: "provedor_indisponivel", orderId: order.orderId }, 502);
   }

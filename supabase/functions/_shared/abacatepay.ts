@@ -29,7 +29,7 @@ const CODE_RE = /^[A-Z][A-Z0-9_]{2,63}$/;
 // Resposta documentada de POST /transparents/refund para cobrança já reembolsada (HTTP 400): tratar como "já reembolsado".
 const ALREADY_REFUNDED = "Esta cobrança já foi reembolsada.";
 
-type Envelope = { data: Record<string, unknown> | null; error: string | null };
+type Envelope = { data: Record<string, unknown> | null; error: string | null; pagination?: Record<string, unknown> | null };
 
 function kindForStatus(status: number): AbacateErrorKind {
   if (status === 401) return "auth";
@@ -75,7 +75,8 @@ async function call(cfg: AbacateConfig, method: "GET" | "POST", path: string, bo
   // Sempre conferir `success`: HTTP 200 com success:false é erro.
   if (!env || env.success !== true) throw new AbacateError("provider", res.status, code);
   const data = env.data && typeof env.data === "object" ? (env.data as Record<string, unknown>) : null;
-  return { data, error };
+  const pagination = env.pagination && typeof env.pagination === "object" ? (env.pagination as Record<string, unknown>) : null;
+  return { data, error, pagination };
 }
 
 const str = (v: unknown): v is string => typeof v === "string" && v.length > 0;
@@ -123,33 +124,48 @@ export async function checkPixCharge(cfg: AbacateConfig, id: string): Promise<Pi
   return out;
 }
 
-export type PixListItem = { id: string; status: string; devMode: boolean; amount?: number; brCode?: string; brCodeBase64?: string; expiresAt?: string };
+export type PixListItem = {
+  id: string; status: string; devMode: boolean; amount?: number; externalId?: string; brCode?: string; brCodeBase64?: string; expiresAt?: string;
+};
+
+function toItem(cfg: AbacateConfig, d: Record<string, unknown>, fallbackId?: string): PixListItem | null {
+  const id = str(d.id) ? d.id : fallbackId;
+  if (!str(id) || !str(d.status)) return null;
+  const item: PixListItem = { id, status: d.status, devMode: typeof d.devMode === "boolean" ? d.devMode : cfg.apiKey.startsWith("abc_dev_") };
+  if (num(d.amount)) item.amount = d.amount;
+  if (str(d.externalId)) item.externalId = d.externalId;
+  if (str(d.brCode)) item.brCode = d.brCode;
+  if (str(d.brCodeBase64)) item.brCodeBase64 = d.brCodeBase64;
+  if (str(d.expiresAt)) item.expiresAt = d.expiresAt;
+  return item;
+}
+
+/** GET /transparents/get?id= — a cobrança completa (status, valor, externalId, vencimento). */
+export async function getPixCharge(cfg: AbacateConfig, id: string): Promise<PixListItem> {
+  requireId(id);
+  const { data } = await call(cfg, "GET", `/transparents/get?id=${encodeURIComponent(id)}`);
+  const item = toItem(cfg, data ?? {}, id);
+  if (!item) throw new AbacateError("provider", 200);
+  return item;
+}
 
 /**
- * GET /transparents/list filtrado por `id` ou `externalId` (nunca sem filtro). Serve para recuperar o valor quando a
- * reconsulta (check) não o informa e para achar a cobrança de um pedido cuja criação terminou sem resposta (timeout).
+ * GET /transparents/list só com os parâmetros documentados para paginar (limit 1-100, after, startDate YYYY-MM-DD).
+ * Filtros como id/externalId NÃO são enviados: quem chama compara externalId, valor e devMode nos itens.
  */
-export async function listPixCharges(cfg: AbacateConfig, filter: { id?: string; externalId?: string }): Promise<PixListItem[]> {
-  const q = new URLSearchParams();
-  if (str(filter.id)) q.set("id", filter.id);
-  if (str(filter.externalId)) q.set("externalId", filter.externalId);
-  if ([...q.keys()].length === 0) throw new AbacateError("invalid", 0);
-  q.set("limit", "10");
-  const { data } = await call(cfg, "GET", `/transparents/list?${q.toString()}`);
-  const items: unknown[] = Array.isArray(data) ? data : [];
-  const out: PixListItem[] = [];
-  for (const it of items) {
-    if (!it || typeof it !== "object") continue;
-    const d = it as Record<string, unknown>;
-    if (!str(d.id) || !str(d.status)) continue;
-    const item: PixListItem = { id: d.id, status: d.status, devMode: typeof d.devMode === "boolean" ? d.devMode : cfg.apiKey.startsWith("abc_dev_") };
-    if (num(d.amount)) item.amount = d.amount;
-    if (str(d.brCode)) item.brCode = d.brCode;
-    if (str(d.brCodeBase64)) item.brCodeBase64 = d.brCodeBase64;
-    if (str(d.expiresAt)) item.expiresAt = d.expiresAt;
-    out.push(item);
-  }
-  return out;
+export async function listPixCharges(
+  cfg: AbacateConfig,
+  page: { startDate: string; after?: string; limit?: number },
+): Promise<{ items: PixListItem[]; next: string | null }> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(page.startDate)) throw new AbacateError("invalid", 0);
+  const limit = Math.min(Math.max(Math.trunc(page.limit ?? 100), 1), 100);
+  const q = new URLSearchParams({ limit: String(limit), startDate: page.startDate });
+  if (str(page.after)) q.set("after", page.after);
+  const { data, pagination } = await call(cfg, "GET", `/transparents/list?${q.toString()}`);
+  const raw: unknown[] = Array.isArray(data) ? data : [];
+  const items = raw.flatMap((it) => (it && typeof it === "object" ? [toItem(cfg, it as Record<string, unknown>)] : [])).filter((x): x is PixListItem => x !== null);
+  const next = pagination && pagination.hasMore === true && str(pagination.next) ? pagination.next : null;
+  return { items, next };
 }
 
 /** POST /transparents/refund (reembolso total). Cobrança já reembolsada conta como sucesso (idempotente). */

@@ -1,13 +1,13 @@
 // Conciliação chamada pelo pg_cron (verify_jwt=false; Authorization: Bearer PAYMENTS_CRON_TOKEN). Lote de até 50 pedidos:
 // - 'pendente' criado há > 60 s e consultado há > 60 s → reconsulta e aplica (webhook perdido, vencimento);
 // - 'pago' com reembolso solicitado → reconsulta (o 'estornado' chega por aqui se o webhook se perder);
-// - 'criado' sem cobrança há > 5 min → procura a cobrança pelo externalId (create que deu timeout); achou: adota e aplica;
-//   não achou: 'falhou' (libera novo checkout).
+// - 'criado' sem cobrança há > 5 min → procura a cobrança na listagem (create que deu timeout), paginando só com parâmetros
+//   documentados (startDate, after, limit). Só adota com externalId === id do pedido, mesmo valor e mesmo devMode;
+//   sem correspondência exata: 'falhou' (libera novo checkout).
 // Inclui pedidos de evento purgado (event_id null). Só trata pedidos do ambiente da chave configurada.
 // Em 429 espera com backoff exponencial (até 3 vezes) e encerra o lote se persistir.
-import { listPixCharges } from "../_shared/abacatepay.ts";
 import {
-  AbacateError, applyStatus, log, ORDER_COLUMNS, type OrderRow, providerConfig, recheck, responder, sameToken, serviceClient,
+  AbacateError, applyStatus, findChargeForOrder, log, ORDER_COLUMNS, type OrderRow, providerConfig, recheck, responder, sameToken, serviceClient,
 } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-reconcile";
@@ -68,21 +68,20 @@ Deno.serve(async (req) => {
   for (const order of queue) {
     try {
       if (order.status === "criado") {
-        const found = (await withBackoff(() => listPixCharges(provider.config, { externalId: order.id })))
-          .find((c) => c.devMode === (provider.env === "sandbox"));
+        const { charge: found, complete } = await findChargeForOrder(provider.config, order, withBackoff);
         if (!found) {
           const f = await admin.rpc("payments_fail_unattached", { p_order: order.id });
           if (f.error) throw new Error("db");
           verificados++;
           if (f.data === true) aplicados++;
-          log(FN, order.id, f.data === true ? "falhou" : "criado", f.data === true ? "sem_cobranca" : "nao_aplicado");
+          log(FN, order.id, f.data === true ? "falhou" : "criado", f.data !== true ? "nao_aplicado" : complete ? "sem_cobranca" : "sem_cobranca_busca_limitada");
           continue;
         }
         const a = await admin.rpc("payments_attach_charge", {
           p_order: order.id, p_charge_id: found.id, p_brcode: found.brCode ?? null, p_brcode_base64: found.brCodeBase64 ?? null,
           p_expires_at: found.expiresAt ?? null, p_dev_mode: found.devMode,
         });
-        if (a.error) throw new Error("db");
+        if (a.error) throw new Error("db"); // inclusive 23505 (cobrança já ligada a outro pedido): nunca é sucesso
         order.provider_charge_id = found.id;
         order.status = "pendente";
         log(FN, order.id, "pendente", "cobranca_adotada");
