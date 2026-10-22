@@ -37,3 +37,10 @@ Não mudar Root Directory/framework do projeto antes da promoção: o legado em 
 - **Push → deploy:** o projeto `memoriesmt-v2` está ligado a `memo-brasil` e recebe o push, mas a Vercel Hobby bloqueia (`BLOCKED`) quando o autor do commit não pertence ao time. Intervenção do dono: verificar o e-mail do autor na conta GitHub `mzinhoww-svg`.
 - **Flags de build:** `NEXT_PUBLIC_MM_DEV_TOOLS` e `NEXT_PUBLIC_MM_TEST_CLOCK` só existem no build de E2E; nunca configurá-las na Vercel.
 - Produção segue o app legado; nada foi promovido. Rollback: seção 4, inalterada.
+
+## 6. Atualização 2026-10-22 (rodada 6)
+- **Candidato:** SHA `67fef3ceeec9d6467b51a05b6d1cadc708b8c1f1`; preview `dpl_BGLvn1MhU1bSsbBWCteNNu92ik51` (memoriesmt-v2). Login Google no preview confirmado (OPS-A5-001 resolvido). Produção segue o app legado; nada promovido.
+- **Migration `20261022001300` já aplicada** (aditiva: textos v1, aceite separado, retenção). Não se reverte; corrigir à frente. O job `mm-expire-retention` só atua em eventos criados após a migration.
+- **Antes de promover:** o operador decide conscientemente a promoção desse SHA e registra a rotina de rotação de backups (`supabase/ops/rotate_local_backups.sh`, a cada ≤ 30 dias).
+- Push → deploy segue bloqueado pela Vercel até o e-mail do autor ser vinculado (INF-005); caminho vigente: deploy manual por API (seção 1; `requestBody` com `gitSource`).
+

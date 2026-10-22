@@ -78,3 +78,15 @@ Ruling: não trocar autoria/histórico para passar pela Vercel — o classificad
 Ruling: homologar o login autenticado no projeto antigo no mesmo SHA — Redirect URLs do Auth não incluem memoriesmt-v2 e alterar Auth não foi autorizado — custo: o login no projeto novo só funciona após OPS-A5-001.
 Ruling: GO só com requisito 7 aplicado — não invento texto, versão nem prazo jurídicos — custo: A fica NO-GO por um passo curto.
 - **Preview final:** SHA `975a49c8ea026c4e98f704b7a085f2039649a68d`; `dpl_HpaBRySf9RzetNukhku4JUMfHTRL` e `dpl_59rEWBMxuud3m9STBssRUtd9hgic`.
+
+## Rodada 6 (22/10/2026)
+Ruling: publicar os prazos só depois de implementar o mecanismo — a V2 não tinha expiração pós-evento — custo: migration nova e política só para eventos novos.
+Ruling: eventos existentes ficam sem política (retention_policy nulo) — não encurtar nem estender prazo retroativamente e não ativar rotina destrutiva sobre eles — custo: 5 eventos de teste/uso interno sem expiração automática.
+Ruling: limite de purga de 28 dias para eventos sob a política — cron diário + worker de 30 min poderiam estourar os 30 dias prometidos — custo: eventos novos saem até 2 dias antes do limite antigo; legados mantêm 30 d.
+Ruling: rotação de backups como script do operador, dry-run por padrão, não executado — apagar cópias é exclusão definitiva e não há backup gerenciado — custo: o prazo de 30 d nas cópias depende da rotina manual.
+Ruling: não alterar autoria nem contornar a Vercel; preview por API do SHA — custo: push continua BLOCKED até o operador vincular o e-mail.
+- **Migration:** `20261022001300` aplicada no remoto após backup `20261022-1304` (schema/data, modo 600) e dry-run; list: local=remote.
+- **Código:** `67fef3ceeec9d6467b51a05b6d1cadc708b8c1f1`; preview `dpl_BGLvn1MhU1bSsbBWCteNNu92ik51` (memoriesmt-v2, READY).
+- **Remoto:** evento sintético `9b4a42fc-3de4-4221-afaa-461b1c90d606`; consulta a `legal_documents`, `user_consents`, `events` somente leitura via CLI vinculado (o MCP do Supabase respondeu "sem permissão" nesta rodada; não contornado).
+- Nenhuma exclusão de dados reais; produção não promovida.
+

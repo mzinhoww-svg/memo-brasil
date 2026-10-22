@@ -38,3 +38,9 @@ Enquanto isso, a recuperação é **parcial**: serve ao uso acompanhado com expo
 
 ## Resíduos de teste (QAV-004 segue aberto)
 Quatro contas de teste (identidade e-mail), 25 sessões anônimas e 9 objetos órfãos em `event-photos`, fora da fila de purga. Não aparecem a usuários indevidos (RLS) e não limitam a capacidade inicial. **Não limpar sem backup recente e autorização do dono.** Retenção sugerida: tratar após o primeiro evento acompanhado.
+
+## Retenção e cópias de segurança (política 2026-10-22-v1)
+- **Fotos:** disponíveis por 90 dias após o encerramento; depois o acesso é retirado e a exclusão do armazenamento ativo conclui em até 28 dias (job `mm-expire-retention` 03:05 + `mm-purge-deleted` 03:17 + `mm-purge-storage` a cada 30 min). Só vale para eventos criados a partir de 22/10/2026; os anteriores não expiram sozinhos.
+- **Cópias de segurança:** o texto promete eliminação em até 30 dias adicionais. Rotina do operador: `sh supabase/ops/rotate_local_backups.sh` (dry-run) e, conferida a lista, `sh supabase/ops/rotate_local_backups.sh <pasta> --apply`, no mínimo a cada 30 dias. Em restauração, reaplicar exclusões já determinadas (eventos com `deleted_at` e pedidos atendidos).
+- **Exclusão a pedido do titular:** responder e concluir em até 30 dias; é manual (e-mail de contato).
+

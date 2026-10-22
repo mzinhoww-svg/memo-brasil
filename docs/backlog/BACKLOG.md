@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **217** itens (sem contar 19 épicos). Prioridade: P0 37, P1 71, P2 56, P3 53. Status: BACKLOG 98, BLOCKED 6, CANCELLED 2, DEFERRED 12, DONE 63, IN_REVIEW 25, READY 11.
+Total: **221** itens (sem contar 19 épicos). Prioridade: P0 38, P1 72, P2 58, P3 53. Status: BACKLOG 98, BLOCKED 5, CANCELLED 2, DEFERRED 14, DONE 65, IN_REVIEW 25, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -506,7 +506,7 @@ Total: **217** itens (sem contar 19 épicos). Prioridade: P0 37, P1 71, P2 56, P
 |---|---|---|---|---|---|---|---|---|
 | INF-004 | BUG | Variável SUPABASE_SERVICEROLE_KEY (sensível) no ambiente Production da Vercel | P1 | DONE | - | A.4 2026-10-21 | 975a49c8ea026c4e98f704b7a085f2039649a68d | remoto (Vercel Production) |
 | INF-005 | TASK | Preview por API exige rootDirectory=web e framework=nextjs | P2 | IN_REVIEW | REL-001 | A.4 2026-10-21 | - | remoto |
-| OPS-A5-001 | BUG | Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs | P1 | BLOCKED | - | A.5 rodada 5 2026-10-22 | - | remoto |
+| OPS-A5-001 | BUG | Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs | P1 | DONE | - | A.5 rodada 5 2026-10-22 | 67fef3c | remoto |
 | OPS-A5-002 | FEATURE | Backup gerenciado e PITR do projeto Supabase | P1 | DEFERRED | - | A.5 rodada 5 2026-10-22 | - | remoto |
 | QAV-004 | TASK | Limpar usuários e dados de teste do remoto | P3 | BLOCKED | SCV-010 | A.4 2026-10-21 | - | remoto |
 | SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 5374f89 | local-supabase |
@@ -543,8 +543,6 @@ Total: **217** itens (sem contar 19 épicos). Prioridade: P0 37, P1 71, P2 56, P
 **INF-005** critérios: Push da branch gera preview com o app de web/ sem parâmetros manuais
 
 **QAV-004** critérios: Remoto sem usuários/objetos de teste; backup anterior guardado
-
-**OPS-A5-001** critérios: Login Google em preview do memoriesmt-v2 volta para /auth/callback do próprio preview; Redirect URLs estreitas: só domínios necessários, sem curinga amplo
 
 **OPS-A5-002** critérios: PITR ativo ou decisão registrada de manter só backup manual antes de cada evento; Restauração do Storage por API testada
 
@@ -590,7 +588,7 @@ Total: **217** itens (sem contar 19 épicos). Prioridade: P0 37, P1 71, P2 56, P
 | COM-001 | FEATURE | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | BACKLOG | SB-004, SB-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-002 | FEATURE | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | BACKLOG | COM-001, COM-004 | consolidação do backlog 2026-10-21 | - | - |
 | COM-003 | FEATURE | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | BACKLOG | COM-001 | consolidação do backlog 2026-10-21 | - | - |
-| COM-004 | FEATURE | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | IN_REVIEW | SB-004 | consolidação do backlog 2026-10-21 | - | - |
+| COM-004 | FEATURE | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | IN_REVIEW | SB-004 | consolidação do backlog 2026-10-21 | 67fef3c | - |
 | COM-005 | FEATURE | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG | SB-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-006 | FEATURE | Página de planos e checkout do organizador | P1 | BACKLOG | COM-002 | consolidação do backlog 2026-10-21 | - | - |
 | COM-007 | FEATURE | Faturamento e financeiro no console master (recibos, reembolso, conciliação) | P2 | BACKLOG | COM-002, MAD-003 | consolidação do backlog 2026-10-21 | - | - |
@@ -600,8 +598,12 @@ Total: **217** itens (sem contar 19 épicos). Prioridade: P0 37, P1 71, P2 56, P
 | COM-011 | FEATURE | Domínio próprio e e-mail de marca | P2 | BACKLOG | REL-001 | consolidação do backlog 2026-10-21 | - | - |
 | COM-012 | FEATURE | Suporte e operação: canal de contato, SLA e runbook de incidentes | P2 | BACKLOG | COM-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-013 | FEATURE | Abuso e antifraude: rate limit na borda e moderação automática de imagens | P2 | BACKLOG | SB-005 | consolidação do backlog 2026-10-21 | - | - |
+| OPS-A5-003 | TASK | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY | - | A.5 rodada 6 2026-10-22 | - | remoto |
+| OPS-A5-004 | TASK | Eventos anteriores a 22/10/2026 sem expiração automática | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
+| OPS-A5-005 | TASK | Pedidos de exclusão do titular em até 30 dias (processo manual) | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
+| RET-A5-001 | FEATURE | Retenção de fotos: 90 dias de acesso após o encerramento e exclusão do armazenamento ativo em até 28 dias | P0 | DONE | - | A.5 rodada 6 2026-10-22 | 67fef3c | remoto |
 
-**COM-004** critérios: Páginas publicadas; aceite versionado e auditado; revisão jurídica registrada · testes: supabase/tests/database/04_consents.test.sql (24 asserts), web/e2e/consent.spec.ts (3), web/src/lib/consent.test.ts (6), web/e2e/consent.spec.ts verifica contato e título (3/3)
+**COM-004** critérios: Páginas publicadas; aceite versionado e auditado; origem do texto registrada; retenção explícita e cumprida pelo produto; Revisão jurídica profissional: NÃO registrada (decisão do operador de publicar texto próprio); qualquer revisão futura gera versão nova · testes: supabase/tests/database/04_consents.test.sql (24 asserts), web/e2e/consent.spec.ts (3), web/src/lib/consent.test.ts (6), web/e2e/consent.spec.ts verifica contato e título (3/3), supabase/tests/database/04_consents.test.sql (35 asserts, aceite separado, origem e sem revisão registrada), supabase/tests/database/06_retention.test.sql (31 asserts), web/e2e/consent.spec.ts (3), web/e2e/supabase.spec.ts (falha de gravação e isolamento), web/src/lib/legal-text.test.ts, web/src/lib/consent.test.ts, web/src/domain/retention.test.ts
 
 **COM-001** critérios: Tabelas e RLS; pgTAP; sem cobrança ainda
 
@@ -626,3 +628,9 @@ Total: **217** itens (sem contar 19 épicos). Prioridade: P0 37, P1 71, P2 56, P
 **COM-011** critérios: Domínio verificado na Vercel; Redirect URLs e OAuth atualizados
 
 **COM-012** critérios: Runbook publicado; simulação de incidente registrada
+
+**OPS-A5-003** critérios: Rotina executada ao menos a cada 30 dias, com registro; Em restauração, exclusões já determinadas são reaplicadas · testes: supabase/ops/rotate_local_backups.test.sh (pasta descartável)
+
+**OPS-A5-004** critérios: Decisão do dono registrada por evento
+
+**OPS-A5-005** critérios: Procedimento do operador documentado em OPERATIONAL-RECOVERY.md; Fluxo self-service avaliado depois

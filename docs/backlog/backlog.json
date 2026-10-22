@@ -2,7 +2,7 @@
  "meta": {
   "project": "MemoriesMT",
   "version": 1,
-  "updated": "2026-10-21",
+  "updated": "2026-10-22",
   "branch": "feat/memoriesmt",
   "workflow": [
    "BACKLOG",
@@ -5649,21 +5649,26 @@
    ],
    "origin": "consolidação do backlog 2026-10-21",
    "acceptance": [
-    "Páginas publicadas; aceite versionado e auditado; revisão jurídica registrada"
+    "Páginas publicadas; aceite versionado e auditado; origem do texto registrada; retenção explícita e cumprida pelo produto",
+    "Revisão jurídica profissional: NÃO registrada (decisão do operador de publicar texto próprio); qualquer revisão futura gera versão nova"
    ],
    "files": [],
    "tests": [
     "supabase/tests/database/04_consents.test.sql (24 asserts)",
     "web/e2e/consent.spec.ts (3)",
     "web/src/lib/consent.test.ts (6)",
-    "web/e2e/consent.spec.ts verifica contato e título (3/3)"
+    "web/e2e/consent.spec.ts verifica contato e título (3/3)",
+    "supabase/tests/database/04_consents.test.sql (35 asserts, aceite separado, origem e sem revisão registrada)",
+    "supabase/tests/database/06_retention.test.sql (31 asserts)",
+    "web/e2e/consent.spec.ts (3), web/e2e/supabase.spec.ts (falha de gravação e isolamento), web/src/lib/legal-text.test.ts, web/src/lib/consent.test.ts, web/src/domain/retention.test.ts"
    ],
    "evidence": [
     "A.5 r2: páginas /termos e /privacidade (rascunho), aceite obrigatório, record_consent auditado. NÃO atendido: revisão jurídica registrada e retenção definida; migration 20261022001100 ainda não aplicada no remoto",
     "A.5 r3 (2026-10-22): migration 20261022001100 aplicada no remoto (list: local=remote; RLS ligada em legal_documents/user_consents; record_consent só authenticated; 2 documentos, 0 aceites). Contato mazinhoww@gmail.com nos dois textos (define contato; NÃO é revisão jurídica). Retenção: nenhuma decisão aprovada para a V2 (o 365 d de docs/deploy.md é do legado) — PENDENTE, sem prazo inventado",
-    "A.5 r5: o dono informou revisão jurídica e retenção como feitas, sem texto final, versão nem prazo. As páginas seguem marcadas como rascunho e dizem que a retenção será definida: nada foi publicado em legal_documents. Para fechar: o operador informa o texto final e o prazo; publicar versão nova (migration/DML de legal_documents + TERMS_VERSION/PRIVACY_VERSION) e remover o aviso de rascunho"
+    "A.5 r5: o dono informou revisão jurídica e retenção como feitas, sem texto final, versão nem prazo. As páginas seguem marcadas como rascunho e dizem que a retenção será definida: nada foi publicado em legal_documents. Para fechar: o operador informa o texto final e o prazo; publicar versão nova (migration/DML de legal_documents + TERMS_VERSION/PRIVACY_VERSION) e remover o aviso de rascunho",
+    "A.5 r6 (2026-10-22): Termos/Política 2026-10-22-v1 publicados (texto fornecido pelo operador; legal_review = nenhuma revisão jurídica profissional registrada); aceite dos Termos e ciência da Política separados e desmarcados; auditoria registra a Política como 'ciencia'; retenção 90 d + exclusão ≤ 28 d implementada para eventos novos; migration 20261022001300 aplicada no remoto após backup; evento sintético 9b4a42fc… com política e aceite v1 gravados. Commit 67fef3c"
    ],
-   "commit": null,
+   "commit": "67fef3c",
    "environment": null,
    "release": "R2"
   },
@@ -6588,20 +6593,21 @@
    "origin": "A.5 rodada 5 2026-10-22",
    "files": [],
    "tests": [],
-   "commit": null,
+   "commit": "67fef3c",
    "environment": "remoto",
    "release": "R2",
    "id": "OPS-A5-001",
    "title": "Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs",
    "description": "Login Google em memoriesmt-v2-*.vercel.app volta para o Site URL (newmemocuiaba.vercel.app, app legado) porque o domínio não está nas Redirect URLs do Supabase Auth. Necessário para o fluxo autenticado no projeto novo.",
    "priority": "P1",
-   "status": "BLOCKED",
+   "status": "DONE",
    "acceptance": [
     "Login Google em preview do memoriesmt-v2 volta para /auth/callback do próprio preview",
     "Redirect URLs estreitas: só domínios necessários, sem curinga amplo"
    ],
    "evidence": [
-    "A.5 r5: navegação Google→callback em memoriesmt-v2-1xq3b4zig terminou em newmemocuiaba.vercel.app/?code=…. Alterar Auth exige autorização do dono; homologação autenticada feita no projeto antigo no mesmo SHA"
+    "A.5 r5: navegação Google→callback em memoriesmt-v2-1xq3b4zig terminou em newmemocuiaba.vercel.app/?code=…. Alterar Auth exige autorização do dono; homologação autenticada feita no projeto antigo no mesmo SHA",
+    "A.5 r6: operador cadastrou a URL; login Google em memoriesmt-v2-dgctww56g voltou para /criar do próprio preview (conta mazinhoww@gmail.com escolhida no seletor)"
    ]
   },
   {
@@ -6672,6 +6678,108 @@
    ],
    "evidence": [
     "Captura docs/supabase/evidence/a5-r5/screens/desktop-24-configuracoes.png"
+   ]
+  },
+  {
+   "type": "FEATURE",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "A.5 rodada 6 2026-10-22",
+   "files": [],
+   "commit": "67fef3c",
+   "environment": "remoto",
+   "release": "R2",
+   "id": "RET-A5-001",
+   "title": "Retenção de fotos: 90 dias de acesso após o encerramento e exclusão do armazenamento ativo em até 28 dias",
+   "description": "retention_policy gravada pelo servidor; can_see_photo corta o acesso aos 90 dias; expire_retained_events + purge_deleted_events; aviso de guarda nas configurações.",
+   "priority": "P0",
+   "status": "DONE",
+   "acceptance": [
+    "Acesso retirado 90 dias após o fim (host e convidado, tabela, reações, URL assinada e Storage)",
+    "Exclusão do armazenamento ativo em ≤ 30 dias (28 d no corte)",
+    "Eventos anteriores intocados"
+   ],
+   "tests": [
+    "supabase/tests/database/06_retention.test.sql",
+    "web/src/domain/retention.test.ts",
+    "web/e2e/supabase.spec.ts"
+   ],
+   "evidence": [
+    "A.5 r6: pgTAP 500/500; migration 20261022001300 no remoto; 5 eventos antigos sem política; job mm-expire-retention ativo; evento sintético com política; configurações exibem a data"
+   ]
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "A.5 rodada 6 2026-10-22",
+   "files": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R2",
+   "id": "OPS-A5-003",
+   "title": "Rotação de cópias de segurança manuais a cada ≤ 30 dias",
+   "description": "A Política promete eliminar fotos das cópias em até 30 dias adicionais. Sem backup gerenciado, depende do operador rodar supabase/ops/rotate_local_backups.sh (dry-run por padrão).",
+   "priority": "P1",
+   "status": "READY",
+   "acceptance": [
+    "Rotina executada ao menos a cada 30 dias, com registro",
+    "Em restauração, exclusões já determinadas são reaplicadas"
+   ],
+   "tests": [
+    "supabase/ops/rotate_local_backups.test.sh (pasta descartável)"
+   ],
+   "evidence": [
+    "A.5 r6: script e teste criados; dry-run no diretório real lista 0 vencidos (mais antigo: 21/10); NÃO executado com --apply"
+   ]
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "A.5 rodada 6 2026-10-22",
+   "files": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R2",
+   "id": "OPS-A5-004",
+   "title": "Eventos anteriores a 22/10/2026 sem expiração automática",
+   "description": "5 eventos de teste/uso interno ficaram sem retention_policy para não encurtar prazo retroativamente; decidir o destino (manter, excluir pelo organizador ou aplicar a política com aviso).",
+   "priority": "P2",
+   "status": "DEFERRED",
+   "acceptance": [
+    "Decisão do dono registrada por evento"
+   ],
+   "tests": [],
+   "evidence": [
+    "A.5 r6: eventos_com_politica=1 (apenas o sintético desta rodada)"
+   ]
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "A.5 rodada 6 2026-10-22",
+   "files": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R2",
+   "id": "OPS-A5-005",
+   "title": "Pedidos de exclusão do titular em até 30 dias (processo manual)",
+   "description": "A Política promete processar exclusão em até 30 dias; o canal é e-mail e a execução é manual.",
+   "priority": "P2",
+   "status": "DEFERRED",
+   "acceptance": [
+    "Procedimento do operador documentado em OPERATIONAL-RECOVERY.md",
+    "Fluxo self-service avaliado depois"
+   ],
+   "tests": [],
+   "evidence": [
+    "A.5 r6: procedimento registrado em OPERATIONAL-RECOVERY.md; sem automação"
    ]
   }
  ],

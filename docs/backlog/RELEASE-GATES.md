@@ -57,7 +57,7 @@
 | DSV-004 | Tokens --mm-* v2 completos (espaço, raio, sombra, movimento) e documentação do DS v2 em /design (Studio, Admin DS, tema) | P1 | BACKLOG |
 | MAD-005 | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | P1 | BACKLOG |
 | QAV-003 | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador | P1 | IN_REVIEW |
-| OPS-A5-001 | Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs | P1 | BLOCKED |
+| OPS-A5-003 | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY |
 
 ## Decisão atual
 **NO-GO para produção; A não concluída.** Checkpoint A5 em docs/supabase/A5-HOMOLOGATION-REPORT.md. Testes unitários/probes não substituem E2E autenticado, sessões e aparelhos físicos. Nenhuma promoção autorizada. Ordem A → B → Codex → C preservada; proposta paralela de backlog não integrada.
@@ -66,6 +66,7 @@
 | Prio | ID | Título |
 |---|---|---|
 | P1 | INF-001 | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) |
+| P1 | OPS-A5-003 | Rotação de cópias de segurança manuais a cada ≤ 30 dias |
 | P2 | BG-022 | Sem validação em Safari/iOS e Firefox |
 | P2 | BG-103 | 'Remover da festa' não impede a reentrada com o mesmo código |
 | P2 | BG-104 | Diálogo de revelação: foco, Escape, landmark e não bloquear a postagem |

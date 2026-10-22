@@ -1,6 +1,40 @@
 # A.5 — Homologação E2E — checkpoint de 21/10/2026
 
 
+## Rodada 6 (22/10/2026): textos legais v1, aceite separado e retenção — parecer **GO operacional condicionado (uso acompanhado)**
+
+Código `67fef3ceeec9d6467b51a05b6d1cadc708b8c1f1` (push na branch `feat/memoriesmt-studio`, autoria dos commits inalterada). Preview manual `dpl_BGLvn1MhU1bSsbBWCteNNu92ik51` (memoriesmt-v2, READY, SHA conferido). O deploy disparado pelo push segue `BLOCKED` (INF-005, e-mail do autor; o operador está corrigindo; não contornado).
+
+**Requisito 7 (textos e retenção).** Termos e Política `2026-10-22-v1` publicados nas páginas e em `legal_documents` com origem "texto fornecido pelo operador" e `legal_review = nenhuma revisão jurídica profissional registrada`. **Não houve revisão por advogado e isto não é afirmado em lugar nenhum.** Responsável e contato conforme minuta; sem CNPJ, endereço, certificação ou localização de servidores inventados (teste automatizado impede).
+
+**Aceite.** Duas caixas separadas e desmarcadas: "Li e aceito os Termos de Uso." e "Li a Política de Privacidade.". `record_consent` exige as duas afirmações e um contexto (`criar-evento` / `entrar-evento`), grava `terms_accepted_at` e `privacy_acknowledged_at` em colunas distintas e audita a Política como `ciencia`. Aceites históricos (rascunho) intactos.
+
+**Achado: a V2 não cumpria a retenção que o texto promete.** Havia só "evento excluído sai em 30 dias". Implementado (migration aditiva `20261022001300`):
+- `events.retention_policy` gravada pelo servidor na criação; o cliente não escolhe nem altera. **Só eventos criados a partir daí** (`2026-10-22-v1`).
+- `can_see_photo` (decisão única de tabela, reações, URL assinada e Storage) retira o acesso de host e convidados 90 dias após o encerramento.
+- `expire_retained_events()` (job `mm-expire-retention`, 03:05 diário) marca o evento excluído; `purge_deleted_events()` remove em 28 dias (eventos sob a política) e continua com 30 dias para os anteriores. Resultado: acesso cortado em 90 d e exclusão do armazenamento ativo em ≤ 28 d depois (promessa: ≤ 30 d). Fotos e miniaturas vão para a fila de purga do Storage (worker a cada 30 min, já homologado).
+- Exclusão antecipada pelo organizador já retirava o acesso na hora e passa a seguir os mesmos 28 d para eventos sob a política.
+- Aviso "Guarda das fotos … disponíveis até DD/MM/AAAA" nas configurações do evento (só eventos sob a política).
+
+**O que NÃO foi alterado (decisão explícita).** Os 5 eventos existentes no remoto ficam **sem política** (`retention_policy` nulo): não ganham expiração automática nem perdem prazo; a rotina nunca os toca (teste pgTAP). Eventos sob a política hoje: 1 (o sintético desta rodada); nenhum vence antes de 20/01/2027. Nenhuma exclusão de dados reais foi executada.
+
+**Incompatibilidades e dependências do operador (precisas):**
+1. **Cópias de segurança.** O texto promete eliminar as fotos das cópias em até 30 dias adicionais. Não há backup gerenciado nem PITR (OPS-A5-002); só os dumps manuais em `~/Backups/memoriesmt/` (fora do Git, modo 600), que incluem as fotos do bucket quando o operador copia o Storage. A rotação é **manual**: `supabase/ops/rotate_local_backups.sh` (dry-run por padrão; remove diretórios com mais de 30 dias; testado só em pasta descartável; **não executado**). O compromisso só é cumprido se o operador a rodar pelo menos a cada 30 dias e, em caso de restauração, reaplicar as exclusões já determinadas. Hoje não há backup vencido (o mais antigo é de 21/10).
+2. **Pedidos de exclusão em até 30 dias** (Política §7 e §8) continuam **manuais** por e-mail (`mazinhoww@gmail.com`); não há fluxo automático para o titular. Compatível com o prazo desde que o operador responda a tempo.
+3. **Eventos anteriores à política** (5, todos de teste/uso interno) não têm expiração automática; o texto vale para eventos novos.
+
+**Evidências desta rodada.**
+- pgTAP **500/500** após `db reset --local` (nova suíte `06_retention` com 31 verificações de acesso aos 89/91 dias, legado intocado, idempotência, auditoria, fila de Storage, permissões e agendamento; `04_consents` ampliada; `02` ajustada para 6 jobs). Antes do reset, falhas em 01–03 eram sujeira de dados dos E2E no banco local, não regressão.
+- vitest **293/293**; tsc 0; eslint 0 erros (11 avisos preexistentes); build 0.
+- E2E padrão **54 passaram, 17 puladas** (as puladas exigem Supabase local); spec de superfície pública 4/4; E2E Supabase local (chaves locais, alvo local conferido) **9/9**, inclusive a falha de gravação do aceite (RPC respondendo 503: o convidado não entra, nada fica pela metade, com a rede de volta entra uma única vez) e o isolamento (outro usuário lê 0 aceites).
+- Remoto (migration aplicada após backup `20261022-1304`, dry-run antes): `legal_documents` com a v1 e os rascunhos preservados; `record_consent` só `authenticated`; `expire_retained_events` sem acesso para `anon`/`authenticated`; 7 jobs `mm-*` ativos; 5 eventos antigos sem política.
+- Preview `dpl_BGLvn1…`: `/termos` e `/privacidade` na v1, sem "rascunho" (90 d, exclusão em ≤ 30 d, backups em 30 d adicionais presentes). **Login Google no memoriesmt-v2:** seletor de contas com `redirect_to` do próprio preview, conta `mazinhoww@gmail.com` escolhida no seletor (sem digitar credenciais), retorno em `/criar` autenticado. **OPS-A5-001 resolvido** pela inclusão da URL feita pelo operador.
+- Fluxo remoto: sem nenhuma caixa e só com os Termos, "Criar evento" é recusado (alerta); com as duas, evento sintético "TESTE – excluir (A5 r6)" (`9b4a42fc-3de4-4221-afaa-461b1c90d606`, Festa) criado. No banco: `retention_policy = 2026-10-22-v1`; aceite `organizador/criar-evento` com versões v1 e as duas datas; auditoria com `privacy = ciencia`. Configurações mostram "disponíveis até 20·01·2027".
+
+**Parecer.** O único requisito obrigatório aberto da rodada anterior (7) está atendido **sobre texto fornecido pelo operador, sem revisão jurídica profissional**. Recomendação: **GO operacional condicionado a uso acompanhado**, com as três dependências acima aceitas pelo operador e com os itens já classificados como informados pelo operador (iPhone/Safari e Android/Chrome físicos; revisão jurídica de terceiros, se desejada) registrados por ele. O encerramento formal de A é decisão do operador; B, Codex e C **não foram iniciados**. Produção **não promovida**.
+
+**Resíduos novos:** evento sintético `9b4a42fc…` (será excluído pela política em até 90 d + 28 d, ou antes pelo organizador); nenhuma limpeza executada.
+
 ## Rodada 5 (22/10/2026): corte final — parecer **NO-GO operacional** (um requisito obrigatório aberto)
 
 **SHA publicado:** `975a49c8ea026c4e98f704b7a085f2039649a68d` (branch `feat/memoriesmt-studio`). **Previews do SHA:** `dpl_HpaBRySf9RzetNukhku4JUMfHTRL` (`memoriesmt-v2-1xq3b4zig-…`, rotas e backend) e `dpl_59rEWBMxuud3m9STBssRUtd9hgic` (`newmemocuiaba-psr0hqtne-…`, fluxo autenticado). Os dois READY, SSO mantido, produção intocada. Commits posteriores só mexem em documentação.
