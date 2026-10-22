@@ -49,5 +49,5 @@ test("convidado anônimo entra pelo código, posta, espera e vê a foto só depo
 
 test("quem não organiza não cria evento: o portão pede entrar com Google", async ({ page }) => {
   await page.goto("/criar");
-  await expect(page.getByRole("button", { name: "Entrar com Google" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Entrar com o Google" })).toBeVisible();
 });
