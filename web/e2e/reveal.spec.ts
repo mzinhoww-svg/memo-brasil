@@ -182,7 +182,7 @@ test("BG-102: com o relógio do aparelho recuado, a revelação já ocorrida nã
   await page.clock.fastForward("04:00");
   await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
   await page.getByRole("button", { name: "Ver as fotos", exact: true }).click({ timeout: 8000 });
-  await page.getByRole("link", { name: "Agora" }).click();
+  await page.getByRole("link", { name: "Agora", exact: true }).click();
   await expect(page.locator(".mm-post")).toHaveCount(1);
   await expect.poll(() => page.evaluate(async (eid) => {
     const db: IDBDatabase = await new Promise((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => res(r.result); });

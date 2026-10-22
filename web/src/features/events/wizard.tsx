@@ -9,6 +9,8 @@ import type { EventFontId, PaletteId } from "@/domain/event";
 import { EVENT_FONT_LABEL, PALETTES } from "@/lib/event-theme";
 import { useApp } from "@/features/app/provider";
 import { localBilling } from "@/lib/services";
+import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentCheck } from "@/features/consent/ConsentCheck";
+import { currentConsent, recordConsent } from "@/lib/consent";
 import { createEvent } from "./service";
 import { resolveDuration } from "./duration";
 import { RevealForm } from "./RevealForm";
@@ -27,6 +29,7 @@ export function CreateWizard() {
   const router = useRouter();
   const { repos, user, signIn, now, ready, backend, canCreate, signInWithGoogle } = useApp();
   const [step, setStep] = useState(0);
+  const [accepted, setAccepted] = useState(false);
   const [hostInput, setHostName] = useState<string | undefined>();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<EventCategory>("casamento");
@@ -73,8 +76,12 @@ export function CreateWizard() {
   }
 
   async function create() {
+    if (!accepted) return setErrors({ create: CONSENT_REQUIRED });
     setBusy(true);
     const me = await signIn(hostName);
+    if (backend === "supabase") {
+      try { await recordConsent(currentConsent("organizador", null)); } catch { setBusy(false); return setErrors({ create: CONSENT_FAILED }); }
+    }
     const startNow = now();
     const durationHours = resolveDuration({ untilMs, presetHours: hours }, startNow);
     const r = await createEvent(
@@ -190,6 +197,7 @@ export function CreateWizard() {
                 <span>Este evento passaria de 10 convidados e teria valor. {localBilling.mode === "demo" ? "Nesta versão de demonstração, nada é cobrado." : ""}</span>
               </div>
             )}
+            <ConsentCheck checked={accepted} onChange={(v) => { setAccepted(v); if (v) setErrors((e) => ({ ...e, create: undefined })); }} />
             {errors.create && <p className="mm-field-erro" role="alert">{errors.create}</p>}
           </>
         )}

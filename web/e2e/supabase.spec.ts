@@ -23,9 +23,15 @@ test("convidado anônimo entra pelo código, posta, espera e vê a foto só depo
     await page.goto(`/e/${ev.code}`);
     await expect(page.getByText(`E2E ${tag}`)).toBeVisible();
     await page.getByLabel("Como te chamam na festa?").fill("Ana");
+    await page.getByRole("checkbox", { name: /Li e aceito/ }).check();
     await page.getByRole("button", { name: "Entrar na festa" }).click();
     await page.waitForURL(/agora$/);
     await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+    // COM-004: o aceite foi gravado no servidor, com as versões vigentes, para o próprio convidado
+    const part = (await admin.from("participants").select("user_id").eq("event_id", ev.id)).data!;
+    expect(part).toHaveLength(1);
+    const aceites = (await admin.from("user_consents").select("role,terms_version,privacy_version").eq("user_id", part[0].user_id)).data!;
+    expect(aceites).toEqual([{ role: "convidado", terms_version: "2026-10-21-rascunho", privacy_version: "2026-10-21-rascunho" }]);
 
     await page.goto(`/e/${ev.code}/postar`);
     await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });

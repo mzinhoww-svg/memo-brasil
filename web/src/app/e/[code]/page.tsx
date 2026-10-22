@@ -11,6 +11,8 @@ import { tableFromSearch } from "@/features/invitations/links";
 import { joinEvent } from "@/features/participants/service";
 import { BackendNotice } from "@/features/app/backend-notice";
 import { useBrandImages } from "@/features/studio/useBrandImages";
+import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentCheck } from "@/features/consent/ConsentCheck";
+import { currentConsent, recordConsent } from "@/lib/consent";
 
 const MESSAGES = {
   codigo: "Código não confere. Confira no card da mesa.",
@@ -34,6 +36,8 @@ export default function Convite() {
   const [nameInput, setName] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
+  const [accepted, setAccepted] = useState(false);
+  const [consentError, setConsentError] = useState<string | undefined>();
   const member = data.participants.find((p) => p.userId === user?.id);
   const event = data.event ?? data.preview; // quem ainda não entrou só recebe a prévia do convite
   const isHost = data.access === "organizador";
@@ -55,9 +59,14 @@ export default function Convite() {
   }
 
   async function enter() {
-    setBusy(true);
     setError(undefined);
+    if (!accepted) return setConsentError(CONSENT_REQUIRED);
+    setConsentError(undefined);
+    setBusy(true);
     const me = await signIn(name || "");
+    if (backend === "supabase") {
+      try { await recordConsent(currentConsent("convidado", null)); } catch { setBusy(false); return setConsentError(CONSENT_FAILED); }
+    }
     const r = await joinEvent(repos, me, code, name, now(), tableFromSearch(window.location.search));
     setBusy(false);
     if (!r.ok) return setError(MESSAGES[r.reason]);
@@ -86,6 +95,8 @@ export default function Convite() {
             <form className="app-stack" onSubmit={(e) => { e.preventDefault(); void enter(); }}>
               <h1 className="titulo-tela app-h1">Entrar na festa</h1>
               <Field label="Como te chamam na festa?" value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" maxLength={40} error={error} />
+              {!ended && <ConsentCheck checked={accepted} onChange={(v) => { setAccepted(v); if (v) setConsentError(undefined); }} />}
+              {consentError && <p className="mm-field-erro" role="alert">{consentError}</p>}
               {!ended && <p className="app-p app-muted">Ao postar, você autoriza {event.category === "casamento" ? "os noivos" : "o anfitrião"} a guardar e compartilhar a foto.</p>}
               <Button type="submit" variant="primario" block disabled={busy || ended}>{busy ? "Entrando…" : "Entrar na festa"}</Button>
               {ended && <p className="mm-field-erro">{MESSAGES.encerrado}</p>}

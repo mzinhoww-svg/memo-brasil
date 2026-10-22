@@ -22,7 +22,7 @@ export async function openDemo(page: Page): Promise<string> {
 export type RevealOpt = "ao-terminar" | "desligada" | { date: string; time: string; tz?: string };
 
 /** Cria um evento pelo wizard e devolve o código. Cada passo usa a interface real. */
-export async function createViaWizard(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string } = {}): Promise<{ code: string; id: string }> {
+export async function wizardToSummary(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string } = {}): Promise<void> {
   await page.goto("/criar");
   await page.getByLabel("Nome do evento").fill(opts.title ?? "Emy e Igor");
   await page.getByLabel("Seu nome").fill("Emy");
@@ -43,6 +43,16 @@ export async function createViaWizard(page: Page, opts: { title?: string; reveal
   if (opts.capacity) await page.getByRole("group", { name: "Convidados" }).getByRole("button", { name: opts.capacity, exact: true }).click();
   if (opts.shots) await page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: opts.shots, exact: true }).click();
   await page.getByRole("button", { name: "Próximo" }).click();
+}
+
+/** Aceita os Termos e a Política (obrigatório para criar o evento e para entrar na festa). */
+export async function acceptTerms(page: Page) {
+  await page.getByRole("checkbox", { name: /Li e aceito/ }).check();
+}
+
+export async function createViaWizard(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string } = {}): Promise<{ code: string; id: string }> {
+  await wizardToSummary(page, opts);
+  await acceptTerms(page);
   await page.getByRole("button", { name: /Criar evento/ }).click();
   await page.waitForURL(/\/criar\/pronto\//);
   const code = (await page.getByTestId("codigo").textContent())!.trim();
@@ -63,6 +73,7 @@ export async function switchPerson(page: Page, code: string, name: string) {
   await page.getByRole("button", { name: "Entrar como outra pessoa" }).click();
   await page.waitForURL(new RegExp(`/e/${code}$`));
   await page.getByLabel("Como te chamam na festa?").fill(name);
+  await acceptTerms(page);
   await page.getByRole("button", { name: "Entrar na festa" }).click();
   await page.waitForURL(/agora$/);
 }
