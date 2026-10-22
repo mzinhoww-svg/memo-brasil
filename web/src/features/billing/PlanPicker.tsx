@@ -20,10 +20,12 @@ type Props = {
   error?: string | null;
   onPay: (planCode: string) => void;
   onRedeemed: RedeemCodeProps["onApplied"];
+  /** Plano vindo de `?plano=<code>` (assistente): pré-seleciona se for maior que o atual. */
+  initialPlan?: string | null;
 };
 
 /** B1 (escolha) e B7 (pagamentos desligados). Preços e valor a pagar vêm do servidor. */
-export function PlanPicker({ eventId, plans, currentCode, settings, busy, error, onPay, onRedeemed }: Props) {
+export function PlanPicker({ eventId, plans, currentCode, settings, busy, error, onPay, onRedeemed, initialPlan }: Props) {
   const rank = planRank(plans, currentCode);
   const higher = useMemo(() => plans.filter((_, i) => i > rank), [plans, rank]);
   const paidOff = plans.every((p) => p.isFree);
@@ -31,7 +33,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [q, setQ] = useState<{ code: string; quote: Quote | "erro" } | null>(null);
 
-  const chosen = selected || (higher.find((p) => p.code === RECOMMENDED) ?? higher[0])?.code || "";
+  const chosen = selected || higher.find((p) => p.code === initialPlan)?.code || (higher.find((p) => p.code === RECOMMENDED) ?? higher[0])?.code || "";
   const plan = plans.find((p) => p.code === chosen);
 
   useEffect(() => {

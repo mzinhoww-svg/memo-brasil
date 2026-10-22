@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/memoriesmt";
 import { useAdmin } from "@/features/admin/context";
 import {
@@ -19,7 +20,12 @@ type Down = { planCode: string };
 
 /** COM-006: plano e pagamento Pix. A URL não carrega estado de pagamento: o pedido é restaurado do servidor. */
 export default function PlanoPage() {
+  return <Suspense fallback={<Skeleton label="Abrindo o plano…" />}><PlanoConteudo /></Suspense>;
+}
+
+function PlanoConteudo() {
   const { event, refresh } = useAdmin();
+  const initialPlan = useSearchParams()?.get("plano") ?? null;
   const eventId = event.id;
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
   const [settings, setSettings] = useState<PublicSettings>(NO_SETTINGS);
@@ -95,7 +101,7 @@ export default function PlanoPage() {
     body = <PixCheckout order={order} plans={plans} warning={warning} eventId={eventId} busy={busy} onOrder={onOrder} onChoosePlan={toPicker} onNewPix={() => void pay(order.planCode, true)} />;
   } else {
     body = (
-      <PlanPicker eventId={eventId} plans={plans} currentCode={current} settings={settings} busy={busy} error={error} onPay={(c) => void pay(c)}
+      <PlanPicker eventId={eventId} plans={plans} currentCode={current} settings={settings} busy={busy} error={error} initialPlan={initialPlan} onPay={(c) => void pay(c)}
         onRedeemed={(r) => { setApplied({ planCode: r.planCode ?? "", code: r.code }); void currentPlanCode(eventId).then(setCurrent); void refresh(); }} />
     );
   }
