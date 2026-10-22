@@ -105,7 +105,7 @@ flowchart LR
   COM_004["COM-004<br/>IN_REVIEW"]:::back
   COM_001["COM-001<br/>BACKLOG"]:::back
   COM_003["COM-003<br/>BACKLOG"]:::back
-  COM_002["COM-002<br/>BACKLOG"]:::back
+  COM_002["COM-002<br/>IN_REVIEW"]:::back
   COM_006["COM-006<br/>BACKLOG"]:::back
   COM_007["COM-007<br/>BACKLOG"]:::back
   COM_005["COM-005<br/>BACKLOG"]:::back
@@ -140,6 +140,12 @@ flowchart LR
   SCV_010["SCV-010<br/>DONE"]:::done
   INF_005["INF-005<br/>IN_REVIEW"]:::back
   QAV_004["QAV-004<br/>BLOCKED"]:::block
+  PAY_OPS_001["PAY-OPS-001<br/>BLOCKED"]:::block
+  PAY_OPS_002["PAY-OPS-002<br/>BLOCKED"]:::block
+  PAY_OPS_003["PAY-OPS-003<br/>BLOCKED"]:::block
+  PAY_OPS_005["PAY-OPS-005<br/>BLOCKED"]:::block
+  PAY_OPS_004["PAY-OPS-004<br/>BLOCKED"]:::block
+  REL_003["REL-003<br/>BACKLOG"]:::back
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -323,6 +329,12 @@ flowchart LR
   SCV_004 --> SCV_009
   REL_001 --> INF_005
   SCV_010 --> QAV_004
+  PAY_OPS_001 --> PAY_OPS_002
+  PAY_OPS_001 --> PAY_OPS_003
+  PAY_OPS_002 --> PAY_OPS_003
+  PAY_OPS_003 --> PAY_OPS_004
+  PAY_OPS_005 --> PAY_OPS_004
+  REL_001 --> REL_003
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;

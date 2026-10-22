@@ -5735,7 +5735,7 @@
    "epic": "EP-19",
    "parent": "FT-086",
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "COM-001",
     "COM-004"
@@ -5746,7 +5746,9 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "22/10 ~20:41: migrations 001400–001800 aplicadas no remoto e 5 Functions payments-* ACTIVE; sandbox real não testado (PAY-OPS-001..003)."
+   ],
    "commit": null,
    "environment": null,
    "release": "R3"
@@ -6674,7 +6676,8 @@
     "A.5 r2: preview por API com rootDirectory=web e framework=nextjs reproduzido (dpl_2v3GF6rj… ca7a274; dpl_B91ajh2Q… 8ea3518, READY, /entrar 200 x-matched-path). Procedimento em PUBLISH-AND-ROLLBACK.md. Push→deploy automático segue não homologado",
     "docs/supabase/A5-HOMOLOGATION-REPORT.md",
     "dpl_AQwY… vazio; dpl_2v3G… correto",
-    "A.5 r5: causa raiz: o projeto newmemocuiaba está ligado ao repositório mzinhoww-svg/newmemocuiaba (não ao memo-brasil). Criado memoriesmt-v2 (prj_udH3tmy4ZU5vAEIPVH61UVP6GEgs) ligado a memo-brasil, raiz web, Next.js, SSO em todos os domínios, backend Supabase em Preview. Push dispara deploy sozinho (dpl_6VKc7…, dpl_FGfLR…) mas a Vercel Hobby os BLOQUEIA porque o autor do commit (e-mail do yahoo) não pertence ao time. Intervenção do dono: associar/verificar esse e-mail na conta GitHub mzinhoww-svg (Settings → Emails) ou commitar com e-mail já associado; depois um push de teste. Caminho operacional documentado até lá: deploy manual por API (PUBLISH-AND-ROLLBACK.md). Não se alterou autoria nem histórico"
+    "A.5 r5: causa raiz: o projeto newmemocuiaba está ligado ao repositório mzinhoww-svg/newmemocuiaba (não ao memo-brasil). Criado memoriesmt-v2 (prj_udH3tmy4ZU5vAEIPVH61UVP6GEgs) ligado a memo-brasil, raiz web, Next.js, SSO em todos os domínios, backend Supabase em Preview. Push dispara deploy sozinho (dpl_6VKc7…, dpl_FGfLR…) mas a Vercel Hobby os BLOQUEIA porque o autor do commit (e-mail do yahoo) não pertence ao time. Intervenção do dono: associar/verificar esse e-mail na conta GitHub mzinhoww-svg (Settings → Emails) ou commitar com e-mail já associado; depois um push de teste. Caminho operacional documentado até lá: deploy manual por API (PUBLISH-AND-ROLLBACK.md). Não se alterou autoria nem histórico",
+    "22/10: deploys disparados por push continuam BLOCKED (e-mail do autor dos commits não vinculado à conta Vercel)."
    ],
    "commit": null,
    "environment": "remoto",
@@ -6853,7 +6856,8 @@
     "supabase/ops/rotate_local_backups.test.sh (pasta descartável)"
    ],
    "evidence": [
-    "A.5 r6: script e teste criados; dry-run no diretório real lista 0 vencidos (mais antigo: 21/10); NÃO executado com --apply"
+    "A.5 r6: script e teste criados; dry-run no diretório real lista 0 vencidos (mais antigo: 21/10); NÃO executado com --apply",
+    "22/10: rotação continua manual; automação depende de infraestrutura persistente com credenciais (decisão do dono)."
    ]
   },
   {
@@ -6902,6 +6906,317 @@
    "evidence": [
     "A.5 r6: procedimento registrado em OPERATIONAL-RECOVERY.md; sem automação"
    ]
+  },
+  {
+   "id": "PAY-OPS-001",
+   "type": "TASK",
+   "title": "[humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook",
+   "description": "Sem credencial sandbox a cobrança fica desligada. Operador cria conta/chave sandbox, grava os segredos por env-file fora do repositório e registra a URL do payments-webhook no painel. Ver docs/supabase/PAYMENTS-RUNBOOK.md.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P0",
+   "status": "BLOCKED",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Segredos sandbox configurados sem passar por repositório/log",
+    "Webhook registrado apontando para payments-webhook"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "operador",
+   "release": "R3"
+  },
+  {
+   "id": "PAY-OPS-002",
+   "type": "TASK",
+   "title": "[humano] Vault: mm_payments_cron_token e mm_payments_reconcile_url; agendar conciliação",
+   "description": "Criar os 2 segredos no Vault e rodar select public.payments_schedule_reconcile(); sem eles a conciliação agendada não é criada.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BLOCKED",
+   "dependencies": [
+    "PAY-OPS-001"
+   ],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Job de conciliação ativo e executando sem erro"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "operador",
+   "release": "R3"
+  },
+  {
+   "id": "PAY-OPS-003",
+   "type": "TASK",
+   "title": "Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso)",
+   "description": "Executar docs/supabase/PRODUCT-PRODUCTION-HOMOLOGATION.md com payments_env='sandbox' numa janela controlada e fechar a janela (runbook §8.1).",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P0",
+   "status": "BLOCKED",
+   "dependencies": [
+    "PAY-OPS-001",
+    "PAY-OPS-002"
+   ],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Pix sandbox pago libera o plano e webhook repetido não duplica",
+    "Reembolso volta o direito",
+    "Janela fechada: payments_env='desligado'"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R3"
+  },
+  {
+   "id": "PAY-OPS-005",
+   "type": "TASK",
+   "title": "[humano] Decisões comerciais/legais D3, D5, D6 e revisão jurídica dos textos",
+   "description": "D3 reembolso/arrependimento (CDC art. 49); D5 CNPJ, razão social e contatos de suporte; D6 NFS-e e regime fiscal; revisão jurídica de Termos/Política 2026-10-22-v1.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BLOCKED",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Decisões registradas pelo dono",
+    "Textos legais revisados"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "dono",
+   "release": "R3"
+  },
+  {
+   "id": "PAY-OPS-004",
+   "type": "TASK",
+   "title": "[humano] Produção AbacatePay: CNPJ, chave de produção e ativação por plano",
+   "description": "Venda real exige D3, D5 e D6. Só depois: chave de produção, payments_env='production' e production_active por plano.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BLOCKED",
+   "dependencies": [
+    "PAY-OPS-003",
+    "PAY-OPS-005"
+   ],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "D3, D5 e D6 decididos e registrados",
+    "Primeira venda real conciliada"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "operador",
+   "release": "R3"
+  },
+  {
+   "id": "PAY-001",
+   "type": "BUG",
+   "title": "Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima",
+   "description": "Raro (duas cobranças com o mesmo externalId). Corrigir antes de ativar produção.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Teste pgTAP: reembolso de pedido pago nunca usa a cobrança divergente"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "codigo",
+   "release": "R3"
+  },
+  {
+   "id": "PAY-002",
+   "type": "BUG",
+   "title": "needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel",
+   "description": "Exige passo manual auditado no Master para limpar a marca.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "RPC Master auditada limpa needs_refund com motivo"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "codigo",
+   "release": "R3"
+  },
+  {
+   "id": "PAY-003",
+   "type": "BUG",
+   "title": "Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos",
+   "description": "Ajuste de uma linha via nova migration aditiva.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Teste: pedido pago não aceita waiver de valor"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "codigo",
+   "release": "R3"
+  },
+  {
+   "id": "PAY-004",
+   "type": "TASK",
+   "title": "Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução",
+   "description": "Pedidos pendente+needs_refund regravam eventos a cada rodada; busca sempre incompleta precisa de corte por idade.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Teste: pedido antigo sai da varredura; execução repetida não cria evento novo"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "codigo",
+   "release": "R3"
+  },
+  {
+   "id": "PAY-005",
+   "type": "BUG",
+   "title": "divergencia_cobranca em pedido pago não deve expirar em 30 dias",
+   "description": "Manter a pendência visível no Master até tratamento.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Teste: divergência em pedido pago permanece após 30 dias"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "codigo",
+   "release": "R3"
+  },
+  {
+   "id": "REL-003",
+   "type": "TASK",
+   "title": "Smoke autenticado em produção após a promoção (Google, wizard Grátis 10/10, convidado, Master, código de cortesia)",
+   "description": "Os E2E com Supabase rodaram só no stack local; falta a jornada autenticada contra o remoto.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P0",
+   "status": "BACKLOG",
+   "dependencies": [
+    "REL-001"
+   ],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Jornadas executadas no domínio oficial com evidência",
+    "Nenhum erro de RPC/permissão"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "remoto",
+   "release": "R1"
+  },
+  {
+   "id": "REL-004",
+   "type": "TASK",
+   "title": "[humano] Testes físicos em iPhone e Android (câmera, upload, PWA)",
+   "description": "Sem aparelhos físicos nesta execução.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BLOCKED",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Roteiro executado em 1 iPhone e 1 Android com registro"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "aparelho",
+   "release": "R1"
+  },
+  {
+   "id": "REL-005",
+   "type": "TASK",
+   "title": "[humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect URLs após o go-live",
+   "description": "Festa com muitos convidados no mesmo Wi-Fi pode bater no limite; Redirect URLs ainda incluem previews.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "BLOCKED",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Limite ajustado ao tamanho do plano Grande",
+    "Redirect URLs só com o domínio oficial e o callback"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "operador",
+   "release": "R1"
+  },
+  {
+   "id": "REL-006",
+   "type": "TASK",
+   "title": "[humano] Confirmar payments_env='desligado' no remoto",
+   "description": "Sessões de agente não leem o banco remoto; verificar por consulta no painel.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P0",
+   "status": "BLOCKED",
+   "dependencies": [],
+   "origin": "fechamento produto/pagamentos 2026-10-22",
+   "acceptance": [
+    "Consulta registrada com o valor 'desligado'"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "environment": "operador",
+   "release": "R1"
   }
  ],
  "requirements": [
