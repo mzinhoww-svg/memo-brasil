@@ -26,8 +26,9 @@ test("convidado anônimo entra pelo código, posta, espera e vê a foto só depo
     await expect(page.getByText(`E2E ${tag}`)).toBeVisible();
     await page.getByLabel("Como te chamam na festa?").fill("Ana");
     await acceptTerms(page);
-    await page.getByRole("button", { name: "Entrar na festa" }).click();
-    await page.waitForURL(/agora$/);
+    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+    await page.waitForURL(/postar$/);
+    await page.goto(`/e/${ev.code}/agora`);
     await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
     // COM-004: o aceite foi gravado no servidor, com as versões vigentes, para o próprio convidado
     const part = (await admin.from("participants").select("user_id").eq("event_id", ev.id)).data!;
@@ -73,13 +74,13 @@ test("falha ao gravar o aceite: o convidado não entra, nada é gravado pela met
     await page.goto(`/e/${ev.code}`);
     await page.getByLabel("Como te chamam na festa?").fill("Bia");
     await acceptTerms(page);
-    await page.getByRole("button", { name: "Entrar na festa" }).click();
+    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
     await expect(page.getByRole("alert").filter({ hasText: "Não foi possível registrar o seu aceite" })).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`/e/${ev.code}$`));
     expect((await admin.from("participants").select("user_id").eq("event_id", ev.id)).data).toHaveLength(0); // sem aceite, sem entrada
     falhar = false;
-    await page.getByRole("button", { name: "Entrar na festa" }).click();
-    await page.waitForURL(/agora$/);
+    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+    await page.waitForURL(/postar$/);
     const part = (await admin.from("participants").select("user_id").eq("event_id", ev.id)).data!;
     expect(part).toHaveLength(1);
     expect((await admin.from("user_consents").select("id").eq("user_id", part[0].user_id)).data).toHaveLength(1);

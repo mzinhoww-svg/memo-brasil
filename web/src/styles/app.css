@@ -104,3 +104,8 @@
 .mm-skeleton--titulo { height: 36px; width: 55%; }
 @keyframes mm-pulso { 50% { opacity: 0.5; } }
 @media (prefers-reduced-motion: reduce) { .mm-skeleton { animation: none; } }
+
+.app-contador { display: flex; align-items: baseline; gap: var(--space-3); }
+.app-contador .display { font-variant-numeric: tabular-nums; }
+.app-passos { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: var(--space-2); font-size: 17px; line-height: 1.4; }
+.app-convite { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); font-size: 17px; line-height: 1.4; }

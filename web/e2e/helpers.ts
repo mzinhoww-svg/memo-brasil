@@ -75,7 +75,35 @@ export async function switchPerson(page: Page, code: string, name: string) {
   await page.waitForURL(new RegExp(`/e/${code}$`));
   await page.getByLabel("Como te chamam na festa?").fill(name);
   await acceptTerms(page);
-  await page.getByRole("button", { name: "Entrar na festa" }).click();
-  await page.waitForURL(/agora$/);
+  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+  await page.waitForURL(/postar$/);
+  await page.goto(`/e/${code}/agora`);
 }
 
+
+/** Data civil (aaaa-mm-dd) daqui a `days` dias no fuso dado; o fuso do evento é quem manda no convite. */
+export function dateIn(tz: string, days: number): string {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const [y, m, d] = today.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+/** Dia da semana em português de uma data civil aaaa-mm-dd ("domingo", "segunda-feira"). */
+export function weekdayOf(isoDate: string): string {
+  return new Intl.DateTimeFormat("pt-BR", { weekday: "long", timeZone: "UTC" }).format(new Date(`${isoDate}T12:00:00Z`));
+}
+
+/** Entra na tela de convite como um convidado novo (sem entrar na festa ainda). */
+export async function openInviteAsGuest(page: Page, code: string) {
+  await page.goto(`/e/${code}/voce`);
+  await page.getByRole("button", { name: "Entrar como outra pessoa" }).click();
+  await page.waitForURL(new RegExp(`/e/${code}$`));
+}
+
+/** Faz o navegador negar a câmera e dizer que ainda vai perguntar (para ver a pré-permissão e a tela de câmera negada). */
+export async function denyCamera(page: Page) {
+  await page.addInitScript(() => {
+    navigator.mediaDevices.getUserMedia = () => Promise.reject(new DOMException("Permission denied", "NotAllowedError"));
+    const q = navigator.permissions.query.bind(navigator.permissions);
+    navigator.permissions.query = (d) => ((d as { name: string }).name === "camera" ? Promise.resolve({ state: "prompt", onchange: null } as PermissionStatus) : q(d));
+  });
+}

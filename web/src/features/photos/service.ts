@@ -1,42 +1,73 @@
 import { canPost, report, setReaction, visiblePhotos, type Photo, type PostResult, type Reaction, type ReactionKind, type Viewer } from "@/domain/photo";
 import type { MemoEvent } from "@/domain/event";
-import { RepositoryError, retryOnConflict, type PhotoData, type Repositories, type User } from "@/repositories";
+import { RepositoryError, StorageUnavailableError, retryOnConflict, type PhotoData, type Repositories, type User } from "@/repositories";
 import { withLock } from "@/lib/lock";
+import { takeFault } from "@/lib/test-faults";
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
-export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" };
+export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" | "rede" | "falha" };
 
 export async function usedShots(repos: Repositories, eventId: string, userId: string): Promise<number> {
   return (await repos.events.counts(eventId, { userId, host: false })).mine;
 }
 
 /** Publica a foto no rolo do convidado. Valida rolo, evento e tamanho antes de gravar. */
-export async function postPhoto(repos: Repositories, event: MemoEvent, user: User, data: PhotoData, meta: { moment: string; caption?: string; tableLabel?: string }, now: number): Promise<PostOutcome> {
-  if (!data.type.startsWith("image/") || data.bytes.byteLength === 0 || data.bytes.byteLength > MAX_PHOTO_BYTES) return { ok: false, reason: "arquivo" };
-  return withLock(`foto:${event.id}:${user.id}`, () => postLocked(repos, event, user, data, meta, now));
+export interface PostOptions {
+  /** Identidade da foto: a mesma em todas as tentativas, porque `begin_photo` é idempotente e a quota só desconta uma vez. */
+  photoId?: string;
+  /** Nova tentativa de uma foto já reservada: o rolo já a contou, então não a barra de novo (o servidor segue como autoridade). */
+  resume?: boolean;
 }
 
-async function postLocked(repos: Repositories, event: MemoEvent, user: User, data: PhotoData, meta: { moment: string; caption?: string; tableLabel?: string }, now: number): Promise<PostOutcome> {
-  const verdict = canPost(event, await usedShots(repos, event.id, user.id), now);
-  if (!verdict.ok) return { ok: false, reason: verdict.reason };
+/** Tentativas automáticas depois de uma falha de rede: 2 s, 5 s e 15 s. Depois disso, só manual ("Tentar agora"). */
+export const RETRY_DELAYS_MS = [2000, 5000, 15000] as const;
+export function retryDelayMs(attempt: number): number | null {
+  return RETRY_DELAYS_MS[attempt - 1] ?? null;
+}
+
+export async function postPhoto(repos: Repositories, event: MemoEvent, user: User, data: PhotoData, meta: { moment: string; caption?: string; tableLabel?: string }, now: number, opts: PostOptions = {}): Promise<PostOutcome> {
+  if (!data.type.startsWith("image/") || data.bytes.byteLength === 0 || data.bytes.byteLength > MAX_PHOTO_BYTES) return { ok: false, reason: "arquivo" };
+  return withLock(`foto:${event.id}:${user.id}`, () => postLocked(repos, event, user, data, meta, now, opts));
+}
+
+/** Falha de rede (tentar de novo) × falha de armazenamento do aparelho (liberar espaço) × qualquer outra coisa. */
+function classify(e: unknown): "rede" | "armazenamento" | "falha" {
+  if (e instanceof StorageUnavailableError || (e instanceof DOMException && e.name === "QuotaExceededError")) return "armazenamento";
+  if (e instanceof RepositoryError && e.code === "unavailable") return "rede";
+  return "falha";
+}
+
+async function postLocked(repos: Repositories, event: MemoEvent, user: User, data: PhotoData, meta: { moment: string; caption?: string; tableLabel?: string }, now: number, opts: PostOptions): Promise<PostOutcome> {
+  if (!opts.resume) {
+    const verdict = canPost(event, await usedShots(repos, event.id, user.id), now);
+    if (!verdict.ok) return { ok: false, reason: verdict.reason };
+  }
   const photo: Photo = {
-    id: crypto.randomUUID(), eventId: event.id, authorId: user.id, authorName: user.name, createdAt: now,
+    id: opts.photoId ?? crypto.randomUUID(), eventId: event.id, authorId: user.id, authorName: user.name, createdAt: now,
     moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "enviando",
   };
   try {
     // envio em duas fases: a linha reserva o rolo, os bytes seguem, e só então a foto fica visível
     await repos.photos.begin(photo);
+    if (takeFault("attach")) throw new RepositoryError("unavailable", "falha de rede simulada");
     await repos.photos.attach(photo.id, data);
     const published = await repos.photos.finalize(photo.id);
     return { ok: true, photo: published };
   } catch (e) {
-    await repos.photos.remove(photo.id).catch(() => undefined); // modo local: não deixa envio pela metade ocupando o rolo
     // o servidor tem a palavra final sobre rolo e encerramento (AC-07): a recusa vira a mesma razão da interface
-    if (e instanceof RepositoryError && e.code === "shot-limit") return { ok: false, reason: "rolo" };
-    if (e instanceof RepositoryError && e.code === "event-ended") return { ok: false, reason: "encerrado" };
-    return { ok: false, reason: "armazenamento" };
+    if (e instanceof RepositoryError && e.code === "shot-limit") { await release(repos, photo.id); return { ok: false, reason: "rolo" }; }
+    if (e instanceof RepositoryError && e.code === "event-ended") { await release(repos, photo.id); return { ok: false, reason: "encerrado" }; }
+    const reason = classify(e);
+    // queda de rede: a reserva fica e a próxima tentativa usa a mesma photoId; os demais erros não deixam envio pela metade ocupando o rolo
+    if (reason !== "rede") await release(repos, photo.id);
+    return { ok: false, reason };
   }
+}
+
+/** Descarta o envio inacabado (best effort: sem rede a limpeza fica para `expirePending`). */
+export async function release(repos: Repositories, photoId: string): Promise<void> {
+  await repos.photos.remove(photoId).catch(() => undefined);
 }
 
 export async function loadFeed(repos: Repositories, event: MemoEvent, viewer: Viewer, now: number): Promise<Photo[]> {

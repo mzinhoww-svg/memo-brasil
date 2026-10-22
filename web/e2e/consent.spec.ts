@@ -47,13 +47,13 @@ test("convidado: sem as duas confirmações não entra na festa; com as duas ent
   await page.getByLabel("Como te chamam na festa?").fill("Ana");
   await expect(page.getByRole("checkbox", { name: /Li e aceito os Termos/ })).not.toBeChecked();
   await expect(page.getByRole("checkbox", { name: /Li a Política/ })).not.toBeChecked();
-  await page.getByRole("button", { name: "Entrar na festa" }).click();
+  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
   await expect(page.getByRole("alert").filter({ hasText: ALERTA })).toBeVisible();
   await page.getByRole("checkbox", { name: /Li e aceito os Termos/ }).check();
-  await page.getByRole("button", { name: "Entrar na festa" }).click();
+  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
   await expect(page.getByRole("alert").filter({ hasText: ALERTA })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/e/${code}$`));
   await page.getByRole("checkbox", { name: /Li a Política/ }).check();
-  await page.getByRole("button", { name: "Entrar na festa" }).click();
-  await page.waitForURL(/agora$/);
+  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+  await page.waitForURL(/postar$/); // o convite leva direto à câmera
 });

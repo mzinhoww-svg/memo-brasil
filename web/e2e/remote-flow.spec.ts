@@ -72,8 +72,9 @@ test("organizador cria → convidado entra e posta → servidor revela (cron) �
   await gp.getByLabel("Como te chamam na festa?").fill("Convidada Teste");
   await gp.getByRole("checkbox", { name: /Li e aceito os Termos/ }).check();
   await gp.getByRole("checkbox", { name: /Li a Política/ }).check();
-  await gp.getByRole("button", { name: "Entrar na festa" }).click();
-  await gp.waitForURL(/agora$/);
+  await gp.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+  await gp.waitForURL(/postar$/);
+  await gp.goto(`/e/${code}/agora`);
   await expect(gp.getByTestId("aguardando-revelacao")).toBeVisible();
   await gp.goto(`/e/${code}/postar`);
   await gp.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });

@@ -2,23 +2,27 @@ import { canJoin, type MemoEvent } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
 import { RepositoryError, type Participant, type Repositories, type User } from "@/repositories";
 import { withLock } from "@/lib/lock";
+import { takeFault } from "@/lib/test-faults";
 
 export type JoinOutcome =
   | { ok: true; event: MemoEvent; participant: Participant }
   | { ok: false; reason: JoinFailure };
-type JoinFailure = "codigo" | "encerrado" | "lotado" | "nome";
+/** `ocupado` = limite de tentativas (tentar de novo logo); `inativo` = convite recusado pelo servidor; `rede` = sem conexão. */
+type JoinFailure = "codigo" | "encerrado" | "lotado" | "nome" | "ocupado" | "inativo" | "rede";
 
 /** Entrar na festa por código (REA F-05/F-11). Identidade local; entrada real depende do backend. */
 export async function joinEvent(repos: Repositories, user: User, codeInput: string, name: string, now: number, tableLabel?: string): Promise<JoinOutcome> {
   const code = normalizeShareCode(codeInput);
   if (!code) return { ok: false, reason: "codigo" };
+  const fault = takeFault("join");
+  if (fault) return { ok: false, reason: JOIN_REASON[fault] };
   if (repos.events.join) return joinOnServer(repos, user, code, name, tableLabel);
   const event = await repos.events.getByCode(code);
   if (!event) return { ok: false, reason: "codigo" };
   return withLock(`entrar:${event.id}`, () => joinLocked(repos, event, user, name, now, tableLabel));
 }
 
-const JOIN_REASON: Record<string, JoinFailure> = { "capacity-full": "lotado", "event-ended": "encerrado", invalid: "codigo", "rate-limited": "codigo", forbidden: "codigo" };
+const JOIN_REASON: Record<string, JoinFailure> = { "capacity-full": "lotado", "event-ended": "encerrado", invalid: "codigo", "rate-limited": "ocupado", forbidden: "inativo", unavailable: "rede" };
 
 async function joinLocked(repos: Repositories, event: MemoEvent, user: User, name: string, now: number, tableLabel?: string): Promise<JoinOutcome> {
   const trimmed = name.trim();

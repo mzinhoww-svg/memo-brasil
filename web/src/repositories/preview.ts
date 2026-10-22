@@ -1,12 +1,14 @@
 import type { MemoEvent } from "@/domain/event";
 import { eventStatus } from "@/domain/event";
 import type { Photo } from "@/domain/photo";
+import { computeRevealStatus } from "@/domain/reveal";
 import type { EventPreview, PhotoCounts } from "./types";
 
 export function toPreview(e: MemoEvent, now: number, participantCount: number): EventPreview {
   return {
     code: e.code, title: e.title, category: e.category, hostName: e.hostName, startAt: e.startAt, place: e.place, palette: e.palette, eventFont: e.eventFont, ...(e.theme ? { theme: e.theme } : {}),
     capacity: e.capacity, status: eventStatus(e, now), full: e.capacity !== null && participantCount >= e.capacity,
+    shotsPerPerson: e.shotsPerPerson, revealStatus: computeRevealStatus(e, now), revealAt: e.revealAt, timezone: e.timezone, everyoneSeesAll: e.everyoneSeesAll,
   };
 }
 

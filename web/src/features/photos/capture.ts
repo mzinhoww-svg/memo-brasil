@@ -62,3 +62,16 @@ export function fileToImage(file: File): Promise<HTMLImageElement> {
     img.src = url;
   });
 }
+
+/** Navegadores embutidos de apps (Instagram, Facebook, WhatsApp) costumam negar a câmera: a saída é abrir no navegador. */
+export function isEmbeddedBrowser(ua: string): boolean {
+  return /Instagram|FBAN|FBAV|FB_IAB|FBIOS|WhatsApp/i.test(ua);
+}
+
+/** Passos para liberar a câmera depois de negada, conforme o navegador. */
+export function cameraHelp(ua: string): { browser: string; steps: [string, string, string] } {
+  const ios = /iPhone|iPad|iPod/i.test(ua);
+  if (ios) return { browser: "Safari no iPhone", steps: ["Toque em aA ao lado do endereço.", "Ajustes do site › Câmera › Permitir.", "Volte aqui e toque abaixo."] };
+  const android = /Android/i.test(ua);
+  return { browser: android ? "Chrome no Android" : "Chrome", steps: ["Toque no cadeado ao lado do endereço.", "Permissões › Câmera › Permitir.", "Volte aqui e toque abaixo."] };
+}

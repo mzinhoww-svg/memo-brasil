@@ -72,6 +72,12 @@ export interface EventPreview {
   capacity: MemoEvent["capacity"];
   status: "ativo" | "encerrado";
   full: boolean;
+  /** Para o convite explicar o combinado antes de entrar (já vêm de `event_preview`). */
+  shotsPerPerson: MemoEvent["shotsPerPerson"];
+  revealStatus: MemoEvent["revealStatus"];
+  revealAt: number | null;
+  timezone: string;
+  everyoneSeesAll: boolean;
 }
 export interface PhotoCounts { mine: number; total: number }
 export type JoinResult = { role: "organizador" | "membro"; eventId: string };
