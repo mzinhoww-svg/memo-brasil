@@ -71,6 +71,20 @@ describe("reembolso disponível", () => {
     expect(canRefund({ status: "estornado", needsRefund: false, providerChargeId: "c" })).toBe(false);
     expect(canRefund({ status: "pago", needsRefund: false, providerChargeId: null })).toBe(false);
   });
+  it("PAID divergente: pedido ainda não pago com needs_refund e cobrança", () => {
+    for (const status of ["criado", "pendente", "expirado", "falhou"]) {
+      expect(canRefund({ status, needsRefund: true, providerChargeId: "c" }), status).toBe(true);
+      expect(canRefund({ status, needsRefund: false, providerChargeId: "c" }), status).toBe(false);
+    }
+    expect(canRefund({ status: "pendente", needsRefund: true, providerChargeId: null })).toBe(false);
+    expect(canRefund({ status: "perdido", needsRefund: true, providerChargeId: "c" })).toBe(false);
+    expect(canRefund({ status: "estornado", needsRefund: true, providerChargeId: "c" })).toBe(false);
+  });
+  it("reembolso solicitado de PAID divergente aparece em andamento", () => {
+    expect(orderStatus({ status: "pendente", refundRequestedAt: "x", needsRefund: true })).toEqual({ label: "reembolso em andamento", tone: "aviso" });
+    expect(orderStatus({ status: "expirado", refundRequestedAt: "x", needsRefund: true }).label).toBe("reembolso em andamento");
+    expect(orderStatus({ status: "pendente", refundRequestedAt: null, needsRefund: true }).label).toBe("pendente");
+  });
 });
 
 describe("última alteração de preço", () => {

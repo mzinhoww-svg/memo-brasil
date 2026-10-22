@@ -55,14 +55,22 @@ const STATUS: Record<string, { label: string; tone: Tone }> = {
   em_disputa: { label: "em disputa", tone: "erro" },
   perdido: { label: "perdido", tone: "erro" },
 };
-export function orderStatus(o: { status: string; refundRequestedAt: string | null }): { label: string; tone: Tone } {
-  if (o.refundRequestedAt && (o.status === "pago" || o.status === "cancelado")) return { label: "reembolso em andamento", tone: "aviso" };
+/** Estados ainda não pagos em que needs_refund significa dinheiro recebido sem plano (Ruling 16 e PAID divergente). */
+const UNPAID_WITH_MONEY = new Set(["criado", "pendente", "expirado", "cancelado", "falhou"]);
+const refundable = (o: { status: string; needsRefund?: boolean }) =>
+  o.status === "pago" || (o.needsRefund === true && UNPAID_WITH_MONEY.has(o.status));
+
+export function orderStatus(o: { status: string; refundRequestedAt: string | null; needsRefund?: boolean }): { label: string; tone: Tone } {
+  if (o.refundRequestedAt && (o.status === "cancelado" || refundable(o))) return { label: "reembolso em andamento", tone: "aviso" };
   return STATUS[o.status] ?? { label: o.status, tone: "info" };
 }
 
-/** Reembolso pelo console: 'pago', ou 'cancelado' com needs_refund (Pix pago depois do cancelamento, Ruling 16). */
+/**
+ * Reembolso pelo console (mesma regra de admin_request_refund): 'pago', ou pedido ainda não pago com needs_refund
+ * (Pix pago depois do cancelamento, Ruling 16; PAID com valor ou cobrança divergente), sempre com cobrança.
+ */
 export function canRefund(o: { status: string; needsRefund: boolean; providerChargeId: string | null }): boolean {
-  return !!o.providerChargeId && (o.status === "pago" || (o.status === "cancelado" && o.needsRefund));
+  return !!o.providerChargeId && refundable(o);
 }
 
 /** Data (ISO) da alteração de preço/ativação mais recente entre todos os planos, ou null sem histórico. */

@@ -173,6 +173,18 @@ begin
   where e.id = p_event;
 end $$;
 
+-- Sobe os limites do evento ao plano concedido (null = sem limite vence; nunca baixa). Única regra de subida de limites:
+-- payments_apply_status (direito pago válido pelo ambiente), admin_grant_courtesy e redeem_code chamam esta função.
+create function public.entitlement_raise_limits(p_event uuid, p_plan text) returns void
+language sql security definer set search_path = '' as $$
+  update public.events e set
+    capacity = case when e.capacity is null or p.max_guests is null then null else greatest(e.capacity, p.max_guests) end,
+    shots_per_person = case when e.shots_per_person is null or p.max_shots is null then null
+                            else greatest(e.shots_per_person, p.max_shots) end
+  from public.plans p
+  where e.id = p_event and p.code = p_plan
+$$;
+
 -- ---------------------------------------------------------------- RPCs do organizador
 create function public.payments_quote(p_event uuid, p_plan text) returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
@@ -291,7 +303,9 @@ end $$;
 -- aplicado | duplicado | transicao_ignorada | pago_ignorado_reembolsar | divergencia_valor | divergencia_ambiente |
 -- divergencia_cobranca; e, no estorno/perda de um plano base, upgrade_base_estornado no pedido de upgrade apoiado nele.
 -- Dinheiro recebido sem direito concedido sempre marca needs_refund: plano já coberto, evento excluído/encerrado/purgado,
--- ou PAID reconsultado num pedido já cancelado/estornado/perdido.
+-- PAID reconsultado num pedido já cancelado/estornado/perdido, ou PAID com divergencia_valor/divergencia_cobranca num
+-- pedido que ainda não estava pago (criado/pendente/expirado/cancelado/falhou; o status é mantido). Pedido ainda não pago
+-- com needs_refund aceita o estorno (o reembolso do Master o fecha), inclusive com o valor divergente do provedor.
 create function public.payments_apply_status(p_order uuid, p_charge_id text, p_status public.payment_status, p_amount_cents int,
                                              p_dev_mode boolean, p_source text) returns jsonb
 language plpgsql security definer set search_path = '' as $$
@@ -326,14 +340,16 @@ begin
     ('em_disputa', 'pago'), ('em_disputa', 'perdido'), ('em_disputa', 'estornado'))
     -- Ruling 16: Pix recebido em pedido cancelado (needs_refund) é reembolsado pelo Master; o estorno fecha o pedido.
     -- Sem needs_refund não houve dinheiro: continua ignorado. Não há direito a revogar (pedido cancelado não concede).
-    or (o.status = 'cancelado' and p_status = 'estornado' and o.needs_refund);
+    -- Generalizado a todo pedido ainda não pago com needs_refund (inclui PAID divergente: valor ou cobrança).
+    or (p_status = 'estornado' and o.needs_refund and o.status in ('criado', 'pendente', 'expirado', 'cancelado', 'falhou'));
 
   if o.provider_charge_id is null or p_charge_id is distinct from o.provider_charge_id then
     outcome := 'divergencia_cobranca';
   elsif p_dev_mode is null or p_dev_mode <> (o.provider_env = 'sandbox') then
     outcome := 'divergencia_ambiente';
-  elsif (p_status = 'pago' and p_amount_cents is distinct from o.amount_cents)
-     or (p_amount_cents is not null and p_amount_cents <> o.amount_cents) then
+  elsif not (p_status = 'estornado' and o.needs_refund) -- estorno do dinheiro divergente vem com o valor do provedor
+        and ((p_status = 'pago' and p_amount_cents is distinct from o.amount_cents)
+             or (p_amount_cents is not null and p_amount_cents <> o.amount_cents)) then
     outcome := 'divergencia_valor';
   elsif o.status = p_status then
     outcome := 'duplicado';
@@ -346,6 +362,18 @@ begin
     outcome := 'transicao_ignorada';
   else
     outcome := 'aplicado';
+  end if;
+
+  -- PAID divergente (valor ou cobrança) em pedido ainda não pago: o dinheiro pode ter entrado e nenhum direito foi
+  -- concedido. Marca needs_refund (o Master reembolsa após reconsultar a cobrança PAID), sem mudar o status.
+  if outcome in ('divergencia_valor', 'divergencia_cobranca') and p_status = 'pago'
+     and o.status in ('criado', 'pendente', 'expirado', 'cancelado', 'falhou') then
+    refund := true;
+    if not o.needs_refund then
+      perform public.audit(o.event_id, 'payment.divergencia_reembolsar',
+        jsonb_build_object('orderId', o.id, 'plan', o.plan_code, 'amountCents', o.amount_cents, 'env', o.provider_env,
+                           'from', o.status, 'source', p_source, 'outcome', outcome, 'needsRefund', true));
+    end if;
   end if;
 
   update public.payment_orders set last_checked_at = now(), needs_refund = needs_refund or refund where id = o.id;
@@ -367,12 +395,9 @@ begin
           insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, order_id, env, created_by, reason)
           values (o.event_id, o.plan_code, pl.max_guests, pl.max_shots, 'pago', o.id, o.provider_env, o.host_id, 'pedido ' || o.id)
           returning id into ent_id;
-          if o.provider_env = public.payments_env() then -- direito de outro ambiente não vale agora: não mexe no evento
-            update public.events e set
-              capacity = case when e.capacity is null or pl.max_guests is null then null else greatest(e.capacity, pl.max_guests) end,
-              shots_per_person = case when e.shots_per_person is null or pl.max_shots is null then null
-                                      else greatest(e.shots_per_person, pl.max_shots) end
-            where e.id = o.event_id;
+          -- direito que não vale agora (sandbox fora da homologação) não mexe no evento; produção vale mesmo 'desligado'
+          if public.entitlement_env_valid(o.provider_env) then
+            perform public.entitlement_raise_limits(o.event_id, o.plan_code);
           end if;
         end if;
       end if;
@@ -383,8 +408,8 @@ begin
       update public.payment_orders set status = p_status, needs_refund = false where id = o.id;
       if ent_id is not null and o.event_id is not null then perform public.payments_reapply_limits(o.event_id); end if;
       -- upgrade apoiado neste plano (cotado com desconto dele) ainda vale ou está aberto: não revoga (Task 7 decide), mas sinaliza.
-      -- Estorno de pedido cancelado (Ruling 16) não era base de nada: sem sinal.
-      if o.event_id is not null and o.status <> 'cancelado' then
+      -- Estorno de pedido que nunca foi pago (Ruling 16, PAID divergente) não era base de nada: sem sinal.
+      if o.event_id is not null and o.status in ('pago', 'em_disputa') then
         for u in select x.* from public.payment_orders x
                  where x.event_id = o.event_id and x.id <> o.id and x.from_plan_code = o.plan_code
                    and (x.status in ('criado', 'pendente')
@@ -452,7 +477,8 @@ end $$;
 -- ---------------------------------------------------------------- privilégios
 revoke execute on function
   public.payments_scrub(jsonb), public.payments_plan_covered(uuid, text), public.payments_quote_internal(uuid, text),
-  public.payments_reapply_limits(uuid), public.payments_order_json(public.payment_orders, boolean), public.payment_orders_touch(),
+  public.payments_reapply_limits(uuid), public.entitlement_raise_limits(uuid, text),
+  public.payments_order_json(public.payment_orders, boolean), public.payment_orders_touch(),
   public.payments_quote(uuid, text), public.payments_open_order(uuid, text, uuid), public.payments_order_status(uuid),
   public.payments_attach_charge(uuid, text, text, text, timestamptz, boolean),
   public.payments_apply_status(uuid, text, public.payment_status, int, boolean, text),

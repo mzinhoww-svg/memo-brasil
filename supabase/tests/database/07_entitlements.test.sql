@@ -109,6 +109,30 @@ select results_eq($$select * from tests.ent('00000000-0000-4000-8000-0000000006e
   $$values ('festa', 30, 24, 'cortesia')$$, 'direitos estornados/revogados não contam');
 select tests.set_env('desligado');
 
+-- ===================================================== interruptor 'desligado' não rebaixa compras de produção
+-- Regra única (entitlement_env_valid): nenhum e production sempre valem; sandbox só com payments_env = sandbox.
+select results_eq($$select * from tests.ent('00000000-0000-4000-8000-0000000006e1')$$,
+  $$values ('grande', 500, null::int, 'pago')$$, 'production pago stays valid when desligado');
+select results_eq($$select * from tests.ent('00000000-0000-4000-8000-0000000006e3')$$,
+  $$values ('gratis', 10, 10, 'gratis')$$, 'sandbox pago invalid when desligado');
+select tests.set_env('production');
+select results_eq($$select * from tests.ent('00000000-0000-4000-8000-0000000006e3')$$,
+  $$values ('gratis', 10, 10, 'gratis')$$, 'sandbox pago invalid when production');
+select tests.set_env('sandbox');
+select results_eq($$select * from tests.ent('00000000-0000-4000-8000-0000000006e1')$$,
+  $$values ('grande', 500, null::int, 'pago')$$, 'production pago continua valendo em sandbox');
+select is(array[public.entitlement_env_valid('nenhum'), public.entitlement_env_valid('production'), public.entitlement_env_valid('sandbox'),
+                public.entitlement_env_valid('outro'), coalesce(public.entitlement_env_valid(null), false)],
+  array[true, true, true, false, false], 'entitlement_env_valid em sandbox: nenhum, production e sandbox');
+select tests.set_env('production');
+select is(array[public.entitlement_env_valid('nenhum'), public.entitlement_env_valid('production'), public.entitlement_env_valid('sandbox'),
+                public.entitlement_env_valid('outro'), coalesce(public.entitlement_env_valid(null), false)],
+  array[true, true, false, false, false], 'entitlement_env_valid em production: sandbox não vale');
+select tests.set_env('desligado');
+select is(array[public.entitlement_env_valid('nenhum'), public.entitlement_env_valid('production'), public.entitlement_env_valid('sandbox'),
+                public.entitlement_env_valid('outro'), coalesce(public.entitlement_env_valid(null), false)],
+  array[true, true, false, false, false], 'entitlement_env_valid desligado: production continua valendo, sandbox não');
+
 -- ===================================================== RLS e privilégios
 select tests.login('00000000-0000-4000-8000-0000000006a2');
 select is((select count(*)::int from public.event_entitlements where event_id = '00000000-0000-4000-8000-0000000006e1'), 0,

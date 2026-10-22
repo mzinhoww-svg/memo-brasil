@@ -1,11 +1,13 @@
 // Reembolso disparado pelo Master (verify_jwt=true; o chamador precisa de is_master()). Só para pedido com
-// refund_requested_at (gravado por admin_request_refund, Task 7) em pedido 'pago' ou 'cancelado' com needs_refund (Ruling 16);
-// reconsulta a cobrança (PAID e do pedido) antes de reembolsar. Chama o provedor e NÃO muda o estado: o 'estornado'
+// refund_requested_at (gravado por admin_request_refund, Task 7) em pedido 'pago' ou ainda não pago com needs_refund
+// (Ruling 16; PAID divergente); reconsulta a cobrança (PAID e do pedido) antes de reembolsar. Como webhook e reconciliação
+// (Ruling 13), roda para pedidos do ambiente da chave configurada (ABACATEPAY_ENV) mesmo com payments_env='desligado':
+// desligar a cobrança para novas compras não pode prender dinheiro já recebido. Chama o provedor e NÃO muda o estado: o 'estornado'
 // chega pelo webhook transparent.refunded ou pela reconciliação. Idempotente: pedido já estornado não chama o provedor,
 // e "já reembolsada" do provedor conta como sucesso (refundCharge).
 import { getPixCharge, refundCharge } from "../_shared/abacatepay.ts";
 import { refundBlocker } from "../_shared/payments-status.ts";
-import { AbacateError, caller, guardEnv, loadOrder, log, preflight, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
+import { AbacateError, caller, loadOrder, log, preflight, providerConfig, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-refund";
 
@@ -28,7 +30,7 @@ Deno.serve(async (req) => {
   if (!UUID_RE.test(orderId)) return json({ error: "invalid" }, 400);
 
   const admin = serviceClient();
-  const provider = await guardEnv(admin);
+  const provider = providerConfig(); // chave/ambiente válidos; payments_env não importa (Ruling 13)
   if (!provider) return json({ error: "pagamento_indisponivel" }, 503);
 
   const { order, error } = await loadOrder(admin, orderId);
@@ -38,10 +40,10 @@ Deno.serve(async (req) => {
     log(FN, order.id, order.status, "ja_estornado");
     return json({ ok: true });
   }
-  // 'pago', ou 'cancelado' com needs_refund (Ruling 16); nunca em disputa (o provedor recusa), perdido ou estornado
+  // 'pago', ou ainda não pago com needs_refund (Ruling 16, PAID divergente); nunca em disputa (o provedor recusa), perdido ou estornado
   const blocked = refundBlocker(order);
   if (blocked) return json({ error: blocked }, 422);
-  if (order.provider_env !== provider.env) return json({ error: "pagamento_indisponivel" }, 503);
+  if (order.provider_env !== provider.env) return json({ error: "pagamento_indisponivel" }, 503); // chave de outro ambiente
 
   try {
     // reconsulta: só reembolsa cobrança PAID que é deste pedido (identidade, valor e ambiente)

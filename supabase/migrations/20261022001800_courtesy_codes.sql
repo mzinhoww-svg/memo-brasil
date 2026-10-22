@@ -53,16 +53,7 @@ begin
   return encode(extensions.digest(s, 'sha256'), 'hex');
 end $$;
 
--- Sobe os limites do evento ao plano concedido, como pagamento e cortesia fazem (null = sem limite vence; nunca baixa).
-create function public.entitlement_raise_limits(p_event uuid, p_plan text) returns void
-language sql security definer set search_path = '' as $$
-  update public.events e set
-    capacity = case when e.capacity is null or p.max_guests is null then null else greatest(e.capacity, p.max_guests) end,
-    shots_per_person = case when e.shots_per_person is null or p.max_shots is null then null
-                            else greatest(e.shots_per_person, p.max_shots) end
-  from public.plans p
-  where e.id = p_event and p.code = p_plan
-$$;
+-- Subida de limites: public.entitlement_raise_limits (migration 001600), a mesma regra de pagamento e cortesia.
 
 create function public.courtesy_code_json(c public.courtesy_codes, p_plan_name text) returns jsonb
 language sql stable set search_path = '' as $$
@@ -209,7 +200,7 @@ end $$;
 
 -- ---------------------------------------------------------------- privilégios
 revoke execute on function
-  public.courtesy_code_hash(text), public.entitlement_raise_limits(uuid, text), public.courtesy_code_json(public.courtesy_codes, text),
+  public.courtesy_code_hash(text), public.courtesy_code_json(public.courtesy_codes, text),
   public.admin_create_code(text, int, timestamptz, text), public.admin_list_codes(), public.admin_revoke_code(uuid, text),
   public.redeem_code(uuid, text)
   from public, anon, authenticated, service_role;

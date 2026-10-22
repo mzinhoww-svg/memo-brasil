@@ -46,7 +46,8 @@ end $$;
 
 -- Divergências, uma linha por (pedido, tipo). Tipos:
 --   pago_sem_direito (só evento existente e sem needs_refund, que já tem linha própria) · direito_sem_pedido_pago · pendente_1h · needs_refund · em_disputa (estado atual), e, a partir de
---   payment_events dos últimos 30 dias (agrupados, com occurrences): pago_ignorado_reembolsar · upgrade_base_estornado ·
+--   payment_events dos últimos 30 dias (agrupados, com occurrences; os com destino 'pago' de pedido com needs_refund
+--   ficam sem prazo, até o estorno): pago_ignorado_reembolsar · upgrade_base_estornado ·
 --   divergencia_valor · divergencia_ambiente (a spec chama de 'ambiente_divergente'; aceitos os dois) ·
 --   divergencia_cobranca · transicao_ignorada (só quando o destino era 'pago': dinheiro possivelmente recebido).
 -- Pedidos de evento purgado (event_id null) entram nos demais tipos. refundInProgress: reembolso já solicitado e ainda não
@@ -76,7 +77,9 @@ begin
     select case when pe.outcome = 'ambiente_divergente' then 'divergencia_ambiente' else pe.outcome end,
            pe.order_id, max(pe.received_at), count(*)::int
       from public.payment_events pe
-     where pe.order_id is not null and pe.received_at > now() - interval '30 days'
+      join public.payment_orders po on po.id = pe.order_id
+     -- 30 dias, exceto divergência com destino 'pago' em pedido que ainda precisa de reembolso: fica até o estorno
+     where (pe.received_at > now() - interval '30 days' or (po.needs_refund and pe.detail ->> 'to' = 'pago'))
        and (pe.outcome in ('pago_ignorado_reembolsar', 'upgrade_base_estornado', 'divergencia_valor', 'divergencia_ambiente',
                            'ambiente_divergente', 'divergencia_cobranca')
             or (pe.outcome = 'transicao_ignorada' and pe.detail ->> 'to' = 'pago'))
@@ -86,7 +89,9 @@ begin
       'kind', d.kind, 'orderId', o.id, 'eventId', o.event_id, 'eventTitle', e.title, 'planCode', o.plan_code,
       'amountCents', o.amount_cents, 'status', o.status, 'providerChargeId', o.provider_charge_id,
       'needsRefund', o.needs_refund, 'refundRequestedAt', o.refund_requested_at,
-      'refundInProgress', o.refund_requested_at is not null and o.status in ('pago', 'cancelado'), -- disputa/perda não se esconde
+      -- disputa/perda não se esconde; os mesmos estados que admin_request_refund aceita
+      'refundInProgress', o.refund_requested_at is not null
+                          and (o.status = 'pago' or (o.needs_refund and o.status in ('criado', 'pendente', 'expirado', 'cancelado', 'falhou'))),
       'detectedAt', d.detected_at, 'occurrences', d.occurrences)
     from d join public.payment_orders o on o.id = d.order_id
     left join public.events e on e.id = o.event_id
@@ -112,7 +117,7 @@ end $$;
 
 -- ---------------------------------------------------------------- cortesia
 -- Direito cortesia/nenhum (vale em qualquer ambiente, inclusive com pagamentos desligados) com os limites do plano, e
--- sobe capacity/shots_per_person do evento pelo caminho privilegiado (SECURITY DEFINER), como payments_apply_status.
+-- sobe capacity/shots_per_person do evento por entitlement_raise_limits (a mesma regra de payments_apply_status).
 create function public.admin_grant_courtesy(p_event uuid, p_plan text, p_reason text) returns uuid
 language plpgsql security definer set search_path = '' as $$
 declare why text; ev public.events; pl public.plans; ent_id uuid;
@@ -127,11 +132,7 @@ begin
   insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, env, created_by, reason)
   values (ev.id, pl.code, pl.max_guests, pl.max_shots, 'cortesia', 'nenhum', auth.uid(), why)
   returning id into ent_id;
-  update public.events e set
-    capacity = case when e.capacity is null or pl.max_guests is null then null else greatest(e.capacity, pl.max_guests) end,
-    shots_per_person = case when e.shots_per_person is null or pl.max_shots is null then null
-                            else greatest(e.shots_per_person, pl.max_shots) end
-  where e.id = ev.id;
+  perform public.entitlement_raise_limits(ev.id, pl.code);
   insert into public.audit_logs (actor_id, actor_role, event_id, action, target_type, target_id, reason, detail)
   values (auth.uid(), 'master', ev.id, 'entitlement.courtesy_granted', 'event', ev.id::text, why,
           jsonb_build_object('entitlementId', ent_id, 'plan', pl.code, 'maxGuests', pl.max_guests, 'maxShots', pl.max_shots));
@@ -140,8 +141,10 @@ end $$;
 
 -- ---------------------------------------------------------------- reembolso
 -- Só marca a solicitação (refund_requested_at/refund_reason) e audita; a página chama a função payments-refund com o JWT
--- do Master, que fala com o provedor. Aceita pedido 'pago' com cobrança (o provedor recusa reembolso de cobrança em
--- disputa) e, pelo Ruling 16, 'cancelado' com needs_refund (Pix pago depois do cancelamento). Nunca estornado/perdido.
+-- do Master, que fala com o provedor e reconsulta a cobrança (PAID) antes de reembolsar. Aceita pedido 'pago' com cobrança
+-- (o provedor recusa reembolso de cobrança em disputa) e qualquer pedido ainda não pago com needs_refund e cobrança:
+-- 'cancelado' (Ruling 16, Pix pago depois do cancelamento) e criado/pendente/expirado/falhou com PAID divergente (valor
+-- ou cobrança). Nunca em_disputa, estornado ou perdido.
 -- Contra reembolso duplo: recusa pedido com reembolso já solicitado (pendente).
 create function public.admin_request_refund(p_order uuid, p_reason text) returns void
 language plpgsql security definer set search_path = '' as $$
@@ -150,7 +153,7 @@ begin
   if not public.is_master() then raise exception 'forbidden' using errcode = 'MM004'; end if;
   why := public.admin_reason(p_reason);
   select * into o from public.payment_orders where id = p_order for update;
-  if not found or not (o.status = 'pago' or (o.status = 'cancelado' and o.needs_refund))
+  if not found or not (o.status = 'pago' or (o.needs_refund and o.status in ('criado', 'pendente', 'expirado', 'cancelado', 'falhou')))
      or o.provider_charge_id is null or o.refund_requested_at is not null then
     raise exception 'invalid' using errcode = 'MM005';
   end if;
