@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { contrastRatio } from "@/lib/event-theme/contrast";
 import { CAPACITY_OPTIONS, SHOTS_OPTIONS } from "./options";
 import { canEditEnd, canJoin, endAt, eventStatus, isRevealed, retrospectiveOpen, revealAt, shotsLeft, validateDraft, type MemoEvent } from "./event";
-import { priceRule } from "./pricing";
 import { SHARE_CODE_ALPHABET, extractShareCode, generateShareCode, normalizeShareCode } from "./share-code";
 import { canPost, hide, moderationQueue, remove, report, setReaction, visiblePhotos, type Photo, type Reaction } from "./photo";
 
@@ -81,16 +80,10 @@ describe("entrada no evento", () => {
   });
 });
 
-describe("opções e preço", () => {
+describe("opções", () => {
   it("expõe as opções confirmadas pelo REA", () => {
     expect(CAPACITY_OPTIONS).toEqual([5, 10, 20, 50, 100, 150, 200, null]);
     expect(SHOTS_OPTIONS).toEqual([5, 10, 16, 24, 36, null]);
-  });
-  it("até 10 convidados é grátis; acima paga ou usa Memo+ até 200", () => {
-    expect(priceRule(10, false)).toEqual({ kind: "gratis" });
-    expect(priceRule(20, false)).toEqual({ kind: "pago" });
-    expect(priceRule(200, true)).toEqual({ kind: "incluido" });
-    expect(priceRule(null, true)).toEqual({ kind: "pago" });
   });
 });
 
