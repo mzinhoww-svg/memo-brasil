@@ -105,6 +105,7 @@ test("pedido de remoção cai na fila do anfitrião, que oculta e depois remove 
   await page.getByRole("tab", { name: /Ocultas/ }).click();
   await expect(page.getByText("Visão de Ana")).toBeVisible();
   await page.getByRole("button", { name: "Remover", exact: true }).click();
+  await page.getByRole("dialog", { name: "Remover esta foto?" }).getByRole("button", { name: "Remover", exact: true }).click();
   await expect(page.getByText("Nenhuma foto oculta.")).toBeVisible();
 });
 
@@ -211,7 +212,7 @@ test("rota inexistente mostra 404 em português com saída", async ({ page }) =>
   expect(res?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "Essa página não existe." })).toBeVisible();
   await page.getByRole("link", { name: "Voltar ao início" }).click();
-  await expect(page.getByRole("heading", { name: "A festa vista por todo mundo." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Seu evento pelo olhar de cada convidado." })).toBeVisible();
 });
 
 test("anfitrião testa como convidado e volta ao painel por 'Continuar como'", async ({ page }) => {

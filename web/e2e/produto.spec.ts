@@ -1,19 +1,84 @@
 import { expect, test } from "@playwright/test";
-import { createViaWizard } from "./helpers";
+import { createViaWizard, postViaFile } from "./helpers";
 
 // Experiência pública sem demonstração (Task 10) e defeitos de sessão/identidade (Task 11), no modo local.
 
-test("home não mostra 'Guia de componentes' nem botões de exemplo; /exemplo abre o Agora com selo de exemplo", async ({ page }) => {
+test("home mostra proposta, 3 passos e CTA criar, sem exemplo em banco nem guia de componentes", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "A festa vista por todo mundo." })).toBeVisible();
-  for (const t of [/Guia de componentes/i, /festa de exemplo/i, /revelação em 2 minutos/i]) await expect(page.getByText(t)).toHaveCount(0);
-  await page.getByRole("link", { name: "Ver como funciona" }).click();
+  await expect(page.getByText("CÂMERA DESCARTÁVEL COLETIVA")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Seu evento pelo olhar de cada convidado.", level: 1 })).toBeVisible();
+  await expect(page.getByText("Sem baixar app. As fotos ficam no escuro e aparecem juntas, na hora que você escolher.")).toBeVisible();
+  for (const t of ["Aponta para o QR da mesa", "Cada um tem seu rolo", "Tudo revela junto"]) await expect(page.getByText(t, { exact: true })).toBeVisible();
+  await expect(page.getByText("Grátis até 10 convidados.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
+  await expect(page.getByRole("link", { name: "Tenho um código" })).toHaveAttribute("href", "/entrar");
+  for (const t of [/Guia de componentes/i, /Ver uma festa de exemplo/i, /revelação em 2 minutos/i]) await expect(page.getByText(t)).toHaveCount(0);
+  await page.getByRole("link", { name: "Experimente a câmera agora" }).click();
   await page.waitForURL(/\/exemplo$/);
   await expect(page.getByTestId("selo-exemplo")).toHaveText("Exemplo · nada é salvo");
   await expect(page.getByRole("heading", { name: "Lu faz 40", level: 1 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Agora", level: 2 })).toBeVisible();
   await expect(page.getByAltText(/Foto de exemplo de/).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
+});
+
+test("/ajuda é pública, tem h1, perguntas, contato único e links para Termos e Privacidade", async ({ page }) => {
+  await page.goto("/ajuda");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+  await expect(page.getByRole("heading", { name: "Ajuda", level: 1 })).toBeVisible();
+  for (const q of ["Como funciona?", "Câmera ou galeria?", "Quando as fotos aparecem?", "Privacidade e guarda das fotos", "Quanto custa?"]) await expect(page.getByRole("heading", { name: q, level: 2 })).toBeVisible();
+  await expect(page.getByText("Hoje o MemoriesMT é grátis até 10 convidados; planos pagos só aparecem quando estiverem ativos.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "mazinhoww@gmail.com" })).toHaveAttribute("href", "mailto:mazinhoww@gmail.com");
+  await expect(page.getByRole("link", { name: "Termos de uso" })).toHaveAttribute("href", "/termos");
+  await expect(page.getByRole("link", { name: "Política de Privacidade" })).toHaveAttribute("href", "/privacidade");
+  await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
+});
+
+test("remover foto e momento pedem confirmação; só removem depois de confirmar", async ({ page }) => {
+  const { code, id } = await createViaWizard(page, { reveal: "desligada", title: "Confirma" });
+  await postViaFile(page, code);
+  await page.goto(`/painel/${id}/conteudo`);
+  await page.getByRole("tab", { name: /Todas/ }).click();
+  await page.getByRole("button", { name: "Remover", exact: true }).click();
+  const dlg = page.getByRole("dialog", { name: "Remover esta foto?" });
+  await expect(dlg).toBeVisible();
+  await expect(dlg.getByText("Os convidados deixam de vê-la.")).toBeVisible();
+  await expect(dlg.getByRole("button", { name: "Cancelar" })).toBeFocused();
+  await dlg.getByRole("button", { name: "Cancelar" }).click();
+  await expect(dlg).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Remover", exact: true })).toBeFocused();
+  await expect(page.getByText("Ainda sem fotos.")).toHaveCount(0);
+  await page.getByRole("button", { name: "Remover", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Remover", exact: true }).click();
+  await expect(page.getByText("Ainda sem fotos.")).toBeVisible();
+
+  await page.goto(`/painel/${id}/momentos`);
+  const chip = page.getByRole("button", { name: "Remover O sim" });
+  await chip.click();
+  const md = page.getByRole("dialog", { name: "Remover momento O sim?" });
+  await expect(md).toBeVisible();
+  await md.getByRole("button", { name: "Cancelar" }).click();
+  await expect(chip).toBeVisible();
+  await chip.click();
+  await page.getByRole("dialog").getByRole("button", { name: "Remover", exact: true }).click();
+  await expect(chip).toHaveCount(0);
+});
+
+test("card A6 do QR traz a copy nova e a linha de fotos e revelação", async ({ page }) => {
+  const { id } = await createViaWizard(page, { reveal: "desligada", title: "Cards", shots: "10" });
+  await page.goto(`/painel/${id}/qr`);
+  await expect(page.getByText("Queremos a festa pelos seus olhos.").first()).toBeVisible();
+  await expect(page.getByText("Aponte a câmera. Sem baixar app.").first()).toBeVisible();
+  await expect(page.getByText("Cada um tem 10 fotos. Revelamos na hora.").first()).toBeVisible();
+});
+
+test("painel mostra exatamente um h1 em cada tela", async ({ page }) => {
+  const { id } = await createViaWizard(page, { title: "Um h1" });
+  for (const s of ["", "/conteudo", "/convidados", "/momentos", "/qr", "/aparencia", "/configuracoes", "/downloads"]) {
+    await page.goto(`/painel/${id}${s}`);
+    await page.locator("h1").first().waitFor();
+    await expect(page.locator("h1"), s || "/").toHaveCount(1);
+  }
 });
 
 test("/exemplo: até 5 fotos, nada vai para o IndexedDB e o selo some ao sair", async ({ page }) => {

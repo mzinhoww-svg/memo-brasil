@@ -1,6 +1,22 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { openDemo, setTheme } from "./helpers";
+import { createViaWizard, openDemo, setTheme } from "./helpers";
+
+for (const width of [390, 1280]) {
+  test(`axe: 0 violações em /, /ajuda e /painel/[id] a ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const { id } = await createViaWizard(page, { title: "Axe" });
+    const problems: string[] = [];
+    for (const route of ["/", "/ajuda", `/painel/${id}`]) {
+      await page.goto(route);
+      await page.locator("h1").first().waitFor();
+      await page.evaluate(() => document.fonts.ready);
+      const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      for (const v of r.violations) problems.push(`${route} [${v.impact}] ${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);
+    }
+    expect(problems, problems.join("\n")).toEqual([]);
+  });
+}
 
 for (const theme of ["dia", "noite"] as const) {
   test(`acessibilidade (axe) sem violações graves, tema ${theme}`, async ({ page }) => {
