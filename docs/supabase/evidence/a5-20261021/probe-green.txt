@@ -1,0 +1,12 @@
+✔ fails the gate when email signup becomes enabled (424.403526ms)
+✔ default read-only run does not attempt signup and identifies actual local origin (972.27621ms)
+✔ refuses a target that differs from the explicitly expected project (267.011989ms)
+✔ explicit negative signup validates the disabled provider without reporting a new user (513.641411ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2424.56987

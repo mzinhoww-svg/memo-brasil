@@ -1,0 +1,33 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> web@0.1.0 test:integration
+> vitest run --config vitest.integration.config.ts && node --test --test-force-exit integration/supabase.integration.test.mjs
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.integration.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.5 /workspace/scratch/0e0754848ab2/memoriesmt/web
+
+ ❯ integration/adapter.itest.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  integration/adapter.itest.ts [ integration/adapter.itest.ts ]
+Error: defina SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY e SUPABASE_SERVICE_KEY
+ ❯ integration/adapter.itest.ts:18:33
+     16|
+     17| const URL = process.env.SUPABASE_URL!, PUB = process.env.SUPABASE_PUBL…
+     18| if (!URL || !PUB || !SVC) throw new Error("defina SUPABASE_URL, SUPABA…
+       |                                 ^
+     19| if (!/^https?:\/\/(127\.0\.0\.1|localhost)/.test(URL) && process.env.A…
+     20|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  18:28:28
+   Duration  1.64s (worker 98%, environment 2%)
+

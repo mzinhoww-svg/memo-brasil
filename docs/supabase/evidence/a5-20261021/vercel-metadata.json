@@ -1,0 +1,144 @@
+{
+  "project": {
+    "id": "prj_IpHyqsnnbrXS213AGrOmxizb0Kjl",
+    "name": "newmemocuiaba",
+    "framework": null,
+    "accountId": "team_SOZVnHod91BcrmLMYmdmvB8k",
+    "createdAt": 1792541023450,
+    "updatedAt": 1792591946779,
+    "nodeVersion": "24.x",
+    "live": false,
+    "latestDeployment": {
+      "id": "dpl_2v3GF6rj7GHeE8vBGFCRyxyDdKwf",
+      "url": "newmemocuiaba-p3dzw49y4-mzinhoww-gmailcoms-projects.vercel.app",
+      "createdAt": 1792609565053,
+      "readyState": "READY",
+      "target": null
+    },
+    "domains": [
+      "newmemocuiaba.vercel.app",
+      "newmemocuiaba-mzinhoww-gmailcoms-projects.vercel.app",
+      "newmemocuiaba-git-feat-memoriesmt-mzinhoww-gmailcoms-projects.vercel.app"
+    ],
+    "passwordProtection": {
+      "enabled": false,
+      "deploymentType": null
+    },
+    "ssoProtection": {
+      "enabled": true,
+      "deploymentType": "all_except_custom_domains"
+    },
+    "trustedIps": {
+      "enabled": false,
+      "deploymentType": null,
+      "addresses": [],
+      "protectionMode": null
+    }
+  },
+  "deployment": {
+    "deployment": {
+      "id": "dpl_2v3GF6rj7GHeE8vBGFCRyxyDdKwf",
+      "name": "newmemocuiaba",
+      "url": "newmemocuiaba-p3dzw49y4-mzinhoww-gmailcoms-projects.vercel.app",
+      "type": "LAMBDAS",
+      "state": "READY",
+      "createdAt": 1792609565053,
+      "creator": {
+        "uid": "ohySSl2umuQfjOtl1zttQYPT",
+        "username": "mzinhoww-2733"
+      },
+      "project": {
+        "id": "prj_IpHyqsnnbrXS213AGrOmxizb0Kjl",
+        "name": "newmemocuiaba",
+        "framework": null
+      },
+      "meta": {
+        "githubCommitRef": "feat/memoriesmt-studio",
+        "githubCommitSha": "ca7a274a6f9510c1271b99ac79c9e8f112ad79d1",
+        "githubCommitMessage": "docs(backlog): commit de SCV-004\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>",
+        "githubRepo": "memo-brasil",
+        "githubOrg": "mzinhoww-svg"
+      },
+      "alias": [
+        "newmemocuiaba-git-feat-memor-5c0872-mzinhoww-gmailcoms-projects.vercel.app"
+      ],
+      "target": null,
+      "regions": [
+        "iad1"
+      ],
+      "buildingAt": 1792609566009,
+      "ready": 1792609603231,
+      "readyState": "READY",
+      "aliasError": null
+    }
+  },
+  "environmentVariables": [
+    {
+      "key": "NEXT_PUBLIC_MM_BACKEND",
+      "target": [
+        "production"
+      ],
+      "type": "encrypted",
+      "id": "HKO5scR0lajFB6fZ"
+    },
+    {
+      "key": "SUPABASE_SERVICEROLE_KEY",
+      "target": [
+        "production"
+      ],
+      "type": "sensitive",
+      "id": "CPm04k6Py9oib7U5"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "target": [
+        "production"
+      ],
+      "type": "encrypted",
+      "id": "SHzBzz6crrtgUUwC"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "target": [
+        "production"
+      ],
+      "type": "encrypted",
+      "id": "RDlpCM8eLWsGPgn7"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "target": [
+        "production"
+      ],
+      "type": "encrypted",
+      "id": "N3CiYVMnRZ947IiM"
+    },
+    {
+      "key": "NEXT_PUBLIC_MM_BACKEND",
+      "target": [
+        "preview"
+      ],
+      "type": "plain",
+      "id": "UnLfweU1OO1JK9WO"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "target": [
+        "preview"
+      ],
+      "type": "plain",
+      "id": "sV4SK67dTTQcnt8Z"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "target": [
+        "preview"
+      ],
+      "type": "plain",
+      "id": "Mr62ZYrsMxzWlxcG"
+    }
+  ],
+  "logs": "BLOCKED: 403 team scope; no logs returned",
+  "previewUI": "BLOCKED: Vercel login wall in cloud browser",
+  "shareLink": "Rejected by auto-review; not created"
+}

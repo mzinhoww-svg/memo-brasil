@@ -1,0 +1,37 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v5.0.5 /workspace/scratch/0e0754848ab2/memoriesmt/web
+
+ ❯ src/lib/purge-worker.test.ts (4 tests | 2 failed) 42ms
+   ❯ purge-storage HTTP failure reporting (SCV-009) (4)
+     × returns HTTP 500 and retains retryable items after storage failure 28ms
+     × returns HTTP 500 and retains retryable items after queue failure 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/purge-worker.test.ts > purge-storage HTTP failure reporting (SCV-009) > returns HTTP 500 and retains retryable items after storage failure
+ FAIL  src/lib/purge-worker.test.ts > purge-storage HTTP failure reporting (SCV-009) > returns HTTP 500 and retains retryable items after queue failure
+AssertionError: expected 200 to be 500 // Object.is equality
+
+- Expected
++ Received
+
+- 500
++ 200
+
+ ❯ src/lib/purge-worker.test.ts:49:31
+     47|       const w = worker(failure);
+     48|       const response = await w.send();
+     49|       expect(response.status).toBe(500);
+       |                               ^
+     50|       expect(await response.json()).toEqual({ ok: false, removidos: 0,…
+     51|       expect([...w.pending]).toEqual(["photo-a", "photo-b"]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  18:29:50
+   Duration  2.44s (import 49%, setup 33%, transform 15%, tests 2%, worker 1%)
+

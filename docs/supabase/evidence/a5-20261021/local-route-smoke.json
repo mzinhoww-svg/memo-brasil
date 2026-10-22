@@ -1,0 +1,27 @@
+[
+  {
+    "route": "/",
+    "status": 200,
+    "containsMemoriesMT": true
+  },
+  {
+    "route": "/criar",
+    "status": 200,
+    "containsMemoriesMT": true
+  },
+  {
+    "route": "/entrar",
+    "status": 200,
+    "containsMemoriesMT": true
+  },
+  {
+    "route": "/master",
+    "status": 200,
+    "containsMemoriesMT": true
+  },
+  {
+    "route": "/design",
+    "status": 200,
+    "containsMemoriesMT": true
+  }
+]

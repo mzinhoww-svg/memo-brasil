@@ -1,0 +1,31 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> web@0.1.0 lint
+> eslint
+
+
+/workspace/scratch/0e0754848ab2/memoriesmt/web/e2e/audit-a1-reveal.spec.ts
+  149:17  warning  'id' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/0e0754848ab2/memoriesmt/web/e2e/audit-a2-analyze.ts
+  94:64  warning  'eventFontCount' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/0e0754848ab2/memoriesmt/web/e2e/audit-a2-crawl.spec.ts
+  5:29  warning  'Page' is defined but never used             @typescript-eslint/no-unused-vars
+  7:10  warning  'createViaWizard' is defined but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/0e0754848ab2/memoriesmt/web/e2e/audit-a2-offline-post.spec.ts
+  3:10  warning  'expect' is defined but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/0e0754848ab2/memoriesmt/web/e2e/audit-a2-perf.spec.ts
+  5:10  warning  'expect' is defined but never used   @typescript-eslint/no-unused-vars
+  5:29  warning  'Browser' is defined but never used  @typescript-eslint/no-unused-vars
+
+/workspace/scratch/0e0754848ab2/memoriesmt/web/src/app/painel/[id]/configuracoes/page.tsx
+   7:47  warning  'EventFontId' is defined but never used       @typescript-eslint/no-unused-vars
+   7:65  warning  'PaletteId' is defined but never used         @typescript-eslint/no-unused-vars
+  10:10  warning  'EVENT_FONT_LABEL' is defined but never used  @typescript-eslint/no-unused-vars
+  10:28  warning  'PALETTES' is defined but never used          @typescript-eslint/no-unused-vars
+
+✖ 11 problems (0 errors, 11 warnings)
+

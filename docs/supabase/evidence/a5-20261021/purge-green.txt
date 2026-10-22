@@ -1,0 +1,10 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v5.0.5 /workspace/scratch/0e0754848ab2/memoriesmt/web
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  18:30:44
+   Duration  1.83s (import 49%, setup 24%, transform 24%, tests 2%, worker 1%)
+

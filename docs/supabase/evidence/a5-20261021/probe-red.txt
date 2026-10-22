@@ -1,0 +1,3 @@
+✖ fails the gate when email signup becomes enabled (432.766548ms)
+✖ default read-only run does not attempt signup and identifies actual local origin (380.382459ms)
+✖ refuses a target that differs from the explicitly expected project (387.152083ms)

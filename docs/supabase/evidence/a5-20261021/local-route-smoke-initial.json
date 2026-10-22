@@ -1,0 +1,22 @@
+[
+  {
+    "route": "/",
+    "error": "<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "route": "/criar",
+    "error": "<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "route": "/entrar",
+    "error": "<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "route": "/master",
+    "error": "<urlopen error [Errno 111] Connection refused>"
+  },
+  {
+    "route": "/design",
+    "error": "<urlopen error [Errno 111] Connection refused>"
+  }
+]
