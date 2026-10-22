@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **228** itens (sem contar 19 épicos). Prioridade: P0 38, P1 75, P2 62, P3 53. Status: BACKLOG 96, BLOCKED 7, CANCELLED 2, DEFERRED 15, DONE 65, IN_REVIEW 31, READY 12.
+Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P3 53. Status: BACKLOG 102, BLOCKED 14, CANCELLED 2, DEFERRED 14, DONE 65, IN_REVIEW 31, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -509,8 +509,6 @@ Total: **228** itens (sem contar 19 épicos). Prioridade: P0 38, P1 75, P2 62, P
 | OPS-A5-001 | BUG | Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs | P1 | DONE | - | A.5 rodada 5 2026-10-22 | 67fef3c | remoto |
 | OPS-A5-002 | FEATURE | Backup gerenciado e PITR do projeto Supabase | P1 | DEFERRED | - | A.5 rodada 5 2026-10-22 | - | remoto |
 | OPS-A5-006 | TASK | Limite de entradas anônimas do Supabase Auth (30/h por IP) | P1 | BLOCKED | - | entrega final 2026-10-22 | - | remoto |
-| OPS-FIN-001 | TASK | Credencial AbacatePay sandbox e homologação real do ciclo de pagamento | P1 | BLOCKED | - | entrega final 2026-10-22 | - | remoto |
-| OPS-FIN-002 | TASK | Ativação financeira real (produção AbacatePay, CNPJ, fiscal) | P2 | DEFERRED | - | entrega final 2026-10-22 | - | remoto |
 | QAV-004 | TASK | Limpar usuários e dados de teste do remoto | P3 | BLOCKED | SCV-010 | A.4 2026-10-21 | - | remoto |
 | SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 5374f89 | local-supabase |
 | SCV-002 | FEATURE | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG | EST-004, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
@@ -552,10 +550,6 @@ Total: **228** itens (sem contar 19 épicos). Prioridade: P0 38, P1 75, P2 62, P
 **UI-A5-001** critérios: Reproduzir (Chrome com autofill) e corrigir com regressão mínima, ou fechar como não reproduzível
 
 **UI-A5-002** critérios: Título e rótulo distintos ou um deles removido, sem quebrar os testes de acessibilidade
-
-**OPS-FIN-001** critérios: Pedido sandbox real pago e liberado, webhook assinado aceito, reembolso sandbox concluído; payments_env volta a desligado ao fim (§8.1)
-
-**OPS-FIN-002** critérios: Decisões D3–D6 registradas; Webhook de produção validado sem expor valores
 
 **OPS-A5-006** critérios: Limite ajustado ao porte esperado dos eventos, registrado
 
@@ -614,6 +608,20 @@ Total: **228** itens (sem contar 19 épicos). Prioridade: P0 38, P1 75, P2 62, P
 | OPS-A5-003 | TASK | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-004 | TASK | Eventos anteriores a 22/10/2026 sem expiração automática | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-005 | TASK | Pedidos de exclusão do titular em até 30 dias (processo manual) | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
+| PAY-001 | BUG | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-002 | BUG | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-003 | BUG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-004 | TASK | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução | P2 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-005 | BUG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | P2 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-OPS-001 | TASK | [humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook | P0 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | operador |
+| PAY-OPS-002 | TASK | [humano] Vault: mm_payments_cron_token e mm_payments_reconcile_url; agendar conciliação | P1 | BLOCKED | PAY-OPS-001 | fechamento produto/pagamentos 2026-10-22 | - | operador |
+| PAY-OPS-003 | TASK | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | P0 | BLOCKED | PAY-OPS-001, PAY-OPS-002 | fechamento produto/pagamentos 2026-10-22 | - | remoto |
+| PAY-OPS-004 | TASK | [humano] Produção AbacatePay: CNPJ, chave de produção e ativação por plano | P1 | BLOCKED | PAY-OPS-003, PAY-OPS-005 | fechamento produto/pagamentos 2026-10-22 | - | operador |
+| PAY-OPS-005 | TASK | [humano] Decisões comerciais/legais D3, D5, D6 e revisão jurídica dos textos | P1 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | dono |
+| REL-003 | TASK | Smoke autenticado em produção após a promoção (Google, wizard Grátis 10/10, convidado, Master, código de cortesia) | P0 | BACKLOG | REL-001 | fechamento produto/pagamentos 2026-10-22 | - | remoto |
+| REL-004 | TASK | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | P1 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | aparelho |
+| REL-005 | TASK | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect URLs após o go-live | P1 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | operador |
+| REL-006 | TASK | [humano] Confirmar payments_env='desligado' no remoto | P0 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | operador |
 | RET-A5-001 | FEATURE | Retenção de fotos: 90 dias de acesso após o encerramento e exclusão do armazenamento ativo em até 28 dias | P0 | DONE | - | A.5 rodada 6 2026-10-22 | 67fef3c | remoto |
 
 **COM-004** critérios: Páginas publicadas; aceite versionado e auditado; origem do texto registrada; retenção explícita e cumprida pelo produto; Revisão jurídica profissional: NÃO registrada (decisão do operador de publicar texto próprio); qualquer revisão futura gera versão nova · testes: supabase/tests/database/04_consents.test.sql (24 asserts), web/e2e/consent.spec.ts (3), web/src/lib/consent.test.ts (6), web/e2e/consent.spec.ts verifica contato e título (3/3), supabase/tests/database/04_consents.test.sql (35 asserts, aceite separado, origem e sem revisão registrada), supabase/tests/database/06_retention.test.sql (31 asserts), web/e2e/consent.spec.ts (3), web/e2e/supabase.spec.ts (falha de gravação e isolamento), web/src/lib/legal-text.test.ts, web/src/lib/consent.test.ts, web/src/domain/retention.test.ts
@@ -655,3 +663,31 @@ Total: **228** itens (sem contar 19 épicos). Prioridade: P0 38, P1 75, P2 62, P
 **OPS-A5-004** critérios: Decisão do dono registrada por evento
 
 **OPS-A5-005** critérios: Procedimento do operador documentado em OPERATIONAL-RECOVERY.md; Fluxo self-service avaliado depois
+
+**PAY-OPS-001** critérios: Segredos sandbox configurados sem passar por repositório/log; Webhook registrado apontando para payments-webhook
+
+**PAY-OPS-002** critérios: Job de conciliação ativo e executando sem erro
+
+**PAY-OPS-003** critérios: Pix sandbox pago libera o plano e webhook repetido não duplica; Reembolso volta o direito; Janela fechada: payments_env='desligado'
+
+**PAY-OPS-005** critérios: Decisões registradas pelo dono; Textos legais revisados
+
+**PAY-OPS-004** critérios: D3, D5 e D6 decididos e registrados; Primeira venda real conciliada
+
+**PAY-001** critérios: Teste pgTAP: reembolso de pedido pago nunca usa a cobrança divergente
+
+**PAY-002** critérios: RPC Master auditada limpa needs_refund com motivo
+
+**PAY-003** critérios: Teste: pedido pago não aceita waiver de valor
+
+**PAY-004** critérios: Teste: pedido antigo sai da varredura; execução repetida não cria evento novo
+
+**PAY-005** critérios: Teste: divergência em pedido pago permanece após 30 dias
+
+**REL-003** critérios: Jornadas executadas no domínio oficial com evidência; Nenhum erro de RPC/permissão
+
+**REL-004** critérios: Roteiro executado em 1 iPhone e 1 Android com registro
+
+**REL-005** critérios: Limite ajustado ao tamanho do plano Grande; Redirect URLs só com o domínio oficial e o callback
+
+**REL-006** critérios: Consulta registrada com o valor 'desligado'

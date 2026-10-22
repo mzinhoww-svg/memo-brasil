@@ -6,14 +6,18 @@
 
 Homologação real concluída e V1 em produção (Google OAuth, callback, variáveis de Production, smoke público).
 
-Itens abertos: **10** · P0 1, P1 5, P2 3, P3 1 · BACKLOG 4, BLOCKED 4, IN_REVIEW 1, READY 1
+Itens abertos: **14** · P0 3, P1 7, P2 3, P3 1 · BACKLOG 5, BLOCKED 7, IN_REVIEW 1, READY 1
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
+| REL-003 | P0 | BACKLOG | Smoke autenticado em produção após a promoção (Google, wizard Grátis 10/10, convidado, Mas | REL-001 |
+| REL-006 | P0 | BLOCKED | [humano] Confirmar payments_env='desligado' no remoto | - |
 | SB-008 | P0 | BLOCKED | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | SB-003, SB-004, REL-001 |
 | BG-071 | P1 | BACKLOG | Outbox de sincronização offline ainda é só desenho | AUD-001, ITG-102 |
 | INF-001 | P1 | READY | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh  | - |
 | REL-001 | P1 | BLOCKED | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | - |
+| REL-004 | P1 | BLOCKED | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | - |
+| REL-005 | P1 | BLOCKED | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect | - |
 | SB-005 | P1 | BACKLOG | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | SB-003 |
 | SB-006 | P1 | BACKLOG | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexã | SB-002 |
 | INF-002 | P2 | BLOCKED | Produção serve o build antigo (3a8bf89): sem headers/CSP e sem correções da auditoria ante | REL-001 |
@@ -25,7 +29,7 @@ Itens abertos: **10** · P0 1, P1 5, P2 3, P3 1 · BACKLOG 4, BLOCKED 4, IN_REVI
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **87** · P0 14, P1 18, P2 37, P3 18 · BACKLOG 47, BLOCKED 3, DEFERRED 4, IN_REVIEW 24, READY 9
+Itens abertos: **85** · P0 14, P1 17, P2 36, P3 18 · BACKLOG 47, BLOCKED 2, DEFERRED 3, IN_REVIEW 24, READY 9
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -56,7 +60,6 @@ Itens abertos: **87** · P0 14, P1 18, P2 37, P3 18 · BACKLOG 47, BLOCKED 3, DE
 | OPS-A5-002 | P1 | DEFERRED | Backup gerenciado e PITR do projeto Supabase | - |
 | OPS-A5-003 | P1 | READY | Rotação de cópias de segurança manuais a cada ≤ 30 dias | - |
 | OPS-A5-006 | P1 | BLOCKED | Limite de entradas anônimas do Supabase Auth (30/h por IP) | - |
-| OPS-FIN-001 | P1 | BLOCKED | Credencial AbacatePay sandbox e homologação real do ciclo de pagamento | - |
 | QAV-003 | P1 | IN_REVIEW | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e per | EST-004, SCV-008 |
 | SCV-004 | P1 | IN_REVIEW | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
 | SCV-006 | P1 | IN_REVIEW | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
@@ -82,7 +85,6 @@ Itens abertos: **87** · P0 14, P1 18, P2 37, P3 18 · BACKLOG 47, BLOCKED 3, DE
 | MAD-006 | P2 | BACKLOG | UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revoga | MAD-004, SCV-005 |
 | OPS-A5-004 | P2 | DEFERRED | Eventos anteriores a 22/10/2026 sem expiração automática | - |
 | OPS-A5-005 | P2 | DEFERRED | Pedidos de exclusão do titular em até 30 dias (processo manual) | - |
-| OPS-FIN-002 | P2 | DEFERRED | Ativação financeira real (produção AbacatePay, CNPJ, fiscal) | - |
 | PRF-001 | P2 | BACKLOG | Bundle: import dinâmico do SDK Supabase e do qrcode; AppProvider fora do /master; rotas cl | QAV-001 |
 | SCV-001 | P2 | IN_REVIEW | Feature flags e platform_settings com escrita só do master | MAD-001 |
 | SCV-005 | P2 | IN_REVIEW | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava  | MAD-002 |
@@ -121,10 +123,12 @@ Itens abertos: **87** · P0 14, P1 18, P2 37, P3 18 · BACKLOG 47, BLOCKED 3, DE
 
 Planos, pagamento, e-mail, observabilidade e escala de mídia.
 
-Itens abertos: **31** · P0 0, P1 16, P2 14, P3 1 · BACKLOG 12, DEFERRED 11, IN_REVIEW 6, READY 2
+Itens abertos: **41** · P0 2, P1 22, P2 16, P3 1 · BACKLOG 17, BLOCKED 5, DEFERRED 11, IN_REVIEW 6, READY 2
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
+| PAY-OPS-001 | P0 | BLOCKED | [humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook | - |
+| PAY-OPS-003 | P0 | BLOCKED | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | PAY-OPS-001, PAY-OPS-002 |
 | COM-001 | P1 | IN_REVIEW | Modelo de planos e entitlements no banco (plano por evento/organizador) | SB-004, SB-008 |
 | COM-002 | P1 | IN_REVIEW | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | COM-001, COM-004 |
 | COM-003 | P1 | IN_REVIEW | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | COM-001 |
@@ -141,6 +145,12 @@ Itens abertos: **31** · P0 0, P1 16, P2 14, P3 1 · BACKLOG 12, DEFERRED 11, IN
 | FT-087 | P1 | DEFERRED | Excluir conta e LGPD | FT-082, INF-001, AUD-002, ITG-101 |
 | FT-088 | P1 | DEFERRED | Administrador master real (claim, middleware, audit_logs) | FT-080, FT-082, INF-001, AUD-002, ITG-109 |
 | FT-089 | P1 | DEFERRED | Migração local → nuvem | FT-080, FT-082, FT-085, INF-001, AUD-002, ITG-105 |
+| PAY-001 | P1 | BACKLOG | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança le | - |
+| PAY-002 | P1 | BACKLOG | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | - |
+| PAY-003 | P1 | BACKLOG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | - |
+| PAY-OPS-002 | P1 | BLOCKED | [humano] Vault: mm_payments_cron_token e mm_payments_reconcile_url; agendar conciliação | PAY-OPS-001 |
+| PAY-OPS-004 | P1 | BLOCKED | [humano] Produção AbacatePay: CNPJ, chave de produção e ativação por plano | PAY-OPS-003, PAY-OPS-005 |
+| PAY-OPS-005 | P1 | BLOCKED | [humano] Decisões comerciais/legais D3, D5, D6 e revisão jurídica dos textos | - |
 | BG-070 | P2 | BACKLOG | Exclusão em cascata não é atômica | - |
 | BG-103 | P2 | READY | 'Remover da festa' não impede a reentrada com o mesmo código | - |
 | BG-104 | P2 | READY | Diálogo de revelação: foco, Escape, landmark e não bloquear a postagem | - |
@@ -155,6 +165,8 @@ Itens abertos: **31** · P0 0, P1 16, P2 14, P3 1 · BACKLOG 12, DEFERRED 11, IN
 | ITG-107 | P2 | BACKLOG | Convites: id, rotação, expiração, ?mesa= confiável e limite de tentativas (código ~39,6 bi | ITG-106 |
 | ITG-108 | P2 | BACKLOG | Ambiente (env), CSP para o Supabase e suíte de contrato reutilizável | ITG-106 |
 | ITG-109 | P2 | BACKLOG | Matriz de papéis × RLS e proteção de servidor para /master | ITG-106 |
+| PAY-004 | P2 | BACKLOG | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada exec | - |
+| PAY-005 | P2 | BACKLOG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | - |
 | BG-150 | P3 | DEFERRED | Risco aceito pré-backend: alterar meta.user para o hostId vira anfitrião | - |
 
 ## R4 · Pós-90 dias (>90 dias)

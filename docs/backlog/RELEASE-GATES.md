@@ -15,7 +15,7 @@
 | G12 | Migrations V2 e Edge Functions remotas | PASSA no inventário: 16 migrations e duas Functions ativas | docs/supabase/evidence/a5-20261021/backend-readonly.json; docs/supabase/A5-HOMOLOGATION-REPORT.md |
 | G11 | Conector Supabase acessa o projeto correto | PASSA: consultas remotas de leitura | docs/supabase/evidence/a5-20261021/backend-readonly.json |
 
-## Itens P0/P1 em aberto (43)
+## Itens P0/P1 em aberto (54)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -59,7 +59,18 @@
 | MAD-005 | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | P1 | BACKLOG |
 | QAV-003 | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador | P1 | IN_REVIEW |
 | OPS-A5-003 | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY |
-| OPS-FIN-001 | Credencial AbacatePay sandbox e homologação real do ciclo de pagamento | P1 | BLOCKED |
+| PAY-OPS-001 | [humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook | P0 | BLOCKED |
+| PAY-OPS-002 | [humano] Vault: mm_payments_cron_token e mm_payments_reconcile_url; agendar conciliação | P1 | BLOCKED |
+| PAY-OPS-003 | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | P0 | BLOCKED |
+| PAY-OPS-005 | [humano] Decisões comerciais/legais D3, D5, D6 e revisão jurídica dos textos | P1 | BLOCKED |
+| PAY-OPS-004 | [humano] Produção AbacatePay: CNPJ, chave de produção e ativação por plano | P1 | BLOCKED |
+| PAY-001 | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | BACKLOG |
+| PAY-002 | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | BACKLOG |
+| PAY-003 | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | BACKLOG |
+| REL-003 | Smoke autenticado em produção após a promoção (Google, wizard Grátis 10/10, convidado, Master, código de cortesia) | P0 | BACKLOG |
+| REL-004 | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | P1 | BLOCKED |
+| REL-005 | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect URLs após o go-live | P1 | BLOCKED |
+| REL-006 | [humano] Confirmar payments_env='desligado' no remoto | P0 | BLOCKED |
 | OPS-A5-006 | Limite de entradas anônimas do Supabase Auth (30/h por IP) | P1 | BLOCKED |
 
 ## Decisão atual
