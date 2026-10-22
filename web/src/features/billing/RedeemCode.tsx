@@ -21,10 +21,10 @@ export function redeemMessage(reason: string): string {
 }
 
 /** B8: cartão "Tenho um código". Letras maiúsculas automáticas; espaços e hífens são ignorados na conferência. */
-export type RedeemCodeProps = { eventId: string; onApplied: (r: RedeemResult & { code: string }) => void; onClose?: () => void };
-export function RedeemCode({ eventId, onApplied, onClose }: RedeemCodeProps) {
-  const [value, setValue] = useState("");
-  const [error, setError] = useState<string | undefined>();
+export type RedeemCodeProps = { eventId: string; initialValue?: string; initialError?: string; onApplied: (r: RedeemResult & { code: string }) => void; onClose?: () => void };
+export function RedeemCode({ eventId, onApplied, onClose, initialValue = "", initialError }: RedeemCodeProps) {
+  const [value, setValue] = useState(initialValue);
+  const [error, setError] = useState<string | undefined>(initialError);
   const [busy, setBusy] = useState(false);
 
   async function apply(e: React.FormEvent) {

@@ -2,10 +2,9 @@ import type { EventCategory } from "@/domain/options";
 import type { EventFontId, PaletteId } from "@/domain/event";
 import type { RevealInput } from "./reveal-input";
 import type { EventInput } from "./service";
-import { FREE_LIMITS } from "./plan-hint";
 
 /** O evento SEMPRE nasce nos padrões do Grátis (10/10): o servidor recusa acima do plano efetivo (MM012). */
-export const WIZARD_DEFAULTS = { capacity: FREE_LIMITS.guests, shots: FREE_LIMITS.shots } as const;
+export const WIZARD_DEFAULTS = { capacity: 10, shots: 10 } as const;
 
 /** Identidade vai para o Studio (/painel/[id]/aparencia); o assistente só cria com os padrões atuais. */
 export const IDENTITY_DEFAULTS: { cameraStyle: "original"; palette: PaletteId; eventFont: EventFontId } = { cameraStyle: "original", palette: "salvia", eventFont: "birthstone" };

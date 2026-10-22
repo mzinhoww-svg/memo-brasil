@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Breadcrumbs, Button, Chip, Chips, Field, GoogleButton, OptionGroup, Progress, Select, Signature } from "@/components/memoriesmt";
 import { CATEGORY_LABEL, MIN_DURATION_HOURS, type EventCategory } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
@@ -12,8 +12,11 @@ import { resolveDuration } from "./duration";
 import { REVEAL_ERROR_TEXT, resolveReveal } from "./reveal-input";
 import { REVEAL_CHOICES, buildRevealInput, type RevealChoice } from "./reveal-choice";
 import { hostFallbackName, suggestEventNames } from "./name-suggestions";
-import { FREE_LIMITS, planHintForShots, shotsOptionHint } from "./plan-hint";
-import { PAID_PLAN_LINE, PlanChoice, STATIC_PLANS, hasPaidPlan } from "./PlanChoice";
+import { clearPendingCode, freeShots, hasPaidPlans, planForShots, readPendingCode } from "./plan-catalog";
+import { PAID_PLAN_LINE, PlanStep } from "./PlanStep";
+import { CodeApplied, REDEEM_TEXT, RedeemCode, redeemMessage } from "@/features/billing/RedeemCode";
+import { formatBRL, getPublicSettings, listPublicPlans, redeemCode } from "@/features/billing/api";
+import type { PublicPlan, PublicSettings } from "@/features/billing/types";
 import { buildCreateInput, WIZARD_DEFAULTS } from "./wizard-input";
 import { TIMEZONES, defaultTimezone, formatInZone, zoneLabel, type RevealErrors } from "@/domain/reveal";
 
@@ -45,10 +48,22 @@ export function CreateWizard() {
   const [revTime, setRevTime] = useState("");
   const [timezone, setTimezone] = useState(defaultTimezone);
   const [desiredShots, setDesiredShots] = useState<number>(WIZARD_DEFAULTS.shots);
-  const [planCode, setPlanCode] = useState(STATIC_PLANS[0].code);
+  const [plans, setPlans] = useState<PublicPlan[] | null>(null);
+  const [settings, setSettings] = useState<PublicSettings | null>(null);
+  const [planCode, setPlanCode] = useState("gratis");
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
+  const [codeOutcome, setCodeOutcome] = useState<{ eventId: string; eventTitle: string; code: string; applied: PublicPlan | null | "sem-plano"; error?: string } | null>(null);
   const [errors, setErrors] = useState<{ title?: string; termino?: string; create?: string }>({});
   const [revealErrors, setRevealErrors] = useState<RevealErrors | undefined>();
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPendingCode(readPendingCode());
+      void Promise.all([listPublicPlans(), getPublicSettings()]).then(([p, st]) => { setPlans(p); setSettings(st); }, () => setPlans([]));
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
 
   // o nome de quem organiza vem da conta Google (editável depois no painel); padrão seguro quando vazio
   const hostName = hostFallbackName(user?.name);
@@ -91,16 +106,53 @@ export function CreateWizard() {
       }
       return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
     }
-    router.push(`/criar/pronto/${r.event.id}`);
+    const chosen = plans?.find((p) => p.code === planCode);
+    const eventId = r.event.id;
+    if (pendingCode) {
+      // o evento já existe: o código nunca impede a criação; a recusa aparece em B8, com mensagem neutra
+      clearPendingCode();
+      let outcome: NonNullable<typeof codeOutcome>;
+      try {
+        const red = await redeemCode(eventId, pendingCode);
+        outcome = red.applied && red.reason === "ok"
+          ? { eventId, eventTitle: r.event.title, code: pendingCode, applied: plans?.find((p) => p.code === red.planCode) ?? "sem-plano" }
+          : { eventId, eventTitle: r.event.title, code: pendingCode, applied: null, error: red.reason === "ok" ? undefined : redeemMessage(red.reason) };
+      } catch {
+        outcome = { eventId, eventTitle: r.event.title, code: pendingCode, applied: null, error: REDEEM_TEXT.falha };
+      }
+      return setCodeOutcome(outcome);
+    }
+    if (chosen && !chosen.isFree) router.push(`/painel/${eventId}/plano?plano=${encodeURIComponent(chosen.code)}`);
+    else router.push(`/criar/pronto/${eventId}`);
   }
 
   const resolved = step === 1 ? resolveReveal(revealInput(), endMs(), now()) : undefined;
   const revealWhen = resolved?.ok && resolved.enabled ? formatInZone(resolved.at, resolved.timezone) : undefined;
   const eventName = title.trim() || "sua festa";
-  const shotsPlan = planHintForShots(desiredShots);
+  const catalog = plans ?? [];
+  const shotsPlan = planForShots(catalog, desiredShots);
+  const freeShotsLimit = freeShots(catalog);
 
   if (!ready) return <p className="app-screen app-muted">Carregando…</p>;
   const last = step === STEPS.length - 1;
+
+  if (codeOutcome) {
+    const { eventId, eventTitle, code, applied, error } = codeOutcome;
+    return (
+      <div className="app-screen plano-pagina">
+        {applied ? (
+          <CodeApplied plan={applied === "sem-plano" ? undefined : applied} code={code} eventTitle={eventTitle} backHref={`/painel/${eventId}`} printHref={`/painel/${eventId}/qr`} />
+        ) : (
+          <div className="app-stack">
+            <h1 className="titulo-tela app-h1">Evento criado. O código não foi aplicado.</h1>
+            <p className="app-p app-muted">O seu evento está no ar, no plano Grátis. Você pode tentar o código de novo agora ou depois, no plano.</p>
+            <RedeemCode eventId={eventId} initialValue={code} initialError={error} onApplied={(r) => setCodeOutcome({ eventId, eventTitle, code: r.code, applied: plans?.find((p) => p.code === r.planCode) ?? "sem-plano" })} />
+          </div>
+        )}
+        <Button href={`/criar/pronto/${eventId}`} variant={applied ? "secundario" : "primario"} block>Ver o convite e o QR</Button>
+      </div>
+    );
+  }
 
   // na nuvem só o organizador com conta cria evento (RLS recusa convidado anônimo); a entrada é pelo Google
   if (ready && backend === "supabase" && !canCreate) {
@@ -178,7 +230,7 @@ export function CreateWizard() {
             <div className="mm-group" role="group" aria-label="Fotos por pessoa">
               <div className="mm-opts" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
                 {SHOTS_CHOICES.map((n) => {
-                  const hint = shotsOptionHint(n);
+                  const hint = planForShots(catalog, n)?.name;
                   return (
                     <button key={n} type="button" className="mm-opt" aria-pressed={desiredShots === n} onClick={() => setDesiredShots(n)} style={{ height: "auto", minHeight: "var(--size-opcao)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "8px 14px" }}>
                       <span>{n}</span>
@@ -190,15 +242,17 @@ export function CreateWizard() {
             </div>
             <p className="app-p app-muted">
               {shotsPlan
-                ? `Acima de ${FREE_LIMITS.shots} fotos pede o plano ${shotsPlan.name} (R$ ${shotsPlan.priceBrl}). O evento nasce Grátis, com ${FREE_LIMITS.shots} fotos por pessoa.`
-                : `${FREE_LIMITS.shots} fotos por pessoa cabem no plano Grátis.`}
+                ? `Acima de ${freeShotsLimit} fotos pede o plano ${shotsPlan.name} (${formatBRL(shotsPlan.priceCents)}). O evento nasce Grátis, com ${freeShotsLimit} fotos por pessoa.`
+                : desiredShots <= freeShotsLimit
+                  ? `${freeShotsLimit} fotos por pessoa cabem no plano Grátis.`
+                  : `O evento nasce Grátis, com ${freeShotsLimit} fotos por pessoa.`}
             </p>
           </>
         )}
         {step === 3 && (
           <>
             <h1 className="titulo-tela app-h1">Quantos convidados vão fotografar?</h1>
-            <PlanChoice plans={STATIC_PLANS} selected={planCode} onSelect={setPlanCode} />
+            <PlanStep plans={plans} settings={settings} selected={planCode} onSelect={setPlanCode} pendingCode={pendingCode} />
             <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); setErrors((e) => ({ ...e, create: undefined })); }} onPrivacy={(v) => { setAckedPrivacy(v); setErrors((e) => ({ ...e, create: undefined })); }} />
             {errors.create && <p className="mm-field-erro" role="alert">{errors.create}</p>}
           </>
@@ -206,7 +260,7 @@ export function CreateWizard() {
 
         <div className="app-stack-sm">
           <Button type="submit" variant="primario" block disabled={busy}>{last ? "Criar evento" : "Continuar"}</Button>
-          {last && hasPaidPlan(STATIC_PLANS) && <p className="app-p app-muted">{PAID_PLAN_LINE}</p>}
+          {last && hasPaidPlans(catalog) && <p className="app-p app-muted">{PAID_PLAN_LINE}</p>}
           {step > 0 && <Button variant="texto" onClick={() => setStep(step - 1)}>Voltar</Button>}
         </div>
       </form>
