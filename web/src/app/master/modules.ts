@@ -1,4 +1,4 @@
-/** Os 12 módulos do console. `rota` vazia = dashboard. */
+/** Os 14 módulos do console. `rota` vazia = dashboard. */
 export const MODULES = [
   { rota: "", rotulo: "Visão geral" },
   { rota: "eventos", rotulo: "Eventos" },
@@ -8,6 +8,8 @@ export const MODULES = [
   { rota: "storage", rotulo: "Storage e fotos" },
   { rota: "revelacoes", rotulo: "Revelações" },
   { rota: "auditoria", rotulo: "Auditoria e segurança" },
+  { rota: "pagamentos", rotulo: "Pagamentos" },
+  { rota: "planos", rotulo: "Planos e preços" },
   { rota: "configuracoes", rotulo: "Configurações" },
   { rota: "analytics", rotulo: "Analytics" },
   { rota: "lgpd", rotulo: "Solicitações LGPD" },

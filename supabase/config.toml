@@ -419,3 +419,18 @@ verify_jwt = true
 
 [functions.purge-storage]
 verify_jwt = false # a função compara o token com o service_role por conta própria; chave nova (sb_secret) não é JWT
+
+[functions.payments-checkout]
+verify_jwt = true
+
+[functions.payments-status]
+verify_jwt = true
+
+[functions.payments-refund]
+verify_jwt = true
+
+[functions.payments-webhook]
+verify_jwt = false # a AbacatePay não manda JWT: a função exige ?webhookSecret + X-Webhook-Signature
+
+[functions.payments-reconcile]
+verify_jwt = false # chamada pelo pg_cron: a função exige Authorization: Bearer PAYMENTS_CRON_TOKEN

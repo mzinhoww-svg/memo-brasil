@@ -22,8 +22,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
-      # --passWithNoTests: ainda não há *.test.ts em supabase/functions/_shared (a Task 5 os adiciona; então a flag pode sair)
-      - run: npx vitest run --config vitest.functions.config.ts --passWithNoTests
+      - run: npx vitest run --config vitest.functions.config.ts
 
   test:
     runs-on: ubuntu-latest

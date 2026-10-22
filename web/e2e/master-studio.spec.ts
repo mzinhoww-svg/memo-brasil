@@ -28,15 +28,15 @@ const cleanup: (() => Promise<unknown>)[] = [];
 test.afterAll(async () => { for (const f of cleanup.reverse()) await f().catch(() => undefined); });
 
 test.describe("console master: autorização no servidor", () => {
-  test("master com claim e papel ativo vê os 12 módulos e as páginas carregam", async ({ browser, baseURL }) => {
+  test("master com claim e papel ativo vê os 14 módulos e as páginas carregam", async ({ browser, baseURL }) => {
     const m = await user("master");
     cleanup.push(async () => { await admin.from("platform_roles").update({ revoked_at: new Date().toISOString() }).eq("user_id", m.id); });
     const ctx = await browser.newContext(); await login(ctx, m.session, baseURL!);
     const page = await ctx.newPage();
     await page.goto("/master");
     await expect(page.getByRole("heading", { name: "Visão geral" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Módulos do console" }).getByRole("link")).toHaveCount(12);
-    for (const rota of ["eventos", "usuarios", "organizadores", "participantes", "storage", "revelacoes", "auditoria", "configuracoes", "analytics", "lgpd", "saude"]) {
+    await expect(page.getByRole("navigation", { name: "Módulos do console" }).getByRole("link")).toHaveCount(14);
+    for (const rota of ["eventos", "usuarios", "organizadores", "participantes", "storage", "revelacoes", "auditoria", "pagamentos", "planos", "configuracoes", "analytics", "lgpd", "saude"]) {
       const r = await page.goto(`/master/${rota}`);
       expect(r?.status(), rota).toBe(200);
       await expect(page.locator("h1").first(), rota).toBeVisible();
