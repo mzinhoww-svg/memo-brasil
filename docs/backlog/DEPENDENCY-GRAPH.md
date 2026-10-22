@@ -103,11 +103,11 @@ flowchart LR
   UXA_125["UXA-125<br/>BACKLOG"]:::back
   UXA_126["UXA-126<br/>BACKLOG"]:::back
   COM_004["COM-004<br/>IN_REVIEW"]:::back
-  COM_001["COM-001<br/>BACKLOG"]:::back
-  COM_003["COM-003<br/>BACKLOG"]:::back
-  COM_002["COM-002<br/>BACKLOG"]:::back
-  COM_006["COM-006<br/>BACKLOG"]:::back
-  COM_007["COM-007<br/>BACKLOG"]:::back
+  COM_001["COM-001<br/>IN_REVIEW"]:::back
+  COM_003["COM-003<br/>IN_REVIEW"]:::back
+  COM_002["COM-002<br/>IN_REVIEW"]:::back
+  COM_006["COM-006<br/>IN_REVIEW"]:::back
+  COM_007["COM-007<br/>IN_REVIEW"]:::back
   COM_005["COM-005<br/>BACKLOG"]:::back
   COM_009["COM-009<br/>BACKLOG"]:::back
   COM_008["COM-008<br/>BACKLOG"]:::back

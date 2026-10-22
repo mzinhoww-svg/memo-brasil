@@ -25,7 +25,7 @@ Itens abertos: **10** · P0 1, P1 5, P2 3, P3 1 · BACKLOG 4, BLOCKED 4, IN_REVI
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **84** · P0 14, P1 16, P2 36, P3 18 · BACKLOG 47, BLOCKED 1, DEFERRED 3, IN_REVIEW 24, READY 9
+Itens abertos: **87** · P0 14, P1 18, P2 37, P3 18 · BACKLOG 47, BLOCKED 3, DEFERRED 4, IN_REVIEW 24, READY 9
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -55,6 +55,8 @@ Itens abertos: **84** · P0 14, P1 16, P2 36, P3 18 · BACKLOG 47, BLOCKED 1, DE
 | MAD-005 | P1 | BACKLOG | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | MAD-003 |
 | OPS-A5-002 | P1 | DEFERRED | Backup gerenciado e PITR do projeto Supabase | - |
 | OPS-A5-003 | P1 | READY | Rotação de cópias de segurança manuais a cada ≤ 30 dias | - |
+| OPS-A5-006 | P1 | BLOCKED | Limite de entradas anônimas do Supabase Auth (30/h por IP) | - |
+| OPS-FIN-001 | P1 | BLOCKED | Credencial AbacatePay sandbox e homologação real do ciclo de pagamento | - |
 | QAV-003 | P1 | IN_REVIEW | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e per | EST-004, SCV-008 |
 | SCV-004 | P1 | IN_REVIEW | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
 | SCV-006 | P1 | IN_REVIEW | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
@@ -80,6 +82,7 @@ Itens abertos: **84** · P0 14, P1 16, P2 36, P3 18 · BACKLOG 47, BLOCKED 1, DE
 | MAD-006 | P2 | BACKLOG | UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revoga | MAD-004, SCV-005 |
 | OPS-A5-004 | P2 | DEFERRED | Eventos anteriores a 22/10/2026 sem expiração automática | - |
 | OPS-A5-005 | P2 | DEFERRED | Pedidos de exclusão do titular em até 30 dias (processo manual) | - |
+| OPS-FIN-002 | P2 | DEFERRED | Ativação financeira real (produção AbacatePay, CNPJ, fiscal) | - |
 | PRF-001 | P2 | BACKLOG | Bundle: import dinâmico do SDK Supabase e do qrcode; AppProvider fora do /master; rotas cl | QAV-001 |
 | SCV-001 | P2 | IN_REVIEW | Feature flags e platform_settings com escrita só do master | MAD-001 |
 | SCV-005 | P2 | IN_REVIEW | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava  | MAD-002 |
@@ -118,16 +121,16 @@ Itens abertos: **84** · P0 14, P1 16, P2 36, P3 18 · BACKLOG 47, BLOCKED 1, DE
 
 Planos, pagamento, e-mail, observabilidade e escala de mídia.
 
-Itens abertos: **31** · P0 0, P1 16, P2 14, P3 1 · BACKLOG 17, DEFERRED 11, READY 3
+Itens abertos: **31** · P0 0, P1 16, P2 14, P3 1 · BACKLOG 12, DEFERRED 11, IN_REVIEW 6, READY 2
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
-| COM-001 | P1 | BACKLOG | Modelo de planos e entitlements no banco (plano por evento/organizador) | SB-004, SB-008 |
-| COM-002 | P1 | BACKLOG | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | COM-001, COM-004 |
-| COM-003 | P1 | BACKLOG | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | COM-001 |
+| COM-001 | P1 | IN_REVIEW | Modelo de planos e entitlements no banco (plano por evento/organizador) | SB-004, SB-008 |
+| COM-002 | P1 | IN_REVIEW | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | COM-001, COM-004 |
+| COM-003 | P1 | IN_REVIEW | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | COM-001 |
 | COM-005 | P1 | BACKLOG | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | SB-008 |
-| COM-006 | P1 | BACKLOG | Página de planos e checkout do organizador | COM-002 |
-| COM-017 | P1 | READY | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | - |
+| COM-006 | P1 | IN_REVIEW | Página de planos e checkout do organizador | COM-002 |
+| COM-017 | P1 | IN_REVIEW | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | - |
 | FT-080 | P1 | DEFERRED | Auth: Google (organizador) e anônima (convidado) | INF-001, AUD-002, ITG-105 |
 | FT-081 | P1 | DEFERRED | Web Push real e permissão de notificações | AUD-002 |
 | FT-082 | P1 | DEFERRED | Esquema, RLS e testes de RLS | INF-001, AUD-002, ITG-104, ITG-109, ITG-106 |
@@ -141,7 +144,7 @@ Itens abertos: **31** · P0 0, P1 16, P2 14, P3 1 · BACKLOG 17, DEFERRED 11, RE
 | BG-070 | P2 | BACKLOG | Exclusão em cascata não é atômica | - |
 | BG-103 | P2 | READY | 'Remover da festa' não impede a reentrada com o mesmo código | - |
 | BG-104 | P2 | READY | Diálogo de revelação: foco, Escape, landmark e não bloquear a postagem | - |
-| COM-007 | P2 | BACKLOG | Faturamento e financeiro no console master (recibos, reembolso, conciliação) | COM-002, MAD-003 |
+| COM-007 | P2 | IN_REVIEW | Faturamento e financeiro no console master (recibos, reembolso, conciliação) | COM-002, MAD-003 |
 | COM-008 | P2 | BACKLOG | Observabilidade: logs, alertas de revelação atrasada/uploads com falha, uptime | SB-007 |
 | COM-010 | P2 | BACKLOG | Escala de mídia: miniaturas, transformação de imagem e custo de Storage por evento | SB-005 |
 | COM-012 | P2 | BACKLOG | Suporte e operação: canal de contato, SLA e runbook de incidentes | COM-008 |

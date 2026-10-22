@@ -15,7 +15,7 @@
 | G12 | Migrations V2 e Edge Functions remotas | PASSA no inventário: 16 migrations e duas Functions ativas | docs/supabase/evidence/a5-20261021/backend-readonly.json; docs/supabase/A5-HOMOLOGATION-REPORT.md |
 | G11 | Conector Supabase acessa o projeto correto | PASSA: consultas remotas de leitura | docs/supabase/evidence/a5-20261021/backend-readonly.json |
 
-## Itens P0/P1 em aberto (41)
+## Itens P0/P1 em aberto (43)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -43,13 +43,13 @@
 | RLV-001 | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BLOCKED |
 | UXA-104 | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rol | P1 | BACKLOG |
 | COM-004 | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | IN_REVIEW |
-| COM-001 | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | BACKLOG |
-| COM-003 | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | BACKLOG |
-| COM-002 | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | BACKLOG |
-| COM-006 | Página de planos e checkout do organizador | P1 | BACKLOG |
+| COM-001 | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | IN_REVIEW |
+| COM-003 | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | IN_REVIEW |
+| COM-002 | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | IN_REVIEW |
+| COM-006 | Página de planos e checkout do organizador | P1 | IN_REVIEW |
 | COM-005 | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG |
 | COM-009 | Backup, PITR e teste de restauração; política de retenção de fotos | P1 | BACKLOG |
-| COM-017 | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | P1 | READY |
+| COM-017 | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | P1 | IN_REVIEW |
 | SCV-003 | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha | P0 | IN_REVIEW |
 | SCV-004 | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD | P1 | IN_REVIEW |
 | SCV-006 | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | IN_REVIEW |
@@ -59,6 +59,8 @@
 | MAD-005 | Escrita de settings e feature flags no console com justificativa, confirmação e auditoria | P1 | BACKLOG |
 | QAV-003 | Isolamento do tema nas telas do convidado em modo Supabase, sessão expirada com tema e permissões do organizador no adaptador | P1 | IN_REVIEW |
 | OPS-A5-003 | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY |
+| OPS-FIN-001 | Credencial AbacatePay sandbox e homologação real do ciclo de pagamento | P1 | BLOCKED |
+| OPS-A5-006 | Limite de entradas anônimas do Supabase Auth (30/h por IP) | P1 | BLOCKED |
 
 ## Decisão atual
 **NO-GO para produção; A não concluída.** Checkpoint A5 em docs/supabase/A5-HOMOLOGATION-REPORT.md. Testes unitários/probes não substituem E2E autenticado, sessões e aparelhos físicos. Nenhuma promoção autorizada. Ordem A → B → Codex → C preservada; proposta paralela de backlog não integrada.
@@ -66,7 +68,6 @@
 ## Próximos itens READY
 | Prio | ID | Título |
 |---|---|---|
-| P1 | COM-017 | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) |
 | P1 | INF-001 | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) |
 | P1 | OPS-A5-003 | Rotação de cópias de segurança manuais a cada ≤ 30 dias |
 | P2 | BG-022 | Sem validação em Safari/iOS e Firefox |

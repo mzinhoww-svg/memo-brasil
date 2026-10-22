@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **225** itens (sem contar 19 épicos). Prioridade: P0 38, P1 73, P2 61, P3 53. Status: BACKLOG 101, BLOCKED 5, CANCELLED 2, DEFERRED 14, DONE 65, IN_REVIEW 25, READY 13.
+Total: **228** itens (sem contar 19 épicos). Prioridade: P0 38, P1 75, P2 62, P3 53. Status: BACKLOG 96, BLOCKED 7, CANCELLED 2, DEFERRED 15, DONE 65, IN_REVIEW 31, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -508,6 +508,9 @@ Total: **225** itens (sem contar 19 épicos). Prioridade: P0 38, P1 73, P2 61, P
 | INF-005 | TASK | Preview por API exige rootDirectory=web e framework=nextjs | P2 | IN_REVIEW | REL-001 | A.4 2026-10-21 | - | remoto |
 | OPS-A5-001 | BUG | Auth: incluir o domínio de previews do memoriesmt-v2 nas Redirect URLs | P1 | DONE | - | A.5 rodada 5 2026-10-22 | 67fef3c | remoto |
 | OPS-A5-002 | FEATURE | Backup gerenciado e PITR do projeto Supabase | P1 | DEFERRED | - | A.5 rodada 5 2026-10-22 | - | remoto |
+| OPS-A5-006 | TASK | Limite de entradas anônimas do Supabase Auth (30/h por IP) | P1 | BLOCKED | - | entrega final 2026-10-22 | - | remoto |
+| OPS-FIN-001 | TASK | Credencial AbacatePay sandbox e homologação real do ciclo de pagamento | P1 | BLOCKED | - | entrega final 2026-10-22 | - | remoto |
+| OPS-FIN-002 | TASK | Ativação financeira real (produção AbacatePay, CNPJ, fiscal) | P2 | DEFERRED | - | entrega final 2026-10-22 | - | remoto |
 | QAV-004 | TASK | Limpar usuários e dados de teste do remoto | P3 | BLOCKED | SCV-010 | A.4 2026-10-21 | - | remoto |
 | SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 5374f89 | local-supabase |
 | SCV-002 | FEATURE | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG | EST-004, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
@@ -550,6 +553,12 @@ Total: **225** itens (sem contar 19 épicos). Prioridade: P0 38, P1 73, P2 61, P
 
 **UI-A5-002** critérios: Título e rótulo distintos ou um deles removido, sem quebrar os testes de acessibilidade
 
+**OPS-FIN-001** critérios: Pedido sandbox real pago e liberado, webhook assinado aceito, reembolso sandbox concluído; payments_env volta a desligado ao fim (§8.1)
+
+**OPS-FIN-002** critérios: Decisões D3–D6 registradas; Webhook de produção validado sem expor valores
+
+**OPS-A5-006** critérios: Limite ajustado ao porte esperado dos eventos, registrado
+
 ## EP-17 · QA v2 (BACKLOG)
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
@@ -585,13 +594,13 @@ Total: **225** itens (sem contar 19 épicos). Prioridade: P0 38, P1 73, P2 61, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| COM-001 | FEATURE | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | BACKLOG | SB-004, SB-008 | consolidação do backlog 2026-10-21 | - | - |
-| COM-002 | FEATURE | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | BACKLOG | COM-001, COM-004 | consolidação do backlog 2026-10-21 | - | - |
-| COM-003 | FEATURE | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | BACKLOG | COM-001 | consolidação do backlog 2026-10-21 | - | - |
+| COM-001 | FEATURE | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | IN_REVIEW | SB-004, SB-008 | consolidação do backlog 2026-10-21 | fe0207d | - |
+| COM-002 | FEATURE | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | IN_REVIEW | COM-001, COM-004 | consolidação do backlog 2026-10-21 | fe0207d | - |
+| COM-003 | FEATURE | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | IN_REVIEW | COM-001 | consolidação do backlog 2026-10-21 | fe0207d | - |
 | COM-004 | FEATURE | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | IN_REVIEW | SB-004 | consolidação do backlog 2026-10-21 | 67fef3c | - |
 | COM-005 | FEATURE | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG | SB-008 | consolidação do backlog 2026-10-21 | - | - |
-| COM-006 | FEATURE | Página de planos e checkout do organizador | P1 | BACKLOG | COM-002 | consolidação do backlog 2026-10-21 | - | - |
-| COM-007 | FEATURE | Faturamento e financeiro no console master (recibos, reembolso, conciliação) | P2 | BACKLOG | COM-002, MAD-003 | consolidação do backlog 2026-10-21 | - | - |
+| COM-006 | FEATURE | Página de planos e checkout do organizador | P1 | IN_REVIEW | COM-002 | consolidação do backlog 2026-10-21 | fe0207d | - |
+| COM-007 | FEATURE | Faturamento e financeiro no console master (recibos, reembolso, conciliação) | P2 | IN_REVIEW | COM-002, MAD-003 | consolidação do backlog 2026-10-21 | fe0207d | - |
 | COM-008 | FEATURE | Observabilidade: logs, alertas de revelação atrasada/uploads com falha, uptime | P2 | BACKLOG | SB-007 | consolidação do backlog 2026-10-21 | - | - |
 | COM-009 | FEATURE | Backup, PITR e teste de restauração; política de retenção de fotos | P1 | BACKLOG | SB-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-010 | FEATURE | Escala de mídia: miniaturas, transformação de imagem e custo de Storage por evento | P2 | BACKLOG | SB-005 | consolidação do backlog 2026-10-21 | - | - |
@@ -601,7 +610,7 @@ Total: **225** itens (sem contar 19 épicos). Prioridade: P0 38, P1 73, P2 61, P
 | COM-014 | FEATURE | +10 fotos da galeria depois da festa (por convidado, até a revelação) | P2 | BACKLOG | COM-003 | telas do app proposto 2026-10-22 | - | - |
 | COM-015 | FEATURE | Álbum impresso da festa (sob encomenda; sem preço até haver fornecedor) | P2 | BACKLOG | - | telas do app proposto 2026-10-22 | - | - |
 | COM-016 | FEATURE | Depoimentos reais com autorização, cadastrados no Master e exibidos no plano e em /precos | P2 | BACKLOG | COM-007 | telas do app proposto 2026-10-22 | - | - |
-| COM-017 | FEATURE | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | P1 | READY | - | telas do app proposto 2026-10-22 | - | - |
+| COM-017 | FEATURE | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | P1 | IN_REVIEW | - | telas do app proposto 2026-10-22 | fe0207d | - |
 | OPS-A5-003 | TASK | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-004 | TASK | Eventos anteriores a 22/10/2026 sem expiração automática | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-005 | TASK | Pedidos de exclusão do titular em até 30 dias (processo manual) | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
@@ -609,15 +618,15 @@ Total: **225** itens (sem contar 19 épicos). Prioridade: P0 38, P1 73, P2 61, P
 
 **COM-004** critérios: Páginas publicadas; aceite versionado e auditado; origem do texto registrada; retenção explícita e cumprida pelo produto; Revisão jurídica profissional: NÃO registrada (decisão do operador de publicar texto próprio); qualquer revisão futura gera versão nova · testes: supabase/tests/database/04_consents.test.sql (24 asserts), web/e2e/consent.spec.ts (3), web/src/lib/consent.test.ts (6), web/e2e/consent.spec.ts verifica contato e título (3/3), supabase/tests/database/04_consents.test.sql (35 asserts, aceite separado, origem e sem revisão registrada), supabase/tests/database/06_retention.test.sql (31 asserts), web/e2e/consent.spec.ts (3), web/e2e/supabase.spec.ts (falha de gravação e isolamento), web/src/lib/legal-text.test.ts, web/src/lib/consent.test.ts, web/src/domain/retention.test.ts
 
-**COM-001** critérios: Tabelas e RLS; pgTAP; sem cobrança ainda
+**COM-001** critérios: Tabelas e RLS; pgTAP; sem cobrança ainda · testes: supabase/tests/database/07_entitlements.test.sql
 
-**COM-003** critérios: RPCs recusam acima do plano; testes de bypass
+**COM-003** critérios: RPCs recusam acima do plano; testes de bypass · testes: supabase/tests/database/07_entitlements.test.sql, web/e2e/produto-planos.spec.ts
 
-**COM-002** critérios: Pagamento aprovado libera entitlement; webhook repetido não duplica; modo teste do provedor
+**COM-002** critérios: Pagamento aprovado libera entitlement; webhook repetido não duplica; modo teste do provedor · testes: web/integration/payments.itest.ts, supabase/tests/database/08_payments.test.sql
 
-**COM-006** critérios: Fluxo completo em modo teste; estados de erro e recibo
+**COM-006** critérios: Fluxo completo em modo teste; estados de erro e recibo · testes: web/e2e/payments.spec.ts, web/e2e/plano.spec.ts
 
-**COM-007** critérios: Reembolso auditado com justificativa; relatório de receita real
+**COM-007** critérios: Reembolso auditado com justificativa; relatório de receita real · testes: supabase/tests/database/09_payments_admin.test.sql
 
 **COM-005** critérios: Entrega comprovada em ambiente de teste; descadastro; sem PII em logs
 
@@ -639,7 +648,7 @@ Total: **225** itens (sem contar 19 épicos). Prioridade: P0 38, P1 73, P2 61, P
 
 **COM-016** critérios: Só exibe depoimento com autorização registrada; nunca depoimento fictício; Cadastro e remoção pelo Master; Sem depoimento cadastrado, a seção não aparece; Segue telas O4, B1 e S1
 
-**COM-017** critérios: Master gera, lista e desativa códigos; Organizador resgata pelo Plano, por Ajustes ou pelo link /c/<código>; Resgate validado no servidor (código inexistente, expirado, esgotado ou já usado é recusado); Segue textos e estados das telas M3, B8, B9 e P2
+**COM-017** critérios: Master gera, lista e desativa códigos; Organizador resgata pelo Plano, por Ajustes ou pelo link /c/<código>; Resgate validado no servidor (código inexistente, expirado, esgotado ou já usado é recusado); Segue textos e estados das telas M3, B8, B9 e P2 · testes: supabase/tests/database/10_courtesy_codes.test.sql
 
 **OPS-A5-003** critérios: Rotina executada ao menos a cada 30 dias, com registro; Em restauração, exclusões já determinadas são reaplicadas · testes: supabase/ops/rotate_local_backups.test.sh (pasta descartável)
 
