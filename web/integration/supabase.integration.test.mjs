@@ -140,6 +140,32 @@ describe("Storage privado, upload e revelação", () => {
     const reopen = await host.from("events").update({ reveal_enabled: false }).eq("id", ev.id);
     assert.equal(reopen.error?.code, "MM008", "dono não reabre a revelação");
   });
+  it("organizador B (outro evento) não lê, não escreve nem assina URL de mídia do evento A, mesmo revelado", async () => {
+    const email = `hostb-${tag}@memoriesmt.test`;
+    const u = await admin.auth.admin.createUser({ email, password: `Pw-${tag}-x1`, email_confirm: true });
+    assert.ifError(u.error);
+    const hostB = mk();
+    assert.ifError((await hostB.auth.signInWithPassword({ email, password: `Pw-${tag}-x1` })).error);
+    const evB = await hostB.from("events").insert({ title: `B ${tag}`, category: "casamento", host_id: u.data.user.id, host_name: "B", duration_hours: 6 }).select().single();
+    assert.ifError(evB.error);
+    try {
+      const path = `${ev.id}/${p1}`;
+      assert.equal((await hostB.from("events").select("id").eq("id", ev.id)).data.length, 0, "não enxerga o evento A");
+      assert.equal((await hostB.from("photos").select("id").eq("event_id", ev.id)).data.length, 0, "não enxerga fotos de A");
+      assert.equal((await hostB.from("events").update({ title: "invadido" }).eq("id", ev.id).select()).data?.length ?? 0, 0, "não altera A");
+      assert.equal((await hostB.from("events").delete().eq("id", ev.id).select()).data?.length ?? 0, 0, "não apaga A");
+      assert.ok((await hostB.storage.from("event-photos").createSignedUrl(path, 60)).error, "não assina URL de A");
+      assert.ok((await hostB.storage.from("event-photos").download(path)).error, "não baixa de A");
+      assert.equal((await hostB.storage.from("event-photos").list(ev.id)).data.length, 0, "não lista A");
+      assert.ok((await upload(hostB, `${ev.id}/${randomUUID()}`)).error, "não escreve no caminho de A");
+      assert.ok((await hostB.rpc("begin_photo", { p_id: randomUUID(), p_event: ev.id })).error, "não inicia foto em A");
+      assert.ifError((await host.storage.from("event-photos").createSignedUrl(path, 60)).error); // controle: o dono de A assina
+      assert.equal((await host.from("events").select("title").eq("id", ev.id).single()).data.title, `Teste ${tag}`, "A intacto");
+    } finally {
+      await admin.from("events").delete().eq("id", evB.data.id);
+      await admin.auth.admin.deleteUser(u.data.user.id);
+    }
+  });
   it("moderação: foto oculta some do convidado e do Storage; removida entra na fila de limpeza", async () => {
     assert.ifError((await host.from("photos").update({ status: "oculta" }).eq("id", p1)).error);
     assert.ok((await g2.storage.from("event-photos").createSignedUrl(`${ev.id}/${p1}`, 60)).error);
