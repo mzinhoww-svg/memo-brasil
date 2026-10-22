@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Field, Select, Sheet } from "@/components/memoriesmt";
 import { browserSupabase } from "@/lib/supabase/client";
-import { adminErrorText, brl, chargeHint, parseBrl, planPreview, reasonError, REASON_MAX } from "./billing";
+import { adminErrorText, brl, chargeHint, parseBrl, planPreview, reasonError, REASON_MAX, refundFailureText } from "./billing";
 
 /** Motivo obrigatório (10 a 500): o erro só aparece depois da primeira tentativa de enviar. */
 function ReasonField({ label, value, onChange, error }: { label: string; value: string; onChange: (v: string) => void; error: string | null }) {
@@ -96,7 +96,15 @@ export function RefundButton({ order }: { order: RefundOrder }) {
     const fn = await sb.functions.invoke("payments-refund", { body: { orderId: order.orderId } });
     a.setBusy(false);
     a.router.refresh();
-    if (fn.error) { a.setError("Solicitação registrada, mas o provedor não confirmou o pedido de reembolso. Tente reenviar em alguns minutos."); return; }
+    if (fn.error) {
+      let code: string | undefined;
+      try {
+        const body = await (fn.error as { context?: Response }).context?.json();
+        code = typeof body?.error === "string" ? body.error : undefined;
+      } catch { /* corpo ausente ou não JSON */ }
+      a.setError(refundFailureText(code));
+      return;
+    }
     setReason(""); close();
   }
   const resumo = `${order.eventTitle ?? "Evento excluído"} · ${order.planName ?? "—"} · ${brl(order.amountCents)} · ${chargeHint(order.providerChargeId)}`;

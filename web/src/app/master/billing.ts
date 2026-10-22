@@ -56,7 +56,7 @@ const STATUS: Record<string, { label: string; tone: Tone }> = {
   perdido: { label: "perdido", tone: "erro" },
 };
 export function orderStatus(o: { status: string; refundRequestedAt: string | null }): { label: string; tone: Tone } {
-  if (o.refundRequestedAt && o.status !== "estornado") return { label: "reembolso em andamento", tone: "aviso" };
+  if (o.refundRequestedAt && (o.status === "pago" || o.status === "cancelado")) return { label: "reembolso em andamento", tone: "aviso" };
   return STATUS[o.status] ?? { label: o.status, tone: "info" };
 }
 
@@ -101,6 +101,14 @@ export function planPreview(p: { name: string; maxGuests: number | null; maxShot
   const guests = p.maxGuests == null ? "Convidados sem limite" : `Até ${int.format(p.maxGuests)}`;
   const shots = p.maxShots == null ? "fotos sem limite" : `${p.maxShots} fotos por pessoa`;
   return { titulo: `${guests} · ${brlShort(priceCents)}`, nota: `${p.name} · ${shots}` };
+}
+
+/** Falha de payments-refund depois da solicitação gravada, pelo código de erro do corpo da resposta. */
+export function refundFailureText(code: string | undefined): string {
+  if (code === "cobranca_nao_paga" || code === "cobranca_nao_confere") {
+    return "A AbacatePay já não mostra a cobrança como paga; a conciliação atualiza em até 5 minutos.";
+  }
+  return "Solicitação registrada, mas o provedor não confirmou o pedido de reembolso. Tente reenviar em alguns minutos.";
 }
 
 /** Tradução dos erros das RPCs/função para o operador. */

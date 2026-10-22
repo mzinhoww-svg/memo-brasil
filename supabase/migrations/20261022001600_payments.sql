@@ -337,6 +337,8 @@ begin
     outcome := 'divergencia_valor';
   elsif o.status = p_status then
     outcome := 'duplicado';
+  elsif p_status = 'pago' and o.status = 'cancelado' and o.needs_refund then
+    outcome := 'duplicado'; -- PAID já registrado e marcado para reembolso: a reconsulta a cada 5 min não reaudita nem remarca
   elsif p_status = 'pago' and o.status in ('cancelado', 'estornado', 'perdido') then
     outcome := 'pago_ignorado_reembolsar'; -- transição não aplicada, mas o dinheiro entrou
     refund := true;
