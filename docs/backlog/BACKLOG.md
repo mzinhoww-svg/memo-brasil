@@ -515,7 +515,7 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 | SCV-006 | FEATURE | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | IN_REVIEW | SB-005, EST-004 | revisão independente A1–A5 2026-10-21 | 23af55c | local-supabase |
 | SCV-007 | FEATURE | Middleware de refresh de sessão para Server Components (evitar deslogar o console após ~1 h) | P2 | BACKLOG | MAD-003 | revisão independente A1–A5 2026-10-21 | - | - |
 | SCV-008 | FEATURE | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP | P0 | IN_REVIEW | SCV-003 | revisão independente A1–A5 2026-10-21 | 23af55c | local-supabase |
-| SCV-009 | FEATURE | purge-storage: responder não-2xx quando falhas>0 e alertar fila parada | P2 | IN_REVIEW | SCV-004 | etapa A.3.5 2026-10-21 | c0fd33b43bc201cacb6eb652d6e6541e75f6911b | local (correção não publicada) |
+| SCV-009 | FEATURE | purge-storage: responder não-2xx quando falhas>0 e alertar fila parada | P2 | IN_REVIEW | SCV-004 | etapa A.3.5 2026-10-21 | c0fd33b43bc201cacb6eb652d6e6541e75f6911b | remoto: função v2 publicada; falha real não exercida |
 | SCV-010 | BUG | Auth remoto com login e-mail/senha e cadastro abertos | P1 | DONE | - | A.4 2026-10-21 | c0fd33b43bc201cacb6eb652d6e6541e75f6911b | supabase-remoto |
 
 **SCV-001** critérios: RLS; testes de escalada de privilégio · testes: pgTAP 366/366 local, pgTAP 385/385; adaptador 13/13
@@ -534,7 +534,7 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 
 **SCV-008** critérios: supabase db reset + test db verdes; contagem documentada · testes: pgTAP 385/385 com endurecimento (Supabase local), pgTAP 398/398; adapter 14/14; test_provision_master.sh
 
-**SCV-009** critérios: Falha de Storage gera status não-2xx visível em net._http_response; admin_health sinaliza fila com item mais antigo que 2 h · testes: docs/supabase/evidence/a5-20261021/purge-green.txt, docs/supabase/evidence/a5-20261021/purge-red.txt, docs/supabase/evidence/a5-20261021/unit-final.txt
+**SCV-009** critérios: Falha de Storage gera status não-2xx visível em net._http_response; admin_health sinaliza fila com item mais antigo que 2 h · testes: docs/supabase/evidence/a5-20261021/purge-green.txt, docs/supabase/evidence/a5-20261021/purge-red.txt, docs/supabase/evidence/a5-20261021/unit-final.txt, web/src/lib/master/health-alerts.test.ts (5)
 
 **INF-004** critérios: Variável removida de Production ou justificada por escrito; Nenhuma service_role em Preview/Production do MemoriesMT
 
@@ -591,7 +591,7 @@ Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P
 | COM-012 | FEATURE | Suporte e operação: canal de contato, SLA e runbook de incidentes | P2 | BACKLOG | COM-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-013 | FEATURE | Abuso e antifraude: rate limit na borda e moderação automática de imagens | P2 | BACKLOG | SB-005 | consolidação do backlog 2026-10-21 | - | - |
 
-**COM-004** critérios: Páginas publicadas; aceite versionado e auditado; revisão jurídica registrada · testes: supabase/tests/database/04_consents.test.sql (24 asserts), web/e2e/consent.spec.ts (3), web/src/lib/consent.test.ts (6)
+**COM-004** critérios: Páginas publicadas; aceite versionado e auditado; revisão jurídica registrada · testes: supabase/tests/database/04_consents.test.sql (24 asserts), web/e2e/consent.spec.ts (3), web/src/lib/consent.test.ts (6), web/e2e/consent.spec.ts verifica contato e título (3/3)
 
 **COM-001** critérios: Tabelas e RLS; pgTAP; sem cobrança ainda
 

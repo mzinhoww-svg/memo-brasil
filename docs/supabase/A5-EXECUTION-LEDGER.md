@@ -50,3 +50,18 @@ Ruling: usei `web_fetch_vercel_url` (leitura do preview protegido) apesar do avi
 - **Preview do candidato:** `dpl_EKNdnqarRiDcQMe7B4PTERYJw7gM` (`newmemocuiaba-npm720ss7-mzinhoww-gmailcoms-projects.vercel.app`, protegido por SSO), SHA `8d4671bdb65bd1beacc954857e9caa9e06df91ac`, READY, `/termos` 200 com a V2. Commits posteriores só mexem em documentação. Contra o Supabase remoto, a entrada com aceite só funciona depois de aplicada a migration `_1100`.
 Final: minor (deferred): título das páginas legais sai duplicado ("Termos de uso · MemoriesMT · MemoriesMT") porque o layout já acrescenta o sufixo.
 Final: minor (deferred): 11 avisos de ESLint preexistentes.
+
+## Rodada 3 — continuação (22/10/2026)
+- [x] Vercel: `SUPABASE_SERVICEROLE_KEY` AINDA presente em Production (metadados); remoção informada pelo operador não confirmada.
+- [x] Backup novo + dry-run + `db push --linked`: só `20261022001100` aplicada; remoto verificado (RLS, grants, 2 docs, 0 aceites).
+- [x] `purge-storage` v2 publicada; 403/405/403; fila vazia; jobs ativos.
+- [x] Alerta de saúde (`health-alerts.ts`, vitest 5/5, suíte 277/277); contato nos textos; commit `26d9674`, push.
+- [x] Preview `dpl_25h3hDg1NjF7Q6bhe3fwqfBRSr1m` no SHA `26d9674…`, READY; `/termos` com contato.
+- [ ] Fluxo remoto sintético: parado no seletor de contas Google (decisão do dono).
+- [ ] Aparelhos iOS/Android: PENDENTE (nenhum disponível).
+- [ ] A concluída — NÃO.
+
+Ruling: não escolher conta Google no seletor — são várias identidades reais — custo: fluxo remoto e cron real seguem sem evidência.
+Ruling: alerta de purga na camada do app, sem nova migration — autorização remota cobria só `_1100` — custo: alerta só vale com o painel aberto, não notifica.
+Ruling: versão legal mantida `2026-10-21-rascunho` ao incluir contato — sem DML autorizado e 0 aceites — custo: publicar versão nova após revisão jurídica.
+- **Preview do candidato (r3):** `dpl_25h3hDg1NjF7Q6bhe3fwqfBRSr1m`, SHA `26d9674e47b1dfde7fd871063bfa5de19e4e2c97`, `newmemocuiaba-la9u9il5p-mzinhoww-gmailcoms-projects.vercel.app`.

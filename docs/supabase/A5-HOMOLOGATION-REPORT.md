@@ -1,6 +1,25 @@
 # A.5 — Homologação E2E — checkpoint de 21/10/2026
 
 
+## Rodada 3 (22/10/2026): aplicação da migration, purga v2, alerta e preview atualizado — parecer **NO-GO operacional**
+
+**SHA candidato:** `26d9674e47b1dfde7fd871063bfa5de19e4e2c97` (branch `feat/memoriesmt-studio`). **Preview:** `dpl_25h3hDg1NjF7Q6bhe3fwqfBRSr1m`, `newmemocuiaba-la9u9il5p-mzinhoww-gmailcoms-projects.vercel.app` (SSO mantido), READY, `meta.githubCommitSha` igual ao SHA; `/termos` 200 com a V2, contato e título com um só sufixo. Produção intocada (legado `3a8bf89`, não promovida).
+
+| # | Entrega | Resultado | Evidência |
+|---|---|---|---|
+| 1 | Variável da Vercel | **NÃO confirmada** | `filter_project_envs` (metadados, sem ler valor): `SUPABASE_SERVICEROLE_KEY` ainda em `production` (id `CPm04k6Py9oib7U5`, sensitive, `updatedAt` 1792590718665, o mesmo de antes). O operador informou a remoção; os metadados não a mostram. Preview não tem service_role |
+| 2 | Projeto, backup, migration | **Concluído** | ref `asyaegeodyttttaubvxh`; backup novo `~/Backups/memoriesmt/<data-hora>` (schema 140 900 B, data 68 852 B, modo 600; sha256 schema `cbd7b4cc…6750`, data `658d5e00…fee8`); `db push --dry-run` listou só `20261022001100_user_consents.sql`; aplicada; `migration list`: local=remote. Remoto: RLS ligada nas duas tabelas, `record_consent` executável só por `authenticated`, 2 documentos legais, 0 aceites |
+| 3 | `purge-storage` | **Publicada; falha real NÃO exercida** | v2, `verify_jwt=false`. HTTP: POST sem token 403, GET 405, token falso 403. 6 jobs `mm-*` ativos, fila vazia, últimas respostas 200 `{"ok":true,"falhas":0}`. Alerta: `health-alerts.ts` + `/master/saude` (fila >7200 s, revelação vencida, envio parado, pg_cron fora, job inativo/falho); vitest 5/5, suíte 277/277, `tsc` 0. Não se injetou falha em dado compartilhado |
+| 4 | Documentos legais | **Contato definido; revisão e retenção PENDENTES** | `mazinhoww@gmail.com` em `/termos` e `/privacidade`. Retenção: nenhuma decisão aprovada para a V2 (o 365 d de `docs/deploy.md` é do legado) |
+| 5 | Fluxo remoto com evento sintético | **NÃO executado** | O login Google abriu o seletor com várias contas reais; escolher a conta do organizador é decisão do dono. Login Google real: registrado como validação manual do operador (não repetido) |
+| 6 | iOS Safari / Android Chrome | **PENDENTE** | Sem `adb`, sem ferramentas iOS, sem aparelho USB; emulação não substitui |
+
+Nenhum dado real, Auth, projeto de terceiros ou produção foi alterado. Mudanças remotas desta rodada: migration `_1100` (aditiva) e `purge-storage` v2, ambas autorizadas pelo operador.
+
+**Ruling:** versão dos textos mantida em `2026-10-21-rascunho` ao incluir o contato — publicar nova versão exigiria DML em `legal_documents`, fora da autorização, e há 0 aceites gravados. Custo: quando houver revisão jurídica, publicar versão nova.
+
+**Decisão: NO-GO.** Restam: (a) remover `SUPABASE_SERVICEROLE_KEY` de Production e reconferir; (b) escolher a conta Google do organizador e executar o fluxo remoto sintético e o cron real; (c) revisão jurídica e retenção; (d) aparelhos físicos; (e) INF-005 (push→deploy), QAV-004, backup automático/PITR.
+
 ## Rodada 2 (21–22/10/2026): execução do plano operacional — parecer **NO-GO operacional**
 
 Código testado: `ff712e3` (branch `feat/memoriesmt-studio`, integrada com `qa/a5-homologation-20261021`). Preview anterior: `dpl_B91ajh2QfZVrd6jc4KLfHwWxFA38` (`8ea3518`, sem aceite). Preview do candidato final: ver `docs/supabase/A5-EXECUTION-LEDGER.md`. Procedimento de publicação e rollback: `PUBLISH-AND-ROLLBACK.md`. Recuperação: `OPERATIONAL-RECOVERY.md`.

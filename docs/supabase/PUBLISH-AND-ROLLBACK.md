@@ -15,8 +15,8 @@ Conferir: `state` READY, `meta.githubCommitSha` igual ao SHA, e uma rota da V2 (
 Não mudar Root Directory/framework do projeto antes da promoção: o legado em produção deixaria de buildar do jeito que builda hoje.
 
 ## 2. Pré-requisitos antes de promover
-1. Migrations pendentes no remoto aplicadas pelo operador, em ordem. Hoje falta `20261022001100_user_consents.sql` (aditiva; sem ela a UI com aceite não grava e bloqueia a entrada). Comando (com backup recente feito antes): `supabase db push --linked` a partir da raiz do repositório, conferindo `supabase migration list --linked`.
-2. Edge Function `purge-storage` republicada com a correção HTTP 500 (código na branch): `supabase functions deploy purge-storage --project-ref asyaegeodyttttaubvxh` (mantém `verify_jwt=false` do `config.toml`). Conferir depois: sem token → 403, GET → 405.
+1. Migrations pendentes no remoto aplicadas pelo operador, em ordem. `20261022001100_user_consents.sql` foi aplicada em 2026-10-22 (list: local=remote). Comando (com backup recente feito antes): `supabase db push --linked` a partir da raiz do repositório, conferindo `supabase migration list --linked`.
+2. Edge Function `purge-storage` republicada com a correção HTTP 500 (código na branch): `supabase functions deploy purge-storage --project-ref asyaegeodyttttaubvxh` (mantém `verify_jwt=false` do `config.toml`). Publicada como v2 em 2026-10-22; conferido: sem token 403, GET 405, token falso 403.
 3. INF-004 resolvido (ver backlog) e Redirect URLs do Auth estreitadas ao domínio de produção (remover o curinga de previews).
 4. Backup do banco e do bucket feito no mesmo dia (`OPERATIONAL-RECOVERY.md`).
 5. Testes físicos (iPhone/Safari e Android/Chrome) e login Google real com resultado registrado em `A5-HOMOLOGATION-REPORT.md`.

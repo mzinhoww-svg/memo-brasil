@@ -5655,10 +5655,12 @@
    "tests": [
     "supabase/tests/database/04_consents.test.sql (24 asserts)",
     "web/e2e/consent.spec.ts (3)",
-    "web/src/lib/consent.test.ts (6)"
+    "web/src/lib/consent.test.ts (6)",
+    "web/e2e/consent.spec.ts verifica contato e título (3/3)"
    ],
    "evidence": [
-    "A.5 r2: páginas /termos e /privacidade (rascunho), aceite obrigatório, record_consent auditado. NÃO atendido: revisão jurídica registrada e retenção definida; migration 20261022001100 ainda não aplicada no remoto"
+    "A.5 r2: páginas /termos e /privacidade (rascunho), aceite obrigatório, record_consent auditado. NÃO atendido: revisão jurídica registrada e retenção definida; migration 20261022001100 ainda não aplicada no remoto",
+    "A.5 r3 (2026-10-22): migration 20261022001100 aplicada no remoto (list: local=remote; RLS ligada em legal_documents/user_consents; record_consent só authenticated; 2 documentos, 0 aceites). Contato mazinhoww@gmail.com nos dois textos (define contato; NÃO é revisão jurídica). Retenção: nenhuma decisão aprovada para a V2 (o 365 d de docs/deploy.md é do legado) — PENDENTE, sem prazo inventado"
    ],
    "commit": null,
    "environment": null,
@@ -6442,20 +6444,24 @@
    ],
    "files": [
     "supabase/functions/purge-storage/index.ts",
-    "web/src/lib/purge-worker.test.ts"
+    "web/src/lib/purge-worker.test.ts",
+    "web/src/lib/master/health-alerts.ts",
+    "web/src/app/master/saude/page.tsx"
    ],
    "tests": [
     "docs/supabase/evidence/a5-20261021/purge-green.txt",
     "docs/supabase/evidence/a5-20261021/purge-red.txt",
-    "docs/supabase/evidence/a5-20261021/unit-final.txt"
+    "docs/supabase/evidence/a5-20261021/unit-final.txt",
+    "web/src/lib/master/health-alerts.test.ts (5)"
    ],
    "evidence": [
     "A.5 21/10/2026: Correção HTTP 500 local com regressão RED→GREEN e suíte 266/266; sem deploy remoto, alerta >2 h e teste de falha remota ainda pendentes.",
     "A.5 r2: purge-worker 4/4 e integração da purga 2/2 com o código atual; correção HTTP 500 ainda NÃO publicada no remoto (comando do operador em PUBLISH-AND-ROLLBACK.md); alerta >2 h segue aberto",
-    "docs/supabase/A5-HOMOLOGATION-REPORT.md"
+    "docs/supabase/A5-HOMOLOGATION-REPORT.md",
+    "A.5 r3 (2026-10-22): purge-storage v2 publicada (verify_jwt=false); HTTP: POST sem token 403, GET 405, token falso 403; fila vazia e jobs mm-* ativos. Alerta de fila >7200 s e demais gatilhos em /master/saude (web/src/lib/master/health-alerts.ts, vitest 5/5, sem DDL). NÃO provado: HTTP 500 em falha real de Storage (não se injeta falha em dado compartilhado) nem alerta exercido com fila parada real"
    ],
    "commit": "c0fd33b43bc201cacb6eb652d6e6541e75f6911b",
-   "environment": "local (correção não publicada)",
+   "environment": "remoto: função v2 publicada; falha real não exercida",
    "release": "R2"
   },
   {
@@ -6509,7 +6515,8 @@
     "A.5 21/10/2026: Metadados Vercel confirmam SUPABASE_SERVICEROLE_KEY em Production, tipo sensitive; dependência do legado não validada; sem remoção.",
     "A.5 r2: git grep SERVICEROLE/SERVICE_ROLE no commit de produção 3a8bf89 (fonte e bundles .next) sem ocorrência; nenhuma dependência do legado encontrada. Variável segue em Production (sensitive, valor não recuperável): remoção é decisão do dono",
     "docs/supabase/A5-HOMOLOGATION-REPORT.md",
-    "filter_project_envs 2026-10-21: chave presente em production, tipo sensitive"
+    "filter_project_envs 2026-10-21: chave presente em production, tipo sensitive",
+    "A.5 r3 (2026-10-22): operador informou remoção, mas filter_project_envs de 2026-10-22 ainda lista SUPABASE_SERVICEROLE_KEY em production (id CPm04k6Py9oib7U5, sensitive, updatedAt inalterado). Remoção NÃO confirmada por metadados; item permanece BLOCKED"
    ],
    "commit": null,
    "environment": "remoto",

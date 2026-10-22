@@ -1,5 +1,8 @@
 # Retomar A.5
 
+## Rodada 3 (22/10/2026) — leia primeiro
+Parecer **NO-GO operacional**; SHA `26d9674`, preview `dpl_25h3hDg1NjF7Q6bhe3fwqfBRSr1m`. Feito: migration `_1100` aplicada no remoto, `purge-storage` v2, alerta em `/master/saude`, contato nos textos. **Falta:** (1) `SUPABASE_SERVICEROLE_KEY` ainda aparece em Production nos metadados (reconferir após o operador remover); (2) o dono escolhe a conta Google do organizador para o fluxo remoto sintético e o cron real; (3) revisão jurídica e retenção; (4) iPhone/Safari e Android/Chrome. Detalhes: `../supabase/A5-HOMOLOGATION-REPORT.md` (Rodada 3). B, Codex e C seguem **não iniciados**.
+
 ## Rodada 2 (22/10/2026) — leia primeiro
 Parecer **NO-GO operacional**. Fonte: `../supabase/A5-HOMOLOGATION-REPORT.md` (matriz dos nove critérios), `../supabase/OPERATIONAL-RECOVERY.md`, `../supabase/PUBLISH-AND-ROLLBACK.md`, `../supabase/A5-EXECUTION-LEDGER.md`. Código testado `ff712e3`. Falta, por ordem: (1) operador aplica a migration `_1100` e republica `purge-storage`; (2) dono remove a service key da Vercel e revisa termos/retenção; (3) login Google real, evento sintético no preview e cron real de revelação; (4) iPhone/Safari e Android/Chrome. Só então reavaliar o GO. B, Codex e C seguem **não iniciados**.
 

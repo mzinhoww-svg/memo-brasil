@@ -8,11 +8,12 @@ Escopo: eventos reais acompanhados pelo operador (Aurimar). Sem promessa de RPO/
   1. Console `/master/saude` (exige conta Master). Deve mostrar jobs `mm-*` ativos e sem atraso.
   2. `node supabase/ops/a5-readonly-probe.mjs` (ver `A5-MANUAL-RUNBOOK.md`; usa só URL e chave públicas).
   3. No SQL Editor, `supabase/ops/verify_purge_storage.sql` (fila, jobs e últimas respostas HTTP da purga).
-- **Gatilhos de ação:** fila de purga parada por mais de 7200 s; revelação vencida e não executada; foto presa em `enviando`; qualquer resposta `500` da purga. Tratar pelo `A5-MANUAL-RUNBOOK.md` e registrar no backlog (SCV-009 cobre o alerta automático, ainda aberto).
+- **Alerta no painel:** `/master/saude` exibe alertas (fila de purga >7200 s, revelação vencida, envio parado, pg_cron fora, job inativo/falho). Só vale com o painel aberto; não notifica.
+- **Gatilhos de ação:** fila de purga parada por mais de 7200 s; revelação vencida e não executada; foto presa em `enviando`; qualquer resposta `500` da purga. Tratar pelo `A5-MANUAL-RUNBOOK.md` e registrar no backlog (SCV-009: alerta no painel feito; notificação ativa não existe).
 
 ## Backup existente (manual, fora do Git)
 - Local: `~/Backups/memoriesmt/20261021-1352/` (`schema.sql`, `data.sql`, `storage/event-photos/` com 13 arquivos) e `~/Backups/memoriesmt/SHA256SUMS.txt`. Permissões 700/600. Nunca publicar.
-- **Último ponto recuperável conhecido:** 2026-10-21 13:54 (dump manual). Posteriores a isso não estão cobertos.
+- **Último ponto recuperável conhecido:** 2026-10-22 (dump manual `~/Backups/memoriesmt/<data-hora>`, antes de aplicar `_1100`; checksums na rodada 3 do relatório). Anterior: 2026-10-21 13:54. Posteriores a isso não estão cobertos.
 - **Frequência efetiva:** nenhuma automática comprovada. Backups gerenciados do Supabase e PITR **não foram verificados** (dependem do plano do projeto). Até verificar, o backup é só o manual acima.
 - Conferir integridade: `cd ~/Backups/memoriesmt/20261021-1352 && shasum -a 256 -c ../SHA256SUMS.txt`. Resultado em 2026-10-21 (esta A.5): 15 de 15 OK.
 
