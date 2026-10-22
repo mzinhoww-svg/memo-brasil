@@ -4,10 +4,20 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MemoEvent } from "@/domain/event";
 import { AppearanceStudio } from "./AppearanceStudio";
 
+const qrSpy = vi.hoisted(() => vi.fn(async (_url: string, ..._r: unknown[]) => "data:image/png;base64,AAAA"));
+vi.mock("@/features/invitations/qr", () => ({ qrDataUrl: qrSpy }));
+
 afterEach(cleanup);
 const ev = { id: "e1", title: "Emy e Igor", palette: "salvia", eventFont: "birthstone" } as MemoEvent;
 
 describe("AppearanceStudio", () => {
+  it("a prévia do QR usa a origem atual, não um domínio fixo (UX-18)", async () => {
+    render(<AppearanceStudio event={{ ...ev, code: "ABCD1234" } as MemoEvent} locked={false} onSave={vi.fn()} onRestore={vi.fn()} />);
+    await waitFor(() => expect(qrSpy).toHaveBeenCalled());
+    const url = String(qrSpy.mock.calls[0][0]);
+    expect(url).toBe(`${window.location.origin}/e/ABCD1234`);
+    expect(url).not.toContain("memoriesmt.app");
+  });
   it("cor sem contraste mostra o erro e bloqueia o salvamento; a prévia não aplica o tema inválido", () => {
     const onSave = vi.fn();
     render(<AppearanceStudio event={ev} locked={false} onSave={onSave} onRestore={vi.fn()} />);

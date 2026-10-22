@@ -7,12 +7,14 @@ import { useApp } from "@/features/app/provider";
 import { updateSettings } from "@/features/events/service";
 import { inviteUrl } from "@/features/invitations/links";
 import { qrDataUrl } from "@/features/invitations/qr";
+import { qrRollLine } from "@/features/studio/qr-copy";
 import { qrDarkColor } from "@/lib/event-theme/spec";
 
 export default function QrStudio() {
   const { repos } = useApp();
   const { event, refresh } = useAdmin();
   const [qrs, setQrs] = useState<Record<string, string>>({});
+  const rollLine = qrRollLine(event);
   const labels = ["Convite", ...Array.from({ length: event.tables }, (_, i) => `Mesa ${String(i + 1).padStart(2, "0")}`)];
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function QrStudio() {
         <div className="app-row"><Button variant="pequeno" onClick={() => window.print()}>Imprimir cards</Button></div>
       </div>
       <div className="app-qr-grid">
-        {labels.map((l) => (qrs[l] ? <TableCard key={l} eyebrow={l} qrSrc={qrs[l]} eventName={event.title} /> : null))}
+        {labels.map((l) => (qrs[l] ? <TableCard key={l} eyebrow={l} qrSrc={qrs[l]} eventName={event.title} title="Queremos a festa pelos seus olhos." steps="Aponte a câmera. Sem baixar app." note={rollLine} /> : null))}
       </div>
     </>
   );

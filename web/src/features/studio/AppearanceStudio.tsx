@@ -7,6 +7,7 @@ import { MESSAGE_MAX, QR_STYLES, THEME_FONTS, type QrStyle, type ThemeFont, type
 import { EVENT_FONT_LABEL } from "@/lib/event-theme";
 import { onColor } from "@/lib/event-theme/contrast";
 import { PRESETS, colorIssues, qrDarkColor, validateTheme } from "@/lib/event-theme/spec";
+import { inviteUrl } from "@/features/invitations/links";
 import { qrDataUrl } from "@/features/invitations/qr";
 import type { AssetKind } from "./assets";
 
@@ -33,7 +34,7 @@ export function AppearanceStudio({ event, locked, onSave, onRestore, images }: {
   const dark = qrDarkColor(draft);
   useEffect(() => {
     let alive = true;
-    void qrDataUrl(`https://memoriesmt.app/e/${event.code ?? "CODIGO"}`, 240, dark).then((u) => { if (alive) setQr(u); });
+    void qrDataUrl(inviteUrl(window.location.origin, event.code ?? "CODIGO"), 240, dark).then((u) => { if (alive) setQr(u); });
     return () => { alive = false; };
   }, [event.code, dark]);
   const set = (patch: Partial<ThemeSpec>) => { setMsg(undefined); setDraft((d) => ({ ...d, ...patch })); };
