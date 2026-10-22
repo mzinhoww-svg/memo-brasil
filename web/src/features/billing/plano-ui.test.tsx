@@ -119,11 +119,18 @@ describe("RedeemCode (B8)", () => {
 describe("PixCheckout", () => {
   const props = { plans: PLANS, eventId: "ev1", onOrder: vi.fn(), onNewPix: vi.fn(), onChoosePlan: vi.fn() };
   it("B2: QR com alt do valor, contagem e status em aria-live", () => {
-    render(<PixCheckout {...props} order={ORDER} />);
-    expect(screen.getByAltText("QR Code Pix de R$ 189,00")).toBeInTheDocument();
-    expect(screen.getByText("29:41")).toBeInTheDocument();
-    const status = screen.getByText("Aguardando pagamento…").closest("[aria-live]");
-    expect(status).toHaveAttribute("aria-live", "polite");
+    vi.useFakeTimers(); // relógio fixo: a contagem não depende da carga da máquina entre o fixture e o render
+    try {
+      vi.setSystemTime(new Date("2026-10-22T12:00:00Z"));
+      const order = { ...ORDER, expiresAt: new Date(Date.now() + 29 * 60_000 + 41_000).toISOString() };
+      render(<PixCheckout {...props} order={order} />);
+      expect(screen.getByAltText("QR Code Pix de R$ 189,00")).toBeInTheDocument();
+      expect(screen.getByText("29:41")).toBeInTheDocument();
+      const status = screen.getByText("Aguardando pagamento…").closest("[aria-live]");
+      expect(status).toHaveAttribute("aria-live", "polite");
+    } finally {
+      vi.useRealTimers();
+    }
   });
   it("copiar mostra feedback real; falha mostra instrução e campo para copiar à mão", async () => {
     const user = userEvent.setup();
