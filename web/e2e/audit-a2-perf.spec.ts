@@ -31,7 +31,7 @@ async function throttle(page: Page, mode: "mobile" | "desktop") {
 
 async function seed(ctx: BrowserContext, page: Page) {
   await page.goto("/");
-  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.goto("/dev/seed");
   await page.waitForURL(/\/e\/([A-Z0-9]{8})\/agora/);
   const code = page.url().match(/\/e\/([A-Z0-9]{8})\//)![1];
   const id = await page.evaluate(() => new Promise<string>((r) => { const q = indexedDB.open("memoriesmt"); q.onsuccess = () => { const k = q.result.transaction("events").objectStore("events").getAllKeys(); k.onsuccess = () => r(String((k.result as string[])[0])); }; }));

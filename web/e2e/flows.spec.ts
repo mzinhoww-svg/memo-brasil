@@ -143,7 +143,7 @@ test("evento: encerrar agora e excluir, com confirmação", async ({ page }) => 
 
 test("downloads: baixa o álbum em ZIP e a lista de convidados em CSV", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
   const id = await page.evaluate(async () => {
     const db: IDBDatabase = await new Promise((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => res(r.result); });
@@ -159,7 +159,7 @@ test("downloads: baixa o álbum em ZIP e a lista de convidados em CSV", async ({
 
 test("mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem, desfazer) com download", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
   await page.getByRole("button", { name: /Mais opções/ }).first().click();
   const sheet = page.getByRole("dialog", { name: "Mais opções" });
@@ -198,7 +198,7 @@ test("mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem,
 test("avisos do evento: ativar pede permissão e confirma", async ({ page, context }) => {
   await context.grantPermissions(["notifications"]);
   await page.goto("/");
-  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
   await page.getByRole("link", { name: "Você" }).click();
   await page.getByRole("button", { name: "Ativar avisos" }).click();
@@ -237,7 +237,7 @@ test("cabeçalhos de segurança e CSP sem violações de console nas telas princ
   expect(h["referrer-policy"]).toBe("strict-origin-when-cross-origin");
   expect(h["permissions-policy"]).toContain("camera=(self)");
   expect(h["content-security-policy"]).toContain("frame-ancestors 'none'");
-  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
   await page.getByRole("link", { name: "Explorar" }).click();
   await page.getByRole("link", { name: "Você" }).click();

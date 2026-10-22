@@ -62,7 +62,7 @@ test("service worker: registro, cache, offline", async ({ browser }) => {
 
   // 1b. fluxo normal: visita páginas online
   await page.goto("/");
-  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.goto("/dev/seed");
   await page.waitForURL(/\/e\/([A-Z0-9]{8})\/agora/);
   const code = page.url().match(/\/e\/([A-Z0-9]{8})\//)![1];
   const visited = ["agora", "explorar", "voce", "postar"];

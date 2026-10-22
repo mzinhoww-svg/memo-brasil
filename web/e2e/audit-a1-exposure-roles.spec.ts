@@ -140,7 +140,7 @@ test("P3 convidado fora da lista de participantes cai no convite", async ({ page
   const ctx = await browser.newContext();
   const p = await ctx.newPage();
   await p.goto("/");
-  await p.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await p.goto("/dev/seed");
   await p.waitForURL(/agora/);
   await p.goto(`/e/${code}/agora`); // evento inexistente neste contexto
   await p.waitForTimeout(500);

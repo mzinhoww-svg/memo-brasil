@@ -22,7 +22,7 @@ test("service worker assume o controle, guarda o shell e abre páginas visitadas
 
 test("dados do IndexedDB sobrevivem a um recarregamento (persistência local)", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
   const url = page.url();
   await page.reload();

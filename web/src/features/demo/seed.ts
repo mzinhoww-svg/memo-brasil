@@ -28,14 +28,14 @@ const MOMENTS = ["Chegada", "O sim", "Pôr do sol", "Pista"];
 const KINDS: ReactionKind[] = ["amei", "esse-momento", "risada", "uau"];
 
 /** Cria o evento de exemplo "Emy e Igor" com dados fictícios, todos marcados como exemplo na interface. */
-export async function seedDemoEvent(repos: Repositories, host: User, now: number, opts: { reveal?: "desativada" | "pendente" } = {}): Promise<MemoEvent> {
+export async function seedDemoEvent(repos: Repositories, host: User, now: number, opts: { reveal?: "desativada" | "pendente"; title?: string; shotsPerPerson?: MemoEvent["shotsPerPerson"] } = {}): Promise<MemoEvent> {
   const pending = opts.reveal === "pendente";
   let code = generateShareCode();
   while (await repos.events.getByCode(code)) code = generateShareCode();
   const event: MemoEvent = {
-    id: crypto.randomUUID(), code, title: "Emy e Igor", category: "casamento", hostId: host.id, hostName: host.name,
+    id: crypto.randomUUID(), code, title: opts.title ?? "Emy e Igor", category: "casamento", hostId: host.id, hostName: host.name,
     startAt: now - 3 * 3_600_000, durationHours: 8, cameraStyle: "original", revealEnabled: pending, revealAt: pending ? now + 2 * 60_000 : null, revealAnchor: "data", revealOffsetDays: 0, timezone: defaultTimezone(), revealStatus: pending ? "pendente" : "desativada", revealedAt: null, version: 1,
-    capacity: 100, shotsPerPerson: 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone",
+    capacity: 100, shotsPerPerson: opts.shotsPerPerson ?? 24, everyoneSeesAll: true, reactionsEnabled: true, palette: "salvia", eventFont: "birthstone",
     place: "Chalés Taíba, CE", moments: MOMENTS, tables: 10, createdAt: now - 3 * 3_600_000,
     notice: { text: "Pôr do sol na areia em 10 minutos." },
   };

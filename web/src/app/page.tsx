@@ -1,23 +1,36 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { Button, Cover, Icon, KnownPeople, LiveIndicator, Signature, ThemeToggle, Logo } from "@/components/memoriesmt";
 import type { MemoEvent } from "@/domain/event";
 import { eventStatus } from "@/domain/event";
 import { formatDate } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
-import { seedDemoEvent } from "@/features/demo/seed";
 import { BackendNotice } from "@/features/app/backend-notice";
-import { devToolsEnabled } from "@/lib/dev-tools";
+
+/** Retorno do OAuth com falha (`/?erro=login`, vindo de auth/callback): aviso dispensável no topo (tela E6). */
+function LoginErrorBanner() {
+  const failed = useSearchParams().get("erro") === "login";
+  const [closed, setClosed] = useState(false);
+  if (!failed || closed) return null;
+  return (
+    <div className="app-banner" role="alert" style={{ color: "var(--rec-texto)", fontWeight: 600, justifyContent: "space-between", borderRadius: 0 }}>
+      <span style={{ display: "flex", gap: "var(--space-3)", alignItems: "flex-start" }}>
+        <Icon name="sem-sinal" decorative size={22} />
+        <span>Não conseguimos entrar com o Google. Tente de novo.</span>
+      </span>
+      <button type="button" className="mm-btn mm-btn--texto" aria-label="Fechar aviso" onClick={() => setClosed(true)} style={{ minWidth: 44, minHeight: 44 }}>
+        <Icon name="fechar" decorative size={20} />
+      </button>
+    </div>
+  );
+}
 
 export default function Home() {
-  const { repos, ready, user, signIn, now, persistent, storageError, known, switchTo, canSwitchIdentity } = useApp();
+  const { repos, ready, user, now, persistent, storageError, known, switchTo, canSwitchIdentity } = useApp();
   const [mine, setMine] = useState<MemoEvent[]>([]);
   const [joined, setJoined] = useState<MemoEvent[]>([]);
-  const [busy, setBusy] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     if (!ready || !user) return;
@@ -33,13 +46,6 @@ export default function Home() {
       alive = false;
     };
   }, [repos, ready, user]);
-
-  async function demo(reveal: "desativada" | "pendente" = "desativada") {
-    setBusy(true);
-    const u = user ?? (await signIn("Emy"));
-    const e = await seedDemoEvent(repos, u, now(), { reveal });
-    router.push(`/e/${e.code}/agora`);
-  }
 
   const row = (e: MemoEvent, host: boolean) => {
     const live = eventStatus(e, now()) === "ativo";
@@ -60,6 +66,7 @@ export default function Home() {
 
   return (
     <main className="app-col app-col--card app-fluid">
+      <Suspense fallback={null}><LoginErrorBanner /></Suspense>
       <div className="app-topbar">
         <Logo variant="wordmark" size={128} />
         <ThemeToggle />
@@ -73,8 +80,7 @@ export default function Home() {
         <div className="app-stack-sm">
           <Button href="/entrar" variant="cta" icon="camera" block>Entrar na festa</Button>
           <Button href="/criar" variant="secundario" block>Criar evento</Button>
-          {devToolsEnabled() && <Button variant="texto" onClick={() => demo()} disabled={busy || !ready}>{busy ? "Preparando…" : "Ver uma festa de exemplo"}</Button>}
-          {devToolsEnabled() && <Button variant="texto" onClick={() => demo("pendente")} disabled={busy || !ready}>Ver exemplo com revelação em 2 minutos</Button>}
+          <Button href="/exemplo" variant="texto">Ver como funciona</Button>
         </div>
 
         {ready && canSwitchIdentity && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
@@ -100,7 +106,6 @@ export default function Home() {
         )}
 
         <BackendNotice localText="Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor." />
-        {devToolsEnabled() && <p className="app-p app-muted"><Link className="app-link" href="/design">Guia de componentes</Link></p>}
         <div style={{ marginTop: "auto" }}><Signature /></div>
       </div>
     </main>

@@ -36,7 +36,7 @@ test("publicado: criar evento, entrar como convidado, postar e reagir", async ({
 
 test("publicado: painel e rota inexistente offline", async ({ page, context }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
   await expect(page.getByText("12 fotos")).toBeVisible();
   await page.reload();

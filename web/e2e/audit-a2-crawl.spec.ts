@@ -134,7 +134,7 @@ for (const vp of [{ w: 390, h: 844 }, { w: 1440, h: 900 }]) {
         results[name] = { url: page.url().replace(/^https?:\/\/[^/]+/, ""), ...(await page.evaluate(ANALYZE)) as object };
       }
       await page.goto("/");
-      await page.getByRole("button", { name: "Ver exemplo com revelação em 2 minutos" }).click();
+      await page.goto("/dev/seed?reveal=pendente");
       await page.waitForURL(/\/agora/);
       await page.waitForTimeout(400);
       await snap("revelacao-host-agora");

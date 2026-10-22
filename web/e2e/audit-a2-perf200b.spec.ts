@@ -9,7 +9,7 @@ test("200 fotos: carregar tudo, voce e zip", async ({ browser }) => {
   const ctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, acceptDownloads: true });
   const page = await ctx.newPage();
   await page.goto("/");
-  await page.getByRole("button", { name: "Ver uma festa de exemplo" }).click();
+  await page.goto("/dev/seed");
   await page.waitForURL(/\/e\/([A-Z0-9]{8})\/agora/);
   const code = page.url().match(/\/e\/([A-Z0-9]{8})\//)![1];
   const seedInfo = await page.evaluate(async () => {
