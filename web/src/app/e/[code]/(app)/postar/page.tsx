@@ -8,6 +8,7 @@ import { useGuest } from "@/features/events/guest-context";
 import { cameraPromptWhen, factsFromEvent } from "@/features/invitations/invite-copy";
 import { cameraHelp, fileToImage, isEmbeddedBrowser, renderPhoto } from "@/features/photos/capture";
 import { postPhoto, release, retryDelayMs } from "@/features/photos/service";
+import { useAlive } from "@/lib/use-alive";
 import type { PhotoData } from "@/repositories";
 
 /**
@@ -42,8 +43,7 @@ export default function Postar() {
   const failures = useRef(0);
   const sending = useRef(false);
   const picked = useRef(false); // já há foto (câmera ou galeria): uma resposta tardia do navegador não pode trocar a tela
-  const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; }, []);
+  const alive = useAlive();
 
   const inFlight = phase === "guardando" || phase === "sem-sinal";
   const used = counts.mine;
