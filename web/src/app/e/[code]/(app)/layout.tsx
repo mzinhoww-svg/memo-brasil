@@ -11,6 +11,8 @@ import { notificationPlan } from "@/domain/notifications";
 import { computeRevealStatus } from "@/domain/reveal";
 import { expirePending } from "@/features/photos/service";
 import { RevealTransition } from "@/features/reveal/RevealTransition";
+import { copyFor } from "@/features/app/copy";
+import { backendMode } from "@/lib/supabase/env";
 
 /** Área do convidado: guarda de acesso, tema do evento e barra de navegação com "Postar daqui". */
 export default function GuestLayout({ children }: { children: ReactNode }) {
@@ -103,7 +105,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
       <main className="app-col app-fluid">
         <div className="app-screen">
           <h1 className="titulo-tela app-h1">Código não confere.</h1>
-          <p className="app-p app-muted">Confira no card da mesa. Esta versão só abre festas criadas neste aparelho.</p>
+          <p className="app-p app-muted">{copyFor(backendMode()).inviteInvalidBody}</p>
           <Button href="/entrar" variant="primario" block>Tentar outro código</Button>
         </div>
       </main>

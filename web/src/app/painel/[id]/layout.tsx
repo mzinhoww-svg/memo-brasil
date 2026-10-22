@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
-import { AdminNav, Breadcrumbs, Button, CountBadge, EventTheme } from "@/components/memoriesmt";
+import { AdminNav, Breadcrumbs, Button, CountBadge, EventTheme, GoogleButton, Icon } from "@/components/memoriesmt";
 import { eventStatus } from "@/domain/event";
 import { LOCAL_ACTOR, can } from "@/domain/roles";
 import { computeRevealStatus } from "@/domain/reveal";
 import { moderationQueue } from "@/domain/photo";
-import { formatDate, useClock, useEventData } from "@/features/app/hooks";
+import { formatDate, isUuid, useClock, useEventData } from "@/features/app/hooks";
+import { copyFor } from "@/features/app/copy";
 import { useApp } from "@/features/app/provider";
 import { AdminProvider } from "@/features/admin/context";
 
@@ -23,11 +24,11 @@ const SECTIONS = [
   { slug: "downloads", label: "Downloads" },
 ] as const;
 
-/** Painel do anfitrião. Só abre para quem criou o evento neste aparelho. */
+/** Painel do anfitrião. Só abre para quem criou o evento (neste aparelho, no modo local). */
 export default function PainelLayout({ children }: { children: ReactNode }) {
   const { id } = useParams<{ id: string }>();
   const path = usePathname();
-  const { user, ready, repos, now: clock, authority } = useApp();
+  const { user, ready, repos, now: clock, authority, backend, canCreate, signInWithGoogle } = useApp();
   const data = useEventData({ id });
   const { now, sync } = useClock();
   const { refresh: reload } = data;
@@ -46,7 +47,30 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
 
   if (!ready || data.loading) return <main className="app-admin"><p className="app-admin-main app-muted">Abrindo o painel…</p></main>;
   if (data.access === "convite" && data.preview) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Só o anfitrião abre o painel.</h1><Button href={`/e/${data.preview.code}`} block>Entrar na festa</Button></div></main>;
-  if (!data.event) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Não achamos esse evento.</h1><p className="app-p app-muted">Esta versão só abre eventos criados neste aparelho.</p><Button href="/" block>Voltar ao início</Button></div></main>;
+  if (!data.event) {
+    // na nuvem, sem a conta do organizador o servidor não devolve o evento: pedir o login é mais útil que "não existe"
+    if (backend === "supabase" && !canCreate && isUuid(id)) {
+      return (
+        <main className="app-col app-fluid"><div className="app-screen">
+          <h1 className="titulo-tela app-h1">Entre com a conta Google que criou este evento.</h1>
+          <p className="app-p app-muted">O painel só abre para quem criou o evento.</p>
+          <GoogleButton block onClick={() => void signInWithGoogle(`/painel/${id}`)} />
+          <Button href="/" variant="texto">Voltar ao início</Button>
+        </div></main>
+      );
+    }
+    return (
+      <main className="app-col app-fluid"><div className="app-screen">
+        <span aria-hidden="true" className="app-empty-icon" style={{ display: "grid", placeItems: "center", width: 72, height: 72, borderRadius: "50%", background: "var(--neutro)" }}><Icon name="explorar" decorative size={28} /></span>
+        <h1 className="titulo-tela app-h1">Não achamos este evento.</h1>
+        <p className="app-p app-muted">{copyFor(backend).panelNotFoundBody}</p>
+        <div className="app-stack-sm" style={{ marginTop: "auto" }}>
+          <Button href="/" block>Ir para meus eventos</Button>
+          {backend === "supabase" && <GoogleButton block label="Entrar com outra conta" onClick={() => void signInWithGoogle("/")} />}
+        </div>
+      </div></main>
+    );
+  }
   if (!can(LOCAL_ACTOR(user?.id ?? null), "event.configure", data.event)) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Só o anfitrião abre o painel.</h1><Button href={`/e/${data.event.code}`} block>Entrar na festa</Button></div></main>;
 
   const event = data.event;

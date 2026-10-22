@@ -12,6 +12,8 @@ import { EVENT_FONT_LABEL, PALETTES } from "@/lib/event-theme";
 import { useAdmin } from "@/features/admin/context";
 import { formatDate, formatTime } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
+import { copyFor } from "@/features/app/copy";
+import { backendMode } from "@/lib/supabase/env";
 import { deleteEvent, endEventNow, setEndIn, updateSettings } from "@/features/events/service";
 
 const EXTEND = [1, 3, 6, 24];
@@ -31,7 +33,7 @@ export default function Configuracoes() {
 
   const save = async (patch: Parameters<typeof updateSettings>[2]) => {
     const r = await updateSettings(repos, event.id, patch);
-    setMsg(!r.ok && r.reason === "capacidade-menor-que-convidados" ? "Esse evento já tem mais convidados do que essa capacidade. Escolha um número maior." : undefined);
+    setMsg(r.ok ? "Salvo." : r.reason === "capacidade-menor-que-convidados" ? "Esse evento já tem mais convidados do que essa capacidade. Escolha um número maior." : "Não foi possível salvar. Tente de novo.");
     await refresh();
   };
 
@@ -110,8 +112,8 @@ export default function Configuracoes() {
         </Sheet>
       )}
       {confirm === "excluir" && (
-        <Sheet title="Excluir evento?" onClose={() => setConfirm(undefined)}>
-          <p className="corpo app-p">As fotos e reações deste evento serão apagadas. Não dá para desfazer.</p>
+        <Sheet title={copyFor(backendMode()).deleteQuestion} onClose={() => setConfirm(undefined)}>
+          <p className="corpo app-p">{copyFor(backendMode()).deleteBody}</p>
           <div className="app-stack-sm">
             <Button variant="destrutivo" block onClick={async () => { scheduler.cancel(event.id); await deleteEvent(repos, event.id); router.push("/"); }}>Excluir evento</Button>
             <Button variant="secundario" block onClick={() => setConfirm(undefined)}>Voltar</Button>

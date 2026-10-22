@@ -8,6 +8,10 @@ import type { Participant, PhotoSize, PhotoUrl } from "@/repositories";
 import { readEventScoped, type EventAccess, type EventPreview } from "@/features/access/read";
 import { useApp } from "./provider";
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Ids do servidor são UUID; qualquer outra coisa não existe (e não vale uma ida à rede). */
+export const isUuid = (v: string): boolean => UUID.test(v);
+
 /** Relógio reativo: atualiza a cada `ms`; `sync()` força a leitura imediata depois de uma ação que muda o tempo do evento. */
 export function useClock(ms = 15_000): { now: number; sync: () => void } {
   const { now } = useApp();
@@ -52,7 +56,7 @@ export interface EventData {
 
 /** Carrega o evento (por código ou id) já escopado ao papel da pessoa atual: o que ela não pode ver não chega aqui. */
 export function useEventData(key: { code?: string; id?: string }): EventData {
-  const { repos, ready, user, now } = useApp();
+  const { repos, ready, user, now, backend } = useApp();
   const userId = user?.id ?? null;
   const [state, setState] = useState<Omit<EventData, "refresh">>({ loading: true, access: "inexistente", event: undefined, preview: undefined, participants: [], photos: [], reactions: [], counts: { mine: 0, total: 0 } });
   const alive = useRef(true);
@@ -66,9 +70,14 @@ export function useEventData(key: { code?: string; id?: string }): EventData {
   const refresh = useCallback(async () => {
     if (!ready) return;
     const k = key.code ? { code: key.code } : key.id ? { id: key.id } : undefined;
-    const v = k ? await readEventScoped(repos, k, LOCAL_ACTOR(userId), now()) : undefined;
+    let v: Awaited<ReturnType<typeof readEventScoped>> | undefined;
+    try {
+      v = k && !(backend === "supabase" && key.id && !isUuid(key.id)) ? await readEventScoped(repos, k, LOCAL_ACTOR(userId), now()) : undefined;
+    } catch {
+      v = undefined; // id malformado ou falha de leitura: "não encontrado" em vez de carregar para sempre (UX-11)
+    }
     if (alive.current) setState({ loading: false, access: v?.access ?? "inexistente", event: v?.event, preview: v?.preview, participants: v?.participants ?? [], photos: v?.photos ?? [], reactions: v?.reactions ?? [], counts: v?.counts ?? { mine: 0, total: 0 } });
-  }, [repos, ready, key.code, key.id, userId, now]);
+  }, [repos, ready, backend, key.code, key.id, userId, now]);
 
   useEffect(() => {
     void refresh();

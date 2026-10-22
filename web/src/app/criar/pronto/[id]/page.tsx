@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, EventHeader, EventTheme, Signature } from "@/components/memoriesmt";
 import { formatDate, useEventData } from "@/features/app/hooks";
 import { inviteUrl } from "@/features/invitations/links";
@@ -15,6 +15,8 @@ export default function Pronto() {
   const [qr, setQr] = useState<string | undefined>();
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const linkInput = useRef<HTMLInputElement>(null);
   const brand = useBrandImages(event?.id);
   const link = event ? inviteUrl(window.location.origin, event.code) : "";
 
@@ -35,8 +37,25 @@ export default function Pronto() {
         /* cancelado: cai para copiar */
       }
     }
-    await navigator.clipboard?.writeText(text).catch(() => undefined);
-    setCopied(true);
+    if (await copyText(text)) setCopied(true);
+    else failCopy();
+  }
+  /** Copia de verdade ou avisa: nunca diz "copiado" sem ter copiado (UX-12). */
+  async function copyText(value: string): Promise<boolean> {
+    try {
+      if (!navigator.clipboard) return false;
+      await navigator.clipboard.writeText(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function failCopy() {
+    setCopyFailed(true);
+    setLinkCopied(false);
+    setCopied(false);
+    linkInput.current?.focus();
+    linkInput.current?.select();
   }
 
   return (
@@ -56,10 +75,12 @@ export default function Pronto() {
               <div className="app-stack-sm">
                 <label className="mm-field-label" htmlFor="link-convite">Link do convite</label>
                 <div className="pronto-url">
-                  <input id="link-convite" data-testid="link-convite" readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
-                  <Button variant="secundario" onClick={async () => { await navigator.clipboard?.writeText(link).catch(() => undefined); setLinkCopied(true); }}>{linkCopied ? "Link copiado" : "Copiar link"}</Button>
+                  <input ref={linkInput} id="link-convite" data-testid="link-convite" readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
+                  <Button variant="secundario" onClick={async () => { if (await copyText(link)) { setCopyFailed(false); setLinkCopied(true); } else failCopy(); }}>{linkCopied ? "Link copiado" : "Copiar link"}</Button>
                 </div>
-                <span className="app-muted" aria-live="polite" style={{ fontSize: 13 }}>{linkCopied ? "Link copiado para a área de transferência." : ""}</span>
+                <span className={copyFailed ? "app-banner" : "app-muted"} aria-live="polite" role={copyFailed ? "alert" : undefined} style={copyFailed ? undefined : { fontSize: 13 }}>
+                  {linkCopied ? "Link copiado para a área de transferência." : copyFailed ? "Não conseguimos copiar. O link está selecionado." : ""}
+                </span>
               </div>
               <div className="app-stack-sm">
                 <Button block onClick={share}>{copied ? "Convite copiado" : "Compartilhar convite"}</Button>

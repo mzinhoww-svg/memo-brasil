@@ -21,8 +21,9 @@ export function PhotoReactions({ photo, reactions, userId, onReact }: { photo: P
 }
 
 /** "Mais opções, incluindo pedir para remover". O pedido vai para a fila de moderação do anfitrião. */
-export function MoreSheet({ onReport, onClose, onDownload, editHref, reactors }: { onReport: () => Promise<void>; onClose: () => void; onDownload?: () => void; editHref?: string; reactors?: { name: string; label: string }[] }) {
+export function MoreSheet({ onReport, onClose, onDownload, editHref, reactors }: { onReport: () => Promise<void>; onClose: () => void; onDownload?: () => Promise<boolean>; editHref?: string; reactors?: { name: string; label: string }[] }) {
   const [sent, setSent] = useState(false);
+  const [saved, setSaved] = useState<"ok" | "falhou" | undefined>();
   return (
     <Sheet title="Mais opções" onClose={onClose}>
       {reactors && (
@@ -32,7 +33,8 @@ export function MoreSheet({ onReport, onClose, onDownload, editHref, reactors }:
         </section>
       )}
       {editHref && <Button variant="secundario" href={editHref} block>Editar foto</Button>}
-      {onDownload && <Button variant="secundario" icon="baixar" block onClick={onDownload}>Baixar foto</Button>}
+      {onDownload && <Button variant="secundario" icon="baixar" block onClick={async () => setSaved((await onDownload().catch(() => false)) ? "ok" : "falhou")}>Baixar foto</Button>}
+      <p className="app-p" role="status">{saved === "ok" ? "Foto baixada." : saved === "falhou" ? "Não deu para baixar essa foto. Tente de novo." : ""}</p>
       {sent ? <p className="corpo app-p">Pedido enviado. O anfitrião vai analisar.</p> : <p className="corpo app-p app-muted">Essa foto não deveria estar aqui? Peça para remover.</p>}
       <div className="app-stack-sm">
         {!sent && <Button variant="destrutivo" block onClick={async () => { await onReport(); setSent(true); }}>Pedir para remover</Button>}

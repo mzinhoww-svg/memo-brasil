@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { createViaWizard } from "./helpers";
 
-test("UXA-101/102/103: Evento criado em 320 e 1440", async ({ page }) => {
+test("UXA-101/102/103: Evento criado em 320 e 1440", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]); // a cópia só é confirmada quando de fato aconteceu (UX-12)
   for (const w of [320, 1440]) {
     await page.setViewportSize({ width: w, height: 900 });
     const { id } = await createViaWizard(page, { title: "Casamento da Emy e do Igor na Chapada dos Guimarães" });

@@ -11,10 +11,12 @@ import { isRevealed, shotsLeft } from "@/domain/event";
 import { usePhotoUrls } from "@/features/app/hooks";
 import { useGuest } from "@/features/events/guest-context";
 import { devToolsEnabled } from "@/lib/dev-tools";
+import { copyFor } from "@/features/app/copy";
+import { backendMode } from "@/lib/supabase/env";
 
 export default function Voce() {
   const { event, user, now, photos, counts, isHost } = useGuest();
-  const { signOut, scheduler, now: clock } = useApp();
+  const { signOut, scheduler, now: clock, canSwitchIdentity } = useApp();
   const [avisos, setAvisos] = useState<string | undefined>();
   const router = useRouter();
   const mine = photos.filter((p) => p.authorId === user.id && p.status !== "removida");
@@ -78,7 +80,7 @@ export default function Voce() {
             const p = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
             if (p !== "granted") return setAvisos("Avisos bloqueados. Libere nas permissões do navegador.");
             scheduler.schedule(event.id, notificationPlan(event, clock()));
-            setAvisos("Avisos ligados neste aparelho.");
+            setAvisos(copyFor(backendMode()).noticeOn);
           }}
         >
           Ativar avisos
@@ -89,7 +91,7 @@ export default function Voce() {
       <div className="app-stack-sm">
         {isHost && <Button href={`/painel/${event.id}`} variant="secundario" block>Abrir o painel do evento</Button>}
         <Link href="/" className="mm-btn mm-btn--texto" style={{ alignSelf: "flex-start" }}>Voltar ao início</Link>
-        {devToolsEnabled() && (
+        {canSwitchIdentity && devToolsEnabled() && (
         <div className="app-stack-sm">
             <Button variant="secundario" block onClick={async () => { await signOut(); router.push(`/e/${event.code}`); }}>Entrar como outra pessoa</Button>
             <p className="app-p app-muted">Demonstração: serve para testar a festa com mais de uma pessoa neste aparelho. Você volta para {user.name} pela tela inicial ou pelo convite, na lista Continuar como.</p>

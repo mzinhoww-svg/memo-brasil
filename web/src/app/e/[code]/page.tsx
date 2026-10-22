@@ -13,9 +13,10 @@ import { BackendNotice } from "@/features/app/backend-notice";
 import { useBrandImages } from "@/features/studio/useBrandImages";
 import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
 import { currentConsent, recordConsent } from "@/lib/consent";
+import { copyFor } from "@/features/app/copy";
+import { backendMode } from "@/lib/supabase/env";
 
 const MESSAGES = {
-  codigo: "Código não confere. Confira no card da mesa.",
   encerrado: "Esta festa já terminou. As fotos continuam com quem estava lá.",
   lotado: "A festa está lotada. Fale com quem convidou você.",
   nome: "Escreva como te chamam na festa.",
@@ -51,7 +52,7 @@ export default function Convite() {
       <main className="app-col app-col--card app-fluid">
         <div className="app-screen">
           <h1 className="titulo-tela app-h1">Código não confere.</h1>
-          <p className="corpo app-p app-muted">Confira no card da mesa. Esta versão só abre festas criadas neste aparelho.</p>
+          <p className="corpo app-p app-muted">{copyFor(backendMode()).inviteInvalidBody}</p>
           <Button href="/entrar" block>Tentar outro código</Button>
           <Button href="/" variant="texto">Voltar ao início</Button>
         </div>
@@ -70,7 +71,7 @@ export default function Convite() {
     }
     const r = await joinEvent(repos, me, code, name, now(), tableFromSearch(window.location.search));
     setBusy(false);
-    if (!r.ok) return setError(MESSAGES[r.reason]);
+    if (!r.ok) return setError(r.reason === "codigo" ? copyFor(backendMode()).inviteInvalid : MESSAGES[r.reason]);
     router.push(`/e/${code}/agora`);
   }
 

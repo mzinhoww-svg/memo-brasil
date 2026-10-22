@@ -6,6 +6,8 @@ import { download, guestsCsv, zipAlbum } from "@/features/admin/export";
 import { guestRanking } from "@/features/admin/service";
 import { useAdmin } from "@/features/admin/context";
 import { useApp } from "@/features/app/provider";
+import { copyFor } from "@/features/app/copy";
+import { backendMode } from "@/lib/supabase/env";
 
 export default function Downloads() {
   const { repos } = useApp();
@@ -21,7 +23,7 @@ export default function Downloads() {
     setProgress(undefined);
     if (r.saved === 0) return setResult("Este álbum ainda não tem fotos.");
     download(r.blob, r.filename);
-    setResult(`Baixamos ${r.saved} ${r.saved === 1 ? "foto" : "fotos"}${r.missing ? `. ${r.missing} não estavam neste aparelho.` : "."}`);
+    setResult(copyFor(backendMode()).downloadsSaved(r.saved, r.missing));
   }
   async function csv() {
     download(new Blob([guestsCsv(await guestRanking(repos, event))], { type: "text/csv;charset=utf-8" }), `memoriesmt-${event.code}-convidados.csv`);
@@ -35,7 +37,7 @@ export default function Downloads() {
         {progress && <Progress label="Preparando o álbum" status={`${progress.done} de ${progress.total}`} value={(progress.done / Math.max(1, progress.total)) * 100} />}
         {result && <p className="app-p" role="status">{result}</p>}
         <Button variant="secundario" icon="baixar" block onClick={csv}>Lista de convidados (CSV)</Button>
-        <p className="app-p app-muted">As fotos baixadas são as que estão guardadas neste aparelho.</p>
+        <p className="app-p app-muted">{copyFor(backendMode()).downloadsNote}</p>
       </div>
     </>
   );

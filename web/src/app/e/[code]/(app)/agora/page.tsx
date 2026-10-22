@@ -83,7 +83,7 @@ export default function Agora() {
       {more && (
         <MoreSheet
           reactors={reactorsOf(photos.find((p) => p.id === more)!, reactions, participants, user, { id: event.hostId, name: event.hostName })}
-          editHref={`/e/${event.code}/editar/${more}`} onDownload={() => void downloadPhoto(repos, photos.find((p) => p.id === more)!)}
+          editHref={`/e/${event.code}/editar/${more}`} onDownload={() => downloadPhoto(repos, photos.find((p) => p.id === more)!)}
           onClose={() => setMore(undefined)}
           onReport={async () => {
             await reportPhoto(repos, more);
