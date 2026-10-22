@@ -7,10 +7,15 @@
  * - `quote(eventId, planCode): Promise<Quote>` — RPC `payments_quote` (só o anfitrião). `reason` diz por que não é cobrável.
  * - `startCheckout(eventId, planCode, idempotencyKey): Promise<OrderView>` — Edge Function `payments-checkout`.
  *   Gere `idempotencyKey` com `crypto.randomUUID()` uma vez por intenção de compra e reuse em novas tentativas.
- *   409 `pedido_aberto` devolve o pedido aberto existente (confira `planCode`: pode ser de outro plano).
+ *   409 `pedido_aberto` devolve o pedido aberto existente (confira `planCode`: pode ser de outro plano); se não houver
+ *   pedido realmente aberto, relança o `BillingError("pedido_aberto")`. O 200 não traz `paidAt` (nem `planCode`, que
+ *   vem do plano pedido): use `orderStatus` para o estado completo.
  * - `orderStatus(orderId): Promise<OrderView>` — Edge Function `payments-status` (reconsulta o provedor se pendente > 15 s).
  * - `openOrder(eventId): Promise<OrderView | null>` — pedido aberto (criado/pendente não vencido) do evento ou, sem ele, o
- *   mais recente; `null` se nunca houve pedido.
+ *   mais recente; `null` se nunca houve pedido. Se a reconsulta der 404/MM004 (evento excluído), devolve os dados da
+ *   linha; 503 e outros erros propagam.
+ * - Enums do servidor são validados: status desconhecido → "falhou"; motivo de cotação desconhecido → "plano_inativo"
+ *   com `payable: false`; motivo de resgate desconhecido → "invalido".
  * - `redeemCode(eventId, code): Promise<RedeemResult>` — RPC `redeem_code`; normaliza o código antes. Motivos de recusa
  *   (`invalido`, `ja_incluido`, `muitas_tentativas`) voltam no resultado, não como exceção.
  * - `normalizeCode(input): string` — maiúsculas, sem espaços, no formato `MMT-XXXX-XXXX` quando reconhecível.
@@ -25,7 +30,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
-import type { OrderStatus, OrderView, PaymentsEnv, PublicPlan, PublicSettings, Quote, RedeemResult } from "./types";
+import type { OrderStatus, OrderView, PaymentsEnv, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
 
 export type { OrderStatus, OrderView, PaymentsEnv, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
 
@@ -73,10 +78,18 @@ const str = (v: unknown): string | undefined => (typeof v === "string" && v !== 
 const strOrNull = (v: unknown): string | null => (typeof v === "string" ? v : null);
 const numOrNull = (v: unknown): number | null => (typeof v === "number" ? v : null);
 
+// enums do servidor: valor desconhecido nunca vira estado otimista
+const ORDER_STATUSES: readonly OrderStatus[] = ["criado", "pendente", "pago", "expirado", "cancelado", "falhou", "estornado", "em_disputa", "perdido"];
+const QUOTE_REASONS: readonly QuoteReason[] = ["ok", "ja_incluido", "plano_inativo", "evento_encerrado", "valor_minimo"];
+const REDEEM_REASONS: readonly RedeemReason[] = ["ok", "ja_incluido", "invalido", "muitas_tentativas"];
+const oneOf = <T extends string>(v: unknown, all: readonly T[], fallback: T): T => (all.includes(v as T) ? (v as T) : fallback);
+/** Status desconhecido vira "falhou": não aberto, sem direito concedido. */
+const toStatus = (v: unknown): OrderStatus => oneOf(v, ORDER_STATUSES, "falhou");
+
 function toOrderView(j: Json, fallbackPlan?: string): OrderView {
   const v: OrderView = {
     orderId: String(j.orderId),
-    status: j.status as OrderStatus,
+    status: toStatus(j.status),
     planCode: str(j.planCode) ?? fallbackPlan ?? "",
     amountCents: Number(j.amountCents),
   };
@@ -159,12 +172,13 @@ export async function getPublicSettings(): Promise<PublicSettings> {
 
 export async function quote(eventId: string, planCode: string): Promise<Quote> {
   const q = await rpc<Json>("payments_quote", { p_event: eventId, p_plan: planCode });
+  const reason = oneOf(q.reason, QUOTE_REASONS, "plano_inativo");
   return {
     planCode: String(q.planCode),
     fromPlanCode: strOrNull(q.fromPlanCode),
     amountCents: Number(q.amountCents),
-    payable: q.payable === true,
-    reason: q.reason as Quote["reason"],
+    payable: q.payable === true && reason === "ok",
+    reason,
   };
 }
 
@@ -179,39 +193,54 @@ export async function startCheckout(eventId: string, planCode: string, idempoten
     if (e instanceof BillingError && e.code === "pedido_aberto") {
       const existing = (e as BillingError & { orderId?: string | null }).orderId;
       if (existing) return orderStatus(existing);
-      const open = await openOrder(eventId);
-      if (open) return open;
+      // sem orderId: só serve um pedido realmente aberto; o mais recente de outro status não substitui o 409
+      const { open } = await readOrders(eventId);
+      if (open) return refresh(rowToOrderView(open));
     }
     throw e;
   }
 }
 
-const OPEN: OrderStatus[] = ["criado", "pendente"];
+const OPEN: readonly OrderStatus[] = ["criado", "pendente"];
+const CREATED_TTL_MS = 30 * 60_000; // igual ao servidor: 'criado' sem cobrança vence em 30 min
 
-export async function openOrder(eventId: string): Promise<OrderView | null> {
-  const sb = client();
-  const r = await sb.from("payment_orders")
+/** Aberto = criado/pendente e não vencido (expires_at futuro; sem expires_at, criado há menos de 30 min). */
+function isOpenRow(x: Json, now: number): boolean {
+  if (!OPEN.includes(toStatus(x.status))) return false;
+  if (x.expires_at != null) return Date.parse(String(x.expires_at)) > now;
+  return x.created_at != null && Date.parse(String(x.created_at)) > now - CREATED_TTL_MS;
+}
+
+async function readOrders(eventId: string): Promise<{ open: Json | undefined; latest: Json | undefined }> {
+  const r = await client().from("payment_orders")
     .select("id,status,plan_code,amount_cents,brcode,brcode_base64,expires_at,paid_at,created_at")
     .eq("event_id", eventId)
     .order("created_at", { ascending: false })
     .limit(20);
   if (r.error) throw rpcError(r.error);
   const rows = (r.data ?? []) as Json[];
-  if (rows.length === 0) return null;
   const now = Date.now();
-  const isOpen = (x: Json) => OPEN.includes(x.status as OrderStatus) && (x.expires_at == null || Date.parse(String(x.expires_at)) > now);
-  const row = rows.find(isOpen) ?? rows[0];
-  const view = rowToOrderView(row);
+  return { open: rows.find((x) => isOpenRow(x, now)), latest: rows[0] };
+}
+
+/** Reconsulta pedidos não terminais. Só 404/MM004 (evento excluído ou purgado) cai nos dados da linha; o resto propaga. */
+async function refresh(view: OrderView): Promise<OrderView> {
   if (!OPEN.includes(view.status)) return view;
   try {
     return await orderStatus(view.orderId);
-  } catch {
-    // evento excluído/purgado (MM004 → 404) ou função fora: devolve o que a leitura direta mostra
-    return view;
+  } catch (e) {
+    if (e instanceof BillingError && (e.status === 404 || e.code === "nao_encontrado" || e.code === "MM004")) return view;
+    throw e;
   }
+}
+
+export async function openOrder(eventId: string): Promise<OrderView | null> {
+  const { open, latest } = await readOrders(eventId);
+  const row = open ?? latest;
+  return row ? refresh(rowToOrderView(row)) : null;
 }
 
 export async function redeemCode(eventId: string, code: string): Promise<RedeemResult> {
   const r = await rpc<Json>("redeem_code", { p_event: eventId, p_code: normalizeCode(code) });
-  return { applied: r.applied === true, planCode: strOrNull(r.planCode), reason: r.reason as RedeemResult["reason"] };
+  return { applied: r.applied === true, planCode: strOrNull(r.planCode), reason: oneOf(r.reason, REDEEM_REASONS, "invalido") };
 }

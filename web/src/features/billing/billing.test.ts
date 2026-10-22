@@ -116,6 +116,10 @@ describe("quote", () => {
     expect(await quote(EVENT, "festa")).toEqual({ planCode: "festa", fromPlanCode: "gratis", amountCents: 50, payable: false, reason: "valor_minimo" });
     expect(calls.rpc).toEqual([["payments_quote", { p_event: EVENT, p_plan: "festa" }]]);
   });
+  it("motivo desconhecido vira plano_inativo e nunca é cobrável", async () => {
+    fakeClient({ rpc: () => ({ data: { planCode: "festa", fromPlanCode: null, amountCents: 2900, payable: true, reason: "novo_motivo" } }) });
+    expect(await quote(EVENT, "festa")).toMatchObject({ payable: false, reason: "plano_inativo" });
+  });
   it("MM014 (pagamentos desligados) vira BillingUnavailableError", async () => {
     fakeClient({ rpc: () => ({ error: { code: "MM014", message: "pagamentoindisponivel" } }) });
     await expect(quote(EVENT, "festa")).rejects.toBeInstanceOf(BillingUnavailableError);
@@ -137,6 +141,22 @@ describe("startCheckout", () => {
   it("200 sem planCode no corpo usa o plano pedido; nulos viram ausentes", async () => {
     fakeClient({ invoke: () => ({ data: { orderId: ORDER, status: "pendente", amountCents: 2900, brCode: "pix", brCodeBase64: null, expiresAt: null } }) });
     expect(await startCheckout(EVENT, "festa", KEY)).toEqual({ orderId: ORDER, status: "pendente", planCode: "festa", amountCents: 2900, brCode: "pix" });
+  });
+  it("409 sem orderId devolve só pedido realmente aberto; senão relança pedido_aberto", async () => {
+    const recent = new Date(Date.now() - 60_000).toISOString();
+    const old = new Date(Date.now() - 31 * 60_000).toISOString();
+    const r409 = () => ({ error: httpError(409, { error: "pedido_aberto", orderId: null }) });
+    const base = { plan_code: "festa", amount_cents: 2900, brcode: null, brcode_base64: null, expires_at: null, paid_at: null };
+    fakeClient({ rows: [{ ...base, id: "o-pago", status: "pago", created_at: recent }], invoke: r409 });
+    await expect(startCheckout(EVENT, "festa", KEY)).rejects.toMatchObject({ code: "pedido_aberto", status: 409 });
+    fakeClient({ rows: [{ ...base, id: "o-velho", status: "criado", created_at: old }], invoke: r409 });
+    await expect(startCheckout(EVENT, "festa", KEY)).rejects.toMatchObject({ code: "pedido_aberto" });
+    const calls = fakeClient({
+      rows: [{ ...base, id: ORDER, status: "criado", created_at: recent }],
+      invoke: (fn) => (fn === "payments-checkout" ? r409() : { data: { ...view, status: "criado" } }),
+    });
+    expect(await startCheckout(EVENT, "festa", KEY)).toMatchObject({ orderId: ORDER, status: "criado" });
+    expect(calls.invoke[1]).toEqual(["payments-status", { orderId: ORDER }]);
   });
   it("502 lança ProviderUnavailableError com orderId", async () => {
     fakeClient({ invoke: () => ({ error: httpError(502, { error: "provedor_indisponivel", orderId: ORDER }) }) });
@@ -194,6 +214,20 @@ describe("openOrder", () => {
   });
 });
 
+describe("openOrder: erros e enums", () => {
+  const recent = () => new Date(Date.now() - 60_000).toISOString();
+  const r = (status: string) => ({ id: ORDER, status, plan_code: "festa", amount_cents: 2900, brcode: null, brcode_base64: null, expires_at: null, paid_at: null, created_at: recent() });
+  it("503 do payments-status propaga como BillingUnavailableError", async () => {
+    fakeClient({ rows: [r("pendente")], invoke: () => ({ error: httpError(503, { error: "pagamento_indisponivel" }) }) });
+    await expect(openOrder(EVENT)).rejects.toBeInstanceOf(BillingUnavailableError);
+  });
+  it("status desconhecido vira falhou e não é tratado como aberto", async () => {
+    const calls = fakeClient({ rows: [r("status_novo")] });
+    expect(await openOrder(EVENT)).toMatchObject({ orderId: ORDER, status: "falhou" });
+    expect(calls.invoke).toHaveLength(0);
+  });
+});
+
 describe("redeemCode", () => {
   it("normaliza o código e chama redeem_code", async () => {
     const calls = fakeClient({ rpc: () => ({ data: { applied: true, planCode: "festa", reason: "ok" } }) });
@@ -203,6 +237,8 @@ describe("redeemCode", () => {
   it("muitas_tentativas e invalido voltam como motivo, sem lançar", async () => {
     fakeClient({ rpc: () => ({ data: { applied: false, planCode: null, reason: "muitas_tentativas" } }) });
     expect(await redeemCode(EVENT, "x")).toEqual({ applied: false, planCode: null, reason: "muitas_tentativas" });
+    fakeClient({ rpc: () => ({ data: { applied: false, planCode: null, reason: "outro" } }) });
+    expect((await redeemCode(EVENT, "x")).reason).toBe("invalido");
   });
   it("erro do banco vira BillingError com o código", async () => {
     fakeClient({ rpc: () => ({ error: { code: "MM004", message: "forbidden" } }) });
@@ -218,7 +254,7 @@ describe("billing de demonstração removido", () => {
       return statSync(p).isDirectory() ? files(p) : /\.(ts|tsx)$/.test(n) ? [p] : [];
     });
   it("nenhum módulo importa domain/pricing e os símbolos de demonstração sumiram", () => {
-    const offenders = files(SRC).filter((f) => !f.endsWith(join("features", "billing", "billing.test.ts")) && /domain\/pricing|\bpriceRule\b|\blocalBilling\b|\bDemoOnlyError\b|\bPLUS_GUEST_LIMIT\b|\bBillingService\b|\bPurchaseRequest\b/.test(readFileSync(f, "utf8")));
+    const offenders = files(SRC).filter((f) => !f.endsWith(join("features", "billing", "billing.test.ts")) && /domain\/pricing|\bpriceRule\b|\blocalBilling\b|\bDemoOnlyError\b|\bPLUS_GUEST_LIMIT\b|\bFREE_GUEST_LIMIT\b|\bBillingService\b|\bPurchaseRequest\b/.test(readFileSync(f, "utf8")));
     expect(offenders).toEqual([]);
   });
 });
