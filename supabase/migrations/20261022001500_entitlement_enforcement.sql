@@ -48,8 +48,12 @@ begin
       ev_id := new.id; cap_up := true; shots_up := true;
     else
       ev_id := old.id;
-      cap_up := old.capacity is not null and (new.capacity is null or new.capacity > old.capacity);
-      shots_up := old.shots_per_person is not null and (new.shots_per_person is null or new.shots_per_person > old.shots_per_person);
+      -- old null (sem limite, ex.: legado) não é "acima de tudo" para liberar qualquer número: trocar null por um valor
+      -- conta como subir e o valor novo precisa caber no plano. Null → null não muda o limite e não é conferido.
+      cap_up := new.capacity is distinct from old.capacity
+        and (new.capacity is null or old.capacity is null or new.capacity > old.capacity);
+      shots_up := new.shots_per_person is distinct from old.shots_per_person
+        and (new.shots_per_person is null or old.shots_per_person is null or new.shots_per_person > old.shots_per_person);
     end if;
     if cap_up or shots_up then
       select * into ent from public.effective_entitlement(ev_id); -- uma linha ou MM090

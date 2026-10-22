@@ -215,6 +215,25 @@ select throws_ok($$update public.events set capacity = 95 where id = '00000000-0
   'MM012', 'notentitled', 'acima do plano, voltar a subir (90 → 95) é recusado');
 select throws_ok($$update public.events set shots_per_person = null where id = '00000000-0000-4000-8000-0000000006e7'$$,
   'MM012', 'notentitled', 'acima do plano, virar sem limite é recusado');
+select throws_ok($$update public.events set capacity = null where id = '00000000-0000-4000-8000-0000000006e7'$$,
+  'MM012', 'notentitled', 'acima do plano, capacity virar sem limite (null a partir de um valor) é recusado');
+reset role;
+
+-- e8: legado sem limite (capacity/shots null) com efetivo grátis. Null antigo só libera valores dentro do plano:
+-- trocar null por um número acima do plano é subir o limite e é recusado (MM012).
+insert into public.events (id, title, category, host_id, host_name, duration_hours, capacity, shots_per_person) values
+  ('00000000-0000-4000-8000-0000000006e8', 'Legado sem limite', 'festa', '00000000-0000-4000-8000-0000000006a1', 'H', 48, null, null);
+select tests.login('00000000-0000-4000-8000-0000000006a1');
+select lives_ok($$update public.events set title = 'Legado renomeado' where id = '00000000-0000-4000-8000-0000000006e8'$$,
+  'sem limite → sem limite (só o título muda) passa');
+select throws_ok($$update public.events set capacity = 50 where id = '00000000-0000-4000-8000-0000000006e8'$$,
+  'MM012', 'notentitled', 'capacity null → 50 com efetivo grátis (10) é recusado');
+select throws_ok($$update public.events set shots_per_person = 24 where id = '00000000-0000-4000-8000-0000000006e8'$$,
+  'MM012', 'notentitled', 'shots_per_person null → 24 com efetivo grátis (10) é recusado');
+select lives_ok($$update public.events set capacity = 10, shots_per_person = 8 where id = '00000000-0000-4000-8000-0000000006e8'$$,
+  'null → valor dentro do plano (10/8) passa');
+select results_eq($$select capacity, shots_per_person from public.events where id = '00000000-0000-4000-8000-0000000006e8'$$,
+  $$values (10, 8)$$, 'limites dentro do plano gravados a partir de null');
 reset role;
 
 -- chamador privilegiado (service_role; RPC security definer roda como o dono) não passa pela checagem MM012
