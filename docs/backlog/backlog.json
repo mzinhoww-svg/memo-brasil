@@ -4906,7 +4906,8 @@
     "vitest 245; playwright local 51; pgTAP 366 (pré-hardening)"
    ],
    "evidence": [
-    "docs/audit/V2-FINAL-AUDIT.md"
+    "docs/audit/V2-FINAL-AUDIT.md",
+    "A5 checkpoint c0fd33b: 266 unitários, 30 probes, 4 testes probe; E2E alternativo 1 falhou/15 não executados; sessão, integração, pgTAP e físicos pendentes. docs/supabase/A5-HOMOLOGATION-REPORT.md"
    ],
    "commit": "ed63bc4",
    "environment": "local",
@@ -4933,7 +4934,8 @@
     "vitest 245; playwright local 51; pgTAP 366 (pré-hardening)"
    ],
    "evidence": [
-    "docs/audit/V2-FINAL-AUDIT.md"
+    "docs/audit/V2-FINAL-AUDIT.md",
+    "A5 checkpoint c0fd33b: 266 unitários, 30 probes, 4 testes probe; E2E alternativo 1 falhou/15 não executados; sessão, integração, pgTAP e físicos pendentes. docs/supabase/A5-HOMOLOGATION-REPORT.md"
    ],
    "commit": "ed63bc4",
    "environment": "local",
@@ -4962,7 +4964,8 @@
     "smoke HTTP do preview V2 (gate /master, headers)"
    ],
    "evidence": [
-    "docs/audit/V2-FINAL-AUDIT.md"
+    "docs/audit/V2-FINAL-AUDIT.md",
+    "A5 checkpoint c0fd33b: 266 unitários, 30 probes, 4 testes probe; E2E alternativo 1 falhou/15 não executados; sessão, integração, pgTAP e físicos pendentes. docs/supabase/A5-HOMOLOGATION-REPORT.md"
    ],
    "commit": "ed63bc4",
    "environment": "vercel-preview",
@@ -5971,7 +5974,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P1",
-   "status": "DONE",
+   "status": "IN_REVIEW",
    "dependencies": [
     "SB-005"
    ],
@@ -5986,7 +5989,9 @@
    "evidence": [
     "event-branding provado só no local",
     "remoto: mm-purge-storage */30 ativo, HTTP 200 removidos 6, fila 6->0 (OPERATOR-COMMANDS.md, evidência A.3.5)",
-    "worker purge-storage testado local (2/2); falta deploy e agendamento no remoto"
+    "worker purge-storage testado local (2/2); falta deploy e agendamento no remoto",
+    "docs/supabase/A5-HOMOLOGATION-REPORT.md",
+    "A.5 21/10/2026: Reaberto apenas o fechamento por dependência SB-005 aberta; evidência A.3.5 preservada. Job/HTTP/fila saudáveis nesta A5; caminho branding remoto ainda sem nova prova."
    ],
    "commit": "36b01f2",
    "environment": "local+remoto",
@@ -6000,7 +6005,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P2",
-   "status": "DONE",
+   "status": "IN_REVIEW",
    "dependencies": [
     "MAD-002"
    ],
@@ -6014,7 +6019,9 @@
    ],
    "evidence": [
     "audit_integrity()/job mm-audit-integrity cobrem ambiente gerenciado sem event trigger; pgTAP 430/430",
-    "pgTAP 416/416 local; migration 20261022001000"
+    "pgTAP 416/416 local; migration 20261022001000",
+    "docs/supabase/A5-HOMOLOGATION-REPORT.md",
+    "A.5 21/10/2026: Reaberto apenas o fechamento por dependência MAD-002 em IN_REVIEW; evidência pgTAP histórica preservada; audit_integrity remoto ok sem mutação."
    ],
    "commit": "3a1a79d",
    "environment": "local",
@@ -6416,7 +6423,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [
     "SCV-004"
    ],
@@ -6425,11 +6432,21 @@
     "Falha de Storage gera status não-2xx visível em net._http_response",
     "admin_health sinaliza fila com item mais antigo que 2 h"
    ],
-   "files": [],
-   "tests": [],
-   "evidence": [],
-   "commit": null,
-   "environment": null,
+   "files": [
+    "supabase/functions/purge-storage/index.ts",
+    "web/src/lib/purge-worker.test.ts"
+   ],
+   "tests": [
+    "docs/supabase/evidence/a5-20261021/purge-red.txt",
+    "docs/supabase/evidence/a5-20261021/purge-green.txt",
+    "docs/supabase/evidence/a5-20261021/unit-final.txt"
+   ],
+   "evidence": [
+    "docs/supabase/A5-HOMOLOGATION-REPORT.md",
+    "A.5 21/10/2026: Correção HTTP 500 local com regressão RED→GREEN e suíte 266/266; sem deploy remoto, alerta >2 h e teste de falha remota ainda pendentes."
+   ],
+   "commit": "c0fd33b43bc201cacb6eb652d6e6541e75f6911b",
+   "environment": "local (correção não publicada)",
    "release": "R2"
   },
   {
@@ -6447,17 +6464,19 @@
     "auth/v1/settings sem external.email e sem cadastro por e-mail",
     "Teste: POST /auth/v1/signup com e-mail recusado"
    ],
-   "files": [],
+   "files": [
+    "supabase/ops/a5-readonly-probe.mjs"
+   ],
    "tests": [
-    "POST /auth/v1/otp phone -> 400 phone_provider_disabled",
-    "POST /auth/v1/signup email -> 400 email_provider_disabled"
+    "docs/supabase/evidence/a5-20261021/http-readonly.json"
    ],
    "evidence": [
-    "auth/v1/settings 2026-10-21: externos ativos = anonymous_users, google (A5-HOMOLOGATION-REPORT.md)",
-    "config diff 2026-10-21: email habilitado"
+    "config diff 2026-10-21: email habilitado",
+    "docs/supabase/A5-HOMOLOGATION-REPORT.md",
+    "A.5 21/10/2026: Email desabilitado; POST signup sintético recusado com 400 email_provider_disabled; nenhum usuário/sessão criado."
    ],
-   "commit": null,
-   "environment": "remoto",
+   "commit": "c0fd33b43bc201cacb6eb652d6e6541e75f6911b",
+   "environment": "supabase-remoto",
    "release": "R1"
   },
   {
@@ -6478,7 +6497,9 @@
    "files": [],
    "tests": [],
    "evidence": [
-    "filter_project_envs 2026-10-21: chave presente em production, tipo sensitive"
+    "filter_project_envs 2026-10-21: chave presente em production, tipo sensitive",
+    "docs/supabase/A5-HOMOLOGATION-REPORT.md",
+    "A.5 21/10/2026: Metadados Vercel confirmam SUPABASE_SERVICEROLE_KEY em Production, tipo sensitive; dependência do legado não validada; sem remoção."
    ],
    "commit": null,
    "environment": "remoto",
@@ -6492,7 +6513,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "BLOCKED",
    "dependencies": [
     "REL-001"
    ],
@@ -6503,7 +6524,9 @@
    "files": [],
    "tests": [],
    "evidence": [
-    "dpl_AQwY… vazio; dpl_2v3G… correto"
+    "dpl_AQwY… vazio; dpl_2v3G… correto",
+    "docs/supabase/A5-HOMOLOGATION-REPORT.md",
+    "A.5 21/10/2026: Framework do projeto null; escopo Vercel negou listagem/logs com 403; Git integration/rootDirectory/preview automático por push não homologados."
    ],
    "commit": null,
    "environment": "remoto",
@@ -6517,7 +6540,7 @@
    "epic": "EP-16",
    "parent": null,
    "priority": "P3",
-   "status": "BACKLOG",
+   "status": "BLOCKED",
    "dependencies": [
     "SCV-010"
    ],
@@ -6527,7 +6550,10 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "docs/supabase/A5-HOMOLOGATION-REPORT.md",
+    "A.5 21/10/2026: Inventário somente leitura: quatro contas e-mail e nove órfãos event-photos; limpeza não autorizada nesta A5; backup/restauração não verificados."
+   ],
    "commit": null,
    "environment": "remoto",
    "release": "R1"

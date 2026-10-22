@@ -1,0 +1,2 @@
+OK: 213 itens; prioridade {'P1': 69, 'P2': 56, 'P3': 51, 'P0': 37}; status {'DONE': 62, 'BACKLOG': 97, 'CANCELLED': 2, 'READY': 11, 'BLOCKED': 7, 'DEFERRED': 11, 'IN_REVIEW': 23}; requisitos {'EXCLUÍDO': 4, 'DEFERRED (backend)': 4, 'DONE': 42, 'PARCIAL/ABERTO': 7}
+Próximos READY: INF-001(P1), BG-022(P2), BG-103(P2), BG-104(P2), BG-105(P2), BG-106(P2), BG-107(P2), BG-108(P2), BG-109(P2), BG-110(P2), BG-112(P2)

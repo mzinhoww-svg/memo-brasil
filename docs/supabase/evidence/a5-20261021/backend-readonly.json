@@ -1,0 +1,1576 @@
+{
+  "observedDate": "2026-10-21 America/Cuiaba",
+  "project": "asyaegeodyttttaubvxh",
+  "method": "Transações READ ONLY e consultas de catálogo; JWT/role SQL simulados, sem autenticação HTTP de usuário.",
+  "checks": {
+    "master": [
+      {
+        "master": true,
+        "staff": true,
+        "visible_active_masters": 1,
+        "health": {
+          "jobs": [
+            {
+              "name": "mm-audit-integrity",
+              "active": true,
+              "lastRun": {
+                "status": "succeeded",
+                "endedAt": "2026-10-22T01:20:00.03739+00:00",
+                "message": "1 row",
+                "startedAt": "2026-10-22T01:20:00.031705+00:00"
+              },
+              "schedule": "*/10 * * * *"
+            },
+            {
+              "name": "mm-expire-assets",
+              "active": true,
+              "lastRun": {
+                "status": "succeeded",
+                "endedAt": "2026-10-22T01:15:00.037704+00:00",
+                "message": "1 row",
+                "startedAt": "2026-10-22T01:15:00.028364+00:00"
+              },
+              "schedule": "*/15 * * * *"
+            },
+            {
+              "name": "mm-expire-uploads",
+              "active": true,
+              "lastRun": {
+                "status": "succeeded",
+                "endedAt": "2026-10-22T01:20:00.035307+00:00",
+                "message": "1 row",
+                "startedAt": "2026-10-22T01:20:00.026956+00:00"
+              },
+              "schedule": "*/10 * * * *"
+            },
+            {
+              "name": "mm-purge-deleted",
+              "active": true,
+              "lastRun": null,
+              "schedule": "17 3 * * *"
+            },
+            {
+              "name": "mm-purge-storage",
+              "active": true,
+              "lastRun": {
+                "status": "succeeded",
+                "endedAt": "2026-10-22T01:00:00.106743+00:00",
+                "message": "1 row",
+                "startedAt": "2026-10-22T01:00:00.056976+00:00"
+              },
+              "schedule": "*/30 * * * *"
+            },
+            {
+              "name": "mm-reveal-due",
+              "active": true,
+              "lastRun": {
+                "status": "succeeded",
+                "endedAt": "2026-10-22T01:27:00.016877+00:00",
+                "message": "1 row",
+                "startedAt": "2026-10-22T01:27:00.014308+00:00"
+              },
+              "schedule": "* * * * *"
+            }
+          ],
+          "lgpd": {
+            "pendingDeletions": 0
+          },
+          "reveals": {
+            "overdue": 0,
+            "maxDelaySeconds": 0
+          },
+          "uploads": {
+            "failed": 0,
+            "stalled": 0
+          },
+          "purgeQueue": {
+            "size": 0,
+            "oldestAgeSeconds": 0
+          },
+          "generatedAt": "2026-10-22T01:27:42.700142+00:00",
+          "cronAvailable": true
+        }
+      }
+    ],
+    "organizer": [
+      {
+        "master": false,
+        "visible_platform_roles": 0,
+        "leaks_foreign_events": false,
+        "own_events": 1,
+        "visible_settings": 0
+      }
+    ],
+    "guest": [
+      {
+        "master": false,
+        "anonymous_identity": true,
+        "visible_platform_roles": 0,
+        "visible_invitations": 0,
+        "leaks_foreign_events": false,
+        "leaks_private_photos": false
+      }
+    ],
+    "guest_reveal": [
+      {
+        "visible_photos": 1,
+        "sees_ready_photos_before_reveal": false,
+        "sees_hidden_photos": false
+      }
+    ],
+    "organizer_admin_denial": [
+      {
+        "organizer_admin_health_denied_mm004": true
+      }
+    ],
+    "guest_admin_denial": [
+      {
+        "guest_admin_health_denied_mm004": true
+      }
+    ],
+    "forged_master": [
+      {
+        "forged_claim_grants_master": false
+      }
+    ],
+    "audit_integrity": [
+      {
+        "audit": {
+          "integrity": {
+            "status": "ok",
+            "checkedAt": "2026-10-22T01:30:48.592406+00:00",
+            "alwaysEnabled": true,
+            "eventTriggers": true,
+            "protectiveTriggers": 6
+          },
+          "audit_count": 53,
+          "client_delete": false,
+          "client_update": false,
+          "service_delete": false,
+          "immutable_triggers": [
+            {
+              "name": "audit_logs_no_delete",
+              "enabled": "A"
+            },
+            {
+              "name": "audit_logs_no_truncate",
+              "enabled": "A"
+            },
+            {
+              "name": "audit_logs_no_update",
+              "enabled": "A"
+            }
+          ]
+        }
+      }
+    ],
+    "hygiene": [
+      {
+        "anonymous_users": 25,
+        "email_users": 4,
+        "google_users": 1,
+        "orphan_photo_objects": 9,
+        "orphan_branding_objects": 0
+      }
+    ],
+    "security": [
+      {
+        "security": {
+          "buckets": [
+            {
+              "id": "event-photos",
+              "mime": [
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+              ],
+              "limit": 8388608,
+              "public": false
+            },
+            {
+              "id": "event-branding",
+              "mime": [
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+              ],
+              "limit": 5242880,
+              "public": false
+            }
+          ],
+          "public_tables_without_rls": 0,
+          "public_security_definer_anon": 1
+        }
+      }
+    ],
+    "migrations": [
+      {
+        "migrations": [
+          {
+            "name": "schema",
+            "version": "20261021000100"
+          },
+          {
+            "name": "rls_and_rpcs",
+            "version": "20261021000200"
+          },
+          {
+            "name": "storage",
+            "version": "20261021000300"
+          },
+          {
+            "name": "jobs",
+            "version": "20261021000400"
+          },
+          {
+            "name": "hardening",
+            "version": "20261021000500"
+          },
+          {
+            "name": "author_pending",
+            "version": "20261021000600"
+          },
+          {
+            "name": "platform_roles_audit",
+            "version": "20261022000100"
+          },
+          {
+            "name": "event_themes",
+            "version": "20261022000200"
+          },
+          {
+            "name": "event_assets_branding",
+            "version": "20261022000300"
+          },
+          {
+            "name": "platform_settings_flags",
+            "version": "20261022000400"
+          },
+          {
+            "name": "admin_rpcs",
+            "version": "20261022000500"
+          },
+          {
+            "name": "admin_listings",
+            "version": "20261022000600"
+          },
+          {
+            "name": "security_hardening",
+            "version": "20261022000700"
+          },
+          {
+            "name": "asset_validation",
+            "version": "20261022000800"
+          },
+          {
+            "name": "asset_validation_race",
+            "version": "20261022000900"
+          },
+          {
+            "name": "audit_hardening",
+            "version": "20261022001000"
+          }
+        ]
+      }
+    ],
+    "catalog": [
+      {
+        "policies": [
+          {
+            "cmd": "SELECT",
+            "qual": "(id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "profiles",
+            "policyname": "profiles_self_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "(id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "profiles",
+            "policyname": "profiles_self_update",
+            "schemaname": "public",
+            "with_check": "(id = ( SELECT auth.uid() AS uid))"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "((deleted_at IS NULL) AND ((host_id = ( SELECT auth.uid() AS uid)) OR is_member(id) OR is_master()))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "events",
+            "policyname": "events_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "events",
+            "policyname": "events_insert",
+            "schemaname": "public",
+            "with_check": "((host_id = ( SELECT auth.uid() AS uid)) AND (NOT is_anonymous()))"
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "is_host(event_id)",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "photos",
+            "policyname": "photos_host_update",
+            "schemaname": "public",
+            "with_check": "is_host(event_id)"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "can_see_photo(photo_id)",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "reactions",
+            "policyname": "reactions_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "((host_id = ( SELECT auth.uid() AS uid)) AND (deleted_at IS NULL))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "events",
+            "policyname": "events_update",
+            "schemaname": "public",
+            "with_check": "(host_id = ( SELECT auth.uid() AS uid))"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "is_host(event_id)",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "invitations",
+            "policyname": "invitations_host_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "((user_id = ( SELECT auth.uid() AS uid)) OR is_host(event_id) OR is_member(event_id) OR is_master())",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "participants",
+            "policyname": "participants_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "((user_id = ( SELECT auth.uid() AS uid)) OR is_host(event_id))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "participants",
+            "policyname": "participants_update",
+            "schemaname": "public",
+            "with_check": "((user_id = ( SELECT auth.uid() AS uid)) OR is_host(event_id))"
+          },
+          {
+            "cmd": "DELETE",
+            "qual": "((user_id = ( SELECT auth.uid() AS uid)) OR is_host(event_id))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "participants",
+            "policyname": "participants_delete",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "can_see_photo(id)",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "photos",
+            "policyname": "photos_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "reactions",
+            "policyname": "reactions_insert",
+            "schemaname": "public",
+            "with_check": "((author_id = ( SELECT auth.uid() AS uid)) AND can_see_photo(photo_id))"
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "(author_id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "reactions",
+            "policyname": "reactions_update",
+            "schemaname": "public",
+            "with_check": "((author_id = ( SELECT auth.uid() AS uid)) AND can_see_photo(photo_id))"
+          },
+          {
+            "cmd": "DELETE",
+            "qual": "(author_id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "reactions",
+            "policyname": "reactions_delete",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "audit_logs",
+            "policyname": "audit_trigger_insert",
+            "schemaname": "public",
+            "with_check": "((pg_trigger_depth() > 0) AND (NOT (actor_id IS DISTINCT FROM ( SELECT auth.uid() AS uid))))"
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "storage_purge_queue",
+            "policyname": "purge_trigger_insert",
+            "schemaname": "public",
+            "with_check": "(pg_trigger_depth() > 0)"
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "objects",
+            "policyname": "event_photos_insert",
+            "schemaname": "storage",
+            "with_check": "((bucket_id = 'event-photos'::text) AND can_upload_object(name))"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "((bucket_id = 'event-photos'::text) AND can_read_object(name))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "objects",
+            "policyname": "event_photos_select",
+            "schemaname": "storage",
+            "with_check": null
+          },
+          {
+            "cmd": "DELETE",
+            "qual": "((bucket_id = 'event-photos'::text) AND can_delete_object(name))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "objects",
+            "policyname": "event_photos_delete",
+            "schemaname": "storage",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "((author_id = ( SELECT auth.uid() AS uid)) AND (upload_status <> 'pronta'::upload_status) AND (deleted_at IS NULL))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "photos",
+            "policyname": "photos_author_pending_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "is_master()",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "platform_roles",
+            "policyname": "platform_roles_master_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "(is_host(event_id) OR is_master() OR is_platform_role('auditor'::text))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "audit_logs",
+            "policyname": "audit_host_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "(is_host(event_id) OR is_member(event_id) OR is_master())",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "event_themes",
+            "policyname": "event_themes_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "event_themes",
+            "policyname": "event_themes_insert",
+            "schemaname": "public",
+            "with_check": "(is_host(event_id) AND (NOT event_theme_locked(event_id)))"
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "(is_host(event_id) AND (NOT event_theme_locked(event_id)))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "event_themes",
+            "policyname": "event_themes_update",
+            "schemaname": "public",
+            "with_check": "(is_host(event_id) AND (NOT event_theme_locked(event_id)))"
+          },
+          {
+            "cmd": "DELETE",
+            "qual": "(is_host(event_id) AND (NOT event_theme_locked(event_id)))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "event_themes",
+            "policyname": "event_themes_delete",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "(is_host(event_id) OR ((upload_status = 'pronta'::upload_status) AND (is_member(event_id) OR is_master())))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "event_assets",
+            "policyname": "event_assets_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "objects",
+            "policyname": "event_branding_insert",
+            "schemaname": "storage",
+            "with_check": "((bucket_id = 'event-branding'::text) AND can_upload_branding(name))"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "((bucket_id = 'event-branding'::text) AND can_read_branding(name))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "objects",
+            "policyname": "event_branding_select",
+            "schemaname": "storage",
+            "with_check": null
+          },
+          {
+            "cmd": "DELETE",
+            "qual": "((bucket_id = 'event-branding'::text) AND can_delete_branding(name))",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "objects",
+            "policyname": "event_branding_delete",
+            "schemaname": "storage",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "is_platform_staff()",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "platform_settings",
+            "policyname": "platform_settings_staff_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "is_platform_staff()",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "feature_flags",
+            "policyname": "feature_flags_select",
+            "schemaname": "public",
+            "with_check": null
+          }
+        ]
+      }
+    ],
+    "functions": [
+      {
+        "functions": [
+          {
+            "args": "p_name text",
+            "name": "can_read_object",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_name text",
+            "name": "can_delete_object",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid",
+            "name": "is_host",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid",
+            "name": "is_member",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid",
+            "name": "is_revealed",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_photo uuid",
+            "name": "can_see_photo",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_photo uuid",
+            "name": "report_photo",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid",
+            "name": "event_counts",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid",
+            "name": "delete_event",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_a text, p_b text",
+            "name": "contrast_ratio",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid",
+            "name": "event_theme_locked",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "handle_new_user",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_invitation uuid",
+            "name": "revoke_invitation",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid, p_action text, p_detail jsonb",
+            "name": "audit",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid, p_label text, p_expires timestamp with time zone, p_max_uses integer",
+            "name": "create_invitation",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_key text, p_max integer, p_window interval",
+            "name": "check_rate_limit",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_name text",
+            "name": "can_upload_object",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "is_anonymous",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_name text",
+            "name": "photo_id_from_path",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_path text",
+            "name": "enqueue_purge",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "gen_share_code",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_id uuid",
+            "name": "discard_photo",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "audit_logs_immutable",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "is_platform_staff",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_action text",
+            "name": "admin_action_is_sensitive",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "is_master",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "events_guard",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "photos_guard",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "reactions_guard",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_start timestamp with time zone, p_hours numeric, p_ended timestamp with time zone",
+            "name": "event_end",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "expire_pending_uploads",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "event_theme_allowed_qr_styles",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p jsonb",
+            "name": "event_theme_decor_valid",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p jsonb",
+            "name": "event_theme_colors_valid",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "event_themes_guard",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_hex text",
+            "name": "hex_luminance",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "event_theme_allowed_fonts",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p jsonb",
+            "name": "event_theme_contrast_ok",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_user uuid, p_role text, p_reason text",
+            "name": "admin_revoke_platform_role",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_role text",
+            "name": "is_platform_role",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_name text",
+            "name": "branding_event_from_path",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_name text",
+            "name": "can_read_branding",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_name text",
+            "name": "can_upload_branding",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_name text",
+            "name": "can_delete_branding",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "reveal_due_events",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_code text",
+            "name": "event_preview",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_id uuid",
+            "name": "discard_asset",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "get_enabled_flags",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_code text, p_name text, p_table text, p_token text",
+            "name": "join_event",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "rls_auto_enable",
+            "config": [
+              "search_path=pg_catalog"
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "participants_guard",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "request_account_deletion",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid",
+            "name": "rotate_event_code",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_user uuid",
+            "name": "process_account_deletion",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_photo uuid, p_reason text",
+            "name": "admin_request_photo_access",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_id uuid, p_event uuid, p_moment text, p_caption text, p_table text, p_captured_at timestamp with time zone",
+            "name": "begin_photo",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_id uuid",
+            "name": "finalize_photo",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "platform_roles_guard",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_user uuid, p_role text, p_reason text",
+            "name": "admin_grant_platform_role",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_id uuid, p_event uuid, p_kind text, p_mime text, p_width integer, p_height integer",
+            "name": "begin_asset",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "settings_audit",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "settings_touch",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": false,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_key text, p_value jsonb, p_reason text",
+            "name": "admin_set_setting",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_key text, p_enabled boolean, p_rollout jsonb, p_reason text",
+            "name": "admin_set_feature_flag",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_id uuid",
+            "name": "finalize_asset",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_from timestamp with time zone, p_to timestamp with time zone, p_tz text",
+            "name": "admin_dashboard_metrics",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_limit integer, p_offset integer, p_search text, p_status text, p_include_deleted boolean",
+            "name": "admin_list_events",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_limit integer, p_offset integer, p_search text",
+            "name": "admin_list_organizers",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_limit integer, p_offset integer",
+            "name": "admin_lgpd_requests",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "admin_health",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_limit integer, p_offset integer",
+            "name": "admin_list_users",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid, p_limit integer, p_offset integer",
+            "name": "admin_list_participants",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_event uuid, p_limit integer, p_offset integer",
+            "name": "admin_list_invites",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "p_limit integer, p_offset integer, p_action text",
+            "name": "admin_list_audit",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "purge_deleted_events",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_id uuid, p_user uuid",
+            "name": "begin_asset_validation",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_id uuid, p_user uuid, p_width integer, p_height integer, p_bytes integer, p_mime text",
+            "name": "mark_asset_validated",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "expire_pending_assets",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "p_action text, p_target_type text, p_target_id text, p_reason text, p_event uuid",
+            "name": "admin_log",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "platform_roles_keep_last_master",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "guard_audit_ddl",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": true,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "audit_integrity",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          },
+          {
+            "args": "",
+            "name": "admin_audit_integrity",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": true
+          },
+          {
+            "args": "",
+            "name": "audit_integrity_check",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "anon_exec": false,
+            "security_definer": true,
+            "authenticated_exec": false
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -32,5 +32,6 @@ Deno.serve(async (req) => {
     const del = await admin.from("storage_purge_queue").delete().eq("bucket", bucket).in("path", paths);
     if (del.error) falhas += paths.length; else removidos += paths.length;
   }
-  return json({ ok: falhas === 0, removidos, falhas, restante: Math.max(0, (fila?.length ?? 0) - removidos) });
+  return json({ ok: falhas === 0, removidos, falhas, restante: Math.max(0, (fila?.length ?? 0) - removidos) }, falhas > 0 ? 500 : 200);
 });
+

@@ -88,20 +88,9 @@ g += ["  classDef done fill:#E8ECE4,stroke:#1C1917;", "  classDef ready fill:#FF
 w("DEPENDENCY-GRAPH.md", "\n".join(g) + "\n")
 # RELEASE GATES
 nxt = ready(); open_p01 = [i for i in leaf if i["priority"] in ("P0", "P1") and i["status"] not in ("DONE", "DEFERRED", "CANCELLED")]
-gates = [("G1","Jornadas locais (eventos, convidados, fotos, revelação)","PASSA","242 unit + 50 E2E locais; docs/audit/01-FUNCTIONAL-COVERAGE.md"),
- ("G2","Design system v1 aderente (paridade, axe, viewports)","PASSA","docs/audit/02-VISUAL-COMPLIANCE.md"),
- ("G3","Segurança do cliente pré-backend","PASSA com ressalvas","docs/audit/04-SECURITY-REVIEW.md"),
- ("G4","Revelação programada no servidor (remoto)","PASSA","integração remota 12/12 e adaptador 9/9 (docs/supabase/REMOTE-HOMOLOGATION.md)"),
- ("G5","Auditoria independente AUD-001 / reauditoria AUD-002","CONCLUÍDAS (CONDITIONAL GO)","docs/audit/11-RELEASE-GATE.md"),
- ("G6","Google OAuth + callback no preview (login real)","PASSA","docs/supabase/REMOTE-HOMOLOGATION.md (rodada 3)"),
- ("G7","Fluxo de convidado com RLS, upload privado, revelação por cron e álbum no preview remoto","PASSA (desktop e Android emulado; iOS Safari não testado)","web/e2e/remote-flow.spec.ts; docs/supabase/REMOTE-HOMOLOGATION.md (rodada 4)"),
- ("G8","Variáveis de Production confirmadas e domínio servindo o MemoriesMT","BLOQUEADO (domínio serve o Lume legado; valores criptografados)","REL-001, INF-002"),
- ("G9","V2 backend validado em Supabase local (pgTAP, integração, adaptador, E2E, provisionamento)","PASSA (local): pgTAP 385/385, integração 12/12, adaptador 13/13, E2E 5/5, provisionamento 7/7","docs/supabase/MIGRATIONS-V2.md; supabase/ops/test_provision_master.sh"),
- ("G10","V2: revisão independente (segurança, a11y, arquitetura, performance) e correção de P0/P1","EM ANDAMENTO","relatórios da sessão"),
- ("G12","Migrations V2 aplicadas no remoto e Edge Function finalize-asset publicada","BLOQUEADO (aplicação bloqueada pelo classificador; ação do dono)","docs/supabase/V2-REMOTE-APPLY-RUNBOOK.md"),
- ("G11","Acesso do conector Supabase ao projeto (INF-001)","ABERTO","INF-001")]
+gates = [('G1', 'Jornadas locais e E2E', 'PARCIAL: 266 unitários; E2E alternativo 1 falhou/15 não executados', 'docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G2', 'Design system v1 e acessibilidade', 'HISTÓRICO; sem novo aceite físico nesta A5', 'docs/audit/02-VISUAL-COMPLIANCE.md; docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G3', 'Segurança cliente/backend', 'PARCIAL: 30 probes e RLS; INF-004 aberto', 'docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G4', 'Revelação programada no servidor', 'Agenda ativa/zero atraso; nova jornada E2E pendente', 'docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G5', 'Auditoria/revisão independente', 'Revisão do diff A5 concluída; parecer NO-GO', 'docs/supabase/A5-REVIEW.md'), ('G6', 'Google OAuth e sessão', 'PARCIAL: Master confirmado; refresh/expiração pendentes', 'docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G7', 'Convidado: upload, Storage, quotas, galeria e revelação', 'PARCIAL; E2E autenticado/físicos pendentes', 'docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G8', 'Production pronta para promoção', 'BLOQUEADO: INF-004; promoção não autorizada', 'docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G9', 'Backend V2 local: pgTAP/integração', 'NÃO REEXECUTADO: stack local indisponível; histórico nos anexos', 'docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G10', 'Aceite completo V2', 'BLOQUEADO; A não concluída', 'docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G12', 'Migrations V2 e Edge Functions remotas', 'PASSA no inventário: 16 migrations e duas Functions ativas', 'docs/supabase/evidence/a5-20261021/backend-readonly.json; docs/supabase/A5-HOMOLOGATION-REPORT.md'), ('G11', 'Conector Supabase acessa o projeto correto', 'PASSA: consultas remotas de leitura', 'docs/supabase/evidence/a5-20261021/backend-readonly.json')]
 rg = ["# Release gates", "", tab(gates, ["Gate", "Critério", "Estado", "Evidência"]), "", f"## Itens P0/P1 em aberto ({len(open_p01)})", tab([(i["id"], i["title"], i["priority"], i["status"]) for i in open_p01], ["ID", "Título", "Prio", "Status"]), "",
-      "## Decisão atual", "**V1: NO-GO para produção** até REL-001/SB-008 (domínio serve o app legado e as variáveis de Production não foram verificadas) e G7 (fluxo de convidado no preview remoto). **V2: GO para preview** (nunca promover antes da V1 e da revisão independente). Itens da V2 em IN_REVIEW dependem da revisão A1–A5; nada aqui está DONE por ter sido codificado.", "",
+      "## Decisão atual", "**NO-GO para produção; A não concluída.** Checkpoint A5 em docs/supabase/A5-HOMOLOGATION-REPORT.md. Testes unitários/probes não substituem E2E autenticado, sessões e aparelhos físicos. Nenhuma promoção autorizada. Ordem A → B → Codex → C preservada; proposta paralela de backlog não integrada.", "",
       "## Próximos itens READY", tab([(i["priority"], i["id"], i["title"]) for i in nxt], ["Prio", "ID", "Título"])]
 w("RELEASE-GATES.md", "\n".join(rg) + "\n")
 print(f"OK: {len(leaf)} itens; prioridade {dict(cnt_p)}; status {dict(cnt_s)}; requisitos {dict(cnt)}")
@@ -130,3 +119,4 @@ if rel:
     scale = crit(lambda i: i["id"] in ("COM-008", "COM-010", "COM-012", "COM-013"))
     r_out += ["## Caminho crítico", "", "Monetização: " + " → ".join(mon), "", "Escala: " + " → ".join(scale), ""]
     w("ROADMAP.md", "\n".join(r_out))
+

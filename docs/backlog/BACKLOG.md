@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **208** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 54, P3 50. Status: BACKLOG 99, BLOCKED 4, CANCELLED 2, DEFERRED 11, DONE 61, IN_REVIEW 20, READY 11.
+Total: **213** itens (sem contar 19 épicos). Prioridade: P0 37, P1 69, P2 56, P3 51. Status: BACKLOG 97, BLOCKED 7, CANCELLED 2, DEFERRED 11, DONE 62, IN_REVIEW 23, READY 11.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -504,14 +504,19 @@ Total: **208** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 54, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
+| INF-004 | BUG | Variável SUPABASE_SERVICEROLE_KEY (sensível) no ambiente Production da Vercel | P1 | BLOCKED | - | A.4 2026-10-21 | - | remoto |
+| INF-005 | TASK | Preview por API exige rootDirectory=web e framework=nextjs | P2 | BLOCKED | REL-001 | A.4 2026-10-21 | - | remoto |
+| QAV-004 | TASK | Limpar usuários e dados de teste do remoto | P3 | BLOCKED | SCV-010 | A.4 2026-10-21 | - | remoto |
 | SCV-001 | FEATURE | Feature flags e platform_settings com escrita só do master | P2 | IN_REVIEW | MAD-001 | missão design/studio/master 2026-10-21 | 5374f89 | local-supabase |
 | SCV-002 | FEATURE | Revisão de segurança: escalada de privilégio, XSS em tema/mensagem, upload malicioso, IDOR | P0 | BACKLOG | EST-004, MAD-003 | missão design/studio/master 2026-10-21 | - | - |
 | SCV-003 | FEATURE | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha | P0 | IN_REVIEW | MAD-001 | revisão independente A1–A5 2026-10-21 | 23af55c | local-supabase |
-| SCV-004 | FEATURE | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD | P1 | BACKLOG | SB-005 | revisão independente A1–A5 2026-10-21 | - | - |
-| SCV-005 | FEATURE | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava do último master | P2 | BACKLOG | MAD-002 | revisão independente A1–A5 2026-10-21 | - | - |
+| SCV-004 | FEATURE | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD | P1 | IN_REVIEW | SB-005 | revisão independente A1–A5 2026-10-21 | 36b01f2 | local+remoto |
+| SCV-005 | FEATURE | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava do último master | P2 | IN_REVIEW | MAD-002 | revisão independente A1–A5 2026-10-21 | 3a1a79d | local |
 | SCV-006 | FEATURE | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | IN_REVIEW | SB-005, EST-004 | revisão independente A1–A5 2026-10-21 | 23af55c | local-supabase |
 | SCV-007 | FEATURE | Middleware de refresh de sessão para Server Components (evitar deslogar o console após ~1 h) | P2 | BACKLOG | MAD-003 | revisão independente A1–A5 2026-10-21 | - | - |
 | SCV-008 | FEATURE | Validar em banco (Supabase local) a migration 20261022000700 e as edições de endurecimento; reconciliar contagem pgTAP | P0 | IN_REVIEW | SCV-003 | revisão independente A1–A5 2026-10-21 | 23af55c | local-supabase |
+| SCV-009 | FEATURE | purge-storage: responder não-2xx quando falhas>0 e alertar fila parada | P2 | IN_REVIEW | SCV-004 | etapa A.3.5 2026-10-21 | c0fd33b43bc201cacb6eb652d6e6541e75f6911b | local (correção não publicada) |
+| SCV-010 | BUG | Auth remoto com login e-mail/senha e cadastro abertos | P1 | DONE | - | A.4 2026-10-21 | c0fd33b43bc201cacb6eb652d6e6541e75f6911b | supabase-remoto |
 
 **SCV-001** critérios: RLS; testes de escalada de privilégio · testes: pgTAP 366/366 local, pgTAP 385/385; adaptador 13/13
 
@@ -519,15 +524,23 @@ Total: **208** itens (sem contar 19 épicos). Prioridade: P0 37, P1 67, P2 54, P
 
 **SCV-003** critérios: Config remota registrada; provision_master recusa conta com senha/sem Google (teste) · testes: pgTAP 398/398; adapter 14/14; test_provision_master.sh, supabase/ops/test_provision_master.sh (7/7)
 
-**SCV-004** critérios: Objetos de event-branding removidos após purga/LGPD; teste de ponta a ponta
+**SCV-004** critérios: Objetos de event-branding removidos após purga/LGPD; teste de ponta a ponta · testes: web/integration/purge.integration.test.mjs
 
-**SCV-005** critérios: pgTAP cobre os três; sem contorno silencioso
+**SCV-005** critérios: pgTAP cobre os três; sem contorno silencioso · testes: supabase/tests/database/03_audit_hardening.test.sql
 
 **SCV-006** critérios: Edge Function valida; arquivo falso/bomba de descompressão recusado · testes: integration/adapter.itest.ts upload hostil (13/13), pgTAP 398/398; adapter 14/14; test_provision_master.sh, web/src/lib/image-sniff.test.ts (11)
 
 **SCV-007** critérios: Sessão do console renova sem logout; teste E2E com expiração
 
 **SCV-008** critérios: supabase db reset + test db verdes; contagem documentada · testes: pgTAP 385/385 com endurecimento (Supabase local), pgTAP 398/398; adapter 14/14; test_provision_master.sh
+
+**SCV-009** critérios: Falha de Storage gera status não-2xx visível em net._http_response; admin_health sinaliza fila com item mais antigo que 2 h · testes: docs/supabase/evidence/a5-20261021/purge-red.txt, docs/supabase/evidence/a5-20261021/purge-green.txt, docs/supabase/evidence/a5-20261021/unit-final.txt
+
+**INF-004** critérios: Variável removida de Production ou justificada por escrito; Nenhuma service_role em Preview/Production do MemoriesMT
+
+**INF-005** critérios: Push da branch gera preview com o app de web/ sem parâmetros manuais
+
+**QAV-004** critérios: Remoto sem usuários/objetos de teste; backup anterior guardado
 
 ## EP-17 · QA v2 (BACKLOG)
 

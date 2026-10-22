@@ -1,0 +1,42 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[WebServer] (node:31) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[WebServer] (node:44) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 16 tests using 1 worker
+
+(node:64) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   1 e2e/flows.spec.ts:4:5 › anfitrião cria um evento pelo wizard e vê o convite com código e QR (1.0m)
+Testing stopped early after 1 maximum allowed failures.
+
+
+  1) e2e/flows.spec.ts:4:5 › anfitrião cria um evento pelo wizard e vê o convite com código e QR ───
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Quando o evento terminar' })
+
+
+       at helpers.ts:34
+
+      32 |   const group = page.getByRole("group", { name: "Revelação programada" });
+      33 |   if (reveal === "desligada") await group.getByRole("button", { name: /^Desligada/ }).click();
+    > 34 |   else if (reveal === "ao-terminar") await page.getByRole("button", { name: "Quando o evento terminar" }).click();
+         |                                                                                                           ^
+      35 |   else {
+      36 |     await page.getByRole("button", { name: "Escolher data e hora" }).click();
+      37 |     await page.getByLabel("Data", { exact: true }).fill(reveal.date);
+        at createViaWizard (/workspace/scratch/0e0754848ab2/memoriesmt/web/e2e/helpers.ts:34:107)
+        at /workspace/scratch/0e0754848ab2/memoriesmt/web/e2e/flows.spec.ts:5:20
+
+    Error Context: test-results/flows-anfitrião-cria-um-ev-8f4fe-ê-o-convite-com-código-e-QR/error-context.md
+
+  1 failed
+    e2e/flows.spec.ts:4:5 › anfitrião cria um evento pelo wizard e vê o convite com código e QR ────
+  15 did not run
+  1 error was not a part of any test, see above for details

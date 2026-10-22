@@ -1,0 +1,73 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[WebServer] (node:56) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[WebServer] (node:69) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:92) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:104) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:138) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:139) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:145) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:151) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:158) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:167) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:182) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:180) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:270) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[WebServer] (node:283) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Unhandled Rejection: NodeError [SystemError]: A system error occurred: uv_interface_addresses returned Unknown system error 1 (Unknown system error 1)
+[WebServer]     at Object.networkInterfaces (node:os:218:16)
+[WebServer]     at getNetworkHosts (/workspace/scratch/0e0754848ab2/memoriesmt/web/node_modules/next/dist/lib/get-network-host.js:18:36)
+[WebServer]     at getNetworkHost (/workspace/scratch/0e0754848ab2/memoriesmt/web/node_modules/next/dist/lib/get-network-host.js:40:19)
+[WebServer]     at Server.<anonymous> (/workspace/scratch/0e0754848ab2/memoriesmt/web/node_modules/next/dist/server/lib/start-server.js:273:84)
+[WebServer]     at Server.emit (node:events:521:24)
+[WebServer]     at emitListeningNT (node:net:2210:10)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+[WebServer]   code: 'ERR_SYSTEM_ERROR',
+[WebServer]   info: {
+[WebServer]     errno: 1,
+[WebServer]     code: 'Unknown system error 1',
+[WebServer]     message: 'Unknown system error 1',
+[WebServer]     syscall: 'uv_interface_addresses'
+[WebServer]   },
+[WebServer]   errno: [Getter/Setter: 1],
+[WebServer]   syscall: [Getter/Setter: 'uv_interface_addresses']
+[WebServer] }
+
+Running 1 test using 1 worker
+
+(node:291) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 e2e/studio-local.spec.ts:5:5 › tema personalizado vale nas telas do convidado, não vaza para o painel nem para a plataforma, e restaura o padrão (7ms)
+
+
+  1) e2e/studio-local.spec.ts:5:5 › tema personalizado vale nas telas do convidado, não vaza para o painel nem para a plataforma, e restaura o padrão 
+
+    Error: browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-linux64/chrome-headless-shell
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+
+    Error Context: test-results/studio-local-tema-personal-7d033-taforma-e-restaura-o-padrão/error-context.md
+
+  1 failed
+    e2e/studio-local.spec.ts:5:5 › tema personalizado vale nas telas do convidado, não vaza para o painel nem para a plataforma, e restaura o padrão 

@@ -1,0 +1,72 @@
+{
+  "summary": {
+    "result": [
+      {
+        "count": 44,
+        "level": "log",
+        "source": "function_logs"
+      },
+      {
+        "count": 25,
+        "level": "",
+        "source": "function_edge_logs"
+      },
+      {
+        "count": 289,
+        "level": "info",
+        "source": "auth_logs"
+      },
+      {
+        "count": 26,
+        "level": "warning",
+        "source": "auth_logs"
+      },
+      {
+        "count": 2788,
+        "level": "",
+        "source": "postgres_logs"
+      }
+    ]
+  },
+  "warnings": {
+    "result": [
+      {
+        "count": 2,
+        "error_code": "validation_failed",
+        "source": "auth_logs",
+        "status_code": ""
+      },
+      {
+        "count": 20,
+        "error_code": "",
+        "source": "auth_logs",
+        "status_code": ""
+      },
+      {
+        "count": 1,
+        "error_code": "anonymous_provider_disabled",
+        "source": "auth_logs",
+        "status_code": ""
+      },
+      {
+        "count": 1,
+        "error_code": "no_authorization",
+        "source": "auth_logs",
+        "status_code": ""
+      },
+      {
+        "count": 1,
+        "error_code": "phone_provider_disabled",
+        "source": "auth_logs",
+        "status_code": ""
+      },
+      {
+        "count": 1,
+        "error_code": "email_provider_disabled",
+        "source": "auth_logs",
+        "status_code": ""
+      }
+    ]
+  },
+  "window": "last 24 hours; not proof of absence of all errors"
+}

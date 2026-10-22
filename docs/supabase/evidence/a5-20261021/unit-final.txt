@@ -1,0 +1,18 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/scratch/0e0754848ab2/memoriesmt/web
+
+
+ Test Files  28 passed (28)
+      Tests  266 passed (266)
+   Start at  18:30:47
+   Duration  21.07s (environment 69%, setup 17%, tests 6%, transform 5%, import 3%)
+
+Environment  jsdom was created 28 times · 80.83s total, 69% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
