@@ -123,6 +123,35 @@ export async function checkPixCharge(cfg: AbacateConfig, id: string): Promise<Pi
   return out;
 }
 
+export type PixListItem = { id: string; status: string; devMode: boolean; amount?: number; brCode?: string; brCodeBase64?: string; expiresAt?: string };
+
+/**
+ * GET /transparents/list filtrado por `id` ou `externalId` (nunca sem filtro). Serve para recuperar o valor quando a
+ * reconsulta (check) não o informa e para achar a cobrança de um pedido cuja criação terminou sem resposta (timeout).
+ */
+export async function listPixCharges(cfg: AbacateConfig, filter: { id?: string; externalId?: string }): Promise<PixListItem[]> {
+  const q = new URLSearchParams();
+  if (str(filter.id)) q.set("id", filter.id);
+  if (str(filter.externalId)) q.set("externalId", filter.externalId);
+  if ([...q.keys()].length === 0) throw new AbacateError("invalid", 0);
+  q.set("limit", "10");
+  const { data } = await call(cfg, "GET", `/transparents/list?${q.toString()}`);
+  const items: unknown[] = Array.isArray(data) ? data : [];
+  const out: PixListItem[] = [];
+  for (const it of items) {
+    if (!it || typeof it !== "object") continue;
+    const d = it as Record<string, unknown>;
+    if (!str(d.id) || !str(d.status)) continue;
+    const item: PixListItem = { id: d.id, status: d.status, devMode: typeof d.devMode === "boolean" ? d.devMode : cfg.apiKey.startsWith("abc_dev_") };
+    if (num(d.amount)) item.amount = d.amount;
+    if (str(d.brCode)) item.brCode = d.brCode;
+    if (str(d.brCodeBase64)) item.brCodeBase64 = d.brCodeBase64;
+    if (str(d.expiresAt)) item.expiresAt = d.expiresAt;
+    out.push(item);
+  }
+  return out;
+}
+
 /** POST /transparents/refund (reembolso total). Cobrança já reembolsada conta como sucesso (idempotente). */
 export async function refundCharge(cfg: AbacateConfig, id: string, reason: string): Promise<void> {
   requireId(id);

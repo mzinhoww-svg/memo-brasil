@@ -209,7 +209,8 @@ begin
   -- idempotência: a mesma chave devolve o mesmo pedido (em qualquer estado), só para o mesmo evento e plano
   select * into o from public.payment_orders where host_id = uid and idempotency_key = p_idempotency_key;
   if found then
-    if o.event_id <> p_event or o.plan_code <> p_plan then raise exception 'invalid' using errcode = 'MM005'; end if;
+    -- event_id null (evento purgado) também recusa
+    if o.event_id is distinct from p_event or o.plan_code <> p_plan then raise exception 'invalid' using errcode = 'MM005'; end if;
     return public.payments_order_json(o, true);
   end if;
 
@@ -407,6 +408,25 @@ begin
   return jsonb_build_object('applied', outcome = 'aplicado', 'from', o.status, 'to', p_status, 'entitlementId', ent_id);
 end $$;
 
+-- Pedido 'criado' sem cobrança há mais de 5 min (a criação falhou ou terminou sem resposta e a reconciliação não achou
+-- a cobrança pelo externalId) → 'falhou', liberando um novo checkout. Não passa por payments_apply_status, que exige a
+-- cobrança. true se mudou o estado; qualquer outro caso é no-op.
+create function public.payments_fail_unattached(p_order uuid) returns boolean
+language plpgsql security definer set search_path = '' as $$
+declare o public.payment_orders;
+begin
+  select * into o from public.payment_orders where id = p_order for update;
+  if not found or o.status <> 'criado' or o.provider_charge_id is not null or o.created_at >= now() - interval '5 minutes' then
+    return false;
+  end if;
+  update public.payment_orders set status = 'falhou', last_checked_at = now() where id = o.id;
+  insert into public.payment_events (provider, event_type, order_id, outcome, detail)
+  values (o.provider, 'apply.reconcile', o.id, 'sem_cobranca', jsonb_build_object('from', o.status, 'to', 'falhou', 'env', o.provider_env));
+  perform public.audit(o.event_id, 'payment.falhou',
+    jsonb_build_object('orderId', o.id, 'plan', o.plan_code, 'amountCents', o.amount_cents, 'env', o.provider_env,
+                       'from', o.status, 'source', 'reconcile'));
+  return true;
+end $$;
 
 -- Deduplicação de eventos do provedor (webhook): false se (provider, provider_event_id) já foi gravado.
 create function public.payments_record_event(p_provider_event_id text, p_type text, p_order uuid, p_outcome text, p_detail jsonb)
@@ -430,7 +450,7 @@ revoke execute on function
   public.payments_quote(uuid, text), public.payments_open_order(uuid, text, uuid), public.payments_order_status(uuid),
   public.payments_attach_charge(uuid, text, text, text, timestamptz, boolean),
   public.payments_apply_status(uuid, text, public.payment_status, int, boolean, text),
-  public.payments_record_event(text, text, uuid, text, jsonb)
+  public.payments_record_event(text, text, uuid, text, jsonb), public.payments_fail_unattached(uuid)
   from public, anon, authenticated, service_role;
 grant execute on function
   public.payments_quote(uuid, text), public.payments_open_order(uuid, text, uuid), public.payments_order_status(uuid)
@@ -438,5 +458,5 @@ grant execute on function
 grant execute on function
   public.payments_attach_charge(uuid, text, text, text, timestamptz, boolean),
   public.payments_apply_status(uuid, text, public.payment_status, int, boolean, text),
-  public.payments_record_event(text, text, uuid, text, jsonb)
+  public.payments_record_event(text, text, uuid, text, jsonb), public.payments_fail_unattached(uuid)
   to service_role;

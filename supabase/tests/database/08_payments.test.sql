@@ -338,6 +338,33 @@ reset role;
 select results_eq(format('select status::text, needs_refund from public.payment_orders where id in (%L, %L, %L) order by amount_cents, status', :'o3', :'o9', :'o6u'),
   $$values ('estornado', false), ('pago', true), ('estornado', false)$$, 'estados após a purga; pago sem evento → needs_refund');
 
+-- chave de idempotência de um pedido de evento purgado (event_id null) não é reusada em outro evento
+select tests.login('00000000-0000-4000-8000-0000000008a1');
+select throws_ok($$select public.payments_open_order('00000000-0000-4000-8000-0000000008e1', 'festa', 'a9a9a9a9-a9a9-4a9a-8a9a-a9a9a9a9a9a9')$$,
+  'MM005', 'invalid', 'open_order: chave de pedido com event_id null em outro evento → MM005 (is distinct from)');
+reset role;
+
+-- ===================================================== serviço: pedido criado sem cobrança (falha/timeout na criação) → falhou
+insert into public.payment_orders (id, event_id, host_id, plan_code, amount_cents, provider_env, idempotency_key, created_at) values
+  ('00000000-0000-4000-8000-0000000008f1', null, '00000000-0000-4000-8000-0000000008a1', 'festa', 2900, 'sandbox', gen_random_uuid(), now() - interval '6 minutes'),
+  ('00000000-0000-4000-8000-0000000008f2', null, '00000000-0000-4000-8000-0000000008a1', 'festa', 2900, 'sandbox', gen_random_uuid(), now() - interval '1 minute');
+select tests.login('00000000-0000-4000-8000-0000000008a1');
+select throws_ok($$select public.payments_fail_unattached('00000000-0000-4000-8000-0000000008f1')$$, '42501', null,
+  'fail_unattached: organizador não executa');
+reset role;
+set local role service_role;
+select is(public.payments_fail_unattached('00000000-0000-4000-8000-0000000008f1'), true, 'fail_unattached: criado sem cobrança há > 5 min → falhou');
+select is(public.payments_fail_unattached('00000000-0000-4000-8000-0000000008f1'), false, 'fail_unattached: repetido é no-op');
+select is(public.payments_fail_unattached('00000000-0000-4000-8000-0000000008f2'), false, 'fail_unattached: criado há < 5 min fica criado');
+select is(public.payments_fail_unattached(:'o9'::uuid), false, 'fail_unattached: pedido com cobrança não muda');
+reset role;
+select results_eq($$select status::text from public.payment_orders where id in ('00000000-0000-4000-8000-0000000008f1', '00000000-0000-4000-8000-0000000008f2') order by id$$,
+  $$values ('falhou'), ('criado')$$, 'fail_unattached: estados');
+select is((select outcome from public.payment_events where order_id = '00000000-0000-4000-8000-0000000008f1' order by id desc limit 1), 'sem_cobranca',
+  'fail_unattached: outcome sem_cobranca registrado');
+select ok(exists (select 1 from public.audit_logs where action = 'payment.falhou' and detail ->> 'orderId' = '00000000-0000-4000-8000-0000000008f1'),
+  'fail_unattached: auditado');
+
 -- ===================================================== plano inativo no ambiente; pedido aberto de outro ambiente
 select tests.login('00000000-0000-4000-8000-0000000008a1');
 select public.payments_open_order('00000000-0000-4000-8000-0000000008e2', 'festa', 'c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2') ->> 'orderId' as o2s \gset

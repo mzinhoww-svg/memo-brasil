@@ -1,7 +1,7 @@
 // Testes puros (sem rede) do cliente AbacatePay v2, da autenticação do webhook e do mapa de status.
 // Rodar: cd web && npx vitest run --config vitest.functions.config.ts
 import { describe, expect, it } from "vitest";
-import { AbacateError, checkPixCharge, createPixCharge, refundCharge, simulatePixPayment, type AbacateConfig } from "./abacatepay";
+import { AbacateError, checkPixCharge, createPixCharge, listPixCharges, refundCharge, simulatePixPayment, type AbacateConfig } from "./abacatepay";
 import { verifyWebhookRequest } from "./payments-webhook-auth";
 import { mapProviderStatus } from "./payments-status";
 
@@ -166,6 +166,31 @@ describe("checkPixCharge", () => {
   it("sem status vira erro provider; id vazio é invalid", async () => {
     expect((await caught(checkPixCharge(cfg(fakeFetch(200, ok({ id: "x" }))), "x"))).kind).toBe("provider");
     expect((await caught(checkPixCharge(cfg(fakeFetch(200, ok({}))), ""))).kind).toBe("invalid");
+  });
+});
+
+describe("listPixCharges", () => {
+  it("faz GET /transparents/list filtrando por externalId e devolve os itens normalizados", async () => {
+    const calls: Call[] = [];
+    const r = await listPixCharges(cfg(fakeFetch(200, ok([pixData]), calls)), { externalId: "o 1" });
+    expect(calls[0].method).toBe("GET");
+    expect(calls[0].url).toBe(`${BASE}/transparents/list?externalId=o+1&limit=10`);
+    expect(r).toEqual([{ id: pixData.id, status: "PENDING", devMode: true, amount: 2900, brCode: pixData.brCode, brCodeBase64: pixData.brCodeBase64, expiresAt: pixData.expiresAt }]);
+  });
+
+  it("filtra por id; itens sem id ou status são descartados; lista vazia é []", async () => {
+    const calls: Call[] = [];
+    const r = await listPixCharges(cfg(fakeFetch(200, ok([{ id: "x" }, { status: "PAID" }, { id: "pix_char_2", status: "PAID", amount: 2900 }]), calls)), { id: "pix_char_2" });
+    expect(calls[0].url).toBe(`${BASE}/transparents/list?id=pix_char_2&limit=10`);
+    expect(r).toEqual([{ id: "pix_char_2", status: "PAID", devMode: true, amount: 2900 }]);
+    expect(await listPixCharges(cfg(fakeFetch(200, ok([]))), { id: "pix_char_3" })).toEqual([]);
+  });
+
+  it("sem filtro é invalid (nunca lista a loja inteira) e erro HTTP vira AbacateError", async () => {
+    const calls: Call[] = [];
+    expect((await caught(listPixCharges(cfg(fakeFetch(200, ok([]), calls)), {}))).kind).toBe("invalid");
+    expect(calls).toHaveLength(0);
+    expect((await caught(listPixCharges(cfg(fakeFetch(429, { data: null, success: false, error: "x" })), { id: "a" }))).kind).toBe("rate_limit");
   });
 });
 
