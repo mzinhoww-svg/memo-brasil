@@ -17,7 +17,7 @@
  * - Enums do servidor são validados: status desconhecido → "falhou"; motivo de cotação desconhecido → "plano_inativo"
  *   com `payable: false`; motivo de resgate desconhecido → "invalido".
  * - `redeemCode(eventId, code): Promise<RedeemResult>` — RPC `redeem_code`; normaliza o código antes. Motivos de recusa
- *   (`invalido`, `ja_incluido`, `muitas_tentativas`) voltam no resultado, não como exceção.
+ *   (`invalido`, `ja_incluido`, `muitas_tentativas`, `evento_encerrado`) voltam no resultado, não como exceção.
  * - `normalizeCode(input): string` — maiúsculas, sem espaços, no formato `MMT-XXXX-XXXX` quando reconhecível.
  * - `formatBRL(cents): string` — `18900` → `"R$ 189,00"`.
  *
@@ -81,7 +81,7 @@ const numOrNull = (v: unknown): number | null => (typeof v === "number" ? v : nu
 // enums do servidor: valor desconhecido nunca vira estado otimista
 const ORDER_STATUSES: readonly OrderStatus[] = ["criado", "pendente", "pago", "expirado", "cancelado", "falhou", "estornado", "em_disputa", "perdido"];
 const QUOTE_REASONS: readonly QuoteReason[] = ["ok", "ja_incluido", "plano_inativo", "evento_encerrado", "valor_minimo"];
-const REDEEM_REASONS: readonly RedeemReason[] = ["ok", "ja_incluido", "invalido", "muitas_tentativas"];
+const REDEEM_REASONS: readonly RedeemReason[] = ["ok", "ja_incluido", "invalido", "muitas_tentativas", "evento_encerrado"];
 const oneOf = <T extends string>(v: unknown, all: readonly T[], fallback: T): T => (all.includes(v as T) ? (v as T) : fallback);
 /** Status desconhecido vira "falhou": não aberto, sem direito concedido. */
 const toStatus = (v: unknown): OrderStatus => oneOf(v, ORDER_STATUSES, "falhou");

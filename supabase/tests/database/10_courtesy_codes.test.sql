@@ -42,6 +42,10 @@ select has_table('public', 'courtesy_redemptions', 'tabela courtesy_redemptions 
 select hasnt_column('public', 'courtesy_codes', 'code', 'courtesy_codes não tem coluna com o código em claro');
 select col_is_unique('public', 'courtesy_codes', 'code_hash', 'code_hash é único');
 select col_is_unique('public', 'courtesy_redemptions', array['code_id', 'event_id'], 'um resgate por código e evento');
+select col_not_null('public', 'courtesy_redemptions', 'code_id', 'courtesy_redemptions.code_id not null');
+select col_not_null('public', 'courtesy_redemptions', 'event_id', 'courtesy_redemptions.event_id not null');
+select ok(exists (select 1 from pg_proc where proname = 'redeem_code' and prosrc like '%pg_advisory_xact_lock%'),
+  'redeem_code serializa por usuário (advisory lock antes de contar tentativas)');
 select has_function('public', 'admin_create_code', array['text', 'integer', 'timestamp with time zone', 'text'], 'admin_create_code existe');
 select has_function('public', 'admin_list_codes', array[]::text[], 'admin_list_codes existe');
 select has_function('public', 'admin_revoke_code', array['uuid', 'text'], 'admin_revoke_code existe');
@@ -155,13 +159,15 @@ select is(public.redeem_code('00000000-0000-4000-8000-00000000a0e2', :'c3'),
   '{"applied": false, "planCode": null, "reason": "invalido"}'::jsonb, 'código revogado: invalido');
 select is(public.redeem_code('00000000-0000-4000-8000-00000000a0e2', 'MMT-AAAA-BBBB'),
   '{"applied": false, "planCode": null, "reason": "invalido"}'::jsonb, 'código inexistente: invalido');
-select throws_ok(format('select public.redeem_code(%L, %L)', '00000000-0000-4000-8000-00000000a0e5', :'c4'), 'MM002', null,
-  'evento encerrado: MM002, sem consumir');
+select is(public.redeem_code('00000000-0000-4000-8000-00000000a0e5', :'c4'),
+  '{"applied": false, "planCode": null, "reason": "evento_encerrado"}'::jsonb, 'evento encerrado: evento_encerrado, sem consumir');
 reset role;
 select is((select uses from public.courtesy_codes where code_hint = left(:'c2', 8)) + (select uses from public.courtesy_codes where code_hint = left(:'c3', 8))
           + (select uses from public.courtesy_codes where code_hint = left(:'c4', 8)), 0, 'nenhum uso consumido nas recusas');
 select is((select count(*)::int from public.event_entitlements where event_id = '00000000-0000-4000-8000-00000000a0e2' and source = 'codigo'), 0,
   'nenhum direito criado nas recusas');
+select is((select count(*)::int from public.audit_logs where action = 'code.redeem_invalid' and actor_id = '00000000-0000-4000-8000-00000000a0a1'), 4,
+  'evento encerrado não conta como tentativa inválida');
 
 -- ===================================================== ja_incluido: evento com Casamento pago resgata Festa
 select tests.set_env('sandbox');

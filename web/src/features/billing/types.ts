@@ -48,6 +48,6 @@ export type PublicSettings = {
   capacityGracePct: number;
 };
 
-export type RedeemReason = "ok" | "ja_incluido" | "invalido" | "muitas_tentativas";
+export type RedeemReason = "ok" | "ja_incluido" | "invalido" | "muitas_tentativas" | "evento_encerrado";
 
 export type RedeemResult = { applied: boolean; planCode: string | null; reason: RedeemReason };

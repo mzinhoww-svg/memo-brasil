@@ -234,9 +234,11 @@ describe("redeemCode", () => {
     expect(await redeemCode(EVENT, " mmt 7kq4-xr2p ")).toEqual({ applied: true, planCode: "festa", reason: "ok" });
     expect(calls.rpc).toEqual([["redeem_code", { p_event: EVENT, p_code: "MMT-7KQ4-XR2P" }]]);
   });
-  it("muitas_tentativas e invalido voltam como motivo, sem lançar", async () => {
+  it("muitas_tentativas, evento_encerrado e invalido voltam como motivo, sem lançar", async () => {
     fakeClient({ rpc: () => ({ data: { applied: false, planCode: null, reason: "muitas_tentativas" } }) });
     expect(await redeemCode(EVENT, "x")).toEqual({ applied: false, planCode: null, reason: "muitas_tentativas" });
+    fakeClient({ rpc: () => ({ data: { applied: false, planCode: null, reason: "evento_encerrado" } }) });
+    expect(await redeemCode(EVENT, "x")).toEqual({ applied: false, planCode: null, reason: "evento_encerrado" });
     fakeClient({ rpc: () => ({ data: { applied: false, planCode: null, reason: "outro" } }) });
     expect((await redeemCode(EVENT, "x")).reason).toBe("invalido");
   });

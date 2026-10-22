@@ -9,7 +9,7 @@
 --   * inexistente, expirado, esgotado e revogado: a mesma resposta 'invalido' (sem oráculo);
 --   * 5 'invalido' do mesmo usuário em 10 min → 'muitas_tentativas' (contagem em audit_logs, por auth.uid());
 --   * consumo de uso com select … for update na linha do código; unique(code_id, event_id) segura o duplo resgate.
--- Erros: MM004 forbidden · MM005 invalid · MM011 reasonrequired · MM002 eventended.
+-- Erros: MM004 forbidden · MM005 invalid · MM011 reasonrequired. Evento encerrado: reason 'evento_encerrado' (Ruling 21).
 
 -- ---------------------------------------------------------------- tabelas
 create table public.courtesy_codes (
@@ -28,8 +28,8 @@ create table public.courtesy_codes (
 
 create table public.courtesy_redemptions (
   id uuid primary key default gen_random_uuid(),
-  code_id uuid references public.courtesy_codes,
-  event_id uuid references public.events on delete cascade,
+  code_id uuid not null references public.courtesy_codes,
+  event_id uuid not null references public.events on delete cascade,
   user_id uuid not null,
   entitlement_id uuid,
   created_at timestamptz default now(),
@@ -148,7 +148,7 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------- organizador
--- {applied, planCode, reason}; reason ∈ ok | ja_incluido | invalido | muitas_tentativas.
+-- {applied, planCode, reason}; reason ∈ ok | ja_incluido | invalido | muitas_tentativas | evento_encerrado.
 -- planCode: o plano do código quando ele é válido para este evento (ok/ja_incluido); null em invalido/muitas_tentativas.
 create function public.redeem_code(p_event uuid, p_code text) returns jsonb
 language plpgsql security definer set search_path = '' as $$
@@ -161,6 +161,8 @@ declare
   fails int;
 begin
   if uid is null or not public.is_host(p_event) then raise exception 'forbidden' using errcode = 'MM004'; end if;
+  -- serializa os resgates do mesmo usuário: sem isso, pedidos em paralelo contariam as falhas antes de qualquer trava
+  perform pg_advisory_xact_lock(hashtextextended('redeem_code:' || uid::text, 0));
 
   -- limite de tentativas: antes de olhar o código, para não servir de oráculo a quem está bloqueado
   select count(*) into fails from public.audit_logs
@@ -171,7 +173,8 @@ begin
 
   select * into ev from public.events where id = p_event and deleted_at is null for update;
   if now() >= public.event_end(ev.start_at, ev.duration_hours, ev.ended_at) then
-    raise exception 'eventended' using errcode = 'MM002';
+    -- Ruling 21: motivo próprio; não conta como tentativa inválida e não consome uso
+    return jsonb_build_object('applied', false, 'planCode', null, 'reason', 'evento_encerrado');
   end if;
 
   select * into c from public.courtesy_codes where code_hash = public.courtesy_code_hash(p_code) for update;

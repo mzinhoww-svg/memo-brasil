@@ -98,7 +98,9 @@ export function GenerateCodeButton({ plans }: { plans: { code: string; name: str
             </div>
           )}
           {error && <p className="mm-field-erro" role="alert">{error}</p>}
-          <Button block onClick={submit} disabled={busy}>{busy ? "Gerando…" : code ? "Gerar outro" : "Gerar código"}</Button>
+          {code
+            ? <Button block onClick={reset}>Gerar outro</Button> /* só limpa o formulário: o próximo código sai em "Gerar código" */
+            : <Button block onClick={submit} disabled={busy}>{busy ? "Gerando…" : "Gerar código"}</Button>}
           <Button variant="texto" block onClick={close}>{code ? "Fechar" : "Cancelar"}</Button>
         </Sheet>
       )}

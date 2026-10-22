@@ -55,8 +55,14 @@ test("master gera código, organizador resgata e master revoga com motivo", asyn
     expect(code).toMatch(/^MMT-[ABCDEFGHJKMNPQRSTUVWXYZ2-9]{4}-[ABCDEFGHJKMNPQRSTUVWXYZ2-9]{4}$/);
     await sheet.getByRole("button", { name: "Copiar link" }).click();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(`${new globalThis.URL(baseURL!).origin}/c/${code}`);
-    await expect(sheet.getByRole("button", { name: "Gerar outro" })).toBeVisible();
-    await sheet.getByRole("button", { name: "Fechar" }).click();
+    // "Gerar outro" não gera de imediato: limpa o formulário e volta ao estado inicial
+    const before = await admin.from("courtesy_codes").select("id", { count: "exact", head: true });
+    await sheet.getByRole("button", { name: "Gerar outro" }).click();
+    await expect(sheet.getByText("Código gerado · copie agora")).toHaveCount(0);
+    await expect(sheet.getByLabel("Para quem / nota (obrigatório)")).toHaveValue("");
+    await expect(sheet.getByRole("button", { name: "Gerar código" })).toBeVisible();
+    expect((await admin.from("courtesy_codes").select("id", { count: "exact", head: true })).count).toBe(before.count);
+    await sheet.getByRole("button", { name: "Cancelar" }).click();
 
     const row = page.getByRole("row", { name: new RegExp(note) });
     await expect(row).toContainText(`${code.slice(0, 8)}-…`);
