@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { createViaWizard, postViaFile, switchPerson } from "./helpers";
+import fs from "node:fs";
+import path from "node:path";
+import { acceptTerms, createViaWizard, dateIn, denyCamera, openInviteAsGuest, postViaFile, switchPerson, weekdayOf } from "./helpers";
+
+const PNG = fs.readFileSync(path.resolve(__dirname, "../public/pwa/icon-192.png"));
+const TZ = "America/Cuiaba";
 
 test("anfitrião cria um evento pelo wizard e vê o convite com código e QR", async ({ page }) => {
   const { code } = await createViaWizard(page);
@@ -242,4 +247,178 @@ test("cabeçalhos de segurança e CSP sem violações de console nas telas princ
   await page.getByRole("link", { name: "Explorar" }).click();
   await page.getByRole("link", { name: "Você" }).click();
   expect(errors.filter((e) => /Content Security Policy|Refused to/i.test(e))).toEqual([]);
+});
+
+
+test.describe("jornada do convidado (Task 13)", () => {
+  test("convite mostra fotos, revelação e quem vê", async ({ page }) => {
+    const date = dateIn(TZ, 3);
+    const { code } = await createViaWizard(page, { reveal: { date, time: "10:00", tz: TZ }, shots: "10" });
+    await openInviteAsGuest(page, code);
+    await expect(page.getByText("Você tem 10 fotos.")).toBeVisible();
+    await expect(page.getByText("Escolha bem, como num filme.")).toBeVisible();
+    await expect(page.getByText(`Revela ${weekdayOf(date)}, 10h.`)).toBeVisible();
+    await expect(page.getByText("Até lá, só Emy pode ver.")).toBeVisible();
+    await expect(page.getByText("Quem vê:")).toBeVisible();
+    await expect(page.getByText("Emy e quem está na festa.")).toBeVisible();
+    // o convite nunca aceita sem as duas caixas; o CTA leva direto à câmera
+    await page.getByLabel("Como te chamam na festa?").fill("Ana");
+    await acceptTerms(page);
+    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+    await page.waitForURL(new RegExp(`/e/${code}/postar$`));
+  });
+
+  test("convite com revelação desligada diz que as fotos aparecem na hora", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+    await openInviteAsGuest(page, code);
+    await expect(page.getByText("As fotos aparecem na hora.")).toBeVisible();
+  });
+
+  test("pré-permissão explica a câmera antes de pedir; negada, oferece galeria sem capture e posta foto", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+    await switchPerson(page, code, "Ana");
+    await denyCamera(page);
+    await page.goto(`/e/${code}/postar`);
+    await expect(page.getByRole("heading", { name: "Libere a câmera" })).toBeVisible();
+    await expect(page.getByText("Ela destrava suas 5 fotos")).toBeVisible();
+    await expect(page.getByText(/Cada foto vai para o álbum da festa e aparece para todos na hora\./)).toBeVisible();
+    await page.getByRole("button", { name: "Liberar câmera" }).click();
+
+    await expect(page.getByText("Tudo bem, use a galeria.")).toBeVisible();
+    await expect(page.getByTestId("ajuda-camera").getByRole("listitem")).toHaveCount(3);
+    await expect(page.getByText("Permissões › Câmera › Permitir.")).toBeVisible(); // Chrome (o iPhone/Safari tem os próprios passos, cobertos em capture.test.ts)
+    await expect(page.getByRole("button", { name: "Tentar a câmera de novo" })).toBeVisible();
+    const gallery = page.getByLabel("Escolher foto do aparelho");
+    await expect(gallery).not.toHaveAttribute("capture"); // UX-02: a galeria não abre a câmera
+    await expect(page.getByLabel("Tirar foto com a câmera do aparelho")).toHaveAttribute("capture", "environment");
+
+    await gallery.setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
+    await page.getByRole("button", { name: "O sim", exact: true }).click();
+    await page.getByRole("button", { name: "Postar", exact: true }).click();
+    await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+  });
+
+  test("pré-permissão: 'Prefiro escolher da galeria' vai direto para a galeria", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+    await switchPerson(page, code, "Ana");
+    await denyCamera(page);
+    await page.goto(`/e/${code}/postar`);
+    const chooser = page.waitForEvent("filechooser");
+    await page.getByRole("button", { name: "Prefiro escolher da galeria" }).click();
+    expect((await chooser).isMultiple()).toBe(false);
+  });
+
+  test.describe("dentro do Instagram", () => {
+    test.use({ userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/21F90 Instagram 340.0.0.0" });
+    test("câmera negada orienta a abrir no navegador", async ({ page }) => {
+      const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+      await switchPerson(page, code, "Ana");
+      await denyCamera(page);
+      await page.goto(`/e/${code}/postar`);
+      await page.getByRole("button", { name: "Liberar câmera" }).click();
+      await expect(page.getByText("Toque em ⋯ e escolha")).toBeVisible();
+      await expect(page.getByText("Abrir no navegador")).toBeVisible();
+    });
+  });
+
+  test("rede cai no envio: foto entra uma vez ao voltar, quota desconta 1", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+    await page.addInitScript(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { attach: 2 }; });
+    await page.goto(`/e/${code}/postar`);
+    await expect(page.getByText("5 fotos restantes")).toBeVisible();
+    await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
+    await page.getByRole("button", { name: "O sim", exact: true }).click();
+    await page.getByRole("button", { name: "Postar", exact: true }).click();
+
+    await expect(page.getByText("Sem sinal.", { exact: true })).toBeVisible();
+    await expect(page.getByText("Não feche esta tela: sua foto vai assim que a internet voltar.")).toBeVisible();
+    await expect(page.getByText(/Tentativa 1 de 3 · próxima em \d+ s/)).toBeVisible();
+    await expect(page.getByText("5 fotos restantes")).toBeVisible(); // o contador só muda quando a foto chegar
+    await expect(page.getByRole("button", { name: "Tentar agora" })).toBeVisible();
+    await expect(page.getByText(/Verifique o espaço livre/)).toHaveCount(0);
+
+    await expect(page.getByText("Sua visão entrou na história.")).toBeVisible({ timeout: 20_000 }); // 2 s + 5 s
+    const ready = await page.evaluate(() => new Promise<number>((resolve) => {
+      const q = indexedDB.open("memoriesmt");
+      q.onsuccess = () => { const all = q.result.transaction("photos").objectStore("photos").getAll(); all.onsuccess = () => resolve(all.result.filter((p: { uploadStatus: string }) => p.uploadStatus === "pronta").length); };
+    }));
+    expect(ready).toBe(1);
+    await page.goto(`/e/${code}/voce`);
+    await expect(page.getByText("Restam 4 de 5")).toBeVisible();
+  });
+
+  test("'Tentar agora' reenvia sem esperar a contagem", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+    await page.addInitScript(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { attach: 2 }; });
+    await page.goto(`/e/${code}/postar`);
+    await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
+    await page.getByRole("button", { name: "O sim", exact: true }).click();
+    await page.getByRole("button", { name: "Postar", exact: true }).click();
+    await expect(page.getByText(/Tentativa 2 de 3 · próxima em \d+ s/)).toBeVisible({ timeout: 10_000 }); // a 2ª falha abre a espera de 5 s
+    await page.getByRole("button", { name: "Tentar agora" }).click();
+    await expect(page.getByText("Sua visão entrou na história.")).toBeVisible({ timeout: 2500 }); // bem antes dos 5 s
+  });
+
+  test("join rate-limited mostra 'Muita gente entrando agora' e 'Tentar agora' entra na festa", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+    await openInviteAsGuest(page, code);
+    await page.evaluate(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { join: "rate-limited" }; });
+    await page.getByLabel("Como te chamam na festa?").fill("Ana");
+    await acceptTerms(page);
+    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+    await expect(page.getByRole("heading", { name: "Muita gente entrando agora." })).toBeVisible();
+    await expect(page.getByText(/Tentamos de novo sozinhos em 30 segundos/)).toBeVisible();
+    await expect(page.getByText("Nova tentativa em", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("nova-tentativa")).toHaveText(/^0:(30|29|28)$/);
+    await expect(page.getByText("Código não confere.")).toHaveCount(0);
+    await page.getByRole("button", { name: "Tentar agora" }).click();
+    await page.waitForURL(new RegExp(`/e/${code}/postar$`));
+  });
+
+  test("join rate-limited tenta de novo sozinho em 30 segundos", async ({ page }) => {
+    await page.clock.install();
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+    await openInviteAsGuest(page, code);
+    await page.evaluate(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { join: "rate-limited" }; });
+    await page.getByLabel("Como te chamam na festa?").fill("Ana");
+    await acceptTerms(page);
+    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+    await expect(page.getByRole("heading", { name: "Muita gente entrando agora." })).toBeVisible();
+    await page.clock.fastForward(31_000);
+    await page.waitForURL(new RegExp(`/e/${code}/postar$`));
+  });
+
+  test("join recusado pelo servidor mostra convite inativo, sem 'código não confere'", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+    await openInviteAsGuest(page, code);
+    await page.evaluate(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { join: "forbidden" }; });
+    await page.getByLabel("Como te chamam na festa?").fill("Ana");
+    await acceptTerms(page);
+    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+    await expect(page.getByRole("heading", { name: "Este convite não está mais ativo." })).toBeVisible();
+    await expect(page.getByText("Fale com quem convidou você. Pode ser que a festa tenha um link novo.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Tenho outro código" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Conhecer o MemoriesMT" })).toBeVisible();
+  });
+
+  test("espera: título e 'a noite fica para a pista' quando a revelação é no dia seguinte", async ({ page }) => {
+    const date = dateIn(TZ, 1);
+    const { code } = await createViaWizard(page, { reveal: { date, time: "10:00", tz: TZ }, shots: "5" });
+    await switchPerson(page, code, "Ana");
+    await expect(page.getByRole("heading", { name: "O filme ainda está no escuro." })).toBeVisible();
+    await expect(page.getByText(`Revelamos ${weekdayOf(date)} às 10h. A noite fica para a pista.`)).toBeVisible();
+  });
+
+  test("pós-revelação: convite para criar o próprio evento, dispensável e uma vez só", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
+    await switchPerson(page, code, "Ana");
+    await expect(page.getByText("Tem uma festa vindo aí?")).toBeVisible();
+    await expect(page.getByText("Faça a sua do mesmo jeito. Até 10 convidados é grátis.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Criar o meu evento" })).toHaveAttribute("href", "/");
+    await page.getByRole("button", { name: "Dispensar convite para criar evento" }).click();
+    await expect(page.getByText("Tem uma festa vindo aí?")).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Agora" })).toBeVisible();
+    await expect(page.getByText("Tem uma festa vindo aí?")).toHaveCount(0);
+  });
 });

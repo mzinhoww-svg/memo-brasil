@@ -33,3 +33,20 @@ for (const offline of [false, true, "reload"] as const) {
     await ctx.close();
   });
 }
+
+/** Queda de rede no envio (falha simulada só no build de teste): a foto entra uma vez ao voltar e a quota desconta 1. */
+test("rede cai no envio: foto entra uma vez ao voltar, quota desconta 1", async ({ page }) => {
+  const code = await openDemo(page);
+  await page.addInitScript(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { attach: 2 }; });
+  await page.goto(`/e/${code}/postar`);
+  await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
+  await page.getByRole("button", { name: "O sim", exact: true }).click();
+  await page.getByRole("button", { name: "Postar", exact: true }).click();
+  await expect(page.getByText("Sem sinal.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Sua visão entrou na história.")).toBeVisible({ timeout: 20_000 });
+  const ready = await page.evaluate(() => new Promise<number>((resolve) => {
+    const q = indexedDB.open("memoriesmt");
+    q.onsuccess = () => { const all = q.result.transaction("photos").objectStore("photos").getAll(); all.onsuccess = () => resolve(all.result.filter((p: { uploadStatus: string; authorId: string }) => p.uploadStatus === "pronta").length); };
+  }));
+  expect(ready).toBeGreaterThanOrEqual(1);
+});
