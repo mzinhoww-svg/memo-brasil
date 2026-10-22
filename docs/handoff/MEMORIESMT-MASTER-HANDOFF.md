@@ -2,6 +2,8 @@
 
 Data: 21/10/2026, America/Cuiaba. Este arquivo foi criado porque o handoff original não estava no remoto. Não recupera conteúdo não enviado do Mac.
 
+**Direção posterior do operador:** finalizar uma versão operacional utilizável e evoluir pelo roadmap, sem estender escopo. Plano vigente: `../superpowers/plans/2026-10-21-memoriesmt-ready-for-use.md`; desenho e critérios: `../superpowers/specs/2026-10-21-operational-release-design.md`. Execução técnica e criação do plano autorizadas, sem aprovações intermediárias. O link temporário Vercel também foi autorizado; a tentativa permitida falhou com 403 em `lookup_deployment`, sem criar link. A conexão precisa de acesso efetivo à equipe/projeto, não de nova autorização verbal. Os resultados abaixo continuam sendo evidência da rodada anterior; nenhuma caixa do novo plano foi executada por sua criação.
+
 1. **Resumo:** A não concluída; NO-GO. Resultados atuais em `../supabase/A5-HOMOLOGATION-REPORT.md`.
 2. **Produto:** álbum colaborativo de eventos; preservar escopo V2 e decisões existentes.
 3. **Arquitetura:** aplicação Next.js em `web/`, adaptador Supabase e backend SQL/Storage/Functions; legado na raiz.

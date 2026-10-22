@@ -23,7 +23,7 @@ Se 6d84c31 existir apenas localmente, comparar com a branch de homologação des
 - Projeto: `newmemocuiaba`, ID `prj_IpHyqsnnbrXS213AGrOmxizb0Kjl`.
 - Conceder ao conector acesso a essa equipe por seu fluxo normal de autorização; as ferramentas de autorização de equipe sugeridas pelo erro não estavam expostas nesta sessão. Não trocar para outro escopo para contornar o 403.
 - No navegador autenticado do operador, abrir `https://newmemocuiaba-p3dzw49y4-mzinhoww-gmailcoms-projects.vercel.app/master` e conferir a identidade e o painel. A sessão deste navegador remoto não é a do Mac.
-- Link temporário que dispensa autenticação só pode ser criado após autorização explícita para essa ação. Auto-review bloqueou a tentativa nesta rodada.
+- O operador autorizou explicitamente o link temporário que dispensa login Vercel. Após a rejeição inicial de auto-review, a chamada permitida falhou com 403 em `lookup_deployment`; nenhum link foi criado. Não pedir novamente essa autorização. Retentar somente após mudança comprovada do acesso efetivo à equipe/projeto, ou usar o preview no painel autenticado do operador.
 - Para INF-005, conferir Settings → Build and Deployment → Root Directory `web`, Framework `Next.js`, repositório e branch corretos. Registrar os valores anteriores, corrigir em janela acordada e provar com um novo push para branch de preview. Não alterar branch Production nem promover deployment.
 - Para INF-004, conferir dependência do legado antes de remover `SUPABASE_SERVICEROLE_KEY` de Environment Variables → Production. A remoção é intervenção separada; não fazer deploy Production para testar. Registrar apenas nome/alvo/ausência, nunca o valor. Nenhuma exposição da chave foi demonstrada nesta sessão; rotação não é presumida como executada.
 
