@@ -20,6 +20,7 @@ export { Progress } from "./Progress";
 export { Select } from "./Select";
 export { Sheet } from "./Sheet";
 export { Signature } from "./Signature";
+export { SiteFooter } from "./SiteFooter";
 export { StorageBanner } from "./StorageBanner";
 export { StatGrid, StatTile } from "./StatTile";
 export { Skeleton } from "./Skeleton";

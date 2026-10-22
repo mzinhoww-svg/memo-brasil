@@ -160,3 +160,7 @@
 .plano-recibo dt { font-size: 14px; color: var(--apoio); }
 .plano-recibo dd { margin: 0; font-weight: 700; font-size: 17px; }
 .plano-acoes { margin-top: var(--space-4); }
+
+/* Rodapé público (Task 14): alvos de 44 px */
+.mm-rodape { padding-block: var(--space-6, 24px) var(--space-4, 16px); }
+.mm-rodape a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: underline; }
