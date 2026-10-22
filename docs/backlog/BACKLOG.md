@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **221** itens (sem contar 19 épicos). Prioridade: P0 38, P1 72, P2 58, P3 53. Status: BACKLOG 98, BLOCKED 5, CANCELLED 2, DEFERRED 14, DONE 65, IN_REVIEW 25, READY 12.
+Total: **225** itens (sem contar 19 épicos). Prioridade: P0 38, P1 73, P2 61, P3 53. Status: BACKLOG 101, BLOCKED 5, CANCELLED 2, DEFERRED 14, DONE 65, IN_REVIEW 25, READY 13.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -598,6 +598,10 @@ Total: **221** itens (sem contar 19 épicos). Prioridade: P0 38, P1 72, P2 58, P
 | COM-011 | FEATURE | Domínio próprio e e-mail de marca | P2 | BACKLOG | REL-001 | consolidação do backlog 2026-10-21 | - | - |
 | COM-012 | FEATURE | Suporte e operação: canal de contato, SLA e runbook de incidentes | P2 | BACKLOG | COM-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-013 | FEATURE | Abuso e antifraude: rate limit na borda e moderação automática de imagens | P2 | BACKLOG | SB-005 | consolidação do backlog 2026-10-21 | - | - |
+| COM-014 | FEATURE | +10 fotos da galeria depois da festa (por convidado, até a revelação) | P2 | BACKLOG | COM-003 | telas do app proposto 2026-10-22 | - | - |
+| COM-015 | FEATURE | Álbum impresso da festa (sob encomenda; sem preço até haver fornecedor) | P2 | BACKLOG | - | telas do app proposto 2026-10-22 | - | - |
+| COM-016 | FEATURE | Depoimentos reais com autorização, cadastrados no Master e exibidos no plano e em /precos | P2 | BACKLOG | COM-007 | telas do app proposto 2026-10-22 | - | - |
+| COM-017 | FEATURE | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | P1 | READY | - | telas do app proposto 2026-10-22 | - | - |
 | OPS-A5-003 | TASK | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-004 | TASK | Eventos anteriores a 22/10/2026 sem expiração automática | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-005 | TASK | Pedidos de exclusão do titular em até 30 dias (processo manual) | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
@@ -628,6 +632,14 @@ Total: **221** itens (sem contar 19 épicos). Prioridade: P0 38, P1 72, P2 58, P
 **COM-011** critérios: Domínio verificado na Vercel; Redirect URLs e OAuth atualizados
 
 **COM-012** critérios: Runbook publicado; simulação de incidente registrada
+
+**COM-014** critérios: Limite de 10 fotos da galeria por convidado aplicado no servidor; Envio bloqueado após a revelação; Segue textos e estados da tela L1
+
+**COM-015** critérios: Nenhum preço exibido sem fornecedor contratado; Pedido sob encomenda registrado; Segue textos e estados da tela L2
+
+**COM-016** critérios: Só exibe depoimento com autorização registrada; nunca depoimento fictício; Cadastro e remoção pelo Master; Sem depoimento cadastrado, a seção não aparece; Segue telas O4, B1 e S1
+
+**COM-017** critérios: Master gera, lista e desativa códigos; Organizador resgata pelo Plano, por Ajustes ou pelo link /c/<código>; Resgate validado no servidor (código inexistente, expirado, esgotado ou já usado é recusado); Segue textos e estados das telas M3, B8, B9 e P2
 
 **OPS-A5-003** critérios: Rotina executada ao menos a cada 30 dias, com registro; Em restauração, exclusões já determinadas são reaplicadas · testes: supabase/ops/rotate_local_backups.test.sh (pasta descartável)
 

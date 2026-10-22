@@ -118,7 +118,7 @@ Itens abertos: **84** · P0 14, P1 16, P2 36, P3 18 · BACKLOG 47, BLOCKED 1, DE
 
 Planos, pagamento, e-mail, observabilidade e escala de mídia.
 
-Itens abertos: **27** · P0 0, P1 15, P2 11, P3 1 · BACKLOG 14, DEFERRED 11, READY 2
+Itens abertos: **31** · P0 0, P1 16, P2 14, P3 1 · BACKLOG 17, DEFERRED 11, READY 3
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -127,6 +127,7 @@ Itens abertos: **27** · P0 0, P1 15, P2 11, P3 1 · BACKLOG 14, DEFERRED 11, RE
 | COM-003 | P1 | BACKLOG | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | COM-001 |
 | COM-005 | P1 | BACKLOG | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | SB-008 |
 | COM-006 | P1 | BACKLOG | Página de planos e checkout do organizador | COM-002 |
+| COM-017 | P1 | READY | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | - |
 | FT-080 | P1 | DEFERRED | Auth: Google (organizador) e anônima (convidado) | INF-001, AUD-002, ITG-105 |
 | FT-081 | P1 | DEFERRED | Web Push real e permissão de notificações | AUD-002 |
 | FT-082 | P1 | DEFERRED | Esquema, RLS e testes de RLS | INF-001, AUD-002, ITG-104, ITG-109, ITG-106 |
@@ -145,6 +146,9 @@ Itens abertos: **27** · P0 0, P1 15, P2 11, P3 1 · BACKLOG 14, DEFERRED 11, RE
 | COM-010 | P2 | BACKLOG | Escala de mídia: miniaturas, transformação de imagem e custo de Storage por evento | SB-005 |
 | COM-012 | P2 | BACKLOG | Suporte e operação: canal de contato, SLA e runbook de incidentes | COM-008 |
 | COM-013 | P2 | BACKLOG | Abuso e antifraude: rate limit na borda e moderação automática de imagens | SB-005 |
+| COM-014 | P2 | BACKLOG | +10 fotos da galeria depois da festa (por convidado, até a revelação) | COM-003 |
+| COM-015 | P2 | BACKLOG | Álbum impresso da festa (sob encomenda; sem preço até haver fornecedor) | - |
+| COM-016 | P2 | BACKLOG | Depoimentos reais com autorização, cadastrados no Master e exibidos no plano e em /precos | COM-007 |
 | ITG-107 | P2 | BACKLOG | Convites: id, rotação, expiração, ?mesa= confiável e limite de tentativas (código ~39,6 bi | ITG-106 |
 | ITG-108 | P2 | BACKLOG | Ambiente (env), CSP para o Supabase e suíte de contrato reutilizável | ITG-106 |
 | ITG-109 | P2 | BACKLOG | Matriz de papéis × RLS e proteção de servidor para /master | ITG-106 |

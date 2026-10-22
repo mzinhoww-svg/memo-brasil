@@ -115,6 +115,8 @@ flowchart LR
   COM_013["COM-013<br/>BACKLOG"]:::back
   COM_011["COM-011<br/>BACKLOG"]:::back
   COM_012["COM-012<br/>BACKLOG"]:::back
+  COM_014["COM-014<br/>BACKLOG"]:::back
+  COM_016["COM-016<br/>BACKLOG"]:::back
   SCV_003["SCV-003<br/>IN_REVIEW"]:::back
   SCV_004["SCV-004<br/>IN_REVIEW"]:::back
   SCV_005["SCV-005<br/>IN_REVIEW"]:::back
@@ -293,6 +295,8 @@ flowchart LR
   SB_005 --> COM_013
   REL_001 --> COM_011
   COM_008 --> COM_012
+  COM_003 --> COM_014
+  COM_007 --> COM_016
   MAD_001 --> SCV_003
   SB_005 --> SCV_004
   MAD_002 --> SCV_005

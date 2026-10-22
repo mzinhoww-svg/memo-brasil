@@ -15,7 +15,7 @@
 | G12 | Migrations V2 e Edge Functions remotas | PASSA no inventário: 16 migrations e duas Functions ativas | docs/supabase/evidence/a5-20261021/backend-readonly.json; docs/supabase/A5-HOMOLOGATION-REPORT.md |
 | G11 | Conector Supabase acessa o projeto correto | PASSA: consultas remotas de leitura | docs/supabase/evidence/a5-20261021/backend-readonly.json |
 
-## Itens P0/P1 em aberto (40)
+## Itens P0/P1 em aberto (41)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -49,6 +49,7 @@
 | COM-006 | Página de planos e checkout do organizador | P1 | BACKLOG |
 | COM-005 | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG |
 | COM-009 | Backup, PITR e teste de restauração; política de retenção de fotos | P1 | BACKLOG |
+| COM-017 | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | P1 | READY |
 | SCV-003 | Provisionamento do master: desligar provider e-mail/senha (ou confirmação) no remoto e validar identidade Google sem senha | P0 | IN_REVIEW |
 | SCV-004 | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/capa na exclusão LGPD | P1 | IN_REVIEW |
 | SCV-006 | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir a convidados | P1 | IN_REVIEW |
@@ -65,6 +66,7 @@
 ## Próximos itens READY
 | Prio | ID | Título |
 |---|---|---|
+| P1 | COM-017 | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) |
 | P1 | INF-001 | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) |
 | P1 | OPS-A5-003 | Rotação de cópias de segurança manuais a cada ≤ 30 dias |
 | P2 | BG-022 | Sem validação em Safari/iOS e Firefox |

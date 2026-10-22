@@ -1739,7 +1739,9 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "Tela desenhada: docs/design/app-proposto/png/E4-SemSinal.png"
+   ],
    "commit": null,
    "environment": null,
    "release": "R1"
@@ -1873,7 +1875,9 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "Tela desenhada: docs/design/app-proposto/png/L3-AviseRevelacao.png"
+   ],
    "commit": null,
    "environment": null,
    "release": "R3"
@@ -1953,7 +1957,9 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "Tela desenhada: docs/design/app-proposto/png/L4-AgoraTempoReal.png"
+   ],
    "commit": null,
    "environment": null,
    "release": "R3"
@@ -4217,7 +4223,9 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "Tela desenhada: docs/design/app-proposto/png/L4-AgoraTempoReal.png"
+   ],
    "commit": null,
    "environment": null,
    "release": "R1"
@@ -5808,7 +5816,9 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "Tela desenhada: docs/design/app-proposto/png/L3-AviseRevelacao.png"
+   ],
    "commit": null,
    "environment": null,
    "release": "R3"
@@ -5947,6 +5957,117 @@
    "files": [],
    "tests": [],
    "evidence": [],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-014",
+   "type": "FEATURE",
+   "title": "+10 fotos da galeria depois da festa (por convidado, até a revelação)",
+   "description": "Cada convidado pode enviar até 10 fotos da própria galeria depois da festa, até o momento da revelação.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "COM-003"
+   ],
+   "origin": "telas do app proposto 2026-10-22",
+   "acceptance": [
+    "Limite de 10 fotos da galeria por convidado aplicado no servidor",
+    "Envio bloqueado após a revelação",
+    "Segue textos e estados da tela L1"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "Tela desenhada: docs/design/app-proposto/png/L1-GaleriaDepois.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-015",
+   "type": "FEATURE",
+   "title": "Álbum impresso da festa (sob encomenda; sem preço até haver fornecedor)",
+   "description": "Oferta de álbum impresso sob encomenda; não exibir preço enquanto não houver fornecedor contratado.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [],
+   "origin": "telas do app proposto 2026-10-22",
+   "acceptance": [
+    "Nenhum preço exibido sem fornecedor contratado",
+    "Pedido sob encomenda registrado",
+    "Segue textos e estados da tela L2"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "Tela desenhada: docs/design/app-proposto/png/L2-AlbumImpresso.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-016",
+   "type": "FEATURE",
+   "title": "Depoimentos reais com autorização, cadastrados no Master e exibidos no plano e em /precos",
+   "description": "Depoimentos reais, com autorização registrada, cadastrados no console Master e exibidos na tela de plano e em /precos.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P2",
+   "status": "BACKLOG",
+   "dependencies": [
+    "COM-007"
+   ],
+   "origin": "telas do app proposto 2026-10-22",
+   "acceptance": [
+    "Só exibe depoimento com autorização registrada; nunca depoimento fictício",
+    "Cadastro e remoção pelo Master",
+    "Sem depoimento cadastrado, a seção não aparece",
+    "Segue telas O4, B1 e S1"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "Tela desenhada: docs/design/app-proposto/png/O4-Publicar.png",
+    "Tela desenhada: docs/design/app-proposto/png/B1-Plano.png",
+    "Tela desenhada: docs/design/app-proposto/png/S1-Precos.png"
+   ],
+   "commit": null,
+   "environment": null,
+   "release": "R3"
+  },
+  {
+   "id": "COM-017",
+   "type": "FEATURE",
+   "title": "Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/)",
+   "description": "O Master gera códigos de cortesia; o organizador resgata pela tela de Plano, por Ajustes ou pelo link /c/<código>.",
+   "epic": "EP-19",
+   "parent": null,
+   "priority": "P1",
+   "status": "READY",
+   "dependencies": [],
+   "origin": "telas do app proposto 2026-10-22",
+   "acceptance": [
+    "Master gera, lista e desativa códigos",
+    "Organizador resgata pelo Plano, por Ajustes ou pelo link /c/<código>",
+    "Resgate validado no servidor (código inexistente, expirado, esgotado ou já usado é recusado)",
+    "Segue textos e estados das telas M3, B8, B9 e P2"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "Tela desenhada: docs/design/app-proposto/png/M3-Codigos.png",
+    "Tela desenhada: docs/design/app-proposto/png/B8-PlanoCodigo.png",
+    "Tela desenhada: docs/design/app-proposto/png/B9-CodigoAplicado.png",
+    "Tela desenhada: docs/design/app-proposto/png/P2-AjustesCodigo.png"
+   ],
    "commit": null,
    "environment": null,
    "release": "R3"
