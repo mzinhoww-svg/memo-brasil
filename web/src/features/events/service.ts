@@ -23,7 +23,7 @@ export interface EventInput {
 
 export const DEFAULT_MOMENTS = ["Chegada", "O sim", "Pôr do sol", "Pista"];
 
-export type CreateResult = { ok: true; event: MemoEvent } | { ok: false; errors: DraftErrors & { reveal?: RevealErrors } };
+export type CreateResult = { ok: true; event: MemoEvent } | { ok: false; errors: DraftErrors & { reveal?: RevealErrors; save?: true } };
 
 export async function createEvent(repos: Repositories, host: User, input: EventInput, now: number): Promise<CreateResult> {
   const errors = validateDraft({ title: input.title, startAt: now, durationHours: input.durationHours }, now);
@@ -62,7 +62,12 @@ export async function createEvent(repos: Repositories, host: User, input: EventI
     tables: input.tables ?? 0,
     createdAt: now,
   };
-  return { ok: true, event: await repos.events.save(event) }; // o repositório devolve o gravado (no servidor: código e horários dele)
+  try {
+    return { ok: true, event: await repos.events.save(event) }; // o repositório devolve o gravado (no servidor: código e horários dele)
+  } catch (e) {
+    if (e instanceof RepositoryError) return { ok: false, errors: { save: true } }; // a tela mostra o erro e destrava o botão
+    throw e;
+  }
 }
 
 type Step<R> = { fail: R } | { next: MemoEvent; done: (saved: MemoEvent) => R };
