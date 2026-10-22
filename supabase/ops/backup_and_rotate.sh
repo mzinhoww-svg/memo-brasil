@@ -21,6 +21,8 @@ mkdir -p "$D/storage"; chmod 700 "$ROOT" "$D"
 supabase db dump --linked -f "$D/schema.sql"
 supabase db dump --linked --data-only -f "$D/data.sql"
 supabase storage cp -r ss:///event-photos/ "$D/storage/" --linked --experimental
+# identidade visual dos eventos (pode estar vazio): não derruba o backup se não houver objetos
+supabase storage cp -r ss:///event-branding/ "$D/storage/" --linked --experimental || echo "aviso: event-branding sem objetos ou inacessível (seguindo)" >&2
 chmod 600 "$D/schema.sql" "$D/data.sql"
 (cd "$D" && find . -type f ! -name SHA256SUMS.txt -print0 | xargs -0 shasum -a 256 > SHA256SUMS.txt && chmod 600 SHA256SUMS.txt)
 echo "backup concluído: $D ($(find "$D" -type f | wc -l | tr -d ' ') arquivos)"

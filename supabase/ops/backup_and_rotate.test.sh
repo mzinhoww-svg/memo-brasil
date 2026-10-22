@@ -11,7 +11,7 @@ cat > "$T/bin/supabase" <<'STUB'
 #!/bin/sh
 case "$1 $2" in
   "db dump") while [ $# -gt 0 ]; do [ "$1" = "-f" ] && { echo "-- stub" > "$2"; }; shift; done ;;
-  "storage cp") mkdir -p "$5"; echo foto > "$5/x.jpg" ;;
+  "storage cp") mkdir -p "$5"; case "$4" in *event-branding*) echo logo > "$5/b.png" ;; *) echo foto > "$5/x.jpg" ;; esac ;;
 esac
 STUB
 chmod +x "$T/bin/supabase"
@@ -34,4 +34,5 @@ new=$(ls "$T/root" | grep -v "^${old}" | head -1)
 PATH="$T/bin:$PATH" BACKUP_ROOT="$T/root" sh "$T/supabase/ops/backup_and_rotate.sh" --apply >/dev/null
 [ ! -d "$T/root/${old}-0100" ] || fail "--apply não removeu o vencido"
 [ -d "$T/root/$new" ] || fail "removeu o backup novo"
+[ -f "$T/root/$new/storage/b.png" ] || fail "event-branding não copiado"
 echo "OK: backup_and_rotate testado com supabase falso e pastas descartáveis"
