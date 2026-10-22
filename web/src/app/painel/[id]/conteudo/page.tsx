@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, PostCard, Tabs, panelId } from "@/components/memoriesmt";
+import { Button, ConfirmSheet, PostCard, Tabs, panelId } from "@/components/memoriesmt";
 import { moderationQueue } from "@/domain/photo";
 import { moderate, type ModerationAction } from "@/features/admin/service";
 import { useAdmin } from "@/features/admin/context";
 import { relativeTime, usePhotoUrls } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
+import { plural } from "@/lib/plural";
 import { avatarOf, tagFor, visionName } from "@/features/photos/labels";
 
 type Tab = "pedidos" | "ocultas" | "todas";
@@ -15,6 +16,7 @@ export default function Conteudo() {
   const { repos } = useApp();
   const { event, now, photos, refresh } = useAdmin();
   const [tab, setTab] = useState<Tab>("pedidos");
+  const [removing, setRemoving] = useState<string | undefined>();
   const live = photos.filter((p) => p.status !== "removida");
   const reported = useMemo(() => moderationQueue(live).filter((p) => p.status === "visivel"), [live]);
   const hidden = live.filter((p) => p.status === "oculta");
@@ -34,15 +36,16 @@ export default function Conteudo() {
         {list.length === 0 ? <p className="app-p app-muted">{tab === "pedidos" ? "Nenhum pedido de remoção. Quando alguém pedir, a foto aparece aqui." : tab === "ocultas" ? "Nenhuma foto oculta." : "Ainda sem fotos."}</p> : null}
         {list.map((p) => (
           <div key={p.id} className="app-stack-sm">
-            <PostCard vision={visionName(p)} meta={`${p.moment} · ${relativeTime(p.createdAt, now)}${p.reports ? ` · ${p.reports} ${p.reports === 1 ? "pedido" : "pedidos"}` : ""}`} avatar={avatarOf(p)} imageSrc={urls[p.id]} alt={`Foto de ${visionName(p)}`} caption={p.caption} tag={p.highlighted ? tagFor(event.category) : undefined} />
+            <PostCard vision={visionName(p)} meta={`${p.moment} · ${relativeTime(p.createdAt, now)}${p.reports ? ` · ${p.reports} ${plural(p.reports, "pedido", "pedidos")}` : ""}`} avatar={avatarOf(p)} imageSrc={urls[p.id]} alt={`Foto de ${visionName(p)}`} caption={p.caption} tag={p.highlighted ? tagFor(event.category) : undefined} />
             <div className="app-row">
               {p.status === "oculta" ? <Button variant="pequeno" onClick={() => act(p.id, "mostrar")}>Mostrar de novo</Button> : <Button variant="pequeno" onClick={() => act(p.id, "ocultar")}>Ocultar</Button>}
               <Button variant="pequeno" onClick={() => act(p.id, "destacar")}>{p.highlighted ? "Tirar destaque" : "Destacar"}</Button>
-              <Button variant="destrutivo" small onClick={() => act(p.id, "remover")}>Remover</Button>
+              <Button variant="destrutivo" small onClick={() => setRemoving(p.id)}>Remover</Button>
             </div>
           </div>
         ))}
       </div>
+      {removing && <ConfirmSheet title="Remover esta foto?" body="Os convidados deixam de vê-la." onCancel={() => setRemoving(undefined)} onConfirm={async () => { await act(removing, "remover"); setRemoving(undefined); }} />}
     </>
   );
 }

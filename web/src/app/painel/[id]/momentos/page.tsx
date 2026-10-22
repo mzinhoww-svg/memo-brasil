@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Chip, Chips, Field, Progress } from "@/components/memoriesmt";
+import { Button, Chip, ConfirmSheet, Chips, Field, Progress } from "@/components/memoriesmt";
 import { useAdmin } from "@/features/admin/context";
 import { useApp } from "@/features/app/provider";
 import { updateSettings } from "@/features/events/service";
@@ -10,6 +10,7 @@ export default function Momentos() {
   const { repos } = useApp();
   const { event, photos, refresh } = useAdmin();
   const [name, setName] = useState("");
+  const [removing, setRemoving] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const counts = event.moments.map((m) => ({ m, n: photos.filter((p) => p.moment === m && p.status !== "removida").length }));
   const max = Math.max(1, ...counts.map((c) => c.n));
@@ -41,13 +42,14 @@ export default function Momentos() {
       <section className="app-stack-sm" aria-labelledby="lista">
         <h2 id="lista" className="titulo-card app-h1">Lista</h2>
         <Chips label="Momentos do evento">
-          {event.moments.map((m) => <Chip key={m} variant="filtro" onClick={() => remove(m)}>{`Remover ${m}`}</Chip>)}
+          {event.moments.map((m) => <Chip key={m} variant="filtro" onClick={() => setRemoving(m)}>{`Remover ${m}`}</Chip>)}
         </Chips>
         <form className="app-stack-sm app-form-col" onSubmit={(e) => { e.preventDefault(); void add(); }} noValidate>
           <Field label="Novo momento" value={name} onChange={(e) => setName(e.target.value)} maxLength={30} placeholder="Ex.: Corte do bolo" error={error} />
           <Button type="submit" variant="secundario">Adicionar momento</Button>
         </form>
       </section>
+      {removing && <ConfirmSheet title={`Remover momento ${removing}?`} onCancel={() => setRemoving(undefined)} onConfirm={async () => { await remove(removing); setRemoving(undefined); }} />}
     </>
   );
 }
