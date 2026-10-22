@@ -1,0 +1,496 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-22T06:30:00Z"
+ },
+ "title": "MemoriesMT · App Proposto",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "O0 · Home"
+  },
+  "O1-Nome.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "O1 · Nome da festa"
+  },
+  "O2-Revelacao.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "O2 · Quando termina e revela"
+  },
+  "O3-Rolo.dc.html": {
+   "x": 1410,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "O3 · Fotos por pessoa"
+  },
+  "O4-Publicar.dc.html": {
+   "x": 1880,
+   "y": 0,
+   "w": 390,
+   "h": 940,
+   "title": "O4 · Convidados, plano e aceite"
+  },
+  "O5-Painel.dc.html": {
+   "x": 2350,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "O5 · Evento no ar"
+  },
+  "O6-Cartao.dc.html": {
+   "x": 2820,
+   "y": 0,
+   "w": 420,
+   "h": 595,
+   "title": "O6 · Card de mesa A6"
+  },
+  "G1-Convite.dc.html": {
+   "x": 0,
+   "y": 1544,
+   "w": 390,
+   "h": 844,
+   "title": "G1 · Convite"
+  },
+  "G2-Permissao.dc.html": {
+   "x": 470,
+   "y": 1544,
+   "w": 390,
+   "h": 844,
+   "title": "G2 · Pedido de câmera"
+  },
+  "G3-Camera.dc.html": {
+   "x": 940,
+   "y": 1544,
+   "w": 390,
+   "h": 844,
+   "title": "G3 · Câmera"
+  },
+  "G4-SemCamera.dc.html": {
+   "x": 1410,
+   "y": 1544,
+   "w": 390,
+   "h": 844,
+   "title": "G4 · Câmera negada"
+  },
+  "G5-Espera.dc.html": {
+   "x": 1880,
+   "y": 1544,
+   "w": 390,
+   "h": 844,
+   "title": "G5 · Espera"
+  },
+  "G6-Revelado.dc.html": {
+   "x": 2350,
+   "y": 1544,
+   "w": 390,
+   "h": 844,
+   "title": "G6 · Revelado"
+  },
+  "P1-Ajustes.dc.html": {
+   "x": 0,
+   "y": 3088,
+   "w": 390,
+   "h": 844,
+   "title": "P1 · Ajustes do evento"
+  },
+  "O7-Criado.dc.html": {
+   "x": 470,
+   "y": 3088,
+   "w": 390,
+   "h": 844,
+   "title": "O7 · Evento criado (cópia falhou)"
+  },
+  "O8-Remover.dc.html": {
+   "x": 940,
+   "y": 3088,
+   "w": 390,
+   "h": 844,
+   "title": "O8 · Confirmar remoção"
+  },
+  "O9-QR.dc.html": {
+   "x": 1410,
+   "y": 3088,
+   "w": 390,
+   "h": 844,
+   "title": "O9 · Painel › QR e cards"
+  },
+  "O10-Aparencia.dc.html": {
+   "x": 1880,
+   "y": 3088,
+   "w": 390,
+   "h": 844,
+   "title": "O10 · Studio › Aparência"
+  },
+  "E5-PainelNaoEncontrado.dc.html": {
+   "x": 2350,
+   "y": 3088,
+   "w": 390,
+   "h": 844,
+   "title": "E5 · Painel não encontrado"
+  },
+  "E6-HomeErroLogin.dc.html": {
+   "x": 2820,
+   "y": 3088,
+   "w": 390,
+   "h": 844,
+   "title": "E6 · Home com falha no login"
+  },
+  "B1-Plano.dc.html": {
+   "x": 0,
+   "y": 4632,
+   "w": 390,
+   "h": 844,
+   "title": "B1 · Plano do evento"
+  },
+  "B2-PixPendente.dc.html": {
+   "x": 470,
+   "y": 4632,
+   "w": 390,
+   "h": 844,
+   "title": "B2 · Pix aguardando pagamento"
+  },
+  "B3-PixPago.dc.html": {
+   "x": 940,
+   "y": 4632,
+   "w": 390,
+   "h": 844,
+   "title": "B3 · Pagamento confirmado"
+  },
+  "B4-PixExpirado.dc.html": {
+   "x": 1410,
+   "y": 4632,
+   "w": 390,
+   "h": 844,
+   "title": "B4 · Pix expirado"
+  },
+  "B5-PixFalhou.dc.html": {
+   "x": 1880,
+   "y": 4632,
+   "w": 390,
+   "h": 844,
+   "title": "B5 · Pix não gerado"
+  },
+  "B6-PagIndisponivel.dc.html": {
+   "x": 2350,
+   "y": 4632,
+   "w": 390,
+   "h": 844,
+   "title": "B6 · Sistema de pagamento fora do ar"
+  },
+  "B7-PagDesligado.dc.html": {
+   "x": 2820,
+   "y": 4632,
+   "w": 390,
+   "h": 844,
+   "title": "B7 · Pagamentos desligados"
+  },
+  "E1-MuitaGente.dc.html": {
+   "x": 0,
+   "y": 6176,
+   "w": 390,
+   "h": 844,
+   "title": "E1 · Muita gente entrando"
+  },
+  "E2-ConviteInativo.dc.html": {
+   "x": 470,
+   "y": 6176,
+   "w": 390,
+   "h": 844,
+   "title": "E2 · Convite inativo"
+  },
+  "E3-Enviando.dc.html": {
+   "x": 940,
+   "y": 6176,
+   "w": 390,
+   "h": 844,
+   "title": "E3 · Enviando foto"
+  },
+  "E4-SemSinal.dc.html": {
+   "x": 1410,
+   "y": 6176,
+   "w": 390,
+   "h": 844,
+   "title": "E4 · Sem sinal no envio"
+  },
+  "M1-Pagamentos.dc.html": {
+   "x": 0,
+   "y": 7720,
+   "w": 1280,
+   "h": 800,
+   "title": "M1 · Master › Pagamentos (desktop)"
+  },
+  "M2-Planos.dc.html": {
+   "x": 1360,
+   "y": 7720,
+   "w": 1280,
+   "h": 800,
+   "title": "M2 · Master › Planos e preços (desktop)"
+  },
+  "S1-Precos.dc.html": {
+   "x": 0,
+   "y": 8920,
+   "w": 390,
+   "h": 1700,
+   "title": "S1 · /precos"
+  },
+  "S2-Ajuda.dc.html": {
+   "x": 470,
+   "y": 8920,
+   "w": 390,
+   "h": 1500,
+   "title": "S2 · /ajuda"
+  },
+  "S3-Exemplo.dc.html": {
+   "x": 940,
+   "y": 8920,
+   "w": 390,
+   "h": 844,
+   "title": "S3 · /exemplo (câmera de exemplo)"
+  },
+  "L1-GaleriaDepois.dc.html": {
+   "x": 0,
+   "y": 10920,
+   "w": 390,
+   "h": 844,
+   "title": "L1 · +10 da galeria depois da festa"
+  },
+  "L2-AlbumImpresso.dc.html": {
+   "x": 470,
+   "y": 10920,
+   "w": 390,
+   "h": 844,
+   "title": "L2 · Álbum impresso"
+  },
+  "L3-AviseRevelacao.dc.html": {
+   "x": 940,
+   "y": 10920,
+   "w": 390,
+   "h": 844,
+   "title": "L3 · Me avise quando revelar"
+  },
+  "L4-AgoraTempoReal.dc.html": {
+   "x": 1410,
+   "y": 10920,
+   "w": 390,
+   "h": 844,
+   "title": "L4 · Agora em tempo real"
+  },
+  "B8-PlanoCodigo.dc.html": {
+   "x": 0,
+   "y": 12464,
+   "w": 390,
+   "h": 844,
+   "title": "B8 · Plano › Tenho um código (erro)"
+  },
+  "B9-CodigoAplicado.dc.html": {
+   "x": 470,
+   "y": 12464,
+   "w": 390,
+   "h": 844,
+   "title": "B9 · Código aplicado"
+  },
+  "P2-AjustesCodigo.dc.html": {
+   "x": 940,
+   "y": 12464,
+   "w": 390,
+   "h": 844,
+   "title": "P2 · Ajustes › Resgatar código"
+  },
+  "M3-Codigos.dc.html": {
+   "x": 1410,
+   "y": 12464,
+   "w": 1280,
+   "h": 800,
+   "title": "M3 · Master › Códigos de cortesia (desktop)"
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "O1-Nome.dc.html",
+  "O2-Revelacao.dc.html",
+  "O3-Rolo.dc.html",
+  "O4-Publicar.dc.html",
+  "O5-Painel.dc.html",
+  "O6-Cartao.dc.html",
+  "G1-Convite.dc.html",
+  "G2-Permissao.dc.html",
+  "G3-Camera.dc.html",
+  "G4-SemCamera.dc.html",
+  "G5-Espera.dc.html",
+  "G6-Revelado.dc.html",
+  "P1-Ajustes.dc.html",
+  "O7-Criado.dc.html",
+  "O8-Remover.dc.html",
+  "O9-QR.dc.html",
+  "O10-Aparencia.dc.html",
+  "E5-PainelNaoEncontrado.dc.html",
+  "E6-HomeErroLogin.dc.html",
+  "B1-Plano.dc.html",
+  "B2-PixPendente.dc.html",
+  "B3-PixPago.dc.html",
+  "B4-PixExpirado.dc.html",
+  "B5-PixFalhou.dc.html",
+  "B6-PagIndisponivel.dc.html",
+  "B7-PagDesligado.dc.html",
+  "E1-MuitaGente.dc.html",
+  "E2-ConviteInativo.dc.html",
+  "E3-Enviando.dc.html",
+  "E4-SemSinal.dc.html",
+  "M1-Pagamentos.dc.html",
+  "M2-Planos.dc.html",
+  "S1-Precos.dc.html",
+  "S2-Ajuda.dc.html",
+  "S3-Exemplo.dc.html",
+  "L1-GaleriaDepois.dc.html",
+  "L2-AlbumImpresso.dc.html",
+  "L3-AviseRevelacao.dc.html",
+  "L4-AgoraTempoReal.dc.html",
+  "B8-PlanoCodigo.dc.html",
+  "B9-CodigoAplicado.dc.html",
+  "P2-AjustesCodigo.dc.html",
+  "M3-Codigos.dc.html"
+ ],
+ "notes": {
+  "t-org": {
+   "x": 0,
+   "y": -300,
+   "text": "Organizador · do anúncio ao QR em 2 minutos",
+   "kind": "title1",
+   "maxW": 3240
+  },
+  "t-conv": {
+   "x": 0,
+   "y": 1244,
+   "text": "Convidado · do QR à primeira foto em 30 segundos",
+   "kind": "title1",
+   "maxW": 2740
+  },
+  "t-painel": {
+   "x": 0,
+   "y": 2788,
+   "text": "Painel · ajustes, QR, Studio e erros do organizador",
+   "kind": "title1",
+   "maxW": 3290
+  },
+  "n-org": {
+   "x": 3320,
+   "y": 0,
+   "w": 560,
+   "maxH": 900,
+   "fill": "yellow",
+   "size": "s",
+   "text": "Referências AppLlama (organizador)\n\n• POV – Disposable Camera Events (app 1636032890), US$ 200 mil/mês, nota 4,91. Criação em folhas com barra de progresso e um celular de exemplo mostrando o efeito de cada escolha.\n  – Nome com sugestões: onb_y0e6f → O1\n  – Revelação com prévia da notificação na tela bloqueada: onb_5tkvu → O2\n  – Fotos por pessoa em 4 opções + câmera de exemplo + \"10 uploads extras da galeria depois do fim\": onb_bfw0o → O3\n  – Publicar = escolher pacote; Grátis até 10 pré-selecionado, nota 4,9, depoimento, \"Preview Camera\", incluído / não incluído: onb_uwatg, pay_pkrtk → O4\n  – Painel \"Hosting\" com prévia ao vivo e 3 ações: onb_ukgvi → O5\n  – Card de QR \"No download required\": oth_7r7pp → O6\n• Partiful (app 1662982304): o convite é o próprio editor, campos opcionais inline e padrão \"Unlimited spots\": oth_pdhh2 → O1–O3\n\nMétricas: login → QR (mediana ≤ 2 min); assistente iniciado → publicado (≥ 70%); publicado com > 10 convidados → pago (medir).\nPreços APROVADOS em 22/10/2026 (tabela v0): Grátis 10/10; Festa 30/24 R$ 29; Celebração 100/24 R$ 89; Casamento 250/36 R$ 189; Grande 500/ilimitado R$ 349. Alteráveis no Master › Planos e preços (M2), com motivo e auditoria."
+  },
+  "n-conv": {
+   "x": 2820,
+   "y": 1544,
+   "w": 560,
+   "maxH": 900,
+   "fill": "yellow",
+   "size": "s",
+   "text": "Referências AppLlama (convidado)\n\n• POV – abertura do evento: nome, data e um único CTA: oth_sfl7s → G1\n• POV – câmera ao fundo e pedido com motivo: \"Camera · Unlock 25 photos\": oth_0izco → G2\n• POV – aviso da revelação antes da 1ª foto: oth_n6s7m → G2/G3\n• POV – contador grande de fotos restantes e pilha de filme: oth_omhw0 → G3\n• Momo (app 1658822260) – origem da foto: Câmera | Galeria: oth_xmbc5 → G4\n• Dispo (app 1491684197) – \"revela às 9h para a noite continuar sua\": onb_7ctws → G5\n• POV – fotolivro com contagem até liberar: oth_co91w → G6 (hipótese de receita)\n\nMétricas: QR → 1ª foto (mediana ≤ 30 s); convidados com ≥ 1 foto (≥ 70%); convidado → cria evento em 30 dias (≥ 0,5%)."
+  },
+  "n-painel": {
+   "x": 3290,
+   "y": 3088,
+   "w": 560,
+   "maxH": 700,
+   "fill": "yellow",
+   "size": "s",
+   "text": "Referência AppLlama: POV – ajustes do evento numa folha só, com a linha do plano no topo: oth_yv1xv → P1\n\nRegra de produto: nunca barrar convidado no meio da festa (RV-M-02). O aviso de lotação vai para o organizador antes da festa, com 10% de tolerância."
+  },
+  "t-pix": {
+   "x": 0,
+   "y": 4332,
+   "text": "Plano e Pix · preços aprovados em 22/10/2026",
+   "kind": "title1",
+   "maxW": 3290
+  },
+  "t-erros": {
+   "x": 0,
+   "y": 5876,
+   "text": "Convidado · erros de entrada e envio",
+   "kind": "title1",
+   "maxW": 1880
+  },
+  "t-master": {
+   "x": 0,
+   "y": 7420,
+   "text": "Master · pagamentos e preços (desktop)",
+   "kind": "title1",
+   "maxW": 2720
+  },
+  "t-publico": {
+   "x": 0,
+   "y": 8620,
+   "text": "Páginas públicas · preços, ajuda, exemplo e rodapé",
+   "kind": "title1",
+   "maxW": 1410
+  },
+  "t-depois": {
+   "x": 0,
+   "y": 10620,
+   "text": "Depois deste lote · desenhado e registrado no backlog",
+   "kind": "title1",
+   "maxW": 1880
+  },
+  "n-pix": {
+   "x": 3290,
+   "y": 4632,
+   "w": 560,
+   "maxH": 900,
+   "fill": "yellow",
+   "size": "s",
+   "text": "Fluxo de pagamento (plano, Tasks 4–9)\n\nO4 Criar evento → evento nasce grátis → plano pago escolhido abre B1 com o plano marcado.\nB1 → B2 (QR, copia e cola, 30 min, polling 3 s) → B3 quando o banco confirma.\nB4 expirado: nada cobrado, gerar novo. B5 falhou/cancelado. B6 provedor fora (502), mesmo pedido.\nB7 payments_env=desligado: só Grátis e contato; liberação manual = cortesia auditada no Master.\n\nConfiança sem depoimento: conta por convidado (R$ 0,76 por olhar), testar antes de pagar, Pix único que não cobra se expirar, ninguém barrado. Depoimento só real e autorizado (COM-016)."
+  },
+  "n-depois": {
+   "x": 2000,
+   "y": 10920,
+   "w": 560,
+   "maxH": 700,
+   "fill": "yellow",
+   "size": "s",
+   "text": "Fora deste lote, já desenhado:\n• L1 +10 da galeria depois da festa → COM-014 (novo)\n• L2 Álbum impresso → COM-015 (novo), sem preço até haver fornecedor\n• L3 Me avise → COM-005 (e-mail) e FT-081 (push)\n• L4 Agora instantâneo → SB-006 / FT-084\n• Fila offline persistente (E4) → BG-071\n• Depoimentos reais no Master → COM-016 (novo)\n\nCOM-014/015/016 são registrados no backlog na Task 0 do plano."
+  },
+  "t-codigos": {
+   "x": 0,
+   "y": 12164,
+   "text": "Códigos de cortesia · teste e presente sem pagamento",
+   "kind": "title1",
+   "maxW": 2770
+  },
+  "n-codigos": {
+   "x": 2770,
+   "y": 12464,
+   "w": 560,
+   "maxH": 800,
+   "fill": "yellow",
+   "size": "s",
+   "text": "Códigos de cortesia (COM-017, Task 7A)\n\n• Master gera (M3): plano, nº de eventos que podem usar, validade e nota obrigatória. O código inteiro aparece só na criação; o banco guarda o hash.\n• Organizador resgata em dois lugares: Plano › \"Tenho um código\" (B8) e Ajustes › Código de presente (P2).\n• Resgate cria direito de cortesia no evento (env nenhum, auditado) → B9. Um uso por evento; evento com plano igual ou maior não consome o uso.\n• \"Copiar link\" gera /c/<código>: guarda o código e leva ao assistente; o código é aplicado ao criar o evento.\n• Erros: inexistente, expirado, esgotado ou revogado → mesma mensagem neutra. 5 tentativas erradas em 10 min por conta → bloqueio de 10 min.\n• Revogar impede novos resgates; planos já liberados continuam."
+  }
+ },
+ "designSystems": [
+  {
+   "title": "MemoriesMT",
+   "namespace": "memoriesmt",
+   "artifact": "https://claude.ai/artifact/U5T44LUoActcTe3n96aSg5",
+   "version": "1792633868-4472",
+   "copiedAt": "2026-10-22T06:30:00Z"
+  }
+ ]
+}
