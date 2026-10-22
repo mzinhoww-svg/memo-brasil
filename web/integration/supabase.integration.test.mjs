@@ -127,6 +127,35 @@ describe("Storage privado, upload e revelação", () => {
     const third = await g1.rpc("begin_photo", { p_id: randomUUID(), p_event: ev.id });
     assert.equal(third.error?.code, "MM001");
   });
+  it("envio repetido após queda de rede: uma foto, uma unidade de rolo; quota 5 recusa a sexta; reenvio da já existente segue válido", async () => {
+    const hostId = (await host.auth.getUser()).data.user.id;
+    const e5 = await host.from("events").insert({ title: `Rolo ${tag}`, category: "casamento", host_id: hostId, host_name: "Emy", duration_hours: 6, reveal_enabled: true, reveal_anchor: "fim", capacity: 5, shots_per_person: 5 }).select().single();
+    assert.ifError(e5.error);
+    const g = mk();
+    try {
+      assert.ifError((await g.auth.signInAnonymously()).error);
+      assert.equal((await g.rpc("join_event", { p_code: e5.data.code, p_name: "Rede" })).data.role, "membro");
+      const id = randomUUID();
+      const a = await g.rpc("begin_photo", { p_id: id, p_event: e5.data.id });
+      assert.ifError(a.error);
+      assert.ifError((await upload(g, a.data.storagePath)).error);
+      // a rede cai antes de o cliente saber do sucesso: ele repete begin_photo, o upload (já gravado) e finalize
+      const b = await g.rpc("begin_photo", { p_id: id, p_event: e5.data.id });
+      assert.ifError(b.error);
+      assert.equal(b.data.storagePath, a.data.storagePath, "mesma linha no reenvio");
+      assert.ok((await upload(g, a.data.storagePath)).error, "objeto já existe: reenvio não sobrescreve");
+      assert.equal((await g.rpc("finalize_photo", { p_id: id })).data.uploadStatus, "pronta");
+      assert.equal((await g.rpc("finalize_photo", { p_id: id })).data.uploadStatus, "pronta", "finalize idempotente");
+      assert.equal((await admin.from("photos").select("id", { count: "exact", head: true }).eq("event_id", e5.data.id)).count, 1, "uma foto persistida");
+      for (let i = 0; i < 4; i++) assert.ifError((await g.rpc("begin_photo", { p_id: randomUUID(), p_event: e5.data.id })).error); // 2ª a 5ª
+      const sexta = await g.rpc("begin_photo", { p_id: randomUUID(), p_event: e5.data.id });
+      assert.equal(sexta.error?.code, "MM001", "a sexta é recusada pelo servidor");
+      assert.ifError((await g.rpc("begin_photo", { p_id: id, p_event: e5.data.id })).error); // reenvio da 1ª não conta de novo, mesmo no limite
+      assert.equal((await admin.from("photos").select("id", { count: "exact", head: true }).eq("event_id", e5.data.id)).count, 5);
+    } finally {
+      await admin.from("events").delete().eq("id", e5.data.id);
+    }
+  });
   it("revelação: a tarefa do servidor libera; reexecutar é idempotente; depois o convidado vê e assina", async () => {
     const past = new Date(Date.now() - 60_000).toISOString();
     await admin.from("events").update({ start_at: new Date(Date.now() - 7 * 3600_000).toISOString(), reveal_at: past }).eq("id", ev.id);
