@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { AbacateError, checkPixCharge, createPixCharge, getPixCharge, listPixCharges, refundCharge, simulatePixPayment, type AbacateConfig } from "./abacatepay";
 import { verifyWebhookRequest } from "./payments-webhook-auth";
-import { chargeMatchesOrder, findChargeForOrder, mapProviderStatus } from "./payments-status";
+import { chargeMatchesOrder, findChargeForOrder, mapProviderStatus, refundBlocker } from "./payments-status";
 
 // Chaves fictícias, só para teste (nunca chaves reais).
 const DEV_KEY = "abc_dev_TESTE_fake_0000000000";
@@ -383,5 +383,38 @@ describe("findChargeForOrder", () => {
     const r2 = await findChargeForOrder(cfg(seq([{ data: [other], success: true, error: null, pagination: { hasMore: true, next: "", before: null } }], calls2)), order);
     expect(r2).toEqual({ charge: null, complete: true });
     expect(calls2).toHaveLength(1);
+  });
+});
+
+describe("refundBlocker (payments-refund, Ruling 16)", () => {
+  const base = { id: "aaaaaaaa-1111-4111-8111-11111111111b", amount_cents: 18900, provider_env: "sandbox" as const, provider_charge_id: "pix_char_1",
+                 refund_requested_at: "2026-10-22T10:00:00Z", needs_refund: false };
+  const paid = { id: "pix_char_1", status: "PAID", externalId: base.id, amount: 18900, devMode: true };
+  it("pago com reembolso solicitado e cobrança PAID que confere: liberado", () => {
+    expect(refundBlocker({ ...base, status: "pago" }, paid)).toBeNull();
+  });
+  it("cancelado com needs_refund (Pix pago depois do cancelamento): liberado", () => {
+    expect(refundBlocker({ ...base, status: "cancelado", needs_refund: true }, paid)).toBeNull();
+  });
+  it("cancelado sem needs_refund, em disputa, perdido ou estornado: estado_invalido", () => {
+    for (const status of ["cancelado", "em_disputa", "perdido", "estornado", "pendente"] as const) {
+      expect(refundBlocker({ ...base, status }, paid), status).toBe("estado_invalido");
+    }
+    expect(refundBlocker({ ...base, status: "perdido", needs_refund: true }, paid)).toBe("estado_invalido");
+  });
+  it("sem solicitação registrada ou sem cobrança", () => {
+    expect(refundBlocker({ ...base, status: "pago", refund_requested_at: null }, paid)).toBe("reembolso_nao_solicitado");
+    expect(refundBlocker({ ...base, status: "pago", provider_charge_id: null }, paid)).toBe("estado_invalido");
+  });
+  it("cobrança reconsultada precisa estar PAID e conferir com o pedido", () => {
+    expect(refundBlocker({ ...base, status: "pago" }, { ...paid, status: "REFUNDED" })).toBe("cobranca_nao_paga");
+    expect(refundBlocker({ ...base, status: "pago" }, { ...paid, status: "UNDER_DISPUTE" })).toBe("cobranca_nao_paga");
+    expect(refundBlocker({ ...base, status: "pago" }, { ...paid, amount: 100 })).toBe("cobranca_nao_confere");
+    expect(refundBlocker({ ...base, status: "pago" }, { ...paid, externalId: undefined })).toBe("cobranca_nao_confere");
+    expect(refundBlocker({ ...base, status: "pago" }, { ...paid, devMode: false })).toBe("cobranca_nao_confere");
+    expect(refundBlocker({ ...base, status: "pago" }, { ...paid, id: "pix_char_outra" })).toBe("cobranca_nao_confere");
+  });
+  it("sem a cobrança (antes da reconsulta) só confere o pedido", () => {
+    expect(refundBlocker({ ...base, status: "pago" })).toBeNull();
   });
 });

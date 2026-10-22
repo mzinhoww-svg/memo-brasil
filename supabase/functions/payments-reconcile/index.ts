@@ -1,6 +1,6 @@
 // Conciliação chamada pelo pg_cron (verify_jwt=false; Authorization: Bearer PAYMENTS_CRON_TOKEN). Lote de até 50 pedidos:
 // - 'pendente' criado há > 60 s e consultado há > 60 s → reconsulta e aplica (webhook perdido, vencimento);
-// - 'pago' com reembolso solicitado → reconsulta (o 'estornado' chega por aqui se o webhook se perder);
+// - 'pago' (ou 'cancelado' com needs_refund, Ruling 16) com reembolso solicitado → reconsulta (o 'estornado' chega por aqui se o webhook se perder);
 // - 'criado' sem cobrança há > 5 min → procura a cobrança na listagem (create que deu timeout), paginando só com parâmetros
 //   documentados (startDate, after, limit). Só adota com externalId === id do pedido, mesmo valor e mesmo devMode;
 //   sem correspondência exata: 'falhou' (libera novo checkout).
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     admin.from("payment_orders").select(ORDER_COLUMNS).eq("status", "pendente").eq("provider_env", provider.env)
       .not("provider_charge_id", "is", null).lt("created_at", minute).or(`last_checked_at.is.null,last_checked_at.lt.${minute}`)
       .order("last_checked_at", { ascending: true, nullsFirst: true }).limit(BATCH),
-    admin.from("payment_orders").select(ORDER_COLUMNS).eq("status", "pago").eq("provider_env", provider.env)
+    admin.from("payment_orders").select(ORDER_COLUMNS).in("status", ["pago", "cancelado"]).eq("provider_env", provider.env)
       .not("refund_requested_at", "is", null).not("provider_charge_id", "is", null)
       .or(`last_checked_at.is.null,last_checked_at.lt.${minute}`)
       .order("last_checked_at", { ascending: true, nullsFirst: true }).limit(BATCH),

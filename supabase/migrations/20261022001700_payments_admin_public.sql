@@ -45,11 +45,12 @@ begin
 end $$;
 
 -- Divergências, uma linha por (pedido, tipo). Tipos:
---   pago_sem_direito · direito_sem_pedido_pago · pendente_1h · needs_refund · em_disputa (estado atual), e, a partir de
+--   pago_sem_direito (só evento existente e sem needs_refund, que já tem linha própria) · direito_sem_pedido_pago · pendente_1h · needs_refund · em_disputa (estado atual), e, a partir de
 --   payment_events dos últimos 30 dias (agrupados, com occurrences): pago_ignorado_reembolsar · upgrade_base_estornado ·
 --   divergencia_valor · divergencia_ambiente (a spec chama de 'ambiente_divergente'; aceitos os dois) ·
 --   divergencia_cobranca · transicao_ignorada (só quando o destino era 'pago': dinheiro possivelmente recebido).
--- Pedidos de evento purgado (event_id null) entram normalmente.
+-- Pedidos de evento purgado (event_id null) entram nos demais tipos. refundInProgress: reembolso já solicitado e ainda não
+-- estornado (a página mostra "reembolso em andamento" e não conta em "precisa de ação").
 create function public.admin_payment_divergences() returns setof jsonb
 language plpgsql stable security definer set search_path = '' as $$
 begin
@@ -58,7 +59,7 @@ begin
   with d as (
     select 'pago_sem_direito'::text as kind, o.id as order_id, coalesce(o.paid_at, o.updated_at) as detected_at, 1 as occurrences
       from public.payment_orders o
-     where o.status = 'pago'
+     where o.status = 'pago' and o.event_id is not null and not o.needs_refund -- purgado: o direito saiu com o evento
        and not exists (select 1 from public.event_entitlements z where z.order_id = o.id and z.status = 'ativo')
     union all
     select 'direito_sem_pedido_pago', o.id, z.created_at, 1
@@ -85,13 +86,15 @@ begin
       'kind', d.kind, 'orderId', o.id, 'eventId', o.event_id, 'eventTitle', e.title, 'planCode', o.plan_code,
       'amountCents', o.amount_cents, 'status', o.status, 'providerChargeId', o.provider_charge_id,
       'needsRefund', o.needs_refund, 'refundRequestedAt', o.refund_requested_at,
+      'refundInProgress', o.refund_requested_at is not null and o.status <> 'estornado',
       'detectedAt', d.detected_at, 'occurrences', d.occurrences)
     from d join public.payment_orders o on o.id = d.order_id
     left join public.events e on e.id = o.event_id
    order by d.detected_at desc, o.id, d.kind;
 end $$;
 
--- Totais da página M1 (ambiente vigente, por status, pagos em 30 dias, pendentes há mais de 1 h, divergências).
+-- Totais da página M1 (ambiente vigente, por status, pagos em 30 dias, pendentes há mais de 1 h, divergências que
+-- precisam de ação: sem reembolso em andamento).
 create function public.admin_payments_summary() returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
 declare by_status jsonb; paid jsonb;
@@ -104,7 +107,7 @@ begin
   return jsonb_build_object(
     'env', public.payments_env(), 'byStatus', by_status, 'paid30d', paid,
     'pendingOver1h', (select count(*) from public.payment_orders where status = 'pendente' and created_at < now() - interval '1 hour'),
-    'divergences', (select count(*) from public.admin_payment_divergences()));
+    'divergences', (select count(*) from public.admin_payment_divergences() d where not (d ->> 'refundInProgress')::boolean));
 end $$;
 
 -- ---------------------------------------------------------------- cortesia
@@ -137,8 +140,9 @@ end $$;
 
 -- ---------------------------------------------------------------- reembolso
 -- Só marca a solicitação (refund_requested_at/refund_reason) e audita; a página chama a função payments-refund com o JWT
--- do Master, que fala com o provedor. Aceita só pedido 'pago' com cobrança (o provedor recusa reembolso de cobrança em
--- disputa). Contra reembolso duplo: recusa pedido já estornado e pedido com reembolso já solicitado (pendente).
+-- do Master, que fala com o provedor. Aceita pedido 'pago' com cobrança (o provedor recusa reembolso de cobrança em
+-- disputa) e, pelo Ruling 16, 'cancelado' com needs_refund (Pix pago depois do cancelamento). Nunca estornado/perdido.
+-- Contra reembolso duplo: recusa pedido com reembolso já solicitado (pendente).
 create function public.admin_request_refund(p_order uuid, p_reason text) returns void
 language plpgsql security definer set search_path = '' as $$
 declare why text; o public.payment_orders;
@@ -146,13 +150,15 @@ begin
   if not public.is_master() then raise exception 'forbidden' using errcode = 'MM004'; end if;
   why := public.admin_reason(p_reason);
   select * into o from public.payment_orders where id = p_order for update;
-  if not found or o.status <> 'pago' or o.provider_charge_id is null or o.refund_requested_at is not null then
+  if not found or not (o.status = 'pago' or (o.status = 'cancelado' and o.needs_refund))
+     or o.provider_charge_id is null or o.refund_requested_at is not null then
     raise exception 'invalid' using errcode = 'MM005';
   end if;
   update public.payment_orders set refund_requested_at = now(), refund_reason = why where id = o.id;
   insert into public.audit_logs (actor_id, actor_role, event_id, action, target_type, target_id, reason, detail)
   values (auth.uid(), 'master', o.event_id, 'payment.refund_requested', 'payment_order', o.id::text, why,
-          jsonb_build_object('orderId', o.id, 'plan', o.plan_code, 'amountCents', o.amount_cents, 'env', o.provider_env));
+          jsonb_build_object('orderId', o.id, 'plan', o.plan_code, 'amountCents', o.amount_cents, 'env', o.provider_env,
+                             'status', o.status, 'needsRefund', o.needs_refund));
 end $$;
 
 -- ---------------------------------------------------------------- catálogo
@@ -234,9 +240,9 @@ $$;
 
 -- ---------------------------------------------------------------- job de conciliação
 -- mm-payments-reconcile a cada 5 min chama a Edge Function payments-reconcile com Authorization: Bearer lido do Vault
--- (mm_payments_cron_token) em tempo de execução: o token nunca fica no texto do job. URL: segredo opcional
--- mm_payments_reconcile_url, senão o projeto remoto. Só agenda se o segredo existir; senão notice e false (o runbook
--- manda criar o segredo e rodar `select public.payments_schedule_reconcile()`). Idempotente: desagenda o anterior.
+-- (mm_payments_cron_token) e URL lida do Vault (mm_payments_reconcile_url), ambos em tempo de execução: nada de segredo
+-- nem de URL fixa no texto do job (sem fallback para produção). Só agenda se os dois segredos existirem; senão notice e
+-- false (o runbook manda criá-los e rodar `select public.payments_schedule_reconcile()`). Idempotente: desagenda o anterior.
 create function public.payments_schedule_reconcile() returns boolean
 language plpgsql security definer set search_path = '' as $$
 begin
@@ -248,14 +254,17 @@ begin
     raise notice 'segredo mm_payments_cron_token ausente no Vault: mm-payments-reconcile não agendado (ver runbook)';
     return false;
   end if;
+  if not exists (select 1 from vault.decrypted_secrets where name = 'mm_payments_reconcile_url' and decrypted_secret ~ '^https?://') then
+    raise notice 'segredo mm_payments_reconcile_url ausente no Vault: mm-payments-reconcile não agendado (ver runbook)';
+    return false;
+  end if;
   create extension if not exists pg_net with schema extensions;
   if exists (select 1 from cron.job where jobname = 'mm-payments-reconcile') then
     perform cron.unschedule('mm-payments-reconcile');
   end if;
   perform cron.schedule('mm-payments-reconcile', '*/5 * * * *', $job$
     select net.http_post(
-      url := coalesce((select decrypted_secret from vault.decrypted_secrets where name = 'mm_payments_reconcile_url' limit 1),
-                      'https://asyaegeodyttttaubvxh.supabase.co/functions/v1/payments-reconcile'),
+      url := (select decrypted_secret from vault.decrypted_secrets where name = 'mm_payments_reconcile_url' limit 1),
       headers := jsonb_build_object(
         'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'mm_payments_cron_token' limit 1),
         'Content-Type', 'application/json'),

@@ -172,7 +172,7 @@ select tests.set_env('sandbox');
 
 -- ===================================================== pagamentos e divergências
 -- d1 pago sem direito · d2 needs_refund (cancelado) · d3 pendente há 2 h · d4 em disputa · d5 pago de evento purgado (event_id null)
--- d6 pago com direito (não diverge)
+-- d6 pago com direito (não diverge) · d8 pago marcado para reembolso (plano já coberto) · d9 cancelado sem dinheiro recebido
 insert into public.payment_orders (id, event_id, host_id, plan_code, amount_cents, status, provider_env, provider_charge_id, idempotency_key, created_at, paid_at, needs_refund) values
   ('00000000-0000-4000-8000-0000000009d1', '00000000-0000-4000-8000-0000000009e4', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'pago', 'sandbox', 'pix_char_d1', gen_random_uuid(), now() - interval '3 hours', now(), false),
   ('00000000-0000-4000-8000-0000000009d2', '00000000-0000-4000-8000-0000000009e4', '00000000-0000-4000-8000-0000000009a1', 'grande', 16000, 'cancelado', 'sandbox', 'pix_char_d2', gen_random_uuid(), now() - interval '2 days', null, true),
@@ -180,7 +180,9 @@ insert into public.payment_orders (id, event_id, host_id, plan_code, amount_cent
   ('00000000-0000-4000-8000-0000000009d4', '00000000-0000-4000-8000-0000000009e4', '00000000-0000-4000-8000-0000000009a1', 'celebracao', 8900, 'em_disputa', 'sandbox', 'pix_char_d4', gen_random_uuid(), now() - interval '5 days', now() - interval '5 days', false),
   ('00000000-0000-4000-8000-0000000009d5', null, '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'pago', 'sandbox', 'pix_char_d5', gen_random_uuid(), now() - interval '40 days', now() - interval '40 days', false),
   ('00000000-0000-4000-8000-0000000009d6', '00000000-0000-4000-8000-0000000009e1', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'pago', 'sandbox', 'pix_char_d6', gen_random_uuid(), now() - interval '1 day', now() - interval '1 day', false),
-  ('00000000-0000-4000-8000-0000000009d7', '00000000-0000-4000-8000-0000000009e1', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'estornado', 'sandbox', 'pix_char_d7', gen_random_uuid(), now() - interval '1 day', now() - interval '1 day', false);
+  ('00000000-0000-4000-8000-0000000009d7', '00000000-0000-4000-8000-0000000009e1', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'estornado', 'sandbox', 'pix_char_d7', gen_random_uuid(), now() - interval '1 day', now() - interval '1 day', false),
+  ('00000000-0000-4000-8000-0000000009d8', '00000000-0000-4000-8000-0000000009e1', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'pago', 'sandbox', 'pix_char_d8', gen_random_uuid(), now() - interval '30 minutes', now(), true),
+  ('00000000-0000-4000-8000-0000000009d9', '00000000-0000-4000-8000-0000000009e4', '00000000-0000-4000-8000-0000000009a1', 'festa', 2900, 'cancelado', 'sandbox', 'pix_char_d9', gen_random_uuid(), now() - interval '1 day', null, false);
 insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, order_id, env)
   values ('00000000-0000-4000-8000-0000000009e1', 'festa', 30, 24, 'pago', '00000000-0000-4000-8000-0000000009d6', 'sandbox'),
          ('00000000-0000-4000-8000-0000000009e4', 'celebracao', 100, 24, 'pago', '00000000-0000-4000-8000-0000000009d7', 'sandbox');
@@ -206,8 +208,13 @@ select ok(exists (select 1 from div where d ->> 'kind' = 'pendente_1h' and d ->>
   'divergência: pendente com mais de 1 h');
 select ok(exists (select 1 from div where d ->> 'kind' = 'em_disputa' and d ->> 'orderId' = '00000000-0000-4000-8000-0000000009d4'),
   'divergência: em disputa');
-select ok(exists (select 1 from div where d ->> 'kind' = 'pago_sem_direito' and d ->> 'orderId' = '00000000-0000-4000-8000-0000000009d5'
-                  and d -> 'eventId' = 'null'::jsonb), 'pedido de evento purgado continua listado');
+select ok(not exists (select 1 from div where d ->> 'kind' = 'pago_sem_direito' and d ->> 'orderId' = '00000000-0000-4000-8000-0000000009d5'),
+  'pago de evento purgado não é "pago sem direito" (o direito saiu com o evento)');
+select ok(not exists (select 1 from div where d ->> 'kind' = 'pago_sem_direito' and d ->> 'orderId' = '00000000-0000-4000-8000-0000000009d8'),
+  'pago já marcado para reembolso não aparece de novo como "pago sem direito"');
+select ok(exists (select 1 from div where d ->> 'kind' = 'needs_refund' and d ->> 'orderId' = '00000000-0000-4000-8000-0000000009d8'),
+  'pago marcado para reembolso aparece como needs_refund');
+select ok((select bool_and(not (d ->> 'refundInProgress')::boolean) from div), 'sem reembolso solicitado: nenhuma divergência em andamento');
 select ok(exists (select 1 from div where d ->> 'kind' = 'pago_ignorado_reembolsar' and d ->> 'orderId' = '00000000-0000-4000-8000-0000000009d2'),
   'divergência: pago ignorado a reembolsar');
 select is((select (d ->> 'occurrences')::int from div where d ->> 'kind' = 'divergencia_valor' and d ->> 'orderId' = '00000000-0000-4000-8000-0000000009d1'), 2,
@@ -222,12 +229,14 @@ select ok(not exists (select 1 from div where d ->> 'kind' = 'transicao_ignorada
   'transição ignorada que não ia para pago não é divergência');
 select ok(not exists (select 1 from div where d ->> 'orderId' = '00000000-0000-4000-8000-0000000009d6' and d ->> 'kind' in ('pago_sem_direito', 'direito_sem_pedido_pago')),
   'pago com direito não diverge');
-select ok((select bool_and(d ? 'eventTitle' and d ? 'planCode' and d ? 'amountCents' and d ? 'status' and d ? 'detectedAt') from div),
+select ok((select bool_and(d ? 'eventTitle' and d ? 'refundInProgress' and d ? 'planCode' and d ? 'amountCents' and d ? 'status' and d ? 'detectedAt') from div),
   'divergência traz evento, plano, valor, status e data');
 
 -- lista e totais
-select is((select count(*)::int from public.admin_list_payments()), 8, 'admin_list_payments lista todos os pedidos');
-select is((select count(*)::int from public.admin_list_payments('pago')), 3, 'admin_list_payments filtra por status');
+select is((select count(*)::int from public.admin_list_payments()), 10, 'admin_list_payments lista todos os pedidos');
+select ok(exists (select 1 from public.admin_list_payments() p where p ->> 'orderId' = '00000000-0000-4000-8000-0000000009d5' and p -> 'eventId' = 'null'::jsonb),
+  'pedido de evento purgado continua em admin_list_payments');
+select is((select count(*)::int from public.admin_list_payments('pago')), 4, 'admin_list_payments filtra por status');
 select is((select count(*)::int from public.admin_list_payments(null, 2)), 2, 'admin_list_payments respeita o limite');
 select throws_ok($$select * from public.admin_list_payments('nao_existe')$$, 'MM005', null, 'status desconhecido: MM005');
 select is((select p ->> 'eventTitle' from public.admin_list_payments() p where p ->> 'orderId' = '00000000-0000-4000-8000-0000000009d1'), 'Divergências',
@@ -237,9 +246,9 @@ select ok((select (p ->> 'needsRefund')::boolean from public.admin_list_payments
 select ok((select p ? 'providerChargeId' and p ? 'provider' and p ? 'createdAt' and p ? 'planName' from public.admin_list_payments() p limit 1),
   'pedido traz cobrança, provedor, data e nome do plano');
 select is(public.admin_payments_summary() ->> 'env', 'sandbox', 'resumo traz o ambiente vigente');
-select is((public.admin_payments_summary() -> 'byStatus' -> 'pago' ->> 'count')::int, 3, 'resumo conta pagos');
-select is((public.admin_payments_summary() -> 'paid30d' ->> 'count')::int, 2, 'pagos nos últimos 30 dias');
-select is((public.admin_payments_summary() -> 'paid30d' ->> 'amountCents')::int, 5800, 'valor pago nos últimos 30 dias');
+select is((public.admin_payments_summary() -> 'byStatus' -> 'pago' ->> 'count')::int, 4, 'resumo conta pagos');
+select is((public.admin_payments_summary() -> 'paid30d' ->> 'count')::int, 3, 'pagos nos últimos 30 dias');
+select is((public.admin_payments_summary() -> 'paid30d' ->> 'amountCents')::int, 8700, 'valor pago nos últimos 30 dias');
 select is((public.admin_payments_summary() ->> 'pendingOver1h')::int, 1, 'pendentes há mais de 1 h');
 select is((public.admin_payments_summary() ->> 'divergences')::int, (select count(*)::int from div), 'resumo conta as divergências');
 
@@ -257,19 +266,55 @@ select throws_ok($$select public.admin_request_refund('00000000-0000-4000-8000-0
   'MM005', null, 'pedido em disputa não aceita reembolso (o provedor recusa): MM005');
 select ok((select (p ->> 'refundRequestedAt') is not null from public.admin_list_payments() p where p ->> 'orderId' = '00000000-0000-4000-8000-0000000009d1'),
   'lista mostra reembolso solicitado');
+-- Ruling 16: Pix recebido em pedido cancelado (needs_refund) é reembolsável; cancelado sem dinheiro recebido não
+select throws_ok($$select public.admin_request_refund('00000000-0000-4000-8000-0000000009d9', 'motivo longo o bastante')$$,
+  'MM005', null, 'cancelado sem needs_refund não aceita reembolso: MM005');
+select lives_ok($$select public.admin_request_refund('00000000-0000-4000-8000-0000000009d2', 'Pix pago depois do cancelamento')$$,
+  'cancelado com needs_refund aceita reembolso');
+select throws_ok($$select public.admin_request_refund('00000000-0000-4000-8000-0000000009d2', 'Pix pago depois do cancelamento')$$,
+  'MM005', null, 'cancelado com reembolso já solicitado: MM005');
+select ok((select bool_and((d ->> 'refundInProgress')::boolean) from public.admin_payment_divergences() d
+           where d ->> 'orderId' in ('00000000-0000-4000-8000-0000000009d1', '00000000-0000-4000-8000-0000000009d2')),
+  'divergências de pedido com reembolso solicitado ficam "em andamento"');
+select is((public.admin_payments_summary() ->> 'divergences')::int,
+  (select count(*)::int from public.admin_payment_divergences() d where not (d ->> 'refundInProgress')::boolean),
+  'reembolso em andamento sai da contagem "precisa de ação"');
+select ok((public.admin_payments_summary() ->> 'divergences')::int < (select count(*)::int from public.admin_payment_divergences()),
+  'a contagem de ação é menor que o total de divergências');
 reset role;
 select is((select refund_reason || '/' || status::text from public.payment_orders where id = '00000000-0000-4000-8000-0000000009d1'),
   'Pagamento em duplicidade no evento/pago', 'reembolso grava motivo e não muda o status');
 select is((select count(*)::int from public.audit_logs where action = 'payment.refund_requested' and actor_role = 'master'
            and target_id = '00000000-0000-4000-8000-0000000009d1' and reason = 'Pagamento em duplicidade no evento'), 1, 'reembolso auditado');
 
+-- estorno do pedido cancelado (needs_refund): cancelado → estornado aplicado e needs_refund limpo
+set local role service_role;
+select is((public.payments_apply_status('00000000-0000-4000-8000-0000000009d2', 'pix_char_d2', 'estornado', 16000, true, 'webhook') ->> 'applied')::boolean, true,
+  'cancelado → estornado com needs_refund é aplicado');
+select is((public.payments_apply_status('00000000-0000-4000-8000-0000000009d9', 'pix_char_d9', 'estornado', 2900, true, 'webhook') ->> 'applied')::boolean, false,
+  'cancelado → estornado sem needs_refund é ignorado');
+reset role;
+select is((select status::text || '/' || needs_refund from public.payment_orders where id = '00000000-0000-4000-8000-0000000009d2'), 'estornado/false',
+  'pedido cancelado estornado: status estornado e needs_refund limpo');
+select is((select status::text from public.payment_orders where id = '00000000-0000-4000-8000-0000000009d9'), 'cancelado', 'cancelado sem dinheiro continua cancelado');
+select is((select outcome from public.payment_events where order_id = '00000000-0000-4000-8000-0000000009d9' order by id desc limit 1), 'transicao_ignorada',
+  'transição sem needs_refund registrada como ignorada');
+select tests.login('00000000-0000-4000-8000-0000000009c1', 'master');
+select ok(not exists (select 1 from public.admin_payment_divergences() d where d ->> 'orderId' = '00000000-0000-4000-8000-0000000009d2' and d ->> 'kind' = 'needs_refund'),
+  'needs_refund some das divergências depois do estorno');
+reset role;
+
 -- ===================================================== job de conciliação
 select ok(not exists (select 1 from cron.job where jobname = 'mm-payments-reconcile'), 'sem segredo no Vault: job não existe');
 select is(public.payments_schedule_reconcile(), false, 'sem segredo: não agenda');
 select vault.create_secret('token-de-teste-com-mais-de-vinte-caracteres', 'mm_payments_cron_token');
-select is(public.payments_schedule_reconcile(), true, 'com segredo: agenda');
+select is(public.payments_schedule_reconcile(), false, 'só o token, sem a URL no Vault: não agenda (nunca cai na URL de produção)');
+select ok(not exists (select 1 from cron.job where jobname = 'mm-payments-reconcile'), 'sem URL: job não existe');
+select vault.create_secret('http://127.0.0.1:54321/functions/v1/payments-reconcile', 'mm_payments_reconcile_url');
+select is(public.payments_schedule_reconcile(), true, 'com token e URL: agenda');
 select is((select schedule from cron.job where jobname = 'mm-payments-reconcile'), '*/5 * * * *', 'job a cada 5 minutos');
-select ok((select command like '%net.http_post%' and command like '%mm_payments_cron_token%' and command not like '%token-de-teste%'
+select ok((select command like '%net.http_post%' and command like '%mm_payments_cron_token%' and command like '%mm_payments_reconcile_url%' and command not like '%token-de-teste%'
+           and command not like '%supabase.co%' and command not like '%127.0.0.1%'
            from cron.job where jobname = 'mm-payments-reconcile'), 'job lê o token do Vault em tempo de execução');
 select is(public.payments_schedule_reconcile(), true, 'reagendar é idempotente');
 select is((select count(*)::int from cron.job where jobname = 'mm-payments-reconcile'), 1, 'um único job');

@@ -57,6 +57,7 @@ test("master altera o preço do Casamento com motivo e list_public_plans mostra 
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(page.getByRole("row", { name: /Casamento/ })).toContainText("R$ 199,00");
     expect(await publicPrice("casamento")).toBe(19900);
+    await expect(page.getByText(/Última alteração em \d{2}\/\d{2}\/\d{4}\./)).toBeVisible();
 
     await page.getByRole("button", { name: "Editar Casamento" }).click();
     await expect(page.getByRole("dialog", { name: "Editar Casamento" })).toContainText("Ajuste de preço após piloto de novembro"); // histórico

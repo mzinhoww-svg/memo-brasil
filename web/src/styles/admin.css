@@ -41,6 +41,7 @@
 .adm-head-title .adm-badge { text-transform: uppercase; letter-spacing: 0.06em; }
 .adm-alerts { list-style: none; margin: 20px 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .adm-alert { border: 1px solid var(--adm-status-erro); border-radius: 12px; padding: 12px 16px; color: var(--tinta, #1C1917); background: color-mix(in srgb, var(--adm-status-erro) 7%, transparent); font-size: 15px; }
+.adm-alert[data-andamento] { border-color: var(--adm-status-aviso); background: color-mix(in srgb, var(--adm-status-aviso) 7%, transparent); }
 .adm-grid + .adm-table-wrap, .adm-grid + .adm-state { margin-top: 24px; }
 .adm-textarea { height: auto; min-height: 112px; padding: 12px 16px; resize: vertical; line-height: 1.4; }
 .adm-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; font-size: 17px; }

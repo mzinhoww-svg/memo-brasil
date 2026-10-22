@@ -36,6 +36,26 @@ export function chargeMatchesOrder(
   return identity && c.amount === order.amount_cents && c.devMode === (order.provider_env === "sandbox");
 }
 
+/**
+ * Por que payments-refund não pode reembolsar este pedido (null = pode). Ruling 16: 'pago', ou 'cancelado' com needs_refund
+ * (Pix pago depois do cancelamento); nunca em_disputa (o provedor recusa), perdido ou estornado. Exige a solicitação gravada
+ * por admin_request_refund e a cobrança. Com `charge` (reconsulta antes do refundCharge): PAID, mesma cobrança e
+ * chargeMatchesOrder (identidade, valor e ambiente).
+ */
+export function refundBlocker(
+  order: { id: string; status: PaymentStatus; needs_refund: boolean; provider_charge_id: string | null; refund_requested_at: string | null;
+           amount_cents: number; provider_env: "sandbox" | "production" },
+  charge?: { id: string; status: string; externalId?: string | null; metadataOrderId?: string | null; amount?: number | null; devMode: boolean },
+): "reembolso_nao_solicitado" | "estado_invalido" | "cobranca_nao_paga" | "cobranca_nao_confere" | null {
+  const refundable = order.status === "pago" || (order.status === "cancelado" && order.needs_refund === true);
+  if (!refundable || !order.provider_charge_id) return "estado_invalido";
+  if (!order.refund_requested_at) return "reembolso_nao_solicitado";
+  if (!charge) return null;
+  if (charge.status !== "PAID") return "cobranca_nao_paga";
+  if (charge.id !== order.provider_charge_id || !chargeMatchesOrder(charge, order)) return "cobranca_nao_confere";
+  return null;
+}
+
 const LIST_MAX_PAGES = 10;
 
 /**

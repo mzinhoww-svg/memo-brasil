@@ -56,8 +56,19 @@ const STATUS: Record<string, { label: string; tone: Tone }> = {
   perdido: { label: "perdido", tone: "erro" },
 };
 export function orderStatus(o: { status: string; refundRequestedAt: string | null }): { label: string; tone: Tone } {
-  if (o.status === "pago" && o.refundRequestedAt) return { label: "reembolso pendente", tone: "aviso" };
+  if (o.refundRequestedAt && o.status !== "estornado") return { label: "reembolso em andamento", tone: "aviso" };
   return STATUS[o.status] ?? { label: o.status, tone: "info" };
+}
+
+/** Reembolso pelo console: 'pago', ou 'cancelado' com needs_refund (Pix pago depois do cancelamento, Ruling 16). */
+export function canRefund(o: { status: string; needsRefund: boolean; providerChargeId: string | null }): boolean {
+  return !!o.providerChargeId && (o.status === "pago" || (o.status === "cancelado" && o.needsRefund));
+}
+
+/** Data (ISO) da alteração de preço/ativação mais recente entre todos os planos, ou null sem histórico. */
+export function lastChange(plans: { history: { at: string }[] }[]): string | null {
+  const all = plans.flatMap((p) => p.history.map((h) => h.at));
+  return all.length ? all.reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a)) : null;
 }
 
 /** "pix_char_…9c1": prefixo e os 3 últimos caracteres. */
@@ -72,7 +83,7 @@ const DIVERGENCE: Record<string, string> = {
   pago_sem_direito: "pago sem plano liberado no evento.",
   direito_sem_pedido_pago: "plano pago liberado sem pedido pago.",
   pendente_1h: "Pix pendente há mais de 1 h.",
-  needs_refund: "pago depois de ter outro plano igual ou maior. Marcado para reembolso.",
+  needs_refund: "Dinheiro recebido sem plano liberado. Precisa de reembolso.",
   em_disputa: "pagamento em disputa no provedor.",
   pago_ignorado_reembolsar: "pagamento chegou para um pedido já encerrado. Precisa de reembolso.",
   upgrade_base_estornado: "o plano base deste upgrade foi estornado.",

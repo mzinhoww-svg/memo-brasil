@@ -99,9 +99,10 @@ export type OrderRow = {
   last_checked_at: string | null;
   refund_requested_at: string | null;
   refund_reason: string | null;
+  needs_refund: boolean;
 };
 export const ORDER_COLUMNS =
-  "id,event_id,host_id,plan_code,amount_cents,status,provider_env,provider_charge_id,created_at,last_checked_at,refund_requested_at,refund_reason";
+  "id,event_id,host_id,plan_code,amount_cents,status,provider_env,provider_charge_id,created_at,last_checked_at,refund_requested_at,refund_reason,needs_refund";
 
 export async function loadOrder(admin: SupabaseClient, id: string): Promise<{ order: OrderRow | null; error: boolean }> {
   const { data, error } = await admin.from("payment_orders").select(ORDER_COLUMNS).eq("id", id).maybeSingle();

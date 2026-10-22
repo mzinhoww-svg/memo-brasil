@@ -1,8 +1,10 @@
 // Reembolso disparado pelo Master (verify_jwt=true; o chamador precisa de is_master()). Só para pedido com
-// refund_requested_at (gravado por admin_request_refund, Task 7). Chama o provedor e NÃO muda o estado: o 'estornado'
+// refund_requested_at (gravado por admin_request_refund, Task 7) em pedido 'pago' ou 'cancelado' com needs_refund (Ruling 16);
+// reconsulta a cobrança (PAID e do pedido) antes de reembolsar. Chama o provedor e NÃO muda o estado: o 'estornado'
 // chega pelo webhook transparent.refunded ou pela reconciliação. Idempotente: pedido já estornado não chama o provedor,
 // e "já reembolsada" do provedor conta como sucesso (refundCharge).
-import { refundCharge } from "../_shared/abacatepay.ts";
+import { getPixCharge, refundCharge } from "../_shared/abacatepay.ts";
+import { refundBlocker } from "../_shared/payments-status.ts";
 import { AbacateError, caller, guardEnv, loadOrder, log, preflight, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-refund";
@@ -36,13 +38,20 @@ Deno.serve(async (req) => {
     log(FN, order.id, order.status, "ja_estornado");
     return json({ ok: true });
   }
-  if (!order.refund_requested_at) return json({ error: "reembolso_nao_solicitado" }, 422);
-  // só 'pago': o provedor recusa reembolso de cobrança em disputa (ruling do controlador)
-  if (!order.provider_charge_id || order.status !== "pago") return json({ error: "estado_invalido" }, 422);
+  // 'pago', ou 'cancelado' com needs_refund (Ruling 16); nunca em disputa (o provedor recusa), perdido ou estornado
+  const blocked = refundBlocker(order);
+  if (blocked) return json({ error: blocked }, 422);
   if (order.provider_env !== provider.env) return json({ error: "pagamento_indisponivel" }, 503);
 
   try {
-    await refundCharge(provider.config, order.provider_charge_id, order.refund_reason ?? "Reembolso solicitado pelo MemoriesMT");
+    // reconsulta: só reembolsa cobrança PAID que é deste pedido (identidade, valor e ambiente)
+    const charge = await getPixCharge(provider.config, order.provider_charge_id!);
+    const mismatch = refundBlocker(order, charge);
+    if (mismatch) {
+      log(FN, order.id, order.status, mismatch);
+      return json({ error: mismatch }, 422);
+    }
+    await refundCharge(provider.config, order.provider_charge_id!, order.refund_reason ?? "Reembolso solicitado pelo MemoriesMT");
   } catch (e) {
     log(FN, order.id, order.status, e instanceof AbacateError ? `provedor_${e.kind}` : "provedor_erro");
     return json({ error: "provedor_indisponivel", orderId: order.id }, 502);

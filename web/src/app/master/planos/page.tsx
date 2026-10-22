@@ -1,6 +1,6 @@
 import { num, requireMaster, rpc } from "../data";
 import { Badge, StateBox, Table } from "../ui";
-import { brl, envLabel } from "../billing";
+import { brl, envLabel, lastChange } from "../billing";
 import { PlanEditButton, type PlanRow } from "../billing-actions";
 
 type Plan = PlanRow & { updatedAt: string; sort: number };
@@ -14,6 +14,7 @@ export default async function Planos() {
     rpc<{ payments_env: string }>(sb, "get_public_settings"),
   ]);
   const env = settings.state === "ok" ? settings.data.payments_env : "desligado";
+  const last = plans.state === "ok" ? lastChange(plans.data) : null;
   return (
     <>
       <header className="adm-head">
@@ -22,7 +23,7 @@ export default async function Planos() {
             <h1>Planos e preços</h1>
             <Badge s={env === "production" ? "ok" : env === "sandbox" ? "aviso" : "info"}>Pagamentos: {envLabel(env)}</Badge>
           </div>
-          <p>Preços aprovados em 22/10/2026. Mudanças valem para pedidos novos; um Pix já gerado mantém o valor dele.</p>
+          <p>{last ? `Última alteração em ${day(last)}. ` : ""}Mudanças valem para pedidos novos; um Pix já gerado mantém o valor dele.</p>
         </div>
       </header>
       {plans.state === "ok" ? (

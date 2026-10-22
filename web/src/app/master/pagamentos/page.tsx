@@ -1,6 +1,6 @@
 import { num, requireMaster, rpc, when } from "../data";
 import { Badge, Metric, StateBox, Table } from "../ui";
-import { brl, chargeHint, divergenceText, envLabel, orderStatus } from "../billing";
+import { brl, canRefund, chargeHint, divergenceText, envLabel, orderStatus } from "../billing";
 import { CourtesyButton, RefundButton } from "../billing-actions";
 
 interface Order {
@@ -8,7 +8,7 @@ interface Order {
   fromPlanCode: string | null; amountCents: number; status: string; provider: string; providerEnv: string; providerChargeId: string | null;
   needsRefund: boolean; refundRequestedAt: string | null;
 }
-interface Divergence { kind: string; orderId: string; eventTitle: string | null; status: string; detectedAt: string; occurrences: number }
+interface Divergence { kind: string; orderId: string; eventTitle: string | null; status: string; detectedAt: string; occurrences: number; refundInProgress: boolean }
 interface Summary {
   env: string; byStatus: Record<string, { count: number; amountCents: number }>; paid30d: { count: number; amountCents: number };
   pendingOver1h: number; divergences: number;
@@ -53,9 +53,10 @@ export default async function Pagamentos() {
         div.data.length > 0 && (
           <ul className="adm-alerts" aria-label="Divergências">
             {div.data.map((d) => (
-              <li key={`${d.orderId}-${d.kind}`} className="adm-alert">
+              <li key={`${d.orderId}-${d.kind}`} className="adm-alert" data-andamento={d.refundInProgress || undefined}>
                 <strong>{d.eventTitle ?? "Evento excluído"}:</strong> {divergenceText(d.kind)}
-                {d.occurrences > 1 ? ` (${d.occurrences} vezes)` : ""} <span className="adm-nota">{when(d.detectedAt)}</span>
+                {d.occurrences > 1 ? ` (${d.occurrences} vezes)` : ""} {d.refundInProgress && <Badge s="aviso">reembolso em andamento</Badge>}{" "}
+                <span className="adm-nota">{when(d.detectedAt)}</span>
               </li>
             ))}
           </ul>
@@ -80,7 +81,7 @@ export default async function Pagamentos() {
                 {o.providerEnv !== env && <> <span className="adm-nota">{o.providerEnv}</span></>}
               </>,
               c: <code title={`${o.provider} · ${o.providerChargeId ?? "sem cobrança"}`}>{chargeHint(o.providerChargeId)}</code>,
-              a: o.status === "pago" && o.providerChargeId
+              a: canRefund(o)
                 ? <RefundButton order={{ orderId: o.orderId, eventTitle: o.eventTitle, planName: o.planName, amountCents: o.amountCents, providerChargeId: o.providerChargeId, refundRequestedAt: o.refundRequestedAt }} />
                 : null,
             };

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MODULES } from "./modules";
 import {
-  brl, chargeHint, divergenceText, envLabel, orderStatus, parseBrl, planPreview, reasonError, REASON_MAX, REASON_MIN,
+  brl, canRefund, chargeHint, lastChange, divergenceText, envLabel, orderStatus, parseBrl, planPreview, reasonError, REASON_MAX, REASON_MIN,
 } from "./billing";
 
 describe("dinheiro", () => {
@@ -40,7 +40,8 @@ describe("rótulos", () => {
   });
   it("status do pedido considera reembolso solicitado", () => {
     expect(orderStatus({ status: "pago", refundRequestedAt: null })).toEqual({ label: "pago", tone: "ok" });
-    expect(orderStatus({ status: "pago", refundRequestedAt: "2026-10-22T10:00:00Z" })).toEqual({ label: "reembolso pendente", tone: "aviso" });
+    expect(orderStatus({ status: "pago", refundRequestedAt: "2026-10-22T10:00:00Z" })).toEqual({ label: "reembolso em andamento", tone: "aviso" });
+    expect(orderStatus({ status: "cancelado", refundRequestedAt: "2026-10-22T10:00:00Z" })).toEqual({ label: "reembolso em andamento", tone: "aviso" });
     expect(orderStatus({ status: "em_disputa", refundRequestedAt: null })).toEqual({ label: "em disputa", tone: "erro" });
     expect(orderStatus({ status: "estornado", refundRequestedAt: "x" }).label).toBe("estornado");
   });
@@ -49,13 +50,31 @@ describe("rótulos", () => {
     expect(chargeHint(null)).toBe("—");
   });
   it("texto de divergência diz o que aconteceu", () => {
-    expect(divergenceText("needs_refund")).toMatch(/reembolso/i);
+    expect(divergenceText("needs_refund")).toBe("Dinheiro recebido sem plano liberado. Precisa de reembolso.");
     expect(divergenceText("pago_sem_direito")).toMatch(/pago/i);
     expect(divergenceText("desconhecido")).toBe("desconhecido");
   });
   it("prévia do cartão do organizador", () => {
     expect(planPreview({ name: "Casamento", maxGuests: 250, maxShots: 36 }, 18900)).toEqual({ titulo: "Até 250 · R$ 189", nota: "Casamento · 36 fotos por pessoa" });
     expect(planPreview({ name: "Grande", maxGuests: 500, maxShots: null }, 34990)).toEqual({ titulo: "Até 500 · R$ 349,90", nota: "Grande · fotos sem limite" });
+  });
+});
+
+describe("reembolso disponível", () => {
+  it("pago ou cancelado com needs_refund, com cobrança (Ruling 16)", () => {
+    expect(canRefund({ status: "pago", needsRefund: false, providerChargeId: "c" })).toBe(true);
+    expect(canRefund({ status: "cancelado", needsRefund: true, providerChargeId: "c" })).toBe(true);
+    expect(canRefund({ status: "cancelado", needsRefund: false, providerChargeId: "c" })).toBe(false);
+    expect(canRefund({ status: "em_disputa", needsRefund: true, providerChargeId: "c" })).toBe(false);
+    expect(canRefund({ status: "estornado", needsRefund: false, providerChargeId: "c" })).toBe(false);
+    expect(canRefund({ status: "pago", needsRefund: false, providerChargeId: null })).toBe(false);
+  });
+});
+
+describe("última alteração de preço", () => {
+  it("data da alteração mais recente do histórico, ou nada", () => {
+    expect(lastChange([{ history: [] }, { history: [] }])).toBeNull();
+    expect(lastChange([{ history: [{ at: "2026-10-20T12:00:00Z" }] }, { history: [{ at: "2026-11-02T15:00:00Z" }, { at: "2026-10-01T12:00:00Z" }] }])).toBe("2026-11-02T15:00:00Z");
   });
 });
 

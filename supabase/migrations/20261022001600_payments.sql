@@ -323,7 +323,10 @@ begin
     ('pendente', 'pago'), ('pendente', 'expirado'), ('pendente', 'cancelado'), ('pendente', 'falhou'),
     ('expirado', 'pago'), ('falhou', 'pago'),
     ('pago', 'estornado'), ('pago', 'em_disputa'),
-    ('em_disputa', 'pago'), ('em_disputa', 'perdido'), ('em_disputa', 'estornado'));
+    ('em_disputa', 'pago'), ('em_disputa', 'perdido'), ('em_disputa', 'estornado'))
+    -- Ruling 16: Pix recebido em pedido cancelado (needs_refund) é reembolsado pelo Master; o estorno fecha o pedido.
+    -- Sem needs_refund não houve dinheiro: continua ignorado. Não há direito a revogar (pedido cancelado não concede).
+    or (o.status = 'cancelado' and p_status = 'estornado' and o.needs_refund);
 
   if o.provider_charge_id is null or p_charge_id is distinct from o.provider_charge_id then
     outcome := 'divergencia_cobranca';
@@ -377,8 +380,9 @@ begin
       update public.event_entitlements set status = 'estornado' where order_id = o.id and status = 'ativo' returning id into ent_id;
       update public.payment_orders set status = p_status, needs_refund = false where id = o.id;
       if ent_id is not null and o.event_id is not null then perform public.payments_reapply_limits(o.event_id); end if;
-      -- upgrade apoiado neste plano (cotado com desconto dele) ainda vale ou está aberto: não revoga (Task 7 decide), mas sinaliza
-      if o.event_id is not null then
+      -- upgrade apoiado neste plano (cotado com desconto dele) ainda vale ou está aberto: não revoga (Task 7 decide), mas sinaliza.
+      -- Estorno de pedido cancelado (Ruling 16) não era base de nada: sem sinal.
+      if o.event_id is not null and o.status <> 'cancelado' then
         for u in select x.* from public.payment_orders x
                  where x.event_id = o.event_id and x.id <> o.id and x.from_plan_code = o.plan_code
                    and (x.status in ('criado', 'pendente')

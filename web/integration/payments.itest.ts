@@ -446,4 +446,38 @@ describe("payments-refund", () => {
     expect(await call("payments-refund", master, { orderId: id })).toEqual({ status: 200, body: { ok: true } });
     expect(Number((await ctl("calls")).refund) - before).toBe(1);
   });
+
+  it("Ruling 16: Pix pago em pedido cancelado (needs_refund) é reembolsado pelo Master e fecha em estornado", async () => {
+    const ev = await newEvent();
+    const id = String((await checkout(ev)).body.orderId);
+    const charge = String((await order(id)).provider_charge_id);
+    await fetch(`${FAKE}/v2/transparents/simulate-payment?id=${charge}`, { method: "POST", headers: { authorization: `Bearer ${fnEnv.ABACATEPAY_API_KEY}` } });
+    await waitFor(() => order(id), (x) => x.status === "pago");
+    // estado que payments_apply_status deixa quando o PAID chega num pedido já cancelado (pago_ignorado_reembolsar)
+    await admin.from("event_entitlements").delete().eq("order_id", id);
+    expect((await admin.from("payment_orders").update({ status: "cancelado", needs_refund: true }).eq("id", id)).error).toBeNull();
+
+    const rpc = (fn: string, args: Json) => fetch(`${URL_}/rest/v1/rpc/${fn}`, {
+      method: "POST", headers: { "content-type": "application/json", apikey: PUB, authorization: `Bearer ${master}` }, body: JSON.stringify(args) });
+    expect((await rpc("admin_request_refund", { p_order: id, p_reason: "Pix pago depois do cancelamento" })).status).toBe(204);
+    const before = Number((await ctl("calls")).refund);
+    expect(await call("payments-refund", master, { orderId: id })).toEqual({ status: 200, body: { ok: true } });
+    expect(Number((await ctl("calls")).refund) - before).toBe(1);
+    const o = await waitFor(() => order(id), (x) => x.status === "estornado");
+    expect(o.status).toBe("estornado");
+    expect(o.needs_refund).toBe(false);
+  });
+
+  it("payments-refund reconsulta a cobrança: sem PAID no provedor não reembolsa", async () => {
+    const ev = await newEvent();
+    const id = String((await checkout(ev)).body.orderId);
+    const charge = String((await order(id)).provider_charge_id);
+    await fetch(`${FAKE}/v2/transparents/simulate-payment?id=${charge}`, { method: "POST", headers: { authorization: `Bearer ${fnEnv.ABACATEPAY_API_KEY}` } });
+    await waitFor(() => order(id), (x) => x.status === "pago");
+    expect((await admin.from("payment_orders").update({ refund_requested_at: new Date().toISOString(), refund_reason: "Teste de reconsulta do reembolso" }).eq("id", id)).error).toBeNull();
+    await ctl("status", { id: charge, status: "UNDER_DISPUTE" });
+    const before = Number((await ctl("calls")).refund);
+    expect(await call("payments-refund", master, { orderId: id })).toEqual({ status: 422, body: { error: "cobranca_nao_paga" } });
+    expect(Number((await ctl("calls")).refund) - before).toBe(0);
+  });
 });
