@@ -195,6 +195,38 @@ describe("Storage privado, upload e revelação", () => {
       await admin.auth.admin.deleteUser(u.data.user.id);
     }
   });
+  it("fuso: evento em America/Cuiaba; antes do instante do servidor nada é liberado, depois o membro vê e o estranho segue negado", async () => {
+    const hostId = (await host.auth.getUser()).data.user.id;
+    const ef = await host.from("events").insert({ title: `Fuso ${tag}`, category: "casamento", host_id: hostId, host_name: "Emy", duration_hours: 6, timezone: "America/Cuiaba", reveal_enabled: true, reveal_anchor: "fim", capacity: 5, shots_per_person: 5 }).select().single();
+    assert.ifError(ef.error);
+    const [autor, colega, estranho] = [mk(), mk(), mk()];
+    try {
+      for (const c of [autor, colega, estranho]) assert.ifError((await c.auth.signInAnonymously()).error);
+      assert.equal((await autor.rpc("join_event", { p_code: ef.data.code, p_name: "Autor" })).data.role, "membro");
+      assert.equal((await colega.rpc("join_event", { p_code: ef.data.code, p_name: "Colega" })).data.role, "membro");
+      const id = randomUUID();
+      const b = await autor.rpc("begin_photo", { p_id: id, p_event: ef.data.id });
+      assert.ifError(b.error);
+      assert.ifError((await upload(autor, b.data.storagePath)).error);
+      assert.equal((await autor.rpc("finalize_photo", { p_id: id })).data.uploadStatus, "pronta");
+      const adiante = new Date(Date.now() + 3600_000).toISOString();
+      // âncora 'fim': o servidor calcula reveal_at = fim + deslocamento. Início há 1 h e 6 h de duração: o fim (e a revelação) caem no futuro
+      assert.ifError((await admin.from("events").update({ start_at: new Date(Date.now() - 3600_000).toISOString() }).eq("id", ef.data.id)).error);
+      assert.ok(new Date((await admin.from("events").select("reveal_at").eq("id", ef.data.id).single()).data.reveal_at) > new Date(adiante) - 3600_000 * 6, "reveal_at calculado pelo servidor ficou no futuro");
+      const ainda = await admin.rpc("reveal_due_events");
+      assert.equal(ainda.data, 0, "o relógio é o do servidor: antes de reveal_at nada é revelado, qualquer que seja o fuso do cliente");
+      assert.equal((await colega.from("photos").select("id").eq("event_id", ef.data.id)).data.length, 0, "membro não vê antes");
+      assert.ok((await colega.storage.from("event-photos").createSignedUrl(b.data.storagePath, 60)).error, "membro não assina antes");
+      assert.ifError((await admin.from("events").update({ start_at: new Date(Date.now() - 8 * 3600_000).toISOString() }).eq("id", ef.data.id)).error); // fim = há 2 h: o servidor recalcula reveal_at para o passado
+      assert.equal((await admin.rpc("reveal_due_events")).data, 1, "liberada no instante do servidor");
+      assert.equal((await colega.from("photos").select("id").eq("event_id", ef.data.id)).data.length, 1, "membro vê depois");
+      assert.ifError((await colega.storage.from("event-photos").createSignedUrl(b.data.storagePath, 60)).error);
+      assert.equal((await estranho.from("photos").select("id").eq("event_id", ef.data.id)).data.length, 0, "não membro segue sem ver");
+      assert.ok((await estranho.storage.from("event-photos").createSignedUrl(b.data.storagePath, 60)).error, "não membro segue sem assinar");
+    } finally {
+      await admin.from("events").delete().eq("id", ef.data.id);
+    }
+  });
   it("moderação: foto oculta some do convidado e do Storage; removida entra na fila de limpeza", async () => {
     assert.ifError((await host.from("photos").update({ status: "oculta" }).eq("id", p1)).error);
     assert.ok((await g2.storage.from("event-photos").createSignedUrl(`${ev.id}/${p1}`, 60)).error);
