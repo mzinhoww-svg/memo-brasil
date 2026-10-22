@@ -1,10 +1,11 @@
 // Peças comuns das Edge Functions de pagamento (só Deno: lê Deno.env e cria clientes Supabase).
 // Nunca registra chave, brCode, corpo bruto nem dados do pagador: o log é só {fn, orderId, status, outcome}.
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { AbacateError, checkPixCharge, getPixCharge, listPixCharges, type AbacateConfig, type PixListItem } from "./abacatepay.ts";
+import { AbacateError, checkPixCharge, getPixCharge, type AbacateConfig, type PixListItem } from "./abacatepay.ts";
 import { corsHeaders } from "./cors.ts";
 import { resolveAbacateConfig, type ProviderEnv } from "./payments-config.ts";
-import { chargeMatchesOrder, mapProviderStatus, type PaymentStatus } from "./payments-status.ts";
+import { mapProviderStatus, type PaymentStatus } from "./payments-status.ts";
+export { findChargeForOrder } from "./payments-status.ts";
 
 export type { AbacateConfig, PaymentStatus, PixListItem, ProviderEnv };
 export { AbacateError };
@@ -136,28 +137,4 @@ export function sameToken(a: string, b: string): boolean {
   let d = 0;
   for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return d === 0;
-}
-
-const LIST_MAX_PAGES = 10;
-
-/**
- * Procura a cobrança de um pedido 'criado' (create sem resposta ou attach que falhou) paginando GET /transparents/list só
- * com parâmetros documentados: startDate = dia (UTC) da criação do pedido menos 1 dia de margem (a API interpreta a data
- * no fuso de São Paulo), cursor `after`, até 10 páginas de 100. `complete=false` quando o limite de páginas acabou antes.
- */
-export async function findChargeForOrder(
-  cfg: AbacateConfig,
-  order: { id: string; amount_cents: number; provider_env: ProviderEnv; created_at: string },
-  call: <T>(fn: () => Promise<T>) => Promise<T> = (fn) => fn(),
-): Promise<{ charge: PixListItem | null; complete: boolean }> {
-  const startDate = new Date(Date.parse(order.created_at) - 86_400_000).toISOString().slice(0, 10);
-  let after: string | undefined;
-  for (let i = 0; i < LIST_MAX_PAGES; i++) {
-    const page = await call(() => listPixCharges(cfg, { startDate, after, limit: 100 }));
-    const hit = page.items.find((c) => chargeMatchesOrder(c, order));
-    if (hit) return { charge: hit, complete: true };
-    if (!page.next) return { charge: null, complete: true };
-    after = page.next;
-  }
-  return { charge: null, complete: false };
 }

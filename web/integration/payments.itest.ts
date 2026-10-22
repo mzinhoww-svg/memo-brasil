@@ -60,6 +60,15 @@ async function plan(eventId: string) {
   return (data as Json[])[0]?.plan_code;
 }
 
+// cobranças-isca mais novas: metadata.orderId de outro pedido (valor certo) e metadata deste pedido com valor ou ambiente
+// errados. A fake omite externalId em create/get/list (como a doc garante), então a identidade vem só de metadata.orderId.
+async function decoys(orderId: string) {
+  const other = randomUUID();
+  await ctl("charge", { externalId: other, metadata: { orderId: other }, amount: 18900 });
+  await ctl("charge", { externalId: orderId, metadata: { orderId }, amount: 100 });
+  await ctl("charge", { externalId: orderId, metadata: { orderId }, amount: 18900, devMode: false });
+}
+
 let fake: { close: () => Promise<void> } | null = null;
 let hostA: string, hostB: string, master: string, guest: string, hostAId: string;
 const events: string[] = [];
@@ -204,9 +213,7 @@ describe("payments-checkout", () => {
     const id = String(r.body.orderId);
     expect((await order(id)).status).toBe("criado");
     // cobranças mais novas de outros pedidos, e uma com o externalId certo mas valor errado: nenhuma pode ser adotada
-    await ctl("charge", { externalId: randomUUID(), amount: 18900 });
-    await ctl("charge", { externalId: id, amount: 100 });
-    await ctl("charge", { externalId: id, amount: 18900, devMode: false });
+    await decoys(id);
     await backdate(id, 6);
     const rc = await reconcile();
     expect(rc.status).toBe(200);
@@ -238,11 +245,9 @@ describe("cobrança criada com a resposta perdida (create sem resposta)", () => 
     return { ev, id, target };
   }
 
-  it("reconcile acha na página 2, entre cobranças mais novas de outros pedidos, só a de externalId exato e adota", async () => {
+  it("reconcile acha na página 2, entre cobranças mais novas de outros pedidos, só a exata — identidade só por metadata.orderId — e adota", async () => {
     const { id, target } = await lostCreate();
-    await ctl("charge", { externalId: randomUUID(), amount: 18900 });
-    await ctl("charge", { externalId: id, amount: 100 });
-    await ctl("charge", { externalId: id, amount: 18900, devMode: false });
+    await decoys(id);
     await backdate(id, 6);
     await ctl("config", { maxPageSize: 2 });
     const lists = Number((await ctl("calls")).list);
@@ -258,7 +263,7 @@ describe("cobrança criada com a resposta perdida (create sem resposta)", () => 
     expect(o.brcode).toBe(target.brCode);
   });
 
-  it("webhook adota a cobrança de pedido 'criado' só após reconsultar (get) com externalId e valor exatos", async () => {
+  it("webhook adota a cobrança de pedido 'criado' só após reconsultar (get, sem externalId: metadata.orderId) com valor exato", async () => {
     const { ev, id, target } = await lostCreate();
     await ctl("status", { id: target.id, status: "PAID" });
     const gets = Number((await ctl("calls")).get);
@@ -272,7 +277,8 @@ describe("cobrança criada com a resposta perdida (create sem resposta)", () => 
 
   it("webhook com cobrança que não confere (externalId do corpo ≠ provedor) → 200 cobranca_nao_confere, nada adotado", async () => {
     const { id } = await lostCreate();
-    const decoy = (await ctl("charge", { externalId: randomUUID(), amount: 18900, status: "PAID" })) as Json;
+    const other = randomUUID();
+    const decoy = (await ctl("charge", { externalId: other, metadata: { orderId: other }, amount: 18900, status: "PAID" })) as Json;
     const eid = `log_fake_naoconfere_${tag}`;
     expect(await ctl("webhook", { chargeId: decoy.id, externalId: id, id: eid })).toMatchObject({ status: 200, body: { ok: true } });
     expect(await order(id)).toMatchObject({ status: "criado", provider_charge_id: null });

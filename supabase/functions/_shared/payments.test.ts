@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { AbacateError, checkPixCharge, createPixCharge, getPixCharge, listPixCharges, refundCharge, simulatePixPayment, type AbacateConfig } from "./abacatepay";
 import { verifyWebhookRequest } from "./payments-webhook-auth";
-import { chargeMatchesOrder, mapProviderStatus } from "./payments-status";
+import { chargeMatchesOrder, findChargeForOrder, mapProviderStatus } from "./payments-status";
 
 // Chaves fictícias, só para teste (nunca chaves reais).
 const DEV_KEY = "abc_dev_TESTE_fake_0000000000";
@@ -169,25 +169,25 @@ describe("checkPixCharge", () => {
   });
 });
 
-describe("listPixCharges (só parâmetros documentados: limit, after, startDate)", () => {
+describe("listPixCharges (parâmetros documentados: limit, after, startDate, method, externalId)", () => {
   const page = (data: unknown[], next: string | null) => ({ data, success: true, error: null, pagination: { hasMore: next !== null, next, before: null } });
 
   it("faz GET /transparents/list com startDate/limit/after e devolve itens com externalId e o cursor seguinte", async () => {
     const calls: Call[] = [];
-    const r = await listPixCharges(cfg(fakeFetch(200, page([{ ...pixData, externalId: "o-1" }], "pix_char_cursor"), calls)), { startDate: "2026-10-21", limit: 100, after: "pix_char_prev" });
+    const r = await listPixCharges(cfg(fakeFetch(200, page([{ ...pixData, externalId: "o-1" }], "pix_char_cursor"), calls)), { startDate: "2026-10-21", limit: 100, after: "pix_char_prev", externalId: "o-1" });
     expect(calls[0].method).toBe("GET");
-    expect(calls[0].url).toBe(`${BASE}/transparents/list?limit=100&startDate=2026-10-21&after=pix_char_prev`);
+    expect(calls[0].url).toBe(`${BASE}/transparents/list?limit=100&startDate=2026-10-21&method=PIX&externalId=o-1&after=pix_char_prev`);
     expect(r).toEqual({
-      items: [{ id: pixData.id, status: "PENDING", devMode: true, amount: 2900, externalId: "o-1", brCode: pixData.brCode, brCodeBase64: pixData.brCodeBase64, expiresAt: pixData.expiresAt }],
+      items: [{ id: pixData.id, status: "PENDING", devMode: true, amount: 2900, externalId: "o-1", metadataOrderId: "o-1", brCode: pixData.brCode, brCodeBase64: pixData.brCodeBase64, expiresAt: pixData.expiresAt }],
       next: "pix_char_cursor",
     });
   });
 
-  it("nunca envia filtros não documentados (id, externalId); itens sem id ou status são descartados; fim da lista → next null", async () => {
+  it("sem externalId não envia o filtro; nunca envia id; itens sem id ou status são descartados; fim da lista → next null", async () => {
     const calls: Call[] = [];
     const r = await listPixCharges(cfg(fakeFetch(200, page([{ id: "x" }, { status: "PAID" }, { id: "pix_char_2", status: "PAID", amount: 2900, externalId: null }], null), calls)), { startDate: "2026-10-01" });
-    expect(calls[0].url).toBe(`${BASE}/transparents/list?limit=100&startDate=2026-10-01`);
-    expect(calls[0].url).not.toMatch(/[?&](id|externalId)=/);
+    expect(calls[0].url).toBe(`${BASE}/transparents/list?limit=100&startDate=2026-10-01&method=PIX`);
+    expect(calls[0].url).not.toMatch(/[?&]id=/);
     expect(r).toEqual({ items: [{ id: "pix_char_2", status: "PAID", devMode: true, amount: 2900 }], next: null });
   });
 
@@ -205,13 +205,15 @@ describe("getPixCharge", () => {
     const r = await getPixCharge(cfg(fakeFetch(200, ok({ ...pixData, status: "PAID", externalId: "o-1" }), calls)), "pix_char_a/b");
     expect(calls[0].method).toBe("GET");
     expect(calls[0].url).toBe(`${BASE}/transparents/get?id=pix_char_a%2Fb`);
-    expect(r).toEqual({ id: pixData.id, status: "PAID", devMode: true, amount: 2900, externalId: "o-1", brCode: pixData.brCode, brCodeBase64: pixData.brCodeBase64, expiresAt: pixData.expiresAt });
+    expect(r).toEqual({ id: pixData.id, status: "PAID", devMode: true, amount: 2900, externalId: "o-1", metadataOrderId: "o-1", brCode: pixData.brCode, brCodeBase64: pixData.brCodeBase64, expiresAt: pixData.expiresAt });
   });
 
   it("sem status vira provider; id vazio é invalid; sem externalId o campo fica ausente", async () => {
     expect((await caught(getPixCharge(cfg(fakeFetch(200, ok({ id: "x" }))), "x"))).kind).toBe("provider");
     expect((await caught(getPixCharge(cfg(fakeFetch(200, ok({}))), ""))).kind).toBe("invalid");
-    expect(await getPixCharge(cfg(fakeFetch(200, ok({ status: "PENDING", amount: 100, externalId: null }))), "pix_1")).toEqual({ id: "pix_1", status: "PENDING", devMode: true, amount: 100 });
+    expect(await getPixCharge(cfg(fakeFetch(200, ok({ status: "PENDING", amount: 100, externalId: null, metadata: null }))), "pix_1")).toEqual({ id: "pix_1", status: "PENDING", devMode: true, amount: 100 });
+    // sem externalId (a doc não o garante no PIX): a identidade vem de metadata.orderId
+    expect(await getPixCharge(cfg(fakeFetch(200, ok({ status: "PAID", amount: 100, metadata: { orderId: "o-9", eventId: "e" } }))), "pix_2")).toEqual({ id: "pix_2", status: "PAID", devMode: true, amount: 100, metadataOrderId: "o-9" });
   });
 });
 
@@ -339,5 +341,47 @@ describe("chargeMatchesOrder", () => {
     expect(chargeMatchesOrder({ externalId: order.id, amount: 100, devMode: true }, order)).toBe(false);
     expect(chargeMatchesOrder({ externalId: order.id, devMode: true }, order)).toBe(false);
     expect(chargeMatchesOrder({ externalId: order.id, amount: 18900, devMode: false }, order)).toBe(false);
+  });
+  it("aceita a identidade por metadata.orderId quando não há externalId; metadata de outro pedido recusa", () => {
+    expect(chargeMatchesOrder({ metadataOrderId: order.id, amount: 18900, devMode: true }, order)).toBe(true);
+    expect(chargeMatchesOrder({ metadataOrderId: "22222222-2222-4222-8222-222222222222", amount: 18900, devMode: true }, order)).toBe(false);
+    expect(chargeMatchesOrder({ metadataOrderId: order.id, amount: 100, devMode: true }, order)).toBe(false);
+    expect(chargeMatchesOrder({ metadataOrderId: order.id, amount: 18900, devMode: false }, order)).toBe(false);
+  });
+});
+
+describe("findChargeForOrder", () => {
+  const order = { id: "aaaaaaaa-1111-4111-8111-11111111111b", amount_cents: 18900, provider_env: "sandbox" as const, created_at: "2026-10-22T12:00:00.000Z" };
+  const page = (data: unknown[], next: string | null) => ({ data, success: true, error: null, pagination: { hasMore: next !== null, next, before: null } });
+  function seq(pages: unknown[], calls: Call[]): typeof fetch {
+    let i = 0;
+    return ((input: RequestInfo | URL) => {
+      calls.push({ url: String(input), method: "GET", headers: {}, body: undefined });
+      const body = pages[Math.min(i++, pages.length - 1)];
+      return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
+    }) as typeof fetch;
+  }
+
+  it("pagina com after e startDate (criação − 1 dia), filtra method/externalId e adota pela metadata na página 2", async () => {
+    const calls: Call[] = [];
+    const decoy = { id: "pix_d", status: "PENDING", amount: 18900, devMode: true, metadata: { orderId: "outro" } };
+    const hit = { id: "pix_h", status: "PENDING", amount: 18900, devMode: true, metadata: { orderId: order.id } };
+    const r = await findChargeForOrder(cfg(seq([page([decoy], "pix_d"), page([hit], null)], calls)), order);
+    expect(r).toMatchObject({ complete: true, charge: { id: "pix_h", metadataOrderId: order.id } });
+    expect(calls).toHaveLength(2);
+    expect(calls[0].url).toBe(`${BASE}/transparents/list?limit=100&startDate=2026-10-21&method=PIX&externalId=${order.id}`);
+    expect(calls[1].url).toContain("&after=pix_d");
+  });
+
+  it("para quando o cursor não avança (next igual ao after anterior) ou vem vazio", async () => {
+    const calls: Call[] = [];
+    const other = { id: "pix_o", status: "PENDING", amount: 18900, devMode: true, metadata: { orderId: "outro" } };
+    const r = await findChargeForOrder(cfg(seq([page([other], "c1"), page([other], "c1"), page([other], "c1")], calls)), order);
+    expect(r).toEqual({ charge: null, complete: false });
+    expect(calls).toHaveLength(2);
+    const calls2: Call[] = [];
+    const r2 = await findChargeForOrder(cfg(seq([{ data: [other], success: true, error: null, pagination: { hasMore: true, next: "", before: null } }], calls2)), order);
+    expect(r2).toEqual({ charge: null, complete: true });
+    expect(calls2).toHaveLength(1);
   });
 });

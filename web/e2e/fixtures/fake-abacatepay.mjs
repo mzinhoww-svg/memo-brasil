@@ -6,11 +6,13 @@
 //      ABACATEPAY_HMAC_KEY; opcional FAKE_ABACATEPAY_ENV_FILE com KEY=VALUE por linha)
 // ou:  import { startFakeAbacatePay } from "./fake-abacatepay.mjs"
 //
-// Como a documentação: `check` devolve só {status, expiresAt}; `list` pagina com limit/after/startDate, mais novas primeiro, e
-// IGNORA filtros não documentados (id, externalId) — a menos que config.honorUndocumentedFilters = true.
+// Como a documentação garante: `check` devolve só {status, expiresAt}; create/get/list trazem `metadata` mas OMITEM
+// `externalId` (só o webhook o traz com certeza) — a menos que config.includeExternalId = true; `list` pagina com
+// limit/after/startDate, mais novas primeiro, e IGNORA os filtros id/externalId (pior caso: o cliente confere sozinho) —
+// a menos que config.honorUndocumentedFilters = true.
 // Controle (só testes): POST /__control/reset | /__control/config {failCreate, failCreateAfterCreate, deliverWebhooks,
 // maxPageSize, honorUndocumentedFilters} | /__control/webhook {chargeId, event?, id?, devMode?, sign?, secret?, externalId?}
-// | /__control/charge {externalId, amount, status?, devMode?} (cobrança avulsa) | /__control/status {id, status} ;
+// | /__control/charge {externalId?, metadata?, amount, status?, devMode?} (cobrança avulsa) | /__control/status {id, status} ;
 // GET /__control/calls | /__control/charges | /__control/deliveries.
 import { createHmac, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -28,7 +30,7 @@ export function signBody(hmacKey, rawBody) {
 export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", host = "0.0.0.0" } = {}) {
   let charges = new Map();
   const freshCalls = () => ({ create: 0, check: 0, get: 0, list: 0, refund: 0, simulate: 0 });
-  const freshConfig = () => ({ failCreate: null, failCreateAfterCreate: null, deliverWebhooks: true, maxPageSize: 100, honorUndocumentedFilters: false });
+  const freshConfig = () => ({ failCreate: null, failCreateAfterCreate: null, deliverWebhooks: true, maxPageSize: 100, honorUndocumentedFilters: false, includeExternalId: false });
   let calls = freshCalls();
   let config = freshConfig();
   let seq = 0;
@@ -57,6 +59,9 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
     charges.set(id, c);
     return c;
   }
+
+  // resposta pública de create/get/list: externalId só com config.includeExternalId
+  const apiView = (c) => (config.includeExternalId ? { ...view(c), externalId: c.externalId } : view(c));
 
   async function deliver(c, { event, id, devMode, sign = true, secretOverride, externalId } = {}) {
     const payload = {
@@ -129,7 +134,7 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
           return send(res, 200, await deliver(c, { event: body.event, id: body.id, devMode: body.devMode, sign: body.sign !== false, secretOverride: body.secret, externalId: body.externalId }));
         }
         if (path === "/__control/charge") {
-          const c = newCharge({ amount: Number(body?.amount), externalId: body?.externalId ?? null, status: body?.status ?? "PENDING", devMode: body?.devMode ?? true });
+          const c = newCharge({ amount: Number(body?.amount), externalId: body?.externalId ?? null, metadata: body?.metadata ?? {}, status: body?.status ?? "PENDING", devMode: body?.devMode ?? true });
           return send(res, 200, { ...view(c), externalId: c.externalId });
         }
         return send(res, 404, { error: "not_found" });
@@ -147,7 +152,7 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
         if (body?.method !== "PIX" || !Number.isInteger(d.amount) || d.amount < 100) return fail(res, 400, "Invalid body");
         const c = newCharge({ amount: d.amount, expiresIn: Number(d.expiresIn) || 3600, externalId: typeof d.externalId === "string" ? d.externalId : null, metadata: d.metadata ?? {} });
         if (config.failCreateAfterCreate) return fail(res, Number(config.failCreateAfterCreate), "Internal server error"); // criou, mas a resposta se perdeu
-        return ok(res, view(c));
+        return ok(res, apiView(c));
       }
       if (req.method === "GET" && path === "/v2/transparents/check") {
         calls.check++;
@@ -168,7 +173,7 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
         const pageItems = all.slice(start, start + limit);
         const hasMore = start + limit < all.length;
         return send(res, 200, {
-          data: pageItems.map((c) => ({ ...view(c), externalId: c.externalId })), success: true, error: null,
+          data: pageItems.map(apiView), success: true, error: null,
           pagination: { hasMore, next: hasMore ? pageItems[pageItems.length - 1].id : null, before: start > 0 ? pageItems[0]?.id ?? null : null },
         });
       }
@@ -176,7 +181,7 @@ export function startFakeAbacatePay({ port = 0, webhookUrl = "", hmacKey = "", h
         calls.get++;
         const c = charges.get(u.searchParams.get("id") ?? "");
         if (!c) return fail(res, 404, "Not found");
-        return ok(res, { ...view(c), externalId: c.externalId });
+        return ok(res, apiView(c));
       }
       if (req.method === "POST" && path === "/v2/transparents/refund") {
         calls.refund++;

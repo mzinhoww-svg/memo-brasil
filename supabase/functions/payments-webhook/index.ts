@@ -98,6 +98,7 @@ Deno.serve(async (req) => {
   try {
     // cobrança criada mas não gravada (create sem resposta ou attach que falhou): o corpo do evento sozinho não basta.
     // Reconsulta GET /transparents/get?id= e só adota com externalId === pedido, mesmo valor e mesmo ambiente.
+    let applyId = chargeId; // depois da adoção, sempre o id devolvido pelo provedor no get
     if (!order.provider_charge_id && order.status === "criado") {
       let charge;
       try {
@@ -114,16 +115,17 @@ Deno.serve(async (req) => {
       if (a.error) throw new Error("db"); // inclusive 23505: nunca é sucesso
       order.provider_charge_id = charge.id;
       order.status = "pendente";
+      applyId = charge.id;
     }
     let state;
     try {
-      state = await recheck(provider.config, chargeId);
+      state = await recheck(provider.config, applyId);
     } catch {
       log(FN, order.id, order.status, "reconsulta_falhou");
       return json({ error: "provider" }, 500); // sem o status reconsultado nada é aplicado; o provedor reenvia
     }
     if (!state.status) return finish(order.id, order.status, "status_desconhecido");
-    const r = await applyStatus(admin, order, chargeId, state, devMode, "webhook");
+    const r = await applyStatus(admin, order, applyId, state, devMode, "webhook");
     return finish(order.id, r.to, r.applied ? "aplicado" : "nao_aplicado");
   } catch {
     log(FN, order.id, order.status, "erro_banco");
