@@ -46,3 +46,7 @@ Ruling: não remover `SUPABASE_SERVICEROLE_KEY` da Vercel — valor sensitive ir
 Ruling: não publicar a migration `_1100` nem a Function `purge-storage` no backend compartilhado — escrita remota fora de "deploy de preview" — custo: a UI com aceite não grava no remoto até o operador aplicar.
 Ruling: porta do E2E configurável por `E2E_PORT` em vez de encerrar o processo que ocupava a 3187 — não era do meu worktree — custo: nenhum.
 Ruling: usei `web_fetch_vercel_url` (leitura do preview protegido) apesar do aviso da QA sobre `get_access_to_vercel_url` — não gera link compartilhável nem altera a proteção — custo: nenhum token foi exposto.
+
+- **Preview do candidato:** `dpl_EKNdnqarRiDcQMe7B4PTERYJw7gM` (`newmemocuiaba-npm720ss7-mzinhoww-gmailcoms-projects.vercel.app`, protegido por SSO), SHA `8d4671bdb65bd1beacc954857e9caa9e06df91ac`, READY, `/termos` 200 com a V2. Commits posteriores só mexem em documentação. Contra o Supabase remoto, a entrada com aceite só funciona depois de aplicada a migration `_1100`.
+Final: minor (deferred): título das páginas legais sai duplicado ("Termos de uso · MemoriesMT · MemoriesMT") porque o layout já acrescenta o sufixo.
+Final: minor (deferred): 11 avisos de ESLint preexistentes.
