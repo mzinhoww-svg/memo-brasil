@@ -8,7 +8,7 @@
 // conciliação. Pedidos históricos da AbacatePay não são reembolsados aqui (provedor_historico).
 import { getPayment, MercadoPagoError, refundIdempotencyKey, refundPayment } from "../_shared/mercadopago.ts";
 import { refundBlocker } from "../_shared/mercadopago-flow.ts";
-import { applyPayment, caller, expectedCollector, loadOrder, log, mpConfig, preflight, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
+import { applyPayment, caller, expectedCollector, loadOrder, log, mpConfig, preflight, responder, serviceClient, UUID_RE, withEffectiveLiveMode } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-refund";
 
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
   try {
     const collector = await expectedCollector(cfg);
     const payment = await getPayment(cfg, target.payment_id);
-    const mismatch = refundBlocker(order, { kind: target.kind, requestedAt }, payment, collector);
+    const mismatch = refundBlocker(order, { kind: target.kind, requestedAt }, withEffectiveLiveMode(payment), collector);
     if (mismatch) {
       log(FN, order.id, order.status, mismatch);
       return json({ error: mismatch }, 422);

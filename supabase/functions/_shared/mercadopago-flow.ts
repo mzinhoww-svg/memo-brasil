@@ -97,3 +97,13 @@ export function payerEmailFor(env: "sandbox" | "production", email: string | nul
   const e = (email ?? "").trim();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : null;
 }
+
+/**
+ * `live_mode` de pagamentos de contas de TESTE do Mercado Pago volta `true` (o teste usa o ambiente real com usuários de teste),
+ * então ele não separa sandbox de produção. A identidade do recebedor separa: recebedor com a tag `test_user` => nunca é produção
+ * (um pedido de produção pago a uma conta de teste cai em divergencia_ambiente e não concede nada). Recebedor real ou
+ * desconhecido: vale o `live_mode` da API.
+ */
+export function effectiveLiveMode(liveMode: boolean | null, collectorIsTestUser: boolean | null): boolean | null {
+  return collectorIsTestUser === true ? false : liveMode;
+}
