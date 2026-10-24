@@ -27,7 +27,7 @@
 Credenciais por ambiente, sandbox restrito ao Master, `payer.email` só em produção, boleto/ATM excluídos, campos de qualidade na preferência, `effectiveLiveMode`, jornada mobile (`CheckoutBridge`, resumo, CTA fixo, aviso de rede), rótulo de cartão por bandeira, diagnóstico Master (`testUser`, consulta de pagamento), reembolso expõe tipo/status do provedor. **PAY-001 a PAY-005: DONE** (pgTAP 1120/1120 em Postgres real; PAY-004 também verificado no remoto).
 
 ## E. Produção
-- Front: `https://newmemocuiaba.vercel.app` → `dpl_58KzqgGhPqSjJ2TWoNykNQcEnujN`, `cf47ac9`. Functions `payments-*` publicadas (v8+). `payments_env=desligado`, janela sandbox fechada.
+- Front: `https://newmemocuiaba.vercel.app` → `dpl_4bsUbpqdG4HqMcCQBvUpYU2fkDCQ`, `db9cbce` (anterior `dpl_58KzqgGh…`/`cf47ac9`). Functions `payments-*` publicadas (v8+). `payments_env=desligado`, janela sandbox fechada.
 - Credenciais de produção cadastradas no Supabase (conta real, `testUser=false`), nunca usadas em teste.
 
 ## F. Pendências (somente impedimentos reais)
