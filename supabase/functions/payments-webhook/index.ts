@@ -6,7 +6,7 @@
 // 500 só quando banco/provedor falham, para o Mercado Pago reenviar (responder em até ~22 s).
 import { getPayment, MercadoPagoError } from "../_shared/mercadopago.ts";
 import { notificationEventKey, parseNotification } from "../_shared/mercadopago-flow.ts";
-import { verifyMercadoPagoSignature } from "../_shared/mercadopago-signature.ts";
+import { type SignatureResult, verifyMercadoPagoSignature } from "../_shared/mercadopago-signature.ts";
 import { applyPayment, expectedCollector, loadOrder, log, mpConfig, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-webhook";
@@ -19,13 +19,20 @@ Deno.serve(async (req) => {
   const note = parseNotification(rawBody, req.url);
   let queryDataId: string | null = null;
   try { queryDataId = new URL(req.url).searchParams.get("data.id"); } catch { /* url inválida */ }
-  const sig = await verifyMercadoPagoSignature({
-    secret: Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET") ?? "",
-    signatureHeader: req.headers.get("x-signature"),
-    requestId: req.headers.get("x-request-id"),
-    dataId: queryDataId,
-    nowMs: Date.now(),
-  });
+  // Dois segredos possíveis: o de produção e o do sandbox (modo de teste do painel). Aceita se QUALQUER um valida a assinatura;
+  // o ambiente do pagamento nunca vem daqui, e sim de live_mode da API (divergência com o pedido = divergencia_ambiente).
+  const secrets = [Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET"), Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET_SANDBOX")].filter((x): x is string => !!x && x.trim() !== "");
+  let sig: SignatureResult = { ok: false, reason: "ausente" };
+  for (const secret of secrets.length ? secrets : [""]) {
+    sig = await verifyMercadoPagoSignature({
+      secret,
+      signatureHeader: req.headers.get("x-signature"),
+      requestId: req.headers.get("x-request-id"),
+      dataId: queryDataId,
+      nowMs: Date.now(),
+    });
+    if (sig.ok) break;
+  }
   if (!sig.ok) {
     log(FN, null, null, `nao_autenticado_${sig.reason}`);
     return json({ error: "unauthorized" }, 401);
@@ -35,8 +42,10 @@ Deno.serve(async (req) => {
     log(FN, null, null, "topico_ignorado"); // chargebacks/merchant_order/etc.: sem efeito nesta fase (design §6, item 8)
     return json({ ok: true });
   }
-  const cfg = mpConfig();
-  if (!cfg) {
+  // Credenciais por ambiente: live_mode da notificação escolhe o par; sem a informação, tenta produção e depois sandbox.
+  const candidates = (note.liveMode === true ? [mpConfig("production")] : note.liveMode === false ? [mpConfig("sandbox")] : [mpConfig("production"), mpConfig("sandbox")])
+    .filter((c): c is NonNullable<typeof c> => !!c);
+  if (!candidates.length) {
     log(FN, null, null, "pagamento_indisponivel");
     return json({ error: "pagamento_indisponivel" }, 503);
   }
@@ -68,7 +77,14 @@ Deno.serve(async (req) => {
   };
 
   try {
-    const payment = await getPayment(cfg, note.dataId);
+    let cfg = candidates[0], payment: Awaited<ReturnType<typeof getPayment>> | null = null;
+    for (const c of candidates) {
+      try { payment = await getPayment(c, note.dataId); cfg = c; break; } catch (e) {
+        const notMine = e instanceof MercadoPagoError && (e.status === 404 || e.status === 401 || e.status === 403);
+        if (!notMine || c === candidates[candidates.length - 1]) throw e; // só tenta o outro par quando este não enxerga o pagamento
+      }
+    }
+    if (!payment) throw new MercadoPagoError("bad_response", 200);
     const ref = payment.externalReference;
     if (!ref || !UUID_RE.test(ref)) return finish(null, null, "pedido_desconhecido");
     const { order, error } = await loadOrder(admin, ref);

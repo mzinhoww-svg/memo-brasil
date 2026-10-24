@@ -26,6 +26,17 @@ describe("createPreference", () => {
     backUrls: { success: "https://app.test/ok", pending: "https://app.test/p", failure: "https://app.test/f" },
     expiresAt: "2026-10-23T13:00:00.000Z", now: "2026-10-23T12:00:00.000Z",
   };
+  it("campos de qualidade (checklist do MP): descrição, categoria, descriptor e e-mail do pagador só quando informado", async () => {
+    const { cfg, calls } = mk(() => json({ id: "pref-q", init_point: "https://mp.test/checkout?pref_id=pref-q", collector_id: 900 }));
+    await createPreference(cfg, { ...input, payerEmail: "dono@exemplo.test", description: "Plano Festa: até 30 convidados" });
+    const b = JSON.parse(String(calls[0].init.body));
+    expect(b.items[0]).toMatchObject({ id: "festa", category_id: "services", description: "Plano Festa: até 30 convidados" });
+    expect(b.statement_descriptor).toBe("MEMORIESMT");
+    expect(b.payer).toEqual({ email: "dono@exemplo.test" });
+    const sem = mk(() => json({ id: "pref-r", init_point: "https://mp.test/checkout?pref_id=pref-r" }));
+    await createPreference(sem.cfg, input);
+    expect(JSON.parse(String(sem.calls[0].init.body)).payer).toBeUndefined();
+  });
   it("envia os campos documentados e devolve id e init_point", async () => {
     const { cfg, calls } = mk(() => json({ id: "pref-1", init_point: "https://mp.test/checkout?pref_id=pref-1", sandbox_init_point: "https://mp.test/sbx", collector_id: 900, expiration_date_to: input.expiresAt }, 201));
     const r = await createPreference(cfg, input);
@@ -39,7 +50,7 @@ describe("createPreference", () => {
       expiration_date_to: input.expiresAt, expiration_date_from: input.now, back_urls: input.backUrls,
       metadata: { order_id: input.orderId, event_id: input.eventId, plan_code: "festa" },
     });
-    expect(b.items).toEqual([{ id: "festa", title: input.title, quantity: 1, currency_id: "BRL", unit_price: 29 }]);
+    expect(b.items).toEqual([{ id: "festa", title: input.title, quantity: 1, currency_id: "BRL", unit_price: 29, category_id: "services" }]);
     expect(b.payer).toBeUndefined();
   });
   it("preço em reais com duas casas a partir dos centavos", async () => {
@@ -194,7 +205,15 @@ describe("getMe / searchPreferences (diagnóstico)", () => {
     const { cfg, calls } = mk(() => json({ id: 900, nickname: "LOJA", site_id: "MLB", country_id: "BR", email: "x@y.test", first_name: "N" }));
     const me = await getMe(cfg);
     expect(calls[0].url).toBe("https://mp.test/users/me");
-    expect(me).toEqual({ id: "900", siteId: "MLB", countryId: "BR" });
+    expect(me).toEqual({ id: "900", siteId: "MLB", countryId: "BR", testUser: null });
+  });
+  it("getMe: tag test_user => testUser true; tags sem ela => false; sem tags => null (nunca por prefixo do token)", async () => {
+    const a = mk(() => json({ id: 1, site_id: "MLB", country_id: "BR", tags: ["test_user", "user_info_verified"] }));
+    expect((await getMe(a.cfg)).testUser).toBe(true);
+    const b = mk(() => json({ id: 2, site_id: "MLB", country_id: "BR", tags: ["normal", "user_info_verified"] }));
+    expect((await getMe(b.cfg)).testUser).toBe(false);
+    const c = mk(() => json({ id: 3, site_id: "MLB", country_id: "BR" }));
+    expect((await getMe(c.cfg)).testUser).toBeNull();
   });
   it("getMe sem id é bad_response", async () => {
     const { cfg } = mk(() => json({ nickname: "x" }));

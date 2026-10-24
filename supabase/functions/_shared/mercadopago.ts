@@ -74,13 +74,20 @@ export type PreferenceInput = {
   orderId: string; eventId: string; planCode: string; title: string; amountCents: number;
   notificationUrl: string; backUrls: { success: string; pending: string; failure: string };
   expiresAt: string; now: string;
+  /** Opcionais do checklist de qualidade do MP (só enviados quando informados). */
+  payerEmail?: string | null; description?: string | null;
 };
 export type Preference = { id: string; initPoint: string; collectorId: string | null; expirationDateTo: string | null };
 
 export async function createPreference(cfg: MercadoPagoConfig, i: PreferenceInput): Promise<Preference> {
   const r = await call(cfg, "POST", "/checkout/preferences", {
     body: {
-      items: [{ id: i.planCode, title: i.title, quantity: 1, currency_id: "BRL", unit_price: toReais(i.amountCents) }],
+      items: [{
+        id: i.planCode, title: i.title, quantity: 1, currency_id: "BRL", unit_price: toReais(i.amountCents), category_id: "services",
+        ...(i.description ? { description: i.description.slice(0, 250) } : {}),
+      }],
+      ...(i.payerEmail ? { payer: { email: i.payerEmail } } : {}),
+      statement_descriptor: "MEMORIESMT",
       external_reference: i.orderId,
       notification_url: i.notificationUrl,
       back_urls: i.backUrls,
@@ -172,9 +179,12 @@ export async function refundPayment(
 }
 
 // ---------------------------------------------------------------- diagnóstico e conta recebedora
-export async function getMe(cfg: MercadoPagoConfig): Promise<{ id: string; siteId: string | null; countryId: string | null }> {
+// testUser vem da tag `test_user` que a própria API põe na conta (true/false) ou null se a API não devolver tags.
+// Nunca se deduz o ambiente do prefixo do token (teste e produção começam ambos com APP_USR).
+export async function getMe(cfg: MercadoPagoConfig): Promise<{ id: string; siteId: string | null; countryId: string | null; testUser: boolean | null }> {
   const r = await call(cfg, "GET", "/users/me");
   const id = str(r.id);
   if (!id) throw new MercadoPagoError("bad_response", 200);
-  return { id, siteId: str(r.site_id), countryId: str(r.country_id) };
+  const tags = Array.isArray(r.tags) ? (r.tags as unknown[]).filter((t): t is string => typeof t === "string") : null;
+  return { id, siteId: str(r.site_id), countryId: str(r.country_id), testUser: tags ? tags.includes("test_user") : null };
 }

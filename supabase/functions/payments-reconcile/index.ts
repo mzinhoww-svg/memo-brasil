@@ -35,8 +35,7 @@ Deno.serve(async (req) => {
   const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer /, "");
   if (!sameToken(token, Deno.env.get("PAYMENTS_CRON_TOKEN") ?? "")) return json({ error: "unauthorized" }, 401);
 
-  const cfg = mpConfig();
-  if (!cfg) {
+  if (!mpConfig("production") && !mpConfig("sandbox")) {
     log(FN, null, null, "pagamento_indisponivel");
     return json({ error: "pagamento_indisponivel" }, 503);
   }
@@ -61,17 +60,13 @@ Deno.serve(async (req) => {
   const work = queue.filter((q) => { const k = `${q.order_id}|${q.kind}|${q.payment_id}`; return !seen.has(k) && !!seen.add(k); }).slice(0, BATCH);
 
   let verificados = 0, aplicados = 0, falhas = 0, incompletos = 0;
-  let collector: string;
-  try {
-    collector = work.length ? await withBackoff(() => expectedCollector(cfg)) : "";
-  } catch {
-    log(FN, null, null, "recebedor_indisponivel");
-    return json({ error: "provider", expirados: exp.data ?? 0 }, 502);
-  }
   for (const item of work) {
     try {
       const { order } = await loadOrder(admin, item.order_id);
       if (!order || order.provider !== "mercadopago") continue;
+      const cfg = mpConfig(order.provider_env); // credenciais do ambiente DO PEDIDO
+      if (!cfg) { falhas++; log(FN, order.id, order.status, "sem_credencial_do_ambiente"); continue; }
+      const collector = await withBackoff(() => expectedCollector(cfg));
       if (item.kind === "payment" && item.payment_id) {
         const p = await withBackoff(() => getPayment(cfg, item.payment_id!));
         const r = await applyPayment(admin, order.id, p, collector, "reconcile");

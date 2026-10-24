@@ -33,9 +33,9 @@ Deno.serve(async (req) => {
 
   const cur = (st.data as { status?: string; provider?: string }) ?? {};
   if (cur.provider === "mercadopago" && ["criado", "pendente", "expirado"].includes(String(cur.status))) {
-    const cfg = mpConfig();
     const admin = serviceClient();
     const { order } = await loadOrder(admin, orderId);
+    const cfg = order ? mpConfig(order.provider_env) : null; // credenciais do ambiente DO PEDIDO (sandbox nunca usa o token de produção)
     const stale = !order?.last_checked_at || Date.now() - Date.parse(order.last_checked_at) > RECHECK_AFTER_MS;
     if (cfg && order && stale) {
       try {

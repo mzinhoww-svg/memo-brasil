@@ -53,29 +53,31 @@ export async function caller(req: Request): Promise<
 }
 
 /** Configuração do Mercado Pago a partir do ambiente. Recusa (null) com token ausente ou URL base inválida. */
-export function mpConfig(): MercadoPagoConfig | null {
+export function mpConfig(env?: ProviderEnv | null): MercadoPagoConfig | null {
   const r = resolveMercadoPagoConfig({
     MERCADOPAGO_ACCESS_TOKEN: Deno.env.get("MERCADOPAGO_ACCESS_TOKEN"),
+    MERCADOPAGO_ACCESS_TOKEN_SANDBOX: Deno.env.get("MERCADOPAGO_ACCESS_TOKEN_SANDBOX"),
     MERCADOPAGO_BASE_URL: Deno.env.get("MERCADOPAGO_BASE_URL"),
-  });
+  }, env);
   return r.ok ? { ...r.config, timeoutMs: 8_000 } : null;
 }
 
 /** Checkout/status: o interruptor payments_env() não pode estar 'desligado'. O ambiente do PAGAMENTO vem de live_mode. */
 export async function guardEnv(admin: SupabaseClient): Promise<{ env: ProviderEnv; config: MercadoPagoConfig } | null> {
-  const config = mpConfig();
-  if (!config) return null;
   const { data, error } = await admin.rpc("payments_env");
   if (error || (data !== "sandbox" && data !== "production")) return null;
+  const config = mpConfig(data);
+  if (!config) return null;
   return { env: data, config };
 }
 
-let collectorCache: { id: string; at: number } | null = null;
+const collectorCache = new Map<string, { id: string; at: number }>(); // por token: sandbox e produção têm recebedores distintos
 /** Conta recebedora esperada: GET /users/me (nunca parâmetro de entrada). Cache de 5 min. Lança MercadoPagoError. */
 export async function expectedCollector(cfg: MercadoPagoConfig): Promise<string> {
-  if (collectorCache && Date.now() - collectorCache.at < 300_000) return collectorCache.id;
+  const hit = collectorCache.get(cfg.accessToken);
+  if (hit && Date.now() - hit.at < 300_000) return hit.id;
   const me = await getMe(cfg);
-  collectorCache = { id: me.id, at: Date.now() };
+  collectorCache.set(cfg.accessToken, { id: me.id, at: Date.now() });
   return me.id;
 }
 
