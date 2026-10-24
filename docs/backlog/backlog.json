@@ -7285,7 +7285,7 @@
    "epic": "EP-11",
    "parent": null,
    "priority": "P1",
-   "status": "IN_REVIEW",
+   "status": "DONE",
    "dependencies": [],
    "title": "Home: cartão da festa de exemplo parecia inerte e a home listava eventos da conta",
    "description": "Produção 89a612b: o cartão 'Experimente a câmera agora' usava .app-card com o fundo igual ao da página (sem borda nem ícone), parecendo texto solto, e a home empilhava 'Seus eventos' abaixo da apresentação (para o Master, events.list baixava a base inteira e filtrava no navegador). Corrigido: home igual à tela Main aprovada; gestão em /eventos (ativos, encerrados, festas em que entrou); events.listMine no servidor.",
@@ -7313,9 +7313,11 @@
     "web/integration/adapter.itest.ts (listMine)"
    ],
    "evidence": [
-    "vitest 496/496; typecheck e lint sem erros; E2E local 101 passados, 0 falhas; integração listMine no Supabase local (organizador, convidado, estranho, Master)"
+    "vitest 496/496; typecheck; lint 0 erros; E2E local 104/104; integração listMine no Supabase local",
+    "Publicado: dpl_J28BnSfP5SrabGNrFj3KwJ2we2Du (8de2d88) e dpl_AGvPH6Ad85j5vtSfkso6Y2WATveT (9c36af0, rodapé); smoke no domínio oficial com a conta do dono: /eventos 7 próprios, sem o evento de terceiro do /master/eventos; Painel e Ver no Agora abrem",
+    "Capturas docs/evidence/home-20261023 (antes/depois, 360/390/1280)"
    ],
-   "commit": "25584fc"
+   "commit": "9c36af0"
   }
  ],
  "requirements": [

@@ -6,7 +6,7 @@
 
 Homologação real concluída e V1 em produção (Google OAuth, callback, variáveis de Production, smoke público).
 
-Itens abertos: **10** · P0 0, P1 7, P2 2, P3 1 · BACKLOG 4, BLOCKED 3, IN_REVIEW 2, READY 1
+Itens abertos: **9** · P0 0, P1 6, P2 2, P3 1 · BACKLOG 4, BLOCKED 3, IN_REVIEW 1, READY 1
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -16,7 +16,6 @@ Itens abertos: **10** · P0 0, P1 7, P2 2, P3 1 · BACKLOG 4, BLOCKED 3, IN_REVI
 | REL-005 | P1 | BLOCKED | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect | - |
 | SB-005 | P1 | BACKLOG | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | SB-003 |
 | SB-006 | P1 | BACKLOG | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexã | SB-002 |
-| UXA-129 | P1 | IN_REVIEW | Home: cartão da festa de exemplo parecia inerte e a home listava eventos da conta | - |
 | INF-005 | P2 | IN_REVIEW | Preview por API exige rootDirectory=web e framework=nextjs | REL-001 |
 | SB-007 | P2 | BACKLOG | Relógio do servidor no app e observabilidade (logs estruturados, monitor da revelação, run | SB-003 |
 | QAV-004 | P3 | BLOCKED | Limpar usuários e dados de teste do remoto | SCV-010 |
