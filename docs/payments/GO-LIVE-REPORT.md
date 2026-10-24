@@ -42,3 +42,27 @@ Credenciais por ambiente, sandbox restrito ao Master, `payer.email` só em produ
 
 ## G. Evidências
 Runbook `docs/supabase/PAYMENTS-RUNBOOK.md` §16 a §19; `docs/payments/QA-EVIDENCE.md`; backlog (`PAY-MP-*`, `PAY-MOB-*`); capturas `docs/evidence/pagamento-mobile/`.
+
+## Webhook e reembolso: verificação de 2026-10-24 (rodada seguinte)
+
+**Webhook.** O que se verificou com os acessos disponíveis:
+- `payment_events` não tem nenhuma linha de webhook (só `apply.reconcile`). A função grava o evento só depois de validar a assinatura; assinatura inválida responde 401 sem tocar no banco. Logo, "nenhuma linha" não distingue "não entregue" de "entregue com assinatura recusada".
+- Endpoint alcançável: POST sem assinatura responde 401 (probe de hoje).
+- `notifications_history` (MCP) devolve vazio para a aplicação `1592042337972998`; para a aplicação de teste do vendedor `4326309413049449` devolve "OAuth ownership validation failed" (a aplicação pertence à conta de teste, não ao OAuth do MCP).
+- Log da Function: `query_logs` do conector Supabase recusa com "You do not have permission to perform this action" (restrição explícita do conector; não contornada).
+- Explicação provável, pela documentação oficial: a URL do modo teste serve ao teste com "credenciais de teste de usuários produtivos"; o pagamento da homologação foi feito na conta do **vendedor de teste** `3786688395`, cuja aplicação (`4326309413049449`) tem webhook e segredo próprios, que o agente não consegue configurar (conta de teste, outro dono). Portanto a ausência de entrega no sandbox **não prova** defeito do webhook, e o sandbox também não o prova. O webhook de produção só se comprova na compra controlada (`LAUNCH-CRITERIA.md`, critério A).
+- Segredo: `MERCADOPAGO_WEBHOOK_SECRET` está cadastrado (só o nome foi conferido; valor não lido). Nada foi pedido, regenerado ou exposto.
+
+**Reembolso.**
+- Implementação conferida contra a referência: `POST /v1/payments/{id}/refunds`, `X-Idempotency-Key`, corpo vazio (total), credencial = a do ambiente do pedido (sandbox), recebedor do pagamento `3786688395` = dono da credencial, `testUser:true`.
+- Pagamento: `approved`, `collector_id=3786688395`, `refunded_cents=0`, pedido `pago`. A API do Mercado Pago devolve `live_mode=true` para pagamentos de contas de teste; o banco guarda o `live_mode` efetivo (`false`) pela regra `withEffectiveLiveMode`.
+- A documentação de reembolsos consultada não descreve reembolso de pagamentos de usuários de teste nem o erro "Unauthorized use of live credentials".
+- **Causa não comprovada.** Nenhuma falha de implementação ou de configuração foi encontrada; nada foi alterado no código. Não se declara que o provedor "não suporta" reembolso em sandbox: declara-se que não foi provado e que o reembolso real é verificado na compra controlada (critério A3 de `LAUNCH-CRITERIA.md`).
+
+**D3/D5/D6 (conteúdo exato que falta, já definido no backlog `PAY-OPS-005`).**
+- D3: reembolso/arrependimento (CDC art. 49): prazo, quem pode pedir, se o plano já usado é reembolsável, e o texto nos Termos.
+- D5: razão social, CNPJ (rodapé e `/ajuda`), contatos de suporte. **Contato já fornecido:** `mazinhoww@gmail.com`, gravado em `support_email` por `supabase/ops/payments_support_contact.sql`. Faltam razão social, CNPJ e, opcional, telefone.
+- D6: NFS-e e regime fiscal.
+- Revisão jurídica dos Termos/Política versão `2026-10-22-v1`.
+
+**Pix.** A documentação oficial diz que a opção Pix só aparece com chave Pix cadastrada no Mercado Pago. Não há API pública disponível ao agente que liste chaves Pix; criar uma cobrança Pix para testar geraria cobrança real. Fica pendente a confirmação no app do Mercado Pago e uma cobrança Pix real depois da compra controlada. O Pix não paga no sandbox.
