@@ -48,7 +48,10 @@ const nextConfig: NextConfig = {
   },
   turbopack: {
     rules: {
+      // `as: "*.css"` reclassifica o arquivo como CSS global: sem a exclusão, todo `*.module.css` virava global e o
+      // objeto importado (`css.algo`) chegava vazio, sem nenhuma classe aplicada (visto no console master).
       "*.css": {
+        condition: { not: { path: /\.module\.css$/ } },
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
