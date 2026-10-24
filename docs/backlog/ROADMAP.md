@@ -120,7 +120,7 @@ Itens abertos: **87** · P0 14, P1 17, P2 37, P3 19 · BACKLOG 48, BLOCKED 3, DE
 
 Planos, pagamento, e-mail, observabilidade e escala de mídia.
 
-Itens abertos: **46** · P0 6, P1 23, P2 16, P3 1 · BACKLOG 12, BLOCKED 8, DEFERRED 11, IN_REVIEW 13, READY 2
+Itens abertos: **51** · P0 6, P1 28, P2 16, P3 1 · BACKLOG 12, BLOCKED 9, DEFERRED 11, IN_REVIEW 17, READY 2
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -147,6 +147,11 @@ Itens abertos: **46** · P0 6, P1 23, P2 16, P3 1 · BACKLOG 12, BLOCKED 8, DEFE
 | PAY-001 | P1 | IN_REVIEW | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança le | - |
 | PAY-002 | P1 | IN_REVIEW | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | - |
 | PAY-003 | P1 | IN_REVIEW | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | - |
+| PAY-MOB-001 | P1 | IN_REVIEW | Resumo do pedido, botão fiel e carregamento no plano (mobile) | - |
+| PAY-MOB-002 | P1 | IN_REVIEW | Ponte CheckoutBridge e retomada ao voltar do Mercado Pago | - |
+| PAY-MOB-003 | P1 | IN_REVIEW | Estados de rede e pedido sem link no pendente | - |
+| PAY-MOB-004 | P1 | IN_REVIEW | Layout 360/390/430: CTA fixo com área segura, alvos 44px, sem rolagem lateral | - |
+| PAY-MOB-005 | P1 | BLOCKED | Testes em aparelho físico iOS/Android, teclado aberto, Pix em produção e regras das lojas | - |
 | PAY-MP-005 | P1 | BLOCKED | Confirmar na homologação as incertezas da API listadas no design (§6) | PAY-MP-004 |
 | PAY-MP-006 | P1 | IN_REVIEW | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts pa | PAY-MP-003 |
 | PAY-MP-007 | P1 | BLOCKED | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por  | PAY-MP-004, PAY-OPS-005 |

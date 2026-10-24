@@ -15,7 +15,7 @@
 | G12 | Migrations V2 e Edge Functions remotas | PASSA no inventário: 16 migrations e duas Functions ativas | docs/supabase/evidence/a5-20261021/backend-readonly.json; docs/supabase/A5-HOMOLOGATION-REPORT.md |
 | G11 | Conector Supabase acessa o projeto correto | PASSA: consultas remotas de leitura | docs/supabase/evidence/a5-20261021/backend-readonly.json |
 
-## Itens P0/P1 em aberto (55)
+## Itens P0/P1 em aberto (60)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -73,6 +73,11 @@
 | PAY-MP-005 | Confirmar na homologação as incertezas da API listadas no design (§6) | P1 | BLOCKED |
 | PAY-MP-006 | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago | P1 | IN_REVIEW |
 | PAY-MP-007 | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por plano | P1 | BLOCKED |
+| PAY-MOB-001 | Resumo do pedido, botão fiel e carregamento no plano (mobile) | P1 | IN_REVIEW |
+| PAY-MOB-002 | Ponte CheckoutBridge e retomada ao voltar do Mercado Pago | P1 | IN_REVIEW |
+| PAY-MOB-003 | Estados de rede e pedido sem link no pendente | P1 | IN_REVIEW |
+| PAY-MOB-004 | Layout 360/390/430: CTA fixo com área segura, alvos 44px, sem rolagem lateral | P1 | IN_REVIEW |
+| PAY-MOB-005 | Testes em aparelho físico iOS/Android, teclado aberto, Pix em produção e regras das lojas | P1 | BLOCKED |
 
 ## Decisão atual
 **NO-GO para produção; A não concluída.** Checkpoint A5 em docs/supabase/A5-HOMOLOGATION-REPORT.md. Testes unitários/probes não substituem E2E autenticado, sessões e aparelhos físicos. Nenhuma promoção autorizada. Ordem A → B → Codex → C preservada; proposta paralela de backlog não integrada.

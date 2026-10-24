@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **251** itens (sem contar 19 épicos). Prioridade: P0 46, P1 87, P2 64, P3 54. Status: BACKLOG 96, BLOCKED 14, CANCELLED 2, DEFERRED 14, DONE 75, IN_REVIEW 38, READY 12.
+Total: **256** itens (sem contar 19 épicos). Prioridade: P0 46, P1 92, P2 64, P3 54. Status: BACKLOG 96, BLOCKED 15, CANCELLED 2, DEFERRED 14, DONE 75, IN_REVIEW 42, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -613,6 +613,11 @@ Total: **251** itens (sem contar 19 épicos). Prioridade: P0 46, P1 87, P2 64, P
 | PAY-003 | BUG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
 | PAY-004 | TASK | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução | P2 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
 | PAY-005 | BUG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | P2 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-MOB-001 | TASK | Resumo do pedido, botão fiel e carregamento no plano (mobile) | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | HEAD | codigo |
+| PAY-MOB-002 | TASK | Ponte CheckoutBridge e retomada ao voltar do Mercado Pago | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | HEAD | codigo |
+| PAY-MOB-003 | TASK | Estados de rede e pedido sem link no pendente | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | HEAD | codigo |
+| PAY-MOB-004 | TASK | Layout 360/390/430: CTA fixo com área segura, alvos 44px, sem rolagem lateral | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | HEAD | codigo |
+| PAY-MOB-005 | TASK | Testes em aparelho físico iOS/Android, teclado aberto, Pix em produção e regras das lojas | P1 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | codigo |
 | PAY-MP-001 | TASK | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | operador |
 | PAY-MP-002 | TASK | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | IN_REVIEW | PAY-MP-003 | migração Mercado Pago 2026-10-23 | 541df22 | operador |
 | PAY-MP-003 | TASK | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | codigo (local) |
@@ -704,3 +709,13 @@ Total: **251** itens (sem contar 19 épicos). Prioridade: P0 46, P1 87, P2 64, P
 **PAY-MP-006** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs
 
 **PAY-MP-007** critérios: payments_env='production' com production_active por plano; Primeira venda real conciliada e reembolsada pelo Master
+
+**PAY-MOB-001** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs · testes: web/src/features/billing/plano-ui.test.tsx
+
+**PAY-MOB-002** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs · testes: web/src/features/billing/checkout-nav.test.ts
+
+**PAY-MOB-003** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs · testes: web/src/features/billing/plano-ui.test.tsx
+
+**PAY-MOB-004** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs · testes: web/e2e/pagamento-mobile.spec.ts
+
+**PAY-MOB-005** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs

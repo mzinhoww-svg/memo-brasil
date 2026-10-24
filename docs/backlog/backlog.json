@@ -7636,6 +7636,134 @@
    "tests": [],
    "evidence": [],
    "commit": null
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [
+    "web/src/features/billing/plano-ui.test.tsx"
+   ],
+   "evidence": [
+    "vitest plano-ui (resumo, carregamento, clique duplo); E2E payments/plano-mercadopago com fake"
+   ],
+   "commit": "HEAD",
+   "release": "R3",
+   "id": "PAY-MOB-001",
+   "title": "Resumo do pedido, botão fiel e carregamento no plano (mobile)",
+   "priority": "P1",
+   "status": "IN_REVIEW",
+   "description": "Resumo (plano, total, pagamento único), botão \"Pagar com Mercado Pago · R$\", estado de carregamento e guarda contra clique duplo.",
+   "acceptance": [
+    "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
+    "Spec de UI usa fake-mercadopago.mjs"
+   ],
+   "environment": "codigo"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [
+    "web/src/features/billing/checkout-nav.test.ts"
+   ],
+   "evidence": [
+    "vitest checkout-nav e plano-ui"
+   ],
+   "commit": "HEAD",
+   "release": "R3",
+   "id": "PAY-MOB-002",
+   "title": "Ponte CheckoutBridge e retomada ao voltar do Mercado Pago",
+   "priority": "P1",
+   "status": "IN_REVIEW",
+   "description": "Abertura/retorno isolados em CheckoutBridge; pageshow/visibilitychange consultam o status.",
+   "acceptance": [
+    "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
+    "Spec de UI usa fake-mercadopago.mjs"
+   ],
+   "environment": "codigo"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [
+    "web/src/features/billing/plano-ui.test.tsx"
+   ],
+   "evidence": [
+    "vitest plano-ui"
+   ],
+   "commit": "HEAD",
+   "release": "R3",
+   "id": "PAY-MOB-003",
+   "title": "Estados de rede e pedido sem link no pendente",
+   "priority": "P1",
+   "status": "IN_REVIEW",
+   "description": "Aviso após 3 falhas seguidas, botão Atualizar e Atualizar quando o link ainda não existe.",
+   "acceptance": [
+    "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
+    "Spec de UI usa fake-mercadopago.mjs"
+   ],
+   "environment": "codigo"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [
+    "web/e2e/pagamento-mobile.spec.ts"
+   ],
+   "evidence": [
+    "E2E pagamento-mobile (3 viewports + tela baixa 568) e capturas em docs/evidence/pagamento-mobile"
+   ],
+   "commit": "HEAD",
+   "release": "R3",
+   "id": "PAY-MOB-004",
+   "title": "Layout 360/390/430: CTA fixo com área segura, alvos 44px, sem rolagem lateral",
+   "priority": "P1",
+   "status": "IN_REVIEW",
+   "description": "Verificado por emulação; teclado aberto e aparelho físico NÃO provados.",
+   "acceptance": [
+    "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
+    "Spec de UI usa fake-mercadopago.mjs"
+   ],
+   "environment": "codigo"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "docs/design/PAGAMENTO-MOBILE-NATIVO.md lista o que não foi provado"
+   ],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MOB-005",
+   "title": "Testes em aparelho físico iOS/Android, teclado aberto, Pix em produção e regras das lojas",
+   "priority": "P1",
+   "status": "BLOCKED",
+   "description": "Depende de aparelhos, de pagamento real do titular (Pix) e de revisão das regras das lojas.",
+   "acceptance": [
+    "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
+    "Spec de UI usa fake-mercadopago.mjs"
+   ],
+   "environment": "codigo"
   }
  ],
  "requirements": [
