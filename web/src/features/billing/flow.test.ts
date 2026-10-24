@@ -69,7 +69,7 @@ describe("TrustBlock e textos", () => {
   it("Grátis omite o título", () => expect(trustTitle(plan({ code: "gratis", isFree: true, maxGuests: 10, priceCents: 0 }))).toBeNull());
   it("mensagem do MM013 e textos exatos", () => {
     expect(PLAN_TEXT.expirado).toBe("Nada foi cobrado. Quando quiser, comece um novo pagamento.");
-    expect(PLAN_TEXT.sub).toBe("Pix ou cartão, pagamento único por evento, no Mercado Pago. Sem assinatura.");
+    expect(PLAN_TEXT.sub).toBe("Pagamento único por evento, no Mercado Pago. Cartão ou Pix, conforme disponível. Sem assinatura.");
     expect(PLAN_TEXT.provedor).toBe("Seu pedido está guardado; tente de novo em 1 minuto.");
   });
   it("joinGuests e rank", () => {
@@ -81,6 +81,8 @@ describe("TrustBlock e textos", () => {
   it("rótulo da forma de pagamento: conhecidos, histórico AbacatePay e desconhecidos", () => {
     expect(paymentLabel(order({ paymentMethod: "pix" }))).toBe("Pix");
     expect(paymentLabel(order({ paymentMethod: "card" }))).toBe("Cartão");
+    // ids de bandeira que o Mercado Pago devolve em payment_method_id (achado da homologação: 'master')
+    for (const m of ["master", "visa", "amex", "elo", "hipercard", "debmaster", "debvisa", "debelo", "cabal"]) expect(paymentLabel(order({ paymentMethod: m }))).toBe("Cartão");
     expect(paymentLabel(order({ paymentMethod: "credit_card" }))).toBe("Cartão");
     expect(paymentLabel(order({ paymentMethod: "debit_card" }))).toBe("Cartão");
     expect(paymentLabel(order())).toBe("Mercado Pago");

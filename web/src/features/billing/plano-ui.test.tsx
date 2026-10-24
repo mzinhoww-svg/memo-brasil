@@ -9,7 +9,7 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("./api", async (orig) => ({ ...(await orig<typeof import("./api")>()), ...api }));
 const nav = vi.hoisted(() => ({ goToCheckout: vi.fn() }));
-vi.mock("./checkout-nav", () => nav);
+vi.mock("./checkout-nav", async (orig) => ({ ...(await orig<typeof import("./checkout-nav")>()), goToCheckout: nav.goToCheckout }));
 vi.mock("./entitlement", () => ({ currentPlanCode: vi.fn(async () => "gratis") }));
 vi.mock("@/features/admin/context", () => ({ useAdmin: () => ({ event: { id: "ev1", title: "Ana & Rui" }, refresh: vi.fn() }) }));
 
@@ -35,7 +35,7 @@ describe("TrustBlock", () => {
     render(<TrustBlock plan={PLANS[3]} gracePct={15} />);
     expect(screen.getByText("250 olhares por R$ 0,76 cada.")).toBeInTheDocument();
     expect(screen.getByText("Ninguém é barrado na festa: 15% de folga e aviso antes de lotar.")).toBeInTheDocument();
-    expect(screen.getByText("Pix ou cartão, pagamento único, sem assinatura. Se expirar, nada é cobrado.")).toBeInTheDocument();
+    expect(screen.getByText("Pagamento único, sem assinatura. Cartão ou Pix, conforme disponível no Mercado Pago. Se expirar, nada é cobrado.")).toBeInTheDocument();
   });
   it("Grátis não mostra título", () => {
     render(<TrustBlock plan={PLANS[0]} />);
@@ -51,13 +51,13 @@ describe("PlanPicker", () => {
     expect(screen.getByText("Seu plano")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Até 10 ·/ })).toBeDisabled();
     expect(screen.getByRole("radio", { name: /Casamento/ })).toBeChecked();
-    expect(await screen.findByRole("button", { name: "Pagar R$ 189,00" })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" })).toBeEnabled();
     expect(screen.getByText("Tenho um código")).toBeInTheDocument();
   });
   it("upgrade: cobra o valor da quote (diferença), não o preço cheio", async () => {
     api.quote.mockResolvedValue({ planCode: "casamento", fromPlanCode: "festa", amountCents: 16000, payable: true, reason: "ok" });
     render(<PlanPicker {...base} plans={PLANS} currentCode="festa" />);
-    expect(await screen.findByRole("button", { name: "Pagar R$ 160,00" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 160,00" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Festa/ })).toBeDisabled();
     expect(screen.getAllByText("Incluído").length).toBe(0 + 1); // só o plano abaixo do atual (Grátis)
   });
@@ -78,12 +78,28 @@ describe("PlanPicker", () => {
     render(<PlanPicker {...base} plans={[PLANS[0]]} currentCode="gratis" settings={{ ...SETTINGS, supportEmail: null, paymentsEnv: "desligado" }} />);
     expect(screen.getByRole("link", { name: "Falar com a gente" })).toHaveAttribute("href", expect.stringContaining("mailto:mazinhoww@gmail.com"));
   });
+  it("resumo do pedido antes de continuar: plano, total e pagamento único", async () => {
+    api.quote.mockResolvedValue({ planCode: "casamento", fromPlanCode: null, amountCents: 18900, payable: true, reason: "ok" });
+    render(<PlanPicker {...base} plans={PLANS} currentCode="gratis" />);
+    const resumo = await screen.findByTestId("resumo-pedido");
+    expect(resumo).toHaveTextContent("Casamento");
+    expect(resumo).toHaveTextContent("R$ 189,00");
+    expect(resumo).toHaveTextContent("Pagamento único");
+    expect(resumo).toHaveTextContent("sem assinatura");
+  });
+  it("enquanto abre o Mercado Pago: botão desabilitado, aria-busy e rótulo de carregamento", async () => {
+    api.quote.mockResolvedValue({ planCode: "casamento", fromPlanCode: null, amountCents: 18900, payable: true, reason: "ok" });
+    render(<PlanPicker {...base} busy plans={PLANS} currentCode="gratis" />);
+    const btn = await screen.findByRole("button", { name: /Abrindo o Mercado Pago/ });
+    expect(btn).toBeDisabled();
+    expect(btn).toHaveAttribute("aria-busy", "true");
+  });
   it("escolher e pagar chama onPay com o plano", async () => {
     api.quote.mockResolvedValue({ planCode: "festa", fromPlanCode: null, amountCents: 2900, payable: true, reason: "ok" });
     const onPay = vi.fn();
     render(<PlanPicker {...base} onPay={onPay} plans={PLANS} currentCode="gratis" />);
     await userEvent.click(screen.getByRole("radio", { name: /Festa/ }));
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 29,00" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 29,00" }));
     expect(onPay).toHaveBeenCalledWith("festa");
   });
 });
@@ -162,6 +178,32 @@ describe("CheckoutPending", () => {
     await act(async () => { document.dispatchEvent(new Event("visibilitychange")); });
     expect(api.orderStatus).toHaveBeenCalledTimes(3);
     vis.mockRestore();
+  });
+  it("rede: 3 consultas seguidas falhando mostram aviso e 'Atualizar' consulta na hora; some quando responde", async () => {
+    vi.useFakeTimers();
+    api.orderStatus.mockRejectedValue(new Error("rede"));
+    render(<CheckoutPending {...props} order={ORDER} />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_100); });
+    expect(api.orderStatus).toHaveBeenCalledTimes(3);
+    expect(screen.getByTestId("sem-conexao")).toBeInTheDocument();
+    api.orderStatus.mockResolvedValue({ ...ORDER });
+    await act(async () => { screen.getByRole("button", { name: "Atualizar" }).click(); await vi.advanceTimersByTimeAsync(10); });
+    expect(api.orderStatus).toHaveBeenCalledTimes(4);
+    expect(screen.queryByTestId("sem-conexao")).toBeNull();
+  });
+  it("pendente do Mercado Pago ainda sem link: oferece 'Atualizar' (nunca só texto)", async () => {
+    const { checkoutUrl: _c, ...rest } = ORDER; void _c;
+    render(<CheckoutPending {...props} order={{ ...rest, provider: "mercadopago" }} />);
+    expect(screen.getByText(/preparando o link de pagamento/)).toBeInTheDocument();
+    api.orderStatus.mockResolvedValue({ ...ORDER });
+    await userEvent.click(screen.getByRole("button", { name: "Atualizar" }));
+    expect(api.orderStatus).toHaveBeenCalledTimes(1);
+  });
+  it("voltar do Mercado Pago pelo histórico (pageshow do bfcache) consulta o status na hora", async () => {
+    api.orderStatus.mockResolvedValue({ ...ORDER });
+    render(<CheckoutPending {...props} order={ORDER} />);
+    await act(async () => { window.dispatchEvent(Object.assign(new Event("pageshow"), { persisted: true })); });
+    expect(api.orderStatus).toHaveBeenCalledTimes(1);
   });
   it("pago pelo polling vira B3 sem recarregar e para de consultar", async () => {
     vi.useFakeTimers();
@@ -270,7 +312,7 @@ describe("página /painel/[id]/plano", () => {
   it("Pagar cria o pedido e navega (página inteira) para o checkoutUrl do Mercado Pago", async () => {
     api.startCheckout.mockResolvedValue(ORDER);
     render(<PlanoPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }));
     expect(api.startCheckout).toHaveBeenCalledWith("ev1", "casamento", expect.stringMatching(/^[0-9a-f-]{36}$/));
     await waitFor(() => expect(nav.goToCheckout).toHaveBeenCalledWith(MP_URL));
     expect(await screen.findByTestId("checkout-pendente")).toBeInTheDocument();
@@ -279,7 +321,7 @@ describe("página /painel/[id]/plano", () => {
     let resolve!: (o: OrderView) => void;
     api.startCheckout.mockReturnValue(new Promise<OrderView>((r) => { resolve = r; }));
     render(<PlanoPage />);
-    const btn = await screen.findByRole("button", { name: "Pagar R$ 189,00" });
+    const btn = await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" });
     await userEvent.dblClick(btn);
     expect(api.startCheckout).toHaveBeenCalledTimes(1);
     await act(async () => { resolve(ORDER); });
@@ -291,14 +333,14 @@ describe("página /painel/[id]/plano", () => {
     const { checkoutUrl: _c, ...noUrl } = ORDER; void _c;
     api.startCheckout.mockResolvedValue(noUrl);
     render(<PlanoPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }));
     expect(await screen.findByTestId("checkout-pendente")).toBeInTheDocument();
     expect(nav.goToCheckout).not.toHaveBeenCalled();
   });
   it("409 pedido_aberto de OUTRO plano: mostra o pedido existente com aviso e NÃO navega", async () => {
     api.startCheckout.mockResolvedValue({ ...ORDER, planCode: "festa", amountCents: 2900 });
     render(<PlanoPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }));
     expect(await screen.findByTestId("aviso-outro-plano")).toHaveTextContent("Você já tem um pagamento aberto do plano Festa.");
     expect(screen.getByText("Plano Festa · R$ 29,00")).toBeInTheDocument();
     expect(nav.goToCheckout).not.toHaveBeenCalled();
@@ -306,7 +348,7 @@ describe("página /painel/[id]/plano", () => {
   it("502: B6 com botão travado; nenhum pedido novo aparece", async () => {
     api.startCheckout.mockRejectedValue(new ProviderUnavailableError("o9"));
     render(<PlanoPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }));
     expect(await screen.findByTestId("provedor-fora")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Tentar de novo em/ })).toBeDisabled();
     expect(nav.goToCheckout).not.toHaveBeenCalled();
@@ -314,13 +356,13 @@ describe("página /painel/[id]/plano", () => {
   it("503 (pagamentos desligados) mostra a mensagem e recarrega o estado", async () => {
     api.startCheckout.mockRejectedValue(new BillingUnavailableError());
     render(<PlanoPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Pagamentos indisponíveis no momento.");
   });
   it("erro de negócio vira mensagem de recuperação, sem código técnico", async () => {
     api.startCheckout.mockRejectedValue(new BillingError("ja_incluido", 422));
     render(<PlanoPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Seu evento já tem este plano ou um maior.");
   });
   it("Pagar de novo usa chave nova (nova intenção de compra)", async () => {

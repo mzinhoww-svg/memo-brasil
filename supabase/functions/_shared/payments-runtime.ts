@@ -4,6 +4,7 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "./cors.ts";
 import { getMe, MercadoPagoError, type MercadoPagoConfig, type MpPayment } from "./mercadopago.ts";
 import { resolveMercadoPagoConfig } from "./mercadopago-config.ts";
+import { effectiveLiveMode } from "./mercadopago-flow.ts";
 
 export { MercadoPagoError };
 export type { MercadoPagoConfig, MpPayment };
@@ -72,12 +73,18 @@ export async function guardEnv(admin: SupabaseClient): Promise<{ env: ProviderEn
 }
 
 const collectorCache = new Map<string, { id: string; at: number }>(); // por token: sandbox e produção têm recebedores distintos
+/** recebedor (id) -> é conta de teste? Preenchido por expectedCollector; null = a API não informou. */
+const testCollectors = new Map<string, boolean | null>();
+export const collectorIsTestUser = (id: string | null | undefined): boolean | null => (id && testCollectors.has(id) ? testCollectors.get(id)! : null);
+/** Pagamento com o live_mode efetivo (ver effectiveLiveMode): usar antes de decidir o ambiente. */
+export const withEffectiveLiveMode = (p: MpPayment): MpPayment => ({ ...p, liveMode: effectiveLiveMode(p.liveMode, collectorIsTestUser(p.collectorId)) });
 /** Conta recebedora esperada: GET /users/me (nunca parâmetro de entrada). Cache de 5 min. Lança MercadoPagoError. */
 export async function expectedCollector(cfg: MercadoPagoConfig): Promise<string> {
   const hit = collectorCache.get(cfg.accessToken);
   if (hit && Date.now() - hit.at < 300_000) return hit.id;
   const me = await getMe(cfg);
   collectorCache.set(cfg.accessToken, { id: me.id, at: Date.now() });
+  testCollectors.set(me.id, me.testUser);
   return me.id;
 }
 
@@ -113,7 +120,7 @@ export async function applyPayment(
   admin: SupabaseClient, orderId: string, payment: MpPayment, collector: string, source: "webhook" | "status" | "reconcile",
 ): Promise<{ applied: boolean; outcome: string; to: string }> {
   const { data, error } = await admin.rpc("payments_apply_payment", {
-    p_order: orderId, p_payment: payment, p_expected_collector: collector, p_source: source,
+    p_order: orderId, p_payment: withEffectiveLiveMode(payment), p_expected_collector: collector, p_source: source,
   });
   if (error) throw new Error("db");
   const r = (data ?? {}) as { applied?: boolean; outcome?: string; to?: string };

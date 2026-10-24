@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/memoriesmt";
 import { formatBRL, orderStatus } from "./api";
 import { PLAN_TEXT, countdown, formatDateTime, joinGuests, paymentLabel, screenFor, type ReturnHint } from "./flow";
+import { getCheckoutBridge } from "./checkout-nav";
 import type { OrderView, PublicPlan } from "./types";
 
 /** Pendente: 5 s. Expirado (o Pix pode ser confirmado depois do prazo): 15 s, no máximo 20 consultas. */
@@ -21,29 +22,37 @@ function useNow(active: boolean): number {
   return now;
 }
 
-/** Consulta o status só com a aba visível; em segundo plano pausa e, ao voltar, consulta na hora. Para quando `enabled` cai (pago/terminal). */
+/**
+ * Consulta o status só com a aba visível. Ao voltar ao app/página (visibilitychange, pageshow do bfcache ou ciclo de vida
+ * do app nativo, via CheckoutBridge) consulta na hora. Conta falhas seguidas (`failures`) e expõe `refresh` (manual).
+ * Para quando `enabled` cai (pago/terminal).
+ */
 function useOrderPolling(orderId: string, enabled: boolean, intervalMs: number, maxTries: number, onOrder: (o: OrderView) => void) {
+  const [failures, setFailures] = useState(0);
   const inflight = useRef(false);
   const cb = useRef(onOrder);
+  const check = useRef<() => Promise<void>>(async () => undefined);
   useEffect(() => { cb.current = onOrder; });
   useEffect(() => {
     if (!enabled) return;
     let stopped = false;
     let tries = 0;
-    const tick = async () => {
-      if (stopped || inflight.current || tries >= maxTries || document.visibilityState !== "visible") return;
+    const run = async (manual: boolean) => {
+      if (stopped || inflight.current || (!manual && (tries >= maxTries || document.visibilityState !== "visible"))) return;
       inflight.current = true;
-      tries += 1;
+      if (!manual) tries += 1;
       try {
         const o = await orderStatus(orderId);
-        if (!stopped) cb.current(o);
-      } catch { /* próxima volta tenta de novo */ } finally { inflight.current = false; }
+        if (!stopped) { setFailures(0); cb.current(o); }
+      } catch { if (!stopped) setFailures((f) => f + 1); } finally { inflight.current = false; }
     };
-    const iv = setInterval(() => void tick(), intervalMs);
-    const onVis = () => { if (document.visibilityState === "visible") void tick(); };
-    document.addEventListener("visibilitychange", onVis);
-    return () => { stopped = true; clearInterval(iv); document.removeEventListener("visibilitychange", onVis); };
+    check.current = () => run(true);
+    const iv = setInterval(() => void run(false), intervalMs);
+    const stopResume = getCheckoutBridge().resumeEvents(() => void run(false));
+    return () => { stopped = true; clearInterval(iv); stopResume(); };
   }, [orderId, enabled, intervalMs, maxTries]);
+  const refresh = useCallback(() => check.current(), []);
+  return { failures, refresh };
 }
 
 function Header({ plan, order }: { plan?: PublicPlan; order: OrderView }) {
@@ -62,7 +71,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
   const now = useNow(open);
   const screen = screenFor(order, now);
   const plan = plans.find((p) => p.code === order.planCode);
-  useOrderPolling(order.orderId, screen === "pendente", POLL_PENDING_MS, Infinity, onOrder);
+  const pending = useOrderPolling(order.orderId, screen === "pendente", POLL_PENDING_MS, Infinity, onOrder);
   useOrderPolling(order.orderId, screen === "expirado", POLL_EXPIRED_MS, POLL_EXPIRED_MAX, onOrder);
 
   // vencido localmente: uma última consulta, porque o pagamento pode ter sido confirmado no último instante
@@ -101,6 +110,13 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
                 : "Estamos preparando o link de pagamento. Atualize a página em instantes."}
             </p>
           )}
+          {!order.checkoutUrl && order.provider !== "abacatepay" && <Button variant="secundario" block onClick={() => void pending.refresh()}>Atualizar</Button>}
+          {pending.failures >= 3 && (
+            <div className="plano-aviso" role="alert" data-testid="sem-conexao">
+              <p className="app-p">Não conseguimos confirmar agora, talvez por falta de conexão. Seu pagamento não se perde: o plano libera quando a confirmação chegar.</p>
+              <Button variant="secundario" block onClick={() => void pending.refresh()}>Atualizar</Button>
+            </div>
+          )}
           <div className="plano-espera">
             <p className="plano-aguardando" aria-live="polite" role="status">
               <span aria-hidden="true" className="plano-ponto" />
@@ -110,7 +126,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
           </div>
           <section className="plano-como" aria-labelledby="como-pagar">
             <h2 id="como-pagar" className="titulo-card app-h1">Como pagar</h2>
-            <p className="app-p app-muted">No Mercado Pago você escolhe Pix ou cartão. Quando terminar, volte para cá.</p>
+            <p className="app-p app-muted">No Mercado Pago você escolhe a forma de pagamento (cartão e, quando houver, Pix). Quando terminar, volte para cá.</p>
           </section>
           <p className="app-p app-muted">Pode fechar esta tela. O pedido fica guardado no painel e o plano libera sozinho quando o pagamento for confirmado.</p>
           <p className="app-p app-muted">Pagamento processado pelo Mercado Pago.</p>

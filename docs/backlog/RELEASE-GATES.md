@@ -15,7 +15,7 @@
 | G12 | Migrations V2 e Edge Functions remotas | PASSA no inventário: 16 migrations e duas Functions ativas | docs/supabase/evidence/a5-20261021/backend-readonly.json; docs/supabase/A5-HOMOLOGATION-REPORT.md |
 | G11 | Conector Supabase acessa o projeto correto | PASSA: consultas remotas de leitura | docs/supabase/evidence/a5-20261021/backend-readonly.json |
 
-## Itens P0/P1 em aberto (55)
+## Itens P0/P1 em aberto (60)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -60,19 +60,24 @@
 | PAY-OPS-003 | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | P0 | BLOCKED |
 | PAY-OPS-005 | [humano] Decisões comerciais/legais D3, D5, D6 e revisão jurídica dos textos | P1 | BLOCKED |
 | PAY-OPS-004 | [humano] Produção AbacatePay: CNPJ, chave de produção e ativação por plano | P1 | BLOCKED |
-| PAY-001 | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | IN_REVIEW |
-| PAY-002 | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | IN_REVIEW |
-| PAY-003 | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | IN_REVIEW |
 | REL-004 | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | P1 | BLOCKED |
 | REL-005 | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect URLs após o go-live | P1 | BLOCKED |
 | OPS-A5-006 | Limite de entradas anônimas do Supabase Auth (30/h por IP) | P1 | BLOCKED |
 | PAY-MP-001 | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | IN_REVIEW |
 | PAY-MP-002 | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | IN_REVIEW |
 | PAY-MP-003 | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | P0 | IN_REVIEW |
-| PAY-MP-004 | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso) | P0 | BLOCKED |
+| PAY-MP-004 | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso) | P0 | IN_REVIEW |
 | PAY-MP-005 | Confirmar na homologação as incertezas da API listadas no design (§6) | P1 | BLOCKED |
 | PAY-MP-006 | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago | P1 | IN_REVIEW |
 | PAY-MP-007 | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por plano | P1 | BLOCKED |
+| PAY-MOB-001 | Resumo do pedido, botão fiel e carregamento no plano (mobile) | P1 | IN_REVIEW |
+| PAY-MOB-002 | Ponte CheckoutBridge e retomada ao voltar do Mercado Pago | P1 | IN_REVIEW |
+| PAY-MOB-003 | Estados de rede e pedido sem link no pendente | P1 | IN_REVIEW |
+| PAY-MOB-004 | Layout 360/390/430: CTA fixo com área segura, alvos 44px, sem rolagem lateral | P1 | IN_REVIEW |
+| PAY-MOB-005 | Testes em aparelho físico iOS/Android, teclado aberto, Pix em produção e regras das lojas | P1 | BLOCKED |
+| PAY-MP-008 | Webhook do Mercado Pago não comprovado no sandbox | P1 | BLOCKED |
+| PAY-MP-009 | Reembolso de teste devolve 401 no sandbox | P1 | BLOCKED |
+| PAY-MP-010 | Avaliação de qualidade oficial exige aplicação Checkout Pro com credenciais de teste funcionais | P1 | BLOCKED |
 
 ## Decisão atual
 **NO-GO para produção; A não concluída.** Checkpoint A5 em docs/supabase/A5-HOMOLOGATION-REPORT.md. Testes unitários/probes não substituem E2E autenticado, sessões e aparelhos físicos. Nenhuma promoção autorizada. Ordem A → B → Codex → C preservada; proposta paralela de backlog não integrada.

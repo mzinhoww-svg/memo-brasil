@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **251** itens (sem contar 19 épicos). Prioridade: P0 46, P1 87, P2 64, P3 54. Status: BACKLOG 96, BLOCKED 14, CANCELLED 2, DEFERRED 14, DONE 75, IN_REVIEW 38, READY 12.
+Total: **259** itens (sem contar 19 épicos). Prioridade: P0 46, P1 95, P2 64, P3 54. Status: BACKLOG 96, BLOCKED 17, CANCELLED 2, DEFERRED 14, DONE 80, IN_REVIEW 38, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -608,18 +608,26 @@ Total: **251** itens (sem contar 19 épicos). Prioridade: P0 46, P1 87, P2 64, P
 | OPS-A5-003 | TASK | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-004 | TASK | Eventos anteriores a 22/10/2026 sem expiração automática | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-005 | TASK | Pedidos de exclusão do titular em até 30 dias (processo manual) | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
-| PAY-001 | BUG | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-002 | BUG | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-003 | BUG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-004 | TASK | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução | P2 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-005 | BUG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | P2 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-001 | BUG | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | DONE | - | fechamento produto/pagamentos 2026-10-22 | e5c094c | codigo |
+| PAY-002 | BUG | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | DONE | - | fechamento produto/pagamentos 2026-10-22 | e5c094c | codigo |
+| PAY-003 | BUG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | DONE | - | fechamento produto/pagamentos 2026-10-22 | e5c094c | codigo |
+| PAY-004 | TASK | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução | P2 | DONE | - | fechamento produto/pagamentos 2026-10-22 | e5c094c | codigo |
+| PAY-005 | BUG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | P2 | DONE | - | fechamento produto/pagamentos 2026-10-22 | e5c094c | codigo |
+| PAY-MOB-001 | TASK | Resumo do pedido, botão fiel e carregamento no plano (mobile) | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | cf47ac9 | codigo |
+| PAY-MOB-002 | TASK | Ponte CheckoutBridge e retomada ao voltar do Mercado Pago | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | cf47ac9 | codigo |
+| PAY-MOB-003 | TASK | Estados de rede e pedido sem link no pendente | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | cf47ac9 | codigo |
+| PAY-MOB-004 | TASK | Layout 360/390/430: CTA fixo com área segura, alvos 44px, sem rolagem lateral | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | cf47ac9 | codigo |
+| PAY-MOB-005 | TASK | Testes em aparelho físico iOS/Android, teclado aberto, Pix em produção e regras das lojas | P1 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | codigo |
 | PAY-MP-001 | TASK | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | operador |
 | PAY-MP-002 | TASK | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | IN_REVIEW | PAY-MP-003 | migração Mercado Pago 2026-10-23 | 541df22 | operador |
 | PAY-MP-003 | TASK | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | codigo (local) |
-| PAY-MP-004 | TASK | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso) | P0 | BLOCKED | PAY-MP-001, PAY-MP-002 | migração Mercado Pago 2026-10-23 | - | remoto |
+| PAY-MP-004 | TASK | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso) | P0 | IN_REVIEW | PAY-MP-001, PAY-MP-002 | migração Mercado Pago 2026-10-23 | - | remoto |
 | PAY-MP-005 | TASK | Confirmar na homologação as incertezas da API listadas no design (§6) | P1 | BLOCKED | PAY-MP-004 | migração Mercado Pago 2026-10-23 | - | remoto |
 | PAY-MP-006 | TASK | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago | P1 | IN_REVIEW | PAY-MP-003 | migração Mercado Pago 2026-10-23 | - | codigo |
 | PAY-MP-007 | TASK | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por plano | P1 | BLOCKED | PAY-MP-004, PAY-OPS-005 | migração Mercado Pago 2026-10-23 | - | operador |
+| PAY-MP-008 | TASK | Webhook do Mercado Pago não comprovado no sandbox | P1 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | codigo |
+| PAY-MP-009 | TASK | Reembolso de teste devolve 401 no sandbox | P1 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | codigo |
+| PAY-MP-010 | TASK | Avaliação de qualidade oficial exige aplicação Checkout Pro com credenciais de teste funcionais | P1 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | codigo |
 | PAY-OPS-001 | TASK | [humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook | P0 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | operador |
 | PAY-OPS-002 | TASK | [humano] Vault: mm_payments_cron_token e mm_payments_reconcile_url; agendar conciliação | P1 | BLOCKED | PAY-OPS-001 | fechamento produto/pagamentos 2026-10-22 | - | operador |
 | PAY-OPS-003 | TASK | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | P0 | BLOCKED | PAY-OPS-001, PAY-OPS-002 | fechamento produto/pagamentos 2026-10-22 | - | remoto |
@@ -677,16 +685,6 @@ Total: **251** itens (sem contar 19 épicos). Prioridade: P0 46, P1 87, P2 64, P
 
 **PAY-OPS-004** critérios: D3, D5 e D6 decididos e registrados; Primeira venda real conciliada
 
-**PAY-001** critérios: Teste pgTAP: reembolso de pedido pago nunca usa a cobrança divergente · testes: supabase/tests/database/11_payments_mercadopago.test.sql, web/integration/payments.itest.ts
-
-**PAY-002** critérios: RPC Master auditada limpa needs_refund com motivo · testes: supabase/tests/database/11_payments_mercadopago.test.sql
-
-**PAY-003** critérios: Teste: pedido pago não aceita waiver de valor · testes: supabase/tests/database/11_payments_mercadopago.test.sql
-
-**PAY-004** critérios: Teste: pedido antigo sai da varredura; execução repetida não cria evento novo · testes: supabase/tests/database/11_payments_mercadopago.test.sql, web/integration/payments.itest.ts
-
-**PAY-005** critérios: Teste: divergência em pedido pago permanece após 30 dias · testes: supabase/tests/database/11_payments_mercadopago.test.sql
-
 **REL-004** critérios: Roteiro executado em 1 iPhone e 1 Android com registro
 
 **REL-005** critérios: Limite ajustado ao tamanho do plano Grande; Redirect URLs só com o domínio oficial e o callback
@@ -704,3 +702,19 @@ Total: **251** itens (sem contar 19 épicos). Prioridade: P0 46, P1 87, P2 64, P
 **PAY-MP-006** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs
 
 **PAY-MP-007** critérios: payments_env='production' com production_active por plano; Primeira venda real conciliada e reembolsada pelo Master
+
+**PAY-MOB-001** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs · testes: web/src/features/billing/plano-ui.test.tsx
+
+**PAY-MOB-002** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs · testes: web/src/features/billing/checkout-nav.test.ts
+
+**PAY-MOB-003** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs · testes: web/src/features/billing/plano-ui.test.tsx
+
+**PAY-MOB-004** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs · testes: web/e2e/pagamento-mobile.spec.ts
+
+**PAY-MOB-005** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs
+
+**PAY-MP-008** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs
+
+**PAY-MP-009** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs
+
+**PAY-MP-010** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs

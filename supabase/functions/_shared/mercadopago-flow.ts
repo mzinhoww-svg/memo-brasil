@@ -87,3 +87,23 @@ export function refundBlocker(
   if (payment.liveMode === null || payment.liveMode !== (order.provider_env === "production")) return "ambiente_divergente";
   return null;
 }
+
+/**
+ * E-mail do pagador na preferência. Só em produção: em sandbox o pagador precisa ser o comprador de TESTE do Mercado Pago,
+ * e um e-mail real amarra a preferência a uma conta real ("uma das partes com as quais você está tentando pagar é de teste").
+ */
+export function payerEmailFor(env: "sandbox" | "production", email: string | null | undefined): string | null {
+  if (env !== "production") return null;
+  const e = (email ?? "").trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : null;
+}
+
+/**
+ * `live_mode` de pagamentos de contas de TESTE do Mercado Pago volta `true` (o teste usa o ambiente real com usuários de teste),
+ * então ele não separa sandbox de produção. A identidade do recebedor separa: recebedor com a tag `test_user` => nunca é produção
+ * (um pedido de produção pago a uma conta de teste cai em divergencia_ambiente e não concede nada). Recebedor real ou
+ * desconhecido: vale o `live_mode` da API.
+ */
+export function effectiveLiveMode(liveMode: boolean | null, collectorIsTestUser: boolean | null): boolean | null {
+  return collectorIsTestUser === true ? false : liveMode;
+}

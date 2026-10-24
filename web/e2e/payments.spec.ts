@@ -84,7 +84,7 @@ test.describe("com backend novo + fake Mercado Pago (PAYMENTS_MP_FAKE=1)", () =>
     const a = await open(browser, u, id, baseURL!);
     await stubCheckout(a.page);
     await expect(a.page.getByRole("radio", { name: /Casamento/ })).toBeChecked();
-    await a.page.getByRole("button", { name: "Pagar R$ 189,00" }).click();
+    await a.page.getByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }).click();
     await expect.poll(async () => (await orders(id)).length, { timeout: 20_000 }).toBe(1);
     const [row] = await orders(id);
     expect(row.provider).toBe("mercadopago");
@@ -102,7 +102,7 @@ test.describe("com backend novo + fake Mercado Pago (PAYMENTS_MP_FAKE=1)", () =>
     const u = await makeUser("b"), id = await makeEvent(u, `Pay B ${tag()}`); created.push(id);
     const first = await open(browser, u, id, baseURL!);
     await stubCheckout(first.page);
-    await first.page.getByRole("button", { name: "Pagar R$ 189,00" }).click();
+    await first.page.getByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }).click();
     await expect.poll(async () => (await orders(id)).length, { timeout: 20_000 }).toBe(1);
     await first.ctx.close();
     const second = await open(browser, u, id, baseURL!);
@@ -117,7 +117,7 @@ test.describe("com backend novo + fake Mercado Pago (PAYMENTS_MP_FAKE=1)", () =>
     const u = await makeUser("c"), id = await makeEvent(u, `Pay C ${tag()}`); created.push(id);
     const a = await open(browser, u, id, baseURL!);
     await stubCheckout(a.page);
-    await a.page.getByRole("button", { name: "Pagar R$ 189,00" }).click();
+    await a.page.getByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }).click();
     await expect.poll(async () => (await orders(id)).length, { timeout: 20_000 }).toBe(1);
     const [row] = await orders(id);
     await a.page.waitForURL(row.checkout_url!); // a página já foi para o checkout simulado: espera antes de navegar de novo
@@ -134,7 +134,7 @@ test.describe("com backend novo + fake Mercado Pago (PAYMENTS_MP_FAKE=1)", () =>
     const u = await makeUser("d"), id = await makeEvent(u, `Pay D ${tag()}`); created.push(id);
     const a = await open(browser, u, id, baseURL!);
     await stubCheckout(a.page);
-    await a.page.getByRole("button", { name: "Pagar R$ 189,00" }).dblclick();
+    await a.page.getByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }).dblclick();
     await expect.poll(async () => (await orders(id)).length, { timeout: 20_000 }).toBe(1);
     expect((await control("calls")).create).toBe(1);
     await a.ctx.close();
@@ -144,7 +144,7 @@ test.describe("com backend novo + fake Mercado Pago (PAYMENTS_MP_FAKE=1)", () =>
     const u = await makeUser("e"), id = await makeEvent(u, `Pay E ${tag()}`); created.push(id);
     await control("config", { failCreate: 500 });
     const a = await open(browser, u, id, baseURL!);
-    await a.page.getByRole("button", { name: "Pagar R$ 189,00" }).click();
+    await a.page.getByRole("button", { name: "Pagar com Mercado Pago · R$ 189,00" }).click();
     await expect(a.page.getByRole("heading", { name: "O sistema de pagamento não respondeu." })).toBeVisible({ timeout: 30_000 });
     await expect(a.page.getByRole("button", { name: /Tentar de novo em/ })).toBeDisabled();
     expect(await plan(id)).toBe("gratis");
@@ -158,9 +158,9 @@ test.describe("com backend novo + fake Mercado Pago (PAYMENTS_MP_FAKE=1)", () =>
       const a = await open(browser, u, id, baseURL!);
       await stubCheckout(a.page);
       await a.page.setViewportSize({ width, height: 900 });
-      await a.page.getByRole("button", { name: /Pagar R\$/ }).waitFor();
+      await a.page.getByRole("button", { name: /Pagar com Mercado Pago/ }).waitFor();
       for (const stage of ["B1", "B2"]) {
-        if (stage === "B2") { await a.page.getByRole("button", { name: /Pagar R\$/ }).click(); await expect.poll(async () => (await orders(id)).length, { timeout: 20_000 }).toBe(1); await a.page.waitForURL((await orders(id))[0].checkout_url!); await a.page.goBack(); await a.page.getByRole("heading", { name: "Pagamento em andamento" }).waitFor(); }
+        if (stage === "B2") { await a.page.getByRole("button", { name: /Pagar com Mercado Pago/ }).click(); await expect.poll(async () => (await orders(id)).length, { timeout: 20_000 }).toBe(1); await a.page.waitForURL((await orders(id))[0].checkout_url!); await a.page.goBack(); await a.page.getByRole("heading", { name: "Pagamento em andamento" }).waitFor(); }
         await a.page.evaluate(() => document.fonts.ready);
         const r = await new AxeBuilder({ page: a.page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
         for (const v of r.violations) problems.push(`${stage}@${width} [${v.impact}] ${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);
