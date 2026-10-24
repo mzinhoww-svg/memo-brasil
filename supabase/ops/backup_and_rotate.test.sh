@@ -10,7 +10,7 @@ mkdir -p "$T/.temp" && echo "asyaegeodyttttaubvxh" > "$T/.temp/project-ref"
 cat > "$T/bin/supabase" <<'STUB'
 #!/bin/sh
 case "$1 $2" in
-  "db dump") while [ $# -gt 0 ]; do [ "$1" = "-f" ] && { echo "-- stub" > "$2"; }; shift; done ;;
+  "db dump") ORIG="$*"; while [ $# -gt 0 ]; do [ "$1" = "-f" ] && { case "$ORIG" in *--data-only*) [ -n "${STUB_EMPTY:-}" ] && echo "-- vazio" > "$2" || { echo "INSERT INTO t VALUES (1);"; i=0; while [ $i -lt 40 ]; do echo "INSERT INTO t VALUES ($i); -- preenchimento para passar de 500 bytes de conteúdo realista"; i=$((i+1)); done; } > "$2" ;; *) { echo "CREATE TABLE t (id int);"; i=0; while [ $i -lt 200 ]; do echo "CREATE INDEX i$i ON t (id); -- preenchimento para passar de 5000 bytes"; i=$((i+1)); done; } > "$2" ;; esac; }; shift; done ;;
   "storage cp") mkdir -p "$5"; case "$4" in *event-branding*) echo logo > "$5/b.png" ;; *) echo foto > "$5/x.jpg" ;; esac ;;
 esac
 STUB
@@ -35,4 +35,7 @@ PATH="$T/bin:$PATH" BACKUP_ROOT="$T/root" sh "$T/supabase/ops/backup_and_rotate.
 [ ! -d "$T/root/${old}-0100" ] || fail "--apply não removeu o vencido"
 [ -d "$T/root/$new" ] || fail "removeu o backup novo"
 [ -f "$T/root/$new/storage/b.png" ] || fail "event-branding não copiado"
+# dump de dados vazio (erro silencioso da CLI) aborta e NÃO roda a rotação
+STUB_EMPTY=1 PATH="$T/bin:$PATH" BACKUP_ROOT="$T/root" sh "$T/supabase/ops/backup_and_rotate.sh" --apply >/dev/null 2>&1 && fail "aceitou data.sql vazio" || true
+[ -d "$T/root/$new" ] || fail "a rotação rodou depois de um backup inválido"
 echo "OK: backup_and_rotate testado com supabase falso e pastas descartáveis"

@@ -24,6 +24,9 @@ supabase storage cp -r ss:///event-photos/ "$D/storage/" --linked --experimental
 # identidade visual dos eventos (pode estar vazio): não derruba o backup se não houver objetos
 supabase storage cp -r ss:///event-branding/ "$D/storage/" --linked --experimental || echo "aviso: event-branding sem objetos ou inacessível (seguindo)" >&2
 chmod 600 "$D/schema.sql" "$D/data.sql"
+# conferência de conteúdo: a CLI pode imprimir erro numa tentativa e refazer; só vale se os dumps têm o que esperamos
+[ "$(wc -c < "$D/schema.sql")" -gt 5000 ] && grep -q '^CREATE TABLE' "$D/schema.sql" || { echo "schema.sql vazio ou inválido: abortando (sem rotação)" >&2; exit 4; }
+[ "$(wc -c < "$D/data.sql")" -gt 500 ] && grep -qE '^(COPY |INSERT INTO)' "$D/data.sql" || { echo "data.sql vazio ou inválido: abortando (sem rotação)" >&2; exit 4; }
 (cd "$D" && find . -type f ! -name SHA256SUMS.txt -print0 | xargs -0 shasum -a 256 > SHA256SUMS.txt && chmod 600 SHA256SUMS.txt)
 echo "backup concluído: $D ($(find "$D" -type f | wc -l | tr -d ' ') arquivos)"
 # rotação só depois de o backup novo existir e ter checksum
