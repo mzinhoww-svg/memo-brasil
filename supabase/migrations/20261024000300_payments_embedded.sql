@@ -70,3 +70,39 @@ end $$;
 
 revoke all on function public.payments_close_rejected_embedded(uuid,text) from public, anon, authenticated;
 grant execute on function public.payments_close_rejected_embedded(uuid,text) to service_role;
+
+
+-- Prevent the legacy Checkout Pro creator from attaching a preference to an
+-- order already reserved by the embedded flow. The inverse guard is in
+-- payments_reserve_embedded above. Migration is backwards-compatible.
+create or replace function public.payments_attach_preference(
+  p_order uuid, p_preference_id text, p_checkout_url text, p_expires_at timestamptz
+) returns void language plpgsql security definer set search_path = ''
+as $$
+declare o public.payment_orders;
+begin
+  if coalesce(auth.jwt() ->> 'role', '') <> 'service_role' then
+    raise exception 'forbidden' using errcode = 'MM004';
+  end if;
+  if coalesce(btrim(p_preference_id), '') = '' or p_checkout_url is null or p_checkout_url !~ '^https://' then
+    raise exception 'invalid' using errcode = 'MM005';
+  end if;
+  select * into o from public.payment_orders where id = p_order for update;
+  if not found or o.provider <> 'mercadopago' then raise exception 'invalid' using errcode = 'MM005'; end if;
+  if o.mp_preference_id is not null then return; end if;
+  if o.status <> 'criado' or o.embedded_method is not null then
+    raise exception 'incompatible order' using errcode = 'MM005';
+  end if;
+  update public.payment_orders
+    set mp_preference_id = p_preference_id, checkout_url = p_checkout_url,
+        expires_at = p_expires_at, status = 'pendente'
+   where id = o.id;
+  perform public.audit(o.event_id, 'payment.pendente',
+    jsonb_build_object('orderId', o.id, 'plan', o.plan_code,
+      'amountCents', o.amount_cents, 'env', o.provider_env));
+end $$;
+
+revoke all on function public.payments_attach_preference(uuid,text,text,timestamptz)
+  from public, anon, authenticated;
+grant execute on function public.payments_attach_preference(uuid,text,text,timestamptz)
+  to service_role;
