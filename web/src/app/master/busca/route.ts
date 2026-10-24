@@ -19,12 +19,13 @@ export async function GET(request: Request) {
 
   const res = await sb.rpc("admin_search", { p_q: q });
   if (!res.error) return json(normalizeSearch(res.data) satisfies SearchResults);
-  if (!isMissingRpc(res.error)) {
+  if (!isMissingRpc(res.error, "admin_search")) {
     const denied = res.error.code === "MM004" || /forbidden/i.test(res.error.message);
     return json({ error: denied ? "forbidden" : "error" }, denied ? 403 : 500);
   }
 
   // Migration ainda não aplicada: só eventos, pela RPC antiga.
+  console.warn("[master] RPC admin_search inexistente no banco; usando admin_list_events (modo degradado)");
   const old = await sb.rpc("admin_list_events", { p_limit: SEARCH_LIMIT, p_search: q });
   if (old.error) return json({ error: "error" }, 500);
   return json({ events: eventsFromList(old.data), users: [], orders: [], degraded: true } satisfies SearchResults);

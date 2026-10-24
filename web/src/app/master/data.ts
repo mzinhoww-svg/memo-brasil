@@ -1,11 +1,10 @@
 import "server-only";
 import { notFound } from "next/navigation";
 import { masterAccess } from "@/lib/master/server";
-import { isMissingRpc } from "@/features/master/params";
+import { callRpc, callRpcOr, type Fallback, type Load, type RpcClient } from "@/features/master/rpc";
 
 export { includeTests, periodDays, isMissingRpc, type Period, type SearchParams } from "@/features/master/params";
-
-export type Load<T> = { state: "ok"; data: T; degraded?: boolean } | { state: "denied" } | { state: "error"; message: string };
+export type { Load } from "@/features/master/rpc";
 type Sb = NonNullable<Awaited<ReturnType<typeof masterAccess>>["sb"]>;
 
 /** Cada página reconfirma o acesso no servidor (layouts não rodam de novo em navegação suave). */
@@ -17,26 +16,15 @@ export async function requireMaster(): Promise<Sb> {
 
 /** Chama uma RPC administrativa; a autorização final é do banco (`is_platform_staff()`), aqui só se traduz o erro. */
 export async function rpc<T>(sb: Sb, name: string, args?: Record<string, unknown>): Promise<Load<T>> {
-  const { data, error } = await sb.rpc(name, args ?? {});
-  if (!error) return { state: "ok", data: data as T };
-  if (error.code === "MM004" || /forbidden/i.test(error.message)) return { state: "denied" };
-  return { state: "error", message: error.message };
+  return callRpc<T>(sb as unknown as RpcClient, name, args);
 }
 
 /**
- * Chama a RPC nova; se ela ainda não existe no banco (migration não aplicada), chama a antiga
- * e devolve `degraded: true` para a página avisar "Dados completos após a atualização do banco".
+ * Chama a RPC nova; só se ela não existe no banco (migration não aplicada) chama a antiga e devolve `degraded: true`
+ * para a página avisar "Dados completos após a atualização do banco". Regras em `callRpcOr`.
  */
-export async function rpcOr<T>(sb: Sb, name: string, args: Record<string, unknown>, fallback: { name: string; args?: Record<string, unknown>; map?: (data: unknown) => T }): Promise<Load<T>> {
-  const first = await sb.rpc(name, args);
-  if (!first.error) return { state: "ok", data: first.data as T };
-  if (!isMissingRpc(first.error)) {
-    if (first.error.code === "MM004" || /forbidden/i.test(first.error.message)) return { state: "denied" };
-    return { state: "error", message: first.error.message };
-  }
-  const old = await rpc<unknown>(sb, fallback.name, fallback.args ?? {});
-  if (old.state !== "ok") return old;
-  return { state: "ok", data: fallback.map ? fallback.map(old.data) : (old.data as T), degraded: true };
+export async function rpcOr<T>(sb: Sb, name: string, args: Record<string, unknown>, fallback: Fallback<T>): Promise<Load<T>> {
+  return callRpcOr<T>(sb as unknown as RpcClient, name, args, fallback);
 }
 
 export const num = (n: number | null | undefined) => new Intl.NumberFormat("pt-BR").format(n ?? 0);
