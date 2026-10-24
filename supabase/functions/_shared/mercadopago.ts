@@ -172,9 +172,12 @@ export async function refundPayment(
 }
 
 // ---------------------------------------------------------------- diagnóstico e conta recebedora
-export async function getMe(cfg: MercadoPagoConfig): Promise<{ id: string; siteId: string | null; countryId: string | null }> {
+// testUser vem da tag `test_user` que a própria API põe na conta (true/false) ou null se a API não devolver tags.
+// Nunca se deduz o ambiente do prefixo do token (teste e produção começam ambos com APP_USR).
+export async function getMe(cfg: MercadoPagoConfig): Promise<{ id: string; siteId: string | null; countryId: string | null; testUser: boolean | null }> {
   const r = await call(cfg, "GET", "/users/me");
   const id = str(r.id);
   if (!id) throw new MercadoPagoError("bad_response", 200);
-  return { id, siteId: str(r.site_id), countryId: str(r.country_id) };
+  const tags = Array.isArray(r.tags) ? (r.tags as unknown[]).filter((t): t is string => typeof t === "string") : null;
+  return { id, siteId: str(r.site_id), countryId: str(r.country_id), testUser: tags ? tags.includes("test_user") : null };
 }

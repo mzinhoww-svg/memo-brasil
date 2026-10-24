@@ -194,7 +194,15 @@ describe("getMe / searchPreferences (diagnóstico)", () => {
     const { cfg, calls } = mk(() => json({ id: 900, nickname: "LOJA", site_id: "MLB", country_id: "BR", email: "x@y.test", first_name: "N" }));
     const me = await getMe(cfg);
     expect(calls[0].url).toBe("https://mp.test/users/me");
-    expect(me).toEqual({ id: "900", siteId: "MLB", countryId: "BR" });
+    expect(me).toEqual({ id: "900", siteId: "MLB", countryId: "BR", testUser: null });
+  });
+  it("getMe: tag test_user => testUser true; tags sem ela => false; sem tags => null (nunca por prefixo do token)", async () => {
+    const a = mk(() => json({ id: 1, site_id: "MLB", country_id: "BR", tags: ["test_user", "user_info_verified"] }));
+    expect((await getMe(a.cfg)).testUser).toBe(true);
+    const b = mk(() => json({ id: 2, site_id: "MLB", country_id: "BR", tags: ["normal", "user_info_verified"] }));
+    expect((await getMe(b.cfg)).testUser).toBe(false);
+    const c = mk(() => json({ id: 3, site_id: "MLB", country_id: "BR" }));
+    expect((await getMe(c.cfg)).testUser).toBeNull();
   });
   it("getMe sem id é bad_response", async () => {
     const { cfg } = mk(() => json({ nickname: "x" }));

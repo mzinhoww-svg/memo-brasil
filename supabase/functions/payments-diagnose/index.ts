@@ -1,6 +1,6 @@
 // Diagnóstico não financeiro do Mercado Pago (verify_jwt=true; só Master). Chama GET /users/me e
 // GET /checkout/preferences/search?limit=1 e devolve APENAS metadados não secretos: id da conta recebedora, site/país,
-// existência de permissão, se os segredos existem (booleanos) e o ambiente do banco. Nunca devolve token, segredo ou corpo.
+// existência de permissão, testUser (tag da API: true/false/null), se os segredos existem (booleanos) e o ambiente do banco. Nunca devolve token, segredo ou corpo.
 // Nenhuma cobrança, preferência ou reembolso é criado.
 import { getMe, MercadoPagoError, searchPreferences } from "../_shared/mercadopago.ts";
 import { caller, mpConfig, preflight, responder, serviceClient } from "../_shared/payments-runtime.ts";
@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
   if (!cfg) return json({ ...base, ok: false, error: "token_ausente_ou_url_invalida" });
 
   const [me, prefs] = await Promise.all([
-    getMe(cfg).then((r) => ({ ok: true, accountId: r.id, siteId: r.siteId, countryId: r.countryId }), failure),
+    getMe(cfg).then((r) => ({ ok: true, accountId: r.id, siteId: r.siteId, countryId: r.countryId, testUser: r.testUser }), failure),
     searchPreferences(cfg, 1).then((r) => ({ ok: true, total: r.total }), failure),
   ]);
   return json({ ...base, ok: me.ok && prefs.ok, account: me, preferencesSearch: prefs });
