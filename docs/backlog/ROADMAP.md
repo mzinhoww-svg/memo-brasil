@@ -120,14 +120,14 @@ Itens abertos: **87** · P0 14, P1 17, P2 37, P3 19 · BACKLOG 48, BLOCKED 3, DE
 
 Planos, pagamento, e-mail, observabilidade e escala de mídia.
 
-Itens abertos: **51** · P0 6, P1 28, P2 16, P3 1 · BACKLOG 12, BLOCKED 9, DEFERRED 11, IN_REVIEW 17, READY 2
+Itens abertos: **54** · P0 6, P1 31, P2 16, P3 1 · BACKLOG 12, BLOCKED 11, DEFERRED 11, IN_REVIEW 18, READY 2
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
 | PAY-MP-001 | P0 | IN_REVIEW | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | - |
 | PAY-MP-002 | P0 | IN_REVIEW | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | PAY-MP-003 |
 | PAY-MP-003 | P0 | IN_REVIEW | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | - |
-| PAY-MP-004 | P0 | BLOCKED | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, w | PAY-MP-001, PAY-MP-002 |
+| PAY-MP-004 | P0 | IN_REVIEW | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, w | PAY-MP-001, PAY-MP-002 |
 | PAY-OPS-001 | P0 | BLOCKED | [humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook | - |
 | PAY-OPS-003 | P0 | BLOCKED | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | PAY-OPS-001, PAY-OPS-002 |
 | COM-002 | P1 | IN_REVIEW | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | COM-001, COM-004 |
@@ -155,6 +155,9 @@ Itens abertos: **51** · P0 6, P1 28, P2 16, P3 1 · BACKLOG 12, BLOCKED 9, DEFE
 | PAY-MP-005 | P1 | BLOCKED | Confirmar na homologação as incertezas da API listadas no design (§6) | PAY-MP-004 |
 | PAY-MP-006 | P1 | IN_REVIEW | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts pa | PAY-MP-003 |
 | PAY-MP-007 | P1 | BLOCKED | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por  | PAY-MP-004, PAY-OPS-005 |
+| PAY-MP-008 | P1 | BLOCKED | Webhook do Mercado Pago não comprovado no sandbox | - |
+| PAY-MP-009 | P1 | BLOCKED | Reembolso de teste devolve 401 no sandbox | - |
+| PAY-MP-010 | P1 | BLOCKED | Avaliação de qualidade oficial exige aplicação Checkout Pro com credenciais de teste funci | - |
 | PAY-OPS-002 | P1 | BLOCKED | [humano] Vault: mm_payments_cron_token e mm_payments_reconcile_url; agendar conciliação | PAY-OPS-001 |
 | PAY-OPS-004 | P1 | BLOCKED | [humano] Produção AbacatePay: CNPJ, chave de produção e ativação por plano | PAY-OPS-003, PAY-OPS-005 |
 | PAY-OPS-005 | P1 | BLOCKED | [humano] Decisões comerciais/legais D3, D5, D6 e revisão jurídica dos textos | - |

@@ -149,7 +149,7 @@ flowchart LR
   PAY_MP_001["PAY-MP-001<br/>IN_REVIEW"]:::back
   PAY_MP_002["PAY-MP-002<br/>IN_REVIEW"]:::back
   PAY_MP_003["PAY-MP-003<br/>IN_REVIEW"]:::back
-  PAY_MP_004["PAY-MP-004<br/>BLOCKED"]:::block
+  PAY_MP_004["PAY-MP-004<br/>IN_REVIEW"]:::back
   PAY_MP_005["PAY-MP-005<br/>BLOCKED"]:::block
   PAY_MP_006["PAY-MP-006<br/>IN_REVIEW"]:::back
   PAY_MP_007["PAY-MP-007<br/>BLOCKED"]:::block

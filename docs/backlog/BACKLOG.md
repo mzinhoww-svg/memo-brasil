@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **256** itens (sem contar 19 épicos). Prioridade: P0 46, P1 92, P2 64, P3 54. Status: BACKLOG 96, BLOCKED 15, CANCELLED 2, DEFERRED 14, DONE 75, IN_REVIEW 42, READY 12.
+Total: **259** itens (sem contar 19 épicos). Prioridade: P0 46, P1 95, P2 64, P3 54. Status: BACKLOG 96, BLOCKED 17, CANCELLED 2, DEFERRED 14, DONE 75, IN_REVIEW 43, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -621,10 +621,13 @@ Total: **256** itens (sem contar 19 épicos). Prioridade: P0 46, P1 92, P2 64, P
 | PAY-MP-001 | TASK | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | operador |
 | PAY-MP-002 | TASK | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | IN_REVIEW | PAY-MP-003 | migração Mercado Pago 2026-10-23 | 541df22 | operador |
 | PAY-MP-003 | TASK | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | codigo (local) |
-| PAY-MP-004 | TASK | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso) | P0 | BLOCKED | PAY-MP-001, PAY-MP-002 | migração Mercado Pago 2026-10-23 | - | remoto |
+| PAY-MP-004 | TASK | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso) | P0 | IN_REVIEW | PAY-MP-001, PAY-MP-002 | migração Mercado Pago 2026-10-23 | - | remoto |
 | PAY-MP-005 | TASK | Confirmar na homologação as incertezas da API listadas no design (§6) | P1 | BLOCKED | PAY-MP-004 | migração Mercado Pago 2026-10-23 | - | remoto |
 | PAY-MP-006 | TASK | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago | P1 | IN_REVIEW | PAY-MP-003 | migração Mercado Pago 2026-10-23 | - | codigo |
 | PAY-MP-007 | TASK | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por plano | P1 | BLOCKED | PAY-MP-004, PAY-OPS-005 | migração Mercado Pago 2026-10-23 | - | operador |
+| PAY-MP-008 | TASK | Webhook do Mercado Pago não comprovado no sandbox | P1 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | codigo |
+| PAY-MP-009 | TASK | Reembolso de teste devolve 401 no sandbox | P1 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | codigo |
+| PAY-MP-010 | TASK | Avaliação de qualidade oficial exige aplicação Checkout Pro com credenciais de teste funcionais | P1 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | codigo |
 | PAY-OPS-001 | TASK | [humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook | P0 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | operador |
 | PAY-OPS-002 | TASK | [humano] Vault: mm_payments_cron_token e mm_payments_reconcile_url; agendar conciliação | P1 | BLOCKED | PAY-OPS-001 | fechamento produto/pagamentos 2026-10-22 | - | operador |
 | PAY-OPS-003 | TASK | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | P0 | BLOCKED | PAY-OPS-001, PAY-OPS-002 | fechamento produto/pagamentos 2026-10-22 | - | remoto |
@@ -719,3 +722,9 @@ Total: **256** itens (sem contar 19 épicos). Prioridade: P0 46, P1 92, P2 64, P
 **PAY-MOB-004** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs · testes: web/e2e/pagamento-mobile.spec.ts
 
 **PAY-MOB-005** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs
+
+**PAY-MP-008** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs
+
+**PAY-MP-009** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs
+
+**PAY-MP-010** critérios: Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus); Spec de UI usa fake-mercadopago.mjs

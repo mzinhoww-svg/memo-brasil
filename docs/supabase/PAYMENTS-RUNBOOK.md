@@ -361,3 +361,18 @@ O primeiro pagamento falhou com "Uma das partes com as quais você está tentand
 
 ## 18. Jornada mobile (2026-10-24)
 Resumo do pedido, "Pagar com Mercado Pago · R$", carregamento, aviso de rede, "Atualizar" e retomada ao voltar do Mercado Pago, CTA fixo com área segura e `CheckoutBridge` para o futuro app. Detalhes e **o que não está provado** (aparelho físico, teclado aberto, Pix real, app nativo, regras das lojas): `docs/design/PAGAMENTO-MOBILE-NATIVO.md`. Evidência por emulação: `docs/evidence/pagamento-mobile/`. Erro `145 Invalid users involved` ("uma das partes é de teste"): comprador real pagando preferência de vendedor de teste (ou o contrário); em sandbox pagar só com o comprador de teste logado em janela anônima; o Pix não é pagável com credenciais de teste.
+
+## 19. Resultado da homologação sandbox (2026-10-24), com evidências do banco
+**Pagamento aprovado e liberado (cartão, Checkout Pro, vendedor de teste 3786688395):**
+- Pedido `235e0088-995e-42f2-b51c-106554c48649` (Festa R$ 29,00, evento sintético `17ffe926…`): `pago` às 04:19:34Z; pagamento `184803988907`, `approved`, BRL, método `master`, recebedor `3786688395`; `payment_charges` 1 linha `primary`; **1** direito `festa` ativo (`env=sandbox`); evento 10/10 → 30 convidados / 24 fotos.
+- **Concessão única provada**: três rodadas seguidas de conciliação depois da aplicação não criaram cobrança, evento nem direito novos (1/1/1).
+- **Retorno**: `?retorno=sucesso&payment_id=…` abre "Plano Festa ativo." com comprovante e links; a URL é limpa; o estado veio do servidor.
+- **Master**: lista o pedido com "Solicitar reembolso" e as divergências antigas com texto claro.
+
+**Achado e correção (commit `143b347`)**: o primeiro pagamento aprovado (`185843516030`) voltou com `live_mode=true` e foi barrado como `divergencia_ambiente` (cobrança `extra`, `needs_refund`). Pagamentos de contas de teste voltam com `live_mode=true`; o ambiente passou a ser decidido pela identidade do recebedor (`test_user`), e conta de teste nunca concede produção. O pedido `26be9690…` (e seus eventos) ficou preso nesse estado: é só teste.
+
+**Não provado / bloqueios**
+- **Webhook**: nenhum `payment_events` de webhook foi gravado; o pagamento foi aplicado pela **conciliação** (`apply.reconcile`). Ou o Mercado Pago não entregou, ou a assinatura foi barrada (o `MERCADOPAGO_WEBHOOK_SECRET_SANDBOX` não está definido e nenhuma ferramenta devolve o segredo). Ver o log do `payments-webhook` no painel do Supabase (Edge Functions) por volta de 04:19Z.
+- **Reembolso**: pedido gravado (motivo auditado), mas o `POST /v1/payments/{id}/refunds` com o token de sandbox devolve **HTTP 401** (leituras com o mesmo token funcionam). Não confirmado pelo provedor; o pagamento segue `approved`.
+- **Avaliação de qualidade oficial** (`quality_evaluation`): o MCP informa que a aplicação `1592042337972998` é do tipo Orders API e exige `order_id`; a integração é Checkout Pro por preferências. Foi criada a aplicação **`2913393311286674`** (Checkout Pro, mesma conta), mas a automação do vendedor de teste falhou (`MP_API_DOWN`) e as credenciais de produção dela não estão ativadas. Nada foi trocado nos segredos.
+- **Pix**: o sandbox não paga Pix (documentação); só em produção com chave Pix cadastrada.

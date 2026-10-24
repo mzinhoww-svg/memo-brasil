@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
       return json({ error: "reembolso_recusado", code: e.providerCode }, 422);
     }
     log(FN, order.id, order.status, e instanceof MercadoPagoError ? `provedor_${e.kind}` : "provedor_erro");
-    return json({ error: "provedor_indisponivel", orderId: order.id }, 502);
+    // function só para Master: expõe tipo e status HTTP do provedor (nunca corpo, token ou dados do pagador) para diagnóstico
+    return json({ error: "provedor_indisponivel", orderId: order.id, ...(e instanceof MercadoPagoError ? { provedorTipo: e.kind, provedorStatus: e.status } : {}) }, 502);
   }
 });

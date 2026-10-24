@@ -57,11 +57,14 @@ export function reconcileCheckout(order: OrderView, wantedPlan: string): { order
   return { order, otherPlan: order.planCode !== wantedPlan };
 }
 
+/** payment_method_id de cartões no Mercado Pago (o Checkout Pro devolve a bandeira, não "card"). */
+const CARD_BRANDS = new Set(["master", "visa", "amex", "elo", "hipercard", "diners", "cabal", "debmaster", "debvisa", "debelo", "naranja", "cmr"]);
+
 /** Forma de pagamento para o comprovante. Desconhecida cai no nome do provedor; pedido histórico AbacatePay era sempre Pix. */
 export function paymentLabel(order: Pick<OrderView, "paymentMethod" | "provider">): string {
   const m = order.paymentMethod;
   if (m === "pix") return "Pix";
-  if (m === "card" || m === "credit_card" || m === "debit_card") return "Cartão";
+  if (m === "card" || m === "credit_card" || m === "debit_card" || (m && CARD_BRANDS.has(m))) return "Cartão";
   return order.provider === "abacatepay" ? "Pix (AbacatePay)" : "Mercado Pago";
 }
 

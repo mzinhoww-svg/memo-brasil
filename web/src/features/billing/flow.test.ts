@@ -81,6 +81,8 @@ describe("TrustBlock e textos", () => {
   it("rótulo da forma de pagamento: conhecidos, histórico AbacatePay e desconhecidos", () => {
     expect(paymentLabel(order({ paymentMethod: "pix" }))).toBe("Pix");
     expect(paymentLabel(order({ paymentMethod: "card" }))).toBe("Cartão");
+    // ids de bandeira que o Mercado Pago devolve em payment_method_id (achado da homologação: 'master')
+    for (const m of ["master", "visa", "amex", "elo", "hipercard", "debmaster", "debvisa", "debelo", "cabal"]) expect(paymentLabel(order({ paymentMethod: m }))).toBe("Cartão");
     expect(paymentLabel(order({ paymentMethod: "credit_card" }))).toBe("Cartão");
     expect(paymentLabel(order({ paymentMethod: "debit_card" }))).toBe("Cartão");
     expect(paymentLabel(order())).toBe("Mercado Pago");

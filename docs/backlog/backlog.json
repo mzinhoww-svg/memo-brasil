@@ -7466,14 +7466,15 @@
    "files": [],
    "tests": [],
    "evidence": [
-    "2026-10-24: janela sandbox NÃO aberta (token cadastrado é de conta real). Procedimento exato do titular e acompanhamento read-only em docs/supabase/PAYMENTS-RUNBOOK.md §15 e supabase/ops/payments_homologation_watch.sql."
+    "2026-10-24: janela sandbox NÃO aberta (token cadastrado é de conta real). Procedimento exato do titular e acompanhamento read-only em docs/supabase/PAYMENTS-RUNBOOK.md §15 e supabase/ops/payments_homologation_watch.sql.",
+    "2026-10-24: sandbox oficial: pagamento 184803988907 aprovado e liberado uma vez (pedido 235e0088, direito festa, 30/24), retorno e Master verificados; achado do live_mode corrigido (143b347). Webhook, reembolso e Pix NÃO provados (runbook §19)."
    ],
    "commit": null,
    "release": "R3",
    "id": "PAY-MP-004",
    "title": "Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso)",
    "priority": "P0",
-   "status": "BLOCKED",
+   "status": "IN_REVIEW",
    "description": "Janela controlada com payments_env='sandbox' (runbook passo 9). Pagamento e reembolso na página hospedada pelo TITULAR da conta; o agente não digita dados de cartão. Depois fechar a janela.",
    "acceptance": [
     "Pagamento de teste aprovado libera o plano; webhook repetido não duplica",
@@ -7759,6 +7760,78 @@
    "priority": "P1",
    "status": "BLOCKED",
    "description": "Depende de aparelhos, de pagamento real do titular (Pix) e de revisão das regras das lojas.",
+   "acceptance": [
+    "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
+    "Spec de UI usa fake-mercadopago.mjs"
+   ],
+   "environment": "codigo"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "runbook §19"
+   ],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-008",
+   "title": "Webhook do Mercado Pago não comprovado no sandbox",
+   "priority": "P1",
+   "status": "BLOCKED",
+   "description": "Nenhum evento de webhook gravado; pagamento aplicado só pela conciliação. Verificar log do payments-webhook e o segredo de assinatura de sandbox.",
+   "acceptance": [
+    "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
+    "Spec de UI usa fake-mercadopago.mjs"
+   ],
+   "environment": "codigo"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "payments-refund 502 com provedorTipo=auth provedorStatus=401 (runbook §19)"
+   ],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-009",
+   "title": "Reembolso de teste devolve 401 no sandbox",
+   "priority": "P1",
+   "status": "BLOCKED",
+   "description": "POST /v1/payments/{id}/refunds com o token do vendedor de teste retorna 401; leituras funcionam. Confirmar se é limitação do sandbox.",
+   "acceptance": [
+    "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
+    "Spec de UI usa fake-mercadopago.mjs"
+   ],
+   "environment": "codigo"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "runbook §19"
+   ],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-010",
+   "title": "Avaliação de qualidade oficial exige aplicação Checkout Pro com credenciais de teste funcionais",
+   "priority": "P1",
+   "status": "BLOCKED",
+   "description": "quality_evaluation recusou a app atual (Orders); app 2913393311286674 criada mas sem vendedor de teste (MP_API_DOWN) e produção não ativada.",
    "acceptance": [
     "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
     "Spec de UI usa fake-mercadopago.mjs"
