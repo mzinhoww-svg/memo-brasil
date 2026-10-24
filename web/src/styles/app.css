@@ -163,6 +163,8 @@
 
 /* Rodapé público (Task 14): alvos de 44 px */
 .mm-rodape { padding-block: var(--space-6, 24px) var(--space-4, 16px); }
+/* o rodapé reaproveita a coluna, mas não a altura de tela cheia (deixava um cartão vazio abaixo dos links) */
+.app-col.mm-rodape { min-height: 0; }
 .mm-rodape a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: underline; }
 
 /* Home (tela Main): passos em ladrilhos e cartão da festa de exemplo com cara de ação; listas com borda visível */

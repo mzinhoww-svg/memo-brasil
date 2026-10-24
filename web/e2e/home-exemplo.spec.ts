@@ -83,6 +83,8 @@ for (const size of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { 
     await page.goto("/");
     for (const name of ["Experimentar câmera", "Criar meu evento grátis", "Entrar com código"]) await expect(page.getByRole("link", { name })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    // rodapé só com o próprio conteúdo, sem bloco vazio de tela cheia
+    expect((await page.getByRole("contentinfo", { name: "Rodapé" }).boundingBox())!.height).toBeLessThan(260);
   });
 }
 
