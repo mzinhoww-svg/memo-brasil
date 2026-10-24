@@ -37,6 +37,15 @@ describe("createPreference", () => {
     await createPreference(sem.cfg, input);
     expect(JSON.parse(String(sem.calls[0].init.body)).payer).toBeUndefined();
   });
+  it("meios de pagamento: sem boleto (ticket) nem caixa eletrônico; cartão e Pix continuam permitidos", async () => {
+    const { cfg, calls } = mk(() => json({ id: "pref-m", init_point: "https://mp.test/checkout?pref_id=pref-m" }));
+    await createPreference(cfg, input);
+    const b = JSON.parse(String(calls[0].init.body));
+    const excluded = (b.payment_methods.excluded_payment_types as Array<{ id: string }>).map((t) => t.id).sort();
+    expect(excluded).toEqual(["atm", "ticket"]);
+    for (const keep of ["credit_card", "debit_card", "prepaid_card", "bank_transfer"]) expect(excluded).not.toContain(keep);
+    expect(b.payment_methods.excluded_payment_methods ?? []).toEqual([]);
+  });
   it("envia os campos documentados e devolve id e init_point", async () => {
     const { cfg, calls } = mk(() => json({ id: "pref-1", init_point: "https://mp.test/checkout?pref_id=pref-1", sandbox_init_point: "https://mp.test/sbx", collector_id: 900, expiration_date_to: input.expiresAt }, 201));
     const r = await createPreference(cfg, input);

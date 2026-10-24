@@ -88,6 +88,8 @@ export async function createPreference(cfg: MercadoPagoConfig, i: PreferenceInpu
       }],
       ...(i.payerEmail ? { payer: { email: i.payerEmail } } : {}),
       statement_descriptor: "MEMORIESMT",
+      // Produto: Pix e cartão, pagamento único. Boleto (ticket) e caixa eletrônico (atm) ficam de fora; cartões e Pix (bank_transfer) permitidos.
+      payment_methods: { excluded_payment_types: [{ id: "ticket" }, { id: "atm" }] },
       external_reference: i.orderId,
       notification_url: i.notificationUrl,
       back_urls: i.backUrls,
