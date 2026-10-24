@@ -7566,7 +7566,7 @@
    "id": "UXA-130",
    "type": "FEATURE",
    "priority": "P1",
-   "status": "IN_REVIEW",
+   "status": "DONE",
    "title": "Convite A5 claro e 'Baixar PDF para gráfica' (PDF vetorial com sangria) mantendo 'Imprimir'",
    "description": "Convite antigo: cartão escuro (tinta), nome em fonte manuscrita, texto corrido ao lado do QR e data sem hierarquia; sem arquivo para gráfica. Novo convite A5 (148×210) com layout único para PDF e prévia/impressão; PDF 154×216 com TrimBox, fontes OFL embutidas, QR vetorial na URL canônica; cards A6 claros no papel. Detalhes e limitações: docs/design/CONVITE-A5.md.",
    "acceptance": [
@@ -7588,9 +7588,10 @@
     "web/e2e/convite.spec.ts"
    ],
    "evidence": [
-    "vitest 508/508; typecheck; lint 0 erros; E2E 110/110; pdfinfo/pdffonts/pdftoppm e QR decodificado (docs/evidence/convite-20261023)"
+    "vitest 508/508; typecheck; lint 0 erros; E2E 110/110; pdfinfo/pdffonts/pdftoppm e QR decodificado (docs/evidence/convite-20261023)",
+    "Publicado em 23/10: dpl_Djo8SdeirhXrN71ZaFHBRTYRq7fF (fa55ed5) promovido; smoke de leitura da home 4/4 no domínio oficial; Studio do evento real com a conta do dono: prévia A5, botões 'Baixar PDF para gráfica' e 'Imprimir', QR decodificado = https://newmemocuiaba.vercel.app/e/TX5EVGS6 (= código impresso)"
    ],
-   "commit": null
+   "commit": "fa55ed5"
   },
   {
    "epic": "EP-13",

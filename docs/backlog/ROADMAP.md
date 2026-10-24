@@ -24,7 +24,7 @@ Itens abertos: **9** · P0 0, P1 6, P2 2, P3 1 · BACKLOG 4, BLOCKED 3, IN_REVIE
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **88** · P0 14, P1 18, P2 37, P3 19 · BACKLOG 48, BLOCKED 3, DEFERRED 3, IN_REVIEW 25, READY 9
+Itens abertos: **87** · P0 14, P1 17, P2 37, P3 19 · BACKLOG 48, BLOCKED 3, DEFERRED 3, IN_REVIEW 24, READY 9
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -59,7 +59,6 @@ Itens abertos: **88** · P0 14, P1 18, P2 37, P3 19 · BACKLOG 48, BLOCKED 3, DE
 | SCV-004 | P1 | IN_REVIEW | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
 | SCV-006 | P1 | IN_REVIEW | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
 | UXA-104 | P1 | BACKLOG | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostr | UXA-001 |
-| UXA-130 | P1 | IN_REVIEW | Convite A5 claro e 'Baixar PDF para gráfica' (PDF vetorial com sangria) mantendo 'Imprimir | - |
 | BG-022 | P2 | READY | Sem validação em Safari/iOS e Firefox | - |
 | BG-040 | P2 | BACKLOG | Rota dinâmica nunca visitada não abre offline | - |
 | BG-041 | P2 | BACKLOG | Atualização do SW num segundo deploy não verificada | - |
