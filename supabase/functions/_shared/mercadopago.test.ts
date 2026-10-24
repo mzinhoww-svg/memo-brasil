@@ -120,7 +120,7 @@ describe("getPayment / normalizePayment", () => {
   const raw = {
     id: 987654321, status: "approved", status_detail: "accredited", transaction_amount: 29, currency_id: "BRL", live_mode: false,
     collector_id: 900, external_reference: "ref-1", payment_method_id: "pix", date_last_updated: "2026-10-23T12:03:00.000-03:00",
-    transaction_amount_refunded: 0, payer: { email: "nao@usar.test" },
+    transaction_amount_refunded: 0, payer: { email: "nao@usar.test", id: 777 },
   };
   it("normaliza valores em centavos, ids como texto e descarta o pagador", async () => {
     const { cfg, calls } = mk(() => json(raw));
@@ -128,9 +128,16 @@ describe("getPayment / normalizePayment", () => {
     expect(calls[0].url).toBe("https://mp.test/v1/payments/987654321");
     expect(p).toEqual({
       id: "987654321", status: "approved", amountCents: 2900, currency: "BRL", liveMode: false, collectorId: "900", externalReference: "ref-1",
-      method: "pix", updatedAt: "2026-10-23T15:03:00.000Z", refundedCents: 0,
+      method: "pix", updatedAt: "2026-10-23T15:03:00.000Z", refundedCents: 0, statusDetail: "accredited", payerIsCollector: false,
     });
     expect(JSON.stringify(p)).not.toContain("nao@usar.test");
+  });
+  it("status_detail da recusa e comparação pagador x recebedor (só o booleano, nunca o id do pagador)", () => {
+    const rej = normalizePayment({ ...raw, status: "rejected", status_detail: "cc_rejected_high_risk", collector_id: 900, payer: { id: 900 } });
+    expect(rej).toMatchObject({ status: "rejected", statusDetail: "cc_rejected_high_risk", payerIsCollector: true });
+    expect(Object.keys(rej)).not.toContain("payer");
+    expect(JSON.stringify(rej)).not.toContain("nao@usar.test");
+    expect(normalizePayment({ id: 1, status: "pending" })).toMatchObject({ statusDetail: null, payerIsCollector: null });
   });
   it("arredonda sem erro de ponto flutuante e trata campos ausentes", () => {
     expect(normalizePayment({ ...raw, transaction_amount: 18.9 }).amountCents).toBe(1890);

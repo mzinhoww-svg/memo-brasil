@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       if (!c) continue;
       try {
         const p = await getPayment(c, paymentId);
-        return json({ env: e, payment: { id: p.id, status: p.status, amountCents: p.amountCents, currency: p.currency, liveMode: p.liveMode, collectorId: p.collectorId, externalReference: p.externalReference, method: p.method, updatedAt: p.updatedAt, refundedCents: p.refundedCents } });
+        return json({ env: e, payment: { id: p.id, status: p.status, amountCents: p.amountCents, currency: p.currency, liveMode: p.liveMode, collectorId: p.collectorId, externalReference: p.externalReference, method: p.method, updatedAt: p.updatedAt, refundedCents: p.refundedCents, statusDetail: p.statusDetail, payerIsCollector: p.payerIsCollector } });
       } catch (err) { if (!(err instanceof MercadoPagoError) || ![401, 403, 404].includes(err.status)) return json({ error: "provedor", provedorTipo: err instanceof MercadoPagoError ? err.kind : "erro" }, 502); }
     }
     return json({ error: "pagamento_nao_encontrado" }, 404);

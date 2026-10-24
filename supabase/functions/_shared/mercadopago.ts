@@ -116,6 +116,10 @@ export async function searchPreferences(cfg: MercadoPagoConfig, limit = 1): Prom
 export type MpPayment = {
   id: string; status: string; amountCents: number | null; currency: string | null; liveMode: boolean | null;
   collectorId: string | null; externalReference: string | null; method: string | null; updatedAt: string | null; refundedCents: number;
+  /** Motivo do estado (ex.: cc_rejected_high_risk). Não é dado pessoal. */
+  statusDetail: string | null;
+  /** Pagador == recebedor? Só o booleano; o id do pagador nunca sai daqui. null se a API não trouxe os dois. */
+  payerIsCollector: boolean | null;
 };
 
 /** Normaliza o pagamento da API. Descarta pagador e qualquer dado pessoal. */
@@ -137,6 +141,12 @@ export function normalizePayment(raw: Json): MpPayment {
     method: typeof raw.payment_method_id === "string" ? raw.payment_method_id : null,
     updatedAt,
     refundedCents: toCents(raw.transaction_amount_refunded) ?? 0,
+    statusDetail: typeof raw.status_detail === "string" && raw.status_detail ? raw.status_detail : null,
+    payerIsCollector: (() => {
+      const payer = raw.payer && typeof raw.payer === "object" ? str((raw.payer as Json).id) : null;
+      const col = str(raw.collector_id);
+      return payer && col ? payer === col : null;
+    })(),
   };
 }
 
