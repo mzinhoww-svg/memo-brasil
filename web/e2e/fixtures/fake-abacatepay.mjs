@@ -1,3 +1,4 @@
+// HISTÓRICO (AbacatePay): mantido só porque web/e2e/payments.spec.ts (UI) ainda o importa; o fake ativo é fake-mercadopago.mjs.
 // AbacatePay v2 falsa, só para testes locais (integração/e2e). Estado em memória; nenhuma chamada sai da máquina.
 // Implementa /v2/transparents/create | check | get | list | refund | simulate-payment e envia webhooks assinados como o provedor:
 // POST <FAKE_ABACATEPAY_WEBHOOK_URL> (já com ?webhookSecret=) e X-Webhook-Signature = base64(HMAC-SHA256(ABACATEPAY_HMAC_KEY, corpo bruto)).
