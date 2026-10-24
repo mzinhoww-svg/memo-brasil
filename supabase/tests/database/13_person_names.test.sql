@@ -52,5 +52,15 @@ select is(public.clean_person_names_backfill(), 0, 'rodar de novo não muda nada
 select is((select has_function_privilege('authenticated', 'public.clean_person_names_backfill()', 'execute')), false, 'authenticated não roda o backfill');
 select is((select has_function_privilege('anon', 'public.clean_person_names_backfill()', 'execute')), false, 'anon não roda o backfill');
 
+-- 20261024000300: a função pura também não fica exposta como RPC; o trigger continua funcionando para o cliente
+select is((select has_function_privilege('anon', 'public.clean_person_name(text)', 'execute')), false, 'anon não chama clean_person_name');
+select is((select has_function_privilege('authenticated', 'public.clean_person_name(text)', 'execute')), false, 'authenticated não chama clean_person_name');
+select set_config('request.jwt.claims', json_build_object('sub', '00000000-0000-4000-8000-0000000013a1', 'role', 'authenticated')::text, true);
+set local role authenticated;
+update public.profiles set display_name = 'Dora LimaDora' where id = '00000000-0000-4000-8000-0000000013a1';
+reset role;
+select is((select display_name from public.profiles where id = '00000000-0000-4000-8000-0000000013a1'), 'Dora Lima',
+  'cliente autenticado grava o próprio nome e o trigger limpa');
+
 select * from finish();
 rollback;
