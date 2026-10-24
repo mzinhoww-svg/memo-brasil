@@ -7083,7 +7083,8 @@
     "pgTAP 11: 'PAY-001: alvo padrão do pedido pago é o vinculado' / 'a divergente só por pedido explícito' / 'pagamento desconhecido recusado' / 'pedido (vinculado) NÃO ficou marcado para reembolso' / 'histórico: id inventado recusado (PAY-001)'",
     "itest payments.itest.ts: 'PAY-001: cobrança duplicada só é reembolsada por pedido explícito; o pagamento vinculado nunca é tocado'",
     "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
-    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa.",
+    "2026-10-24: Evidência individual (local, fake/pgTAP): 11_payments_mercadopago.test.sql linhas 162-198 (alvo de reembolso = pagamento vinculado; divergente só por pedido explícito; id desconhecido/de outro pedido => MM005; pedido não fica needs_refund) + payments.itest.ts \"PAY-001: cobrança duplicada só é reembolsada por pedido explícito\". Falta: comprovar com 2 cobranças reais no sandbox oficial."
    ],
    "commit": null,
    "environment": "codigo",
@@ -7111,7 +7112,8 @@
     "admin_clear_needs_refund(order, motivo): Master, motivo 10–500, auditoria payment.needs_refund_cleared, divergências marcadas como resolvidas (não apagadas); needs_refund também fecha sozinho quando a cobrança extra é reembolsada",
     "pgTAP 11: 'PAY-002: não-master recusado' / 'motivo obrigatório' / 'Master limpa com motivo' / 'some do Master depois de tratada' / 'auditado com motivo' / 'sem pendência: MM005'",
     "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
-    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa.",
+    "2026-10-24: Evidência individual (local): 11_payments_mercadopago.test.sql linhas 200-222 (admin_clear_needs_refund: não-master recusado MM004, motivo obrigatório MM011, Master limpa com motivo auditado, some do painel de divergências). Falta: execução no remoto com pedido real de sandbox."
    ],
    "commit": null,
    "environment": "codigo",
@@ -7139,7 +7141,8 @@
     "payments_apply_status (histórico) com waiver de valor restrito a pedido ainda não pago; payments_apply_payment (MP) valida valor sempre no pagamento vinculado",
     "pgTAP 11: 'PAY-003: pago não aceita waiver de valor' / 'waiver segue valendo para não pago com needs_refund' / 'PAY-003 (MP): primário reembolsado com valor divergente: recusado'",
     "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
-    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa.",
+    "2026-10-24: Evidência individual (local): 11_payments_mercadopago.test.sql linhas 224-248 (pedido pago não aceita waiver de valor; primário reembolsado com valor divergente mantém pago; histórico AbacatePay recusa id inventado). Falta: remoto."
    ],
    "commit": null,
    "environment": "codigo",
@@ -7169,7 +7172,8 @@
     "pgTAP 11: 'PAY-004: pendente de 8 dias sai da varredura' / 'expirado de 9 dias sai da varredura' / 'rodadas repetidas não criam payment_events' / 'duplicados não regravam payment_events' / 'paginação: limite do lote respeitado'",
     "itest payments.itest.ts: 'pedido com mais de 7 dias sai da varredura (PAY-004)' e 'notificação duplicada 3x ... não regrava payment_events'",
     "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
-    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa.",
+    "2026-10-24: Evidência individual (local): 11_payments_mercadopago.test.sql linhas 335-381 e 09/08 (pendente >7 dias e expirado >8 dias saem da varredura; rodadas repetidas não criam payment_events) + payments.itest.ts \"pedido com mais de 7 dias sai da varredura (PAY-004)\". Limitação conhecida: busca da conciliação começa no offset 0 (>250 pagamentos por pedido). Falta: conciliação real com pagamento sandbox."
    ],
    "commit": null,
    "environment": "codigo",
@@ -7197,7 +7201,8 @@
     "admin_payment_divergences: divergência de pedido 'pago'/'em_disputa' sem resolved_at não some em 30 dias",
     "pgTAP 11: 'PAY-005: divergência em pedido pago segue visível após 45 dias' / 'some depois do tratamento' / 'evento marcado como resolvido, não apagado'",
     "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
-    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa.",
+    "2026-10-24: Evidência individual (local): 11_payments_mercadopago.test.sql linhas 383-392 (divergência em pedido pago segue visível após 45 dias e some só após tratamento). Falta: remoto."
    ],
    "commit": null,
    "environment": "codigo",
