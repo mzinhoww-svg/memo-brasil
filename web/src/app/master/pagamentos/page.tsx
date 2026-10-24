@@ -1,11 +1,11 @@
 import { num, requireMaster, rpc, when } from "../data";
 import { Badge, Metric, StateBox, Table } from "../ui";
-import { brl, canRefund, chargeHint, divergenceText, envLabel, orderStatus } from "../billing";
+import { brl, canRefund, divergenceText, envLabel, orderStatus, paymentRef, providerLabel } from "../billing";
 import { CourtesyButton, RefundButton } from "../billing-actions";
 
 interface Order {
   orderId: string; createdAt: string; eventId: string | null; eventTitle: string | null; planCode: string; planName: string | null;
-  fromPlanCode: string | null; amountCents: number; status: string; provider: string; providerEnv: string; providerChargeId: string | null;
+  fromPlanCode: string | null; amountCents: number; status: string; provider: string; providerEnv: string; providerChargeId: string | null; providerPaymentId?: string | null; paymentMethod?: string | null;
   needsRefund: boolean; refundRequestedAt: string | null;
 }
 interface Divergence { kind: string; orderId: string; eventTitle: string | null; status: string; detectedAt: string; occurrences: number; refundInProgress: boolean }
@@ -33,9 +33,12 @@ export default async function Pagamentos() {
   return (
     <>
       <header className="adm-head">
-        <div className="adm-head-title">
-          <h1>Pagamentos</h1>
-          <Badge s={env === "production" ? "ok" : env === "sandbox" ? "aviso" : "info"}>{envLabel(env)}</Badge>
+        <div>
+          <div className="adm-head-title">
+            <h1>Pagamentos</h1>
+            <Badge s={env === "production" ? "ok" : env === "sandbox" ? "aviso" : "info"}>{envLabel(env)}</Badge>
+          </div>
+          <p>Provedor ativo: Mercado Pago (Checkout Pro). Pedidos da AbacatePay são históricos e seguem válidos.</p>
         </div>
         <CourtesyButton events={events} plans={paidPlans} />
       </header>
@@ -67,7 +70,7 @@ export default async function Pagamentos() {
         <Table
           vazio="Nenhum pedido ainda."
           cols={[{ k: "d", h: "Data" }, { k: "e", h: "Evento" }, { k: "p", h: "Plano" }, { k: "v", h: "Valor", num: true }, { k: "s", h: "Status" },
-                 { k: "c", h: "Cobrança" }, { k: "a", h: "Ações" }]}
+                 { k: "pr", h: "Provedor" }, { k: "c", h: "Pagamento" }, { k: "a", h: "Ações" }]}
           rows={list.data.map((o) => {
             const st = orderStatus(o);
             return {
@@ -78,11 +81,11 @@ export default async function Pagamentos() {
               s: <>
                 <Badge s={st.tone}>{st.label}</Badge>
                 {o.needsRefund && <> <Badge s="erro">reembolsar</Badge></>}
-                {o.providerEnv !== env && <> <span className="adm-nota">{o.providerEnv}</span></>}
               </>,
-              c: <code title={`${o.provider} · ${o.providerChargeId ?? "sem cobrança"}`}>{chargeHint(o.providerChargeId)}</code>,
+              pr: <>{providerLabel(o.provider)}<span className="adm-nota"> · {o.providerEnv}{o.providerEnv !== env ? " (diferente do atual)" : ""}</span></>,
+              c: <code title={`${providerLabel(o.provider)} · ${paymentRef(o) === "—" ? "sem pagamento" : paymentRef(o)}${o.paymentMethod ? ` · ${o.paymentMethod}` : ""}`}>{paymentRef(o)}</code>,
               a: canRefund(o)
-                ? <RefundButton order={{ orderId: o.orderId, eventTitle: o.eventTitle, planName: o.planName, amountCents: o.amountCents, providerChargeId: o.providerChargeId, refundRequestedAt: o.refundRequestedAt }} />
+                ? <RefundButton order={{ orderId: o.orderId, eventTitle: o.eventTitle, planName: o.planName, amountCents: o.amountCents, providerChargeId: o.providerChargeId, providerPaymentId: o.providerPaymentId, provider: o.provider, refundRequestedAt: o.refundRequestedAt }} />
                 : null,
             };
           })}

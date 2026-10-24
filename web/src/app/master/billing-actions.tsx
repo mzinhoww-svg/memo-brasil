@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Field, Select, Sheet } from "@/components/memoriesmt";
 import { browserSupabase } from "@/lib/supabase/client";
-import { adminErrorText, brl, chargeHint, parseBrl, planPreview, reasonError, REASON_MAX, refundFailureText } from "./billing";
+import { adminErrorText, brl, parseBrl, paymentRef, planPreview, reasonError, REASON_MAX, refundFailureText, refundNote } from "./billing";
 
 /** Motivo obrigatório (10 a 500): o erro só aparece depois da primeira tentativa de enviar. */
 export function ReasonField({ label, value, onChange, error }: { label: string; value: string; onChange: (v: string) => void; error: string | null }) {
@@ -74,7 +74,7 @@ export function CourtesyButton({ events, plans }: { events: { id: string; label:
 }
 
 // ---------------------------------------------------------------- reembolso
-export interface RefundOrder { orderId: string; eventTitle: string | null; planName: string | null; amountCents: number; providerChargeId: string | null; refundRequestedAt: string | null }
+export interface RefundOrder { orderId: string; eventTitle: string | null; planName: string | null; amountCents: number; providerChargeId: string | null; providerPaymentId?: string | null; provider?: string | null; refundRequestedAt: string | null }
 
 /** Grava a solicitação (admin_request_refund) e chama payments-refund com o JWT do Master. Já solicitado: só reenvia ao provedor. */
 export function RefundButton({ order }: { order: RefundOrder }) {
@@ -102,12 +102,12 @@ export function RefundButton({ order }: { order: RefundOrder }) {
         const body = await (fn.error as { context?: Response }).context?.json();
         code = typeof body?.error === "string" ? body.error : undefined;
       } catch { /* corpo ausente ou não JSON */ }
-      a.setError(refundFailureText(code));
+      a.setError(refundFailureText(code, order.provider));
       return;
     }
     setReason(""); close();
   }
-  const resumo = `${order.eventTitle ?? "Evento excluído"} · ${order.planName ?? "—"} · ${brl(order.amountCents)} · ${chargeHint(order.providerChargeId)}`;
+  const resumo = `${order.eventTitle ?? "Evento excluído"} · ${order.planName ?? "—"} · ${brl(order.amountCents)} · ${paymentRef(order)}`;
   return (
     <>
       <Button variant={retry ? "secundario" : "destrutivo"} small onClick={() => setOpen(true)}>{retry ? "Reenviar reembolso" : "Solicitar reembolso"}</Button>
@@ -115,7 +115,7 @@ export function RefundButton({ order }: { order: RefundOrder }) {
         <Sheet title={retry ? "Reenviar reembolso" : "Solicitar reembolso"} onClose={close}>
           <p className="adm-nota adm-sheet-nota">{resumo}</p>
           {!retry && <ReasonField label="Motivo (obrigatório, 10 a 500 caracteres)" value={reason} onChange={setReason} error={rErr} />}
-          <p className="adm-nota adm-sheet-nota">Reembolso integral pela AbacatePay. O status vira estornado quando o provedor confirmar. Fica no registro de auditoria.</p>
+          <p className="adm-nota adm-sheet-nota">{refundNote(order.provider)}</p>
           {a.error && <p className="mm-field-erro" role="alert">{a.error}</p>}
           <Button variant="destrutivo" block onClick={submit} disabled={a.busy}>{a.busy ? "Enviando…" : retry ? "Reenviar ao provedor" : "Solicitar reembolso integral"}</Button>
           <Button variant="texto" block onClick={close}>Cancelar</Button>

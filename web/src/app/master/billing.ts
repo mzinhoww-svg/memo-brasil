@@ -67,10 +67,27 @@ export function orderStatus(o: { status: string; refundRequestedAt: string | nul
 
 /**
  * Reembolso pelo console (mesma regra de admin_request_refund): 'pago', ou pedido ainda não pago com needs_refund
- * (Pix pago depois do cancelamento, Ruling 16; PAID com valor ou cobrança divergente), sempre com cobrança.
+ * (pagamento recebido depois do cancelamento, Ruling 16; aprovado com valor ou pagamento divergente), sempre com id de cobrança
+ * ou de pagamento (Mercado Pago grava o id do pagamento; pedidos históricos AbacatePay, a cobrança).
  */
-export function canRefund(o: { status: string; needsRefund: boolean; providerChargeId: string | null }): boolean {
-  return !!o.providerChargeId && refundable(o);
+export function canRefund(o: { status: string; needsRefund: boolean; providerChargeId: string | null; providerPaymentId?: string | null }): boolean {
+  return !!(o.providerPaymentId || o.providerChargeId) && refundable(o);
+}
+
+/** Nome do provedor no console. Pedidos antigos continuam legíveis e identificados como históricos. */
+export function providerLabel(provider: string | null | undefined): string {
+  if (!provider) return "—";
+  return provider === "mercadopago" ? "Mercado Pago" : provider === "abacatepay" ? "AbacatePay (histórico)" : provider;
+}
+
+/**
+ * Referência do pagamento na tabela. O id do pagamento do Mercado Pago é numérico e não é segredo: aparece inteiro, para achar no painel
+ * do provedor. Históricos usam a abreviação da cobrança. Nunca chega aqui token nem chave.
+ */
+export function paymentRef(o: { provider?: string | null; providerPaymentId?: string | null; providerChargeId?: string | null }): string {
+  const id = o.providerPaymentId || o.providerChargeId || null;
+  if (!id) return "—";
+  return o.provider === "mercadopago" ? id : chargeHint(id);
 }
 
 /** Data (ISO) da alteração de preço/ativação mais recente entre todos os planos, ou null sem histórico. */
@@ -90,7 +107,7 @@ export function chargeHint(id: string | null | undefined): string {
 const DIVERGENCE: Record<string, string> = {
   pago_sem_direito: "pago sem plano liberado no evento.",
   direito_sem_pedido_pago: "plano pago liberado sem pedido pago.",
-  pendente_1h: "Pix pendente há mais de 1 h.",
+  pendente_1h: "pagamento pendente há mais de 1 h.",
   needs_refund: "Dinheiro recebido sem plano liberado. Precisa de reembolso.",
   em_disputa: "pagamento em disputa no provedor.",
   pago_ignorado_reembolsar: "pagamento chegou para um pedido já encerrado. Precisa de reembolso.",
@@ -111,10 +128,19 @@ export function planPreview(p: { name: string; maxGuests: number | null; maxShot
   return { titulo: `${guests} · ${brlShort(priceCents)}`, nota: `${p.name} · ${shots}` };
 }
 
+/** Texto fixo do diálogo de reembolso, com o provedor do pedido. */
+export function refundNote(provider: string | null | undefined): string {
+  const who = provider === "abacatepay" ? "pela AbacatePay (provedor histórico)" : "pelo Mercado Pago";
+  return `Reembolso integral ${who}. O status vira estornado quando o provedor confirmar. Fica no registro de auditoria.`;
+}
+
+const NOT_APPROVED = new Set(["cobranca_nao_paga", "cobranca_nao_confere", "pagamento_nao_aprovado", "pagamento_nao_confere"]);
 /** Falha de payments-refund depois da solicitação gravada, pelo código de erro do corpo da resposta. */
-export function refundFailureText(code: string | undefined): string {
-  if (code === "cobranca_nao_paga" || code === "cobranca_nao_confere") {
-    return "A AbacatePay já não mostra a cobrança como paga; a conciliação atualiza em até 5 minutos.";
+export function refundFailureText(code: string | undefined, provider: string | null | undefined = "mercadopago"): string {
+  if (code && NOT_APPROVED.has(code)) {
+    return provider === "abacatepay"
+      ? "A AbacatePay já não mostra a cobrança como paga; a conciliação atualiza em até 5 minutos."
+      : "O Mercado Pago já não mostra o pagamento como aprovado; a conciliação atualiza em até 5 minutos.";
   }
   return "Solicitação registrada, mas o provedor não confirmou o pedido de reembolso. Tente reenviar em alguns minutos.";
 }
