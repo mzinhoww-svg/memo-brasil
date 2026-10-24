@@ -15,7 +15,7 @@
 | G12 | Migrations V2 e Edge Functions remotas | PASSA no inventário: 16 migrations e duas Functions ativas | docs/supabase/evidence/a5-20261021/backend-readonly.json; docs/supabase/A5-HOMOLOGATION-REPORT.md |
 | G11 | Conector Supabase acessa o projeto correto | PASSA: consultas remotas de leitura | docs/supabase/evidence/a5-20261021/backend-readonly.json |
 
-## Itens P0/P1 em aberto (48)
+## Itens P0/P1 em aberto (49)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -66,6 +66,7 @@
 | REL-004 | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | P1 | BLOCKED |
 | REL-005 | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect URLs após o go-live | P1 | BLOCKED |
 | OPS-A5-006 | Limite de entradas anônimas do Supabase Auth (30/h por IP) | P1 | BLOCKED |
+| UXA-129 | Home: cartão da festa de exemplo parecia inerte e a home listava eventos da conta | P1 | IN_REVIEW |
 
 ## Decisão atual
 **NO-GO para produção; A não concluída.** Checkpoint A5 em docs/supabase/A5-HOMOLOGATION-REPORT.md. Testes unitários/probes não substituem E2E autenticado, sessões e aparelhos físicos. Nenhuma promoção autorizada. Ordem A → B → Codex → C preservada; proposta paralela de backlog não integrada.

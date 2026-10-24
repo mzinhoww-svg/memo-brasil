@@ -7278,6 +7278,44 @@
    "evidence": [
     "Rodada 7: supabase config diff mostra o padrão remoto; sem alteração feita"
    ]
+  },
+  {
+   "id": "UXA-129",
+   "type": "BUG",
+   "epic": "EP-11",
+   "parent": null,
+   "priority": "P1",
+   "status": "IN_REVIEW",
+   "dependencies": [],
+   "title": "Home: cartão da festa de exemplo parecia inerte e a home listava eventos da conta",
+   "description": "Produção 89a612b: o cartão 'Experimente a câmera agora' usava .app-card com o fundo igual ao da página (sem borda nem ícone), parecendo texto solto, e a home empilhava 'Seus eventos' abaixo da apresentação (para o Master, events.list baixava a base inteira e filtrava no navegador). Corrigido: home igual à tela Main aprovada; gestão em /eventos (ativos, encerrados, festas em que entrou); events.listMine no servidor.",
+   "origin": "pedido de Aurimar 2026-10-23",
+   "release": "R1",
+   "environment": "remoto",
+   "acceptance": [
+    "Home sem listas de eventos, com 'Experimente a câmera agora' com borda e ícone, 'Criar meu evento grátis' e 'Tenho um código' funcionais",
+    "/eventos: ativos antes de encerrados; sem sessão pede o Google; nenhum evento de terceiros, nem para o Master",
+    "/exemplo: câmera liga, recusa usa imagem de exemplo, Sair volta à home sem gravar nada",
+    "Smoke no domínio oficial em 390 px e 1280 px"
+   ],
+   "files": [
+    "web/src/app/page.tsx",
+    "web/src/app/eventos/page.tsx",
+    "web/src/features/app/my-events.ts",
+    "web/src/repositories/supabase/index.ts",
+    "web/src/styles/app.css"
+   ],
+   "tests": [
+    "web/e2e/home-exemplo.spec.ts",
+    "web/src/app/eventos/eventos.test.tsx",
+    "web/src/features/app/my-events.test.ts",
+    "web/src/app/sessao.test.tsx",
+    "web/integration/adapter.itest.ts (listMine)"
+   ],
+   "evidence": [
+    "vitest 496/496; typecheck e lint sem erros; E2E local 101 passados, 0 falhas; integração listMine no Supabase local (organizador, convidado, estranho, Master)"
+   ],
+   "commit": "25584fc"
   }
  ],
  "requirements": [

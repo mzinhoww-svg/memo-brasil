@@ -18,7 +18,8 @@ export default function Exemplo() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [mine, setMine] = useState(0);
-  const [camera, setCamera] = useState<"pedindo" | "ligada" | "sem">("pedindo");
+  // a câmera só liga quando a pessoa pede (ação visível); "recusada" = permissão negada, "sem" = aparelho sem câmera
+  const [camera, setCamera] = useState<"parada" | "pedindo" | "ligada" | "recusada" | "sem">("parada");
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const released = useRef<Array<() => void>>([]);
@@ -51,28 +52,36 @@ export default function Exemplo() {
     };
   }, [load]);
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      if (!navigator.mediaDevices?.getUserMedia) return void (alive && setCamera("sem"));
-      try {
-        const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-        if (!alive) return s.getTracks().forEach((t) => t.stop());
-        stream.current = s;
-        if (video.current) {
-          video.current.srcObject = s;
-          await video.current.play().catch(() => undefined);
-        }
-        setCamera("ligada");
-      } catch {
-        if (alive) setCamera("sem");
-      }
-    })();
-    return () => {
-      alive = false;
-      stream.current?.getTracks().forEach((t) => t.stop());
-    };
+  const stop = useCallback(() => {
+    stream.current?.getTracks().forEach((t) => t.stop());
+    stream.current = null;
+    if (video.current) video.current.srcObject = null;
   }, []);
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      stop(); // sair da página sempre desliga a câmera
+    };
+  }, [stop]);
+
+  async function startCamera() {
+    if (!navigator.mediaDevices?.getUserMedia) return setCamera("sem");
+    setCamera("pedindo");
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+      if (!mounted.current) return s.getTracks().forEach((t) => t.stop()); // saiu antes de responder ao aviso
+      stream.current = s;
+      if (video.current) {
+        video.current.srcObject = s;
+        await video.current.play().catch(() => undefined);
+      }
+      setCamera("ligada");
+    } catch (e) {
+      if (mounted.current) setCamera((e as DOMException)?.name === "NotAllowedError" ? "recusada" : "sem");
+    }
+  }
 
   if (!party) return <main className="app-col" aria-busy="true"><p className="app-screen app-muted" role="status">Preparando a festa de exemplo…</p></main>;
 
@@ -105,9 +114,18 @@ export default function Exemplo() {
         </div>
 
         <div className="app-camera-box" style={{ borderRadius: "var(--radius-panel)", overflow: "hidden", background: "var(--tinta)", aspectRatio: "4 / 3", display: "grid", placeItems: "center" }}>
-          <video ref={video} playsInline muted aria-label="Câmera ao vivo" style={{ width: "100%", height: "100%", objectFit: "cover", display: camera === "ligada" ? "block" : "none" }} />
-          {camera !== "ligada" && <span className="meta" style={{ color: "var(--on-acao, #fff)", opacity: 0.8 }}>{camera === "pedindo" ? "Abrindo a câmera…" : "Sem câmera: o disparo usa uma imagem de exemplo."}</span>}
+          <video ref={video} playsInline muted aria-label="Câmera ao vivo" style={{ width: "100%", height: "100%", objectFit: "cover", display: camera === "ligada" ? "block" : "none", gridArea: "1 / 1" }} />
+          {camera !== "ligada" && (
+            <div className="app-stack-sm" style={{ alignItems: "center", textAlign: "center", padding: "var(--space-4)", color: "var(--on-acao, #fff)" }}>
+              <span className="meta" role="status">
+                {camera === "parada" ? "A câmera fica desligada até você pedir." : camera === "pedindo" ? "Permita o acesso no aviso do navegador." : camera === "recusada" ? "Acesso à câmera recusado. O disparo usa uma imagem de exemplo." : "Sem câmera: o disparo usa uma imagem de exemplo."}
+              </span>
+              {(camera === "parada" || camera === "recusada") && <Button variant="secundario" small icon="camera" onClick={() => void startCamera()}>{camera === "recusada" ? "Tentar de novo" : "Ligar a câmera"}</Button>}
+            </div>
+          )}
         </div>
+
+        {camera === "ligada" && <Button variant="texto" onClick={() => { stop(); setCamera("parada"); }}>Desligar a câmera</Button>}
 
         <div className="app-between">
           <p aria-live="polite" style={{ margin: 0 }}>

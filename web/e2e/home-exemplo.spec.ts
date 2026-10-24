@@ -15,12 +15,23 @@ test("câmera da festa de exemplo: liga com permissão, fotografa e fecha ao sai
   const writes = watchWrites(page);
   await page.getByRole("link", { name: /Experimente a câmera agora/ }).click();
   await page.waitForURL(/\/exemplo$/);
+  // nada de câmera sem pedir: começa desligada, com a ação visível
+  await expect(page.getByText("A câmera fica desligada até você pedir.")).toBeVisible();
+  expect(await page.evaluate(() => document.querySelector("video")?.srcObject ?? null)).toBeNull();
+  await page.getByRole("button", { name: "Ligar a câmera" }).click();
   await expect(page.getByLabel("Câmera ao vivo")).toBeVisible();
   await page.getByRole("button", { name: "Tirar foto de exemplo" }).click();
   await expect(page.getByText("4", { exact: true })).toBeVisible();
-  expect(await page.evaluate(() => (document.querySelector("video")?.srcObject as MediaStream | null)?.getVideoTracks().map((t) => t.readyState) ?? [])).toEqual(["live"]);
+  // guarda a trilha para conferir que sair a encerra
+  expect(await page.evaluate(() => { const t = (document.querySelector("video")!.srcObject as MediaStream).getVideoTracks()[0]; (window as unknown as { __t: MediaStreamTrack }).__t = t; return t.readyState; })).toBe("live");
+  await page.getByRole("button", { name: "Desligar a câmera" }).click();
+  expect(await page.evaluate(() => (window as unknown as { __t: MediaStreamTrack }).__t.readyState)).toBe("ended");
+  await page.getByRole("button", { name: "Ligar a câmera" }).click();
+  await expect(page.getByLabel("Câmera ao vivo")).toBeVisible();
+  expect(await page.evaluate(() => { const t = (document.querySelector("video")!.srcObject as MediaStream).getVideoTracks()[0]; (window as unknown as { __t: MediaStreamTrack }).__t = t; return t.readyState; })).toBe("live");
   await page.getByRole("link", { name: "Sair" }).click();
   await page.waitForURL((u) => u.pathname === "/");
+  expect(await page.evaluate(() => (window as unknown as { __t: MediaStreamTrack }).__t.readyState)).toBe("ended"); // navegação no cliente: a trilha antiga foi encerrada
   // a festa de exemplo não entra no banco local do app nem vai ao servidor
   const stored = await page.evaluate(() => new Promise<number>((ok) => {
     const req = indexedDB.open("memoriesmt");
@@ -43,7 +54,9 @@ test.describe("permissão de câmera recusada", () => {
       navigator.mediaDevices.getUserMedia = () => Promise.reject(new DOMException("Permission denied", "NotAllowedError"));
     });
     await page.goto("/exemplo");
-    await expect(page.getByText("Sem câmera: o disparo usa uma imagem de exemplo.")).toBeVisible();
+    await page.getByRole("button", { name: "Ligar a câmera" }).click();
+    await expect(page.getByText("Acesso à câmera recusado. O disparo usa uma imagem de exemplo.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Tentar de novo" })).toBeVisible();
     await page.getByRole("button", { name: "Tirar foto de exemplo" }).click();
     await expect(page.getByText("4", { exact: true })).toBeVisible();
     await page.getByRole("link", { name: "Sair" }).click();

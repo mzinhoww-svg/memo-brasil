@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P3 53. Status: BACKLOG 100, BLOCKED 10, CANCELLED 2, DEFERRED 14, DONE 73, IN_REVIEW 29, READY 12.
+Total: **241** itens (sem contar 19 épicos). Prioridade: P0 42, P1 83, P2 63, P3 53. Status: BACKLOG 100, BLOCKED 10, CANCELLED 2, DEFERRED 14, DONE 73, IN_REVIEW 30, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -361,6 +361,7 @@ Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P
 | UXA-126 | FEATURE | [Anfitrião] /criar · passo 6 (resumo): CTA 'Criar evento de demonstração' quebra em 2 linhas em 320; aviso de cobrança longo antes do CTA | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-127 | FEATURE | Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fonte | P2 | BACKLOG | EST-004 | revisão independente A1–A5 2026-10-21 | - | - |
 | UXA-128 | FEATURE | Erro de upload de logo/capa persistente por campo (aria-describedby) e prévia móvel como painel recolhível | P3 | BACKLOG | EST-004 | revisão independente arquitetura/perf/a11y 2026-10-21 | - | - |
+| UXA-129 | BUG | Home: cartão da festa de exemplo parecia inerte e a home listava eventos da conta | P1 | IN_REVIEW | - | pedido de Aurimar 2026-10-23 | 25584fc | remoto |
 
 **UXA-104** critérios: Grade 3–4 colunas ≥1024 com cartão compacto (miniatura, motivo, ações), seleção em massa, atalhos e painel lateral de detalhe. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-conteudo-1440.png, painel-conteudo-todas-1440.png) em docs/audit/ux/screens.
 
@@ -411,6 +412,8 @@ Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P
 **UXA-127** critérios: Amostras visíveis; estado personalizado marcado
 
 **UXA-128** critérios: Mensagem permanece até corrigir; E2E
+
+**UXA-129** critérios: Home sem listas de eventos, com 'Experimente a câmera agora' com borda e ícone, 'Criar meu evento grátis' e 'Tenho um código' funcionais; /eventos: ativos antes de encerrados; sem sessão pede o Google; nenhum evento de terceiros, nem para o Master; /exemplo: câmera liga, recusa usa imagem de exemplo, Sair volta à home sem gravar nada; Smoke no domínio oficial em 390 px e 1280 px · testes: web/e2e/home-exemplo.spec.ts, web/src/app/eventos/eventos.test.tsx, web/src/features/app/my-events.test.ts, web/src/app/sessao.test.tsx, web/integration/adapter.itest.ts (listMine)
 
 ## EP-12 · Design System v2 (BACKLOG)
 
