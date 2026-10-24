@@ -32,13 +32,13 @@ Deno.serve(async (req) => {
   }
   if (!UUID_RE.test(orderId) || (paymentId !== null && !/^[0-9A-Za-z_-]{1,40}$/.test(paymentId))) return json({ error: "invalid" }, 400);
 
-  const cfg = mpConfig();
-  if (!cfg) return json({ error: "pagamento_indisponivel" }, 503);
   const admin = serviceClient();
   const { order, error } = await loadOrder(admin, orderId);
   if (error) return json({ error: "indisponivel" }, 500);
   if (!order) return json({ error: "nao_encontrado" }, 404);
   if (order.provider !== "mercadopago") return json({ error: "provedor_historico" }, 422);
+  const cfg = mpConfig(order.provider_env); // credenciais do ambiente DO PEDIDO
+  if (!cfg) return json({ error: "pagamento_indisponivel" }, 503);
   if (order.status === "estornado" && paymentId === null) {
     log(FN, order.id, order.status, "ja_estornado");
     return json({ ok: true });

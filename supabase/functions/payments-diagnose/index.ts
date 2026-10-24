@@ -24,15 +24,22 @@ Deno.serve(async (req) => {
       MERCADOPAGO_ACCESS_TOKEN: !!Deno.env.get("MERCADOPAGO_ACCESS_TOKEN"),
       MERCADOPAGO_WEBHOOK_SECRET: !!Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET"),
       PAYMENTS_CRON_TOKEN: !!Deno.env.get("PAYMENTS_CRON_TOKEN"),
+      MERCADOPAGO_ACCESS_TOKEN_SANDBOX: !!Deno.env.get("MERCADOPAGO_ACCESS_TOKEN_SANDBOX"),
+      MERCADOPAGO_WEBHOOK_SECRET_SANDBOX: !!Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET_SANDBOX"),
     },
     webhookUrl: Deno.env.get("PAYMENTS_WEBHOOK_URL") || `${Deno.env.get("SUPABASE_URL")}/functions/v1/payments-webhook`,
   };
-  const cfg = mpConfig();
-  if (!cfg) return json({ ...base, ok: false, error: "token_ausente_ou_url_invalida" });
-
-  const [me, prefs] = await Promise.all([
-    getMe(cfg).then((r) => ({ ok: true, accountId: r.id, siteId: r.siteId, countryId: r.countryId, testUser: r.testUser }), failure),
-    searchPreferences(cfg, 1).then((r) => ({ ok: true, total: r.total }), failure),
-  ]);
-  return json({ ...base, ok: me.ok && prefs.ok, account: me, preferencesSearch: prefs });
+  const probe = async (env: "production" | "sandbox") => {
+    const cfg = mpConfig(env);
+    if (!cfg) return { configured: false };
+    const [me, prefs] = await Promise.all([
+      getMe(cfg).then((r) => ({ ok: true, accountId: r.id, siteId: r.siteId, countryId: r.countryId, testUser: r.testUser }), failure),
+      searchPreferences(cfg, 1).then((r) => ({ ok: true, total: r.total }), failure),
+    ]);
+    return { configured: true, ok: me.ok && prefs.ok, account: me, preferencesSearch: prefs };
+  };
+  const [production, sandbox] = await Promise.all([probe("production"), probe("sandbox")]);
+  if (!production.configured && !sandbox.configured) return json({ ...base, ok: false, error: "token_ausente_ou_url_invalida" });
+  // `account`/`preferencesSearch` (nível raiz) = produção, por compatibilidade com o formato anterior.
+  return json({ ...base, ok: production.configured ? !!production.ok : false, account: (production as { account?: unknown }).account ?? null, preferencesSearch: (production as { preferencesSearch?: unknown }).preferencesSearch ?? null, production, sandbox });
 });

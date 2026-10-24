@@ -13,10 +13,21 @@ export type ResolvedMercadoPagoConfig =
   | { ok: true; config: MercadoPagoConfig }
   | { ok: false; reason: "token" | "base_url" };
 
-export function resolveMercadoPagoConfig(vars: Record<string, string | undefined>): ResolvedMercadoPagoConfig {
-  const accessToken = (vars.MERCADOPAGO_ACCESS_TOKEN ?? "").trim();
-  if (!accessToken) return { ok: false, reason: "token" };
+export type ProviderEnvName = "sandbox" | "production";
+
+/**
+ * `env` escolhe o par de credenciais: production = MERCADOPAGO_ACCESS_TOKEN; sandbox = MERCADOPAGO_ACCESS_TOKEN_SANDBOX.
+ * Sandbox NUNCA cai no token de produção na API real (recusa). Só contra o fake local (MERCADOPAGO_BASE_URL local) o token
+ * único dos testes serve aos dois. Sem `env` o comportamento é o legado (token principal).
+ */
+export function resolveMercadoPagoConfig(vars: Record<string, string | undefined>, env?: ProviderEnvName | null): ResolvedMercadoPagoConfig {
   const override = (vars.MERCADOPAGO_BASE_URL ?? "").trim();
+  let accessToken = (vars.MERCADOPAGO_ACCESS_TOKEN ?? "").trim();
+  if (env === "sandbox") {
+    const sandbox = (vars.MERCADOPAGO_ACCESS_TOKEN_SANDBOX ?? "").trim();
+    accessToken = sandbox || (override ? accessToken : "");
+  }
+  if (!accessToken) return { ok: false, reason: "token" };
   if (!override) return { ok: true, config: { accessToken, baseUrl: MERCADOPAGO_DEFAULT_BASE_URL } };
   let u: URL;
   try {

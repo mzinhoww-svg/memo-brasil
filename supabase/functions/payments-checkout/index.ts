@@ -41,6 +41,15 @@ Deno.serve(async (req) => {
     return json({ error: "pagamento_indisponivel" }, 503);
   }
 
+  if (provider.env === "sandbox" && !Deno.env.get("MERCADOPAGO_BASE_URL")) { // BASE_URL só existe no fake local (a config recusa hosts externos)
+    // Janela de homologação: só Master compra em sandbox. Visitante/organizador real nunca cria pedido de teste.
+    const m = await who.client.rpc("is_master");
+    if (m.error || m.data !== true) {
+      log(FN, null, null, "sandbox_restrito");
+      return json({ error: "sandbox_restrito" }, 403);
+    }
+  }
+
   const opened = await who.client.rpc("payments_open_order", { p_event: eventId, p_plan: planCode, p_idempotency_key: idempotencyKey });
   if (opened.error) {
     switch (opened.error.code) {
@@ -86,7 +95,8 @@ Deno.serve(async (req) => {
     }
   }
 
-  const { data: planRow } = await admin.from("plans").select("name").eq("code", planCode).maybeSingle();
+  const { data: planRow } = await admin.from("plans").select("name, max_guests").eq("code", planCode).maybeSingle();
+  const payerEmail = (await who.client.auth.getUser()).data.user?.email ?? null;
   const now = new Date();
   const expiresAt = new Date(now.getTime() + PREFERENCE_TTL_MIN * 60_000).toISOString();
   const origin = pickOrigin(req.headers.get("origin"), allowedOrigins(), provider.env);
@@ -97,6 +107,8 @@ Deno.serve(async (req) => {
       orderId: order.orderId, eventId, planCode, amountCents: order.amountCents,
       title: `MemoriesMT - plano ${planRow?.name ?? planCode}`.slice(0, 120),
       notificationUrl: webhookUrl, backUrls: buildBackUrls(origin, eventId), expiresAt, now: now.toISOString(),
+      payerEmail,
+      description: `Pagamento único por evento${planRow?.max_guests ? `, até ${planRow.max_guests} convidados` : ""}. Sem assinatura.`,
     });
   } catch (e) {
     log(FN, order.orderId, "criado", e instanceof MercadoPagoError ? `provedor_${e.kind}` : "provedor_erro");
