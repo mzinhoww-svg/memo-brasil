@@ -45,11 +45,14 @@ function PlanoConteudo() {
   const inflight = useRef(false);
 
   // retorno do checkout: lê a dica uma vez e limpa a URL; o estado mostrado vem de openOrder/orderStatus
+  // lido UMA vez por montagem: sob StrictMode (dev) o efeito roda duas vezes e, na segunda, a URL já estaria limpa e a dica se perderia
+  const [initialReturn] = useState(() => (typeof window === "undefined" ? null : parseReturn(window.location.search)));
   useEffect(() => {
-    const r = parseReturn(window.location.search);
+    const r = initialReturn;
+    if (!r) return;
     if (r.search !== window.location.search) window.history.replaceState(window.history.state, "", `${window.location.pathname}${r.search}${window.location.hash}`);
     if (r.hint) { const t = setTimeout(() => setReturnHint(r.hint), 0); return () => clearTimeout(t); }
-  }, []);
+  }, [initialReturn]);
 
   const load = useCallback(async () => {
     try {

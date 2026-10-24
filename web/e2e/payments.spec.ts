@@ -11,7 +11,7 @@ import { SB_READY, admin, installSim, makeEvent, makeUser, setSession, type Test
 //    pertencem à branch de backend (feat/mercadopago) e ainda não existem aqui. Estes testes ficam em `test.skip` até o merge.
 //    Variáveis: PAYMENTS_MP_FAKE=1, PAYMENTS_MP_FAKE_URL (ex.: http://127.0.0.1:55491). Contrato ASSUMIDO do fake (ajustar após o merge,
 //    se o nome real divergir): GET /__control/calls -> { create: number }; POST /__control/reset; POST /__control/config { failCreate: 500 };
-//    POST /__control/approve { externalReference } -> aprova o pagamento do pedido e dispara o webhook assinado para payments-webhook.
+//    POST /__control/pay { externalReference } -> cria e aprova o pagamento do pedido e dispara o webhook assinado para payments-webhook.
 //    O navegador nunca vai ao domínio real: a navegação para o checkoutUrl é interceptada por page.route.
 test.skip(!SB_READY, "precisa de Supabase local e das chaves no ambiente");
 test.describe.configure({ mode: "serial" });
@@ -92,7 +92,7 @@ test.describe("com backend novo + fake Mercado Pago (PAYMENTS_MP_FAKE=1)", () =>
     expect(await plan(id)).toBe("gratis"); // nada liberado antes do pagamento aprovado
     await a.page.goBack();
     await expect(a.page.getByRole("heading", { name: "Pagamento em andamento" })).toBeVisible();
-    await control("approve", { externalReference: row.id });
+    await control("pay", { externalReference: row.id });
     await expect(a.page.getByRole("heading", { name: "Plano Casamento ativo." })).toBeVisible({ timeout: 20_000 });
     expect(await plan(id)).toBe("casamento");
     await a.ctx.close();
@@ -120,6 +120,7 @@ test.describe("com backend novo + fake Mercado Pago (PAYMENTS_MP_FAKE=1)", () =>
     await a.page.getByRole("button", { name: "Pagar R$ 189,00" }).click();
     await expect.poll(async () => (await orders(id)).length).toBe(1);
     const [row] = await orders(id);
+    await a.page.waitForURL(row.checkout_url!); // a página já foi para o checkout simulado: espera antes de navegar de novo
     await admin.from("payment_orders").update({ status: "expirado", expires_at: new Date(Date.now() - 60_000).toISOString() }).eq("id", row.id);
     await a.page.goto(`/painel/${id}/plano`);
     await expect(a.page.getByRole("heading", { name: "Este pagamento expirou." })).toBeVisible();
