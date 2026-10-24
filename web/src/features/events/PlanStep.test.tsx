@@ -21,6 +21,10 @@ describe("PlanStep (passo 4)", () => {
     render(<PlanStep plans={[ALL[0]]} settings={S} selected="gratis" onSelect={() => undefined} pendingCode={null} />);
     expect(screen.getByRole("link", { name: /Fale com a gente/ })).toHaveAttribute("href", expect.stringContaining("mailto:oi@memoriesmt.test"));
   });
+  it("sem plano pago ativo e sem e-mail de suporte cadastrado: 'Fale com a gente' usa o canal oficial", () => {
+    render(<PlanStep plans={[ALL[0]]} settings={{ ...S, supportEmail: null }} selected="gratis" onSelect={() => undefined} pendingCode={null} />);
+    expect(screen.getByRole("link", { name: /Fale com a gente/ })).toHaveAttribute("href", expect.stringContaining("mailto:mazinhoww@gmail.com"));
+  });
   it("mostra o código que será aplicado ao criar", () => {
     render(<PlanStep plans={ALL} settings={S} selected="gratis" onSelect={() => undefined} pendingCode="MMT-7KQ4-AB12" />);
     expect(screen.getByText("Código MMT-7KQ4-AB12 será aplicado ao criar.")).toBeInTheDocument();

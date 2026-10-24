@@ -1,5 +1,6 @@
 "use client";
 
+import { contactFrom } from "@/components/memoriesmt/SiteFooter";
 import { useId } from "react";
 import { Button, Skeleton } from "@/components/memoriesmt";
 import { PlanCard } from "@/features/billing/PlanCard";
@@ -16,7 +17,7 @@ export function PlanStep({ plans, settings, selected, onSelect, pendingCode }: P
   const name = useId();
   if (!plans) return <Skeleton label="Carregando os planos…" />;
   const chosen = plans.find((p) => p.code === selected) ?? plans[0];
-  const support = settings?.supportEmail;
+  const support = contactFrom(settings ?? null);
   return (
     <div className="app-stack">
       {plans.length === 0 ? (
@@ -30,7 +31,7 @@ export function PlanStep({ plans, settings, selected, onSelect, pendingCode }: P
         <section className="app-card" aria-labelledby="mais-gente">
           <h2 id="mais-gente" className="titulo-card app-h1">Evento maior?</h2>
           <p className="app-p app-muted">Os planos pagos voltam em breve. Fale com a gente e liberamos o seu evento.</p>
-          {support && <Button href={`mailto:${support}?subject=${encodeURIComponent("Evento com mais convidados")}`} variant="secundario" block>Fale com a gente</Button>}
+          <Button href={`mailto:${support}?subject=${encodeURIComponent("Evento com mais convidados")}`} variant="secundario" block>Fale com a gente</Button>
         </section>
       )}
       {chosen && <TrustBlock plan={chosen} gracePct={settings?.capacityGracePct ?? 10} />}

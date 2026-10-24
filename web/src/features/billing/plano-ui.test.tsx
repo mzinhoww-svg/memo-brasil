@@ -74,9 +74,9 @@ describe("PlanPicker", () => {
     expect(screen.getByTestId("cartao-codigo")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Pagar/ })).toBeNull();
   });
-  it("B7 sem e-mail de suporte: sem botão de contato", () => {
-    render(<PlanPicker {...base} plans={[PLANS[0]]} currentCode="gratis" settings={{ ...SETTINGS, supportEmail: null }} />);
-    expect(screen.queryByRole("link", { name: "Falar com a gente" })).toBeNull();
+  it("B7 sem e-mail de suporte cadastrado: o texto 'fale com a gente' usa o canal oficial (nunca fica sem saída)", () => {
+    render(<PlanPicker {...base} plans={[PLANS[0]]} currentCode="gratis" settings={{ ...SETTINGS, supportEmail: null, paymentsEnv: "desligado" }} />);
+    expect(screen.getByRole("link", { name: "Falar com a gente" })).toHaveAttribute("href", expect.stringContaining("mailto:mazinhoww@gmail.com"));
   });
   it("escolher e pagar chama onPay com o plano", async () => {
     api.quote.mockResolvedValue({ planCode: "festa", fromPlanCode: null, amountCents: 2900, payable: true, reason: "ok" });

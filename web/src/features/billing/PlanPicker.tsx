@@ -1,5 +1,6 @@
 "use client";
 
+import { contactFrom } from "@/components/memoriesmt/SiteFooter";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/memoriesmt";
 import { formatBRL, quote } from "./api";
@@ -43,8 +44,8 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
     return () => { cancelled = true; };
   }, [eventId, chosen, paidOff]);
 
-  const support = settings.supportEmail;
-  const mail = (subject: string) => (support ? `mailto:${support}?subject=${encodeURIComponent(subject)}` : null);
+  const support = contactFrom(settings);
+  const mail = (subject: string) => `mailto:${support}?subject=${encodeURIComponent(subject)}`;
 
   if (paidOff) {
     const talk = mail("Plano maior para o meu evento");
@@ -57,7 +58,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
         <section className="plano-cartao">
           <h2 className="titulo-card app-h1">Evento maior?</h2>
           <p className="app-p app-muted">Os planos pagos voltam em breve. Enquanto isso, fale com a gente e liberamos o seu evento.</p>
-          {talk && <Button href={talk} variant="secundario" block>Falar com a gente</Button>}
+          <Button href={talk} variant="secundario" block>Falar com a gente</Button>
         </section>
         <RedeemCode eventId={eventId} onApplied={onRedeemed} />
       </div>
