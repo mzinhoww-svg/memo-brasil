@@ -1,3 +1,5 @@
+import { cleanPersonName } from "@/domain/person-name";
+
 export interface EventLite {
   id: string; hostId: string | null; hostName?: string | null; participants: number; photos: number;
   revealState?: string; planCode?: string | null; isTest?: boolean; status?: string; deletedAt?: string | null;
@@ -42,7 +44,7 @@ export function aggregateByHost(events: readonly EventLite[], orders: readonly O
   for (const [hostId, evs] of byHost) {
     out.push({
       hostId,
-      name: evs.map((e) => e.hostName).find((n) => n && n.trim()) ?? "",
+      name: cleanPersonName(evs.map((e) => e.hostName).find((n) => n && n.trim())),
       events: evs.length,
       participants: evs.reduce((s, e) => s + (e.participants || 0), 0),
       photos: evs.reduce((s, e) => s + (e.photos || 0), 0),
@@ -72,7 +74,7 @@ export function mergeOrganizers(list: readonly OrgListItem[], aggs: readonly Org
     if (aggs && !a && opts.hideEmpty) continue;
     rows.push({
       hostId: o.userId,
-      name: o.displayName?.trim() || a?.name || "",
+      name: cleanPersonName(o.displayName) || a?.name || "",
       email: o.email, lastEventAt: o.lastEventAt, deletionRequested: o.deletionRequested,
       events: a?.events ?? o.eventsCount, participants: a?.participants ?? 0, photos: a?.photos ?? o.photos,
       topPlan: a?.topPlan ?? null, revenueCents: a?.revenueCents ?? null,

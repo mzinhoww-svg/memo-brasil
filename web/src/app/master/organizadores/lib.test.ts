@@ -48,6 +48,12 @@ describe("mergeOrganizers", () => {
     expect(r[0]).toMatchObject({ name: "Ana S.", events: 3, photos: 5, deletionRequested: true });
     expect(mergeOrganizers(list, aggs, { hideEmpty: false })).toHaveLength(2);
   });
+  it("nome repetido aparece limpo, venha da lista ou dos eventos", () => {
+    const dup: OrgListItem[] = [{ ...list[1], displayName: "Aurimar NogueiraAurimar" }];
+    expect(mergeOrganizers(dup, null, { hideEmpty: false })[0].name).toBe("Aurimar Nogueira");
+    const aggs = aggregateByHost([{ ...evs[0], hostId: "h3", hostName: "Ana SilvaAna Silva" }], null, { includeTests: true });
+    expect(aggs[0].name).toBe("Ana Silva");
+  });
   it("sem agregação usa a própria lista", () => {
     const r = mergeOrganizers(list, null, { hideEmpty: true });
     expect(r).toHaveLength(2);
