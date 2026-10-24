@@ -144,3 +144,45 @@
   .adm-funnel li { grid-template-columns: 1fr auto; } .adm-funnel li .adm-funnel-bar-wrap { grid-column: 1 / -1; grid-row: 2; }
   .adm-drawer { width: 100vw; }
 }
+
+/* Console redesign · shell (menu em grupos, badges, busca ⌘K) */
+.adm-nav-toggle { display: none; }
+.adm-nav-groups { display: flex; flex-direction: column; gap: 16px; }
+.adm-nav-group ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.adm-nav-heading { margin: 0 0 4px; padding: 0 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--apoio, #6B645C); }
+.adm-nav a { justify-content: space-between; gap: 8px; }
+.adm-nav-label { min-width: 0; overflow-wrap: anywhere; }
+.adm-nav-badge { flex: none; padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 12px; font-weight: 600; line-height: 18px; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--apoio, #6B645C); }
+.adm-nav-badge[data-tone="ok"] { color: var(--ok); } .adm-nav-badge[data-tone="warn"] { color: var(--warn); }
+.adm-nav-badge[data-tone="crit"] { color: var(--crit); } .adm-nav-badge[data-tone="info"] { color: var(--info); }
+.adm-nav a[aria-current="page"] .adm-nav-badge { color: inherit; }
+.adm-topline { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 16px; min-width: 0; }
+.adm-search-trigger { gap: 12px; max-width: 100%; font-weight: 500; }
+.adm-kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; padding: 1px 6px; border: 1px solid var(--adm-linha); border-radius: 6px; color: var(--apoio, #6B645C); }
+.adm-cmd-backdrop { position: fixed; inset: 0; background: color-mix(in srgb, #000 45%, transparent); z-index: 50; }
+.adm-cmd { position: fixed; z-index: 51; top: 12vh; left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 32px)); max-height: 70dvh; display: flex; flex-direction: column; background: var(--fundo, #fff); color: var(--tinta, #1C1917); border: 1px solid var(--adm-linha); border-radius: 14px; overflow: hidden; }
+.adm-cmd-head { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--adm-linha); }
+.adm-cmd-input { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--borda-controle, #8A8480); background: transparent; color: inherit; font: inherit; font-size: 16px; }
+.adm-cmd-input:focus-visible { outline: 2px solid var(--foco, #1F4E79); outline-offset: 2px; }
+.adm-cmd-status { margin: 0; padding: 8px 16px; font-size: 13px; color: var(--apoio, #6B645C); }
+.adm-cmd .adm-aviso-degradado { padding: 0 16px; }
+.adm-cmd-list { list-style: none; margin: 0; padding: 0 8px 12px; overflow-y: auto; }
+.adm-cmd-list ul { list-style: none; margin: 0; padding: 0; }
+.adm-cmd-group { display: block; padding: 8px 8px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--apoio, #6B645C); }
+.adm-cmd-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 4px 12px; border-radius: 10px; cursor: pointer; }
+.adm-cmd-opt[aria-selected="true"] { background: var(--tinta, #1C1917); color: var(--fundo, #fff); }
+.adm-cmd-opt[aria-selected="true"] .adm-cmd-sub { color: inherit; }
+.adm-cmd-label { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.adm-cmd-sub { flex: none; font-size: 12px; color: var(--apoio, #6B645C); font-variant-numeric: tabular-nums; }
+@media (max-width: 980px) {
+  .adm-shell { grid-template-columns: minmax(0, 1fr); }
+  .adm-shell .adm-side { position: relative; height: auto; overflow: visible; flex-direction: column; gap: 12px; padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--adm-linha); }
+  .adm-shell .adm-nav { flex-direction: column; flex-wrap: nowrap; }
+  .adm-nav-toggle { display: inline-flex; position: absolute; top: 12px; right: 16px; }
+  .adm-nav[data-open="false"] .adm-nav-groups { display: none; }
+  .adm-shell .adm-nav-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; padding-top: 8px; }
+}
+@media (max-width: 480px) {
+  .adm-search-trigger { flex: 1 1 100%; justify-content: space-between; }
+  .adm-cmd { top: 16px; max-height: calc(100dvh - 32px); }
+}

@@ -45,6 +45,6 @@ describe("códigos de cortesia (M3)", () => {
   });
   it("console ganha o módulo Códigos", () => {
     expect(MODULES).toHaveLength(15);
-    expect(MODULES).toEqual(expect.arrayContaining([{ rota: "codigos", rotulo: "Códigos" }]));
+    expect(MODULES).toEqual(expect.arrayContaining([{ rota: "codigos", rotulo: "Códigos de cortesia" }]));
   });
 });
