@@ -20,7 +20,6 @@ import type { OrderView, PublicPlan, PublicSettings, Quote } from "./types";
 import styles from "./V3PaymentJourney.module.css";
 
 type Phase = "capacity" | "offer" | "checkout";
-type Method = "pix" | "card";
 type QuoteState = { code: string; quote: Quote | null; failed: boolean };
 const OPEN = new Set(["criado", "pendente"]);
 const cap = (p: PublicPlan) => p.maxGuests === null ? "Sem limite" : `${p.maxGuests} pessoas`;
@@ -31,7 +30,6 @@ export function V3PaymentJourney() {
   const eventId = event.id;
   const [guests, setGuests] = useState(() => guestsInput(search?.get("convidados") ?? null, Math.max(30, participants.length)));
   const [phase, setPhase] = useState<Phase>("capacity");
-  const [method, setMethod] = useState<Method>("pix");
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
   const [settings, setSettings] = useState<PublicSettings | null>(null);
   const [currentCode, setCurrentCode] = useState("gratis");
@@ -205,18 +203,12 @@ export function V3PaymentJourney() {
               <p className={styles.kicker}>Checkout protegido</p>
               <h1 className={styles.title}>Só falta escolher <em>como pagar.</em></h1>
               <p className={styles.description}>No checkout oficial do Mercado Pago você informa o método e, se for cartão, digita os dados diretamente no ambiente seguro do provedor.</p>
-              <fieldset className={styles.methods}>
-                <legend>Informações sobre os métodos</legend>
-                <label className={method === "pix" ? styles.methodSelected : styles.method}>
-                  <input type="radio" name="v3-method" checked={method === "pix"} onChange={() => setMethod("pix")}/>
-                  <span><strong>Pix</strong><small>QR Code disponibilizado pelo Mercado Pago, quando habilitado.</small></span><b>Pix</b>
-                </label>
-                <label className={method === "card" ? styles.methodSelected : styles.method}>
-                  <input type="radio" name="v3-method" checked={method === "card"} onChange={() => setMethod("card")}/>
-                  <span><strong>Cartão</strong><small>Dados enviados somente ao Mercado Pago.</small></span><b>••••</b>
-                </label>
-              </fieldset>
-              <p className={styles.security}>🔒 Esta seleção mostra orientações. A escolha efetiva do método acontece no Mercado Pago, conforme disponibilidade.</p>
+              <div className={styles.methods} aria-label="Meios disponíveis no Checkout Pro">
+                <p>O Mercado Pago mostrará os meios habilitados no checkout seguro:</p>
+                <div className={styles.method}><span aria-hidden="true">◇</span><span><strong>Pix</strong><small>Quando disponibilizado pelo recebedor, com código de pagamento no Mercado Pago.</small></span><b>Pix</b></div>
+                <div className={styles.method}><span aria-hidden="true">▤</span><span><strong>Cartão</strong><small>Dados informados diretamente no ambiente seguro do Mercado Pago.</small></span><b>••••</b></div>
+              </div>
+              <p className={styles.security}>🔒 A escolha efetiva do método acontece no Mercado Pago, conforme disponibilidade.</p>
               <div className={styles.priceBox}><strong>Total do pedido</strong><strong className={styles.price}>{amount === undefined ? "Consultando…" : formatBRL(amount)}</strong></div>
               {error && <p role="alert" className={styles.notice}>{error}</p>}
               <div className={styles.buttons}>
