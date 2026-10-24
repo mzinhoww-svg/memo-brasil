@@ -162,7 +162,7 @@ export function EmbeddedPaymentCheckout({ eventId, planCode, amountCents, initia
   }, [amountCents, brickId, cfg, eventId, planCode, sdkReady, orderId]);
 
   if (orderId) {
-    if (initialOrder?.checkoutUrl) return (
+    if (initialOrder?.checkoutUrl && initialOrder.status !== "pago") return (
       <div className={styles.nativeStatus} role="alert">
         <h2>Há um pagamento antigo aberto.</h2>
         <p>Para evitar uma cobrança duplicada, aguarde o pagamento anterior ser concluído ou expirar.</p>
