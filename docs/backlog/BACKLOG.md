@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P3 53. Status: BACKLOG 102, BLOCKED 14, CANCELLED 2, DEFERRED 14, DONE 65, IN_REVIEW 31, READY 12.
+Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P3 53. Status: BACKLOG 100, BLOCKED 10, CANCELLED 2, DEFERRED 14, DONE 73, IN_REVIEW 29, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -291,7 +291,7 @@ Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P
 | SB-005 | TASK | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | P1 | BACKLOG | SB-003 | entrega autônoma 2026-10-21 | - | - |
 | SB-006 | TASK | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexão | P1 | BACKLOG | SB-002 | entrega autônoma 2026-10-21 | - | - |
 | SB-007 | TASK | Relógio do servidor no app e observabilidade (logs estruturados, monitor da revelação, runbook de recuperação) | P2 | BACKLOG | SB-003 | entrega autônoma 2026-10-21 | - | - |
-| SB-008 | TASK | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | P0 | BLOCKED | SB-003, SB-004, REL-001 | entrega autônoma 2026-10-21 | 5374f89 | vercel |
+| SB-008 | TASK | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | P0 | DONE | SB-003, SB-004, REL-001 | entrega autônoma 2026-10-21 | 89a612b | vercel |
 
 **FT-080** critérios: Depende do backend; não iniciar antes do release gate
 
@@ -319,24 +319,16 @@ Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P
 
 **SB-007** critérios: Offset sincronizado no carregamento; Alerta de atraso da revelação; Procedimento de backup/restauração testado
 
-**SB-008** critérios: NEXT_PUBLIC_SUPABASE_URL e _PUBLISHABLE_KEY em Preview/Production; Smoke test no deployment publicado; Gates de RELEASE-GATES.md cumpridos · testes: preview OK; Production sem NEXT_PUBLIC_MM_BACKEND, web/e2e/remote-flow.spec.ts no preview
-
 ## EP-10 · Governança e release (IN_PROGRESS)
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
 | AUD-001 | TASK | Auditoria independente pré-Supabase (docs/audit/00..11) | P0 | DONE | FT-037 | auditoria | 32dff31 | local (build de produção/teste, Chromium) + inspeção Vercel/Supabase somente leitura |
 | AUD-002 | TASK | Reauditoria dos P1 após as correções (gate para iniciar a fase Supabase) | P1 | DONE | BG-101, ITG-101, ITG-102, ITG-103, ITG-104, ITG-105, ITG-106 | auditoria AUD-001 · infraestrutura | 2196a24 | local (Vitest + Chromium) |
-| INF-002 | TASK | Produção serve o build antigo (3a8bf89): sem headers/CSP e sem correções da auditoria anterior | P2 | BLOCKED | REL-001 | auditoria AUD-001 · infraestrutura | - | - |
-| INF-003 | TASK | Projeto Vercel sem repositório vinculado: deploys foram criados por API com gitSource | P3 | BACKLOG | - | auditoria AUD-001 · infraestrutura | - | - |
-| REL-001 | TASK | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | P1 | BLOCKED | - | auditoria | - | - |
+| INF-002 | TASK | Produção serve o build antigo (3a8bf89): sem headers/CSP e sem correções da auditoria anterior | P2 | DONE | REL-001 | auditoria AUD-001 · infraestrutura | 89a612b | - |
+| INF-003 | TASK | Projeto Vercel sem repositório vinculado: deploys foram criados por API com gitSource | P3 | DONE | - | auditoria AUD-001 · infraestrutura | 89a612b | - |
+| REL-001 | TASK | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | P1 | DONE | - | auditoria | 89a612b | - |
 | REL-002 | TASK | Manter preview como ambiente de validação e registrar commit/URL | P1 | DONE | FT-037 | REA | 5d8df4a | preview Vercel newmemocuiaba (dpl_Cq1otDUS9DsuZVFqthubBfGLEEAz, protegido; acesso por link temporário oficial) |
-
-**REL-001** critérios: Confirmação explícita de Aurimar; Commit e URL de produção verificados
-
-**INF-002** critérios: O alias de produção aponta para o primeiro deploy. Resolver promovendo o preview validado, só com autorização (REL-001).
-
-**INF-003** critérios: Sem integração Git automática. Decidir se vincula o repositório (Root Directory web) ou mantém deploy manual documentado.
 
 ## EP-11 · UX/UI Audit (BACKLOG)
 
@@ -588,9 +580,9 @@ Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P
 
 | ID | Tipo | Título | Prio | Status | Depende de | Origem | Commit | Ambiente |
 |---|---|---|---|---|---|---|---|---|
-| COM-001 | FEATURE | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | IN_REVIEW | SB-004, SB-008 | consolidação do backlog 2026-10-21 | fe0207d | - |
+| COM-001 | FEATURE | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | DONE | SB-004, SB-008 | consolidação do backlog 2026-10-21 | 89a612b | - |
 | COM-002 | FEATURE | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | IN_REVIEW | COM-001, COM-004 | consolidação do backlog 2026-10-21 | fe0207d | - |
-| COM-003 | FEATURE | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | IN_REVIEW | COM-001 | consolidação do backlog 2026-10-21 | fe0207d | - |
+| COM-003 | FEATURE | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | DONE | COM-001 | consolidação do backlog 2026-10-21 | 89a612b | - |
 | COM-004 | FEATURE | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | IN_REVIEW | SB-004 | consolidação do backlog 2026-10-21 | 67fef3c | - |
 | COM-005 | FEATURE | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG | SB-008 | consolidação do backlog 2026-10-21 | - | - |
 | COM-006 | FEATURE | Página de planos e checkout do organizador | P1 | IN_REVIEW | COM-002 | consolidação do backlog 2026-10-21 | fe0207d | - |
@@ -618,17 +610,13 @@ Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P
 | PAY-OPS-003 | TASK | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | P0 | BLOCKED | PAY-OPS-001, PAY-OPS-002 | fechamento produto/pagamentos 2026-10-22 | - | remoto |
 | PAY-OPS-004 | TASK | [humano] Produção AbacatePay: CNPJ, chave de produção e ativação por plano | P1 | BLOCKED | PAY-OPS-003, PAY-OPS-005 | fechamento produto/pagamentos 2026-10-22 | - | operador |
 | PAY-OPS-005 | TASK | [humano] Decisões comerciais/legais D3, D5, D6 e revisão jurídica dos textos | P1 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | dono |
-| REL-003 | TASK | Smoke autenticado em produção após a promoção (Google, wizard Grátis 10/10, convidado, Master, código de cortesia) | P0 | BACKLOG | REL-001 | fechamento produto/pagamentos 2026-10-22 | - | remoto |
+| REL-003 | TASK | Smoke autenticado em produção após a promoção (Google, wizard Grátis 10/10, convidado, Master, código de cortesia) | P0 | DONE | REL-001 | fechamento produto/pagamentos 2026-10-22 | 89a612b | remoto |
 | REL-004 | TASK | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | P1 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | aparelho |
 | REL-005 | TASK | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect URLs após o go-live | P1 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | operador |
-| REL-006 | TASK | [humano] Confirmar payments_env='desligado' no remoto | P0 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | operador |
+| REL-006 | TASK | [humano] Confirmar payments_env='desligado' no remoto | P0 | DONE | - | fechamento produto/pagamentos 2026-10-22 | 89a612b | operador |
 | RET-A5-001 | FEATURE | Retenção de fotos: 90 dias de acesso após o encerramento e exclusão do armazenamento ativo em até 28 dias | P0 | DONE | - | A.5 rodada 6 2026-10-22 | 67fef3c | remoto |
 
 **COM-004** critérios: Páginas publicadas; aceite versionado e auditado; origem do texto registrada; retenção explícita e cumprida pelo produto; Revisão jurídica profissional: NÃO registrada (decisão do operador de publicar texto próprio); qualquer revisão futura gera versão nova · testes: supabase/tests/database/04_consents.test.sql (24 asserts), web/e2e/consent.spec.ts (3), web/src/lib/consent.test.ts (6), web/e2e/consent.spec.ts verifica contato e título (3/3), supabase/tests/database/04_consents.test.sql (35 asserts, aceite separado, origem e sem revisão registrada), supabase/tests/database/06_retention.test.sql (31 asserts), web/e2e/consent.spec.ts (3), web/e2e/supabase.spec.ts (falha de gravação e isolamento), web/src/lib/legal-text.test.ts, web/src/lib/consent.test.ts, web/src/domain/retention.test.ts
-
-**COM-001** critérios: Tabelas e RLS; pgTAP; sem cobrança ainda · testes: supabase/tests/database/07_entitlements.test.sql
-
-**COM-003** critérios: RPCs recusam acima do plano; testes de bypass · testes: supabase/tests/database/07_entitlements.test.sql, web/e2e/produto-planos.spec.ts
 
 **COM-002** critérios: Pagamento aprovado libera entitlement; webhook repetido não duplica; modo teste do provedor · testes: web/integration/payments.itest.ts, supabase/tests/database/08_payments.test.sql
 
@@ -684,10 +672,6 @@ Total: **240** itens (sem contar 19 épicos). Prioridade: P0 42, P1 82, P2 63, P
 
 **PAY-005** critérios: Teste: divergência em pedido pago permanece após 30 dias
 
-**REL-003** critérios: Jornadas executadas no domínio oficial com evidência; Nenhum erro de RPC/permissão
-
 **REL-004** critérios: Roteiro executado em 1 iPhone e 1 Android com registro
 
 **REL-005** critérios: Limite ajustado ao tamanho do plano Grande; Redirect URLs só com o domínio oficial e o callback
-
-**REL-006** critérios: Consulta registrada com o valor 'desligado'

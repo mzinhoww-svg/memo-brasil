@@ -1,5 +1,8 @@
 # Retomar A.5
 
+## Rodada 8 (23/10/2026) — leia primeiro
+**Produção publicada** em https://newmemocuiaba.vercel.app: `dpl_AebyeHRbNLKmsFcfMuWf2Yx9nSVm`, SHA `89a612b6d775a04a617e73f796ee5d9852c856af`, `main` alinhada ao SHA. **Cobrança pública DESLIGADA**; nenhum pagamento real/sandbox real executado (sem credencial AbacatePay; só fake). Rollback: `dpl_CX5GuvrnNSgjySpjBPpEGpX6hbKD`. Pendências: PAY-001..005 e homologação sandbox real antes de qualquer cobrança; testes físicos iPhone/Android; limite anônimo do Auth; rotação manual de backups; INF-005; Redirect URLs a estreitar. Documentos posteriores ao SHA publicado vivem em `feat/final-ui` (a `main` fica no SHA publicado de propósito, para não gerar deploy). Detalhes e números: `../supabase/A5-HOMOLOGATION-REPORT.md` (Rodada 8) e `../supabase/PUBLISH-AND-ROLLBACK.md` (seção 8).
+
 ## Rodada 7 (22/10/2026) — leia primeiro
 Entrega final integrada em `feat/final-ui` (origin): A + produto + redesign + billing (UI e Master) + códigos. **Produção NÃO promovida**: o `db push` das migrations `20261022001400…001800` no remoto foi negado pelo classificador de permissões nas duas sessões e não foi contornado. Para destravar: o operador roda o procedimento da seção 7 de `../supabase/PUBLISH-AND-ROLLBACK.md` (db push, deploy das 5 funções `payments-*`, `payments_env` segue `desligado`) ou libera a permissão para a sessão aplicar. Depois: candidato de produção sem tráfego (`autoAssignCustomDomains=false`), validação, promoção, smoke, fast-forward da `main`. Pendências externas: credencial AbacatePay (ciclo sandbox real não executado; só fake), limite de entradas anônimas do Auth (painel), rotação de backups manual, INF-005. Evidências e números: `../supabase/A5-HOMOLOGATION-REPORT.md` (Rodada 7).
 

@@ -52,3 +52,10 @@ Não mudar Root Directory/framework do projeto antes da promoção: o legado em 
 - **Não empurrar `main` antes da promoção:** a ligação `main` → Vercel gera deploy de produção automático; leve a `main` ao SHA publicado (fast-forward) somente depois do smoke.
 - **Flags de build:** `NEXT_PUBLIC_MM_DEV_TOOLS` e `NEXT_PUBLIC_MM_TEST_CLOCK` nunca na Vercel (conferido: ausentes de Preview e Production).
 
+## 8. Estado de produção após a entrega final (2026-10-23)
+- **Produção:** `dpl_AebyeHRbNLKmsFcfMuWf2Yx9nSVm`, SHA `89a612b6d775a04a617e73f796ee5d9852c856af`, em https://newmemocuiaba.vercel.app. Projeto `newmemocuiaba` ligado a `mzinhoww-svg/memo-brasil`, Root Directory `web`, Next.js, branch de produção `main` (= SHA publicado), `autoAssignCustomDomains=true`.
+- **Rollback (comando exato):** `request_rollback` no projeto `prj_IpHyqsnnbrXS213AGrOmxizb0Kjl` para `dpl_CX5GuvrnNSgjySpjBPpEGpX6hbKD` (app legado) ou `npx vercel --scope mzinhoww-gmailcoms-projects rollback dpl_CX5GuvrnNSgjySpjBPpEGpX6hbKD`. Não reverte o banco.
+- **Próxima publicação:** repetir a seção 7 (candidato `target=production` com `autoAssignCustomDomains=false`, validar na URL própria, `request_promote`, smoke, só então `main`). Pushes em `main` geram deploy automático; hoje saem `BLOCKED` (INF-005).
+- **Cobrança:** desligada (`payments_env='desligado'`). Para habilitar: PAY-001..005 corrigidos, homologação sandbox real (PAYMENTS-RUNBOOK §5–§8), decisões D3–D6. Nunca sem autorização específica para a primeira transação.
+- **Smoke público reutilizável:** `E2E_BASE_URL=https://newmemocuiaba.vercel.app E2E_EVENT_CODE=<código de evento "TESTE – excluir"> npx playwright test -c playwright.prod-smoke.config.ts` (em `web/`).
+

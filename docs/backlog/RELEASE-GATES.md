@@ -15,15 +15,13 @@
 | G12 | Migrations V2 e Edge Functions remotas | PASSA no inventário: 16 migrations e duas Functions ativas | docs/supabase/evidence/a5-20261021/backend-readonly.json; docs/supabase/A5-HOMOLOGATION-REPORT.md |
 | G11 | Conector Supabase acessa o projeto correto | PASSA: consultas remotas de leitura | docs/supabase/evidence/a5-20261021/backend-readonly.json |
 
-## Itens P0/P1 em aberto (54)
+## Itens P0/P1 em aberto (48)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
-| REL-001 | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | P1 | BLOCKED |
 | INF-001 | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh (conta, organização, permissões) | P1 | READY |
 | SB-005 | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | P1 | BACKLOG |
 | SB-006 | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexão | P1 | BACKLOG |
-| SB-008 | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | P0 | BLOCKED |
 | DSV-001 | Tokens v2 por camada (Platform/Event/Admin) e breakpoints | P0 | IN_REVIEW |
 | DSV-002 | Componentes v2 e layouts (formulário, dashboard, convite, galeria) com documentação em /design | P1 | BACKLOG |
 | DSV-003 | Acessibilidade WCAG 2.2 AA: teclado, alvos de toque, reduced motion, contraste | P0 | BACKLOG |
@@ -43,8 +41,6 @@
 | RLV-001 | Preview Vercel v2 validado (UI, login, criação, personalização, upload, revelação, dashboard, master, permissões, logs) | P0 | BLOCKED |
 | UXA-104 | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostra 1 foto de 480px por vez numa área de ~1000px; sem grade, seleção em massa ou comparação; fila longa vira rol | P1 | BACKLOG |
 | COM-004 | Termos de uso, política de privacidade e registro de aceite (organizador e convidado) | P0 | IN_REVIEW |
-| COM-001 | Modelo de planos e entitlements no banco (plano por evento/organizador) | P1 | IN_REVIEW |
-| COM-003 | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | P1 | IN_REVIEW |
 | COM-002 | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | P1 | IN_REVIEW |
 | COM-006 | Página de planos e checkout do organizador | P1 | IN_REVIEW |
 | COM-005 | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | P1 | BACKLOG |
@@ -67,10 +63,8 @@
 | PAY-001 | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | BACKLOG |
 | PAY-002 | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | BACKLOG |
 | PAY-003 | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | BACKLOG |
-| REL-003 | Smoke autenticado em produção após a promoção (Google, wizard Grátis 10/10, convidado, Master, código de cortesia) | P0 | BACKLOG |
 | REL-004 | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | P1 | BLOCKED |
 | REL-005 | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect URLs após o go-live | P1 | BLOCKED |
-| REL-006 | [humano] Confirmar payments_env='desligado' no remoto | P0 | BLOCKED |
 | OPS-A5-006 | Limite de entradas anônimas do Supabase Auth (30/h por IP) | P1 | BLOCKED |
 
 ## Decisão atual

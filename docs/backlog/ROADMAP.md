@@ -6,21 +6,16 @@
 
 Homologação real concluída e V1 em produção (Google OAuth, callback, variáveis de Production, smoke público).
 
-Itens abertos: **14** · P0 3, P1 7, P2 3, P3 1 · BACKLOG 5, BLOCKED 7, IN_REVIEW 1, READY 1
+Itens abertos: **9** · P0 0, P1 6, P2 2, P3 1 · BACKLOG 4, BLOCKED 3, IN_REVIEW 1, READY 1
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
-| REL-003 | P0 | BACKLOG | Smoke autenticado em produção após a promoção (Google, wizard Grátis 10/10, convidado, Mas | REL-001 |
-| REL-006 | P0 | BLOCKED | [humano] Confirmar payments_env='desligado' no remoto | - |
-| SB-008 | P0 | BLOCKED | Variáveis na Vercel e deploy de preview/produção apontando para o Supabase remoto | SB-003, SB-004, REL-001 |
 | BG-071 | P1 | BACKLOG | Outbox de sincronização offline ainda é só desenho | AUD-001, ITG-102 |
 | INF-001 | P1 | READY | Validar e corrigir a conexão do Supabase MCP do Claude com o projeto asyaegeodyttttaubvxh  | - |
-| REL-001 | P1 | BLOCKED | Confirmar destino Vercel (newmemocuiaba) e promover o preview a produção | - |
 | REL-004 | P1 | BLOCKED | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | - |
 | REL-005 | P1 | BLOCKED | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect | - |
 | SB-005 | P1 | BACKLOG | Edge Functions: drenar storage_purge_queue e validar upload (magic bytes, resolução) | SB-003 |
 | SB-006 | P1 | BACKLOG | Realtime na interface: assinar mudanças do evento e recuperar eventos perdidos na reconexã | SB-002 |
-| INF-002 | P2 | BLOCKED | Produção serve o build antigo (3a8bf89): sem headers/CSP e sem correções da auditoria ante | REL-001 |
 | INF-005 | P2 | IN_REVIEW | Preview por API exige rootDirectory=web e framework=nextjs | REL-001 |
 | SB-007 | P2 | BACKLOG | Relógio do servidor no app e observabilidade (logs estruturados, monitor da revelação, run | SB-003 |
 | QAV-004 | P3 | BLOCKED | Limpar usuários e dados de teste do remoto | SCV-010 |
@@ -123,15 +118,13 @@ Itens abertos: **85** · P0 14, P1 17, P2 36, P3 18 · BACKLOG 47, BLOCKED 2, DE
 
 Planos, pagamento, e-mail, observabilidade e escala de mídia.
 
-Itens abertos: **41** · P0 2, P1 22, P2 16, P3 1 · BACKLOG 17, BLOCKED 5, DEFERRED 11, IN_REVIEW 6, READY 2
+Itens abertos: **39** · P0 2, P1 20, P2 16, P3 1 · BACKLOG 17, BLOCKED 5, DEFERRED 11, IN_REVIEW 4, READY 2
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
 | PAY-OPS-001 | P0 | BLOCKED | [humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook | - |
 | PAY-OPS-003 | P0 | BLOCKED | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | PAY-OPS-001, PAY-OPS-002 |
-| COM-001 | P1 | IN_REVIEW | Modelo de planos e entitlements no banco (plano por evento/organizador) | SB-004, SB-008 |
 | COM-002 | P1 | IN_REVIEW | Gateway de pagamento (Pix e cartão) com webhooks idempotentes e conciliação | COM-001, COM-004 |
-| COM-003 | P1 | IN_REVIEW | Enforcement server-side dos limites por plano (convidados, fotos, upload de identidade) | COM-001 |
 | COM-005 | P1 | BACKLOG | E-mail transacional (recibo, aviso de revelação, convite) com remetente de marca | SB-008 |
 | COM-006 | P1 | IN_REVIEW | Página de planos e checkout do organizador | COM-002 |
 | COM-017 | P1 | IN_REVIEW | Códigos de cortesia: Master gera, organizador resgata (Plano, Ajustes ou link /c/) | - |
@@ -173,7 +166,7 @@ Itens abertos: **41** · P0 2, P1 22, P2 16, P3 1 · BACKLOG 17, BLOCKED 5, DEFE
 
 Melhorias P3 e itens adiados sem dependência de receita.
 
-Itens abertos: **33** · P0 0, P1 0, P2 0, P3 33 · BACKLOG 33
+Itens abertos: **32** · P0 0, P1 0, P2 0, P3 32 · BACKLOG 32
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -207,12 +200,11 @@ Itens abertos: **33** · P0 0, P1 0, P2 0, P3 33 · BACKLOG 33
 | FT-006 | P3 | BACKLOG | Onboarding de propósito do evento | - |
 | FT-007 | P3 | BACKLOG | Capa do convite por imagem (upload e recorte) | - |
 | FT-015 | P3 | BACKLOG | Compartilhar fotos pelo Web Share | - |
-| INF-003 | P3 | BACKLOG | Projeto Vercel sem repositório vinculado: deploys foram criados por API com gitSource | - |
 | ITG-110 | P3 | BACKLOG | Tipos TypeScript × Postgres (datas, enums, opcionais) | ITG-102 |
 | TK-010a | P3 | BACKLOG | Zoom 1×/2× via constraints do track (onde suportado) | FT-010 |
 
 ## Caminho crítico
 
-Monetização: REL-001 → SB-008 → COM-001 → COM-002 → COM-006
+Monetização: COM-004 → COM-002 → COM-006
 
 Escala: SB-007 → COM-008 → COM-012

@@ -1,6 +1,27 @@
 # A.5 — Homologação E2E — checkpoint de 21/10/2026
 
 
+## Rodada 8 (2026-10-23): **PRODUÇÃO PUBLICADA** — GO operacional com cobrança DESLIGADA
+
+**URL:** https://newmemocuiaba.vercel.app · **Deployment:** `dpl_AebyeHRbNLKmsFcfMuWf2Yx9nSVm` (target `production`, READY) · **SHA:** `89a612b6d775a04a617e73f796ee5d9852c856af` · **`main` alinhada ao mesmo SHA** (fast-forward de `25a7ad9`, sem force) somente depois dos testes no domínio oficial. **Rollback:** `dpl_CX5GuvrnNSgjySpjBPpEGpX6hbKD` (app legado, `3a8bf89`); o banco não se reverte (migrations aditivas).
+
+**Como foi publicado:** `autoAssignCustomDomains=false` → candidato `target=production` por API (variáveis de Production) → validado na URL própria → `request_promote` (sem rebuild) → `autoAssignCustomDomains=true` restaurado → smoke no domínio oficial → `main` alinhada. Deployments por push seguem `BLOCKED` (INF-005); nenhum deles assumiu o domínio.
+
+**Provado antes da promoção (candidato):** 24/24 migrations e 5 funções `payments-*` no remoto (recusam sem credencial: 401); `payments_env='desligado'`; login Google no host do candidato; evento sintético criado pelo assistente com recusa sem as duas caixas e criação com as duas; painel, plano (só Grátis), Master com 15 módulos e saúde sem alertas, com os 7 jobs executando.
+
+**Provado no domínio oficial, depois da promoção:**
+- **Convidado público** (Playwright, `e2e/prod-smoke.spec.ts`, 2/2): entra pelo código, aceita as duas caixas, posta foto e vê no Agora; sem sessão o Master pede login; `/design` e `/dev/seed` respondem 404.
+- **Banco:** 1 participante, 1 foto `pronta` e visível, 1 objeto no bucket privado; aceite do convidado v1 com contexto `entrar-evento` e as duas datas. Storage sem sessão: 400.
+- **Organizador:** login Google no domínio oficial; vê a foto do convidado; QR decodifica para `https://newmemocuiaba.vercel.app/e/24J9XU6E`; card A6 correto; URL assinada devolve `200 image/jpeg` (4615 B); downloads ZIP/CSV disponíveis (arquivo não salvo).
+- **Master:** `/master`, `/master/pagamentos` (DESLIGADO, 0 pedidos), `/planos`, `/codigos`, `/saude` abrem para a conta de operador.
+- **Higiene:** 9 rotas públicas 200; 0 ocorrências de `service_role`, `sb_secret`, chaves AbacatePay ou flags de teste nos 10 arquivos JS da home.
+
+**Situação verdadeira dos pagamentos:** **cobrança pública DESLIGADA.** Nenhum pagamento real nem sandbox real foi executado: não existe credencial AbacatePay no ambiente, nos `.env` dos checkouts nem nos segredos do Supabase. O provedor exercitado nos testes (integração 26/26, E2E de pagamento) é o FAKE local. Antes de qualquer cobrança: homologação sandbox real (PAY-OPS-001/003), correção de **PAY-001 a PAY-005** por nova migration aditiva e decisões D3–D6 (PAY-OPS-004/005).
+
+**Não comprovado nesta entrega:** testes físicos em iPhone/Safari e Android/Chrome (REL-004); recuperação de Auth e de Storage por API (a restauração isolada cobriu só as tabelas `public`); revelação pelo cron real neste SHA (a revelação foi desligada no evento de teste; o cron `mm-reveal-due` roda a cada minuto e foi homologado na rodada 5); revisão jurídica profissional; download real do ZIP.
+
+**Pendências com o operador:** limite de 30 entradas anônimas/h por IP no painel do Supabase (REL-005/OPS-A5-006); rotação manual de backups ≥ a cada 30 dias (`backup_and_rotate.sh`); INF-005 (e-mail do autor dos commits no GitHub/Vercel); estreitar as Redirect URLs do Auth (ainda incluem `memoriesmt-v2` e o curinga de previews); eventos sintéticos "TESTE – excluir" residuais (nenhuma limpeza executada). O projeto `memoriesmt-v2` foi preservado, sem uso.
+
 ## Rodada 7 (22/10/2026): entrega final integrada — **candidato pronto, produção BLOQUEADA por permissão no remoto**
 
 Branch `feat/final-ui` (origin) integra, por merge e sem rebase: A (rodadas 5 e 6), produto (Tasks 2–8, 7, 7A, da sessão de pagamentos, `feat/product-production` HEAD `1a6c982`), UI das Tasks 9–14 e os scripts de operação. Projeto Vercel **original** `newmemocuiaba` religado ao repositório `mzinhoww-svg/memo-brasil`, Root Directory `web`, framework Next.js, branch de produção `main`. O `memoriesmt-v2` foi preservado e não é mais operacional.

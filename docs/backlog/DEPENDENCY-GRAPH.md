@@ -22,7 +22,7 @@ flowchart LR
   BG_040["BG-040<br/>BACKLOG"]:::back
   BG_071["BG-071<br/>BACKLOG"]:::back
   AUD_001["AUD-001<br/>DONE"]:::done
-  REL_001["REL-001<br/>BLOCKED"]:::block
+  REL_001["REL-001<br/>DONE"]:::done
   REL_002["REL-002<br/>DONE"]:::done
   FT_080["FT-080<br/>DEFERRED"]:::defer
   FT_081["FT-081<br/>DEFERRED"]:::defer
@@ -49,7 +49,7 @@ flowchart LR
   ITG_108["ITG-108<br/>BACKLOG"]:::back
   ITG_109["ITG-109<br/>BACKLOG"]:::back
   ITG_110["ITG-110<br/>BACKLOG"]:::back
-  INF_002["INF-002<br/>BLOCKED"]:::block
+  INF_002["INF-002<br/>DONE"]:::done
   AUD_002["AUD-002<br/>DONE"]:::done
   SB_001["SB-001<br/>DONE"]:::done
   SB_002["SB-002<br/>DONE"]:::done
@@ -58,7 +58,7 @@ flowchart LR
   SB_005["SB-005<br/>BACKLOG"]:::back
   SB_006["SB-006<br/>BACKLOG"]:::back
   SB_007["SB-007<br/>BACKLOG"]:::back
-  SB_008["SB-008<br/>BLOCKED"]:::block
+  SB_008["SB-008<br/>DONE"]:::done
   UXA_001["UXA-001<br/>DONE"]:::done
   UXA_002["UXA-002<br/>DONE"]:::done
   DSV_001["DSV-001<br/>IN_REVIEW"]:::back
@@ -103,8 +103,8 @@ flowchart LR
   UXA_125["UXA-125<br/>BACKLOG"]:::back
   UXA_126["UXA-126<br/>BACKLOG"]:::back
   COM_004["COM-004<br/>IN_REVIEW"]:::back
-  COM_001["COM-001<br/>IN_REVIEW"]:::back
-  COM_003["COM-003<br/>IN_REVIEW"]:::back
+  COM_001["COM-001<br/>DONE"]:::done
+  COM_003["COM-003<br/>DONE"]:::done
   COM_002["COM-002<br/>IN_REVIEW"]:::back
   COM_006["COM-006<br/>IN_REVIEW"]:::back
   COM_007["COM-007<br/>IN_REVIEW"]:::back
@@ -145,7 +145,7 @@ flowchart LR
   PAY_OPS_003["PAY-OPS-003<br/>BLOCKED"]:::block
   PAY_OPS_005["PAY-OPS-005<br/>BLOCKED"]:::block
   PAY_OPS_004["PAY-OPS-004<br/>BLOCKED"]:::block
-  REL_003["REL-003<br/>BACKLOG"]:::back
+  REL_003["REL-003<br/>DONE"]:::done
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2

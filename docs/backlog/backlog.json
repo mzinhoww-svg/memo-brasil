@@ -2,7 +2,7 @@
  "meta": {
   "project": "MemoriesMT",
   "version": 1,
-  "updated": "2026-10-22",
+  "updated": "2026-10-23",
   "branch": "feat/memoriesmt",
   "workflow": [
    "BACKLOG",
@@ -1791,7 +1791,7 @@
    "epic": "EP-10",
    "parent": null,
    "priority": "P1",
-   "status": "BLOCKED",
+   "status": "DONE",
    "dependencies": [],
    "origin": "auditoria",
    "acceptance": [
@@ -1800,8 +1800,10 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
-   "commit": null,
+   "evidence": [
+    "Produção: dpl_AebyeHRbNLKmsFcfMuWf2Yx9nSVm, SHA 89a612b6d775a04a617e73f796ee5d9852c856af, https://newmemocuiaba.vercel.app (promovido em 2026-10-23 após GO operacional; rollback preparado para dpl_CX5GuvrnNSgjySpjBPpEGpX6hbKD). Candidato construído com variáveis de Production, validado na URL própria antes da promoção."
+   ],
+   "commit": "89a612b",
    "environment": null,
    "release": "R1"
   },
@@ -3976,7 +3978,7 @@
    "epic": "EP-10",
    "parent": null,
    "priority": "P2",
-   "status": "BLOCKED",
+   "status": "DONE",
    "dependencies": [
     "REL-001"
    ],
@@ -3987,9 +3989,10 @@
    "files": [],
    "tests": [],
    "evidence": [
-    "docs/audit/07-VERCEL-DEPLOYMENT.md"
+    "docs/audit/07-VERCEL-DEPLOYMENT.md",
+    "Produção: dpl_AebyeHRbNLKmsFcfMuWf2Yx9nSVm, SHA 89a612b6d775a04a617e73f796ee5d9852c856af, https://newmemocuiaba.vercel.app (promovido em 2026-10-23 após GO operacional; rollback preparado para dpl_CX5GuvrnNSgjySpjBPpEGpX6hbKD). O domínio oficial deixou de servir o app legado (3a8bf89)."
    ],
-   "commit": null,
+   "commit": "89a612b",
    "environment": null,
    "effort": "S",
    "sources": [],
@@ -4004,7 +4007,7 @@
    "epic": "EP-10",
    "parent": null,
    "priority": "P3",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [],
    "origin": "auditoria AUD-001 · infraestrutura",
    "acceptance": [
@@ -4013,9 +4016,10 @@
    "files": [],
    "tests": [],
    "evidence": [
-    "docs/audit/07-VERCEL-DEPLOYMENT.md"
+    "docs/audit/07-VERCEL-DEPLOYMENT.md",
+    "Projeto newmemocuiaba religado a mzinhoww-svg/memo-brasil (branch de produção main, Root Directory web, Next.js). Deploys por push seguem BLOCKED (INF-005); deploy por API com gitSource."
    ],
-   "commit": null,
+   "commit": "89a612b",
    "environment": null,
    "effort": "S",
    "sources": [],
@@ -4263,7 +4267,7 @@
    "epic": "EP-09",
    "parent": null,
    "priority": "P0",
-   "status": "BLOCKED",
+   "status": "DONE",
    "dependencies": [
     "SB-003",
     "SB-004",
@@ -4281,9 +4285,10 @@
     "web/e2e/remote-flow.spec.ts no preview"
    ],
    "evidence": [
-    "docs/supabase/REMOTE-HOMOLOGATION.md"
+    "docs/supabase/REMOTE-HOMOLOGATION.md",
+    "Produção: dpl_AebyeHRbNLKmsFcfMuWf2Yx9nSVm, SHA 89a612b6d775a04a617e73f796ee5d9852c856af, https://newmemocuiaba.vercel.app (promovido em 2026-10-23 após GO operacional; rollback preparado para dpl_CX5GuvrnNSgjySpjBPpEGpX6hbKD). Variáveis de Production e Preview da Vercel apontam para o Supabase asyaegeodyttttaubvxh; fluxos de organizador, convidado, Master e Storage validados no domínio oficial."
    ],
-   "commit": "5374f89",
+   "commit": "89a612b",
    "environment": "vercel",
    "release": "R1"
   },
@@ -5688,7 +5693,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P1",
-   "status": "IN_REVIEW",
+   "status": "DONE",
    "dependencies": [
     "SB-004",
     "SB-008"
@@ -5702,9 +5707,10 @@
     "supabase/tests/database/07_entitlements.test.sql"
    ],
    "evidence": [
-    "Rodada 7: migration 20261022001400 aplicada no remoto pelo operador; remoto validado (somente leitura): 24/24 migrations, 5 planos com 0/2900/8900/18900/34900, 6 eventos com direito 'legado' e nenhum sem direito, RLS ligada, payments_env='desligado', list_public_plans só com o Grátis. Permanece IN_REVIEW porque depende de SB-008 (aberto)."
+    "Rodada 7: migration 20261022001400 aplicada no remoto pelo operador; remoto validado (somente leitura): 24/24 migrations, 5 planos com 0/2900/8900/18900/34900, 6 eventos com direito 'legado' e nenhum sem direito, RLS ligada, payments_env='desligado', list_public_plans só com o Grátis. Permanece IN_REVIEW porque depende de SB-008 (aberto).",
+    "Em produção (commit 89a612b): 24/24 migrations, direito 'legado' nos eventos existentes, evento novo com direito efetivo Grátis 10/10."
    ],
-   "commit": "fe0207d",
+   "commit": "89a612b",
    "environment": null,
    "release": "R3"
   },
@@ -5716,7 +5722,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P1",
-   "status": "IN_REVIEW",
+   "status": "DONE",
    "dependencies": [
     "COM-001"
    ],
@@ -5730,9 +5736,10 @@
     "web/e2e/produto-planos.spec.ts"
    ],
    "evidence": [
-    "Rodada 7: limites impostos pelo servidor (migration 001500 no remoto); pgTAP 968/968; E2E Supabase local 29/29. Permanece IN_REVIEW porque depende de COM-001."
+    "Rodada 7: limites impostos pelo servidor (migration 001500 no remoto); pgTAP 968/968; E2E Supabase local 29/29. Permanece IN_REVIEW porque depende de COM-001.",
+    "Em produção (commit 89a612b): assistente cria o evento 10/10 e o servidor impõe os limites; E2E 29/29 e pgTAP 968/968; criação pela interface validada no domínio oficial."
    ],
-   "commit": "fe0207d",
+   "commit": "89a612b",
    "environment": null,
    "release": "R3"
   },
@@ -6702,7 +6709,8 @@
     "docs/supabase/A5-HOMOLOGATION-REPORT.md",
     "dpl_AQwY… vazio; dpl_2v3G… correto",
     "A.5 r5: causa raiz: o projeto newmemocuiaba está ligado ao repositório mzinhoww-svg/newmemocuiaba (não ao memo-brasil). Criado memoriesmt-v2 (prj_udH3tmy4ZU5vAEIPVH61UVP6GEgs) ligado a memo-brasil, raiz web, Next.js, SSO em todos os domínios, backend Supabase em Preview. Push dispara deploy sozinho (dpl_6VKc7…, dpl_FGfLR…) mas a Vercel Hobby os BLOQUEIA porque o autor do commit (e-mail do yahoo) não pertence ao time. Intervenção do dono: associar/verificar esse e-mail na conta GitHub mzinhoww-svg (Settings → Emails) ou commitar com e-mail já associado; depois um push de teste. Caminho operacional documentado até lá: deploy manual por API (PUBLISH-AND-ROLLBACK.md). Não se alterou autoria nem histórico",
-    "22/10: deploys disparados por push continuam BLOCKED (e-mail do autor dos commits não vinculado à conta Vercel)."
+    "22/10: deploys disparados por push continuam BLOCKED (e-mail do autor dos commits não vinculado à conta Vercel).",
+    "Entrega final: pushes em feat/final-ui e o push que alinhou a main (89a612b) geram deployments BLOCKED; produção publicada por API (create_deployment target=production + request_promote). Pendência: vincular o e-mail do autor dos commits no GitHub/Vercel."
    ],
    "commit": null,
    "environment": "remoto",
@@ -7164,7 +7172,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P0",
-   "status": "BACKLOG",
+   "status": "DONE",
    "dependencies": [
     "REL-001"
    ],
@@ -7175,8 +7183,10 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
-   "commit": null,
+   "evidence": [
+    "Produção: dpl_AebyeHRbNLKmsFcfMuWf2Yx9nSVm, SHA 89a612b6d775a04a617e73f796ee5d9852c856af, https://newmemocuiaba.vercel.app (promovido em 2026-10-23 após GO operacional; rollback preparado para dpl_CX5GuvrnNSgjySpjBPpEGpX6hbKD). Smoke autenticado: login Google no host do candidato e no domínio oficial; evento sintético pelo assistente (duas caixas de aceite, recusa sem as duas); convidado público (Playwright, e2e/prod-smoke.spec.ts 2/2) entra, aceita, posta e vê no Agora; organizador vê a foto, QR decodifica para https://newmemocuiaba.vercel.app/e/24J9XU6E, URL assinada devolve 200 image/jpeg 4615 B; Master com 15 módulos e saúde sem alertas; /design e /dev/seed 404; 0 ocorrências de chaves privilegiadas nos 10 arquivos JS da home. NÃO coberto: testes físicos (REL-004), pagamentos reais, recuperação de Auth/Storage por API."
+   ],
+   "commit": "89a612b",
    "environment": "remoto",
    "release": "R1"
   },
@@ -7231,7 +7241,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P0",
-   "status": "BLOCKED",
+   "status": "DONE",
    "dependencies": [],
    "origin": "fechamento produto/pagamentos 2026-10-22",
    "acceptance": [
@@ -7239,8 +7249,10 @@
    ],
    "files": [],
    "tests": [],
-   "evidence": [],
-   "commit": null,
+   "evidence": [
+    "payments_env='desligado' confirmado no remoto por leitura SQL, no Master Pagamentos ('DESLIGADO', 0 pedidos) e na interface (/precos, /painel/<id>/plano e passo 4 mostram só o Grátis e 'Fale com a gente'). Cobrança pública desligada."
+   ],
+   "commit": "89a612b",
    "environment": "operador",
    "release": "R1"
   },
