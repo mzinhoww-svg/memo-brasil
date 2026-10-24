@@ -8,6 +8,14 @@ Front-end: projeto Vercel `newmemocuiaba` (`newmemocuiaba.vercel.app`). Não cri
 
 Nenhum valor real aparece aqui. `<...>` marca o que o operador preenche, sempre fora do repositório. **O agente nunca recebe, imprime nem grava credenciais**: tudo abaixo é executado por você.
 
+## Situação em 23/10/2026 (fim da Rodada 10, preparada pelo agente)
+
+- **Pronto e verificado localmente** (branch `feat/mercadopago`, integrada com a home publicada `9c36af0`/`8530c4e`): tsc limpo, vitest web 525/525, funções 109/109, pgTAP 1120/1120 (estado anterior ao merge da home, que não toca `supabase/`), E2E padrão 104 passed/58 skipped, E2E Supabase com fake do Mercado Pago e functions reais 43/43. O fake **não conta** como homologação externa.
+- **Backup feito hoje:** `~/Backups/memoriesmt/20261023-2126` (schema 24 tabelas, checksums 16/16). A primeira tentativa do `pg_dump` falhou por DNS do host direto e foi refeita pelo pooler; o script agora recusa dump vazio (commit `934e1cd`, `feat/final-ops`).
+- **`supabase db push --linked --dry-run`:** lista somente `20261023000100_payments_mercadopago.sql` (001400–001800 já estão no remoto).
+- **Bloqueado para o agente:** o controle de permissões recusou `supabase db push --linked --yes` ([Production Deploy]). A ação **exata** que falta é a etapa 3 abaixo; deploy das funções, segredos, Vault e webhook também ficam com o operador. A produção continua em `9c36af0` sem o código do Mercado Pago, com cobrança desligada.
+- **Não publicar o candidato do Mercado Pago antes das etapas 3 e 4:** o front novo espera `payment_charges`, `payments_apply_payment` e as functions `payments-*` novas.
+
 ## Estado e pré-requisitos
 
 - **Migrations pendentes no remoto** (confira com `supabase migration list --linked`): `20261022001400` a `001800` (planos, direitos, pagamentos, Master, cortesia) **e** `20261023000100_payments_mercadopago`. Todas aditivas.
