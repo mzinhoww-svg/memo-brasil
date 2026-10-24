@@ -65,11 +65,15 @@ language sql stable security definer set search_path = '' as $$
   end
 $$;
 
+-- O papel sai de actor_id, nunca de auth.uid(): quem grava actor_id nulo está registrando um efeito do sistema
+-- (reveal.released, retention.expired, account.deleted), mesmo quando isso roda dentro de uma ação de usuário/master
+-- (admin_reveal_now grava reveal.released sem ator e admin.reveal_now com o master). Assim a linha de sistema não é
+-- atribuída a quem chamou.
 create function public.audit_logs_fill() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
   if new.actor_role is null then
-    new.actor_role := public.audit_actor_role_for(coalesce(new.actor_id, auth.uid()), new.event_id);
+    new.actor_role := public.audit_actor_role_for(new.actor_id, new.event_id);
   end if;
   if new.target_type is null and new.target_id is null and new.event_id is not null then
     new.target_type := 'event'; new.target_id := new.event_id::text;

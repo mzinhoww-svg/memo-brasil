@@ -245,7 +245,7 @@ test("(d) Revelações: revelar agora pede justificativa, revela e audita", asyn
   expect(ev.reveal_status).toBe("revelada");
   const aud = (await admin.from("audit_logs").select("action,reason,actor_role").eq("event_id", S.realA.id).in("action", ["admin.reveal_now", "reveal.released"])).data!;
   expect(aud).toContainEqual({ action: "admin.reveal_now", reason: REASON, actor_role: "master" });
-  expect(aud.map((a) => a.action)).toContain("reveal.released");
+  expect(aud).toContainEqual({ action: "reveal.released", reason: null, actor_role: "sistema" }); // sem ator: sistema, não o master
   await ctx.close();
 });
 

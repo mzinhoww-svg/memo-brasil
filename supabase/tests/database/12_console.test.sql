@@ -204,6 +204,10 @@ insert into public.audit_logs (actor_id, actor_role, event_id, action, target_ty
 values ('00000000-0000-4000-8000-0000000012c1', 'operador', '00000000-0000-4000-8000-0000000012e1', 'test12.explicit', 'plan', 'festa');
 select is((select actor_role || '/' || target_type || '/' || target_id from public.audit_logs where action = 'test12.explicit'),
   'operador/plan/festa', 'valores explícitos são preservados');
+-- M2: sem actor_id é sistema mesmo dentro de uma requisição de usuário (auth.uid() do master não vira o ator)
+insert into public.audit_logs (event_id, action) values ('00000000-0000-4000-8000-0000000012e1', 'test12.noactor_in_request');
+select is((select actor_role from public.audit_logs where action = 'test12.noactor_in_request'), 'sistema',
+  'sem actor_id numa requisição do master: sistema');
 select tests.claims(null);
 insert into public.audit_logs (action) values ('test12.noevent');
 select is((select coalesce(target_type, '-') from public.audit_logs where action = 'test12.noevent'), '-', 'sem evento: alvo continua vazio');
@@ -387,6 +391,8 @@ select is((select count(*)::int from public.audit_logs where event_id = '0000000
 select is((select count(*)::int from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000012e7' and action = 'admin.reveal_now'
            and actor_id = '00000000-0000-4000-8000-0000000012c1' and actor_role = 'master' and reason = 'Anfitriã pediu por telefone'), 1,
   'admin.reveal_now auditado com motivo');
+select is((select actor_role from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000012e7' and action = 'reveal.released'
+           and actor_id is null), 'sistema', 'reveal.released gravado por admin_reveal_now (sem ator): sistema, não master');
 select ok(public.is_revealed('00000000-0000-4000-8000-0000000012e7'), 'is_revealed passa a valer');
 -- a rotina agendada continua funcionando (agora pela mesma função); no cron não há JWT
 select tests.claims(null);
