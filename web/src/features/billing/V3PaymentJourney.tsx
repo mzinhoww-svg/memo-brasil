@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "@/features/admin/context";
 import { BillingUnavailableError, formatBRL, getPublicSettings, listPublicPlans, openOrder, quote } from "./api";
 import { currentPlanCode } from "./entitlement";
-import { QUOTE_BLOCK } from "./flow";
+import { parseReturn, QUOTE_BLOCK } from "./flow";
 import { EmbeddedPaymentCheckout } from "./EmbeddedPaymentCheckout";
 import { CodeApplied, RedeemCode } from "./RedeemCode";
 import { guestsInput, isUpgrade, planSupports, recommendForGuests, salePlans } from "./v3-plan";
@@ -30,6 +30,14 @@ export function V3PaymentJourney() {
   const [q, setQ] = useState<QuoteState | null>(null);
   const [order, setOrder] = useState<OrderView | null>(null);
   const [applied, setApplied] = useState<{ code: string; planCode: string } | null>(null);
+  // Old Checkout Pro callbacks can still arrive for existing pending purchases.
+  // Query params are never accepted as proof of payment.
+  const [returnHint] = useState(() => typeof window === "undefined" ? null : parseReturn(window.location.search));
+  useEffect(() => {
+    if (typeof window === "undefined" || !returnHint) return;
+    if (window.location.search !== returnHint.search)
+      window.history.replaceState(window.history.state, "", window.location.pathname + returnHint.search + window.location.hash);
+  }, [returnHint]);
   const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
@@ -39,10 +47,10 @@ export function V3PaymentJourney() {
         openOrder(eventId).catch(e => { if (e instanceof BillingUnavailableError) return null; throw e; }),
       ]);
       setPlans(p); setSettings(s); setCurrentCode(c);
-      if (existing && OPEN.has(existing.status)) setOrder(existing);
+      if (existing && (OPEN.has(existing.status) || returnHint?.hint)) setOrder(existing);
       setLoadError(false);
     } catch { setLoadError(true); }
-  }, [eventId]);
+  }, [eventId, returnHint]);
   useEffect(() => { void load(); }, [load]);
 
   const sale = useMemo(() => salePlans(plans ?? []), [plans]);
