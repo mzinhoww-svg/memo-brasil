@@ -41,7 +41,7 @@ test("master altera o preço do Casamento com motivo e list_public_plans mostra 
     const page = await ctx.newPage();
     await page.goto("/master/planos");
     await expect(page.getByRole("heading", { name: "Planos e preços" })).toBeVisible();
-    await expect(page.getByText("Mudanças valem para pedidos novos; um Pix já gerado mantém o valor dele.", { exact: false })).toBeVisible();
+    await expect(page.getByText("Mudanças valem para pedidos novos; um pagamento já iniciado mantém o valor dele.", { exact: false })).toBeVisible();
     await expect(page.getByText("Limites de convidados e fotos mudam só por migration", { exact: false })).toBeVisible();
 
     await page.getByRole("button", { name: "Editar Casamento" }).click();

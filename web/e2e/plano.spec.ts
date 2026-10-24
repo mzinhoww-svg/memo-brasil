@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createViaWizard } from "./helpers";
 
-// Modo local (sem backend): cobrança não existe; a rota nova abre em B7 e nunca oferece Pix.
+// Modo local (sem backend): cobrança não existe; a rota nova abre em B7 e nunca oferece pagamento.
 test("modo local: /painel/[id]/plano mostra B7 (Evento maior?) e o item Plano na navegação", async ({ page }) => {
   const { id } = await createViaWizard(page, { title: "Plano local" });
   await page.goto(`/painel/${id}`);
