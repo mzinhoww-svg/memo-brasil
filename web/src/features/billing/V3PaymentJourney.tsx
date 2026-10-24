@@ -8,6 +8,7 @@ import { BillingUnavailableError, formatBRL, getPublicSettings, listPublicPlans,
 import { currentPlanCode } from "./entitlement";
 import { QUOTE_BLOCK } from "./flow";
 import { EmbeddedPaymentCheckout } from "./EmbeddedPaymentCheckout";
+import { CodeApplied, RedeemCode } from "./RedeemCode";
 import { guestsInput, isUpgrade, planSupports, recommendForGuests, salePlans } from "./v3-plan";
 import type { OrderView, PublicPlan, PublicSettings, Quote } from "./types";
 import styles from "./V3PaymentJourney.module.css";
@@ -28,6 +29,7 @@ export function V3PaymentJourney() {
   const [currentCode, setCurrentCode] = useState("gratis");
   const [q, setQ] = useState<QuoteState | null>(null);
   const [order, setOrder] = useState<OrderView | null>(null);
+  const [applied, setApplied] = useState<{ code: string; planCode: string } | null>(null);
   const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
@@ -91,7 +93,11 @@ export function V3PaymentJourney() {
       </nav>
       <div className={styles.columns}>
         <section className={styles.panel}>
-          {order ? (
+          {applied ? (
+            <CodeApplied plan={plans.find(p => p.code === applied.planCode)}
+              code={applied.code} eventTitle={event.title}
+              backHref={`/painel/${eventId}`} printHref={`/painel/${eventId}/qr`}/>
+          ) : order ? (
             <EmbeddedPaymentCheckout
               eventId={eventId} planCode={order.planCode || target?.code || ""}
               amountCents={order.amountCents} initialOrder={order} onPaid={onPaid}
@@ -136,6 +142,14 @@ export function V3PaymentJourney() {
               </div>
               <div className={styles.priceBox}><div><small>Plano {label}</small><strong>{target ? cap(target) : "—"}</strong><small>Sem assinatura</small></div><strong className={styles.price}>{paying ? amount === undefined ? "Consultando…" : formatBRL(amount) : "Já incluído"}</strong></div>
               {!!qCurrent?.fromPlanCode && <p className={styles.caption}>Upgrade calculado pelo servidor: você paga somente a diferença.</p>}
+              <details className="plano-codigo" style={{ marginTop: 20 }}>
+                <summary style={{ cursor: "pointer", fontWeight: 750 }}>Tenho um código de presente</summary>
+                <RedeemCode eventId={eventId} onApplied={(r) => {
+                  setApplied({ code: r.code, planCode: r.planCode ?? "" });
+                  void currentPlanCode(eventId).then(setCurrentCode);
+                  void refresh();
+                }}/>
+              </details>
               {blocked && <p role="status" className={styles.notice}>{blocked}</p>}
               <div className={styles.buttons}>
                 <button className={styles.secondary} onClick={() => setPhase("capacity")}>Alterar capacidade</button>
