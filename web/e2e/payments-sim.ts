@@ -126,8 +126,8 @@ export async function installSim(page: Page, planCode = "casamento"): Promise<Si
   return sim;
 }
 
-export async function openPlano(browser: import("@playwright/test").Browser, u: TestUser, eventId: string, baseURL: string, query = "") {
-  const ctx = await browser.newContext();
+export async function openPlano(browser: import("@playwright/test").Browser, u: TestUser, eventId: string, baseURL: string, query = "", viewport?: { width: number; height: number }) {
+  const ctx = await browser.newContext(viewport ? { viewport, isMobile: true, hasTouch: true } : undefined);
   await setSession(ctx, u.session, baseURL);
   const page = await ctx.newPage();
   const sim = await installSim(page);

@@ -103,9 +103,11 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
               <div><dt>Como paga</dt><dd>Pagamento único por evento, sem assinatura</dd></div>
             </dl>
           )}
-          <Button variant="cta" block disabled={busy || !plan || !!blocked} aria-busy={busy} onClick={() => onPay(chosen)}>
-            {busy ? "Abrindo o Mercado Pago…" : pay !== undefined ? `Pagar com Mercado Pago · ${formatBRL(pay)}` : "Pagar com Mercado Pago"}
-          </Button>
+          <div className="plano-pagar">
+            <Button variant="cta" block disabled={busy || !plan || !!blocked} aria-busy={busy} onClick={() => onPay(chosen)}>
+              {busy ? "Abrindo o Mercado Pago…" : pay !== undefined ? <>Pagar com Mercado Pago · <span className="nowrap">{formatBRL(pay)}</span></> : "Pagar com Mercado Pago"}
+            </Button>
+          </div>
           <p className="app-p app-muted plano-nota">Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado.</p>
         </div>
       </div>

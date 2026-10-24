@@ -141,6 +141,18 @@
 .plano-fechar { width: var(--size-alvo); height: var(--size-alvo); border: 0; background: none; font-size: 28px; line-height: 1; color: var(--tinta); cursor: pointer; }
 .plano-aviso { background: #FFF3D6; color: #5C3D00; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: 16px; line-height: 1.35; }
 .plano-erro { margin: 0; color: var(--rec-texto); font-weight: 600; }
+.nowrap { white-space: nowrap; }
+.plano-resumo-pedido { margin: 0; background: var(--neutro); border-radius: var(--radius-panel); display: flex; flex-direction: column; }
+.plano-resumo-pedido > div { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--divisor); display: flex; justify-content: space-between; gap: var(--space-3); }
+.plano-resumo-pedido > div:last-child { border-bottom: 0; }
+.plano-resumo-pedido dt { font-size: 14px; color: var(--apoio); flex: none; }
+.plano-resumo-pedido dd { margin: 0; font-weight: 700; font-size: 16px; text-align: right; overflow-wrap: anywhere; }
+/* Celular: o botão de pagar fica sempre à mão (não some atrás da lista) e respeita a barra do aparelho (viewport-fit=cover). */
+@media (max-width: 899px) {
+  .plano-colunas { gap: var(--space-4); }
+  .plano-resumo { display: contents; } /* o botão passa a grudar na coluna inteira, não só no bloco do resumo */
+  .plano-pagar { position: sticky; bottom: 0; z-index: 5; background: var(--fundo); padding-block: var(--space-3) max(var(--space-3), env(safe-area-inset-bottom)); box-shadow: 0 -10px 14px -12px rgba(0, 0, 0, 0.28); }
+}
 .plano-nota { font-size: 14px; text-align: center; }
 .plano-espera { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); background: var(--neutro); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); flex-wrap: wrap; }
 .plano-aguardando { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-size: 14px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #7A4B00; }
