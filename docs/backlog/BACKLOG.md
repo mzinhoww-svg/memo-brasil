@@ -613,10 +613,10 @@ Total: **256** itens (sem contar 19 épicos). Prioridade: P0 46, P1 92, P2 64, P
 | PAY-003 | BUG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
 | PAY-004 | TASK | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução | P2 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
 | PAY-005 | BUG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | P2 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-MOB-001 | TASK | Resumo do pedido, botão fiel e carregamento no plano (mobile) | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | HEAD | codigo |
-| PAY-MOB-002 | TASK | Ponte CheckoutBridge e retomada ao voltar do Mercado Pago | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | HEAD | codigo |
-| PAY-MOB-003 | TASK | Estados de rede e pedido sem link no pendente | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | HEAD | codigo |
-| PAY-MOB-004 | TASK | Layout 360/390/430: CTA fixo com área segura, alvos 44px, sem rolagem lateral | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | HEAD | codigo |
+| PAY-MOB-001 | TASK | Resumo do pedido, botão fiel e carregamento no plano (mobile) | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | cf47ac9 | codigo |
+| PAY-MOB-002 | TASK | Ponte CheckoutBridge e retomada ao voltar do Mercado Pago | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | cf47ac9 | codigo |
+| PAY-MOB-003 | TASK | Estados de rede e pedido sem link no pendente | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | cf47ac9 | codigo |
+| PAY-MOB-004 | TASK | Layout 360/390/430: CTA fixo com área segura, alvos 44px, sem rolagem lateral | P1 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | cf47ac9 | codigo |
 | PAY-MOB-005 | TASK | Testes em aparelho físico iOS/Android, teclado aberto, Pix em produção e regras das lojas | P1 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | codigo |
 | PAY-MP-001 | TASK | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | operador |
 | PAY-MP-002 | TASK | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | IN_REVIEW | PAY-MP-003 | migração Mercado Pago 2026-10-23 | 541df22 | operador |

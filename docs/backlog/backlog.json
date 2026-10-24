@@ -7650,7 +7650,7 @@
    "evidence": [
     "vitest plano-ui (resumo, carregamento, clique duplo); E2E payments/plano-mercadopago com fake"
    ],
-   "commit": "HEAD",
+   "commit": "cf47ac9",
    "release": "R3",
    "id": "PAY-MOB-001",
    "title": "Resumo do pedido, botão fiel e carregamento no plano (mobile)",
@@ -7676,7 +7676,7 @@
    "evidence": [
     "vitest checkout-nav e plano-ui"
    ],
-   "commit": "HEAD",
+   "commit": "cf47ac9",
    "release": "R3",
    "id": "PAY-MOB-002",
    "title": "Ponte CheckoutBridge e retomada ao voltar do Mercado Pago",
@@ -7702,7 +7702,7 @@
    "evidence": [
     "vitest plano-ui"
    ],
-   "commit": "HEAD",
+   "commit": "cf47ac9",
    "release": "R3",
    "id": "PAY-MOB-003",
    "title": "Estados de rede e pedido sem link no pendente",
@@ -7728,7 +7728,7 @@
    "evidence": [
     "E2E pagamento-mobile (3 viewports + tela baixa 568) e capturas em docs/evidence/pagamento-mobile"
    ],
-   "commit": "HEAD",
+   "commit": "cf47ac9",
    "release": "R3",
    "id": "PAY-MOB-004",
    "title": "Layout 360/390/430: CTA fixo com área segura, alvos 44px, sem rolagem lateral",
