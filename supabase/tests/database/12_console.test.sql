@@ -90,7 +90,7 @@ select has_function('public', 'admin_health_history', array['integer'], 'admin_h
 select has_function('public', 'admin_reveal_now', array['uuid', 'text'], 'admin_reveal_now existe');
 select has_function('public', 'admin_set_test_flag', array['uuid[]', 'boolean', 'text'], 'admin_set_test_flag existe');
 select has_function('public', 'admin_soft_delete_test_events', array['uuid[]', 'text'], 'admin_soft_delete_test_events existe');
-select has_function('public', 'purge_anon_orphans', array[]::text[], 'purge_anon_orphans existe');
+select has_function('public', 'purge_anon_orphans', array['integer'], 'purge_anon_orphans existe');
 
 -- todas: security definer + search_path vazio
 select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
@@ -114,8 +114,8 @@ select ok(not has_function_privilege('anon', 'public.admin_set_test_flag(uuid[],
 select ok(not has_function_privilege('anon', 'public.admin_soft_delete_test_events(uuid[], text)', 'execute'), 'anon não executa admin_soft_delete_test_events');
 select ok(has_function_privilege('authenticated', 'public.admin_overview(int, boolean)', 'execute'), 'authenticated executa admin_overview (papel checado dentro)');
 select ok(has_function_privilege('authenticated', 'public.admin_soft_delete_test_events(uuid[], text)', 'execute'), 'authenticated executa admin_soft_delete_test_events (papel checado dentro)');
-select ok(not has_function_privilege('authenticated', 'public.purge_anon_orphans()', 'execute'), 'cliente não executa purge_anon_orphans');
-select ok(not has_function_privilege('anon', 'public.purge_anon_orphans()', 'execute'), 'anon não executa purge_anon_orphans');
+select ok(not has_function_privilege('authenticated', 'public.purge_anon_orphans(int)', 'execute'), 'cliente não executa purge_anon_orphans');
+select ok(not has_function_privilege('anon', 'public.purge_anon_orphans(int)', 'execute'), 'anon não executa purge_anon_orphans');
 
 set local role anon;
 select throws_ok($$select public.admin_overview(30, false)$$, '42501', null, 'anon chamando admin_overview: permissão negada');
@@ -447,12 +447,33 @@ reset role;
 select ok(not exists (select 1 from pg_extension where extname = 'pg_cron')
           or exists (select 1 from cron.job where jobname = 'mm-purge-anon-orphans' and not active and schedule ~ '^\S+ \S+ \* \* \*$'),
   'mm-purge-anon-orphans diário e inativo');
+-- M3: anônimos antigos sem participação atual, mas com rastro (consentimento, ex-participação auditada, reação) ficam;
+-- d7 é outro órfão puro (para o limite por execução)
+insert into auth.users (id, aud, role, email, is_anonymous, raw_user_meta_data, raw_app_meta_data, created_at) values
+  ('00000000-0000-4000-8000-0000000012d4', 'authenticated', 'authenticated', null, true, '{}', '{}', now() - interval '10 days'),
+  ('00000000-0000-4000-8000-0000000012d5', 'authenticated', 'authenticated', null, true, '{}', '{}', now() - interval '10 days'),
+  ('00000000-0000-4000-8000-0000000012d6', 'authenticated', 'authenticated', null, true, '{}', '{}', now() - interval '10 days'),
+  ('00000000-0000-4000-8000-0000000012d7', 'authenticated', 'authenticated', null, true, '{}', '{}', now() - interval '10 days');
+insert into public.profiles (id) select id from auth.users where id::text like '00000000-0000-4000-8000-0000000012d%' on conflict do nothing;
+insert into public.user_consents (user_id, role, event_id, terms_version, privacy_version)
+values ('00000000-0000-4000-8000-0000000012d4', 'convidado', '00000000-0000-4000-8000-0000000012e1', 'v1', 'v1');
+insert into public.audit_logs (actor_id, event_id, action) values ('00000000-0000-4000-8000-0000000012d5', '00000000-0000-4000-8000-0000000012e1', 'participant.joined');
+insert into public.reactions (photo_id, author_id, event_id, kind)
+values ('00000000-0000-4000-8000-0000000012f1', '00000000-0000-4000-8000-0000000012d6', '00000000-0000-4000-8000-0000000012e1', 'amei');
+
 select tests.claims(null);
+select is(public.purge_anon_orphans(1), 1, 'purge_anon_orphans respeita o limite por execução');
+select is((select (detail ->> 'limit')::int from public.audit_logs where action = 'system.anon_orphans_purged' order by id desc limit 1), 1,
+  'limite auditado');
 select public.purge_anon_orphans() as purged \gset
 select ok(:purged >= 1, 'purge_anon_orphans remove ao menos um');
 select ok(not exists (select 1 from auth.users where id = '00000000-0000-4000-8000-0000000012d1'), 'anônimo órfão antigo removido');
+select ok(not exists (select 1 from auth.users where id = '00000000-0000-4000-8000-0000000012d7'), 'segundo órfão removido na execução seguinte');
 select ok(exists (select 1 from auth.users where id = '00000000-0000-4000-8000-0000000012d2'), 'anônimo recente fica');
 select ok(exists (select 1 from auth.users where id = '00000000-0000-4000-8000-0000000012d3'), 'anônimo com participação fica');
+select ok(exists (select 1 from auth.users where id = '00000000-0000-4000-8000-0000000012d4'), 'anônimo com consentimento registrado fica (prova de aceite)');
+select ok(exists (select 1 from auth.users where id = '00000000-0000-4000-8000-0000000012d5'), 'anônimo que já participou (saiu ou foi removido) fica');
+select ok(exists (select 1 from auth.users where id = '00000000-0000-4000-8000-0000000012d6'), 'anônimo com reação fica');
 select ok(exists (select 1 from auth.users where id = '00000000-0000-4000-8000-0000000012b1'), 'usuário não anônimo antigo fica');
 select is((select (detail ->> 'count')::int from public.audit_logs where action = 'system.anon_orphans_purged' order by id desc limit 1), :purged,
   'contagem auditada');

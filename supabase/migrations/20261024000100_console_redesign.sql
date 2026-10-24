@@ -592,24 +592,40 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------- órfãos anônimos (rotina, não RPC)
--- Conta anônima criada há mais de 7 dias que nunca entrou em evento (sem linha em participants), não hospeda evento e não
--- tem papel de plataforma. Audita só a contagem (system.anon_orphans_purged).
-create function public.purge_anon_orphans() returns int
+-- Conta anônima criada há mais de 7 dias SEM NENHUM RASTRO: não está em evento (participants), não hospeda evento, não tem
+-- papel de plataforma, nem pedido de exclusão LGPD pendente, e não deixou rastro que o DELETE em cascata apagaria ou
+-- desligaria: consentimento (user_consents é prova de aceite), reação, denúncia, foto (photos.author_id viraria nulo),
+-- asset de evento ou qualquer linha de auditoria como ator (participant.joined de quem saiu ou foi removido do evento,
+-- consent.recorded etc.). Decisão: quem já participou ou aceitou termos não é órfão; fica para a retenção normal/LGPD.
+-- No máximo p_limit (padrão 500, teto 5000) contas por execução, as mais antigas primeiro; o resto fica para a próxima.
+-- Audita só a contagem (system.anon_orphans_purged). O job diário nasce INATIVO.
+create function public.purge_anon_orphans(p_limit int default 500) returns int
 language plpgsql security definer set search_path = '' as $$
-declare n int;
+declare n int; lim int := least(greatest(coalesce(p_limit, 500), 1), 5000);
 begin
-  with gone as (
-    delete from auth.users u
+  with alvo as (
+    select u.id from auth.users u
      where coalesce(u.is_anonymous, false) and u.created_at < now() - interval '7 days'
        and not exists (select 1 from public.participants p where p.user_id = u.id)
        and not exists (select 1 from public.events e where e.host_id = u.id)
        and not exists (select 1 from public.platform_roles r where r.user_id = u.id)
-    returning u.id
+       and not exists (select 1 from public.account_deletion_requests d where d.user_id = u.id)
+       and not exists (select 1 from public.user_consents c where c.user_id = u.id)
+       and not exists (select 1 from public.reactions x where x.author_id = u.id)
+       and not exists (select 1 from public.photo_reports x where x.user_id = u.id)
+       and not exists (select 1 from public.photos x where x.author_id = u.id)
+       and not exists (select 1 from public.event_assets x where x.created_by = u.id)
+       and not exists (select 1 from public.audit_logs a where a.actor_id = u.id)
+     order by u.created_at, u.id
+     limit lim
+     for update of u skip locked
+  ), gone as (
+    delete from auth.users u using alvo where u.id = alvo.id returning u.id
   )
   select count(*) into n from gone;
   insert into public.audit_logs (actor_id, actor_role, action, target_type, target_id, detail)
   values (null, 'sistema', 'system.anon_orphans_purged', 'auth.users', 'anonymous',
-          jsonb_build_object('count', n, 'olderThanDays', 7, 'ran_at', now()));
+          jsonb_build_object('count', n, 'limit', lim, 'olderThanDays', 7, 'ran_at', now()));
   return n;
 end $$;
 
@@ -629,9 +645,9 @@ end $$;
 -- internas: ninguém além do dono (trigger, rotina e auxiliares); purge_anon_orphans também para service_role (como reveal_due_events)
 revoke execute on function public.is_test_guard(), public.console_backfill_test_flags(), public.audit_actor_role_for(uuid, uuid),
   public.audit_logs_fill(), public.release_reveal(uuid, timestamptz, text), public.audit_category_pattern(text),
-  public.purge_anon_orphans()
+  public.purge_anon_orphans(int)
   from public, anon, authenticated, service_role;
-grant execute on function public.purge_anon_orphans() to service_role;
+grant execute on function public.purge_anon_orphans(int) to service_role;
 
 revoke execute on function
   public.admin_overview(int, boolean), public.admin_list_events_v2(int, int, text, text, boolean, text, text),

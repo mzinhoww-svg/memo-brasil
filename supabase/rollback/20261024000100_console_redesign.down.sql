@@ -43,7 +43,7 @@ drop function if exists public.admin_health_history(int);
 drop function if exists public.admin_reveal_now(uuid, text);
 drop function if exists public.admin_set_test_flag(uuid[], boolean, text);
 drop function if exists public.admin_soft_delete_test_events(uuid[], text);
-drop function if exists public.purge_anon_orphans();
+drop function if exists public.purge_anon_orphans(int);
 drop function if exists public.release_reveal(uuid, timestamptz, text);
 drop function if exists public.audit_category_pattern(text);
 
