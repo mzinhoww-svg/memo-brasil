@@ -9,7 +9,7 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("./api", async (orig) => ({ ...(await orig<typeof import("./api")>()), ...api }));
 const nav = vi.hoisted(() => ({ goToCheckout: vi.fn() }));
-vi.mock("./checkout-nav", () => nav);
+vi.mock("./checkout-nav", async (orig) => ({ ...(await orig<typeof import("./checkout-nav")>()), goToCheckout: nav.goToCheckout }));
 vi.mock("./entitlement", () => ({ currentPlanCode: vi.fn(async () => "gratis") }));
 vi.mock("@/features/admin/context", () => ({ useAdmin: () => ({ event: { id: "ev1", title: "Ana & Rui" }, refresh: vi.fn() }) }));
 
@@ -178,6 +178,32 @@ describe("CheckoutPending", () => {
     await act(async () => { document.dispatchEvent(new Event("visibilitychange")); });
     expect(api.orderStatus).toHaveBeenCalledTimes(3);
     vis.mockRestore();
+  });
+  it("rede: 3 consultas seguidas falhando mostram aviso e 'Atualizar' consulta na hora; some quando responde", async () => {
+    vi.useFakeTimers();
+    api.orderStatus.mockRejectedValue(new Error("rede"));
+    render(<CheckoutPending {...props} order={ORDER} />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_100); });
+    expect(api.orderStatus).toHaveBeenCalledTimes(3);
+    expect(screen.getByTestId("sem-conexao")).toBeInTheDocument();
+    api.orderStatus.mockResolvedValue({ ...ORDER });
+    await act(async () => { screen.getByRole("button", { name: "Atualizar" }).click(); await vi.advanceTimersByTimeAsync(10); });
+    expect(api.orderStatus).toHaveBeenCalledTimes(4);
+    expect(screen.queryByTestId("sem-conexao")).toBeNull();
+  });
+  it("pendente do Mercado Pago ainda sem link: oferece 'Atualizar' (nunca só texto)", async () => {
+    const { checkoutUrl: _c, ...rest } = ORDER; void _c;
+    render(<CheckoutPending {...props} order={{ ...rest, provider: "mercadopago" }} />);
+    expect(screen.getByText(/preparando o link de pagamento/)).toBeInTheDocument();
+    api.orderStatus.mockResolvedValue({ ...ORDER });
+    await userEvent.click(screen.getByRole("button", { name: "Atualizar" }));
+    expect(api.orderStatus).toHaveBeenCalledTimes(1);
+  });
+  it("voltar do Mercado Pago pelo histórico (pageshow do bfcache) consulta o status na hora", async () => {
+    api.orderStatus.mockResolvedValue({ ...ORDER });
+    render(<CheckoutPending {...props} order={ORDER} />);
+    await act(async () => { window.dispatchEvent(Object.assign(new Event("pageshow"), { persisted: true })); });
+    expect(api.orderStatus).toHaveBeenCalledTimes(1);
   });
   it("pago pelo polling vira B3 sem recarregar e para de consultar", async () => {
     vi.useFakeTimers();
