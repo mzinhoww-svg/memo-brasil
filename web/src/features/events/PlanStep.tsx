@@ -7,7 +7,7 @@ import { TrustBlock } from "@/features/billing/TrustBlock";
 import type { PublicPlan, PublicSettings } from "@/features/billing/types";
 import { hasPaidPlans } from "./plan-catalog";
 
-export const PAID_PLAN_LINE = "O evento nasce grátis. Com plano pago, você paga no Pix na tela seguinte.";
+export const PAID_PLAN_LINE = "O evento nasce grátis. Com plano pago, você paga com Pix ou cartão na tela seguinte.";
 
 type Props = { plans: PublicPlan[] | null; settings: PublicSettings | null; selected: string; onSelect: (code: string) => void; pendingCode: string | null };
 

@@ -96,9 +96,9 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
           {blocked && <p className="app-p" role="status">{blocked}</p>}
           {error && <p className="plano-erro" role="alert">{error}</p>}
           <Button variant="cta" block disabled={busy || !plan || !!blocked} onClick={() => onPay(chosen)}>
-            {pay !== undefined ? `Pagar ${formatBRL(pay)} no Pix` : "Pagar no Pix"}
+            {pay !== undefined ? `Pagar ${formatBRL(pay)}` : "Pagar"}
           </Button>
-          <p className="app-p app-muted plano-nota">O plano libera assim que o banco confirmar.</p>
+          <p className="app-p app-muted plano-nota">Você conclui o pagamento no Mercado Pago, com Pix ou cartão, e volta para cá. O plano libera assim que o pagamento for confirmado.</p>
         </div>
       </div>
     </div>

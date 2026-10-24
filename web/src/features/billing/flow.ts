@@ -1,4 +1,4 @@
-/** Lógica pura da página de plano (COM-006): estado do pedido -> tela, contagem, idempotência, textos. Nenhum valor é calculado aqui, exceto o custo por convidado do TrustBlock, definido pelo plano. */
+/** Lógica pura da página de plano (COM-006): estado do pedido -> tela, contagem, idempotência, retorno do checkout, textos. Nenhum valor é calculado aqui, exceto o custo por convidado do TrustBlock, definido pelo plano. */
 import { formatBRL } from "./api";
 import type { OrderView, PublicPlan } from "./types";
 
@@ -45,7 +45,7 @@ export function idempotencyKeyFor(eventId: string, planCode: string): string {
     return s;
   }
 }
-/** Nova intenção de compra (Pix expirado ou falho): descarta a chave. */
+/** Nova intenção de compra (pagamento expirado ou falho): descarta a chave. */
 export function clearIdempotencyKey(eventId: string, planCode: string): void {
   const k = slot(eventId, planCode);
   memoryKeys.delete(k);
@@ -57,9 +57,29 @@ export function reconcileCheckout(order: OrderView, wantedPlan: string): { order
   return { order, otherPlan: order.planCode !== wantedPlan };
 }
 
-export function orderQrSrc(b64: string | undefined): string | null {
-  if (!b64) return null;
-  return b64.startsWith("data:") ? b64 : `data:image/png;base64,${b64}`;
+/** Forma de pagamento para o comprovante. Desconhecida cai no nome do provedor; pedido histórico AbacatePay era sempre Pix. */
+export function paymentLabel(order: Pick<OrderView, "paymentMethod" | "provider">): string {
+  const m = order.paymentMethod;
+  if (m === "pix") return "Pix";
+  if (m === "card" || m === "credit_card" || m === "debit_card") return "Cartão";
+  return order.provider === "abacatepay" ? "Pix (AbacatePay)" : "Mercado Pago";
+}
+
+export type ReturnHint = "sucesso" | "pendente" | "falha";
+/** Parâmetros que o Mercado Pago anexa às back_urls, mais o `retorno` do próprio app. Todos são só dica de UX. */
+const RETURN_PARAMS = [
+  "retorno", "payment_id", "status", "collection_id", "collection_status", "external_reference", "preference_id", "payment_type",
+  "merchant_order_id", "site_id", "processing_mode", "merchant_account_id",
+] as const;
+
+/** Lê a dica `?retorno=` e devolve a query sem os parâmetros do retorno (preserva `plano` e demais). Nada aqui libera plano. */
+export function parseReturn(search: string): { hint: ReturnHint | null; search: string } {
+  const q = new URLSearchParams(search);
+  const raw = q.get("retorno");
+  const hint: ReturnHint | null = raw === "sucesso" || raw === "pendente" || raw === "falha" ? raw : null;
+  for (const k of RETURN_PARAMS) q.delete(k);
+  const rest = q.toString();
+  return { hint, search: rest ? `?${rest}` : "" };
 }
 
 /** Posição do plano na lista do servidor (já ordenada); desconhecido = 0 (piso). */
@@ -91,10 +111,10 @@ export function formatDateTime(iso: string | undefined): string {
 
 export const PLAN_TEXT = {
   titulo: "De que tamanho é a festa?",
-  sub: "Pagamento único por evento, no Pix. Sem assinatura.",
-  expirado: "Nada foi cobrado. Gere um código novo quando quiser; ele vale por 30 minutos.",
+  sub: "Pix ou cartão, pagamento único por evento, no Mercado Pago. Sem assinatura.",
+  expirado: "Nada foi cobrado. Quando quiser, comece um novo pagamento.",
   provedor: "Seu pedido está guardado; tente de novo em 1 minuto.",
-  outroPlano: (nome: string) => `Você já tem um Pix aberto do plano ${nome}. Pague esse ou deixe expirar antes de escolher outro plano.`,
+  outroPlano: (nome: string) => `Você já tem um pagamento aberto do plano ${nome}. Conclua esse ou deixe expirar antes de escolher outro plano.`,
 } as const;
 
 /** Mensagem de recuperação para erros do checkout (sem expor códigos técnicos). */
@@ -104,7 +124,7 @@ export function checkoutErrorMessage(code: string): string {
     case "plano_inativo": return "Este plano não está à venda agora. Escolha outro.";
     case "evento_encerrado": return "Este evento já terminou. Não dá para mudar o plano.";
     case "valor_minimo": return "Não há valor a pagar por esta mudança de plano.";
-    case "pedido_aberto": return "Já existe um Pix aberto para este evento. Atualize a página para vê-lo.";
+    case "pedido_aberto": return "Já existe um pagamento aberto para este evento. Atualize a página para vê-lo.";
     case "unauthorized": case "forbidden": return "Só o anfitrião pode mudar o plano. Entre com a conta que criou o evento.";
     default: return "Não foi possível seguir agora. Nada foi cobrado; tente de novo em instantes.";
   }

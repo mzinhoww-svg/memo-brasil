@@ -58,7 +58,7 @@ export function PreEventChecklist({ eventId, eventCode, hasPhoto, order }: { eve
     { done: true, label: "Evento criado" },
     { done: hasPhoto, label: <Link href={`/e/${eventCode}`}>Tire a primeira foto como convidado</Link> },
     { done: false, label: <Link href={`/painel/${eventId}/qr`}>Imprima os cards das mesas</Link> },
-    ...(pay ? [{ done: false, label: <Link href={`/painel/${eventId}/plano`}>Pague o plano no Pix · {formatBRL(pay.amountCents)}</Link> }] : []),
+    ...(pay ? [{ done: false, label: <Link href={`/painel/${eventId}/plano`}>Conclua o pagamento do plano · {formatBRL(pay.amountCents)}</Link> }] : []),
   ];
   return (
     <section className="app-card" aria-labelledby="antes" data-testid="checklist">

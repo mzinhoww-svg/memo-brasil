@@ -10,7 +10,7 @@ const FAQ: { id: string; q: string; a: string }[] = [
   { id: "camera", q: "Câmera ou galeria?", a: "O melhor caminho é a câmera do aparelho, direto no navegador. Se a câmera não abrir ou você preferir, dá para escolher uma foto do aparelho. O número de fotos por pessoa é definido pelo organizador e aparece no rolo." },
   { id: "revelacao", q: "Quando as fotos aparecem?", a: "Depende da revelação programada pelo organizador: na hora, ao terminar o evento ou em data e horário escolhidos. Até lá, cada convidado vê só as próprias fotos. A revelação controla a exibição pelo serviço, mas não impede quem já recebeu acesso de fazer capturas ou compartilhar uma cópia." },
   { id: "privacidade", q: "Privacidade e guarda das fotos", a: "As fotos ficam disponíveis por 90 dias após o encerramento do evento; baixe o que quiser antes disso. Depois, o acesso é encerrado e a exclusão do armazenamento ativo ocorre em até 30 dias. Não usamos as fotos em publicidade nem para treinar modelos de inteligência artificial sem autorização específica e separada." },
-  { id: "preco", q: "Como funciona o pagamento?", a: "O evento nasce grátis, até 10 convidados. Se a festa for maior, você escolhe um plano e paga no Pix, uma vez por evento, sem assinatura. Os planos pagos só aparecem quando estiverem ativos. Veja a página de preços." },
+  { id: "preco", q: "Como funciona o pagamento?", a: "O evento nasce grátis, até 10 convidados. Se a festa for maior, você escolhe um plano e paga com Pix ou cartão, no Mercado Pago, uma vez por evento, sem assinatura. Os planos pagos só aparecem quando estiverem ativos. Veja a página de preços." },
 ];
 
 export default function Ajuda() {
