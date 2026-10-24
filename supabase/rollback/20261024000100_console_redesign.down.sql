@@ -33,7 +33,7 @@ end $$;
 
 -- RPCs
 drop function if exists public.admin_overview(int, boolean);
-drop function if exists public.admin_list_events_v2(int, int, text, text, boolean, text, text);
+drop function if exists public.admin_list_events_v2(int, int, text, text, boolean, text, text, text);
 drop function if exists public.admin_event_detail(uuid);
 drop function if exists public.admin_search(text);
 drop function if exists public.admin_list_users_v2(int, int, text, boolean, text);

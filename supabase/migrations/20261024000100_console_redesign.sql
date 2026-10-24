@@ -293,9 +293,11 @@ end $$;
 -- ---------------------------------------------------------------- admin_list_events_v2
 -- p_status: ativo | encerrado | excluido (só os com deleted_at) | null (todos não excluídos)
 -- p_sort: createdAt (padrão) | startAt | title | hostName | participants | photos | revealAt | status · p_dir: asc | desc (padrão)
+-- p_reveal: pendente (revelação ligada, ainda não executada, evento não excluído; inclui as atrasadas) | atrasada (pendente
+-- com horário vencido) | null (sem filtro). Revelações usa pendente + revealAt asc: atrasadas primeiro, depois a mais próxima.
 create function public.admin_list_events_v2(p_limit int default 25, p_offset int default 0, p_search text default null,
                                             p_status text default null, p_include_tests boolean default false,
-                                            p_sort text default null, p_dir text default null) returns jsonb
+                                            p_sort text default null, p_dir text default null, p_reveal text default null) returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
 declare lim int := least(greatest(coalesce(p_limit, 25), 1), 100); off int := greatest(coalesce(p_offset, 0), 0);
         pat text := case when nullif(btrim(p_search), '') is null then null
@@ -305,6 +307,7 @@ declare lim int := least(greatest(coalesce(p_limit, 25), 1), 100); off int := gr
 begin
   if not public.is_platform_staff() then raise exception 'forbidden' using errcode = 'MM004'; end if;
   if p_status is not null and p_status not in ('ativo', 'encerrado', 'excluido') then raise exception 'invalid' using errcode = 'MM005'; end if;
+  if p_reveal is not null and p_reveal not in ('pendente', 'atrasada') then raise exception 'invalid' using errcode = 'MM005'; end if;
   sort_expr := case coalesce(nullif(btrim(p_sort), ''), 'createdAt')
     when 'createdAt' then 'created_at' when 'startAt' then 'start_at' when 'title' then 'lower(title)'
     when 'hostName' then 'lower(host_display)' when 'participants' then 'participants' when 'photos' then 'photos'
@@ -325,6 +328,8 @@ begin
          and (case when $2 = 'excluido' then e.deleted_at is not null else e.deleted_at is null end)
          and ($2 is null or $2 = 'excluido' or ($2 = 'ativo') = (now() < public.event_end(e.start_at, e.duration_hours, e.ended_at)))
          and ($3 is null or e.title ilike $3 or e.host_name ilike $3 or pr.display_name ilike $3)
+         and ($6 is null or (e.reveal_enabled and e.revealed_at is null and e.deleted_at is null
+                             and ($6 = 'pendente' or e.reveal_at < now())))
     ), ranked as (select f.*, row_number() over (order by %s %s nulls last, f.id) as rn from f)
     select (select count(*) from f), coalesce(jsonb_agg(jsonb_build_object(
         'id', r.id, 'title', r.title, 'hostName', r.host_display, 'hostId', r.host_id, 'status', r.status, 'startAt', r.start_at,
@@ -336,7 +341,7 @@ begin
         'planCode', (select ee.plan_code from public.effective_entitlement(r.id) ee),
         'isTest', r.is_test, 'deletedAt', r.deleted_at) order by r.rn), '[]')
       from ranked r where r.rn > $4 and r.rn <= $4 + $5
-  $q$, sort_expr, dir) into total, items using coalesce(p_include_tests, false), p_status, pat, off, lim;
+  $q$, sort_expr, dir) into total, items using coalesce(p_include_tests, false), p_status, pat, off, lim, p_reveal;
   return jsonb_build_object('total', total, 'limit', lim, 'offset', off, 'items', items);
 end $$;
 
@@ -677,13 +682,13 @@ revoke execute on function public.is_test_account(uuid) from public, anon;
 grant execute on function public.is_test_account(uuid) to authenticated, service_role;
 
 revoke execute on function
-  public.admin_overview(int, boolean), public.admin_list_events_v2(int, int, text, text, boolean, text, text),
+  public.admin_overview(int, boolean), public.admin_list_events_v2(int, int, text, text, boolean, text, text, text),
   public.admin_event_detail(uuid), public.admin_search(text), public.admin_list_users_v2(int, int, text, boolean, text),
   public.admin_list_audit_v2(int, int, text, uuid), public.admin_storage_breakdown(), public.admin_health_history(int),
   public.admin_reveal_now(uuid, text), public.admin_set_test_flag(uuid[], boolean, text), public.admin_soft_delete_test_events(uuid[], text)
   from public, anon;
 grant execute on function
-  public.admin_overview(int, boolean), public.admin_list_events_v2(int, int, text, text, boolean, text, text),
+  public.admin_overview(int, boolean), public.admin_list_events_v2(int, int, text, text, boolean, text, text, text),
   public.admin_event_detail(uuid), public.admin_search(text), public.admin_list_users_v2(int, int, text, boolean, text),
   public.admin_list_audit_v2(int, int, text, uuid), public.admin_storage_breakdown(), public.admin_health_history(int),
   public.admin_reveal_now(uuid, text), public.admin_set_test_flag(uuid[], boolean, text), public.admin_soft_delete_test_events(uuid[], text)

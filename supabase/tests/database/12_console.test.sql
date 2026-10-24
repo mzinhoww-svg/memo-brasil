@@ -80,7 +80,7 @@ select col_not_null('public', 'profiles', 'is_test', 'profiles.is_test not null'
 select col_default_is('public', 'profiles', 'is_test', 'false', 'profiles.is_test padrão false');
 
 select has_function('public', 'admin_overview', array['integer', 'boolean'], 'admin_overview existe');
-select has_function('public', 'admin_list_events_v2', array['integer', 'integer', 'text', 'text', 'boolean', 'text', 'text'], 'admin_list_events_v2 existe');
+select has_function('public', 'admin_list_events_v2', array['integer', 'integer', 'text', 'text', 'boolean', 'text', 'text', 'text'], 'admin_list_events_v2 existe');
 select has_function('public', 'admin_event_detail', array['uuid'], 'admin_event_detail existe');
 select has_function('public', 'admin_search', array['text'], 'admin_search existe');
 select has_function('public', 'admin_list_users_v2', array['integer', 'integer', 'text', 'boolean', 'text'], 'admin_list_users_v2 existe');
@@ -102,7 +102,7 @@ select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.
 
 -- ===================================================== privilégios de execução
 select ok(not has_function_privilege('anon', 'public.admin_overview(int, boolean)', 'execute'), 'anon não executa admin_overview');
-select ok(not has_function_privilege('anon', 'public.admin_list_events_v2(int, int, text, text, boolean, text, text)', 'execute'), 'anon não executa admin_list_events_v2');
+select ok(not has_function_privilege('anon', 'public.admin_list_events_v2(int, int, text, text, boolean, text, text, text)', 'execute'), 'anon não executa admin_list_events_v2');
 select ok(not has_function_privilege('anon', 'public.admin_event_detail(uuid)', 'execute'), 'anon não executa admin_event_detail');
 select ok(not has_function_privilege('anon', 'public.admin_search(text)', 'execute'), 'anon não executa admin_search');
 select ok(not has_function_privilege('anon', 'public.admin_list_users_v2(int, int, text, boolean, text)', 'execute'), 'anon não executa admin_list_users_v2');
@@ -305,6 +305,16 @@ select is(public.admin_list_events_v2(100, 0, '12', null, false, 'participants',
 select throws_ok($$select public.admin_list_events_v2(25, 0, null, null, false, 'drop table', 'asc')$$, 'MM005', null, 'events_v2: ordenação fora da lista MM005');
 select throws_ok($$select public.admin_list_events_v2(25, 0, null, null, false, 'title', 'sideways')$$, 'MM005', null, 'events_v2: direção inválida MM005');
 select throws_ok($$select public.admin_list_events_v2(25, 0, null, 'qualquer', false, null, null)$$, 'MM005', null, 'events_v2: status inválido MM005');
+-- I1: revelações pendentes filtradas no banco (não 100 linhas filtradas no cliente), atrasadas primeiro em ordem crescente
+select is(tests.ids(public.admin_list_events_v2(100, 0, '12', null, true, 'revealAt', 'asc', 'pendente') -> 'items'),
+  array['00000000-0000-4000-8000-0000000012e8', '00000000-0000-4000-8000-0000000012e7'], 'events_v2: p_reveal pendente traz só as não executadas, atrasada primeiro');
+select is((public.admin_list_events_v2(100, 0, '12', null, true, 'revealAt', 'asc', 'pendente') ->> 'total')::int, 2, 'events_v2: total de pendentes');
+select is(tests.ids(public.admin_list_events_v2(1, 0, '12', null, true, 'revealAt', 'asc', 'pendente') -> 'items'),
+  array['00000000-0000-4000-8000-0000000012e8'], 'events_v2: com limite, a atrasada não é cortada');
+select is(tests.ids(public.admin_list_events_v2(100, 0, '12', null, true, 'revealAt', 'asc', 'atrasada') -> 'items'),
+  array['00000000-0000-4000-8000-0000000012e8'], 'events_v2: p_reveal atrasada');
+select is((public.admin_list_events_v2(100, 0, '12', null, true, 'revealAt', 'asc', 'atrasada') ->> 'total')::int, 1, 'events_v2: total de atrasadas');
+select throws_ok($$select public.admin_list_events_v2(25, 0, null, null, false, null, null, 'revelada')$$, 'MM005', null, 'events_v2: p_reveal inválido MM005');
 
 -- detalhe do evento
 select public.admin_event_detail('00000000-0000-4000-8000-0000000012e1') as ed \gset
