@@ -29,7 +29,7 @@ export function V3PaymentJourney() {
   const { event, participants, refresh } = useAdmin();
   const search = useSearchParams();
   const eventId = event.id;
-  const [guests, setGuests] = useState(() => guestsInput(search.get("convidados"), Math.max(30, participants.length)));
+  const [guests, setGuests] = useState(() => guestsInput(search?.get("convidados") ?? null, Math.max(30, participants.length)));
   const [phase, setPhase] = useState<Phase>("capacity");
   const [method, setMethod] = useState<Method>("pix");
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
