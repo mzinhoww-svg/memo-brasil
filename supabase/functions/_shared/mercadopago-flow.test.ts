@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MercadoPagoConfig, MpPayment } from "./mercadopago";
-import { buildBackUrls, collectPayments, notificationEventKey, parseNotification, pickOrigin, PREFERENCE_TTL_MIN, refundBlocker } from "./mercadopago-flow";
+import { buildBackUrls, collectPayments, notificationEventKey, parseNotification, payerEmailFor, pickOrigin, PREFERENCE_TTL_MIN, refundBlocker } from "./mercadopago-flow";
 
 describe("pickOrigin / buildBackUrls", () => {
   const EV = "22222222-2222-4222-8222-222222222222";
@@ -111,5 +111,16 @@ describe("refundBlocker (payments-refund)", () => {
     // extra: valor divergente é justamente o caso; identidade, recebedor e ambiente nunca são dispensados
     expect(refundBlocker({ ...order, status: "cancelado" }, extra, { ...pay, amountCents: 100 }, "900")).toBeNull();
     expect(refundBlocker({ ...order, status: "cancelado" }, extra, { ...pay, externalReference: "outro" }, "900")).toBe("cobranca_nao_confere");
+  });
+});
+
+describe("payerEmailFor", () => {
+  it("produção envia o e-mail do organizador; sandbox NUNCA (pagador real em preferência de teste causa 'uma das partes é de teste')", () => {
+    expect(payerEmailFor("production", "dono@exemplo.test")).toBe("dono@exemplo.test");
+    expect(payerEmailFor("sandbox", "dono@exemplo.test")).toBeNull();
+  });
+  it("sem e-mail ou e-mail inválido => null", () => {
+    expect(payerEmailFor("production", null)).toBeNull();
+    expect(payerEmailFor("production", "sem-arroba")).toBeNull();
   });
 });

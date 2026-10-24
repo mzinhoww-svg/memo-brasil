@@ -6,7 +6,7 @@
 // - Erro/timeout na criação → 502 com o pedido mantido em 'criado' (o organizador tenta de novo e reusa o pedido; a
 //   conciliação procura pagamentos por external_reference e falha o pedido sem preferência após 5 min).
 import { createPreference, MercadoPagoError } from "../_shared/mercadopago.ts";
-import { buildBackUrls, pickOrigin, PREFERENCE_TTL_MIN } from "../_shared/mercadopago-flow.ts";
+import { buildBackUrls, payerEmailFor, pickOrigin, PREFERENCE_TTL_MIN } from "../_shared/mercadopago-flow.ts";
 import { allowedOrigins, caller, guardEnv, log, preflight, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-checkout";
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
       orderId: order.orderId, eventId, planCode, amountCents: order.amountCents,
       title: `MemoriesMT - plano ${planRow?.name ?? planCode}`.slice(0, 120),
       notificationUrl: webhookUrl, backUrls: buildBackUrls(origin, eventId), expiresAt, now: now.toISOString(),
-      payerEmail,
+      payerEmail: payerEmailFor(provider.env, payerEmail),
       description: `Pagamento único por evento${planRow?.max_guests ? `, até ${planRow.max_guests} convidados` : ""}. Sem assinatura.`,
     });
   } catch (e) {
