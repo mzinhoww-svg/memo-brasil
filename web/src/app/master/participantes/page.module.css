@@ -1,0 +1,9 @@
+.kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-bottom: 16px; }
+.sec { margin: 32px 0 12px; font-size: 18px; }
+.sec small { font-weight: 400; color: var(--apoio, #6B645C); }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; }
+.group { border: 1px solid var(--adm-linha); border-radius: 14px; margin-bottom: 8px; background: var(--fundo, #fff); }
+.group > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 16px; min-height: 44px; cursor: pointer; font-weight: 600; }
+.group > summary:focus-visible { outline: 2px solid var(--foco, #1F4E79); outline-offset: 2px; border-radius: 14px; }
+.group .cnt { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 400; }
+.group .adm-table-wrap { border: 0; border-top: 1px solid var(--adm-linha); border-radius: 0 0 14px 14px; }
