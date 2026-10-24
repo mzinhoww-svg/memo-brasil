@@ -40,7 +40,10 @@ export default function Home() {
       <Suspense fallback={null}><LoginErrorBanner /></Suspense>
       <div className="app-topbar">
         <Logo variant="wordmark" size={128} />
-        <ThemeToggle />
+        <div className="app-row" style={{ alignItems: "center" }}>
+          {ready && user && <Link href="/eventos" className="mm-link app-topbar-link">Meus eventos</Link>}
+          <ThemeToggle />
+        </div>
       </div>
       <div className="app-landing-hero"><Cover /></div>
       <div className="app-screen">
@@ -57,19 +60,21 @@ export default function Home() {
             </li>
           ))}
         </ol>
-        <Link href="/exemplo" className="app-demo">
-          <span className="app-demo-icone"><Icon name="play" decorative size={24} /></span>
-          <span className="app-stack-sm" style={{ gap: 2 }}>
-            <span className="titulo-card">Experimente a câmera agora</span>
-            <span className="meta app-muted">Festa de exemplo · sem cadastro · nada é salvo</span>
-          </span>
-        </Link>
+        <section className="app-demo" aria-labelledby="demo-titulo">
+          <div className="app-demo-linha">
+            <span className="app-demo-icone" aria-hidden="true"><Icon name="play" decorative size={24} /></span>
+            <span className="app-stack-sm" style={{ gap: 2 }}>
+              <h2 id="demo-titulo" className="titulo-card" style={{ margin: 0 }}>Experimente a câmera agora</h2>
+              <span className="meta app-muted">Festa de exemplo · sem cadastro · nada é salvo</span>
+            </span>
+          </div>
+          <Button href="/exemplo" variant="secundario" icon="camera" block>Experimentar câmera</Button>
+        </section>
         <div className="app-stack-sm">
           <Button href="/criar" variant="cta" block>Criar meu evento grátis</Button>
-          <Button href="/entrar" variant="texto">Tenho um código</Button>
+          <Button href="/entrar" variant="texto">Entrar com código</Button>
           <LivePricingLine />
         </div>
-        {ready && user && <Button href="/eventos" variant="secundario" block>Meus eventos</Button>}
 
         {ready && canSwitchIdentity && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
 

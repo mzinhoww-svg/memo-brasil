@@ -60,7 +60,7 @@ export default function MeusEventos() {
       <>
         <p className="corpo app-p app-muted">Entre com a conta Google que você usou para criar seus eventos.</p>
         <GoogleButton block onClick={() => void signInWithGoogle("/eventos")} />
-        <Button href="/entrar" variant="texto">Tenho um código</Button>
+        <Button href="/entrar" variant="texto">Entrar com código</Button>
       </>
     );
   } else if (failed) {

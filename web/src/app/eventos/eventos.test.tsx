@@ -33,7 +33,7 @@ describe("Meus eventos (/eventos)", () => {
     await userEvent.click(screen.getByRole("button", { name: /Google/ }));
     expect(signInWithGoogle).toHaveBeenCalledWith("/eventos");
     expect(screen.queryByRole("list")).toBeNull();
-    expect(screen.getByRole("link", { name: "Tenho um código" })).toHaveAttribute("href", "/entrar");
+    expect(screen.getByRole("link", { name: "Entrar com código" })).toHaveAttribute("href", "/entrar");
   });
 
   it("organizador vê ativos antes de encerrados, só os próprios", async () => {

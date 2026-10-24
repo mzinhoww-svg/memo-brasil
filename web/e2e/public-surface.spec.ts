@@ -5,7 +5,7 @@ import { createViaWizard, wizardToSummary } from "./helpers";
 
 test("landing pública não traz demonstração, exemplo sintético nem guia de componentes", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Tenho um código" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Entrar com código" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Criar meu evento grátis" })).toBeVisible();
   for (const t of [/festa de exemplo/i, /exemplo com revelação/i, /Guia de componentes/i]) await expect(page.getByText(t)).toHaveCount(0);
 });

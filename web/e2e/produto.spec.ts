@@ -11,9 +11,9 @@ test("home mostra proposta, 3 passos e CTA criar, sem exemplo em banco nem guia 
   for (const t of ["Aponta para o QR da mesa", "Cada um tem seu rolo", "Tudo revela junto"]) await expect(page.getByText(t, { exact: true })).toBeVisible();
   await expect(page.getByText("Grátis até 10 convidados.", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
-  await expect(page.getByRole("link", { name: "Tenho um código" })).toHaveAttribute("href", "/entrar");
+  await expect(page.getByRole("link", { name: "Entrar com código" })).toHaveAttribute("href", "/entrar");
   for (const t of [/Guia de componentes/i, /Ver uma festa de exemplo/i, /revelação em 2 minutos/i]) await expect(page.getByText(t)).toHaveCount(0);
-  await page.getByRole("link", { name: "Experimente a câmera agora" }).click();
+  await page.getByRole("link", { name: "Experimentar câmera" }).click();
   await page.waitForURL(/\/exemplo$/);
   await expect(page.getByTestId("selo-exemplo")).toHaveText("Exemplo · nada é salvo");
   await expect(page.getByRole("heading", { name: "Lu faz 40", level: 1 })).toBeVisible();
