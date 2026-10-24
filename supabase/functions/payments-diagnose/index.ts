@@ -2,7 +2,7 @@
 // GET /checkout/preferences/search?limit=1 e devolve APENAS metadados não secretos: id da conta recebedora, site/país,
 // existência de permissão, testUser (tag da API: true/false/null), se os segredos existem (booleanos) e o ambiente do banco. Nunca devolve token, segredo ou corpo.
 // Nenhuma cobrança, preferência ou reembolso é criado.
-import { getMe, MercadoPagoError, searchPreferences } from "../_shared/mercadopago.ts";
+import { getMe, getPayment, MercadoPagoError, searchPreferences } from "../_shared/mercadopago.ts";
 import { caller, mpConfig, preflight, responder, serviceClient } from "../_shared/payments-runtime.ts";
 
 const failure = (e: unknown) => (e instanceof MercadoPagoError ? { ok: false, kind: e.kind, status: e.status } : { ok: false, kind: "erro" });
@@ -16,6 +16,21 @@ Deno.serve(async (req) => {
   if (!who.ok) return json({ error: who.status === 401 ? "unauthorized" : "forbidden" }, who.status);
   const m = await who.client.rpc("is_master");
   if (m.error || m.data !== true) return json({ error: "forbidden" }, 403);
+
+  // Consulta opcional de UM pagamento ({paymentId}): metadados não sensíveis (sem pagador), tentando sandbox e depois produção.
+  let paymentId: string | null = null;
+  try { const b = (await req.json()) as { paymentId?: unknown }; if (typeof b.paymentId === "string" && /^[0-9]{3,20}$/.test(b.paymentId)) paymentId = b.paymentId; } catch { /* corpo vazio */ }
+  if (paymentId) {
+    for (const e of ["sandbox", "production"] as const) {
+      const c = mpConfig(e);
+      if (!c) continue;
+      try {
+        const p = await getPayment(c, paymentId);
+        return json({ env: e, payment: { id: p.id, status: p.status, amountCents: p.amountCents, currency: p.currency, liveMode: p.liveMode, collectorId: p.collectorId, externalReference: p.externalReference, method: p.method, updatedAt: p.updatedAt, refundedCents: p.refundedCents } });
+      } catch (err) { if (!(err instanceof MercadoPagoError) || ![401, 403, 404].includes(err.status)) return json({ error: "provedor", provedorTipo: err instanceof MercadoPagoError ? err.kind : "erro" }, 502); }
+    }
+    return json({ error: "pagamento_nao_encontrado" }, 404);
+  }
 
   const env = await serviceClient().rpc("payments_env");
   const base = {
