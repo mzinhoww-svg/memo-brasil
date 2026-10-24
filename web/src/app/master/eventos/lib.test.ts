@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { reasonError } from "../billing";
-import { bulkInput, cleanHostName, deletableIds, toCatalog, detailFromList, eventParam, pageParam, parseIds, searchParam, statusParam, toEventDetail, toEventPage, toEventRow } from "./lib";
+import { bulkInput, cleanHostName, deletableIds, softDeleteRefusal,toCatalog, detailFromList, eventParam, pageParam, parseIds, searchParam, statusParam, toEventDetail, toEventPage, toEventRow } from "./lib";
 
 const ID = "11111111-2222-4333-8444-555555555555";
 const ID2 = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
@@ -81,6 +81,19 @@ describe("toCatalog", () => {
     expect(planLabel(42, null, cat)).toBe("manual (42)");
     expect(planLabel(null, "ilim", cat)).toBe("Ilimitado");
     expect(toCatalog(null)).toEqual([]);
+  });
+});
+
+describe("softDeleteRefusal", () => {
+  it("MM005 paid: evento com pagamento ou plano não gratuito", () => {
+    expect(softDeleteRefusal({ code: "MM005", message: "paid" })).toMatch(/pagamento confirmado/);
+  });
+  it("MM005 outro: lote com evento real ou inexistente", () => {
+    expect(softDeleteRefusal({ code: "MM005", message: "nottest" })).toMatch(/não é de teste/);
+    expect(softDeleteRefusal({ code: "MM005", message: "invalid" })).toMatch(/não é de teste/);
+  });
+  it("outros códigos: null (texto padrão)", () => {
+    expect(softDeleteRefusal({ code: "MM011", message: "reasonrequired" })).toBeNull();
   });
 });
 

@@ -4,7 +4,7 @@ import { createClient, type Session, type SupabaseClient } from "@supabase/supab
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
 // Console master redesenhado no navegador real contra o app em modo Supabase + Supabase LOCAL (playwright.supabase.config.ts).
-// Semeia com a service key: master, organizador com 3 eventos reais e 2 "TESTE – excluir …", convidados e uma foto.
+// Semeia com a service key: master, organizador (e-mail comum) com 3 eventos reais e 2 "TESTE – excluir …" marcados pelo servidor, convidados e uma foto.
 // Capturas para o PR só com CONSOLE_EVIDENCE_DIR definido (ex.: ../docs/evidence/console-20261024/depois).
 const URL = process.env.SUPABASE_URL!, PUB = process.env.SUPABASE_PUBLISHABLE_KEY!, SVC = process.env.SUPABASE_SERVICE_KEY!;
 test.skip(!URL || !PUB || !SVC || !/127\.0\.0\.1|localhost/.test(URL), "precisa de Supabase local e das chaves no ambiente");
@@ -22,7 +22,8 @@ async function login(ctx: BrowserContext, s: Session, base: string) {
   await ctx.addCookies(parts.map((p, i) => ({ name: parts.length === 1 ? refName() : `${refName()}.${i}`, value: p, domain: host, path: "/", httpOnly: false, secure: false, sameSite: "Lax" as const })));
 }
 async function user(kind: "master" | "org") {
-  const email = `${kind}-console-${tag}@memoriesmt.test`, password = `Pw-${tag}-x1`;
+  // organizador com e-mail comum: conta @memoriesmt.test marca todos os eventos dela como teste na criação
+  const email = kind === "org" ? `org-console-${tag}@example.com` : `${kind}-console-${tag}@memoriesmt.test`, password = `Pw-${tag}-x1`;
   const u = await admin.auth.admin.createUser({ email, password, email_confirm: true, app_metadata: kind === "master" ? { role: "master" } : {} });
   expect(u.error).toBeNull();
   if (kind === "master") expect((await admin.from("platform_roles").insert({ user_id: u.data.user!.id, role: "master", granted_by: u.data.user!.id })).error).toBeNull();
@@ -58,7 +59,11 @@ test.beforeAll(async () => {
   const ta = await mkEvent(`TESTE – excluir A ${tag}`);
   const tb = await mkEvent(`TESTE – excluir B ${tag}`);
   expect([a.is_test, b.is_test, l.is_test]).toEqual([false, false, false]);
-  expect([ta.is_test, tb.is_test]).toEqual([true, true]); // título de teste já nasce is_test
+  expect([ta.is_test, tb.is_test]).toEqual([false, false]); // título não marca mais na criação (I2)
+  // os de teste são marcados pelo servidor (service key), como numa semeadura
+  const marked = await admin.from("events").update({ is_test: true }).in("id", [ta.id, tb.id]).select("is_test");
+  expect(marked.error).toBeNull();
+  expect(marked.data!.map((e) => e.is_test)).toEqual([true, true]);
   Object.assign(S, { realA: a, realB: b, lote: l, testA: ta, testB: tb });
   expect((await admin.from("events").update({ capacity: 30 }).eq("id", a.id)).error).toBeNull();
 

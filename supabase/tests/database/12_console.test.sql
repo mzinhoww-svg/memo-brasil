@@ -171,20 +171,43 @@ update public.events set is_test = true where id = '00000000-0000-4000-8000-0000
 reset role;
 select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012e1'), false, 'anfitrião não marca o próprio evento como teste');
 
--- evento novo com título de teste já nasce is_test (mesma regra do backfill); título comum não, mesmo pedindo
+-- I2: na criação só a conta de teste (@memoriesmt.test) marca o evento; o título não marca mais (cliente pagante pode chamar
+-- o evento de "RT Formatura" ou "TESTE DE SOM"); o cliente não liga nem desliga a marca, mesmo pedindo
 select tests.login('00000000-0000-4000-8000-0000000012a1');
 insert into public.events (id, title, category, host_id, duration_hours, is_test) values
-  ('00000000-0000-4000-8000-0000000012f1', 'TESTE – excluir 12', 'outro', '00000000-0000-4000-8000-0000000012a1', 6, false),
+  ('00000000-0000-4000-8000-0000000012f1', 'TESTE DE SOM - Festival 12', 'outro', '00000000-0000-4000-8000-0000000012a1', 6, false),
   ('00000000-0000-4000-8000-0000000012f2', 'Festa real 12', 'outro', '00000000-0000-4000-8000-0000000012a1', 6, true);
 reset role;
-select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f1'), true, 'evento novo TESTE% criado pelo cliente nasce teste');
-select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f2'), false, 'evento novo comum criado pelo cliente não nasce teste');
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f1'), false, 'evento novo TESTE% de conta real não nasce teste (título não marca)');
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f2'), false, 'cliente pedindo is_test=true não marca');
 insert into public.events (id, title, category, host_id, duration_hours) values
-  ('00000000-0000-4000-8000-0000000012f3', 'RT 12 rotina', 'outro', '00000000-0000-4000-8000-0000000012a1', 6);
-select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f3'), true, 'evento novo RT % inserido pelo servidor nasce teste');
+  ('00000000-0000-4000-8000-0000000012f3', 'RT Formatura 12', 'outro', '00000000-0000-4000-8000-0000000012a1', 6);
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f3'), false, 'evento novo RT % inserido pelo servidor não nasce teste');
+select tests.login('00000000-0000-4000-8000-0000000012a2');
+insert into public.events (id, title, category, host_id, duration_hours, is_test) values
+  ('00000000-0000-4000-8000-0000000012f4', 'Festa QA nova 12', 'outro', '00000000-0000-4000-8000-0000000012a2', 6, false);
+reset role;
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f4'), true, 'evento novo de anfitrião @memoriesmt.test nasce teste (cliente)');
+insert into public.events (id, title, category, host_id, duration_hours) values
+  ('00000000-0000-4000-8000-0000000012f5', 'Festa QA servidor 12', 'outro', '00000000-0000-4000-8000-0000000012a2', 6);
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f5'), true, 'evento novo de anfitrião @memoriesmt.test nasce teste (servidor)');
+set local role service_role;
+insert into public.events (id, title, category, host_id, duration_hours, is_test) values
+  ('00000000-0000-4000-8000-0000000012f6', 'Semeado 12', 'outro', '00000000-0000-4000-8000-0000000012a1', 6, true);
+reset role;
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f6'), true, 'service_role pode semear evento já marcado como teste');
+select tests.login('00000000-0000-4000-8000-0000000012a2');
+update public.events set is_test = false where id = '00000000-0000-4000-8000-0000000012f4';
+reset role;
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f4'), true, 'anfitrião de teste não desmarca o próprio evento');
 update public.events set title = 'TESTE renomeado 12' where id = '00000000-0000-4000-8000-0000000012f2';
-select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f2'), false, 'renomear para TESTE não marca (só na criação)');
-delete from public.events where id in ('00000000-0000-4000-8000-0000000012f1', '00000000-0000-4000-8000-0000000012f2', '00000000-0000-4000-8000-0000000012f3');
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f2'), false, 'renomear para TESTE não marca');
+select tests.claims(null); -- cadastro pelo Auth: sem JWT de cliente
+insert into auth.users (id, aud, role, email, is_anonymous, raw_user_meta_data, raw_app_meta_data, created_at) values
+  ('00000000-0000-4000-8000-0000000012a3', 'authenticated', 'authenticated', 'novo12@memoriesmt.test', false, '{}', '{"provider":"email"}', now());
+select is((select is_test from public.profiles where id = '00000000-0000-4000-8000-0000000012a3'), true, 'perfil novo de conta @memoriesmt.test nasce teste');
+delete from public.events where id in ('00000000-0000-4000-8000-0000000012f1', '00000000-0000-4000-8000-0000000012f2', '00000000-0000-4000-8000-0000000012f3',
+  '00000000-0000-4000-8000-0000000012f4', '00000000-0000-4000-8000-0000000012f5', '00000000-0000-4000-8000-0000000012f6');
 
 -- ===================================================== trigger de auditoria
 select tests.claims(null);
@@ -423,7 +446,22 @@ select throws_ok($$select public.admin_soft_delete_test_events(array['00000000-0
 select throws_ok($$select public.admin_soft_delete_test_events(array[gen_random_uuid()], 'Limpeza de homologação')$$,
   'MM005', null, 'soft delete de evento inexistente: MM005');
 reset role;
-select is((select count(*)::int from public.events where id in ('00000000-0000-4000-8000-0000000012e1', '00000000-0000-4000-8000-0000000012e2') and deleted_at is not null), 0,
+-- I2: evento marcado como teste mas com pedido pago ou direito não gratuito ativo nunca vai para a lixeira em lote
+insert into public.payment_orders (event_id, host_id, plan_code, amount_cents, provider_env, idempotency_key, status, paid_at) values
+  ('00000000-0000-4000-8000-0000000012e4', '00000000-0000-4000-8000-0000000012a1', 'festa', 2900, 'sandbox', gen_random_uuid(), 'pago', now()),
+  ('00000000-0000-4000-8000-0000000012e3', '00000000-0000-4000-8000-0000000012a1', 'festa', 2900, 'sandbox', gen_random_uuid(), 'estornado', now());
+insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, env, status, reason)
+values ('00000000-0000-4000-8000-0000000012e6', 'festa', 30, 24, 'cortesia', 'sandbox', 'ativo', 'cortesia de teste 12');
+select tests.login('00000000-0000-4000-8000-0000000012c1', 'master');
+select throws_ok($$select public.admin_soft_delete_test_events(array['00000000-0000-4000-8000-0000000012e4'::uuid], 'Limpeza de homologação')$$,
+  'MM005', 'paid', 'soft delete recusa evento de teste com pedido pago');
+select throws_ok($$select public.admin_soft_delete_test_events(array['00000000-0000-4000-8000-0000000012e6'::uuid], 'Limpeza de homologação')$$,
+  'MM005', 'paid', 'soft delete recusa evento de teste com cortesia ativa');
+select throws_ok($$select public.admin_soft_delete_test_events(array['00000000-0000-4000-8000-0000000012e2'::uuid, '00000000-0000-4000-8000-0000000012e4'::uuid], 'Limpeza de homologação')$$,
+  'MM005', 'paid', 'lote com um evento pago é recusado inteiro');
+reset role;
+select is((select count(*)::int from public.events where id in ('00000000-0000-4000-8000-0000000012e1', '00000000-0000-4000-8000-0000000012e2',
+  '00000000-0000-4000-8000-0000000012e4', '00000000-0000-4000-8000-0000000012e6') and deleted_at is not null), 0,
   'recusas não apagam nada');
 select tests.login('00000000-0000-4000-8000-0000000012c1', 'master');
 select is((public.admin_soft_delete_test_events(array['00000000-0000-4000-8000-0000000012e2'::uuid, '00000000-0000-4000-8000-0000000012e3'::uuid], 'Limpeza de homologação') ->> 'deleted')::int,

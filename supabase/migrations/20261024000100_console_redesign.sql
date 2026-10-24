@@ -14,19 +14,34 @@ alter table public.events add column is_test boolean not null default false;
 alter table public.profiles add column is_test boolean not null default false;
 create index events_is_test_idx on public.events (is_test) where is_test;
 
--- cliente (anfitrião) não marca nem desmarca teste: só o master pela RPC (ou o dono/service_role).
--- Evento NOVO com título de teste (mesma regra de título do backfill) já nasce is_test, venha de onde vier; sem isso
--- os eventos "TESTE ..." criados depois da migration entrariam nos números até alguém marcá-los à mão.
+-- Conta de teste = e-mail @memoriesmt.test. Cliente (JWT authenticated/anon) só pergunta sobre a própria conta (o evento
+-- que ele cria tem host_id = auth.uid() pela RLS), para não virar oráculo de contas de teste; servidor/dono pergunta de
+-- qualquer uma.
+create function public.is_test_account(p_user uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select p_user is not null
+     and (coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role', '') not in ('authenticated', 'anon')
+          or p_user = auth.uid())
+     and exists (select 1 from auth.users u where u.id = p_user and u.email ilike '%@memoriesmt.test')
+$$;
+
+-- cliente (anfitrião) não marca nem desmarca teste: só o master pela RPC (ou o dono/service_role, que pode semear
+-- linhas já marcadas). Na criação, o evento de anfitrião com conta de teste (e o perfil da conta de teste) já nasce
+-- is_test, venha de onde vier. O título NÃO marca na criação: um cliente real pode chamar o evento de "RT Formatura"
+-- ou "TESTE DE SOM" e ele sumiria dos números e entraria na exclusão em lote (decisão do dono, revisão I2). A regra de
+-- título vale só no backfill único abaixo, para as linhas que já existiam.
 create function public.is_test_guard() returns trigger
 language plpgsql set search_path = '' as $$
-declare titled boolean := false;
+declare acct boolean := false;
 begin
   if tg_op = 'INSERT' and tg_table_name = 'events' then
-    titled := new.title like 'TESTE%' or new.title ilike 'teste homologa%' or new.title like 'RT %';
+    acct := public.is_test_account(new.host_id);
+  elsif tg_op = 'INSERT' then
+    acct := public.is_test_account(new.id);
   end if;
   if current_user in ('authenticated', 'anon') then
-    if tg_op = 'INSERT' then new.is_test := titled; else new.is_test := old.is_test; end if;
-  elsif titled then
+    if tg_op = 'INSERT' then new.is_test := acct; else new.is_test := old.is_test; end if;
+  elsif acct then
     new.is_test := true;
   end if;
   return new;
@@ -34,8 +49,9 @@ end $$;
 create trigger events_is_test_guard before insert or update on public.events for each row execute function public.is_test_guard();
 create trigger profiles_is_test_guard before insert or update on public.profiles for each row execute function public.is_test_guard();
 
--- backfill: títulos de teste (TESTE em maiúsculas, "Teste homologação", "RT ") e contas @memoriesmt.test (perfil e eventos
--- que hospeda). Só liga a marca, nunca desliga. Idempotente; só o dono executa.
+-- backfill ÚNICO das linhas existentes (pedido do dono): títulos de teste (TESTE em maiúsculas, "Teste homologação", "RT ")
+-- e contas @memoriesmt.test (perfil e eventos que hospeda). Só liga a marca, nunca desliga. Idempotente; só o dono executa.
+-- Eventos criados depois NÃO passam pela regra de título (ver is_test_guard); o master marca/desmarca pela RPC.
 create function public.console_backfill_test_flags() returns int
 language plpgsql security definer set search_path = '' as $$
 declare a int; b int;
@@ -583,6 +599,14 @@ begin
   if exists (select 1 from public.events e where e.id = any (p_events) and not e.is_test) then
     raise exception 'nottest' using errcode = 'MM005';
   end if;
+  -- marca de teste não basta: evento com dinheiro retido (pedido pago ou em disputa) ou com direito não gratuito ativo
+  -- (pago, cortesia, código) nunca vai para a lixeira em lote. Pedido estornado/expirado não bloqueia (homologação Pix).
+  -- Só leitura de payment_orders/event_entitlements.
+  if exists (select 1 from public.payment_orders o where o.event_id = any (p_events) and o.status in ('pago', 'em_disputa'))
+     or exists (select 1 from public.event_entitlements ee where ee.event_id = any (p_events) and ee.status = 'ativo'
+                  and ee.source in ('pago', 'cortesia', 'codigo')) then
+    raise exception 'paid' using errcode = 'MM005';
+  end if;
   for r in select e.id from public.events e where e.id = any (p_events) and e.deleted_at is null order by e.id loop
     update public.events set deleted_at = now() where id = r.id and is_test;
     perform public.admin_log('admin.soft_delete_test_events', 'event', r.id::text, why, r.id);
@@ -648,6 +672,9 @@ revoke execute on function public.is_test_guard(), public.console_backfill_test_
   public.purge_anon_orphans(int)
   from public, anon, authenticated, service_role;
 grant execute on function public.purge_anon_orphans(int) to service_role;
+-- is_test_account roda dentro do trigger com o papel de quem grava (cliente ou service_role); só responde sobre a própria conta ao cliente
+revoke execute on function public.is_test_account(uuid) from public, anon;
+grant execute on function public.is_test_account(uuid) to authenticated, service_role;
 
 revoke execute on function
   public.admin_overview(int, boolean), public.admin_list_events_v2(int, int, text, text, boolean, text, text),

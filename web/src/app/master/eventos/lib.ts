@@ -168,6 +168,13 @@ export const STATUS_TONE: Record<string, "ok" | "dim" | "crit"> = { ativo: "ok",
 export const REVEAL_TONE: Record<string, "ok" | "warn" | "crit" | "dim"> = { revelada: "ok", pendente: "warn", atrasada: "crit", desativada: "dim" };
 
 export type ActionResult = { ok: true; count: number } | { ok: false; error: string };
+
+/** Texto da recusa (MM005) de `admin_soft_delete_test_events`; null para outros códigos (texto padrão de erro). */
+export function softDeleteRefusal(error: { code?: string | null; message?: string | null }): string | null {
+  if (error.code !== "MM005") return null;
+  if (/\bpaid\b/.test(error.message ?? "")) return "O lote tem evento com pagamento confirmado ou plano pago/cortesia ativo. Nada foi excluído.";
+  return "O lote tem evento que não é de teste ou que não existe. Nada foi excluído.";
+}
 /** Valida a entrada de uma ação em lote (ids + motivo obrigatório); o servidor confere de novo (MM005/MM011). */
 export function bulkInput(ids: unknown, reason: unknown, reasonError: (r: string) => string | null): { ids: string[]; reason: string } | { error: string } {
   const list = parseIds(ids);

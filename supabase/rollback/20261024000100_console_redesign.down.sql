@@ -56,6 +56,7 @@ drop function if exists public.audit_actor_role_for(uuid, uuid);
 drop trigger if exists events_is_test_guard on public.events;
 drop trigger if exists profiles_is_test_guard on public.profiles;
 drop function if exists public.is_test_guard();
+drop function if exists public.is_test_account(uuid);
 drop function if exists public.console_backfill_test_flags();
 drop index if exists public.events_is_test_idx;
 alter table public.events drop column if exists is_test;
