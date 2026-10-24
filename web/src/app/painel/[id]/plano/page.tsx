@@ -126,6 +126,7 @@ function PlanoConteudo() {
   return (
     <div className="plano-pagina">
       <p className="plano-eyebrow">{event.title} · Plano</p>
+      <a href={`/painel/${eventId}/plano-v3`} className="mm-btn mm-btn--secundario" data-testid="abrir-pagamento-v3" style={{ marginBottom: 20, display: "inline-flex" }}>Conhecer a nova experiência de pagamento →</a>
       {body}
     </div>
   );
