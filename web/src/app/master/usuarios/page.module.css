@@ -1,0 +1,6 @@
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0; }
+.search { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.search input { flex: 1 1 220px; min-width: 0; max-width: 360px; }
+.orphan td { background: color-mix(in srgb, var(--warn) 10%, transparent); }
+.note { margin: 8px 0 0; font-size: 13px; }
+.id { font-size: 12px; overflow-wrap: anywhere; }

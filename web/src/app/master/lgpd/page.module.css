@@ -1,0 +1,5 @@
+.kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-bottom: 24px; }
+.sec { margin: 32px 0 12px; font-size: 18px; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.sla { min-width: 180px; }
+.late td { background: color-mix(in srgb, var(--crit) 8%, transparent); }

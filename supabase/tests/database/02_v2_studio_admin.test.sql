@@ -588,8 +588,8 @@ select cmp_ok((public.admin_health() #>> '{reveals,maxDelaySeconds}')::bigint, '
 select is((public.admin_health() #>> '{uploads,stalled}')::int, 1, 'saúde: envio parado');
 select is((public.admin_health() #>> '{purgeQueue,size}')::int >= 0, true, 'saúde: fila de limpeza');
 select is((public.admin_health() ->> 'cronAvailable')::boolean, true, 'saúde: pg_cron disponível');
-select is(jsonb_array_length(public.admin_health() -> 'jobs'), 6, 'saúde: os 6 jobs mm-* agendados');
-select is((select array_agg(j ->> 'name' order by j ->> 'name') from jsonb_array_elements(public.admin_health() -> 'jobs') j), array['mm-audit-integrity', 'mm-expire-assets', 'mm-expire-retention', 'mm-expire-uploads', 'mm-purge-deleted', 'mm-reveal-due'], 'saúde: nomes dos jobs');
+select is(jsonb_array_length(public.admin_health() -> 'jobs'), 7, 'saúde: os 7 jobs mm-* agendados (mm-purge-anon-orphans inativo, 20261024000100)');
+select is((select array_agg(j ->> 'name' order by j ->> 'name') from jsonb_array_elements(public.admin_health() -> 'jobs') j), array['mm-audit-integrity', 'mm-expire-assets', 'mm-expire-retention', 'mm-expire-uploads', 'mm-purge-anon-orphans', 'mm-purge-deleted', 'mm-reveal-due'], 'saúde: nomes dos jobs');
 reset role;
 
 -- ===================================================== listagens do console (usuários, participantes, convites, auditoria)

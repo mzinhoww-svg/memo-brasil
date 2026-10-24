@@ -1,0 +1,7 @@
+.svg { max-width: 100%; }
+.line { fill: none; stroke: var(--c, var(--adm-s1)); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.dot { fill: var(--c, var(--adm-s1)); stroke: var(--fundo, #fff); stroke-width: 2; }
+.hit { fill: transparent; }
+.hit:hover { fill: color-mix(in srgb, var(--tinta, #1C1917) 5%, transparent); }
+.dashSwatch { background: transparent; width: 14px; height: 0; border-radius: 0; border-top: 2px dashed var(--c); }
+.note { margin: 0 0 8px; font-size: 13px; color: var(--apoio, #6B645C); }

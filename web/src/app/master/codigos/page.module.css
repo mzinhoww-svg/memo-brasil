@@ -1,0 +1,10 @@
+.templates { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
+.tpl { flex-direction: column; align-items: flex-start; gap: 2px; padding-block: 8px; text-align: left; }
+.tpl small { font-weight: 400; color: var(--apoio, #6B645C); }
+.lead { margin: 0 0 8px; font-size: 14px; color: var(--apoio, #6B645C); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
+.toolbar h2 { margin: 0 auto 0 0; font-size: 16px; }
+.use { display: flex; align-items: center; gap: 8px; min-width: 120px; font-variant-numeric: tabular-nums; }
+.bar { flex: 1 1 48px; height: 8px; border-radius: 4px; background: var(--adm-linha); overflow: hidden; min-width: 48px; }
+.bar > span { display: block; height: 100%; background: var(--adm-s1); }
+.vday { display: block; font-size: 12px; color: var(--apoio, #6B645C); }

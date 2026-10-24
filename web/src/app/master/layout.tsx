@@ -6,6 +6,9 @@ import "@/styles/admin.css";
 import { MasterLogin } from "./MasterLogin";
 import { MasterCrumbs } from "./MasterCrumbs";
 import { MasterNav } from "./MasterNav";
+import { AlertBar } from "./kit/AlertBar";
+import { CommandSearch } from "./shell/CommandSearch";
+import { loadShell } from "./shell/load";
 
 export const metadata: Metadata = { title: "Administração da plataforma", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic"; // a autorização é resolvida no servidor a cada requisição
@@ -23,17 +26,26 @@ function Gate({ titulo, texto, acao }: { titulo: string; texto: string; acao?: R
 }
 
 export default async function MasterLayout({ children }: { children: React.ReactNode }) {
-  const { access } = await masterAccess();
+  const { access, sb } = await masterAccess();
   if (access === "local") return <Gate titulo="Console indisponível neste modo." texto="O console master só funciona com o servidor (Supabase) configurado; no modo local não há operadores nem dados de plataforma." />;
   if (access === "anonymous") return <Gate titulo="Entre com sua conta de operador." texto="O acesso é concedido pelo servidor a contas autorizadas. Convidados e organizadores comuns não têm acesso." acao={<MasterLogin />} />;
   if (access === "forbidden") return <Gate titulo="Sem permissão." texto="Esta conta não tem papel de operador da plataforma. O acesso não pode ser concedido por esta tela." />;
+  // Badges e alertas: uma leitura por requisição (layouts não rodam de novo em navegação suave).
+  const shell = sb ? await loadShell(sb) : { alerts: [], badges: {}, degraded: false };
   return (
     <div className="adm-shell">
       <aside className="adm-side">
         <Logo variant="wordmark" size={140} />
-        <MasterNav />
+        <MasterNav badges={shell.badges} />
       </aside>
-      <main className="adm-main" id="conteudo-admin"><MasterCrumbs />{children}</main>
+      <main className="adm-main" id="conteudo-admin">
+        <div className="adm-topline">
+          <MasterCrumbs />
+          <CommandSearch />
+        </div>
+        <AlertBar alerts={shell.alerts} />
+        {children}
+      </main>
     </div>
   );
 }

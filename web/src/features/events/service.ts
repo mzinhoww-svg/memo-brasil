@@ -1,5 +1,6 @@
 import { canEditEnd, endAt, validateDraft, type DraftErrors, type MemoEvent, type EventFontId, type PaletteId } from "@/domain/event";
 import { generateShareCode } from "@/domain/share-code";
+import { cleanPersonName } from "@/domain/person-name";
 import type { CameraStyle, Capacity, EventCategory, Shots } from "@/domain/options";
 import { canEditReveal, computeRevealStatus, syncRevealWithEnd, type RevealErrors } from "@/domain/reveal";
 import { resolveReveal, type RevealInput } from "./reveal-input";
@@ -39,7 +40,7 @@ export async function createEvent(repos: Repositories, host: User, input: EventI
     title: input.title.trim(),
     category: input.category,
     hostId: host.id,
-    hostName: host.name,
+    hostName: cleanPersonName(host.name),
     startAt: now,
     durationHours: input.durationHours,
     cameraStyle: input.cameraStyle,
@@ -120,7 +121,8 @@ export type SettingsResult = { ok: true; event: MemoEvent } | { ok: false; reaso
 export async function updateSettings(repos: Repositories, eventId: string, patch: Partial<Pick<MemoEvent, "title" | "hostName" | "place" | "shotsPerPerson" | "capacity" | "everyoneSeesAll" | "reactionsEnabled" | "tables" | "notice" | "palette" | "eventFont" | "moments">>): Promise<SettingsResult> {
   return mutateEvent<SettingsResult>(repos, eventId, { ok: false, reason: "inexistente" }, async (e) => {
     if (patch.capacity !== undefined && patch.capacity !== null && patch.capacity < (await repos.participants.count(eventId))) return { fail: { ok: false, reason: "capacidade-menor-que-convidados" } };
-    return { next: { ...e, ...patch }, done: (event) => ({ ok: true, event }) };
+    const clean = patch.hostName === undefined ? patch : { ...patch, hostName: cleanPersonName(patch.hostName) };
+    return { next: { ...e, ...clean }, done: (event) => ({ ok: true, event }) };
   });
 }
 

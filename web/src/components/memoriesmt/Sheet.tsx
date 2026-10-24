@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { pushModal } from "./modal-stack";
 
 /** Folha modal: foco entra ao abrir e volta ao fechar; Esc e toque fora fecham; Tab fica dentro. */
 export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
@@ -13,7 +14,9 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
     const panel = ref.current!;
     const focusables = () => Array.from(panel.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter((el) => !el.hasAttribute("disabled"));
     focusables()[0]?.focus();
+    const modal = pushModal(panel);
     const onKey = (e: KeyboardEvent) => {
+      if (!modal.isTop()) return; // outro diálogo aberto por cima trata o teclado
       if (e.key === "Escape") closeRef.current();
       if (e.key !== "Tab") return;
       const f = focusables();
@@ -31,6 +34,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
+      modal.release();
       previous?.focus();
     };
   }, []); // onClose vem por ref: re-render do pai não devolve o foco ao gatilho

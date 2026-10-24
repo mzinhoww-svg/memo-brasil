@@ -16,6 +16,17 @@ describe("createEvent", () => {
 import { createMemoryRepositories } from "@/repositories/memory";
 import { updateSettings } from "./service";
 
+describe("nome do anfitrião sem repetição", () => {
+  it("createEvent e updateSettings gravam o nome limpo", async () => {
+    const repos = createMemoryRepositories();
+    const c = await createEvent(repos, { id: "u2", name: "Aurimar NogueiraAurimar" } as User, input, Date.now());
+    expect(c.ok && c.event.hostName).toBe("Aurimar Nogueira");
+    if (!c.ok) return;
+    const r = await updateSettings(repos, c.event.id, { hostName: " Ana SilvaAna Silva " });
+    expect(r.ok && r.event.hostName).toBe("Ana Silva");
+  });
+});
+
 describe("updateSettings hostName", () => {
   it("o anfitrião edita o nome que aparece no convite", async () => {
     const repos = createMemoryRepositories();
