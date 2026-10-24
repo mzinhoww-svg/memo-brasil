@@ -86,8 +86,8 @@
 .adm-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .adm-kpi { border: 1px solid var(--adm-linha); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .adm-kpi-label { margin: 0; font-size: 14px; font-weight: 600; color: var(--apoio, #6B645C); }
-.adm-kpi-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
-.adm-kpi-value { font-size: 32px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.adm-kpi-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 12px; }
+.adm-kpi-value { font-size: clamp(24px, 2.2vw, 32px); font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .adm-kpi-delta { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--apoio, #6B645C); }
 .adm-kpi-delta[data-tone="ok"] { color: var(--ok); } .adm-kpi-delta[data-tone="crit"] { color: var(--crit); }
 .adm-spark { flex: none; width: 96px; height: 28px; overflow: visible; }
