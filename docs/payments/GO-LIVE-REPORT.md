@@ -66,3 +66,20 @@ Runbook `docs/supabase/PAYMENTS-RUNBOOK.md` §16 a §19; `docs/payments/QA-EVIDE
 - Revisão jurídica dos Termos/Política versão `2026-10-22-v1`.
 
 **Pix.** A documentação oficial diz que a opção Pix só aparece com chave Pix cadastrada no Mercado Pago. Não há API pública disponível ao agente que liste chaves Pix; criar uma cobrança Pix para testar geraria cobrança real. Fica pendente a confirmação no app do Mercado Pago e uma cobrança Pix real depois da compra controlada. O Pix não paga no sandbox.
+
+## Botão "Pagar" bloqueado no Checkout Pro (2026-10-24): causa comprovada
+
+**Sintoma.** Tela "Revise os dados antes de pagar" com o botão Pagar desabilitado (cadeado), sem mensagem, nos planos Festa (R$ 29) e Teste R$ 1.
+
+**Evidência (browser, somente leitura, sem pagar e sem digitar dados):**
+- A integração está correta até o Mercado Pago: o pedido de produção `86a514f3…` tem preferência `3786909683-…`, `checkout_url` em `www.mercadopago.com.br`, R$ 1,00, validade de 1 h; o link abre as telas "Escolha como pagar" e "Revise os dados".
+- Na tela de revisão `Pagar` está `disabled`. Trocando a forma para **Pix** o botão `Gerar código` também fica `disabled`. Logo o bloqueio **não é do cartão nem de CVV** (não há iframe nem campo de CVV na página, e o console não tem erro).
+- O estado da própria página do Mercado Pago traz `userId = 3786909683` e `payer_id = 3786909683`. O prefixo do `pref_id` (collector) é `3786909683` e é a conta dona das aplicações. **O comprador logado é a própria conta recebedora.**
+
+**Causa.** Pagador = recebedor. O Mercado Pago desabilita Pagar e Gerar código nesse caso, sem exibir mensagem. Não é falha da integração, do valor, do plano nem do evento (por isso criar outro evento ou trocar o valor não resolve). Nada no projeto contorna esse controle e nenhuma tentativa foi feita de habilitar o botão.
+
+**O que continua não provado.** O Mercado Pago não publica essa regra na documentação consultada; a atribuição vem da correspondência exata dos ids acima mais o bloqueio de ambos os meios. A prova final é um pagamento aprovado por comprador distinto.
+
+**Como retomar (instrução ao titular).** Abra o link do pedido em janela anônima (sem login no Mercado Pago) e pague como visitante com cartão ou Pix, ou entre com **outra** conta do Mercado Pago. Não entre com a conta recebedora. Depois do pagamento, confira: pedido `pago`, 1 cobrança `approved`, 1 direito, e se há linha de webhook (`payment:*`, `aplicado`) ou apenas conciliação (`apply.reconcile`).
+
+**Backlog.** PAY-MP-011 (IN_REVIEW até a compra por comprador distinto). Compra produtiva controlada continua pendente.

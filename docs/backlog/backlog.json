@@ -7842,6 +7842,31 @@
     "Spec de UI usa fake-mercadopago.mjs"
    ],
    "environment": "codigo"
+  },
+  {
+   "type": "BUG",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "homologação produtiva 2026-10-24",
+   "files": [],
+   "tests": [],
+   "evidence": [
+    "Tela de revisão do Checkout Pro: Pagar (cartão) e Gerar código (Pix) desabilitados; estado da página mostra userId e payer_id = 3786909683, igual ao collector da preferência (prefixo do pref_id e dono da aplicação)",
+    "Sem erro de console, sem iframe/campo de CVV, nenhuma requisição de rede na tela"
+   ],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-011",
+   "title": "Botão Pagar do Checkout Pro bloqueado: comprador logado é a própria conta recebedora",
+   "priority": "P1",
+   "status": "IN_REVIEW",
+   "description": "Causa comprovada pelo estado da página do Mercado Pago: pagador e recebedor são a mesma conta (3786909683), então o Mercado Pago desabilita Pagar e Gerar código sem mensagem. Não é defeito da integração. Para provar o ciclo produtivo o pagamento precisa vir de outra conta ou de visitante sem login. Nada no projeto contorna esse controle.",
+   "acceptance": [
+    "Pagamento aprovado por comprador distinto do recebedor (outra conta MP ou visitante sem login)",
+    "Pedido pago, 1 cobrança approved, 1 direito, linha de webhook com outcome aplicado"
+   ],
+   "environment": "producao"
   }
  ],
  "requirements": [
