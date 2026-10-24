@@ -78,7 +78,7 @@ for (const vp of VIEWPORTS) {
         await shot(page, `${key}-entrar`);
         await page.goto(`/e/${code}/qr`).catch(() => undefined);
         await page.goto(`/painel/${painel}/qr`);
-        await expect(page.locator(".mm-card-mesa").first()).toBeVisible();
+        await expect(page.locator(".convite-a5")).toBeVisible();
         await shot(page, `${key}-qr`, true);
       }
     });

@@ -24,7 +24,7 @@ Itens abertos: **9** · P0 0, P1 6, P2 2, P3 1 · BACKLOG 4, BLOCKED 3, IN_REVIE
 
 Design System v2, Event Studio, Master Admin e requisitos legais/operacionais mínimos (termos, backup, domínio).
 
-Itens abertos: **85** · P0 14, P1 17, P2 36, P3 18 · BACKLOG 47, BLOCKED 2, DEFERRED 3, IN_REVIEW 24, READY 9
+Itens abertos: **88** · P0 14, P1 18, P2 37, P3 19 · BACKLOG 48, BLOCKED 3, DEFERRED 3, IN_REVIEW 25, READY 9
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
@@ -59,6 +59,7 @@ Itens abertos: **85** · P0 14, P1 17, P2 36, P3 18 · BACKLOG 47, BLOCKED 2, DE
 | SCV-004 | P1 | IN_REVIEW | Worker de purga que respeita o bucket e agendamento de expire_pending_assets; limpar logo/ | SB-005 |
 | SCV-006 | P1 | IN_REVIEW | Upload de identidade: magic bytes, dimensões reais e reencode no servidor antes de exibir  | SB-005, EST-004 |
 | UXA-104 | P1 | BACKLOG | [Administrativa] /painel/[id]/conteudo · Pedidos de remoção/Ocultas/Todas: Moderação mostr | UXA-001 |
+| UXA-130 | P1 | IN_REVIEW | Convite A5 claro e 'Baixar PDF para gráfica' (PDF vetorial com sangria) mantendo 'Imprimir | - |
 | BG-022 | P2 | READY | Sem validação em Safari/iOS e Firefox | - |
 | BG-040 | P2 | BACKLOG | Rota dinâmica nunca visitada não abre offline | - |
 | BG-041 | P2 | BACKLOG | Atualização do SW num segundo deploy não verificada | - |
@@ -80,6 +81,7 @@ Itens abertos: **85** · P0 14, P1 17, P2 36, P3 18 · BACKLOG 47, BLOCKED 2, DE
 | MAD-006 | P2 | BACKLOG | UI do acesso excepcional a foto privada (justificativa → auditoria → URL de 60 s) e revoga | MAD-004, SCV-005 |
 | OPS-A5-004 | P2 | DEFERRED | Eventos anteriores a 22/10/2026 sem expiração automática | - |
 | OPS-A5-005 | P2 | DEFERRED | Pedidos de exclusão do titular em até 30 dias (processo manual) | - |
+| OPS-PRT-001 | P2 | BLOCKED | [humano] Prova de gráfica do convite A5 (perfil CMYK da gráfica, papel, leitura do QR impr | - |
 | PRF-001 | P2 | BACKLOG | Bundle: import dinâmico do SDK Supabase e do qrcode; AppProvider fora do /master; rotas cl | QAV-001 |
 | SCV-001 | P2 | IN_REVIEW | Feature flags e platform_settings com escrita só do master | MAD-001 |
 | SCV-005 | P2 | IN_REVIEW | Auditoria: event trigger para DISABLE/DROP TRIGGER, prefixo reservado em admin_log, trava  | MAD-002 |
@@ -113,6 +115,7 @@ Itens abertos: **85** · P0 14, P1 17, P2 36, P3 18 · BACKLOG 47, BLOCKED 2, DE
 | UXA-125 | P3 | BACKLOG | [Administrativa] /painel/[id]/aparencia (WIP de outro agente): Em 375 a 'Prévia do convite | UXA-001 |
 | UXA-126 | P3 | BACKLOG | [Anfitrião] /criar · passo 6 (resumo): CTA 'Criar evento de demonstração' quebra em 2 linh | UXA-001 |
 | UXA-128 | P3 | BACKLOG | Erro de upload de logo/capa persistente por campo (aria-describedby) e prévia móvel como p | EST-004 |
+| UXA-131 | P3 | BACKLOG | Logo/capa do evento no convite A5, com checagem de resolução efetiva | - |
 
 ## R3 · Monetização e escala (60–90 dias)
 

@@ -7547,6 +7547,86 @@
     "Primeira venda real conciliada e reembolsada pelo Master"
    ],
    "environment": "operador"
+  },
+  {
+   "epic": "EP-13",
+   "parent": null,
+   "dependencies": [],
+   "origin": "pedido de Aurimar 2026-10-23",
+   "release": "R2",
+   "environment": "remoto",
+   "id": "UXA-130",
+   "type": "FEATURE",
+   "priority": "P1",
+   "status": "IN_REVIEW",
+   "title": "Convite A5 claro e 'Baixar PDF para gráfica' (PDF vetorial com sangria) mantendo 'Imprimir'",
+   "description": "Convite antigo: cartão escuro (tinta), nome em fonte manuscrita, texto corrido ao lado do QR e data sem hierarquia; sem arquivo para gráfica. Novo convite A5 (148×210) com layout único para PDF e prévia/impressão; PDF 154×216 com TrimBox, fontes OFL embutidas, QR vetorial na URL canônica; cards A6 claros no papel. Detalhes e limitações: docs/design/CONVITE-A5.md.",
+   "acceptance": [
+    "PDF 1 página, MediaBox 154×216 mm, TrimBox 148×210 mm, fontes embutidas, QR decodificável na URL canônica = código impresso",
+    "Imprimir sai em A5 só com o convite, sem controles",
+    "Nomes longos e configurações de revelação sem corte",
+    "Smoke no domínio oficial"
+   ],
+   "files": [
+    "web/src/features/invitations/invite-print.ts",
+    "web/src/features/invitations/invite-layout.ts",
+    "web/src/features/invitations/invite-pdf.ts",
+    "web/src/features/invitations/InviteA5.tsx",
+    "web/src/app/painel/[id]/qr/page.tsx",
+    "web/src/lib/site.ts"
+   ],
+   "tests": [
+    "web/src/features/invitations/invite-pdf.test.ts",
+    "web/e2e/convite.spec.ts"
+   ],
+   "evidence": [
+    "vitest 508/508; typecheck; lint 0 erros; E2E 110/110; pdfinfo/pdffonts/pdftoppm e QR decodificado (docs/evidence/convite-20261023)"
+   ],
+   "commit": null
+  },
+  {
+   "epic": "EP-13",
+   "parent": null,
+   "dependencies": [],
+   "origin": "pedido de Aurimar 2026-10-23",
+   "release": "R2",
+   "environment": "remoto",
+   "id": "UXA-131",
+   "type": "TASK",
+   "priority": "P3",
+   "status": "BACKLOG",
+   "title": "Logo/capa do evento no convite A5, com checagem de resolução efetiva",
+   "description": "Hoje a identidade entra pela cor (faixa e números). Incluir a logo exige baixar a imagem assinada, embutir PNG/JPEG e recusar/reduzir abaixo de ~300 ppi no tamanho impresso.",
+   "acceptance": [
+    "Logo ≥ 300 ppi no tamanho impresso ou aviso ao organizador",
+    "QR e textos continuam legíveis"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null
+  },
+  {
+   "epic": "EP-13",
+   "parent": null,
+   "dependencies": [],
+   "origin": "pedido de Aurimar 2026-10-23",
+   "release": "R2",
+   "environment": "operador",
+   "id": "OPS-PRT-001",
+   "type": "TASK",
+   "priority": "P2",
+   "status": "BLOCKED",
+   "title": "[humano] Prova de gráfica do convite A5 (perfil CMYK da gráfica, papel, leitura do QR impresso)",
+   "description": "O PDF é RGB sem perfil ICC (não é PDF/X). Antes de tiragem: enviar a uma gráfica, pedir conversão com o perfil dela e prova física; escanear o QR impresso com iPhone e Android.",
+   "acceptance": [
+    "Prova física aprovada",
+    "QR impresso lido por iPhone e Android"
+   ],
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null
   }
  ],
  "requirements": [

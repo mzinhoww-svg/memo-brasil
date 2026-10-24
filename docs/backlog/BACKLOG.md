@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **248** itens (sem contar 19 épicos). Prioridade: P0 46, P1 86, P2 63, P3 53. Status: BACKLOG 95, BLOCKED 13, CANCELLED 2, DEFERRED 14, DONE 74, IN_REVIEW 38, READY 12.
+Total: **251** itens (sem contar 19 épicos). Prioridade: P0 46, P1 87, P2 64, P3 54. Status: BACKLOG 96, BLOCKED 14, CANCELLED 2, DEFERRED 14, DONE 74, IN_REVIEW 39, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -447,6 +447,9 @@ Total: **248** itens (sem contar 19 épicos). Prioridade: P0 46, P1 86, P2 63, P
 | EST-005 | FEATURE | Gestão do evento: indicadores, compartilhar/baixar QR, participantes, revogar convites, uploads, limites, contagem regressiva, status, exportação autorizada | P1 | BACKLOG | EST-003 | missão design/studio/master 2026-10-21 | - | - |
 | EST-006 | FEATURE | Logo e capa nas demais telas do convidado e na prévia do convite (assinatura de URL fora da RLS para quem ainda não entrou) | P1 | BACKLOG | EST-004, SCV-006 | revisão independente A1–A5 2026-10-21 | - | - |
 | EST-007 | FEATURE | Tema com cores por modo (dia/noite) no Event Theme personalizado | P2 | BACKLOG | EST-002 | revisão independente A1–A5 2026-10-21 | - | - |
+| OPS-PRT-001 | TASK | [humano] Prova de gráfica do convite A5 (perfil CMYK da gráfica, papel, leitura do QR impresso) | P2 | BLOCKED | - | pedido de Aurimar 2026-10-23 | - | operador |
+| UXA-130 | FEATURE | Convite A5 claro e 'Baixar PDF para gráfica' (PDF vetorial com sangria) mantendo 'Imprimir' | P1 | IN_REVIEW | - | pedido de Aurimar 2026-10-23 | - | remoto |
+| UXA-131 | TASK | Logo/capa do evento no convite A5, com checagem de resolução efetiva | P3 | BACKLOG | - | pedido de Aurimar 2026-10-23 | - | remoto |
 
 **EST-001** critérios: Migrations aditivas; pgTAP de RLS (host/membro/master/anônimo); CHECKs de cor/fonte/mensagem; sem SVG · testes: pgTAP 366/366 local, pgTAP 385/385; adaptador 13/13
 
@@ -461,6 +464,12 @@ Total: **248** itens (sem contar 19 épicos). Prioridade: P0 46, P1 86, P2 63, P
 **EST-006** critérios: Imagens aparecem em convite, entrada, galeria; sem vazamento a não membros
 
 **EST-007** critérios: Duas paletas validadas em contraste; teste de isolamento nos dois modos
+
+**UXA-130** critérios: PDF 1 página, MediaBox 154×216 mm, TrimBox 148×210 mm, fontes embutidas, QR decodificável na URL canônica = código impresso; Imprimir sai em A5 só com o convite, sem controles; Nomes longos e configurações de revelação sem corte; Smoke no domínio oficial · testes: web/src/features/invitations/invite-pdf.test.ts, web/e2e/convite.spec.ts
+
+**UXA-131** critérios: Logo ≥ 300 ppi no tamanho impresso ou aviso ao organizador; QR e textos continuam legíveis
+
+**OPS-PRT-001** critérios: Prova física aprovada; QR impresso lido por iPhone e Android
 
 ## EP-14 · Master Admin (BACKLOG)
 

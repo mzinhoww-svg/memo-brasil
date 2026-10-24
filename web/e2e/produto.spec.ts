@@ -67,6 +67,7 @@ test("remover foto e momento pedem confirmação; só removem depois de confirma
 test("card A6 do QR traz a copy nova e a linha de fotos e revelação", async ({ page }) => {
   const { id } = await createViaWizard(page, { reveal: "desligada", title: "Cards", shots: "10" });
   await page.goto(`/painel/${id}/qr`);
+  await page.getByRole("button", { name: "Mais uma mesa" }).click();
   await expect(page.getByText("Queremos a festa pelos seus olhos.").first()).toBeVisible();
   await expect(page.getByText("Aponte a câmera. Sem baixar app.").first()).toBeVisible();
   await expect(page.getByText("Cada um tem 10 fotos. Revelamos na hora.").first()).toBeVisible();
