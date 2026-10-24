@@ -146,6 +146,13 @@ flowchart LR
   PAY_OPS_005["PAY-OPS-005<br/>BLOCKED"]:::block
   PAY_OPS_004["PAY-OPS-004<br/>BLOCKED"]:::block
   REL_003["REL-003<br/>DONE"]:::done
+  PAY_MP_001["PAY-MP-001<br/>BLOCKED"]:::block
+  PAY_MP_002["PAY-MP-002<br/>BLOCKED"]:::block
+  PAY_MP_003["PAY-MP-003<br/>IN_REVIEW"]:::back
+  PAY_MP_004["PAY-MP-004<br/>BLOCKED"]:::block
+  PAY_MP_005["PAY-MP-005<br/>BLOCKED"]:::block
+  PAY_MP_006["PAY-MP-006<br/>BACKLOG"]:::back
+  PAY_MP_007["PAY-MP-007<br/>BLOCKED"]:::block
   FT_010 --> TK_010a
   FT_030 --> US_030a
   TK_030a1 --> TK_030a2
@@ -335,6 +342,13 @@ flowchart LR
   PAY_OPS_003 --> PAY_OPS_004
   PAY_OPS_005 --> PAY_OPS_004
   REL_001 --> REL_003
+  PAY_MP_003 --> PAY_MP_002
+  PAY_MP_001 --> PAY_MP_004
+  PAY_MP_002 --> PAY_MP_004
+  PAY_MP_004 --> PAY_MP_005
+  PAY_MP_003 --> PAY_MP_006
+  PAY_MP_004 --> PAY_MP_007
+  PAY_OPS_005 --> PAY_MP_007
   classDef done fill:#E8ECE4,stroke:#1C1917;
   classDef ready fill:#FFFFFF,stroke:#1C1917,stroke-width:3px;
   classDef test fill:#F4F2EF,stroke:#1C1917;

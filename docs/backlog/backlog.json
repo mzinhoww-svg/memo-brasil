@@ -7073,11 +7073,23 @@
    "acceptance": [
     "Teste pgTAP: reembolso de pedido pago nunca usa a cobrança divergente"
    ],
-   "files": [],
-   "tests": [],
-   "evidence": [],
+   "files": [
+    "docs/superpowers/specs/2026-10-23-mercadopago-design.md",
+    "supabase/migrations/20261023000100_payments_mercadopago.sql",
+    "supabase/tests/database/11_payments_mercadopago.test.sql"
+   ],
+   "tests": [
+    "supabase/tests/database/11_payments_mercadopago.test.sql",
+    "web/integration/payments.itest.ts"
+   ],
+   "evidence": [
+    "payments_refund_target + admin_request_payment_refund: o alvo do reembolso de pedido pago é sempre o pagamento vinculado; cobrança duplicada/divergente só por payment_id explícito conhecido do pedido",
+    "pgTAP 11: 'PAY-001: alvo padrão do pedido pago é o vinculado' / 'a divergente só por pedido explícito' / 'pagamento desconhecido recusado' / 'pedido (vinculado) NÃO ficou marcado para reembolso' / 'histórico: id inventado recusado (PAY-001)'",
+    "itest payments.itest.ts: 'PAY-001: cobrança duplicada só é reembolsada por pedido explícito; o pagamento vinculado nunca é tocado'",
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+   ],
    "commit": null,
-   "environment": "codigo",
+   "environment": "codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador)",
    "release": "R3"
   },
   {
@@ -7094,11 +7106,21 @@
    "acceptance": [
     "RPC Master auditada limpa needs_refund com motivo"
    ],
-   "files": [],
-   "tests": [],
-   "evidence": [],
+   "files": [
+    "docs/superpowers/specs/2026-10-23-mercadopago-design.md",
+    "supabase/migrations/20261023000100_payments_mercadopago.sql",
+    "supabase/tests/database/11_payments_mercadopago.test.sql"
+   ],
+   "tests": [
+    "supabase/tests/database/11_payments_mercadopago.test.sql"
+   ],
+   "evidence": [
+    "admin_clear_needs_refund(order, motivo): Master, motivo 10–500, auditoria payment.needs_refund_cleared, divergências marcadas como resolvidas (não apagadas); needs_refund também fecha sozinho quando a cobrança extra é reembolsada",
+    "pgTAP 11: 'PAY-002: não-master recusado' / 'motivo obrigatório' / 'Master limpa com motivo' / 'some do Master depois de tratada' / 'auditado com motivo' / 'sem pendência: MM005'",
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+   ],
    "commit": null,
-   "environment": "codigo",
+   "environment": "codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador)",
    "release": "R3"
   },
   {
@@ -7115,11 +7137,21 @@
    "acceptance": [
     "Teste: pedido pago não aceita waiver de valor"
    ],
-   "files": [],
-   "tests": [],
-   "evidence": [],
+   "files": [
+    "docs/superpowers/specs/2026-10-23-mercadopago-design.md",
+    "supabase/migrations/20261023000100_payments_mercadopago.sql",
+    "supabase/tests/database/11_payments_mercadopago.test.sql"
+   ],
+   "tests": [
+    "supabase/tests/database/11_payments_mercadopago.test.sql"
+   ],
+   "evidence": [
+    "payments_apply_status (histórico) com waiver de valor restrito a pedido ainda não pago; payments_apply_payment (MP) valida valor sempre no pagamento vinculado",
+    "pgTAP 11: 'PAY-003: pago não aceita waiver de valor' / 'waiver segue valendo para não pago com needs_refund' / 'PAY-003 (MP): primário reembolsado com valor divergente: recusado'",
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+   ],
    "commit": null,
-   "environment": "codigo",
+   "environment": "codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador)",
    "release": "R3"
   },
   {
@@ -7136,11 +7168,23 @@
    "acceptance": [
     "Teste: pedido antigo sai da varredura; execução repetida não cria evento novo"
    ],
-   "files": [],
-   "tests": [],
-   "evidence": [],
+   "files": [
+    "docs/superpowers/specs/2026-10-23-mercadopago-design.md",
+    "supabase/migrations/20261023000100_payments_mercadopago.sql",
+    "supabase/tests/database/11_payments_mercadopago.test.sql"
+   ],
+   "tests": [
+    "supabase/tests/database/11_payments_mercadopago.test.sql",
+    "web/integration/payments.itest.ts"
+   ],
+   "evidence": [
+    "payments_reconcile_candidates (teto de idade 7 dias, throttle, limite de lote, ambiente) e 'duplicado' não grava payment_events; payments_touch_checked não grava evento",
+    "pgTAP 11: 'PAY-004: pendente de 8 dias sai da varredura' / 'expirado de 9 dias sai da varredura' / 'rodadas repetidas não criam payment_events' / 'duplicados não regravam payment_events' / 'paginação: limite do lote respeitado'",
+    "itest payments.itest.ts: 'pedido com mais de 7 dias sai da varredura (PAY-004)' e 'notificação duplicada 3x ... não regrava payment_events'",
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+   ],
    "commit": null,
-   "environment": "codigo",
+   "environment": "codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador)",
    "release": "R3"
   },
   {
@@ -7157,11 +7201,21 @@
    "acceptance": [
     "Teste: divergência em pedido pago permanece após 30 dias"
    ],
-   "files": [],
-   "tests": [],
-   "evidence": [],
+   "files": [
+    "docs/superpowers/specs/2026-10-23-mercadopago-design.md",
+    "supabase/migrations/20261023000100_payments_mercadopago.sql",
+    "supabase/tests/database/11_payments_mercadopago.test.sql"
+   ],
+   "tests": [
+    "supabase/tests/database/11_payments_mercadopago.test.sql"
+   ],
+   "evidence": [
+    "admin_payment_divergences: divergência de pedido 'pago'/'em_disputa' sem resolved_at não some em 30 dias",
+    "pgTAP 11: 'PAY-005: divergência em pedido pago segue visível após 45 dias' / 'some depois do tratamento' / 'evento marcado como resolvido, não apagado'",
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+   ],
    "commit": null,
-   "environment": "codigo",
+   "environment": "codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador)",
    "release": "R3"
   },
   {
@@ -7278,6 +7332,190 @@
    "evidence": [
     "Rodada 7: supabase config diff mostra o padrão remoto; sem alteração feita"
    ]
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-001",
+   "title": "[humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel",
+   "priority": "P0",
+   "status": "BLOCKED",
+   "description": "Operador cria/obtém credenciais de teste, grava MERCADOPAGO_ACCESS_TOKEN, MERCADOPAGO_WEBHOOK_SECRET e PAYMENTS_CRON_TOKEN por env-file fora do repo e registra o webhook (tópico Pagamentos) apontando para payments-webhook, sem parâmetros de segredo. Ver docs/supabase/PAYMENTS-RUNBOOK.md passos 5-7.",
+   "acceptance": [
+    "Segredos configurados por nome, sem passar por repositório/log",
+    "Webhook registrado; payments-diagnose (Master) mostra conta recebedora e os 3 segredos como presentes"
+   ],
+   "environment": "operador"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [
+    "PAY-MP-003"
+   ],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-002",
+   "title": "Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy)",
+   "priority": "P0",
+   "status": "BLOCKED",
+   "description": "Comandos do operador (o agente não executa no remoto): supabase db push --linked, functions deploy conforme runbook passo 4, Vault e agendamento da conciliação.",
+   "acceptance": [
+    "migration list com local = remoto incluindo 20261023000100",
+    "6 functions ACTIVE com verify_jwt conforme config.toml",
+    "Job mm-payments-reconcile ativo"
+   ],
+   "environment": "operador"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [
+    "supabase/migrations/20261023000100_payments_mercadopago.sql",
+    "supabase/tests/database/11_payments_mercadopago.test.sql",
+    "supabase/functions/_shared/mercadopago.ts",
+    "supabase/functions/_shared/mercadopago-signature.ts",
+    "supabase/functions/payments-diagnose/index.ts",
+    "web/e2e/fixtures/fake-mercadopago.mjs",
+    "docs/supabase/PAYMENTS-RUNBOOK.md"
+   ],
+   "tests": [
+    "supabase/tests/database/11_payments_mercadopago.test.sql",
+    "supabase/functions/_shared/mercadopago.test.ts",
+    "supabase/functions/_shared/mercadopago-signature.test.ts",
+    "supabase/functions/_shared/mercadopago-flow.test.ts",
+    "web/integration/payments.itest.ts"
+   ],
+   "evidence": [
+    "Verificação local registrada no relatório da sessão (pgTAP/vitest/itest). O fake NÃO é homologação externa."
+   ],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-003",
+   "title": "Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão",
+   "priority": "P0",
+   "status": "IN_REVIEW",
+   "description": "Preferences + webhook x-signature + conciliação por external_reference + reembolso com X-Idempotency-Key + payments-diagnose; PAY-001..005; AbacatePay isolado como histórico.",
+   "acceptance": [
+    "pgTAP, vitest das functions e itest com fake verdes",
+    "Nenhum segredo no repositório",
+    "Runbook atualizado"
+   ],
+   "environment": "codigo (local)"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [
+    "PAY-MP-001",
+    "PAY-MP-002"
+   ],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-004",
+   "title": "Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso)",
+   "priority": "P0",
+   "status": "BLOCKED",
+   "description": "Janela controlada com payments_env='sandbox' (runbook passo 9). Pagamento e reembolso na página hospedada pelo TITULAR da conta; o agente não digita dados de cartão. Depois fechar a janela.",
+   "acceptance": [
+    "Pagamento de teste aprovado libera o plano; webhook repetido não duplica",
+    "Reembolso total e parcial refletidos (inclusive Pix in_process)",
+    "Janela fechada: payments_env='desligado'"
+   ],
+   "environment": "remoto"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [
+    "PAY-MP-004"
+   ],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-005",
+   "title": "Confirmar na homologação as incertezas da API listadas no design (§6)",
+   "priority": "P1",
+   "status": "BLOCKED",
+   "description": "init_point vs sandbox_init_point com credenciais de teste, manifest do x-signature, unidade e tolerância de ts, ordenação do search, prazo de reembolso Pix, collector_id/live_mode no pagamento, chargebacks.",
+   "acceptance": [
+    "Cada item do §6 marcado como confirmado ou ajustado no código com teste"
+   ],
+   "environment": "remoto"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [
+    "PAY-MP-003"
+   ],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-006",
+   "title": "Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago",
+   "priority": "P1",
+   "status": "BACKLOG",
+   "description": "Responsabilidade do agente web (feat/mercadopago-web). Remover web/e2e/fixtures/fake-abacatepay.mjs quando o spec não o importar mais.",
+   "acceptance": [
+    "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",
+    "Spec de UI usa fake-mercadopago.mjs"
+   ],
+   "environment": "codigo"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [
+    "PAY-MP-004",
+    "PAY-OPS-005"
+   ],
+   "origin": "migração Mercado Pago 2026-10-23",
+   "files": [],
+   "tests": [],
+   "evidence": [],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-007",
+   "title": "[humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por plano",
+   "priority": "P1",
+   "status": "BLOCKED",
+   "description": "Só depois da homologação real, credenciais de produção e decisões comerciais/legais (runbook passo 14).",
+   "acceptance": [
+    "payments_env='production' com production_active por plano",
+    "Primeira venda real conciliada e reembolsada pelo Master"
+   ],
+   "environment": "operador"
   }
  ],
  "requirements": [

@@ -15,7 +15,7 @@
 | G12 | Migrations V2 e Edge Functions remotas | PASSA no inventário: 16 migrations e duas Functions ativas | docs/supabase/evidence/a5-20261021/backend-readonly.json; docs/supabase/A5-HOMOLOGATION-REPORT.md |
 | G11 | Conector Supabase acessa o projeto correto | PASSA: consultas remotas de leitura | docs/supabase/evidence/a5-20261021/backend-readonly.json |
 
-## Itens P0/P1 em aberto (48)
+## Itens P0/P1 em aberto (55)
 | ID | Título | Prio | Status |
 |---|---|---|---|
 | BG-071 | Outbox de sincronização offline ainda é só desenho | P1 | BACKLOG |
@@ -66,6 +66,13 @@
 | REL-004 | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | P1 | BLOCKED |
 | REL-005 | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect URLs após o go-live | P1 | BLOCKED |
 | OPS-A5-006 | Limite de entradas anônimas do Supabase Auth (30/h por IP) | P1 | BLOCKED |
+| PAY-MP-001 | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | BLOCKED |
+| PAY-MP-002 | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | BLOCKED |
+| PAY-MP-003 | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | P0 | IN_REVIEW |
+| PAY-MP-004 | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso) | P0 | BLOCKED |
+| PAY-MP-005 | Confirmar na homologação as incertezas da API listadas no design (§6) | P1 | BLOCKED |
+| PAY-MP-006 | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago | P1 | BACKLOG |
+| PAY-MP-007 | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por plano | P1 | BLOCKED |
 
 ## Decisão atual
 **NO-GO para produção; A não concluída.** Checkpoint A5 em docs/supabase/A5-HOMOLOGATION-REPORT.md. Testes unitários/probes não substituem E2E autenticado, sessões e aparelhos físicos. Nenhuma promoção autorizada. Ordem A → B → Codex → C preservada; proposta paralela de backlog não integrada.
