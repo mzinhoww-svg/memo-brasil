@@ -83,3 +83,27 @@ Runbook `docs/supabase/PAYMENTS-RUNBOOK.md` §16 a §19; `docs/payments/QA-EVIDE
 **Como retomar (instrução ao titular).** Abra o link do pedido em janela anônima (sem login no Mercado Pago) e pague como visitante com cartão ou Pix, ou entre com **outra** conta do Mercado Pago. Não entre com a conta recebedora. Depois do pagamento, confira: pedido `pago`, 1 cobrança `approved`, 1 direito, e se há linha de webhook (`payment:*`, `aplicado`) ou apenas conciliação (`apply.reconcile`).
 
 **Backlog.** PAY-MP-011 (IN_REVIEW até a compra por comprador distinto). Compra produtiva controlada continua pendente.
+
+## Duas tentativas recusadas em produção (2026-10-24 16:40Z): causa documentada e verificação do backend
+
+**Transações (consulta oficial pela API, via `payments-diagnose` Master, sem expor token):**
+
+| Pagamento | Meio | status | status_detail | env | collector | pagador = recebedor | amount | referência (pedido) |
+|---|---|---|---|---|---|---|---|---|
+| `184864803413` | Pix | `rejected` | `rejected_high_risk` | produção (`live_mode` true) | `3786909683` | **não** | R$ 1,00 BRL | `0c665ac5…` |
+| `185906847586` | Cartão (Mastercard) | `rejected` | `cc_rejected_high_risk` | produção (`live_mode` true) | `3786909683` | **não** | R$ 1,00 BRL | `0c665ac5…` |
+
+**Causa documentada.** Nas duas tentativas a recusa é de **prevenção a fraude do Mercado Pago** (`*_rejected_high_risk`; documentação "Por que um pagamento é recusado?", seção "Recusas por prevenção contra fraudes"). A documentação acrescenta que `cc_rejected_high_risk` pode ocorrer quando dois pagamentos consecutivos usam itens e `payer` muito semelhantes (a segunda tentativa veio ~1 minuto depois da primeira) e que os pagamentos seguintes podem ficar temporariamente bloqueados; recomenda evitar novas tentativas imediatas com os mesmos dados. **A razão interna do score de risco não é exposta pela API**; saber por que a primeira tentativa (Pix) foi classificada como risco exige o Mercado Pago. O diagnóstico anterior (pagador = recebedor) explicava o botão desabilitado na sessão logada; **não** explica estas duas recusas, porque nestas `payerIsCollector` é falso.
+
+**Backend (verificado no banco):**
+- Os dois pagamentos foram registrados como cobranças `role=attempt`, `status=rejected`, produção, collector correto, R$ 1,00, ligadas ao pedido `0c665ac5…`.
+- **Webhook comprovado em produção:** `payment_events` tem `payment:payment.created` (16:40:04Z e 16:41:11Z) seguidos de `apply.webhook` com `outcome=tentativa_recusada`. Essas linhas só existem depois de assinatura válida do `MERCADOPAGO_WEBHOOK_SECRET`, logo a entrega autenticada e o processamento estão provados para esses eventos. Ainda **não** há webhook de um pagamento aprovado.
+- O pedido ficou `pendente`, sem `needs_refund`, sem `mp_payment_id` e **nenhum direito foi concedido** (o único direito ativo pago continua o do sandbox `235e0088…`). Nada foi cobrado.
+
+**Correção na integração (lacuna comprovada).** O código descartava `status_detail` e não dava como saber o motivo da recusa. `normalizePayment` agora expõe `statusDetail` e `payerIsCollector` (só o booleano; o id do pagador nunca sai) e o `payments-diagnose` os devolve na consulta `{paymentId}`. Teste: `mercadopago.test.ts` (RED→GREEN), functions 122/122, `deno check` ok; `payments-diagnose` publicada. Não foi alterada a gravação em `payment_events` (guardar `status_detail` ali exige migration; fica no backlog PAY-MP-012).
+
+**Restrição da conta recebedora.** A API não mostra nenhuma restrição da conta recebedora; o que se observa é recusa por risco. A exigência exata e a solução oficial dependem do Mercado Pago (suporte do desenvolvedor), com os dois `payment_id` acima. Pedido pronto para o suporte (a enviar pelo titular):
+
+> "Conta 3786909683 (produção). Os pagamentos 184864803413 (Pix, rejected_high_risk) e 185906847586 (cartão, cc_rejected_high_risk), de R$ 1,00, referência 0c665ac5-4e7d-41e0-a5fd-a7eb9836c607, foram recusados por risco. Preciso saber o motivo, se há restrição na conta recebedora ou nas credenciais de produção e o que fazer para liberar os recebimentos. A integração é Checkout Pro (preferências), notification_url configurada, itens com category_id e description."
+
+**Pagamentos continuam NO-GO** até haver uma compra aprovada, a liberação correta do plano (uma única vez) e, de preferência, webhook de um pagamento aprovado. Não repetir tentativas agora (a documentação alerta para bloqueio temporário por tentativas consecutivas semelhantes).

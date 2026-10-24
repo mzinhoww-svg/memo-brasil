@@ -7780,7 +7780,8 @@
    "files": [],
    "tests": [],
    "evidence": [
-    "runbook §19"
+    "runbook §19",
+    "2026-10-24: webhook de produção autenticado e processado (payment:payment.created, outcome tentativa_recusada); falta webhook de pagamento aprovado"
    ],
    "commit": null,
    "release": "R3",
@@ -7865,6 +7866,39 @@
    "acceptance": [
     "Pagamento aprovado por comprador distinto do recebedor (outra conta MP ou visitante sem login)",
     "Pedido pago, 1 cobrança approved, 1 direito, linha de webhook com outcome aplicado"
+   ],
+   "environment": "producao"
+  },
+  {
+   "type": "TASK",
+   "epic": "EP-19",
+   "parent": null,
+   "dependencies": [
+    "PAY-MP-011"
+   ],
+   "origin": "homologação produtiva 2026-10-24",
+   "files": [
+    "supabase/functions/_shared/mercadopago.ts",
+    "supabase/functions/payments-diagnose/index.ts"
+   ],
+   "tests": [
+    "supabase/functions/_shared/mercadopago.test.ts"
+   ],
+   "evidence": [
+    "Pagamentos 184864803413 (Pix, rejected_high_risk) e 185906847586 (cartão, cc_rejected_high_risk), produção, payerIsCollector=false",
+    "Webhook de produção processado: payment:payment.created + apply.webhook tentativa_recusada",
+    "Nenhum direito concedido"
+   ],
+   "commit": null,
+   "release": "R3",
+   "id": "PAY-MP-012",
+   "title": "Recusas por risco (high_risk) no primeiro pagamento produtivo; registrar status_detail",
+   "priority": "P1",
+   "status": "BLOCKED",
+   "description": "Mercado Pago recusou por prevenção a fraude. Pendente: resposta do suporte do Mercado Pago sobre o motivo e restrição da conta; depois nova compra aprovada. Melhoria de código: gravar status_detail em payment_events (exige migration).",
+   "acceptance": [
+    "Compra aprovada com pedido pago, 1 direito e webhook aprovado",
+    "status_detail visível no registro da tentativa"
    ],
    "environment": "producao"
   }
