@@ -1,30 +1,94 @@
+import { Fragment } from "react";
 import Link from "next/link";
-import { num, requireMaster, rpc, when } from "../data";
-import { PageHead, StateBox, Table } from "../ui";
+import { requireMaster, rpc, rpcOr, when, type SearchParams } from "../data";
+import { num } from "@/features/master/format";
+import { CsvButton } from "../kit/CsvButton";
+import { EmptyState } from "../kit/EmptyState";
+import { Pill } from "../kit/Pill";
+import { hrefWith } from "../kit/url";
+import { withShellParams } from "../shell/params";
+import { PageHead, StateBox } from "../ui";
+import { CATEGORIES, categoryOf, dayLabel, groupByDay, isSensitive, legacyIsPartial, roleLabel, targetEvent, targetText, type AuditItem } from "./lib";
+import styles from "./page.module.css";
 
-interface A { id: number; at: string; actorId: string | null; actorRole: string | null; action: string; targetType: string | null; targetId: string | null; reason: string | null }
+const PATH = "/master/auditoria";
 const POR = 50;
-export default async function Auditoria({ searchParams }: { searchParams: Promise<{ a?: string; p?: string }> }) {
+type List = { total: number; items: AuditItem[] };
+const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+
+export default async function Auditoria({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sb = await requireMaster();
-  const sp = await searchParams; const p = Math.max(1, Number(sp.p) || 1);
-  const r = await rpc<{ total: number; items: A[] }>(sb, "admin_list_audit", { p_limit: POR, p_offset: (p - 1) * POR, p_action: sp.a?.slice(0, 60) || null });
-  const href = (n: number) => `/master/auditoria?${new URLSearchParams({ ...(sp.a ? { a: sp.a } : {}), p: String(n) })}`;
+  const sp = await searchParams;
+  const p = Math.max(1, Number(first(sp.p)) || 1);
+  const a = first(sp.a)?.slice(0, 60) || null;
+  const cat = a ? null : categoryOf(sp.cat);
+  const page = { p_limit: POR, p_offset: (p - 1) * POR };
+
+  // Prefixo livre usa a RPC antiga (sempre existe); categorias usam a nova, com o prefixo principal como reserva.
+  const r = a
+    ? await rpc<List>(sb, "admin_list_audit", { ...page, p_action: a })
+    : await rpcOr<List>(sb, "admin_list_audit_v2", { ...page, p_category: cat }, { name: "admin_list_audit", args: { ...page, p_action: cat ? CATEGORIES.find((c) => c.key === cat)!.legacy : null } });
+  const degraded = r.state === "ok" && !!r.degraded;
+  const items = r.state === "ok" ? r.data.items.map((x) => ({ ...x, sensitive: x.sensitive ?? isSensitive(x.action, x.reason) })) : [];
+  const groups = groupByDay(items);
+  const pages = r.state === "ok" ? Math.max(1, Math.ceil(r.data.total / POR)) : 1;
+  const sensitiveCount = items.filter((x) => x.sensitive).length;
+
   return (
     <>
-      <PageHead titulo="Auditoria e segurança" texto="Registro imutável de ações administrativas e de segurança. Ações sensíveis exigem justificativa." />
-      <form method="get" role="search" style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <label htmlFor="a" style={{ position: "absolute", left: -9999 }}>Prefixo da ação</label>
-        <input id="a" name="a" className="mm-field-input" placeholder="Ação começa com… (ex.: photo.)" defaultValue={sp.a} style={{ maxWidth: 320 }} />
-        <button className="mm-btn mm-btn--secundario" type="submit">Filtrar</button>
+      <PageHead titulo="Auditoria e segurança" texto="Registro imutável de ações administrativas e de segurança. Ações sensíveis exigem justificativa e aparecem destacadas." />
+      {degraded && <p className="adm-aviso-degradado">Dados completos após a atualização do banco.{cat && legacyIsPartial(cat) ? ` Até lá, esta categoria filtra só ações que começam com "${CATEGORIES.find((c) => c.key === cat)!.legacy}".` : ""}</p>}
+
+      <nav className={styles.chips} aria-label="Categoria">
+        <Link className="adm-btn" href={hrefWith(PATH, sp, { cat: null, a: null })} aria-current={!cat && !a ? "page" : undefined}>Todas</Link>
+        {CATEGORIES.map((c) => <Link key={c.key} className="adm-btn" href={hrefWith(PATH, sp, { cat: c.key, a: null })} aria-current={cat === c.key ? "page" : undefined}>{c.label}</Link>)}
+      </nav>
+      <form method="get" role="search" className={styles.search}>
+        <label htmlFor="a" className="adm-sr">Prefixo da ação</label>
+        <input id="a" name="a" className="mm-field-input" placeholder="Ação começa com (ex.: photo.)" defaultValue={a ?? ""} />
+        <button className="adm-btn" type="submit">Filtrar</button>
+        {a && <Link className="adm-btn" href={hrefWith(PATH, sp, { a: null })}>Limpar</Link>}
       </form>
-      {r.state !== "ok" ? <StateBox load={r} /> : (
+
+      {r.state !== "ok" ? <StateBox load={r} /> : items.length === 0 ? (
+        <EmptyState title="Nenhum registro" text={cat || a ? "Nada com este filtro. Tente outra categoria." : "Ainda não há ações registradas."}
+          action={cat || a ? { href: hrefWith(PATH, sp, { cat: null, a: null }), label: "Ver todas" } : undefined} />
+      ) : (
         <>
-          <Table vazio="Nenhum registro." cols={[{ k: "t", h: "Quando" }, { k: "a", h: "Ação" }, { k: "p", h: "Papel" }, { k: "g", h: "Alvo" }, { k: "m", h: "Justificativa" }]}
-            rows={r.data.items.map((x) => ({ t: when(x.at), a: <code>{x.action}</code>, p: x.actorRole ?? "—", g: x.targetType ? `${x.targetType}:${(x.targetId ?? "").slice(0, 8)}` : "—", m: x.reason ?? "—" }))} />
-          <nav aria-label="Paginação" style={{ display: "flex", gap: 12, marginTop: 16 }}>
-            {p > 1 && <Link href={href(p - 1)}>← Anterior</Link>}
-            <span>Página {p} de {Math.max(1, Math.ceil(r.data.total / POR))} · {num(r.data.total)} registros</span>
-            {p * POR < r.data.total && <Link href={href(p + 1)}>Próxima →</Link>}
+          <div className={styles.summary}>
+            <p>{num(r.data.total)} registros · página {p} de {pages}{sensitiveCount > 0 && <> · <Pill tone="warn">{num(sensitiveCount)} sensíveis nesta página</Pill></>}</p>
+            <CsvButton filename={`auditoria-p${p}`} label="Exportar página (CSV)"
+              rows={items.map((x) => ({ quando: x.at, acao: x.action, papel: roleLabel(x.actorRole), alvo: targetText(x), evento: targetEvent(x) ?? "", justificativa: x.reason ?? "", sensivel: x.sensitive ? "sim" : "não" }))}
+              cols={[{ key: "quando", label: "Quando" }, { key: "acao", label: "Ação" }, { key: "papel", label: "Papel" }, { key: "alvo", label: "Alvo" }, { key: "evento", label: "Evento" }, { key: "justificativa", label: "Justificativa" }, { key: "sensivel", label: "Sensível" }]} />
+          </div>
+          <div className="adm-table-wrap" role="region" tabIndex={0} aria-label="Registros de auditoria">
+            <table className="adm-table">
+              <thead><tr><th scope="col">Hora</th><th scope="col">Ação</th><th scope="col">Papel</th><th scope="col">Alvo</th><th scope="col">Justificativa</th></tr></thead>
+              <tbody>
+                {groups.map((g) => (
+                  <Fragment key={g.day}>
+                    <tr className={styles.dayRow}><th scope="rowgroup" colSpan={5}>{dayLabel(g.day)} <span>{num(g.items.length)}</span></th></tr>
+                    {g.items.map((x) => {
+                      const ev = targetEvent(x);
+                      return (
+                        <tr key={x.id} className={x.sensitive ? styles.sensitive : undefined}>
+                          <td className="num">{when(x.at).split(" ").pop()}</td>
+                          <td><span className={styles.action}><code>{x.action}</code>{x.sensitive && <Pill tone="warn">sensível</Pill>}</span></td>
+                          <td>{roleLabel(x.actorRole)}</td>
+                          <td>{ev ? <Link href={withShellParams(`/master/eventos?ev=${ev}`, sp)}>{targetText(x)}</Link> : targetText(x)}</td>
+                          <td>{x.reason ?? "—"}</td>
+                        </tr>
+                      );
+                    })}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <nav aria-label="Paginação" className={styles.pager}>
+            {p > 1 && <Link className="adm-btn" href={hrefWith(PATH, sp, { p: String(p - 1) })}>Anterior</Link>}
+            <span>Página {p} de {pages}</span>
+            {p < pages && <Link className="adm-btn" href={hrefWith(PATH, sp, { p: String(p + 1) })}>Próxima</Link>}
           </nav>
         </>
       )}

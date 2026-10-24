@@ -1,0 +1,10 @@
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.search { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.search input { flex: 1 1 200px; max-width: 320px; min-width: 0; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.summary p { margin: 0; font-size: 14px; color: var(--apoio, #6B645C); font-variant-numeric: tabular-nums; }
+.dayRow th { text-align: left; font-size: 13px; font-weight: 700; text-transform: capitalize; background: color-mix(in srgb, var(--tinta, #1C1917) 4%, transparent); }
+.dayRow span { font-weight: 400; color: var(--apoio, #6B645C); margin-left: 6px; font-variant-numeric: tabular-nums; }
+.sensitive td { background: color-mix(in srgb, var(--warn) 8%, transparent); }
+.action { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pager { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 16px; font-variant-numeric: tabular-nums; }

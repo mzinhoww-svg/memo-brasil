@@ -1,0 +1,10 @@
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.kpis { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); margin-bottom: 24px; }
+.charts { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); margin-bottom: 24px; }
+.section { margin: 32px 0 12px; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.section h2 { margin: 0; font-size: 18px; }
+.section p { margin: 4px 0 0; font-size: 13px; color: var(--apoio, #6B645C); }
+.metricTabs { margin-bottom: 16px; }
+.cell { display: inline-flex; gap: 8px; align-items: baseline; justify-content: flex-end; font-variant-numeric: tabular-nums; }
+.cell small { color: var(--apoio, #6B645C); font-size: 12px; min-width: 3.5em; text-align: right; }
+.card { border: 1px solid var(--adm-linha); border-radius: 14px; padding: 16px 18px; min-width: 0; }

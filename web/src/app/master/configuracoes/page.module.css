@@ -1,0 +1,17 @@
+.card { border: 1px solid var(--adm-linha); border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; min-width: 0; }
+.cardHead { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+.cardHead h2 { margin: 0; font-size: 18px; }
+.cardHead p { margin: 4px 0 0; font-size: 13px; color: var(--apoio, #6B645C); }
+.fields { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.field { border: 1px solid var(--adm-linha); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.missing { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 7%, transparent); }
+.fieldHead { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.fieldLabel { display: block; font-size: 13px; font-weight: 600; color: var(--apoio, #6B645C); }
+.fieldValue { display: block; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.missing .fieldValue { color: var(--warn); font-weight: 600; }
+.fieldActions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.form { display: grid; gap: 12px; margin-top: 12px; max-width: 520px; }
+.ok { margin: 8px 0 0; font-size: 13px; color: var(--ok); }
+.small { margin: 8px 0 0; font-size: 13px; color: var(--apoio, #6B645C); }
+.head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin: 32px 0 12px; }
+.head h2 { margin: 0; font-size: 18px; }
