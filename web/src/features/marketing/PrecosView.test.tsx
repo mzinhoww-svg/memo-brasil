@@ -33,5 +33,14 @@ describe("PrecosView", () => {
     expect(screen.queryByTestId("preco-festa")).toBeNull();
     expect(screen.getByRole("link", { name: "Fale com a gente" })).toHaveAttribute("href", expect.stringContaining("mailto:oi@memoriesmt.test"));
     expect(screen.queryByText("Recomendado")).toBeNull();
+    expect(screen.getByText(/Os planos pagos ainda não estão abertos/)).toBeInTheDocument();
+    expect(screen.queryByText(/O plano libera assim que o pagamento for confirmado/)).toBeNull();
+  });
+  it("planos pagos abertos: a FAQ explica o pagamento no Mercado Pago", async () => {
+    api.listPublicPlans.mockResolvedValue(ALL); api.getPublicSettings.mockResolvedValue(S);
+    render(<PrecosView />);
+    expect(await screen.findByTestId("preco-festa")).toBeInTheDocument();
+    expect(screen.getByText(/O plano libera assim que o pagamento for confirmado/)).toBeInTheDocument();
+    expect(screen.queryByText(/ainda não estão abertos/)).toBeNull();
   });
 });
