@@ -82,7 +82,7 @@ export function V3PaymentJourney() {
       if (!cancelled) setQ({ code: target.code, quote: null, failed: true });
     });
     return () => { cancelled = true; };
-  }, [eventId, target?.code, paying]);
+  }, [eventId, target, paying]);
 
   const qCurrent = q?.code === target?.code && !q.failed ? q.quote : null;
   const amount = paying ? qCurrent?.amountCents : 0;
@@ -138,7 +138,7 @@ export function V3PaymentJourney() {
         ))}
       </nav>
       <div className={styles.columns}>
-        <main className={styles.panel}>
+        <section className={styles.panel}>
           {order ? (
             <>
               <p className={styles.kicker}>Status real do pedido</p>
@@ -228,7 +228,7 @@ export function V3PaymentJourney() {
               <p className={styles.caption}>O pagamento só altera seu plano após verificação do backend. Um retorno do navegador não comprova aprovação.</p>
             </>
           )}
-        </main>
+        </section>
         <aside className={styles.aside} aria-label="Resumo do evento">
           <div className={styles.art}>
             <span className={styles.glowOne}/><span className={styles.glowTwo}/>
