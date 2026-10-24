@@ -1,0 +1,29 @@
+.headActions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.kpis { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); margin-bottom: 20px; }
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); margin-bottom: 20px; }
+.card { border: 1px solid var(--adm-linha); border-radius: 14px; padding: 16px 18px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.card > h2 { margin: 0; font-size: 14px; font-weight: 600; }
+.cardHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.cardHead h2 { margin: 0; font-size: 14px; font-weight: 600; }
+.cardHead a { font-size: 14px; font-weight: 600; min-height: 44px; display: inline-flex; align-items: center; }
+.cardHead a:focus-visible, .reveals a:focus-visible, .table a:focus-visible { outline: 2px solid var(--foco, #1F4E79); outline-offset: 2px; }
+.chartWrap { margin-bottom: 20px; }
+.reveals { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.reveals li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding-bottom: 8px; border-bottom: 1px solid var(--adm-linha); }
+.reveals li:last-child { border-bottom: 0; padding-bottom: 0; }
+.reveals a { color: inherit; font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.reveals a:hover { text-decoration: underline; }
+.when { display: inline-flex; gap: 6px; align-items: center; font-variant-numeric: tabular-nums; }
+.jobs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 8px; }
+.jobs li { display: flex; align-items: center; gap: 8px; font-size: 13px; min-width: 0; }
+.jobs li span:last-child { overflow-wrap: anywhere; min-width: 0; }
+.sq { flex: none; width: 16px; height: 16px; border-radius: 4px; background: var(--ok); }
+.sq[data-tone="crit"] { background: var(--crit); }
+.ready { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.ready li { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.muted { font-size: 13px; color: var(--apoio, #6B645C); font-variant-numeric: tabular-nums; }
+.signals { display: flex; flex-wrap: wrap; gap: 4px; }
+.table a { color: inherit; font-weight: 600; text-decoration: none; }
+.table a:hover { text-decoration: underline; }
+.section { margin-bottom: 20px; }
+.section > .cardHead { margin-bottom: 10px; }

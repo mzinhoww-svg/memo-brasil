@@ -1,42 +1,52 @@
-import Link from "next/link";
-import { bytes, num, requireMaster, rpc, window } from "./data";
-import { Metric, PageHead, StateBox } from "./ui";
+import { includeTests, periodDays, requireMaster, rpcOr, window, type SearchParams } from "./data";
+import { PeriodTabs } from "./kit/PeriodTabs";
+import { TestToggle } from "./kit/TestToggle";
+import { PageHead, StateBox } from "./ui";
+import { CATALOG_CAPACITIES, toEventPage } from "./eventos/lib";
+import { attention, overviewFromLegacy, toOverview } from "./visao/lib";
+import { Activity, Attention, EventFunnel, Kpis, Readiness, Routines, Storage, UpcomingReveals } from "./visao/sections";
+import css from "./visao/page.module.css";
 
-interface Metrics {
-  events: { created: number; active: number; ended: number; total: number };
-  organizers: { active: number; total: number };
-  participants: { joined: number; total: number };
-  photos: { uploaded: number; total: number };
-  uploads: { failed: number; inProgress: number };
-  reveals: { pending: number; overdue: number };
-  storage: { photosBytes: number; photosObjects: number; brandingBytes: number; brandingObjects: number };
-  from: string; to: string;
-}
-const PERIODOS = [7, 30, 90];
+const PATH = "/master";
+const agora = () => Date.now();
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ dias?: string }> }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sb = await requireMaster();
-  const dias = PERIODOS.includes(Number((await searchParams).dias)) ? Number((await searchParams).dias) : 30;
-  const r = await rpc<Metrics>(sb, "admin_dashboard_metrics", window(dias));
+  const sp = await searchParams;
+  const dias = periodDays(sp);
+  const testes = includeTests(sp);
+  const [ov, evs] = await Promise.all([
+    rpcOr(sb, "admin_overview", { p_days: dias, p_include_tests: testes }, { name: "admin_dashboard_metrics", args: window(dias), map: (d) => overviewFromLegacy(d, dias) }),
+    rpcOr<unknown>(sb, "admin_list_events_v2",
+      { p_limit: 100, p_offset: 0, p_search: null, p_status: null, p_include_tests: testes, p_sort: "createdAt", p_dir: "desc" },
+      { name: "admin_list_events", args: { p_limit: 100, p_offset: 0 } }),
+  ]);
+  const now = agora();
+  const degraded = ov.state === "ok" && !!ov.degraded;
+  const o = ov.state === "ok" ? (degraded ? ov.data : toOverview(ov.data)) : null;
+  const risky = evs.state === "ok" ? attention(toEventPage(evs.data).items, now, CATALOG_CAPACITIES) : [];
+
   return (
     <>
-      <PageHead titulo="Visão geral" texto={`Indicadores reais da plataforma; períodos de criação e envio consideram os últimos ${dias} dias.`}
-        acao={<nav aria-label="Período" style={{ display: "flex", gap: 8 }}>{PERIODOS.map((d) => <Link key={d} href={`/master?dias=${d}`} className="adm-badge" aria-current={d === dias ? "true" : undefined} style={d === dias ? { background: "var(--tinta)", color: "var(--fundo)" } : undefined}>{d} dias</Link>)}</nav>} />
-      {r.state !== "ok" ? <StateBox load={r} /> : (
-        <div className="adm-grid">
-          <Metric rotulo="Eventos criados" valor={num(r.data.events.created)} nota={`${num(r.data.events.total)} no total`} />
-          <Metric rotulo="Eventos ativos" valor={num(r.data.events.active)} />
-          <Metric rotulo="Eventos concluídos" valor={num(r.data.events.ended)} />
-          <Metric rotulo="Organizadores ativos" valor={num(r.data.organizers.active)} nota={`${num(r.data.organizers.total)} no total`} />
-          <Metric rotulo="Participantes (período)" valor={num(r.data.participants.joined)} nota={`${num(r.data.participants.total)} no total`} />
-          <Metric rotulo="Fotos enviadas (período)" valor={num(r.data.photos.uploaded)} nota={`${num(r.data.photos.total)} no total`} />
-          <Metric rotulo="Uploads com falha" valor={num(r.data.uploads.failed)} nota={`${num(r.data.uploads.inProgress)} em andamento`} />
-          <Metric rotulo="Revelações pendentes" valor={num(r.data.reveals.pending)} />
-          <Metric rotulo="Revelações atrasadas" valor={num(r.data.reveals.overdue)} />
-          <Metric rotulo="Storage de fotos" valor={bytes(r.data.storage.photosBytes)} nota={`${num(r.data.storage.photosObjects)} arquivos`} />
-          <Metric rotulo="Storage de identidade" valor={bytes(r.data.storage.brandingBytes)} nota={`${num(r.data.storage.brandingObjects)} arquivos`} />
-        </div>
+      <PageHead titulo="Visão geral" texto={`Indicadores da plataforma nos últimos ${dias} dias${testes ? ", com eventos de teste" : ", sem eventos de teste"}.`}
+        acao={<div className={css.headActions}><TestToggle path={PATH} params={sp} /><PeriodTabs path={PATH} params={sp} /></div>} />
+      {degraded && <p className="adm-aviso-degradado">Dados completos após a atualização do banco.</p>}
+      {!o ? <StateBox load={ov} /> : (
+        <>
+          <Kpis o={o} />
+          {!degraded && <Readiness r={o.readiness} sp={sp} />}
+          {!degraded && <Activity o={o} />}
+          {!degraded && (
+            <div className={css.grid2}>
+              {o.funnel && <EventFunnel f={o.funnel} />}
+              <UpcomingReveals items={o.upcomingReveals} now={now} sp={sp} />
+              <Routines jobs={o.jobs} sp={sp} />
+              {o.storage && <Storage s={o.storage} sp={sp} />}
+            </div>
+          )}
+        </>
       )}
+      {evs.state !== "ok" ? <StateBox load={evs} /> : <Attention rows={risky} sp={sp} testsHidden={!testes && !(evs.degraded ?? false)} />}
     </>
   );
 }
