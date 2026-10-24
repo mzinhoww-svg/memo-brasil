@@ -200,3 +200,80 @@ export async function getMe(cfg: MercadoPagoConfig): Promise<{ id: string; siteI
   const tags = Array.isArray(r.tags) ? (r.tags as unknown[]).filter((t): t is string => typeof t === "string") : null;
   return { id, siteId: str(r.site_id), countryId: str(r.country_id), testUser: tags ? tags.includes("test_user") : null };
 }
+
+
+// ---------------------------------------------------------------- Checkout Transparente (Payments API, sem redirecionar)
+// Campos do cartão chegam tokenizados pelo Brick no backend. PAN e CVV nunca passam neste módulo.
+export type EmbeddedPaymentInput = {
+  orderId: string;
+  amountCents: number;
+  paymentMethodId: string;
+  payerEmail: string;
+  payerDocument: { type: "CPF"; number: string };
+  card?: { token: string; installments: number; issuerId?: number };
+  description: string;
+  notificationUrl: string;
+};
+
+export type EmbeddedPaymentReceipt = {
+  paymentId: string;
+  status: string;
+  qrCode: string | null;
+  qrCodeBase64: string | null;
+  statusDetail: string | null;
+};
+
+function embeddedReceipt(raw: Json): EmbeddedPaymentReceipt {
+  const id = str(raw.id);
+  const status = str(raw.status);
+  if (!id || !status) throw new MercadoPagoError("bad_response", 200);
+  const poi = raw.point_of_interaction && typeof raw.point_of_interaction === "object"
+    ? (raw.point_of_interaction as Json) : {};
+  const details = poi.transaction_data && typeof poi.transaction_data === "object"
+    ? (poi.transaction_data as Json) : {};
+  const pix = str(details.qr_code);
+  const base64 = str(details.qr_code_base64);
+  return {
+    paymentId: id,
+    status,
+    // Nunca refletir URL arbitrária ou payload HTML; só string de Pix e PNG/base64 limitado.
+    qrCode: pix && pix.length <= 4096 ? pix : null,
+    qrCodeBase64: base64 && base64.length <= 512000 && /^[A-Za-z0-9+/=]+$/.test(base64) ? base64 : null,
+    statusDetail: str(raw.status_detail),
+  };
+}
+
+/** Idempotência por orderId persistido pelo servidor: o cliente NUNCA controla o valor cobrado. */
+export async function createEmbeddedPayment(cfg: MercadoPagoConfig, i: EmbeddedPaymentInput): Promise<EmbeddedPaymentReceipt> {
+  if (!UUID_SAFE.test(i.orderId) || !/^[a-z0-9_]{3,32}$/.test(i.paymentMethodId) ||
+      !Number.isSafeInteger(i.amountCents) || i.amountCents <= 0 ||
+      !/^[0-9]{11}$/.test(i.payerDocument.number) || i.payerDocument.type !== "CPF" ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.payerEmail)) throw new MercadoPagoError("invalid", 0);
+  if (i.card && (!/^[A-Za-z0-9_-]{12,256}$/.test(i.card.token) ||
+      !Number.isInteger(i.card.installments) || i.card.installments < 1 || i.card.installments > 12)) throw new MercadoPagoError("invalid", 0);
+  const raw = await call(cfg, "POST", "/v1/payments", {
+    headers: { "X-Idempotency-Key": i.orderId },
+    body: {
+      transaction_amount: toReais(i.amountCents),
+      external_reference: i.orderId,
+      description: i.description.slice(0, 120),
+      statement_descriptor: "MEMORIESMT",
+      notification_url: i.notificationUrl,
+      payment_method_id: i.paymentMethodId,
+      ...(i.card ? {
+        token: i.card.token, installments: i.card.installments,
+        ...(i.card.issuerId ? { issuer_id: i.card.issuerId } : {}),
+      } : {}),
+      payer: { email: i.payerEmail, identification: i.payerDocument },
+    },
+  });
+  return embeddedReceipt(raw);
+}
+
+const UUID_SAFE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Apenas para um pedido já autorizado como pertencente ao organizador. Não retornar pagador/cartão. */
+export async function getEmbeddedReceipt(cfg: MercadoPagoConfig, paymentId: string): Promise<EmbeddedPaymentReceipt> {
+  if (!PAYMENT_ID_RE.test(paymentId)) throw new MercadoPagoError("invalid", 0);
+  return embeddedReceipt(await call(cfg, "GET", "/v1/payments/" + paymentId));
+}
