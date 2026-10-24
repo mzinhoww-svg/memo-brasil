@@ -14,16 +14,23 @@ export type PublicPlan = {
 
 export type OrderStatus = "criado" | "pendente" | "pago" | "expirado" | "cancelado" | "falhou" | "estornado" | "em_disputa" | "perdido";
 
-/** Campos opcionais ausentes quando o servidor manda `null`. */
+export type PaymentProvider = "mercadopago" | "abacatepay";
+
+/**
+ * Contrato do pedido (design Mercado Pago §1.11). Campos opcionais ficam ausentes quando o servidor manda `null`.
+ * `checkoutUrl` é o `init_point` do Checkout Pro (só https; http só em loopback para a fake local). `brCode`/`brCodeBase64` saíram do fluxo.
+ * `paymentMethod`: "pix" | "card" | texto livre do provedor; a UI só rotula os conhecidos.
+ */
 export type OrderView = {
   orderId: string;
   status: OrderStatus;
   planCode: string;
   amountCents: number;
-  brCode?: string;
-  brCodeBase64?: string;
+  checkoutUrl?: string;
   expiresAt?: string;
   paidAt?: string;
+  provider: PaymentProvider;
+  paymentMethod?: string;
 };
 
 export type QuoteReason = "ok" | "ja_incluido" | "plano_inativo" | "evento_encerrado" | "valor_minimo";
