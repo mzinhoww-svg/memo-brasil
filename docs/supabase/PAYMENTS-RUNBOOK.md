@@ -325,3 +325,28 @@ Guarde as credenciais de **produção** atuais em local seguro **antes** de sobr
 
 ### 15.7 Bloqueios comerciais documentados que continuam abertos
 `company_legal_name`, `company_cnpj`, `support_email` e `support_phone` estão **nulos** em `platform_settings`; D3 (reembolso/arrependimento), D5 (CNPJ e contatos) e D6 (NFS-e) não foram decididos. O agente não inventa esses dados; sem eles a produção permanece `desligado`.
+
+## 16. Atualização 2026-10-24 (MCP oficial): homologação isolada, sem trocar a produção
+Substitui o §15.3.1 e o §15.6 (não é mais preciso sobrescrever nem restaurar o token de produção).
+
+### 16.1 Fatos comprovados pelo MCP e pelo diagnóstico
+- Aplicação única `1592042337972998` ("App-Checkout-Transparente-20261023-346d726106"), dona = conta `3786909683` = conta do token de produção cadastrado (`payments-diagnose`: `testUser:false`). Reaproveitada: o Checkout Pro usa `POST /checkout/preferences` com o token da aplicação (a busca de preferências respondeu `ok`); não foi recriada.
+- Par de TESTE da aplicação (`get_credentials`, seção "Test (Sandbox)"): pertence ao **vendedor de teste** `3786688395` (aplicação de teste `4326309413049449`). Comprador de teste `3790697518` (MLB). Ambos já existiam; nenhum usuário novo foi criado. As senhas só aparecem no painel (exige SMS do titular).
+- Webhook da aplicação (`save_webhook`): produção e sandbox apontam para `https://asyaegeodyttttaubvxh.supabase.co/functions/v1/payments-webhook`. O mesmo endpoint serve aos dois: o ambiente de cada pagamento vem de `live_mode` na API e é cruzado com o ambiente do pedido (divergência = `divergencia_ambiente`, nunca libera). A assinatura secreta é a do painel (`Webhooks > Configurar notificação`); nenhuma ferramenta a devolve. Se a primeira notificação real cair em `nao_autenticado_assinatura`, o segredo gravado em `MERCADOPAGO_WEBHOOK_SECRET` difere do painel.
+
+### 16.2 Código (commit `11744b4`, publicado nas 6 functions)
+- `MERCADOPAGO_ACCESS_TOKEN_SANDBOX` (e opcional `MERCADOPAGO_WEBHOOK_SECRET_SANDBOX`): sandbox **nunca** usa o token de produção; sem o de sandbox, recusa (503). Produção usa sempre `MERCADOPAGO_ACCESS_TOKEN`.
+- status/refund/reconcile usam as credenciais do ambiente do **pedido**; o webhook escolhe pelo `live_mode` da notificação e aceita os dois segredos.
+- Checkout em sandbox só para **Master** (`403 sandbox_restrito` para os demais); visitantes reais não compram em teste.
+- `payments-diagnose` devolve `production` e `sandbox` separados (`account.testUser`).
+- Preferência com `category_id`, `description`, `statement_descriptor=MEMORIESMT` e `payer.email` (checklist de qualidade do MP).
+
+### 16.3 Única ação que falta antes do pagamento de teste (o controle de permissões negou ao agente o `secrets set`)
+O token de teste já está num arquivo seguro (modo 600, fora do repositório) em `~/.config/memoriesmt/payments-sandbox.env`. Operador, **um comando**:
+```bash
+supabase secrets set --project-ref asyaegeodyttttaubvxh --env-file ~/.config/memoriesmt/payments-sandbox.env && rm ~/.config/memoriesmt/payments-sandbox.env
+```
+Depois, `payments-diagnose` (Master) deve mostrar `sandbox.account.testUser: true` com `accountId 3786688395` e `production.account.testUser: false` com `3786909683`. Se não for assim, **não** abra a janela.
+
+### 16.4 Janela de teste (§9) e pagamento
+Abra `payments_env='sandbox'` (§9); o checkout de sandbox só funciona para o Master. Com a conta Google Master, abra o evento sintético `https://newmemocuiaba.vercel.app/painel/9d41413b-b7d8-4e02-9a24-6f01e6b5bd75/plano`, escolha Festa e clique em Pagar. Na página do Mercado Pago, em janela anônima, entre com o comprador de teste `TESTUSER4415384242584077651` (senha no painel; código de e-mail = 6 últimos dígitos do User ID `3790697518`) e pague com cartão de teste Mastercard `5480 8328 0103 3311`, CVV `123`, `11/30`, titular `APRO`, CPF `12345678909`. O agente não digita dados de cartão. Em seguida o agente acompanha pedido, webhook, conciliação, direitos e retorno com `supabase/ops/payments_homologation_watch.sql` e `notifications_history`, e executa `quality_evaluation` com o `payment_id` do pagamento de teste. Feche a janela (§9.1).
