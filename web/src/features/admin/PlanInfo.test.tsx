@@ -26,7 +26,7 @@ describe("PlanInfo (painel)", () => {
     expect(screen.getByRole("link", { name: /Tire a primeira foto como convidado/ })).toHaveAttribute("href", "/e/ABCD2345");
     expect(screen.getByRole("link", { name: /Imprima os cards/ })).toHaveAttribute("href", "/painel/e1/qr");
     expect(screen.queryByText(/Pague o plano/)).toBeNull();
-    rerender(<PreEventChecklist eventId="e1" eventCode="ABCD2345" hasPhoto order={{ orderId: "o", status: "pendente", planCode: "casamento", amountCents: 18900 }} />);
-    expect(screen.getByRole("link", { name: /Pague o plano no Pix · R\$ 189,00/ })).toHaveAttribute("href", "/painel/e1/plano");
+    rerender(<PreEventChecklist eventId="e1" eventCode="ABCD2345" hasPhoto order={{ orderId: "o", status: "pendente", planCode: "casamento", amountCents: 18900, provider: "mercadopago" }} />);
+    expect(screen.getByRole("link", { name: /Conclua o pagamento do plano · R\$ 189,00/ })).toHaveAttribute("href", "/painel/e1/plano");
   });
 });

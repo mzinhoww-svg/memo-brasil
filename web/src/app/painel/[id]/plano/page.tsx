@@ -8,8 +8,9 @@ import {
   BillingError, BillingUnavailableError, ProviderUnavailableError, formatBRL, getPublicSettings, listPublicPlans, openOrder, startCheckout,
 } from "@/features/billing/api";
 import { currentPlanCode } from "@/features/billing/entitlement";
-import { PLAN_TEXT, checkoutErrorMessage, clearIdempotencyKey, idempotencyKeyFor, reconcileCheckout } from "@/features/billing/flow";
-import { PixCheckout, ProviderDown } from "@/features/billing/PixCheckout";
+import { PLAN_TEXT, checkoutErrorMessage, clearIdempotencyKey, idempotencyKeyFor, parseReturn, reconcileCheckout, type ReturnHint } from "@/features/billing/flow";
+import { goToCheckout } from "@/features/billing/checkout-nav";
+import { CheckoutPending, ProviderDown } from "@/features/billing/CheckoutPending";
 import { PlanPicker } from "@/features/billing/PlanPicker";
 import { CodeApplied } from "@/features/billing/RedeemCode";
 import type { OrderView, PublicPlan, PublicSettings } from "@/features/billing/types";
@@ -18,7 +19,10 @@ const NO_SETTINGS: PublicSettings = { supportEmail: null, supportPhone: null, co
 
 type Down = { planCode: string };
 
-/** COM-006: plano e pagamento Pix. A URL não carrega estado de pagamento: o pedido é restaurado do servidor. */
+/**
+ * COM-006: plano e pagamento no Checkout Pro do Mercado Pago (Pix ou cartão). A URL não carrega estado de pagamento:
+ * o pedido é restaurado do servidor. `?retorno=` e os parâmetros do provedor são só dica de texto e saem da URL na leitura.
+ */
 export default function PlanoPage() {
   return <Suspense fallback={<Skeleton label="Abrindo o plano…" />}><PlanoConteudo /></Suspense>;
 }
@@ -37,7 +41,15 @@ function PlanoConteudo() {
   const [error, setError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [returnHint, setReturnHint] = useState<ReturnHint | null>(null);
   const inflight = useRef(false);
+
+  // retorno do checkout: lê a dica uma vez e limpa a URL; o estado mostrado vem de openOrder/orderStatus
+  useEffect(() => {
+    const r = parseReturn(window.location.search);
+    if (r.search !== window.location.search) window.history.replaceState(window.history.state, "", `${window.location.pathname}${r.search}${window.location.hash}`);
+    if (r.hint) { const t = setTimeout(() => setReturnHint(r.hint), 0); return () => clearTimeout(t); }
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -69,6 +81,9 @@ function PlanoConteudo() {
       const r = reconcileCheckout(o, planCode);
       setOrder(r.order);
       setWarning(r.otherPlan ? PLAN_TEXT.outroPlano(planName(r.order.planCode)) : null);
+      setReturnHint(null);
+      // pedido aberto do plano escolhido: segue para o Mercado Pago; o de outro plano só é mostrado, com aviso
+      if (!r.otherPlan && (r.order.status === "criado" || r.order.status === "pendente") && r.order.checkoutUrl) goToCheckout(r.order.checkoutUrl);
     } catch (e) {
       if (e instanceof ProviderUnavailableError) setDown({ planCode });
       else if (e instanceof BillingUnavailableError) { setError("Pagamentos indisponíveis no momento. Tente de novo mais tarde."); void load(); }
@@ -78,7 +93,7 @@ function PlanoConteudo() {
     }
   }, [eventId, load, planName]);
 
-  const toPicker = useCallback(() => { setOrder(null); setWarning(null); setDown(null); setError(null); }, []);
+  const toPicker = useCallback(() => { setOrder(null); setWarning(null); setDown(null); setError(null); setReturnHint(null); }, []);
 
   if (loadError) {
     return (
@@ -98,7 +113,7 @@ function PlanoConteudo() {
     const p = plans.find((x) => x.code === down.planCode);
     body = <ProviderDown planName={p?.name} amountLabel={p ? formatBRL(p.priceCents) : undefined} busy={busy} onRetry={() => void pay(down.planCode)} />;
   } else if (order) {
-    body = <PixCheckout order={order} plans={plans} warning={warning} eventId={eventId} busy={busy} onOrder={onOrder} onChoosePlan={toPicker} onNewPix={() => void pay(order.planCode, true)} />;
+    body = <CheckoutPending order={order} plans={plans} warning={warning} eventId={eventId} returnHint={returnHint} busy={busy} onOrder={onOrder} onChoosePlan={toPicker} onNewCheckout={() => void pay(order.planCode, true)} />;
   } else {
     body = (
       <PlanPicker eventId={eventId} plans={plans} currentCode={current} settings={settings} busy={busy} error={error} initialPlan={initialPlan} onPay={(c) => void pay(c)}

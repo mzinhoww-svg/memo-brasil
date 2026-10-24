@@ -23,7 +23,7 @@ export default async function Planos() {
             <h1>Planos e preços</h1>
             <Badge s={env === "production" ? "ok" : env === "sandbox" ? "aviso" : "info"}>Pagamentos: {envLabel(env)}</Badge>
           </div>
-          <p>{last ? `Última alteração em ${day(last)}. ` : ""}Mudanças valem para pedidos novos; um Pix já gerado mantém o valor dele.</p>
+          <p>{last ? `Última alteração em ${day(last)}. ` : ""}Mudanças valem para pedidos novos; um pagamento já iniciado mantém o valor dele.</p>
         </div>
       </header>
       {plans.state === "ok" ? (

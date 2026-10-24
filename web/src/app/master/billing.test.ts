@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MODULES } from "./modules";
 import {
-  brl, canRefund, refundFailureText, chargeHint, lastChange, divergenceText, envLabel, orderStatus, parseBrl, planPreview, reasonError, REASON_MAX, REASON_MIN,
+  brl, canRefund, refundFailureText, chargeHint, providerLabel, paymentRef, refundNote, lastChange, divergenceText, envLabel, orderStatus, parseBrl, planPreview, reasonError, REASON_MAX, REASON_MIN,
 } from "./billing";
 
 describe("dinheiro", () => {
@@ -47,6 +47,18 @@ describe("rótulos", () => {
     expect(orderStatus({ status: "em_disputa", refundRequestedAt: "x" })).toEqual({ label: "em disputa", tone: "erro" });
     expect(orderStatus({ status: "perdido", refundRequestedAt: "x" }).label).toBe("perdido");
   });
+  it("provedor legível; histórico AbacatePay identificado; desconhecido não quebra", () => {
+    expect(providerLabel("mercadopago")).toBe("Mercado Pago");
+    expect(providerLabel("abacatepay")).toBe("AbacatePay (histórico)");
+    expect(providerLabel("outro")).toBe("outro");
+    expect(providerLabel(undefined)).toBe("—");
+  });
+  it("id do pagamento: Mercado Pago completo (numérico, não secreto); histórico abreviado; ausente vira traço", () => {
+    expect(paymentRef({ provider: "mercadopago", providerPaymentId: "1234567890", providerChargeId: null })).toBe("1234567890");
+    expect(paymentRef({ provider: "mercadopago", providerPaymentId: null, providerChargeId: "98765" })).toBe("98765");
+    expect(paymentRef({ provider: "abacatepay", providerChargeId: "pix_char_abcdef0123456789c1" })).toBe("pix_char_…9c1");
+    expect(paymentRef({ provider: "mercadopago", providerPaymentId: null, providerChargeId: null })).toBe("—");
+  });
   it("cobrança abreviada", () => {
     expect(chargeHint("pix_char_abcdef0123456789c1")).toBe("pix_char_…9c1");
     expect(chargeHint(null)).toBe("—");
@@ -54,6 +66,7 @@ describe("rótulos", () => {
   it("texto de divergência diz o que aconteceu", () => {
     expect(divergenceText("needs_refund")).toBe("Dinheiro recebido sem plano liberado. Precisa de reembolso.");
     expect(divergenceText("pago_sem_direito")).toMatch(/pago/i);
+    expect(divergenceText("pendente_1h")).toBe("pagamento pendente há mais de 1 h.");
     expect(divergenceText("desconhecido")).toBe("desconhecido");
   });
   it("prévia do cartão do organizador", () => {
@@ -70,6 +83,10 @@ describe("reembolso disponível", () => {
     expect(canRefund({ status: "em_disputa", needsRefund: true, providerChargeId: "c" })).toBe(false);
     expect(canRefund({ status: "estornado", needsRefund: false, providerChargeId: "c" })).toBe(false);
     expect(canRefund({ status: "pago", needsRefund: false, providerChargeId: null })).toBe(false);
+  });
+  it("Mercado Pago: o id do pagamento habilita o reembolso mesmo sem providerChargeId", () => {
+    expect(canRefund({ status: "pago", needsRefund: false, providerChargeId: null, providerPaymentId: "123" })).toBe(true);
+    expect(canRefund({ status: "pago", needsRefund: false, providerChargeId: null, providerPaymentId: null })).toBe(false);
   });
   it("PAID divergente: pedido ainda não pago com needs_refund e cobrança", () => {
     for (const status of ["criado", "pendente", "expirado", "falhou"]) {
@@ -95,12 +112,20 @@ describe("última alteração de preço", () => {
 });
 
 describe("falha do reembolso", () => {
-  it("cobrança que já não está paga no provedor tem texto próprio", () => {
-    const t = "A AbacatePay já não mostra a cobrança como paga; a conciliação atualiza em até 5 minutos.";
-    expect(refundFailureText("cobranca_nao_paga")).toBe(t);
-    expect(refundFailureText("cobranca_nao_confere")).toBe(t);
+  it("pagamento que já não está aprovado no provedor tem texto próprio, por provedor", () => {
+    const mp = "O Mercado Pago já não mostra o pagamento como aprovado; a conciliação atualiza em até 5 minutos.";
+    const aba = "A AbacatePay já não mostra a cobrança como paga; a conciliação atualiza em até 5 minutos.";
+    for (const c of ["cobranca_nao_paga", "cobranca_nao_confere", "pagamento_nao_aprovado", "pagamento_nao_confere"]) {
+      expect(refundFailureText(c, "mercadopago")).toBe(mp);
+      expect(refundFailureText(c)).toBe(mp);
+      expect(refundFailureText(c, "abacatepay")).toBe(aba);
+    }
     expect(refundFailureText("provedor_indisponivel")).toMatch(/Solicitação registrada/);
     expect(refundFailureText(undefined)).toMatch(/Solicitação registrada/);
+  });
+  it("nota do reembolso cita o provedor do pedido", () => {
+    expect(refundNote("mercadopago")).toBe("Reembolso integral pelo Mercado Pago. O status vira estornado quando o provedor confirmar. Fica no registro de auditoria.");
+    expect(refundNote("abacatepay")).toBe("Reembolso integral pela AbacatePay (provedor histórico). O status vira estornado quando o provedor confirmar. Fica no registro de auditoria.");
   });
 });
 

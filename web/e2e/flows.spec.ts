@@ -61,7 +61,7 @@ test("cria evento grátis em 4 passos e chega em 'Evento criado'", async ({ page
   await expect(page.getByRole("heading", { level: 1, name: "Quantos convidados vão fotografar?" })).toBeVisible();
   await expect(page.getByRole("radio", { name: /Até 10 · Grátis/ })).toBeChecked();
   await expect(page.getByRole("radio")).toHaveCount(1);
-  await expect(page.getByText(/paga no Pix/)).toHaveCount(0);
+  await expect(page.getByText(/paga com Pix ou cartão/)).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Criar evento" })).toBeVisible();
   await acceptTerms(page);
   await page.getByRole("button", { name: "Criar evento" }).click();

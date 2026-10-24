@@ -26,6 +26,6 @@ describe("PlanStep (passo 4)", () => {
     expect(screen.getByText("Código MMT-7KQ4-AB12 será aplicado ao criar.")).toBeInTheDocument();
   });
   it("PAID_PLAN_LINE é o texto aprovado", () => {
-    expect(PAID_PLAN_LINE).toBe("O evento nasce grátis. Com plano pago, você paga no Pix na tela seguinte.");
+    expect(PAID_PLAN_LINE).toBe("O evento nasce grátis. Com plano pago, você paga com Pix ou cartão na tela seguinte.");
   });
 });

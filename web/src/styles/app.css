@@ -115,7 +115,7 @@
 .plano-eyebrow { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--apoio); }
 .plano-escolha, .plano-estado { display: flex; flex-direction: column; gap: var(--space-4); max-width: 520px; }
 .plano-colunas { display: flex; flex-direction: column; gap: var(--space-6); }
-@media (min-width: 900px) { .plano-escolha { max-width: none; } .plano-colunas { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: var(--space-8); } .plano-resumo { position: sticky; top: var(--space-4); } .plano-pix { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: var(--space-8); align-items: start; } .plano-estado:has(.plano-pix) { max-width: 880px; } }
+@media (min-width: 900px) { .plano-escolha { max-width: none; } .plano-colunas { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: var(--space-8); } .plano-resumo { position: sticky; top: var(--space-4); } }
 .plano-lista { display: flex; flex-direction: column; gap: var(--space-2); border: 0; padding: 0; margin: 0; }
 .plano-card { position: relative; display: flex; align-items: center; gap: var(--space-3); min-height: var(--size-alvo); padding: var(--space-3) var(--space-4); border: 1.5px solid var(--borda-controle); border-radius: var(--radius-panel); background: var(--fundo); cursor: pointer; }
 .plano-card[data-selected] { border-width: 2px; border-color: var(--tinta); background: var(--neutro); }
@@ -142,10 +142,6 @@
 .plano-aviso { background: #FFF3D6; color: #5C3D00; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: 16px; line-height: 1.35; }
 .plano-erro { margin: 0; color: var(--rec-texto); font-weight: 600; }
 .plano-nota { font-size: 14px; text-align: center; }
-.plano-qr { display: grid; place-items: center; min-height: 260px; border: 1.5px solid var(--borda); border-radius: var(--radius-lg); padding: var(--space-4); background: #fff; }
-.plano-qr img { max-width: 100%; height: auto; image-rendering: pixelated; }
-.plano-copia { font: inherit; font-size: 14px; padding: 0 var(--space-3); height: var(--size-alvo); border: 1.5px solid var(--borda-controle); border-radius: var(--radius-md); background: var(--fundo); color: var(--tinta); width: 100%; box-sizing: border-box; }
-.plano-copia--oculta { position: absolute; left: -9999px; }
 .plano-espera { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); background: var(--neutro); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); flex-wrap: wrap; }
 .plano-aguardando { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-size: 14px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #7A4B00; }
 .plano-ponto { width: 8px; height: 8px; border-radius: 50%; background: #B7791F; }

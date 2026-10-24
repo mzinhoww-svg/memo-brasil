@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { OrderView, PublicPlan } from "./types";
-import { PLAN_TEXT, clearIdempotencyKey, countdown, idempotencyKeyFor, joinGuests, orderQrSrc, planRank, reconcileCheckout, screenFor, trustTitle } from "./flow";
+import { PLAN_TEXT, clearIdempotencyKey, countdown, idempotencyKeyFor, joinGuests, paymentLabel, parseReturn, planRank, reconcileCheckout, screenFor, trustTitle } from "./flow";
 
 const NOW = Date.parse("2026-10-22T12:00:00Z");
-const order = (o: Partial<OrderView> = {}): OrderView => ({ orderId: "o1", status: "pendente", planCode: "casamento", amountCents: 18900, expiresAt: new Date(NOW + 60_000).toISOString(), ...o });
+const order = (o: Partial<OrderView> = {}): OrderView => ({ orderId: "o1", status: "pendente", planCode: "casamento", amountCents: 18900, provider: "mercadopago", expiresAt: new Date(NOW + 60_000).toISOString(), ...o });
 const plan = (o: Partial<PublicPlan> = {}): PublicPlan => ({ code: "casamento", name: "Casamento", maxGuests: 250, maxShots: 36, priceCents: 18900, isFree: false, features: [], ...o });
 
 describe("screenFor (estado do pedido -> tela)", () => {
@@ -68,7 +68,8 @@ describe("TrustBlock e textos", () => {
   it("Grande usa 500", () => expect(trustTitle(plan({ code: "grande", maxGuests: null, priceCents: 34900 }))).toBe("500 olhares por R$ 0,70 cada."));
   it("Grátis omite o título", () => expect(trustTitle(plan({ code: "gratis", isFree: true, maxGuests: 10, priceCents: 0 }))).toBeNull());
   it("mensagem do MM013 e textos exatos", () => {
-    expect(PLAN_TEXT.expirado).toBe("Nada foi cobrado. Gere um código novo quando quiser; ele vale por 30 minutos.");
+    expect(PLAN_TEXT.expirado).toBe("Nada foi cobrado. Quando quiser, comece um novo pagamento.");
+    expect(PLAN_TEXT.sub).toBe("Pix ou cartão, pagamento único por evento, no Mercado Pago. Sem assinatura.");
     expect(PLAN_TEXT.provedor).toBe("Seu pedido está guardado; tente de novo em 1 minuto.");
   });
   it("joinGuests e rank", () => {
@@ -77,9 +78,29 @@ describe("TrustBlock e textos", () => {
     expect(planRank([plan({ code: "a" }), plan({ code: "b" })], "b")).toBe(1);
     expect(planRank([plan({ code: "a" })], "zzz")).toBe(0);
   });
-  it("QR aceita data URI ou base64 puro", () => {
-    expect(orderQrSrc("data:image/png;base64,AAA")).toBe("data:image/png;base64,AAA");
-    expect(orderQrSrc("AAA")).toBe("data:image/png;base64,AAA");
-    expect(orderQrSrc(undefined)).toBeNull();
+  it("rótulo da forma de pagamento: conhecidos, histórico AbacatePay e desconhecidos", () => {
+    expect(paymentLabel(order({ paymentMethod: "pix" }))).toBe("Pix");
+    expect(paymentLabel(order({ paymentMethod: "card" }))).toBe("Cartão");
+    expect(paymentLabel(order({ paymentMethod: "credit_card" }))).toBe("Cartão");
+    expect(paymentLabel(order({ paymentMethod: "debit_card" }))).toBe("Cartão");
+    expect(paymentLabel(order())).toBe("Mercado Pago");
+    expect(paymentLabel(order({ paymentMethod: "ticket_novo" }))).toBe("Mercado Pago");
+    expect(paymentLabel(order({ provider: "abacatepay" }))).toBe("Pix (AbacatePay)");
+  });
+});
+
+describe("parseReturn (retorno do Checkout Pro é só dica)", () => {
+  it("lê retorno e remove os parâmetros do provedor, preservando os demais", () => {
+    expect(parseReturn("?plano=casamento&retorno=sucesso&payment_id=1&status=approved&collection_id=1&collection_status=approved&external_reference=x&preference_id=p&payment_type=card&merchant_order_id=2&site_id=MLB&processing_mode=aggregator&merchant_account_id=null"))
+      .toEqual({ hint: "sucesso", search: "?plano=casamento" });
+    expect(parseReturn("?retorno=pendente&status=pending")).toEqual({ hint: "pendente", search: "" });
+    expect(parseReturn("?retorno=falha")).toEqual({ hint: "falha", search: "" });
+  });
+  it("valor desconhecido de retorno não vira dica, mas os parâmetros são limpos", () => {
+    expect(parseReturn("?retorno=hack&status=approved")).toEqual({ hint: null, search: "" });
+  });
+  it("sem parâmetros do retorno: nada a limpar", () => {
+    expect(parseReturn("")).toEqual({ hint: null, search: "" });
+    expect(parseReturn("?plano=festa")).toEqual({ hint: null, search: "?plano=festa" });
   });
 });

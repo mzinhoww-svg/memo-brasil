@@ -100,7 +100,7 @@ test("assistente com plano pago: selo vem do catálogo, evento nasce Grátis 10/
   await expect(page.getByRole("radio")).toHaveCount(5);
   await page.getByRole("radio", { name: /Até 250/ }).check();
   await expect(page.getByText("250 olhares por R$ 0,76 cada.")).toBeVisible();
-  await expect(page.getByText("O evento nasce grátis. Com plano pago, você paga no Pix na tela seguinte.")).toBeVisible();
+  await expect(page.getByText("O evento nasce grátis. Com plano pago, você paga com Pix ou cartão na tela seguinte.")).toBeVisible();
   await acceptTerms(page);
   await page.getByRole("button", { name: "Criar evento" }).click();
   await page.waitForURL(/\/painel\/[0-9a-f-]{36}\/plano\?plano=casamento$/);
@@ -112,7 +112,7 @@ test("assistente com plano pago: selo vem do catálogo, evento nasce Grátis 10/
   await ctx.close();
 });
 
-test("assistente com pagamentos desligados mostra só o Grátis e o cartão Fale com a gente, sem a linha do Pix", async ({ browser, baseURL }) => {
+test("assistente com pagamentos desligados mostra só o Grátis e o cartão Fale com a gente, sem a linha do pagamento", async ({ browser, baseURL }) => {
   await setEnv("desligado");
   try {
     const u = await user("w2");
@@ -121,7 +121,7 @@ test("assistente com pagamentos desligados mostra só o Grátis e o cartão Fale
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByRole("radio")).toHaveCount(1);
     await expect(page.getByRole("heading", { name: "Evento maior?" })).toBeVisible();
-    await expect(page.getByText(/paga no Pix/)).toHaveCount(0);
+    await expect(page.getByText(/paga com Pix ou cartão/)).toHaveCount(0);
     await ctx.close();
   } finally {
     await setEnv("sandbox");

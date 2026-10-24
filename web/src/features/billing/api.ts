@@ -5,10 +5,11 @@
  * - `listPublicPlans(): Promise<PublicPlan[]>` — RPC `list_public_plans` (anon ou logado). Modo local: só o Grátis.
  * - `getPublicSettings(): Promise<PublicSettings>` — RPC `get_public_settings`. Modo local: tudo nulo, `paymentsEnv: "desligado"`.
  * - `quote(eventId, planCode): Promise<Quote>` — RPC `payments_quote` (só o anfitrião). `reason` diz por que não é cobrável.
- * - `startCheckout(eventId, planCode, idempotencyKey): Promise<OrderView>` — Edge Function `payments-checkout`.
+ * - `startCheckout(eventId, planCode, idempotencyKey): Promise<OrderView>` — Edge Function `payments-checkout`; devolve
+ *   `checkoutUrl` (Checkout Pro do Mercado Pago; a UI navega até ela) e `provider`. Sem `brCode`/`brCodeBase64`.
  *   Gere `idempotencyKey` com `crypto.randomUUID()` uma vez por intenção de compra e reuse em novas tentativas.
  *   409 `pedido_aberto` devolve o pedido aberto existente (confira `planCode`: pode ser de outro plano); se não houver
- *   pedido realmente aberto, relança o `BillingError("pedido_aberto")`. O 200 não traz `paidAt` (nem `planCode`, que
+ *   pedido realmente aberto, relança `OpenOrderError` (código `pedido_aberto`). O 200 não traz `paidAt` (nem `planCode`, que
  *   vem do plano pedido): use `orderStatus` para o estado completo.
  * - `orderStatus(orderId): Promise<OrderView>` — Edge Function `payments-status` (reconsulta o provedor se pendente > 15 s).
  * - `openOrder(eventId): Promise<OrderView | null>` — pedido aberto (criado/pendente não vencido) do evento ou, sem ele, o
@@ -30,9 +31,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
-import type { OrderStatus, OrderView, PaymentsEnv, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
+import type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
 
-export type { OrderStatus, OrderView, PaymentsEnv, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
+export type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
 
 export class BillingError extends Error {
   constructor(readonly code: string, readonly status?: number, message?: string) {
@@ -44,6 +45,13 @@ export class BillingUnavailableError extends BillingError {
   constructor(message = "Pagamento indisponível no momento") {
     super("pagamento_indisponivel", 503, message);
     this.name = "BillingUnavailableError";
+  }
+}
+/** 409 `pedido_aberto` sem pedido localizável. `orderId` é o pedido aberto informado pelo servidor (pode ser de OUTRO plano). */
+export class OpenOrderError extends BillingError {
+  constructor(readonly orderId: string | null) {
+    super("pedido_aberto", 409, "Já existe um pagamento aberto para este evento");
+    this.name = "OpenOrderError";
   }
 }
 export class ProviderUnavailableError extends BillingError {
@@ -86,22 +94,38 @@ const oneOf = <T extends string>(v: unknown, all: readonly T[], fallback: T): T 
 /** Status desconhecido vira "falhou": não aberto, sem direito concedido. */
 const toStatus = (v: unknown): OrderStatus => oneOf(v, ORDER_STATUSES, "falhou");
 
+const PROVIDERS: readonly PaymentProvider[] = ["mercadopago", "abacatepay"];
+/** Provedor desconhecido cai em "mercadopago" (provedor ativo); pedidos históricos vêm com "abacatepay" explícito. */
+const toProvider = (v: unknown): PaymentProvider => oneOf(v, PROVIDERS, "mercadopago");
+
+/** Só navega para https; http só em loopback (fake local de testes). Qualquer outra coisa é descartada. */
+export function safeCheckoutUrl(v: unknown): string | undefined {
+  if (typeof v !== "string") return undefined;
+  try {
+    const u = new URL(v);
+    if (u.protocol === "https:") return u.toString();
+    if (u.protocol === "http:" && (u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname === "[::1]")) return u.toString();
+  } catch { /* não é URL absoluta */ }
+  return undefined;
+}
+
 function toOrderView(j: Json, fallbackPlan?: string): OrderView {
   const v: OrderView = {
     orderId: String(j.orderId),
     status: toStatus(j.status),
     planCode: str(j.planCode) ?? fallbackPlan ?? "",
     amountCents: Number(j.amountCents),
+    provider: toProvider(j.provider),
   };
-  const opt = { brCode: str(j.brCode), brCodeBase64: str(j.brCodeBase64), expiresAt: str(j.expiresAt), paidAt: str(j.paidAt) };
+  const opt = { checkoutUrl: safeCheckoutUrl(j.checkoutUrl), expiresAt: str(j.expiresAt), paidAt: str(j.paidAt), paymentMethod: str(j.paymentMethod) };
   for (const [k, val] of Object.entries(opt)) if (val !== undefined) (v as Json)[k] = val;
   return v;
 }
 
 function rowToOrderView(r: Json): OrderView {
   return toOrderView({
-    orderId: r.id, status: r.status, planCode: r.plan_code, amountCents: r.amount_cents,
-    brCode: r.brcode, brCodeBase64: r.brcode_base64, expiresAt: r.expires_at, paidAt: r.paid_at,
+    orderId: r.id, status: r.status, planCode: r.plan_code, amountCents: r.amount_cents, provider: r.provider,
+    checkoutUrl: r.checkout_url, paymentMethod: r.payment_method, expiresAt: r.expires_at, paidAt: r.paid_at,
   });
 }
 
@@ -128,9 +152,8 @@ async function fnError(err: unknown): Promise<BillingError> {
   const code = typeof body.error === "string" ? body.error : "indisponivel";
   if (status === 503 || code === "pagamento_indisponivel") return new BillingUnavailableError();
   if (status === 502 || code === "provedor_indisponivel") return new ProviderUnavailableError(strOrNull(body.orderId));
-  const e = new BillingError(code, status);
-  if (code === "pedido_aberto") Object.assign(e, { orderId: strOrNull(body.orderId) });
-  return e;
+  if (code === "pedido_aberto") return new OpenOrderError(strOrNull(body.orderId));
+  return new BillingError(code, status);
 }
 
 async function invoke(fn: string, body: Json): Promise<Json> {
@@ -190,9 +213,8 @@ export async function startCheckout(eventId: string, planCode: string, idempoten
   try {
     return toOrderView(await invoke("payments-checkout", { eventId, planCode, idempotencyKey }), planCode);
   } catch (e) {
-    if (e instanceof BillingError && e.code === "pedido_aberto") {
-      const existing = (e as BillingError & { orderId?: string | null }).orderId;
-      if (existing) return orderStatus(existing);
+    if (e instanceof OpenOrderError) {
+      if (e.orderId) return orderStatus(e.orderId);
       // sem orderId: só serve um pedido realmente aberto; o mais recente de outro status não substitui o 409
       const { open } = await readOrders(eventId);
       if (open) return refresh(rowToOrderView(open));
@@ -213,7 +235,7 @@ function isOpenRow(x: Json, now: number): boolean {
 
 async function readOrders(eventId: string): Promise<{ open: Json | undefined; latest: Json | undefined }> {
   const r = await client().from("payment_orders")
-    .select("id,status,plan_code,amount_cents,brcode,brcode_base64,expires_at,paid_at,created_at")
+    .select("id,status,plan_code,amount_cents,provider,checkout_url,payment_method,expires_at,paid_at,created_at")
     .eq("event_id", eventId)
     .order("created_at", { ascending: false })
     .limit(20);

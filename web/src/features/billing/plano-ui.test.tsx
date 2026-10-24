@@ -8,12 +8,14 @@ const api = vi.hoisted(() => ({
   orderStatus: vi.fn(), quote: vi.fn(), redeemCode: vi.fn(), startCheckout: vi.fn(), openOrder: vi.fn(), listPublicPlans: vi.fn(), getPublicSettings: vi.fn(),
 }));
 vi.mock("./api", async (orig) => ({ ...(await orig<typeof import("./api")>()), ...api }));
+const nav = vi.hoisted(() => ({ goToCheckout: vi.fn() }));
+vi.mock("./checkout-nav", () => nav);
 vi.mock("./entitlement", () => ({ currentPlanCode: vi.fn(async () => "gratis") }));
 vi.mock("@/features/admin/context", () => ({ useAdmin: () => ({ event: { id: "ev1", title: "Ana & Rui" }, refresh: vi.fn() }) }));
 
-import { BillingError, ProviderUnavailableError } from "./api";
+import { BillingError, BillingUnavailableError, ProviderUnavailableError } from "./api";
 import PlanoPage from "@/app/painel/[id]/plano/page";
-import { PixCheckout, ProviderDown } from "./PixCheckout";
+import { CheckoutPending, ProviderDown } from "./CheckoutPending";
 import { PlanPicker } from "./PlanPicker";
 import { RedeemCode } from "./RedeemCode";
 import { TrustBlock } from "./TrustBlock";
@@ -22,9 +24,10 @@ import type { OrderView, PublicPlan, PublicSettings } from "./types";
 const P = (code: string, name: string, g: number | null, s: number | null, cents: number, free = false): PublicPlan => ({ code, name, maxGuests: g, maxShots: s, priceCents: cents, isFree: free, features: [] });
 const PLANS = [P("gratis", "Grátis", 10, 10, 0, true), P("festa", "Festa", 30, 24, 2900), P("celebracao", "Celebração", 100, 24, 8900), P("casamento", "Casamento", 250, 36, 18900), P("grande", "Grande", 500, null, 34900)];
 const SETTINGS: PublicSettings = { supportEmail: "oi@memoriesmt.test", supportPhone: null, companyLegalName: null, companyCnpj: null, paymentsEnv: "sandbox", capacityGracePct: 10 };
-const ORDER: OrderView = { orderId: "7f3a21c9-0000-4000-8000-000000000000", status: "pendente", planCode: "casamento", amountCents: 18900, brCode: "00020126PIX", brCodeBase64: "data:image/png;base64,AAA", expiresAt: new Date(Date.now() + 29 * 60_000 + 41_000).toISOString() };
+const MP_URL = "https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=123-abc";
+const ORDER: OrderView = { orderId: "7f3a21c9-0000-4000-8000-000000000000", status: "pendente", planCode: "casamento", amountCents: 18900, checkoutUrl: MP_URL, provider: "mercadopago", expiresAt: new Date(Date.now() + 29 * 60_000 + 41_000).toISOString() };
 
-beforeEach(() => { sessionStorage.clear(); Object.values(api).forEach((m) => m.mockReset()); });
+beforeEach(() => { sessionStorage.clear(); Object.values(api).forEach((m) => m.mockReset()); nav.goToCheckout.mockReset(); window.history.replaceState(null, "", "/painel/ev1/plano"); });
 afterEach(() => { vi.useRealTimers(); });
 
 describe("TrustBlock", () => {
@@ -32,7 +35,7 @@ describe("TrustBlock", () => {
     render(<TrustBlock plan={PLANS[3]} gracePct={15} />);
     expect(screen.getByText("250 olhares por R$ 0,76 cada.")).toBeInTheDocument();
     expect(screen.getByText("Ninguém é barrado na festa: 15% de folga e aviso antes de lotar.")).toBeInTheDocument();
-    expect(screen.getByText("Pix único, sem assinatura. Se expirar, nada é cobrado.")).toBeInTheDocument();
+    expect(screen.getByText("Pix ou cartão, pagamento único, sem assinatura. Se expirar, nada é cobrado.")).toBeInTheDocument();
   });
   it("Grátis não mostra título", () => {
     render(<TrustBlock plan={PLANS[0]} />);
@@ -48,13 +51,13 @@ describe("PlanPicker", () => {
     expect(screen.getByText("Seu plano")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Até 10 ·/ })).toBeDisabled();
     expect(screen.getByRole("radio", { name: /Casamento/ })).toBeChecked();
-    expect(await screen.findByRole("button", { name: "Pagar R$ 189,00 no Pix" })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: "Pagar R$ 189,00" })).toBeEnabled();
     expect(screen.getByText("Tenho um código")).toBeInTheDocument();
   });
   it("upgrade: cobra o valor da quote (diferença), não o preço cheio", async () => {
     api.quote.mockResolvedValue({ planCode: "casamento", fromPlanCode: "festa", amountCents: 16000, payable: true, reason: "ok" });
     render(<PlanPicker {...base} plans={PLANS} currentCode="festa" />);
-    expect(await screen.findByRole("button", { name: "Pagar R$ 160,00 no Pix" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Pagar R$ 160,00" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Festa/ })).toBeDisabled();
     expect(screen.getAllByText("Incluído").length).toBe(0 + 1); // só o plano abaixo do atual (Grátis)
   });
@@ -80,7 +83,7 @@ describe("PlanPicker", () => {
     const onPay = vi.fn();
     render(<PlanPicker {...base} onPay={onPay} plans={PLANS} currentCode="gratis" />);
     await userEvent.click(screen.getByRole("radio", { name: /Festa/ }));
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 29,00 no Pix" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 29,00" }));
     expect(onPay).toHaveBeenCalledWith("festa");
   });
 });
@@ -116,101 +119,123 @@ describe("RedeemCode (B8)", () => {
   });
 });
 
-describe("PixCheckout", () => {
-  const props = { plans: PLANS, eventId: "ev1", onOrder: vi.fn(), onNewPix: vi.fn(), onChoosePlan: vi.fn() };
-  it("B2: QR com alt do valor, contagem e status em aria-live", () => {
-    vi.useFakeTimers(); // relógio fixo: a contagem não depende da carga da máquina entre o fixture e o render
+describe("CheckoutPending", () => {
+  const props = { plans: PLANS, eventId: "ev1", onOrder: vi.fn(), onNewCheckout: vi.fn(), onChoosePlan: vi.fn() };
+  it("B2: Pagamento em andamento, link para o Mercado Pago com o checkoutUrl do pedido, contagem e status em aria-live", () => {
+    vi.useFakeTimers();
     try {
       vi.setSystemTime(new Date("2026-10-22T12:00:00Z"));
       const order = { ...ORDER, expiresAt: new Date(Date.now() + 29 * 60_000 + 41_000).toISOString() };
-      render(<PixCheckout {...props} order={order} />);
-      expect(screen.getByAltText("QR Code Pix de R$ 189,00")).toBeInTheDocument();
+      render(<CheckoutPending {...props} order={order} />);
+      expect(screen.getByRole("heading", { name: "Pagamento em andamento" })).toBeInTheDocument();
+      const link = screen.getByRole("link", { name: "Continuar para o Mercado Pago" });
+      expect(link).toHaveAttribute("href", MP_URL);
+      expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
       expect(screen.getByText("29:41")).toBeInTheDocument();
-      const status = screen.getByText("Aguardando pagamento…").closest("[aria-live]");
-      expect(status).toHaveAttribute("aria-live", "polite");
-    } finally {
-      vi.useRealTimers();
-    }
+      expect(screen.getByText("Aguardando a confirmação do pagamento…").closest("[aria-live]")).toHaveAttribute("aria-live", "polite");
+      expect(screen.queryByAltText(/QR Code/)).toBeNull();
+      expect(screen.queryByRole("button", { name: /Copiar código Pix/ })).toBeNull();
+    } finally { vi.useRealTimers(); }
   });
-  it("copiar mostra feedback real; falha mostra instrução e campo para copiar à mão", async () => {
-    const user = userEvent.setup();
-    const write = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: write } });
-    render(<PixCheckout {...props} order={ORDER} />);
-    await user.click(screen.getByRole("button", { name: "Copiar código Pix" }));
-    expect(write).toHaveBeenCalledWith("00020126PIX");
-    expect(await screen.findByText("Código copiado.")).toBeInTheDocument();
-    write.mockRejectedValue(new Error("negado"));
-    document.execCommand = vi.fn(() => false);
-    await user.click(screen.getByRole("button", { name: "Copiar código Pix" }));
-    expect(await screen.findByText(/Não deu para copiar/)).toBeInTheDocument();
+  it("pedido pendente sem checkoutUrl (histórico AbacatePay) não oferece o link e explica", () => {
+    const { checkoutUrl: _c, ...rest } = ORDER; void _c;
+    render(<CheckoutPending {...props} order={{ ...rest, provider: "abacatepay" }} />);
+    expect(screen.queryByRole("link", { name: "Continuar para o Mercado Pago" })).toBeNull();
+    expect(screen.getByText(/criado antes da troca de provedor/)).toBeInTheDocument();
   });
-  it("polling: a cada 3 s com a aba visível; pausa em segundo plano; retoma no visibilitychange", async () => {
+  it("polling: a cada 5 s com a aba visível; pausa em segundo plano; retoma no visibilitychange", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: false });
     api.orderStatus.mockResolvedValue({ ...ORDER });
     const vis = vi.spyOn(document, "visibilityState", "get");
     vis.mockReturnValue("visible");
-    render(<PixCheckout {...props} order={ORDER} />);
-    await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
+    render(<CheckoutPending {...props} order={ORDER} />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(4900); });
+    expect(api.orderStatus).toHaveBeenCalledTimes(0);
+    await act(async () => { await vi.advanceTimersByTimeAsync(200); });
     expect(api.orderStatus).toHaveBeenCalledTimes(1);
-    await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
     expect(api.orderStatus).toHaveBeenCalledTimes(2);
     vis.mockReturnValue("hidden");
-    await act(async () => { await vi.advanceTimersByTimeAsync(9000); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(15000); });
     expect(api.orderStatus).toHaveBeenCalledTimes(2);
     vis.mockReturnValue("visible");
     await act(async () => { document.dispatchEvent(new Event("visibilitychange")); });
     expect(api.orderStatus).toHaveBeenCalledTimes(3);
     vis.mockRestore();
   });
-  it("pago pelo polling vira B3 sem recarregar", async () => {
+  it("pago pelo polling vira B3 sem recarregar e para de consultar", async () => {
     vi.useFakeTimers();
-    const paid = { ...ORDER, status: "pago" as const, paidAt: "2026-10-22T17:32:00Z" };
+    const paid = { ...ORDER, status: "pago" as const, paidAt: "2026-10-22T17:32:00Z", paymentMethod: "pix" };
     api.orderStatus.mockResolvedValue(paid);
-    const Wrap = () => { const [o, setO] = useState<OrderView>(ORDER); return <PixCheckout {...props} order={o} onOrder={setO} />; };
+    const Wrap = () => { const [o, setO] = useState<OrderView>(ORDER); return <CheckoutPending {...props} order={o} onOrder={setO} />; };
     render(<Wrap />);
-    await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
     expect(screen.getByRole("heading", { name: "Plano Casamento ativo." })).toBeInTheDocument();
     expect(screen.getByText("Até 250 convidados e 36 fotos cada. Já vale para quem entrar agora.")).toBeInTheDocument();
     expect(screen.getByText("R$ 189,00 · Pix")).toBeInTheDocument();
     expect(screen.getByText("#7F3A-21C9")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Voltar ao painel" })).toHaveAttribute("href", "/painel/ev1");
     expect(screen.getByRole("link", { name: "Imprimir os cards das mesas" })).toBeInTheDocument();
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
+    expect(api.orderStatus).toHaveBeenCalledTimes(1);
   });
-  it("B4: vencido localmente mostra Este Pix expirou, sem QR, e reconsulta uma vez", async () => {
+  it.each([["card", "R$ 189,00 · Cartão"], ["pix", "R$ 189,00 · Pix"], [undefined, "R$ 189,00 · Mercado Pago"], ["boleto_novo", "R$ 189,00 · Mercado Pago"]])("comprovante rotula a forma de pagamento %s", (paymentMethod, text) => {
+    render(<CheckoutPending {...props} order={{ ...ORDER, status: "pago", paidAt: "2026-10-22T17:32:00Z", paymentMethod }} />);
+    expect(screen.getByText(text)).toBeInTheDocument();
+  });
+  it("B4: vencido localmente mostra expirado, sem link de pagamento, reconsulta uma vez e diz para não pagar de novo", async () => {
     api.orderStatus.mockResolvedValue({ ...ORDER, status: "expirado" });
-    render(<PixCheckout {...props} order={{ ...ORDER, expiresAt: new Date(Date.now() - 1000).toISOString() }} />);
-    expect(screen.getByRole("heading", { name: "Este Pix expirou." })).toBeInTheDocument();
-    expect(screen.getByText("Nada foi cobrado. Gere um código novo quando quiser; ele vale por 30 minutos.")).toBeInTheDocument();
-    expect(screen.getByText(/Não pague de novo/)).toBeInTheDocument();
-    expect(screen.queryByAltText(/QR Code/)).toBeNull();
+    render(<CheckoutPending {...props} order={{ ...ORDER, expiresAt: new Date(Date.now() - 1000).toISOString() }} />);
+    expect(screen.getByRole("heading", { name: "Este pagamento expirou." })).toBeInTheDocument();
+    expect(screen.getByText(/Nada foi cobrado/)).toBeInTheDocument();
+    expect(screen.getByText("Pagou agora há pouco? O plano libera sozinho. Não pague de novo.")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Continuar para o Mercado Pago" })).toBeNull();
     await waitFor(() => expect(api.orderStatus).toHaveBeenCalledTimes(1));
   });
-  it("B4: Gerar novo Pix e Escolher outro plano chamam os callbacks", async () => {
-    const onNewPix = vi.fn(), onChoosePlan = vi.fn();
-    render(<PixCheckout {...props} onNewPix={onNewPix} onChoosePlan={onChoosePlan} order={{ ...ORDER, status: "expirado" }} />);
-    await userEvent.click(screen.getByRole("button", { name: "Gerar novo Pix" }));
+  it("B4: expirado ainda confirma depois (Pix tardio): consulta devagar e vira pago", async () => {
+    vi.useFakeTimers();
+    api.orderStatus.mockResolvedValueOnce({ ...ORDER, status: "expirado" }).mockResolvedValue({ ...ORDER, status: "pago", paidAt: "2026-10-22T17:40:00Z" });
+    const Wrap = () => { const [o, setO] = useState<OrderView>({ ...ORDER, status: "expirado" }); return <CheckoutPending {...props} order={o} onOrder={setO} />; };
+    render(<Wrap />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(31_000); });
+    expect(screen.getByRole("heading", { name: "Plano Casamento ativo." })).toBeInTheDocument();
+  });
+  it("B4: Pagar de novo e Escolher outro plano chamam os callbacks", async () => {
+    const onNewCheckout = vi.fn(), onChoosePlan = vi.fn();
+    render(<CheckoutPending {...props} onNewCheckout={onNewCheckout} onChoosePlan={onChoosePlan} order={{ ...ORDER, status: "expirado" }} />);
+    await userEvent.click(screen.getByRole("button", { name: "Pagar de novo" }));
     await userEvent.click(screen.getByRole("button", { name: "Escolher outro plano" }));
-    expect(onNewPix).toHaveBeenCalled(); expect(onChoosePlan).toHaveBeenCalled();
+    expect(onNewCheckout).toHaveBeenCalled(); expect(onChoosePlan).toHaveBeenCalled();
   });
   it.each(["falhou", "cancelado"] as const)("B5 (%s): texto do plano e Tentar de novo", (status) => {
-    render(<PixCheckout {...props} order={{ ...ORDER, status }} />);
-    expect(screen.getByRole("heading", { name: "Não conseguimos gerar o Pix." })).toBeInTheDocument();
+    render(<CheckoutPending {...props} order={{ ...ORDER, status }} />);
+    expect(screen.getByRole("heading", { name: "O pagamento não foi concluído." })).toBeInTheDocument();
     expect(screen.getByText("Nada foi cobrado. Tente de novo em instantes.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
   });
   it("estornado e em_disputa têm os textos do plano", () => {
-    const { unmount } = render(<PixCheckout {...props} order={{ ...ORDER, status: "estornado" }} />);
+    const { unmount } = render(<CheckoutPending {...props} order={{ ...ORDER, status: "estornado" }} />);
     expect(screen.getByRole("heading", { name: "Pagamento devolvido." })).toBeInTheDocument();
     unmount();
-    render(<PixCheckout {...props} order={{ ...ORDER, status: "em_disputa" }} />);
+    render(<CheckoutPending {...props} order={{ ...ORDER, status: "em_disputa" }} />);
     expect(screen.getByRole("heading", { name: "Pagamento em análise." })).toBeInTheDocument();
     expect(screen.getByText("Seus convidados continuam usando o evento.")).toBeInTheDocument();
   });
-  it("aviso de pedido de outro plano (MM013) aparece sobre o Pix existente", () => {
-    render(<PixCheckout {...props} order={{ ...ORDER, planCode: "festa", amountCents: 2900 }} warning="Você já tem um Pix aberto do plano Festa. Pague esse ou deixe expirar antes de escolher outro plano." />);
+  it("aviso de pedido de outro plano (MM013) aparece sobre o pedido existente, que mantém o próprio link", () => {
+    render(<CheckoutPending {...props} order={{ ...ORDER, planCode: "festa", amountCents: 2900 }} warning="Você já tem um pagamento aberto do plano Festa. Conclua esse ou deixe expirar antes de escolher outro plano." />);
     expect(screen.getByTestId("aviso-outro-plano")).toHaveTextContent("plano Festa");
-    expect(screen.getByAltText("QR Code Pix de R$ 29,00")).toBeInTheDocument();
+    expect(screen.getByText("Plano Festa · R$ 29,00")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Continuar para o Mercado Pago" })).toHaveAttribute("href", MP_URL);
+  });
+  it("retorno (dica) pendente mostra 'Estamos confirmando seu pagamento…' e nunca 'plano ativo'", () => {
+    render(<CheckoutPending {...props} order={ORDER} returnHint="sucesso" />);
+    expect(screen.getByText("Estamos confirmando seu pagamento…")).toBeInTheDocument();
+    expect(screen.queryByText(/ativo\./)).toBeNull();
+    expect(screen.getByRole("link", { name: "Continuar para o Mercado Pago" })).toBeInTheDocument();
+  });
+  it("retorno falha com pedido ainda pendente explica sem afirmar falha do pedido", () => {
+    render(<CheckoutPending {...props} order={ORDER} returnHint="falha" />);
+    expect(screen.getByText(/Você voltou sem concluir o pagamento/)).toBeInTheDocument();
   });
 });
 
@@ -235,52 +260,106 @@ describe("página /painel/[id]/plano", () => {
     api.openOrder.mockResolvedValue(null);
     api.quote.mockResolvedValue({ planCode: "casamento", fromPlanCode: null, amountCents: 18900, payable: true, reason: "ok" });
   });
-  it("restaura o pedido aberto ao abrir (sem criar outro)", async () => {
+  it("restaura o pedido aberto ao abrir (sem criar outro e sem navegar sozinho)", async () => {
     api.openOrder.mockResolvedValue(ORDER);
     render(<PlanoPage />);
-    expect(await screen.findByTestId("pix-pendente")).toBeInTheDocument();
+    expect(await screen.findByTestId("checkout-pendente")).toBeInTheDocument();
     expect(api.startCheckout).not.toHaveBeenCalled();
+    expect(nav.goToCheckout).not.toHaveBeenCalled();
   });
-  it("clique duplo em Pagar gera um único pedido, com a mesma idempotencyKey", async () => {
+  it("Pagar cria o pedido e navega (página inteira) para o checkoutUrl do Mercado Pago", async () => {
+    api.startCheckout.mockResolvedValue(ORDER);
+    render(<PlanoPage />);
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    expect(api.startCheckout).toHaveBeenCalledWith("ev1", "casamento", expect.stringMatching(/^[0-9a-f-]{36}$/));
+    await waitFor(() => expect(nav.goToCheckout).toHaveBeenCalledWith(MP_URL));
+    expect(await screen.findByTestId("checkout-pendente")).toBeInTheDocument();
+  });
+  it("clique duplo em Pagar gera um único pedido, com a mesma idempotencyKey, e uma única navegação", async () => {
     let resolve!: (o: OrderView) => void;
     api.startCheckout.mockReturnValue(new Promise<OrderView>((r) => { resolve = r; }));
     render(<PlanoPage />);
-    const btn = await screen.findByRole("button", { name: "Pagar R$ 189,00 no Pix" });
+    const btn = await screen.findByRole("button", { name: "Pagar R$ 189,00" });
     await userEvent.dblClick(btn);
     expect(api.startCheckout).toHaveBeenCalledTimes(1);
-    expect(api.startCheckout).toHaveBeenCalledWith("ev1", "casamento", expect.stringMatching(/^[0-9a-f-]{36}$/));
     await act(async () => { resolve(ORDER); });
-    expect(await screen.findByTestId("pix-pendente")).toBeInTheDocument();
+    expect(await screen.findByTestId("checkout-pendente")).toBeInTheDocument();
+    expect(nav.goToCheckout).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId("aviso-outro-plano")).toBeNull();
   });
-  it("409 pedido_aberto de OUTRO plano: mostra o pedido existente com aviso MM013", async () => {
+  it("pedido sem checkoutUrl não navega e mantém a tela de pendente", async () => {
+    const { checkoutUrl: _c, ...noUrl } = ORDER; void _c;
+    api.startCheckout.mockResolvedValue(noUrl);
+    render(<PlanoPage />);
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    expect(await screen.findByTestId("checkout-pendente")).toBeInTheDocument();
+    expect(nav.goToCheckout).not.toHaveBeenCalled();
+  });
+  it("409 pedido_aberto de OUTRO plano: mostra o pedido existente com aviso e NÃO navega", async () => {
     api.startCheckout.mockResolvedValue({ ...ORDER, planCode: "festa", amountCents: 2900 });
     render(<PlanoPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00 no Pix" }));
-    expect(await screen.findByTestId("aviso-outro-plano")).toHaveTextContent("Você já tem um Pix aberto do plano Festa.");
-    expect(screen.getByAltText("QR Code Pix de R$ 29,00")).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    expect(await screen.findByTestId("aviso-outro-plano")).toHaveTextContent("Você já tem um pagamento aberto do plano Festa.");
+    expect(screen.getByText("Plano Festa · R$ 29,00")).toBeInTheDocument();
+    expect(nav.goToCheckout).not.toHaveBeenCalled();
   });
   it("502: B6 com botão travado; nenhum pedido novo aparece", async () => {
     api.startCheckout.mockRejectedValue(new ProviderUnavailableError("o9"));
     render(<PlanoPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00 no Pix" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
     expect(await screen.findByTestId("provedor-fora")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Tentar de novo em/ })).toBeDisabled();
+    expect(nav.goToCheckout).not.toHaveBeenCalled();
+  });
+  it("503 (pagamentos desligados) mostra a mensagem e recarrega o estado", async () => {
+    api.startCheckout.mockRejectedValue(new BillingUnavailableError());
+    render(<PlanoPage />);
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Pagamentos indisponíveis no momento.");
   });
   it("erro de negócio vira mensagem de recuperação, sem código técnico", async () => {
     api.startCheckout.mockRejectedValue(new BillingError("ja_incluido", 422));
     render(<PlanoPage />);
-    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00 no Pix" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar R$ 189,00" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Seu evento já tem este plano ou um maior.");
   });
-  it("Gerar novo Pix usa chave nova (nova intenção de compra)", async () => {
+  it("Pagar de novo usa chave nova (nova intenção de compra)", async () => {
     api.openOrder.mockResolvedValue({ ...ORDER, status: "expirado" });
     api.startCheckout.mockResolvedValue(ORDER);
     render(<PlanoPage />);
     await settle();
     sessionStorage.setItem("mm-idem:ev1:casamento", "chave-velha");
-    await userEvent.click(await screen.findByRole("button", { name: "Gerar novo Pix" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar de novo" }));
     expect(api.startCheckout.mock.calls[0][2]).not.toBe("chave-velha");
+  });
+  it("retorno ?retorno=sucesso sem pedido pago NÃO mostra plano ativo; mostra a confirmação e limpa a URL", async () => {
+    window.history.replaceState(null, "", "/painel/ev1/plano?retorno=sucesso&payment_id=999&status=approved&collection_status=approved&external_reference=x&preference_id=p&payment_type=credit_card&merchant_order_id=1");
+    api.openOrder.mockResolvedValue(ORDER); // servidor ainda diz pendente
+    render(<PlanoPage />);
+    expect(await screen.findByText("Estamos confirmando seu pagamento…")).toBeInTheDocument();
+    expect(screen.queryByText(/Plano .* ativo\./)).toBeNull();
+    expect(screen.queryByTestId("checkout-pago")).toBeNull();
+    expect(window.location.search).toBe("");
+  });
+  it("retorno ?retorno=sucesso com pedido pago no servidor mostra o plano ativo", async () => {
+    window.history.replaceState(null, "", "/painel/ev1/plano?retorno=sucesso&status=approved");
+    api.openOrder.mockResolvedValue({ ...ORDER, status: "pago", paidAt: "2026-10-22T17:32:00Z" });
+    render(<PlanoPage />);
+    expect(await screen.findByRole("heading", { name: "Plano Casamento ativo." })).toBeInTheDocument();
+    expect(window.location.search).toBe("");
+  });
+  it("retorno ?retorno=sucesso SEM pedido nenhum no servidor volta à escolha de plano, sem plano ativo", async () => {
+    window.history.replaceState(null, "", "/painel/ev1/plano?retorno=sucesso&status=approved&payment_id=1");
+    render(<PlanoPage />);
+    expect(await screen.findByRole("heading", { name: "De que tamanho é a festa?" })).toBeInTheDocument();
+    expect(screen.queryByText(/ativo\./)).toBeNull();
+    expect(window.location.search).toBe("");
+  });
+  it("a limpeza da URL preserva ?plano= e remove só o que é do retorno", async () => {
+    window.history.replaceState(null, "", "/painel/ev1/plano?plano=casamento&retorno=falha&collection_id=1");
+    render(<PlanoPage />);
+    await settle();
+    expect(window.location.search).toBe("?plano=casamento");
   });
   it("código aplicado mostra B9", async () => {
     api.redeemCode.mockResolvedValue({ applied: true, planCode: "casamento", reason: "ok" });
