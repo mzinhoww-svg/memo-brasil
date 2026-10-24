@@ -1,19 +1,19 @@
-// Checkout Pix do anfitrião: abre (ou reusa) o pedido pela RPC do organizador e cria a cobrança na AbacatePay só uma vez.
+// Checkout do anfitrião (Mercado Pago, Checkout Pro por Preferences): abre (ou reusa) o pedido pela RPC do organizador e cria a
+// preferência só uma vez. O pagamento acontece na página hospedada (init_point); nada é liberado por este retorno.
 // - Mesma chave de idempotência → mesmo pedido; o pedido único aberto por evento serializa cliques duplos.
-// - Quem não criou o pedido (reuso de pedido ainda 'criado') espera a cobrança aparecer; nunca chama create de novo.
-// - Erro na criação (inclusive rede/timeout, em que a cobrança pode existir) → 502 com o pedido mantido em 'criado';
-//   a reconciliação procura a cobrança na listagem (externalId exato + valor + ambiente) e, sem achar, marca 'falhou'
-//   após 5 min (libera novo checkout).
-import { createPixCharge } from "../_shared/abacatepay.ts";
-import { AbacateError, caller, guardEnv, log, preflight, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
+// - Quem reusa pedido ainda 'criado' espera poucos segundos pela preferência do outro; se não aparecer, cria a sua (a
+//   duplicata é inofensiva: external_reference = pedido, e o banco mantém só a primeira preferência).
+// - Erro/timeout na criação → 502 com o pedido mantido em 'criado' (o organizador tenta de novo e reusa o pedido; a
+//   conciliação procura pagamentos por external_reference e falha o pedido sem preferência após 5 min).
+import { createPreference, MercadoPagoError } from "../_shared/mercadopago.ts";
+import { buildBackUrls, pickOrigin, PREFERENCE_TTL_MIN } from "../_shared/mercadopago-flow.ts";
+import { allowedOrigins, caller, guardEnv, log, preflight, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-checkout";
-const EXPIRES_IN_SEC = 30 * 60;
-const WAIT_OTHER_MS = 10_000;
+const WAIT_OTHER_MS = 3_000;
 
-type OrderJson = { orderId: string; status: string; amountCents: number; brCode: string | null; brCodeBase64: string | null; expiresAt: string | null; reused: boolean };
-
-const out = (o: OrderJson) => ({ orderId: o.orderId, status: o.status, amountCents: o.amountCents, brCode: o.brCode, brCodeBase64: o.brCodeBase64, expiresAt: o.expiresAt });
+type OrderJson = { orderId: string; status: string; amountCents: number; checkoutUrl: string | null; expiresAt: string | null; provider: string; paymentMethod: string | null; reused: boolean };
+const out = (o: Omit<OrderJson, "reused">) => ({ orderId: o.orderId, status: o.status, amountCents: o.amountCents, checkoutUrl: o.checkoutUrl, expiresAt: o.expiresAt, provider: o.provider, paymentMethod: o.paymentMethod });
 
 Deno.serve(async (req) => {
   const json = responder(req, true);
@@ -55,7 +55,6 @@ Deno.serve(async (req) => {
       case "MM004":
         return json({ error: "forbidden" }, 403);
       case "MM005": {
-        // plano já incluído (ou abaixo do mínimo cobrável) vs. entrada inválida: a cotação diz qual
         const q = await who.client.rpc("payments_quote", { p_event: eventId, p_plan: planCode });
         const reason = (q.data as { reason?: string } | null)?.reason;
         if (reason === "ja_incluido" || reason === "valor_minimo" || reason === "plano_inativo" || reason === "evento_encerrado") return json({ error: reason }, 422);
@@ -66,65 +65,62 @@ Deno.serve(async (req) => {
         return json({ error: "indisponivel" }, 500);
     }
   }
-  let order = opened.data as OrderJson;
+  const order = opened.data as OrderJson;
 
   if (order.status !== "criado") {
     log(FN, order.orderId, order.status, "reusado");
     return json(out(order));
   }
 
+  const reread = async () => (await admin.from("payment_orders").select("id,status,amount_cents,checkout_url,expires_at,provider,payment_method").eq("id", order.orderId).maybeSingle()).data;
+
   if (order.reused) {
-    // outro pedido (clique duplo ou tentativa anterior) está criando a cobrança: espera, nunca cria de novo
     const end = Date.now() + WAIT_OTHER_MS;
     while (Date.now() < end) {
       await new Promise((r) => setTimeout(r, 400));
-      const { data } = await admin.from("payment_orders")
-        .select("id,status,amount_cents,brcode,brcode_base64,expires_at").eq("id", order.orderId).maybeSingle();
-      if (data && data.status !== "criado") {
-        log(FN, order.orderId, data.status, "reusado");
-        return json({ orderId: data.id, status: data.status, amountCents: data.amount_cents, brCode: data.brcode, brCodeBase64: data.brcode_base64, expiresAt: data.expires_at });
+      const d = await reread();
+      if (d && d.status !== "criado") {
+        log(FN, order.orderId, d.status, "reusado");
+        return json({ orderId: d.id, status: d.status, amountCents: d.amount_cents, checkoutUrl: d.checkout_url, expiresAt: d.expires_at, provider: d.provider, paymentMethod: d.payment_method });
       }
     }
-    log(FN, order.orderId, "criado", "provedor_indisponivel");
-    return json({ error: "provedor_indisponivel", orderId: order.orderId }, 502);
   }
 
   const { data: planRow } = await admin.from("plans").select("name").eq("code", planCode).maybeSingle();
-  let charge;
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + PREFERENCE_TTL_MIN * 60_000).toISOString();
+  const origin = pickOrigin(req.headers.get("origin"), allowedOrigins(), provider.env);
+  const webhookUrl = Deno.env.get("PAYMENTS_WEBHOOK_URL") || `${Deno.env.get("SUPABASE_URL")}/functions/v1/payments-webhook`;
+  let pref;
   try {
-    charge = await createPixCharge(provider.config, {
-      amountCents: order.amountCents,
-      expiresInSec: EXPIRES_IN_SEC,
-      description: `MemoriesMT - plano ${planRow?.name ?? planCode}`.slice(0, 140),
-      externalId: order.orderId,
-      metadata: { orderId: order.orderId, eventId, planCode, env: provider.env },
+    pref = await createPreference(provider.config, {
+      orderId: order.orderId, eventId, planCode, amountCents: order.amountCents,
+      title: `MemoriesMT - plano ${planRow?.name ?? planCode}`.slice(0, 120),
+      notificationUrl: webhookUrl, backUrls: buildBackUrls(origin, eventId), expiresAt, now: now.toISOString(),
     });
   } catch (e) {
-    log(FN, order.orderId, "criado", e instanceof AbacateError ? `provedor_${e.kind}` : "provedor_erro");
+    log(FN, order.orderId, "criado", e instanceof MercadoPagoError ? `provedor_${e.kind}` : "provedor_erro");
     return json({ error: "provedor_indisponivel", orderId: order.orderId }, 502);
   }
 
   let attached = false;
-  const ATTACH_BACKOFF_MS = [200, 500, 1_000];
-  for (let i = 0; i <= ATTACH_BACKOFF_MS.length && !attached; i++) { // 1 tentativa + 3 novas com espera
-    if (i > 0) await new Promise((r) => setTimeout(r, ATTACH_BACKOFF_MS[i - 1]));
-    const a = await admin.rpc("payments_attach_charge", {
-      p_order: order.orderId,
-      p_charge_id: charge.id,
-      p_brcode: charge.brCode,
-      p_brcode_base64: charge.brCodeBase64,
-      p_expires_at: charge.expiresAt,
-      p_dev_mode: charge.devMode,
+  const BACKOFF_MS = [200, 500, 1_000];
+  for (let i = 0; i <= BACKOFF_MS.length && !attached; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, BACKOFF_MS[i - 1]));
+    const a = await admin.rpc("payments_attach_preference", {
+      p_order: order.orderId, p_preference_id: pref.id, p_checkout_url: pref.initPoint, p_expires_at: pref.expirationDateTo ?? expiresAt,
     });
     attached = !a.error;
-    if (a.error?.code === "MM005") break; // recusa de regra (ex.: devMode divergente): não adianta repetir
+    if (a.error?.code === "MM005") break;
   }
   if (!attached) {
-    // a cobrança existe no provedor mas não foi gravada: a reconciliação (ou o webhook, após reconsulta) a adota
-    log(FN, order.orderId, "criado", "falha_ao_gravar_cobranca");
+    log(FN, order.orderId, "criado", "falha_ao_gravar_preferencia");
     return json({ error: "provedor_indisponivel", orderId: order.orderId }, 502);
   }
-  order = { ...order, status: "pendente", brCode: charge.brCode, brCodeBase64: charge.brCodeBase64, expiresAt: charge.expiresAt };
-  log(FN, order.orderId, "pendente", "cobranca_criada");
-  return json(out(order));
+  const d = await reread(); // o banco mantém a primeira preferência se houve corrida
+  log(FN, order.orderId, d?.status ?? "pendente", "preferencia_criada");
+  return json({
+    orderId: order.orderId, status: d?.status ?? "pendente", amountCents: order.amountCents, checkoutUrl: d?.checkout_url ?? pref.initPoint,
+    expiresAt: d?.expires_at ?? expiresAt, provider: "mercadopago", paymentMethod: d?.payment_method ?? null,
+  });
 });

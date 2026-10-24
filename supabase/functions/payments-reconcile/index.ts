@@ -1,17 +1,15 @@
-// Conciliação chamada pelo pg_cron (verify_jwt=false; Authorization: Bearer PAYMENTS_CRON_TOKEN). Lote de até 50 pedidos:
-// - 'pendente' criado há > 60 s e consultado há > 60 s → reconsulta e aplica (webhook perdido, vencimento);
-// - 'pago' (ou pedido ainda não pago com needs_refund: Ruling 16 e PAID divergente) com reembolso solicitado → reconsulta
-//   (o 'estornado' chega por aqui se o webhook se perder);
-// - 'criado' sem cobrança há > 5 min → procura a cobrança na listagem (create que deu timeout), paginando só com parâmetros
-//   documentados (startDate, after, limit). Só adota com externalId === id do pedido, mesmo valor e mesmo devMode;
-//   sem correspondência exata depois de ver a lista inteira: 'falhou' (libera novo checkout). Busca incompleta (cursor
-//   parado ou limite de 10 páginas): não falha, tenta de novo na próxima rodada (unattachedAction).
-// Inclui pedidos de evento purgado (event_id null). Só trata pedidos do ambiente da chave configurada.
-// Em 429 espera com backoff exponencial (até 3 vezes) e encerra o lote se persistir.
-import {
-  AbacateError, applyStatus, findChargeForOrder, log, ORDER_COLUMNS, type OrderRow, providerConfig, recheck, responder, sameToken, serviceClient,
-  unattachedAction,
-} from "../_shared/payments-runtime.ts";
+// Conciliação chamada pelo pg_cron (verify_jwt=false; Authorization: Bearer PAYMENTS_CRON_TOKEN). A fila vem do banco
+// (payments_reconcile_candidates: teto de idade de 7 dias, limite de lote, ambiente) para ser testável em pgTAP:
+// - 'search': pedido criado|pendente|expirado → GET /v1/payments/search?external_reference=<pedido> com paginação limitada
+//   (5 páginas de 50). Cada pagamento é aplicado pelo banco; busca incompleta nunca falha o pedido. Pedido 'criado' sem
+//   preferência e sem pagamento (busca completa) é falhado por payments_fail_unattached.
+// - 'payment': pagamento com reembolso solicitado → GET /v1/payments/{id} e aplica (o 'refunded' chega por aqui se o webhook
+//   se perder).
+// Antes, payments_expire_stale expira pendentes vencidos. Repetições não regravam payment_events (duplicado). Em 429, espera
+// com backoff (até 3 vezes) e encerra o lote se persistir.
+import { getPayment, MercadoPagoError } from "../_shared/mercadopago.ts";
+import { collectPayments } from "../_shared/mercadopago-flow.ts";
+import { applyPayment, expectedCollector, loadOrder, log, mpConfig, responder, sameToken, serviceClient } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-reconcile";
 const BATCH = 50;
@@ -24,7 +22,7 @@ async function withBackoff<T>(fn: () => Promise<T>): Promise<T> {
     try {
       return await fn();
     } catch (e) {
-      if (!(e instanceof AbacateError) || e.kind !== "rate_limit") throw e;
+      if (!(e instanceof MercadoPagoError) || e.kind !== "rate_limit") throw e;
       if (i >= BACKOFF_MS.length) throw new StopBatch();
       await new Promise((r) => setTimeout(r, BACKOFF_MS[i]));
     }
@@ -37,80 +35,72 @@ Deno.serve(async (req) => {
   const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer /, "");
   if (!sameToken(token, Deno.env.get("PAYMENTS_CRON_TOKEN") ?? "")) return json({ error: "unauthorized" }, 401);
 
-  const provider = providerConfig();
-  if (!provider) {
+  const cfg = mpConfig();
+  if (!cfg) {
     log(FN, null, null, "pagamento_indisponivel");
     return json({ error: "pagamento_indisponivel" }, 503);
   }
   const admin = serviceClient();
-  const minute = new Date(Date.now() - 60_000).toISOString();
-  const fiveMin = new Date(Date.now() - 5 * 60_000).toISOString();
-
-  const [pend, paid, created] = await Promise.all([
-    admin.from("payment_orders").select(ORDER_COLUMNS).eq("status", "pendente").eq("provider_env", provider.env)
-      .not("provider_charge_id", "is", null).lt("created_at", minute).or(`last_checked_at.is.null,last_checked_at.lt.${minute}`)
-      .order("last_checked_at", { ascending: true, nullsFirst: true }).limit(BATCH),
-    // reembolso solicitado: 'pago' ou pedido ainda não pago com needs_refund (admin_request_refund só aceita esses)
-    admin.from("payment_orders").select(ORDER_COLUMNS).in("status", ["pago", "pendente", "expirado", "cancelado", "falhou"])
-      .eq("provider_env", provider.env)
-      .not("refund_requested_at", "is", null).not("provider_charge_id", "is", null)
-      .or(`last_checked_at.is.null,last_checked_at.lt.${minute}`)
-      .order("last_checked_at", { ascending: true, nullsFirst: true }).limit(BATCH),
-    admin.from("payment_orders").select(ORDER_COLUMNS).eq("status", "criado").eq("provider_env", provider.env)
-      .is("provider_charge_id", null).lt("created_at", fiveMin).order("created_at").limit(BATCH),
-  ]);
-  if (pend.error || paid.error || created.error) {
+  const exp = await admin.rpc("payments_expire_stale");
+  if (exp.error) {
     log(FN, null, null, "erro_banco");
     return json({ error: "db" }, 500);
   }
-  const seen = new Set<string>(); // pendente com reembolso solicitado aparece em dois grupos: uma reconsulta só
-  const queue = [
-    ...((pend.data ?? []) as OrderRow[]),
-    ...((paid.data ?? []) as OrderRow[]),
-    ...((created.data ?? []) as OrderRow[]),
-  ].filter((o) => !seen.has(o.id) && !!seen.add(o.id)).slice(0, BATCH);
+  const envRes = await admin.rpc("payments_env");
+  const envs = envRes.data === "sandbox" || envRes.data === "production" ? [envRes.data as string] : ["sandbox", "production"];
+  const queue: Array<{ order_id: string; kind: string; payment_id: string | null }> = [];
+  for (const env of envs) {
+    const c = await admin.rpc("payments_reconcile_candidates", { p_env: env, p_limit: BATCH });
+    if (c.error) {
+      log(FN, null, null, "erro_banco");
+      return json({ error: "db" }, 500);
+    }
+    queue.push(...(c.data as typeof queue));
+  }
+  const seen = new Set<string>(); // um pedido pode aparecer em 'search' e 'payment': tratamos cada (pedido, tipo, pagamento) uma vez
+  const work = queue.filter((q) => { const k = `${q.order_id}|${q.kind}|${q.payment_id}`; return !seen.has(k) && !!seen.add(k); }).slice(0, BATCH);
 
-  let verificados = 0, aplicados = 0, falhas = 0;
-  for (const order of queue) {
+  let verificados = 0, aplicados = 0, falhas = 0, incompletos = 0;
+  let collector: string;
+  try {
+    collector = work.length ? await withBackoff(() => expectedCollector(cfg)) : "";
+  } catch {
+    log(FN, null, null, "recebedor_indisponivel");
+    return json({ error: "provider", expirados: exp.data ?? 0 }, 502);
+  }
+  for (const item of work) {
     try {
-      if (order.status === "criado") {
-        const search = await findChargeForOrder(provider.config, order, withBackoff);
-        const action = unattachedAction(search);
-        if (action === "tentar_depois") {
-          // busca incompleta não prova que a cobrança não existe: não falha o pedido, tenta na próxima rodada
-          verificados++;
-          log(FN, order.id, "criado", "busca_incompleta");
-          continue;
+      const { order } = await loadOrder(admin, item.order_id);
+      if (!order || order.provider !== "mercadopago") continue;
+      if (item.kind === "payment" && item.payment_id) {
+        const p = await withBackoff(() => getPayment(cfg, item.payment_id!));
+        const r = await applyPayment(admin, order.id, p, collector, "reconcile");
+        if (r.applied) aplicados++;
+        log(FN, order.id, r.to || order.status, r.outcome);
+      } else {
+        const { payments, complete } = await withBackoff(() => collectPayments(cfg, order.id, { pageSize: 50, maxPages: 5 }));
+        for (const p of payments) {
+          const r = await applyPayment(admin, order.id, p, collector, "reconcile");
+          if (r.applied) aplicados++;
         }
-        if (action === "falhar") {
+        if (!complete) incompletos++; // não prova ausência de pagamento: tenta de novo na próxima rodada
+        if (payments.length === 0 && complete && order.status === "criado" && !order.mp_preference_id) {
           const f = await admin.rpc("payments_fail_unattached", { p_order: order.id });
           if (f.error) throw new Error("db");
-          verificados++;
           if (f.data === true) aplicados++;
           log(FN, order.id, f.data === true ? "falhou" : "criado", f.data === true ? "sem_cobranca" : "nao_aplicado");
-          continue;
+        } else {
+          log(FN, order.id, order.status, complete ? "verificado" : "busca_incompleta");
         }
-        const found = search.charge!;
-        const a = await admin.rpc("payments_attach_charge", {
-          p_order: order.id, p_charge_id: found.id, p_brcode: found.brCode ?? null, p_brcode_base64: found.brCodeBase64 ?? null,
-          p_expires_at: found.expiresAt ?? null, p_dev_mode: found.devMode,
-        });
-        if (a.error) throw new Error("db"); // inclusive 23505 (cobrança já ligada a outro pedido): nunca é sucesso
-        order.provider_charge_id = found.id;
-        order.status = "pendente";
-        log(FN, order.id, "pendente", "cobranca_adotada");
+        const t = await admin.rpc("payments_touch_checked", { p_order: order.id });
+        if (t.error) throw new Error("db");
       }
-      const chargeId = order.provider_charge_id!;
-      const state = await withBackoff(() => recheck(provider.config, chargeId));
-      const r = await applyStatus(admin, order, chargeId, state, state.devMode, "reconcile");
       verificados++;
-      if (r.applied) aplicados++;
-      log(FN, order.id, r.to, r.applied ? "aplicado" : "nao_aplicado");
     } catch (e) {
       falhas++;
-      log(FN, order.id, order.status, e instanceof StopBatch ? "limite_provedor" : "falha");
+      log(FN, item.order_id, null, e instanceof StopBatch ? "limite_provedor" : "falha");
       if (e instanceof StopBatch) break;
     }
   }
-  return json({ verificados, aplicados, falhas });
+  return json({ verificados, aplicados, falhas, incompletos, expirados: exp.data ?? 0 });
 });

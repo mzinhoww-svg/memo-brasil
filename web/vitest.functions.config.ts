@@ -5,6 +5,6 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["../supabase/functions/_shared/**/*.test.ts"],
+    include: ["../supabase/functions/_shared/**/*.test.ts", "../supabase/functions/_legacy/**/*.test.ts"],
   },
 });

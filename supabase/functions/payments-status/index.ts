@@ -1,6 +1,9 @@
-// Estado do pedido para o anfitrião (polling da tela do Pix). Igual a payments_order_status; se o pedido está 'pendente'
-// e a última consulta tem mais de 15 s, reconsulta o provedor antes (o webhook continua sendo o caminho principal).
-import { applyStatus, caller, guardEnv, loadOrder, log, preflight, recheck, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
+// Estado do pedido para o anfitrião (página de retorno e polling). Igual a payments_order_status; se o pedido ainda não está
+// pago e a última consulta tem mais de 15 s, reconsulta o provedor (GET /v1/payments/search?external_reference=) e aplica
+// cada pagamento pelo banco antes de responder. O retorno do checkout e os parâmetros da URL são só dicas de UX: o estado
+// verdadeiro é este. O webhook continua sendo o caminho principal.
+import { collectPayments } from "../_shared/mercadopago-flow.ts";
+import { applyPayment, caller, expectedCollector, loadOrder, log, mpConfig, preflight, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-status";
 const RECHECK_AFTER_MS = 15_000;
@@ -21,10 +24,6 @@ Deno.serve(async (req) => {
   }
   if (!UUID_RE.test(orderId)) return json({ error: "invalid" }, 400);
 
-  const admin = serviceClient();
-  const provider = await guardEnv(admin);
-  if (!provider) return json({ error: "pagamento_indisponivel" }, 503);
-
   const read = () => who.client.rpc("payments_order_status", { p_order: orderId });
   let st = await read();
   if (st.error) {
@@ -32,17 +31,26 @@ Deno.serve(async (req) => {
     return json({ error: "indisponivel" }, 500);
   }
 
-  if ((st.data as { status?: string }).status === "pendente") {
+  const cur = (st.data as { status?: string; provider?: string }) ?? {};
+  if (cur.provider === "mercadopago" && ["criado", "pendente", "expirado"].includes(String(cur.status))) {
+    const cfg = mpConfig();
+    const admin = serviceClient();
     const { order } = await loadOrder(admin, orderId);
     const stale = !order?.last_checked_at || Date.now() - Date.parse(order.last_checked_at) > RECHECK_AFTER_MS;
-    if (order && stale && order.provider_charge_id && order.provider_env === provider.env) {
+    if (cfg && order && stale) {
       try {
-        const state = await recheck(provider.config, order.provider_charge_id);
-        const r = await applyStatus(admin, order, order.provider_charge_id, state, state.devMode, "status");
-        log(FN, orderId, r.to, r.applied ? "aplicado" : "nao_aplicado");
-        if (r.applied) st = await read();
+        const collector = await expectedCollector(cfg);
+        const { payments } = await collectPayments(cfg, order.id, { pageSize: 50, maxPages: 2 });
+        let applied = false;
+        for (const p of payments) {
+          const r = await applyPayment(admin, order.id, p, collector, "status");
+          applied ||= r.applied;
+        }
+        await admin.rpc("payments_touch_checked", { p_order: order.id });
+        log(FN, orderId, cur.status ?? null, applied ? "aplicado" : "nao_aplicado");
+        if (applied) st = await read();
       } catch {
-        log(FN, orderId, "pendente", "reconsulta_falhou"); // devolve o estado atual; o webhook/reconciliação corrigem depois
+        log(FN, orderId, cur.status ?? null, "reconsulta_falhou"); // devolve o estado atual; o webhook/reconciliação corrigem depois
       }
     }
   }

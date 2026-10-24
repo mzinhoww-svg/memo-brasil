@@ -1,13 +1,14 @@
-// Reembolso disparado pelo Master (verify_jwt=true; o chamador precisa de is_master()). Só para pedido com
-// refund_requested_at (gravado por admin_request_refund, Task 7) em pedido 'pago' ou ainda não pago com needs_refund
-// (Ruling 16; PAID divergente); reconsulta a cobrança (PAID e do pedido) antes de reembolsar. Como webhook e reconciliação
-// (Ruling 13), roda para pedidos do ambiente da chave configurada (ABACATEPAY_ENV) mesmo com payments_env='desligado':
-// desligar a cobrança para novas compras não pode prender dinheiro já recebido. Chama o provedor e NÃO muda o estado: o 'estornado'
-// chega pelo webhook transparent.refunded ou pela reconciliação. Idempotente: pedido já estornado não chama o provedor,
-// e "já reembolsada" do provedor conta como sucesso (refundCharge).
-import { getPixCharge, refundCharge } from "../_shared/abacatepay.ts";
-import { refundBlocker } from "../_shared/payments-status.ts";
-import { AbacateError, caller, loadOrder, log, preflight, providerConfig, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
+// Reembolso disparado pelo Master (verify_jwt=true; o chamador precisa de is_master()). Só para pedido com solicitação gravada
+// por admin_request_refund / admin_request_payment_refund. O BANCO decide o alvo (payments_refund_target): o pagamento vinculado
+// de pedido pago, ou uma cobrança extra pedida explicitamente por `paymentId` — nunca uma cobrança divergente por inferência
+// (PAY-001). Reconsulta o pagamento (aprovado, do pedido, recebedor e ambiente) antes de POST /v1/payments/{id}/refunds com
+// X-Idempotency-Key estável por solicitação (repetir a chamada não reembolsa duas vezes). Total (sem valor) ou parcial
+// (refund_amount_cents). Roda para pedidos de qualquer ambiente mesmo com payments_env='desligado': desligar a cobrança não
+// pode prender dinheiro recebido. Pix pode voltar `in_process`: o pedido segue 'pago' até 'refunded' chegar por webhook ou
+// conciliação. Pedidos históricos da AbacatePay não são reembolsados aqui (provedor_historico).
+import { getPayment, MercadoPagoError, refundIdempotencyKey, refundPayment } from "../_shared/mercadopago.ts";
+import { refundBlocker } from "../_shared/mercadopago-flow.ts";
+import { applyPayment, caller, expectedCollector, loadOrder, log, mpConfig, preflight, responder, serviceClient, UUID_RE } from "../_shared/payments-runtime.ts";
 
 const FN = "payments-refund";
 
@@ -21,43 +22,65 @@ Deno.serve(async (req) => {
   const m = await who.client.rpc("is_master");
   if (m.error || m.data !== true) return json({ error: "forbidden" }, 403);
 
-  let orderId = "";
+  let orderId = "", paymentId: string | null = null;
   try {
-    orderId = String(((await req.json()) as Record<string, unknown>).orderId ?? "");
+    const b = (await req.json()) as Record<string, unknown>;
+    orderId = String(b.orderId ?? "");
+    paymentId = b.paymentId === undefined || b.paymentId === null ? null : String(b.paymentId);
   } catch {
     return json({ error: "invalid" }, 400);
   }
-  if (!UUID_RE.test(orderId)) return json({ error: "invalid" }, 400);
+  if (!UUID_RE.test(orderId) || (paymentId !== null && !/^[0-9A-Za-z_-]{1,40}$/.test(paymentId))) return json({ error: "invalid" }, 400);
 
+  const cfg = mpConfig();
+  if (!cfg) return json({ error: "pagamento_indisponivel" }, 503);
   const admin = serviceClient();
-  const provider = providerConfig(); // chave/ambiente válidos; payments_env não importa (Ruling 13)
-  if (!provider) return json({ error: "pagamento_indisponivel" }, 503);
-
   const { order, error } = await loadOrder(admin, orderId);
   if (error) return json({ error: "indisponivel" }, 500);
   if (!order) return json({ error: "nao_encontrado" }, 404);
-  if (order.status === "estornado") {
+  if (order.provider !== "mercadopago") return json({ error: "provedor_historico" }, 422);
+  if (order.status === "estornado" && paymentId === null) {
     log(FN, order.id, order.status, "ja_estornado");
     return json({ ok: true });
   }
-  // 'pago', ou ainda não pago com needs_refund (Ruling 16, PAID divergente); nunca em disputa (o provedor recusa), perdido ou estornado
-  const blocked = refundBlocker(order);
-  if (blocked) return json({ error: blocked }, 422);
-  if (order.provider_env !== provider.env) return json({ error: "pagamento_indisponivel" }, 503); // chave de outro ambiente
+
+  const t = await admin.rpc("payments_refund_target", { p_order: order.id, p_payment: paymentId });
+  const target = Array.isArray(t.data) ? (t.data[0] as { payment_id: string; kind: "primary" | "extra" } | undefined) : undefined;
+  if (t.error || !target) return json({ error: "estado_invalido" }, 422);
+
+  let requestedAt: string | null = order.refund_requested_at, amount: number | null = order.refund_amount_cents;
+  if (target.kind === "extra") {
+    const c = await admin.from("payment_charges").select("refund_requested_at,refund_amount_cents")
+      .eq("provider", "mercadopago").eq("payment_id", target.payment_id).maybeSingle();
+    requestedAt = (c.data?.refund_requested_at as string | null) ?? null;
+    amount = (c.data?.refund_amount_cents as number | null) ?? null;
+  }
+  const pre = refundBlocker(order, { kind: target.kind, requestedAt });
+  if (pre) return json({ error: pre }, 422);
 
   try {
-    // reconsulta: só reembolsa cobrança PAID que é deste pedido (identidade, valor e ambiente)
-    const charge = await getPixCharge(provider.config, order.provider_charge_id!);
-    const mismatch = refundBlocker(order, charge);
+    const collector = await expectedCollector(cfg);
+    const payment = await getPayment(cfg, target.payment_id);
+    const mismatch = refundBlocker(order, { kind: target.kind, requestedAt }, payment, collector);
     if (mismatch) {
       log(FN, order.id, order.status, mismatch);
       return json({ error: mismatch }, 422);
     }
-    await refundCharge(provider.config, order.provider_charge_id!, order.refund_reason ?? "Reembolso solicitado pelo MemoriesMT");
+    const key = await refundIdempotencyKey(order.id, target.payment_id, requestedAt!, amount);
+    const r = await refundPayment(cfg, target.payment_id, { idempotencyKey: key, amountCents: amount });
+    log(FN, order.id, order.status, `reembolso_${r.status}`);
+    // melhor esforço: se o reembolso já foi aprovado, o pagamento volta 'refunded' e o banco fecha o pedido agora
+    try {
+      const after = await getPayment(cfg, target.payment_id);
+      await applyPayment(admin, order.id, after, collector, "status");
+    } catch { /* o webhook/conciliação aplicam depois */ }
+    return json({ ok: true, status: r.status, paymentId: target.payment_id });
   } catch (e) {
-    log(FN, order.id, order.status, e instanceof AbacateError ? `provedor_${e.kind}` : "provedor_erro");
+    if (e instanceof MercadoPagoError && e.kind === "invalid" && e.providerCode) {
+      log(FN, order.id, order.status, `provedor_${e.providerCode}`);
+      return json({ error: "reembolso_recusado", code: e.providerCode }, 422);
+    }
+    log(FN, order.id, order.status, e instanceof MercadoPagoError ? `provedor_${e.kind}` : "provedor_erro");
     return json({ error: "provedor_indisponivel", orderId: order.id }, 502);
   }
-  log(FN, order.id, order.status, "reembolso_solicitado");
-  return json({ ok: true });
 });

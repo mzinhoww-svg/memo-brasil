@@ -1,16 +1,16 @@
-// Peças comuns das Edge Functions de pagamento (só Deno: lê Deno.env e cria clientes Supabase).
-// Nunca registra chave, brCode, corpo bruto nem dados do pagador: o log é só {fn, orderId, status, outcome}.
+// Peças comuns das Edge Functions de pagamento (só Deno: lê Deno.env e cria clientes Supabase). Provedor ativo: Mercado Pago.
+// Nunca registra token, corpo bruto nem dados do pagador: o log é só {fn, orderId, status, outcome}.
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { AbacateError, checkPixCharge, getPixCharge, type AbacateConfig, type PixListItem } from "./abacatepay.ts";
 import { corsHeaders } from "./cors.ts";
-import { resolveAbacateConfig, type ProviderEnv } from "./payments-config.ts";
-import { mapProviderStatus, type PaymentStatus } from "./payments-status.ts";
-export { findChargeForOrder, unattachedAction } from "./payments-status.ts";
+import { getMe, MercadoPagoError, type MercadoPagoConfig, type MpPayment } from "./mercadopago.ts";
+import { resolveMercadoPagoConfig } from "./mercadopago-config.ts";
 
-export type { AbacateConfig, PaymentStatus, PixListItem, ProviderEnv };
-export { AbacateError };
+export { MercadoPagoError };
+export type { MercadoPagoConfig, MpPayment };
+export type ProviderEnv = "sandbox" | "production";
 
 const extraOrigins = Deno.env.get("ALLOWED_ORIGINS") ?? "";
+export const allowedOrigins = () => extraOrigins;
 
 export function responder(req: Request, cors: boolean) {
   const base: Record<string, string> = { "content-type": "application/json", "x-content-type-options": "nosniff", "cache-control": "no-store" };
@@ -52,38 +52,31 @@ export async function caller(req: Request): Promise<
   return { ok: true, client, userId: data.user.id };
 }
 
-/** Configuração do provedor a partir do ambiente. Recusa (null) com ambiente, chave ou URL base inválidos. */
-export function providerConfig(): { env: ProviderEnv; config: AbacateConfig } | null {
-  const r = resolveAbacateConfig({
-    ABACATEPAY_ENV: Deno.env.get("ABACATEPAY_ENV"),
-    ABACATEPAY_API_KEY: Deno.env.get("ABACATEPAY_API_KEY"),
-    ABACATEPAY_BASE_URL: Deno.env.get("ABACATEPAY_BASE_URL"),
+/** Configuração do Mercado Pago a partir do ambiente. Recusa (null) com token ausente ou URL base inválida. */
+export function mpConfig(): MercadoPagoConfig | null {
+  const r = resolveMercadoPagoConfig({
+    MERCADOPAGO_ACCESS_TOKEN: Deno.env.get("MERCADOPAGO_ACCESS_TOKEN"),
+    MERCADOPAGO_BASE_URL: Deno.env.get("MERCADOPAGO_BASE_URL"),
   });
-  return r.ok ? { env: r.env, config: { ...r.config, timeoutMs: 8_000 } } : null;
+  return r.ok ? { ...r.config, timeoutMs: 8_000 } : null;
 }
 
-/** Regra comum: ABACATEPAY_ENV precisa ser igual a payments_env() (e este não pode ser 'desligado'). */
-export async function guardEnv(admin: SupabaseClient): Promise<{ env: ProviderEnv; config: AbacateConfig } | null> {
-  const p = providerConfig();
-  if (!p) return null;
+/** Checkout/status: o interruptor payments_env() não pode estar 'desligado'. O ambiente do PAGAMENTO vem de live_mode. */
+export async function guardEnv(admin: SupabaseClient): Promise<{ env: ProviderEnv; config: MercadoPagoConfig } | null> {
+  const config = mpConfig();
+  if (!config) return null;
   const { data, error } = await admin.rpc("payments_env");
-  if (error || data !== p.env) return null;
-  return p;
+  if (error || (data !== "sandbox" && data !== "production")) return null;
+  return { env: data, config };
 }
 
-export type ProviderState = { status: PaymentStatus | null; providerStatus: string; amountCents: number | null; devMode: boolean };
-
-/**
- * Reconsulta a cobrança: `check` dá o status; o valor vem do `check` quando ele informa e, se não, de
- * `GET /transparents/get?id=` (a doc só garante `status` no check). REDEEMED só é `pago` com valor 0 (mapProviderStatus).
- */
-export async function recheck(cfg: AbacateConfig, chargeId: string): Promise<ProviderState> {
-  const c = await checkPixCharge(cfg, chargeId);
-  let amount = c.amount ?? null;
-  if (amount === null) {
-    amount = (await getPixCharge(cfg, chargeId)).amount ?? null;
-  }
-  return { status: mapProviderStatus(c.status, amount ?? undefined), providerStatus: c.status, amountCents: amount, devMode: c.devMode };
+let collectorCache: { id: string; at: number } | null = null;
+/** Conta recebedora esperada: GET /users/me (nunca parâmetro de entrada). Cache de 5 min. Lança MercadoPagoError. */
+export async function expectedCollector(cfg: MercadoPagoConfig): Promise<string> {
+  if (collectorCache && Date.now() - collectorCache.at < 300_000) return collectorCache.id;
+  const me = await getMe(cfg);
+  collectorCache = { id: me.id, at: Date.now() };
+  return me.id;
 }
 
 export type OrderRow = {
@@ -92,44 +85,37 @@ export type OrderRow = {
   host_id: string;
   plan_code: string;
   amount_cents: number;
-  status: PaymentStatus;
+  status: string;
+  provider: string;
   provider_env: ProviderEnv;
-  provider_charge_id: string | null;
+  mp_preference_id: string | null;
+  mp_payment_id: string | null;
+  checkout_url: string | null;
   created_at: string;
   last_checked_at: string | null;
   refund_requested_at: string | null;
   refund_reason: string | null;
+  refund_amount_cents: number | null;
   needs_refund: boolean;
 };
 export const ORDER_COLUMNS =
-  "id,event_id,host_id,plan_code,amount_cents,status,provider_env,provider_charge_id,created_at,last_checked_at,refund_requested_at,refund_reason,needs_refund";
+  "id,event_id,host_id,plan_code,amount_cents,status,provider,provider_env,mp_preference_id,mp_payment_id,checkout_url,created_at,last_checked_at,refund_requested_at,refund_reason,refund_amount_cents,needs_refund";
 
 export async function loadOrder(admin: SupabaseClient, id: string): Promise<{ order: OrderRow | null; error: boolean }> {
   const { data, error } = await admin.from("payment_orders").select(ORDER_COLUMNS).eq("id", id).maybeSingle();
   return { order: (data as OrderRow | null) ?? null, error: !!error };
 }
 
-/** Aplica o estado reconsultado. Lança em erro de banco (o chamador decide: 500 no webhook, falha na reconciliação). */
-export async function applyStatus(
-  admin: SupabaseClient,
-  order: OrderRow,
-  chargeId: string,
-  state: ProviderState,
-  devMode: boolean,
-  source: "webhook" | "status" | "reconcile",
-): Promise<{ applied: boolean; to: string }> {
-  if (!state.status) return { applied: false, to: "status_desconhecido" };
-  const { data, error } = await admin.rpc("payments_apply_status", {
-    p_order: order.id,
-    p_charge_id: chargeId,
-    p_status: state.status,
-    p_amount_cents: state.amountCents,
-    p_dev_mode: devMode,
-    p_source: source,
+/** Aplica o pagamento reconsultado (a decisão financeira é toda do banco). Lança em erro de banco. */
+export async function applyPayment(
+  admin: SupabaseClient, orderId: string, payment: MpPayment, collector: string, source: "webhook" | "status" | "reconcile",
+): Promise<{ applied: boolean; outcome: string; to: string }> {
+  const { data, error } = await admin.rpc("payments_apply_payment", {
+    p_order: orderId, p_payment: payment, p_expected_collector: collector, p_source: source,
   });
   if (error) throw new Error("db");
-  const r = (data ?? {}) as { applied?: boolean; to?: string };
-  return { applied: r.applied === true, to: String(r.to ?? state.status) };
+  const r = (data ?? {}) as { applied?: boolean; outcome?: string; to?: string };
+  return { applied: r.applied === true, outcome: String(r.outcome ?? "desconhecido"), to: String(r.to ?? "") };
 }
 
 /** Comparação em tempo constante (tokens de mesmo comprimento). */

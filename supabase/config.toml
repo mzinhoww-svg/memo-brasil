@@ -430,7 +430,10 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.payments-webhook]
-verify_jwt = false # a AbacatePay não manda JWT: a função exige ?webhookSecret + X-Webhook-Signature
+verify_jwt = false # o Mercado Pago não manda JWT: a função exige x-signature (HMAC com MERCADOPAGO_WEBHOOK_SECRET)
 
 [functions.payments-reconcile]
 verify_jwt = false # chamada pelo pg_cron: a função exige Authorization: Bearer PAYMENTS_CRON_TOKEN
+
+[functions.payments-diagnose]
+verify_jwt = true # a função ainda exige is_master(); devolve só metadados não secretos
