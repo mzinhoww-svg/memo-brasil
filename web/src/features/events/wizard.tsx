@@ -14,6 +14,8 @@ import { REVEAL_CHOICES, buildRevealInput, type RevealChoice } from "./reveal-ch
 import { hostFallbackName, suggestEventNames } from "./name-suggestions";
 import { clearPendingCode, freeShots, hasPaidPlans, planForShots, readPendingCode } from "./plan-catalog";
 import { PAID_PLAN_LINE, PlanStep } from "./PlanStep";
+import { afterCreateDestination } from "./after-create";
+import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CodeApplied, REDEEM_TEXT, RedeemCode, redeemMessage } from "@/features/billing/RedeemCode";
 import { formatBRL, getPublicSettings, listPublicPlans, redeemCode } from "@/features/billing/api";
 import type { PublicPlan, PublicSettings } from "@/features/billing/types";
@@ -122,8 +124,15 @@ export function CreateWizard() {
       }
       return setCodeOutcome(outcome);
     }
-    if (chosen && !chosen.isFree) router.push(`/painel/${eventId}/plano?plano=${encodeURIComponent(chosen.code)}`);
-    else router.push(`/criar/pronto/${eventId}`);
+    if (chosen && !chosen.isFree) {
+      // plano pago escolhido: vai direto ao checkout (o botão fica ocupado até a página trocar)
+      setBusy(true);
+      const dest = await afterCreateDestination(eventId, chosen.code);
+      if (dest.kind === "checkout") return goToCheckout(dest.url);
+      setBusy(false);
+      return router.push(dest.href);
+    }
+    router.push(`/criar/pronto/${eventId}`);
   }
 
   const resolved = step === 1 ? resolveReveal(revealInput(), endMs(), now()) : undefined;

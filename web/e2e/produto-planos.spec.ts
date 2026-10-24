@@ -102,6 +102,8 @@ test("assistente com plano pago: selo vem do catálogo, evento nasce Grátis 10/
   await expect(page.getByText("250 olhares por R$ 0,76 cada.")).toBeVisible();
   await expect(page.getByText("O evento nasce grátis. Com plano pago, você paga com Pix ou cartão na tela seguinte.")).toBeVisible();
   await acceptTerms(page);
+  // o assistente abre o checkout direto; com o checkout indisponível ele cai na tela de plano com o plano pré-selecionado
+  await page.route("**/functions/v1/payments-checkout", (r) => r.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "provider" }) }));
   await page.getByRole("button", { name: "Criar evento" }).click();
   await page.waitForURL(/\/painel\/[0-9a-f-]{36}\/plano\?plano=casamento$/);
   const id = page.url().match(/painel\/([0-9a-f-]{36})\//)![1];
