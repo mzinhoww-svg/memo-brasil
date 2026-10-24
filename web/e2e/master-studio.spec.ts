@@ -35,7 +35,15 @@ test.describe("console master: autorização no servidor", () => {
     const page = await ctx.newPage();
     await page.goto("/master");
     await expect(page.getByRole("heading", { name: "Visão geral" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Módulos do console" }).getByRole("link")).toHaveCount(15);
+    // menu em 4 grupos (cabeçalho h2 rotula cada lista); 15 links no total, cada um levando a /master/<rota>
+    const nav = page.getByRole("navigation", { name: "Módulos do console" });
+    for (const [grupo, n] of [["Operação", 4], ["Pessoas", 4], ["Receita", 3], ["Plataforma", 4]] as const) {
+      await expect(nav.getByRole("heading", { name: grupo, level: 2 })).toBeVisible();
+      await expect(nav.getByRole("list", { name: grupo }).getByRole("link")).toHaveCount(n);
+    }
+    await expect(nav.getByRole("link")).toHaveCount(15);
+    const hrefs = (await nav.getByRole("link").evaluateAll((as) => as.map((a) => new globalThis.URL((a as HTMLAnchorElement).href).pathname))).sort();
+    expect(hrefs).toEqual(["/master", ...["eventos", "usuarios", "organizadores", "participantes", "storage", "revelacoes", "auditoria", "pagamentos", "planos", "codigos", "configuracoes", "analytics", "lgpd", "saude"].map((r) => `/master/${r}`)].sort());
     for (const rota of ["eventos", "usuarios", "organizadores", "participantes", "storage", "revelacoes", "auditoria", "pagamentos", "planos", "codigos", "configuracoes", "analytics", "lgpd", "saude"]) {
       const r = await page.goto(`/master/${rota}`);
       expect(r?.status(), rota).toBe(200);
