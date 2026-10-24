@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { pushModal } from "@/components/memoriesmt/modal-stack";
 import { withShellParams } from "./params";
 import { SEARCH_MIN, eventHref, orderHref, userHref, type SearchResults } from "./search";
 
@@ -15,11 +16,13 @@ const isMac = () => /Mac|iPhone|iPad/i.test(navigator.platform || navigator.user
 export function CommandSearch() {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
+  const before = useRef<HTMLElement | null>(null);
+  const abrir = () => { before.current = document.activeElement as HTMLElement | null; setOpen(true); };
   const mac = useSyncExternalStore(noop, isMac, () => true);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k") { e.preventDefault(); setOpen(true); }
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k") { e.preventDefault(); abrir(); }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -27,11 +30,16 @@ export function CommandSearch() {
 
   return (
     <>
-      <button ref={trigger} type="button" className="adm-btn adm-search-trigger" aria-haspopup="dialog" aria-keyshortcuts="Meta+K Control+K" onClick={() => setOpen(true)}>
+      <button ref={trigger} type="button" className="adm-btn adm-search-trigger" aria-haspopup="dialog" aria-keyshortcuts="Meta+K Control+K" onClick={abrir}>
         <span>Buscar evento, e-mail, ID</span>
         <kbd className="adm-kbd" aria-hidden="true">{mac ? "⌘K" : "Ctrl K"}</kbd>
       </button>
-      {open && <SearchDialog onClose={() => { setOpen(false); trigger.current?.focus(); }} />}
+      {open && <SearchDialog onClose={() => {
+        setOpen(false);
+        // volta para onde estava (ex.: a justificativa de uma folha aberta), senão para o botão
+        const b = before.current;
+        (b && b !== document.body && b.isConnected ? b : trigger.current)?.focus();
+      }} />}
     </>
   );
 }
@@ -59,7 +67,11 @@ function SearchDialog({ onClose }: { onClose: () => void }) {
   const termo = q.trim();
   const curto = termo.length < SEARCH_MIN;
 
-  useEffect(() => { input.current?.focus(); }, []);
+  useEffect(() => {
+    input.current?.focus();
+    const modal = pushModal(box.current); // topo da pilha: drawer/folha embaixo ignoram Tab/Esc enquanto a busca está aberta
+    return () => modal.release();
+  }, []);
 
   useEffect(() => {
     if (curto) return;
@@ -91,7 +103,7 @@ function SearchDialog({ onClose }: { onClose: () => void }) {
   };
 
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape") { e.preventDefault(); onClose(); return; }
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); onClose(); return; }
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       if (!items.length) return;
       e.preventDefault();
@@ -104,8 +116,9 @@ function SearchDialog({ onClose }: { onClose: () => void }) {
       const f = Array.from(box.current.querySelectorAll<HTMLElement>(FOCUSAVEL));
       if (!f.length) return;
       const a = f[0], z = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
-      else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+      const fora = !box.current.contains(document.activeElement);
+      if (e.shiftKey && (document.activeElement === a || fora)) { e.preventDefault(); z.focus(); }
+      else if (!e.shiftKey && (document.activeElement === z || fora)) { e.preventDefault(); a.focus(); }
     }
   };
 

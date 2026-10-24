@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { pushModal } from "@/components/memoriesmt/modal-stack";
 
 const FOCUSAVEL = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -18,7 +19,10 @@ export function Drawer({ title, closeHref, children }: { title: string; closeHre
     const anterior = document.activeElement as HTMLElement | null;
     const el = ref.current;
     el?.querySelector<HTMLElement>(FOCUSAVEL)?.focus();
+    const modal = pushModal(el);
     const onKey = (e: KeyboardEvent) => {
+      // ⌘K ou uma folha de confirmação aberta por cima: o teclado é dela (Esc não fecha o drawer, Tab não volta para cá)
+      if (!modal.isTop() || e.defaultPrevented) return;
       if (e.key === "Escape") { e.preventDefault(); router.push(closeHref); return; }
       if (e.key !== "Tab" || !el) return;
       const itens = Array.from(el.querySelectorAll<HTMLElement>(FOCUSAVEL));
@@ -28,7 +32,7 @@ export function Drawer({ title, closeHref, children }: { title: string; closeHre
       else if (!e.shiftKey && (document.activeElement === z || !el.contains(document.activeElement))) { e.preventDefault(); a.focus(); }
     };
     document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("keydown", onKey); anterior?.focus?.(); };
+    return () => { document.removeEventListener("keydown", onKey); modal.release(); anterior?.focus?.(); };
   }, [closeHref, router]);
 
   return (
