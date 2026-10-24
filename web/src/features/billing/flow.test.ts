@@ -69,7 +69,7 @@ describe("TrustBlock e textos", () => {
   it("Grátis omite o título", () => expect(trustTitle(plan({ code: "gratis", isFree: true, maxGuests: 10, priceCents: 0 }))).toBeNull());
   it("mensagem do MM013 e textos exatos", () => {
     expect(PLAN_TEXT.expirado).toBe("Nada foi cobrado. Quando quiser, comece um novo pagamento.");
-    expect(PLAN_TEXT.sub).toBe("Pix ou cartão, pagamento único por evento, no Mercado Pago. Sem assinatura.");
+    expect(PLAN_TEXT.sub).toBe("Pagamento único por evento, no Mercado Pago. Cartão ou Pix, conforme disponível. Sem assinatura.");
     expect(PLAN_TEXT.provedor).toBe("Seu pedido está guardado; tente de novo em 1 minuto.");
   });
   it("joinGuests e rank", () => {

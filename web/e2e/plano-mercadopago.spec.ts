@@ -20,14 +20,14 @@ test.afterAll(async () => {
   if (eventId) await admin.from("events").delete().eq("id", eventId);
 });
 
-const PAY = { name: "Pagar R$ 189,00" } as const;
+const PAY = { name: "Pagar com Mercado Pago · R$ 189,00" } as const;
 const ACTIVE = /Plano .* ativo\./;
 
 test("Pagar cria o pedido e abre o Checkout Pro no checkoutUrl esperado (navegação de página inteira)", async ({ browser, baseURL }) => {
   const { ctx, page, sim, goto } = await openPlano(browser, owner, eventId, baseURL!);
   await goto();
   await expect(page.getByRole("heading", { level: 1, name: "De que tamanho é a festa?" })).toBeVisible();
-  await expect(page.getByText("Pix ou cartão, pagamento único por evento, no Mercado Pago. Sem assinatura.")).toBeVisible();
+  await expect(page.getByText("Pagamento único por evento, no Mercado Pago. Cartão ou Pix, conforme disponível. Sem assinatura.")).toBeVisible();
   await expect(page.getByRole("radio", { name: /Casamento/ })).toBeChecked();
   await page.getByRole("button", PAY).click();
   await page.waitForURL(MP_CHECKOUT_URL);

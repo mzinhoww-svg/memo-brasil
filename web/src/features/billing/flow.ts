@@ -111,7 +111,7 @@ export function formatDateTime(iso: string | undefined): string {
 
 export const PLAN_TEXT = {
   titulo: "De que tamanho é a festa?",
-  sub: "Pix ou cartão, pagamento único por evento, no Mercado Pago. Sem assinatura.",
+  sub: "Pagamento único por evento, no Mercado Pago. Cartão ou Pix, conforme disponível. Sem assinatura.",
   expirado: "Nada foi cobrado. Quando quiser, comece um novo pagamento.",
   provedor: "Seu pedido está guardado; tente de novo em 1 minuto.",
   outroPlano: (nome: string) => `Você já tem um pagamento aberto do plano ${nome}. Conclua esse ou deixe expirar antes de escolher outro plano.`,

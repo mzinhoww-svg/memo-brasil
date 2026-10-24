@@ -110,7 +110,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
           </div>
           <section className="plano-como" aria-labelledby="como-pagar">
             <h2 id="como-pagar" className="titulo-card app-h1">Como pagar</h2>
-            <p className="app-p app-muted">No Mercado Pago você escolhe Pix ou cartão. Quando terminar, volte para cá.</p>
+            <p className="app-p app-muted">No Mercado Pago você escolhe a forma de pagamento (cartão e, quando houver, Pix). Quando terminar, volte para cá.</p>
           </section>
           <p className="app-p app-muted">Pode fechar esta tela. O pedido fica guardado no painel e o plano libera sozinho quando o pagamento for confirmado.</p>
           <p className="app-p app-muted">Pagamento processado pelo Mercado Pago.</p>

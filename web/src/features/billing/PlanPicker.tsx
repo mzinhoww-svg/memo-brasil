@@ -96,10 +96,17 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
           {diff && <p className="app-p app-muted" data-testid="diferenca">Você paga só a diferença do seu plano atual: {formatBRL(pay ?? 0)}.</p>}
           {blocked && <p className="app-p" role="status">{blocked}</p>}
           {error && <p className="plano-erro" role="alert">{error}</p>}
-          <Button variant="cta" block disabled={busy || !plan || !!blocked} onClick={() => onPay(chosen)}>
-            {pay !== undefined ? `Pagar ${formatBRL(pay)}` : "Pagar"}
+          {plan && (
+            <dl className="plano-resumo-pedido" data-testid="resumo-pedido">
+              <div><dt>Plano</dt><dd>{plan.name}</dd></div>
+              <div><dt>Total</dt><dd>{pay !== undefined ? formatBRL(pay) : "—"}</dd></div>
+              <div><dt>Como paga</dt><dd>Pagamento único por evento, sem assinatura</dd></div>
+            </dl>
+          )}
+          <Button variant="cta" block disabled={busy || !plan || !!blocked} aria-busy={busy} onClick={() => onPay(chosen)}>
+            {busy ? "Abrindo o Mercado Pago…" : pay !== undefined ? `Pagar com Mercado Pago · ${formatBRL(pay)}` : "Pagar com Mercado Pago"}
           </Button>
-          <p className="app-p app-muted plano-nota">Você conclui o pagamento no Mercado Pago, com Pix ou cartão, e volta para cá. O plano libera assim que o pagamento for confirmado.</p>
+          <p className="app-p app-muted plano-nota">Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado.</p>
         </div>
       </div>
     </div>
