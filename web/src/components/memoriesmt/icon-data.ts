@@ -1,5 +1,5 @@
 // GERADO por scripts/gen-assets.mjs a partir de public/icons e public/brand. Não editar.
-export type IconName = "agora" | "baixar" | "camera" | "casal" | "explorar" | "favoritos" | "fechar" | "mais" | "moderar" | "sem-sinal" | "voce";
+export type IconName = "agora" | "baixar" | "camera" | "casal" | "explorar" | "favoritos" | "fechar" | "mais" | "moderar" | "play" | "sem-sinal" | "voce";
 export const ICONS: Record<IconName, { filled: boolean; body: string }> = {
   "agora": {
     "filled": false,
@@ -36,6 +36,10 @@ export const ICONS: Record<IconName, { filled: boolean; body: string }> = {
   "moderar": {
     "filled": false,
     "body": "<path d=\"M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z\"/>"
+  },
+  "play": {
+    "filled": false,
+    "body": "<path d=\"M8 5v14l11-7z\"/>"
   },
   "sem-sinal": {
     "filled": false,

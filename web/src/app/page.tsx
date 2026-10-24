@@ -2,11 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
-import { Button, Cover, Icon, type IconName, KnownPeople, LiveIndicator, Signature, ThemeToggle, Logo } from "@/components/memoriesmt";
-import type { MemoEvent } from "@/domain/event";
-import { eventStatus } from "@/domain/event";
-import { formatDate } from "@/features/app/hooks";
+import { Suspense, useState } from "react";
+import { Button, Cover, Icon, type IconName, KnownPeople, Signature, ThemeToggle, Logo } from "@/components/memoriesmt";
 import { useApp } from "@/features/app/provider";
 import { LivePricingLine } from "@/features/marketing/PricingLine";
 import { BackendNotice } from "@/features/app/backend-notice";
@@ -36,41 +33,7 @@ function LoginErrorBanner() {
 }
 
 export default function Home() {
-  const { repos, ready, user, now, persistent, storageError, known, switchTo, canSwitchIdentity } = useApp();
-  const [mine, setMine] = useState<MemoEvent[]>([]);
-  const [joined, setJoined] = useState<MemoEvent[]>([]);
-
-  useEffect(() => {
-    if (!ready || !user) return;
-    let alive = true;
-    (async () => {
-      const all = await repos.events.list();
-      const memberships = await Promise.all(all.filter((e) => e.hostId !== user.id).map(async (e) => ((await repos.participants.get(e.id, user.id)) ? e : undefined)));
-      if (!alive) return;
-      setMine(all.filter((e) => e.hostId === user.id).sort((a, b) => b.createdAt - a.createdAt));
-      setJoined(memberships.filter(Boolean) as MemoEvent[]);
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [repos, ready, user]);
-
-  const row = (e: MemoEvent, host: boolean) => {
-    const live = eventStatus(e, now()) === "ativo";
-    return (
-      <li key={e.id} className="app-card" style={{ listStyle: "none" }}>
-        <div className="app-between">
-          {live ? <LiveIndicator /> : <span className="eyebrow app-muted">Encerrado</span>}
-          <span className="meta app-muted">{formatDate(e.startAt)}</span>
-        </div>
-        <span className="titulo-card">{e.title}</span>
-        <div className="app-row">
-          <Button variant="pequeno" href={`/e/${e.code}/agora`}>Ver no Agora</Button>
-          {host && <Button variant="pequeno" href={`/painel/${e.id}`}>Painel</Button>}
-        </div>
-      </li>
-    );
-  };
+  const { ready, user, persistent, storageError, known, switchTo, canSwitchIdentity } = useApp();
 
   return (
     <main className="app-col app-col--card app-fluid">
@@ -86,23 +49,27 @@ export default function Home() {
           <h1 className="display app-h1" style={{ fontSize: 36 }}>Seu evento pelo olhar de cada convidado.</h1>
           <p className="corpo app-p app-muted">Sem baixar app. As fotos ficam no escuro e aparecem juntas, na hora que você escolher.</p>
         </div>
-        <ol className="app-stack-sm" aria-label="Como funciona" style={{ padding: 0, margin: 0 }}>
+        <ol className="app-passos" aria-label="Como funciona">
           {STEPS.map((st) => (
-            <li key={st.text} className="app-card" style={{ listStyle: "none", flexDirection: "row", alignItems: "center", gap: "var(--space-4)" }}>
+            <li key={st.text}>
               <Icon name={st.icon} decorative size={24} />
-              <span className="titulo-card">{st.text}</span>
+              <span>{st.text}</span>
             </li>
           ))}
         </ol>
-        <Link href="/exemplo" className="app-card" style={{ textDecoration: "none", color: "inherit" }}>
-          <span className="titulo-card">Experimente a câmera agora</span>
-          <span className="meta app-muted">Sem cadastro · nada é salvo</span>
+        <Link href="/exemplo" className="app-demo">
+          <span className="app-demo-icone"><Icon name="play" decorative size={24} /></span>
+          <span className="app-stack-sm" style={{ gap: 2 }}>
+            <span className="titulo-card">Experimente a câmera agora</span>
+            <span className="meta app-muted">Festa de exemplo · sem cadastro · nada é salvo</span>
+          </span>
         </Link>
         <div className="app-stack-sm">
           <Button href="/criar" variant="cta" block>Criar meu evento grátis</Button>
           <Button href="/entrar" variant="texto">Tenho um código</Button>
           <LivePricingLine />
         </div>
+        {ready && user && <Button href="/eventos" variant="secundario" block>Meus eventos</Button>}
 
         {ready && canSwitchIdentity && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
 
@@ -111,19 +78,6 @@ export default function Home() {
             <Icon name="sem-sinal" label="Aviso" />
             <span>Este navegador não deixa guardar dados. O que você fizer some ao fechar a página.</span>
           </div>
-        )}
-
-        {mine.length > 0 && (
-          <section className="app-stack-sm" aria-labelledby="meus">
-            <h2 id="meus" className="titulo-card app-h1">Seus eventos</h2>
-            <ul className="app-stack" style={{ padding: 0, margin: 0 }}>{mine.map((e) => row(e, true))}</ul>
-          </section>
-        )}
-        {joined.length > 0 && (
-          <section className="app-stack-sm" aria-labelledby="entrei">
-            <h2 id="entrei" className="titulo-card app-h1">Festas em que você entrou</h2>
-            <ul className="app-stack" style={{ padding: 0, margin: 0 }}>{joined.map((e) => row(e, false))}</ul>
-          </section>
         )}
 
         <BackendNotice localText="Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor." />

@@ -166,7 +166,9 @@ test("pedido de remoção cai na fila do anfitrião, que oculta e depois remove 
   // volta a ser o anfitrião pela própria interface ("Continuar como")
   await page.goto("/");
   await page.getByRole("button", { name: "Emy", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Seus eventos" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Emy", exact: true })).toBeHidden();
+  await page.getByRole("link", { name: "Meus eventos" }).click();
+  await expect(page.getByRole("link", { name: "Painel" }).first()).toBeVisible();
   await page.goto(`/painel/${id}/conteudo`);
   await expect(page.getByRole("tab", { name: "Pedidos de remoção · 1" })).toHaveAttribute("aria-selected", "true");
   await page.getByRole("button", { name: "Ocultar" }).click();

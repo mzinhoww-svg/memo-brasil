@@ -66,7 +66,7 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
         <h1 className="titulo-tela app-h1">Não achamos este evento.</h1>
         <p className="app-p app-muted">{copyFor(backend).panelNotFoundBody}</p>
         <div className="app-stack-sm" style={{ marginTop: "auto" }}>
-          <Button href="/" block>Ir para meus eventos</Button>
+          <Button href="/eventos" block>Ir para meus eventos</Button>
           {backend === "supabase" && <GoogleButton block label="Entrar com outra conta" onClick={() => void signInWithGoogle("/")} />}
         </div>
       </div></main>

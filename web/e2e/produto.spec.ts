@@ -110,7 +110,7 @@ test("home com ?erro=login mostra o banner e ele pode ser fechado", async ({ pag
 test("painel com id inválido mostra não encontrado em menos de 2 s", async ({ page }) => {
   await page.goto("/painel/isso-nao-e-um-uuid");
   await expect(page.getByRole("heading", { name: "Não achamos este evento." })).toBeVisible({ timeout: 2000 });
-  await expect(page.getByRole("link", { name: "Ir para meus eventos" })).toHaveAttribute("href", "/");
+  await expect(page.getByRole("link", { name: "Ir para meus eventos" })).toHaveAttribute("href", "/eventos");
 });
 
 test("clipboard negado não diz copiado e deixa o link selecionado", async ({ page }) => {
