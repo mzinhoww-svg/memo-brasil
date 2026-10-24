@@ -82,7 +82,7 @@ export function V3PaymentJourney() {
     return () => { cancelled = true; };
   }, [eventId, target, paying]);
 
-  const qCurrent = q?.code === target?.code && !q.failed ? q.quote : null;
+  const qCurrent = q !== null && q.code === target?.code && !q.failed ? q.quote : null;
   const amount = paying ? qCurrent?.amountCents : 0;
   const blocked = qCurrent && !qCurrent.payable ? (QUOTE_BLOCK[qCurrent.reason] ?? "Este plano está indisponível.") : null;
   const canCheckout = paying && !!qCurrent?.payable && settings?.paymentsEnv !== "desligado";
