@@ -281,3 +281,47 @@ select outcome, count(*) from public.payment_events where received_at > now() - 
 3. `payments-diagnose` com o token de produção; conferir que a conta recebedora é a esperada.
 4. `admin_set_setting('payments_env','"production"', <motivo>)`; conferir `list_public_plans()` como anônimo e `production_active` por plano.
 5. **Verificação controlada:** uma compra real do menor plano pelo dono, em evento próprio; depois reembolso pelo Master até `estornado`.
+
+## 15. Homologação preparada (2026-10-24): o que está provado, o que depende do titular
+
+### 15.1 Ambiente das credenciais cadastradas (por evidência, não por prefixo)
+- O token de teste e o de produção do Mercado Pago **ambos começam com `APP_USR`**: o prefixo não classifica nada.
+- `payments-diagnose` (Master) agora devolve `account.testUser`, lido da tag `test_user` que a própria API põe na conta. Resultado com o token hoje cadastrado: **`testUser: false`** (conta `3786909683`, MLB/BR). Leitura: o token cadastrado identifica uma conta **real**, tratado como **produção**. Por isso `payments_env` **não** foi aberto em `sandbox` e fica `desligado`.
+- Com token de produção só existem dois caminhos: (A) homologar em sandbox trocando temporariamente por credenciais de TESTE (abaixo, recomendado) ou (B) a verificação controlada com dinheiro real do §14, que exige antes D3/D5/D6.
+
+### 15.2 Compatibilidade da aplicação "Checkout Transparente" (`1592042337972998`) com o Checkout Pro
+- A documentação do Mercado Pago liga as credenciais à **aplicação**, não ao produto; `POST /checkout/preferences` é autenticado só pelo Access Token. Nenhuma página consultada restringe o endpoint por tipo de solução.
+- Evidência real: `GET /checkout/preferences/search` respondeu `ok` com este token (total 0): a credencial tem acesso ao recurso de preferências. **Não provado ainda:** a criação de uma preferência (ocorre no primeiro `Pagar` da janela de teste).
+- Decisão: **não recriar a aplicação**. Só recriar (fluxo "Checkout Pro" do painel) se a primeira criação falhar com 401/403 ou erro específico de produto.
+
+### 15.3 Passo exato que depende da verificação SMS/WhatsApp do titular
+1. Abra `https://www.mercadopago.com.br/developers/panel/app` (já logado como titular). Ao entrar na aplicação `1592042337972998`, o painel mostra "Valide que esta é a sua conta": escolha SMS ou WhatsApp no celular cadastrado e informe o código. (Foi aqui que o agente parou; esse código é só seu.)
+2. Na aplicação, menu **Credenciais de teste**: ative as credenciais de teste se estiverem inativas e copie o **Access Token de teste**.
+3. Menu **Contas de teste**: crie (ou abra) um usuário **comprador** de teste, país Brasil. Guarde login e senha dele; o código de e-mail pedido no login é o dos 6 últimos dígitos do User ID dessa conta de teste.
+4. Menu **Webhooks → Configurar notificações**: modo de teste, URL `https://asyaegeodyttttaubvxh.supabase.co/functions/v1/payments-webhook` (sem parâmetros), evento **Pagamentos**; copie a **assinatura secreta** que o painel mostrar para esse modo.
+5. **Nunca cole token ou segredo no chat.** Entregue-os ao operador por canal seguro.
+
+### 15.3.1 Operador: aplicar as credenciais de teste (sem commit, sem chat)
+```bash
+umask 077; mkdir -p ~/.config/memoriesmt
+# arquivo fora do repositório com exatamente estes nomes (valores só aqui):
+#   MERCADOPAGO_ACCESS_TOKEN=<access token de TESTE>
+#   MERCADOPAGO_WEBHOOK_SECRET=<assinatura secreta do modo de teste>
+supabase secrets set --project-ref asyaegeodyttttaubvxh --env-file ~/.config/memoriesmt/payments-sandbox.env
+```
+Guarde as credenciais de **produção** atuais em local seguro **antes** de sobrescrever: o passo 15.6 as restaura. Confira como Master: `payments-diagnose` deve devolver `account.testUser: true`. **Se vier `false` ou `null`, pare: não abra `sandbox`.**
+
+### 15.4 Janela de teste e pagamento (somente com `testUser: true`)
+1. Operador abre a janela: §9 (`payments_env = "sandbox"`).
+2. Titular, em **janela anônima**, abre o evento sintético: `https://newmemocuiaba.vercel.app/painel/9d41413b-b7d8-4e02-9a24-6f01e6b5bd75/plano` (dono: conta Google do titular, a mesma que criou o evento). Escolhe **Festa (R$ 29,00)** → "Pagar".
+3. O app redireciona para a página hospedada do Mercado Pago. Faça login com o **comprador de teste** e pague: cartão de teste Mastercard `5480 8328 0103 3311`, CVV `123`, validade `11/30`, titular **`APRO`**, CPF `12345678909` (aprovado). Para o cenário pendente use titular `CONT`; para recusado, `OTHE`. Pix em teste termina "pendente" (esperado). O agente não digita dados de cartão.
+4. Volte ao evento pelo botão do Mercado Pago (ou reabra o link do passo 2).
+
+### 15.5 Acompanhamento (o agente roda, somente leitura)
+`supabase/ops/payments_homologation_watch.sql`: pedido, `payment_charges` (`live_mode` deve ser **false** em sandbox e `collector_id` a conta de teste), `payment_events` (webhook e desfecho), `event_entitlements` (uma linha ativa por pedido: concessão única) e execuções do `mm-payments-reconcile`. Critérios de aprovação: pedido `pago`; `live_mode=false`; webhook `payments_apply_payment` aplicado uma única vez; plano Festa no evento; retorno `?retorno=sucesso` mostra o plano ativo só depois de o backend confirmar; reenvio do webhook e conciliação não duplicam direitos.
+
+### 15.6 Fechar a janela e restaurar produção
+§9.1 (voltar `desligado`) e re-gravar as credenciais de **produção** guardadas (mesmo comando do 15.3.1, com o env-file de produção) + webhook de **produção** no painel. Confirme `testUser: false`. Só então valem os §14 (D3/D5/D6) e a abertura de `production`.
+
+### 15.7 Bloqueios comerciais documentados que continuam abertos
+`company_legal_name`, `company_cnpj`, `support_email` e `support_phone` estão **nulos** em `platform_settings`; D3 (reembolso/arrependimento), D5 (CNPJ e contatos) e D6 (NFS-e) não foram decididos. O agente não inventa esses dados; sem eles a produção permanece `desligado`.

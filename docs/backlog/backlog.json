@@ -7367,7 +7367,8 @@
    "files": [],
    "tests": [],
    "evidence": [
-    "2026-10-23: segredos MERCADOPAGO_ACCESS_TOKEN, MERCADOPAGO_WEBHOOK_SECRET e PAYMENTS_CRON_TOKEN presentes (payments-diagnose, Master, HTTP 200); conta 3786909683 site MLB país BR; GET /users/me e busca de preferências ok (total 0). NÃO provado: se o token é de teste ou de produção (só o live_mode de um pagamento real mostra) e se o webhook está configurado no painel (o painel exigiu validação por SMS/WhatsApp do titular). Aplicação no painel: 1592042337972998, produto Checkout Transparente."
+    "2026-10-23: segredos MERCADOPAGO_ACCESS_TOKEN, MERCADOPAGO_WEBHOOK_SECRET e PAYMENTS_CRON_TOKEN presentes (payments-diagnose, Master, HTTP 200); conta 3786909683 site MLB país BR; GET /users/me e busca de preferências ok (total 0). NÃO provado: se o token é de teste ou de produção (só o live_mode de um pagamento real mostra) e se o webhook está configurado no painel (o painel exigiu validação por SMS/WhatsApp do titular). Aplicação no painel: 1592042337972998, produto Checkout Transparente.",
+    "2026-10-24: payments-diagnose agora informa account.testUser (tag da API): token cadastrado = testUser false (conta real; prefixo APP_USR não classifica). Homologação sandbox exige credenciais de TESTE do titular (runbook §15). Compatibilidade da app 1592042337972998 (Checkout Transparente) com preferências: busca de preferências ok; criação ainda não provada."
    ],
    "commit": null,
    "release": "R3",
@@ -7459,7 +7460,9 @@
    "origin": "migração Mercado Pago 2026-10-23",
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "2026-10-24: janela sandbox NÃO aberta (token cadastrado é de conta real). Procedimento exato do titular e acompanhamento read-only em docs/supabase/PAYMENTS-RUNBOOK.md §15 e supabase/ops/payments_homologation_watch.sql."
+   ],
    "commit": null,
    "release": "R3",
    "id": "PAY-MP-004",
