@@ -171,6 +171,21 @@ update public.events set is_test = true where id = '00000000-0000-4000-8000-0000
 reset role;
 select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012e1'), false, 'anfitrião não marca o próprio evento como teste');
 
+-- evento novo com título de teste já nasce is_test (mesma regra do backfill); título comum não, mesmo pedindo
+select tests.login('00000000-0000-4000-8000-0000000012a1');
+insert into public.events (id, title, category, host_id, duration_hours, is_test) values
+  ('00000000-0000-4000-8000-0000000012f1', 'TESTE – excluir 12', 'outro', '00000000-0000-4000-8000-0000000012a1', 6, false),
+  ('00000000-0000-4000-8000-0000000012f2', 'Festa real 12', 'outro', '00000000-0000-4000-8000-0000000012a1', 6, true);
+reset role;
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f1'), true, 'evento novo TESTE% criado pelo cliente nasce teste');
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f2'), false, 'evento novo comum criado pelo cliente não nasce teste');
+insert into public.events (id, title, category, host_id, duration_hours) values
+  ('00000000-0000-4000-8000-0000000012f3', 'RT 12 rotina', 'outro', '00000000-0000-4000-8000-0000000012a1', 6);
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f3'), true, 'evento novo RT % inserido pelo servidor nasce teste');
+update public.events set title = 'TESTE renomeado 12' where id = '00000000-0000-4000-8000-0000000012f2';
+select is((select is_test from public.events where id = '00000000-0000-4000-8000-0000000012f2'), false, 'renomear para TESTE não marca (só na criação)');
+delete from public.events where id in ('00000000-0000-4000-8000-0000000012f1', '00000000-0000-4000-8000-0000000012f2', '00000000-0000-4000-8000-0000000012f3');
+
 -- ===================================================== trigger de auditoria
 select tests.claims(null);
 insert into public.audit_logs (event_id, action) values ('00000000-0000-4000-8000-0000000012e1', 'test12.system');
@@ -337,6 +352,8 @@ select ok(jsonb_array_length(:'sb'::jsonb -> 'growth') = 0 or tests.has_keys(:'s
 
 -- saúde: histórico (com corridas simuladas do mm-reveal-due)
 reset role;
+-- corridas reais do job (o pg_cron roda mm-reveal-due a cada minuto no stack local) seriam mais novas que as simuladas
+delete from cron.job_run_details where jobid in (select jobid from cron.job where jobname = 'mm-reveal-due');
 insert into cron.job_run_details (jobid, runid, job_pid, database, username, command, status, return_message, start_time, end_time)
 select j.jobid, 990000 + g, 1, 'postgres', 'postgres', 'x', case when g <= 2 then 'failed' else 'succeeded' end, 'm',
        now() - (g || ' minutes')::interval, now() - (g || ' minutes')::interval + interval '1 second'

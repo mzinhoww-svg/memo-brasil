@@ -14,12 +14,20 @@ alter table public.events add column is_test boolean not null default false;
 alter table public.profiles add column is_test boolean not null default false;
 create index events_is_test_idx on public.events (is_test) where is_test;
 
--- cliente (anfitrião) não marca nem desmarca teste: só o master pela RPC (ou o dono/service_role)
+-- cliente (anfitrião) não marca nem desmarca teste: só o master pela RPC (ou o dono/service_role).
+-- Evento NOVO com título de teste (mesma regra de título do backfill) já nasce is_test, venha de onde vier; sem isso
+-- os eventos "TESTE ..." criados depois da migration entrariam nos números até alguém marcá-los à mão.
 create function public.is_test_guard() returns trigger
 language plpgsql set search_path = '' as $$
+declare titled boolean := false;
 begin
+  if tg_op = 'INSERT' and tg_table_name = 'events' then
+    titled := new.title like 'TESTE%' or new.title ilike 'teste homologa%' or new.title like 'RT %';
+  end if;
   if current_user in ('authenticated', 'anon') then
-    if tg_op = 'INSERT' then new.is_test := false; else new.is_test := old.is_test; end if;
+    if tg_op = 'INSERT' then new.is_test := titled; else new.is_test := old.is_test; end if;
+  elsif titled then
+    new.is_test := true;
   end if;
   return new;
 end $$;
