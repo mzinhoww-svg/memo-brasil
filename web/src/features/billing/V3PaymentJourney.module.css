@@ -18,3 +18,23 @@
 .receipt{background:var(--pv-paper);border:1px solid #e4ddd4;border-top:0;border-radius:0 0 21px 21px;padding:26px}.receipt h3{font-family:var(--font-serif,Georgia,serif);font-weight:400;font-size:30px;margin:0 0 21px}.receipt dl{margin:0}.receipt dl>div{display:flex;justify-content:space-between;gap:15px;padding:13px 0;border-bottom:1px solid #e7e0d9;font-size:13px}.receipt dt{color:#72695f}.receipt dd{margin:0;font-weight:800;text-align:right}.receipt .total{border-top:1px solid #baaa95;border-bottom:0;margin-top:8px;padding:23px 0;font-size:15px}.receipt .total dd{font-size:23px}.receipt>p:last-child{font-size:12px;line-height:1.8;color:#45614d;background:#eff5ee;padding:16px;border-radius:12px}
 @media(max-width:860px){.shell{padding:8px 14px 50px}.header{padding:0 4px}.progress{padding:20px 0}.columns{display:flex;flex-direction:column-reverse;gap:13px}.aside{position:static;width:100%}.art{min-height:160px;border-radius:16px 16px 0 0;padding:20px}.art h2{font-size:23px}.receipt{padding:18px}.receipt h3{font-size:22px;margin-bottom:7px}.receipt dl>div{padding:8px 0}.panel{padding:24px 18px;min-height:0;width:100%;border-radius:18px}.title{font-size:35px}.buttons{flex-direction:column-reverse}.buttons>*{min-height:52px}.price{font-size:24px}}
 @media(max-width:430px){.brand{font-size:23px}.progress>span{font-size:11px;padding:8px 10px}.header>span{max-width:115px;text-align:right}.title{font-size:32px}.tiers{gap:6px}.tier{min-width:74px;padding:12px 6px}.tier small{font-size:10px}.priceBox{padding:15px}.receipt h3{font-size:21px}}
+
+
+/* Embedded Mercado Pago Payment Brick — native Pix and tokenized card form. */
+.embedded{display:grid;gap:16px;min-width:0}
+.embedded>h2{font-size:clamp(24px,3vw,35px);line-height:1.15;letter-spacing:-.04em;font-weight:800;margin:0}
+.embedded>.description{margin:0 0 5px}
+.brickContainer{min-height:130px;width:100%;min-width:0;overflow:hidden;border-radius:16px}
+.brickContainer iframe{max-width:100%}
+.nativeStatus{display:flex;flex-direction:column;align-items:stretch;gap:14px;padding:10px 0}
+.nativeStatus>h2{font-size:clamp(26px,3vw,42px);line-height:1.12;letter-spacing:-.04em;font-weight:800;margin:0}
+.nativeStatus>p{font-size:15px;line-height:1.6;color:#665d54;margin:0}
+.nativeStatus>a,.nativeStatus>button{display:flex;align-items:center;justify-content:center;min-height:52px;width:100%;text-align:center;text-decoration:none;font-weight:750;border-radius:13px;padding:13px 18px;cursor:pointer}
+.successIcon,.pendingIcon{width:64px;height:64px;display:grid;place-items:center;border-radius:50%;font-size:36px}
+.successIcon{background:#e4f0e6;color:#2b7546}.pendingIcon{background:#f2eadc;color:#9a793f}
+.pixCard{display:flex;flex-direction:column;align-items:center;gap:12px;border:1px solid #dfd7cc;border-radius:17px;padding:22px 16px;background:#f8f5ef}
+.pixCard img{display:block;max-width:100%;height:auto;border:10px solid white;border-radius:12px}
+.pixCard label{font-weight:800;font-size:14px;align-self:flex-start}
+.pixCard textarea{font-size:12px;font-family:monospace;border:1px solid #cbc0b1;border-radius:8px;background:#fff;resize:none;padding:12px;max-width:100%;width:100%;overflow-wrap:anywhere;color:#24211d}
+.pixCard button{width:100%;min-height:48px;border-radius:11px;padding:12px}
+.pixCard>p{text-align:center}
