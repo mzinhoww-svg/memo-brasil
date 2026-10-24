@@ -59,3 +59,9 @@ Não mudar Root Directory/framework do projeto antes da promoção: o legado em 
 - **Cobrança:** desligada (`payments_env='desligado'`). Para habilitar: PAY-001..005 corrigidos, homologação sandbox real (PAYMENTS-RUNBOOK §5–§8), decisões D3–D6. Nunca sem autorização específica para a primeira transação.
 - **Smoke público reutilizável:** `E2E_BASE_URL=https://newmemocuiaba.vercel.app E2E_EVENT_CODE=<código de evento "TESTE – excluir"> npx playwright test -c playwright.prod-smoke.config.ts` (em `web/`).
 
+
+## 7. Atualização 2026-10-23 (Rodada 10: Mercado Pago em produção, cobrança desligada)
+- **Produção:** `https://newmemocuiaba.vercel.app` → `dpl_AktSDY4zt4WzVjLkzaCJtKsrzZxm`, SHA `541df2291d75d1124f814b4489ca4af2a8c65378` (`feat/mercadopago`, inclui a home de `9c36af0`). Seguiu o procedimento: `autoAssignCustomDomains=false` → candidato `target=production` → validação na URL própria → `request_promote` → `autoAssignCustomDomains=true` restaurado.
+- **Rollback (nesta ordem):** `dpl_AGvPH6Ad85j5vtSfkso6Y2WATveT` (`9c36af0`, home sem Mercado Pago), `dpl_J28BnSfP5SrabGNrFj3KwJ2we2Du` (`8de2d88`) ou `dpl_AebyeHRbNLKmsFcfMuWf2Yx9nSVm` (`89a612b`). O banco não volta: a migration `20261023000100` é aditiva e o app anterior a ignora; as functions `payments-*` novas respondem 503/`desligado` e nada cobram.
+- **Remoto alinhado:** migrations 25/25; functions `payments-checkout`, `payments-status`, `payments-refund`, `payments-webhook`, `payments-reconcile` (v8) e `payments-diagnose` (v1) ativas; segredo `PAYMENTS_CRON_TOKEN` e Vault `mm_payments_cron_token`/`mm_payments_reconcile_url` gravados; job `mm-payments-reconcile` a cada 5 min.
+- **Pendente do titular (cobrança permanece desligada):** ver `PAYMENTS-RUNBOOK.md` §7 (webhook no painel do Mercado Pago, que exige a validação por SMS/WhatsApp do titular) e §9 (janela `sandbox` + pagamento de teste).

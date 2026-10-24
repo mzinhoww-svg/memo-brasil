@@ -118,12 +118,12 @@ Itens abertos: **85** · P0 14, P1 17, P2 36, P3 18 · BACKLOG 47, BLOCKED 2, DE
 
 Planos, pagamento, e-mail, observabilidade e escala de mídia.
 
-Itens abertos: **46** · P0 6, P1 23, P2 16, P3 1 · BACKLOG 18, BLOCKED 10, DEFERRED 11, IN_REVIEW 5, READY 2
+Itens abertos: **46** · P0 6, P1 23, P2 16, P3 1 · BACKLOG 12, BLOCKED 8, DEFERRED 11, IN_REVIEW 13, READY 2
 
 | ID | Prio | Status | Título | Depende de |
 |---|---|---|---|---|
-| PAY-MP-001 | P0 | BLOCKED | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | - |
-| PAY-MP-002 | P0 | BLOCKED | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | PAY-MP-003 |
+| PAY-MP-001 | P0 | IN_REVIEW | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | - |
+| PAY-MP-002 | P0 | IN_REVIEW | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | PAY-MP-003 |
 | PAY-MP-003 | P0 | IN_REVIEW | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | - |
 | PAY-MP-004 | P0 | BLOCKED | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, w | PAY-MP-001, PAY-MP-002 |
 | PAY-OPS-001 | P0 | BLOCKED | [humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook | - |
@@ -142,11 +142,11 @@ Itens abertos: **46** · P0 6, P1 23, P2 16, P3 1 · BACKLOG 18, BLOCKED 10, DEF
 | FT-087 | P1 | DEFERRED | Excluir conta e LGPD | FT-082, INF-001, AUD-002, ITG-101 |
 | FT-088 | P1 | DEFERRED | Administrador master real (claim, middleware, audit_logs) | FT-080, FT-082, INF-001, AUD-002, ITG-109 |
 | FT-089 | P1 | DEFERRED | Migração local → nuvem | FT-080, FT-082, FT-085, INF-001, AUD-002, ITG-105 |
-| PAY-001 | P1 | BACKLOG | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança le | - |
-| PAY-002 | P1 | BACKLOG | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | - |
-| PAY-003 | P1 | BACKLOG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | - |
+| PAY-001 | P1 | IN_REVIEW | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança le | - |
+| PAY-002 | P1 | IN_REVIEW | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | - |
+| PAY-003 | P1 | IN_REVIEW | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | - |
 | PAY-MP-005 | P1 | BLOCKED | Confirmar na homologação as incertezas da API listadas no design (§6) | PAY-MP-004 |
-| PAY-MP-006 | P1 | BACKLOG | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts pa | PAY-MP-003 |
+| PAY-MP-006 | P1 | IN_REVIEW | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts pa | PAY-MP-003 |
 | PAY-MP-007 | P1 | BLOCKED | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por  | PAY-MP-004, PAY-OPS-005 |
 | PAY-OPS-002 | P1 | BLOCKED | [humano] Vault: mm_payments_cron_token e mm_payments_reconcile_url; agendar conciliação | PAY-OPS-001 |
 | PAY-OPS-004 | P1 | BLOCKED | [humano] Produção AbacatePay: CNPJ, chave de produção e ativação por plano | PAY-OPS-003, PAY-OPS-005 |
@@ -165,8 +165,8 @@ Itens abertos: **46** · P0 6, P1 23, P2 16, P3 1 · BACKLOG 18, BLOCKED 10, DEF
 | ITG-107 | P2 | BACKLOG | Convites: id, rotação, expiração, ?mesa= confiável e limite de tentativas (código ~39,6 bi | ITG-106 |
 | ITG-108 | P2 | BACKLOG | Ambiente (env), CSP para o Supabase e suíte de contrato reutilizável | ITG-106 |
 | ITG-109 | P2 | BACKLOG | Matriz de papéis × RLS e proteção de servidor para /master | ITG-106 |
-| PAY-004 | P2 | BACKLOG | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada exec | - |
-| PAY-005 | P2 | BACKLOG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | - |
+| PAY-004 | P2 | IN_REVIEW | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada exec | - |
+| PAY-005 | P2 | IN_REVIEW | divergencia_cobranca em pedido pago não deve expirar em 30 dias | - |
 | BG-150 | P3 | DEFERRED | Risco aceito pré-backend: alterar meta.user para o hostId vira anfitrião | - |
 
 ## R4 · Pós-90 dias (>90 dias)

@@ -60,18 +60,18 @@
 | PAY-OPS-003 | Homologação sandbox ponta a ponta (Pix, webhook, liberação de limites, reembolso) | P0 | BLOCKED |
 | PAY-OPS-005 | [humano] Decisões comerciais/legais D3, D5, D6 e revisão jurídica dos textos | P1 | BLOCKED |
 | PAY-OPS-004 | [humano] Produção AbacatePay: CNPJ, chave de produção e ativação por plano | P1 | BLOCKED |
-| PAY-001 | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | BACKLOG |
-| PAY-002 | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | BACKLOG |
-| PAY-003 | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | BACKLOG |
+| PAY-001 | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | IN_REVIEW |
+| PAY-002 | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | IN_REVIEW |
+| PAY-003 | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | IN_REVIEW |
 | REL-004 | [humano] Testes físicos em iPhone e Android (câmera, upload, PWA) | P1 | BLOCKED |
 | REL-005 | [humano] Painel Supabase: rever limite de login anônimo (30/h por IP) e estreitar Redirect URLs após o go-live | P1 | BLOCKED |
 | OPS-A5-006 | Limite de entradas anônimas do Supabase Auth (30/h por IP) | P1 | BLOCKED |
-| PAY-MP-001 | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | BLOCKED |
-| PAY-MP-002 | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | BLOCKED |
+| PAY-MP-001 | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | IN_REVIEW |
+| PAY-MP-002 | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | IN_REVIEW |
 | PAY-MP-003 | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | P0 | IN_REVIEW |
 | PAY-MP-004 | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso) | P0 | BLOCKED |
 | PAY-MP-005 | Confirmar na homologação as incertezas da API listadas no design (§6) | P1 | BLOCKED |
-| PAY-MP-006 | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago | P1 | BACKLOG |
+| PAY-MP-006 | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago | P1 | IN_REVIEW |
 | PAY-MP-007 | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por plano | P1 | BLOCKED |
 
 ## Decisão atual

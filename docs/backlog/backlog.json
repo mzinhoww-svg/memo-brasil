@@ -7067,7 +7067,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [],
    "origin": "fechamento produto/pagamentos 2026-10-22",
    "acceptance": [
@@ -7082,7 +7082,8 @@
     "payments_refund_target + admin_request_payment_refund: o alvo do reembolso de pedido pago é sempre o pagamento vinculado; cobrança duplicada/divergente só por payment_id explícito conhecido do pedido",
     "pgTAP 11: 'PAY-001: alvo padrão do pedido pago é o vinculado' / 'a divergente só por pedido explícito' / 'pagamento desconhecido recusado' / 'pedido (vinculado) NÃO ficou marcado para reembolso' / 'histórico: id inventado recusado (PAY-001)'",
     "itest payments.itest.ts: 'PAY-001: cobrança duplicada só é reembolsada por pedido explícito; o pagamento vinculado nunca é tocado'",
-    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
    ],
    "commit": null,
    "environment": "codigo",
@@ -7096,7 +7097,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [],
    "origin": "fechamento produto/pagamentos 2026-10-22",
    "acceptance": [
@@ -7109,7 +7110,8 @@
    "evidence": [
     "admin_clear_needs_refund(order, motivo): Master, motivo 10–500, auditoria payment.needs_refund_cleared, divergências marcadas como resolvidas (não apagadas); needs_refund também fecha sozinho quando a cobrança extra é reembolsada",
     "pgTAP 11: 'PAY-002: não-master recusado' / 'motivo obrigatório' / 'Master limpa com motivo' / 'some do Master depois de tratada' / 'auditado com motivo' / 'sem pendência: MM005'",
-    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
    ],
    "commit": null,
    "environment": "codigo",
@@ -7123,7 +7125,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [],
    "origin": "fechamento produto/pagamentos 2026-10-22",
    "acceptance": [
@@ -7136,7 +7138,8 @@
    "evidence": [
     "payments_apply_status (histórico) com waiver de valor restrito a pedido ainda não pago; payments_apply_payment (MP) valida valor sempre no pagamento vinculado",
     "pgTAP 11: 'PAY-003: pago não aceita waiver de valor' / 'waiver segue valendo para não pago com needs_refund' / 'PAY-003 (MP): primário reembolsado com valor divergente: recusado'",
-    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
    ],
    "commit": null,
    "environment": "codigo",
@@ -7150,7 +7153,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [],
    "origin": "fechamento produto/pagamentos 2026-10-22",
    "acceptance": [
@@ -7165,7 +7168,8 @@
     "payments_reconcile_candidates (teto de idade 7 dias, throttle, limite de lote, ambiente) e 'duplicado' não grava payment_events; payments_touch_checked não grava evento",
     "pgTAP 11: 'PAY-004: pendente de 8 dias sai da varredura' / 'expirado de 9 dias sai da varredura' / 'rodadas repetidas não criam payment_events' / 'duplicados não regravam payment_events' / 'paginação: limite do lote respeitado'",
     "itest payments.itest.ts: 'pedido com mais de 7 dias sai da varredura (PAY-004)' e 'notificação duplicada 3x ... não regrava payment_events'",
-    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
    ],
    "commit": null,
    "environment": "codigo",
@@ -7179,7 +7183,7 @@
    "epic": "EP-19",
    "parent": null,
    "priority": "P2",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "dependencies": [],
    "origin": "fechamento produto/pagamentos 2026-10-22",
    "acceptance": [
@@ -7192,7 +7196,8 @@
    "evidence": [
     "admin_payment_divergences: divergência de pedido 'pago'/'em_disputa' sem resolved_at não some em 30 dias",
     "pgTAP 11: 'PAY-005: divergência em pedido pago segue visível após 45 dias' / 'some depois do tratamento' / 'evento marcado como resolvido, não apagado'",
-    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge)."
+    "Branch feat/mercadopago: correção implementada e testada localmente; NÃO marcado DONE até a migration ser aplicada no remoto e revisada (commit pendente de merge).",
+    "2026-10-23: migration 20261023000100 aplicada no remoto (migration list 25=25, aplicada pelo operador); pgTAP local 1120/1120 (11 suítes), itest com fake 24/24, E2E Supabase+fake 43/43. Verificação em dado real do remoto ainda não feita: sem pedido Mercado Pago real. Fake não conta como homologação externa."
    ],
    "commit": null,
    "environment": "codigo",
@@ -7361,13 +7366,15 @@
    "origin": "migração Mercado Pago 2026-10-23",
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "2026-10-23: segredos MERCADOPAGO_ACCESS_TOKEN, MERCADOPAGO_WEBHOOK_SECRET e PAYMENTS_CRON_TOKEN presentes (payments-diagnose, Master, HTTP 200); conta 3786909683 site MLB país BR; GET /users/me e busca de preferências ok (total 0). NÃO provado: se o token é de teste ou de produção (só o live_mode de um pagamento real mostra) e se o webhook está configurado no painel (o painel exigiu validação por SMS/WhatsApp do titular). Aplicação no painel: 1592042337972998, produto Checkout Transparente."
+   ],
    "commit": null,
    "release": "R3",
    "id": "PAY-MP-001",
    "title": "[humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel",
    "priority": "P0",
-   "status": "BLOCKED",
+   "status": "IN_REVIEW",
    "description": "Operador cria/obtém credenciais de teste, grava MERCADOPAGO_ACCESS_TOKEN, MERCADOPAGO_WEBHOOK_SECRET e PAYMENTS_CRON_TOKEN por env-file fora do repo e registra o webhook (tópico Pagamentos) apontando para payments-webhook, sem parâmetros de segredo. Ver docs/supabase/PAYMENTS-RUNBOOK.md passos 5-7.",
    "acceptance": [
     "Segredos configurados por nome, sem passar por repositório/log",
@@ -7385,13 +7392,15 @@
    "origin": "migração Mercado Pago 2026-10-23",
    "files": [],
    "tests": [],
-   "evidence": [],
-   "commit": null,
+   "evidence": [
+    "2026-10-23: db push pelo operador (migration list local=remoto, 25/25, última 20261023000100); 6 functions publicadas por esta sessão (payments-checkout/status/refund v8, webhook/reconcile v8 sem JWT, diagnose v1); sem credencial responde 401; PAYMENTS_CRON_TOKEN no Supabase e Vault (mm_payments_cron_token, mm_payments_reconcile_url) gravados sem imprimir valores; job mm-payments-reconcile ativo (*/5) e executou succeeded às 21:50 (-03) pelo cron; chamada manual com token: 200 {verificados:0}."
+   ],
+   "commit": "541df22",
    "release": "R3",
    "id": "PAY-MP-002",
    "title": "Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy)",
    "priority": "P0",
-   "status": "BLOCKED",
+   "status": "IN_REVIEW",
    "description": "Comandos do operador (o agente não executa no remoto): supabase db push --linked, functions deploy conforme runbook passo 4, Vault e agendamento da conciliação.",
    "acceptance": [
     "migration list com local = remoto incluindo 20261023000100",
@@ -7498,13 +7507,15 @@
    "origin": "migração Mercado Pago 2026-10-23",
    "files": [],
    "tests": [],
-   "evidence": [],
+   "evidence": [
+    "2026-10-23: web integrada em feat/mercadopago (541df22) com a home publicada; publicada em produção (dpl_AktSDY4zt4WzVjLkzaCJtKsrzZxm); plano com cobrança desligada confirmado em produção; Master pagamentos mostra provedor Mercado Pago."
+   ],
    "commit": null,
    "release": "R3",
    "id": "PAY-MP-006",
    "title": "Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago",
    "priority": "P1",
-   "status": "BACKLOG",
+   "status": "IN_REVIEW",
    "description": "Responsabilidade do agente web (feat/mercadopago-web). Remover web/e2e/fixtures/fake-abacatepay.mjs quando o spec não o importar mais.",
    "acceptance": [
     "Página do plano abre checkoutUrl e trata retorno=sucesso|pendente|falha só como dica (consulta orderStatus)",

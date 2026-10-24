@@ -146,12 +146,12 @@ flowchart LR
   PAY_OPS_005["PAY-OPS-005<br/>BLOCKED"]:::block
   PAY_OPS_004["PAY-OPS-004<br/>BLOCKED"]:::block
   REL_003["REL-003<br/>DONE"]:::done
-  PAY_MP_001["PAY-MP-001<br/>BLOCKED"]:::block
-  PAY_MP_002["PAY-MP-002<br/>BLOCKED"]:::block
+  PAY_MP_001["PAY-MP-001<br/>IN_REVIEW"]:::back
+  PAY_MP_002["PAY-MP-002<br/>IN_REVIEW"]:::back
   PAY_MP_003["PAY-MP-003<br/>IN_REVIEW"]:::back
   PAY_MP_004["PAY-MP-004<br/>BLOCKED"]:::block
   PAY_MP_005["PAY-MP-005<br/>BLOCKED"]:::block
-  PAY_MP_006["PAY-MP-006<br/>BACKLOG"]:::back
+  PAY_MP_006["PAY-MP-006<br/>IN_REVIEW"]:::back
   PAY_MP_007["PAY-MP-007<br/>BLOCKED"]:::block
   FT_010 --> TK_010a
   FT_030 --> US_030a

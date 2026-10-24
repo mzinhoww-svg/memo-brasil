@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **248** itens (sem contar 19 épicos). Prioridade: P0 46, P1 86, P2 63, P3 53. Status: BACKLOG 101, BLOCKED 15, CANCELLED 2, DEFERRED 14, DONE 74, IN_REVIEW 30, READY 12.
+Total: **248** itens (sem contar 19 épicos). Prioridade: P0 46, P1 86, P2 63, P3 53. Status: BACKLOG 95, BLOCKED 13, CANCELLED 2, DEFERRED 14, DONE 74, IN_REVIEW 38, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -601,17 +601,17 @@ Total: **248** itens (sem contar 19 épicos). Prioridade: P0 46, P1 86, P2 63, P
 | OPS-A5-003 | TASK | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-004 | TASK | Eventos anteriores a 22/10/2026 sem expiração automática | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-005 | TASK | Pedidos de exclusão do titular em até 30 dias (processo manual) | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
-| PAY-001 | BUG | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-002 | BUG | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-003 | BUG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-004 | TASK | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução | P2 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-005 | BUG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | P2 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
-| PAY-MP-001 | TASK | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | operador |
-| PAY-MP-002 | TASK | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | BLOCKED | PAY-MP-003 | migração Mercado Pago 2026-10-23 | - | operador |
+| PAY-001 | BUG | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-002 | BUG | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-003 | BUG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-004 | TASK | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução | P2 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-005 | BUG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | P2 | IN_REVIEW | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-MP-001 | TASK | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | operador |
+| PAY-MP-002 | TASK | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | IN_REVIEW | PAY-MP-003 | migração Mercado Pago 2026-10-23 | 541df22 | operador |
 | PAY-MP-003 | TASK | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | codigo (local) |
 | PAY-MP-004 | TASK | Homologação real no sandbox do Mercado Pago (preferência, pagamento Pix/cartão de teste, webhook, reembolso) | P0 | BLOCKED | PAY-MP-001, PAY-MP-002 | migração Mercado Pago 2026-10-23 | - | remoto |
 | PAY-MP-005 | TASK | Confirmar na homologação as incertezas da API listadas no design (§6) | P1 | BLOCKED | PAY-MP-004 | migração Mercado Pago 2026-10-23 | - | remoto |
-| PAY-MP-006 | TASK | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago | P1 | BACKLOG | PAY-MP-003 | migração Mercado Pago 2026-10-23 | - | codigo |
+| PAY-MP-006 | TASK | Camada web: consumir OrderView (checkoutUrl/provider) e migrar web/e2e/payments.spec.ts para o fake do Mercado Pago | P1 | IN_REVIEW | PAY-MP-003 | migração Mercado Pago 2026-10-23 | - | codigo |
 | PAY-MP-007 | TASK | [humano] Produção Mercado Pago: credenciais, webhook de produção, D3/D5/D6 e ativação por plano | P1 | BLOCKED | PAY-MP-004, PAY-OPS-005 | migração Mercado Pago 2026-10-23 | - | operador |
 | PAY-OPS-001 | TASK | [humano] Conta e chave sandbox AbacatePay, segredos das Functions e registro do webhook | P0 | BLOCKED | - | fechamento produto/pagamentos 2026-10-22 | - | operador |
 | PAY-OPS-002 | TASK | [humano] Vault: mm_payments_cron_token e mm_payments_reconcile_url; agendar conciliação | P1 | BLOCKED | PAY-OPS-001 | fechamento produto/pagamentos 2026-10-22 | - | operador |
