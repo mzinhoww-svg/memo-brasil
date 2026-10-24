@@ -6,6 +6,8 @@ import type { ThemeSpec } from "@/domain/theme";
 import { isMissingThemeSchema } from "./compat";
 import { RepositoryError, type EventPreview, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryErrorCode, type User } from "../types";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Adaptador Supabase atrás do MESMO contrato dos adaptadores locais. A autorização é do servidor (RLS, triggers, RPC);
  * este arquivo só traduz linhas, erros e chamadas. Componentes visuais nunca importam o SDK.
@@ -140,6 +142,14 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       list: async () => {
         try { return (await selectAll("events", (q) => q.select("*, event_themes(*)").order("created_at", { ascending: false }))).map(toEvent); }
         catch (e) { if (!isMissingThemeSchema((e as RepositoryError).cause)) throw e; return (await selectAll("events", (q) => q.select("*").order("created_at", { ascending: false }))).map(toEvent); }
+      },
+      listMine: async (userId) => {
+        if (!UUID_RE.test(userId)) return [];
+        // eventos em que entrou + os que criou: o Master não recebe a base inteira só para filtrar no navegador
+        const ids = (await selectAll("participants", (q) => q.select("event_id").eq("user_id", userId))).map((r) => String(r.event_id)).filter((id) => UUID_RE.test(id));
+        const mine = (sel: string) => selectAll("events", (q) => { const b = q.select(sel); return (ids.length ? b.or(`host_id.eq.${userId},id.in.(${ids.join(",")})`) : b.eq("host_id", userId)).order("created_at", { ascending: false }); });
+        try { return (await mine("*, event_themes(*)")).map(toEvent); }
+        catch (e) { if (!isMissingThemeSchema((e as RepositoryError).cause)) throw e; return (await mine("*")).map(toEvent); }
       },
       get: async (id) => {
         const r = await readEvent("id", id);

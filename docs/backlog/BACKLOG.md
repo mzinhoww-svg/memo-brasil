@@ -2,7 +2,7 @@
 
 > Fonte de verdade: `backlog.json` (editar lá). Este arquivo é gerado por `tools/backlog.py`. Fluxo: BACKLOG → READY → IN_PROGRESS → IN_REVIEW → TESTING → DONE (+ BLOCKED, DEFERRED, CANCELLED). **DONE exige implementação, testes, evidência e documentação atualizada.**
 
-Total: **247** itens (sem contar 19 épicos). Prioridade: P0 46, P1 85, P2 63, P3 53. Status: BACKLOG 101, BLOCKED 15, CANCELLED 2, DEFERRED 14, DONE 73, IN_REVIEW 30, READY 12.
+Total: **248** itens (sem contar 19 épicos). Prioridade: P0 46, P1 86, P2 63, P3 53. Status: BACKLOG 101, BLOCKED 15, CANCELLED 2, DEFERRED 14, DONE 74, IN_REVIEW 30, READY 12.
 
 ## Como retomar numa nova sessão
 1. Rode `python3 docs/backlog/tools/backlog.py` (valida e regenera). 2. `... --next` mostra o próximo item READY por prioridade. 3. Preserve os IDs; não recrie o que está DONE. 4. Ao concluir, preencha `tests`, `evidence`, `commit`, `environment` e mude o status. 5. Registre decisões em `docs/architecture/ARCHITECTURE.md`.
@@ -361,6 +361,7 @@ Total: **247** itens (sem contar 19 épicos). Prioridade: P0 46, P1 85, P2 63, P
 | UXA-126 | FEATURE | [Anfitrião] /criar · passo 6 (resumo): CTA 'Criar evento de demonstração' quebra em 2 linhas em 320; aviso de cobrança longo antes do CTA | P3 | BACKLOG | UXA-001 | auditoria UX/UI 2026-10-21 (docs/audit/ux/INVENTARIO.md) | - | - |
 | UXA-127 | FEATURE | Studio: presets com amostra de cor, estado 'Personalizado', fontes exibidas na própria fonte | P2 | BACKLOG | EST-004 | revisão independente A1–A5 2026-10-21 | - | - |
 | UXA-128 | FEATURE | Erro de upload de logo/capa persistente por campo (aria-describedby) e prévia móvel como painel recolhível | P3 | BACKLOG | EST-004 | revisão independente arquitetura/perf/a11y 2026-10-21 | - | - |
+| UXA-129 | BUG | Home: cartão da festa de exemplo parecia inerte e a home listava eventos da conta | P1 | DONE | - | pedido de Aurimar 2026-10-23 | 9c36af0 | remoto |
 
 **UXA-104** critérios: Grade 3–4 colunas ≥1024 com cartão compacto (miniatura, motivo, ações), seleção em massa, atalhos e painel lateral de detalhe. Sem overflow horizontal e alvos ≥44px em 320–1920; screenshots antes/depois (painel-conteudo-1440.png, painel-conteudo-todas-1440.png) em docs/audit/ux/screens.
 
@@ -600,11 +601,11 @@ Total: **247** itens (sem contar 19 épicos). Prioridade: P0 46, P1 85, P2 63, P
 | OPS-A5-003 | TASK | Rotação de cópias de segurança manuais a cada ≤ 30 dias | P1 | READY | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-004 | TASK | Eventos anteriores a 22/10/2026 sem expiração automática | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
 | OPS-A5-005 | TASK | Pedidos de exclusão do titular em até 30 dias (processo manual) | P2 | DEFERRED | - | A.5 rodada 6 2026-10-22 | - | remoto |
-| PAY-001 | BUG | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador) |
-| PAY-002 | BUG | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador) |
-| PAY-003 | BUG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador) |
-| PAY-004 | TASK | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução | P2 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador) |
-| PAY-005 | BUG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | P2 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo (local: pgTAP + stack 554xx); remoto pendente (db push do operador) |
+| PAY-001 | BUG | Pedido pago com needs_refund antigo por divergencia_cobranca pode reembolsar a cobrança legítima | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-002 | BUG | needs_refund de divergencia_cobranca não é limpo após reembolso feito no painel | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-003 | BUG | Restringir o waiver de valor da migration 001600 (~linha 350) a status não pagos | P1 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-004 | TASK | Conciliação: limite de idade na busca incompleta e não regravar payment_events a cada execução | P2 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
+| PAY-005 | BUG | divergencia_cobranca em pedido pago não deve expirar em 30 dias | P2 | BACKLOG | - | fechamento produto/pagamentos 2026-10-22 | - | codigo |
 | PAY-MP-001 | TASK | [humano] Credenciais de TESTE do Mercado Pago, segredos das Functions e webhook no painel | P0 | BLOCKED | - | migração Mercado Pago 2026-10-23 | - | operador |
 | PAY-MP-002 | TASK | Aplicar migrations e deploy das 6 Functions de pagamento (db push + functions deploy) | P0 | BLOCKED | PAY-MP-003 | migração Mercado Pago 2026-10-23 | - | operador |
 | PAY-MP-003 | TASK | Backend Mercado Pago (migration, RPCs, Edge Functions, fake e testes) pronto para revisão | P0 | IN_REVIEW | - | migração Mercado Pago 2026-10-23 | - | codigo (local) |

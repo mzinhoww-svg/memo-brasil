@@ -79,6 +79,20 @@ describe("adaptador Supabase atrás do contrato de repositório", () => {
     expect(await joinEvent(stranger, strangerUser, "ZZZZZZZZ", "Zed", NOW())).toEqual({ ok: false, reason: "codigo" });
     expect(await joinEvent(stranger, strangerUser, code, "  ", NOW())).toEqual({ ok: false, reason: "nome" });
   });
+  it("listMine: só os eventos criados ou em que a pessoa entrou; o Master não recebe eventos de terceiros", async () => {
+    expect((await host.events.listMine!(hostUser.id)).map((e) => e.id)).toContain(eventId);
+    expect((await guest.events.listMine!(guestUser.id)).map((e) => e.id)).toEqual([eventId]);
+    expect((await stranger.events.listMine!(strangerUser.id)).map((e) => e.id)).not.toContain(eventId);
+    const email = `ms-${tag}@memoriesmt.test`, password = `Pw-${tag}-m1`;
+    const m = await admin.auth.admin.createUser({ email, password, email_confirm: true, app_metadata: { role: "master" } });
+    expect(m.error).toBeNull();
+    expect((await admin.from("platform_roles").insert({ user_id: m.data.user!.id, role: "master" })).error).toBeNull();
+    const masterSb = mk(); expect((await masterSb.auth.signInWithPassword({ email, password })).error).toBeNull();
+    const master = createSupabaseRepositories(masterSb);
+    expect((await master.events.list()).map((e) => e.id)).toContain(eventId); // a RLS do Master vê tudo…
+    expect((await master.events.listMine!(m.data.user!.id)).map((e) => e.id)).not.toContain(eventId); // …Meus eventos não
+    await admin.auth.admin.deleteUser(m.data.user!.id);
+  });
   it("postar: envio em duas fases; rolo cheio vira 'rolo'; antes da revelação o convidado não recebe fotos, só contagens", async () => {
     const ev = (await guest.events.getByCode(code))!;
     const p = await postPhoto(guest, ev, guestUser, img, { moment: "O sim" }, NOW());

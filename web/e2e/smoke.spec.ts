@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("home abre com a marca, o CTA e a assinatura", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Seu evento pelo olhar de cada convidado." })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Tenho um código" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Entrar com código" })).toBeVisible();
   await expect(page.getByText("MemoriesMT").first()).toBeVisible();
   await expect(page).toHaveTitle(/MemoriesMT/);
 });

@@ -55,7 +55,7 @@ describe("painel (UX-11, E5, UX-06)", () => {
     render(<Painel>x</Painel>);
     expect(screen.getByRole("heading", { name: "Não achamos este evento." })).toBeInTheDocument();
     expect(screen.getByText("Confira o link ou entre com a conta Google que criou o evento.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ir para meus eventos" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Ir para meus eventos" })).toHaveAttribute("href", "/eventos");
     expect(document.body.textContent).not.toMatch(/neste aparelho/);
   });
   it("sem sessão de organizador na nuvem pede o login do Google", async () => {
@@ -82,7 +82,23 @@ describe("home (UX-13, E6)", () => {
     const { default: Home } = await import("./page");
     render(<Home />);
     expect(screen.queryByRole("alert")).toBeNull();
-    expect(screen.queryByText(/Guia de componentes|festa de exemplo|revelação em 2 minutos/i)).toBeNull();
+    expect(screen.queryByText(/Guia de componentes|Ver uma festa de exemplo|revelação em 2 minutos/i)).toBeNull();
+    // a festa de exemplo em memória (S3) é um link visível para /exemplo, não um botão que grava dados
+    expect(screen.getByRole("link", { name: "Experimentar câmera" })).toHaveAttribute("href", "/exemplo");
+  });
+  it("home não lista eventos; com sessão oferece Meus eventos", async () => {
+    const { default: Home } = await import("./page");
+    render(<Home />);
+    expect(screen.queryByRole("heading", { name: /Seus eventos|Festas em que você entrou/ })).toBeNull();
+    expect(screen.getByRole("link", { name: "Meus eventos" })).toHaveAttribute("href", "/eventos");
+    expect(screen.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
+    expect(screen.getByRole("link", { name: "Entrar com código" })).toHaveAttribute("href", "/entrar");
+  });
+  it("visitante sem sessão não vê Meus eventos", async () => {
+    app.user = undefined;
+    const { default: Home } = await import("./page");
+    render(<Home />);
+    expect(screen.queryByRole("link", { name: "Meus eventos" })).toBeNull();
   });
 });
 

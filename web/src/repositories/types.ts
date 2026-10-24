@@ -90,6 +90,8 @@ export interface EventRepository {
   /** Entrada por código no servidor (RPC `join_event`). Ausente nos adaptadores locais, que validam no cliente. */
   join?(code: string, name: string, table?: string, token?: string): Promise<JoinResult>;
   list(): Promise<MemoEvent[]>;
+  /** Só os eventos que a pessoa criou ou em que entrou (no servidor; a RLS do Master veria todos com `list`). */
+  listMine?(userId: string): Promise<MemoEvent[]>;
   get(id: string): Promise<MemoEvent | undefined>;
   getByCode(code: string): Promise<MemoEvent | undefined>;
   /** Devolve o evento como gravado (com a nova `version`). */

@@ -159,4 +159,15 @@
 
 /* Rodapé público (Task 14): alvos de 44 px */
 .mm-rodape { padding-block: var(--space-6, 24px) var(--space-4, 16px); }
+/* o rodapé reaproveita a coluna, mas não a altura de tela cheia (deixava um cartão vazio abaixo dos links) */
+.app-col.mm-rodape { min-height: 0; }
 .mm-rodape a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: underline; }
+
+/* Home (tela Main): passos em ladrilhos e cartão da festa de exemplo com cara de ação; listas com borda visível */
+.app-passos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); padding: 0; margin: 0; list-style: none; }
+.app-passos li { background: var(--neutro); border-radius: var(--radius-panel); padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-3); font-weight: 700; font-size: 17px; line-height: 1.25; }
+.app-demo { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); border: 1.5px solid var(--tinta); border-radius: var(--radius-panel); }
+.app-demo-linha { display: flex; align-items: center; gap: var(--space-4); }
+.app-demo-icone { flex-shrink: 0; display: grid; place-items: center; width: 64px; height: 64px; border-radius: var(--radius-control); background: var(--neutro); }
+.app-topbar-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.app-card--borda { border: 1px solid var(--divisor); }

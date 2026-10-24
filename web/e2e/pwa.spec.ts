@@ -28,7 +28,8 @@ test("dados do IndexedDB sobrevivem a um recarregamento (persistência local)", 
   await page.reload();
   await expect(page.getByRole("heading", { name: "Agora" })).toBeVisible();
   await expect(page.getByText("12 fotos")).toBeVisible();
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Seus eventos" })).toBeVisible();
+  await page.goto("/eventos");
+  await expect(page.getByRole("heading", { name: "Meus eventos" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ver no Agora" }).first()).toBeVisible();
   expect(url).toContain("/e/");
 });
