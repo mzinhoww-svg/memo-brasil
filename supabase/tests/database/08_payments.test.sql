@@ -77,7 +77,7 @@ select throws_ok($$select public.payments_open_order('00000000-0000-4000-8000-00
 
 select public.payments_open_order('00000000-0000-4000-8000-0000000008e1', 'celebracao', '11111111-1111-4111-8111-111111111111') as r1 \gset
 select (:'r1'::jsonb) ->> 'orderId' as o1 \gset
-select is((:'r1'::jsonb) - 'orderId', '{"status":"criado","amountCents":8900,"brCode":null,"brCodeBase64":null,"expiresAt":null,"reused":false}'::jsonb,
+select is((:'r1'::jsonb) - 'orderId', '{"status":"criado","amountCents":8900,"checkoutUrl":null,"expiresAt":null,"provider":"mercadopago","paymentMethod":null,"reused":false}'::jsonb,
   'open_order cria pedido criado com o valor da cotação');
 select is(public.payments_open_order('00000000-0000-4000-8000-0000000008e1', 'celebracao', '11111111-1111-4111-8111-111111111111') ->> 'orderId', :'o1',
   'open_order_reuses: mesma chave → mesmo pedido');
@@ -160,8 +160,8 @@ select ok(exists (select 1 from public.audit_logs where event_id = '00000000-000
 select ok(exists (select 1 from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000008e1' and action = 'payment.criado'), 'auditoria payment.criado');
 select ok((select paid_at is not null from public.payment_orders where id = :'o1'::uuid), 'paid_at gravado');
 select is((select array_agg(outcome order by id) from public.payment_events where order_id = :'o1'::uuid and provider_event_id is null),
-  array['divergencia_valor', 'divergencia_ambiente', 'divergencia_cobranca', 'aplicado', 'duplicado', 'transicao_ignorada'],
-  'cada aplicação registra o resultado; pago → expirado vira transicao_ignorada');
+  array['divergencia_valor', 'divergencia_ambiente', 'divergencia_cobranca', 'aplicado', 'transicao_ignorada'],
+  'cada aplicação registra o resultado (duplicado não grava, PAY-004); pago → expirado vira transicao_ignorada');
 select throws_ok(format('insert into public.event_entitlements (event_id, plan_code, source, env, order_id) values (%L, %L, %L, %L, %L)',
   '00000000-0000-4000-8000-0000000008e1', 'festa', 'pago', 'sandbox', :'o1'), '23505', null, 'no máximo um direito por pedido');
 
@@ -183,7 +183,7 @@ select tests.login('00000000-0000-4000-8000-0000000008a1');
 select is(public.payments_order_status(:'o1'::uuid) ->> 'status', 'pago', 'order_status pago');
 select ok(public.payments_order_status(:'o1'::uuid) ->> 'paidAt' is not null, 'order_status traz paidAt');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.payments_order_status(:'o1'::uuid)) k),
-  array['amountCents', 'brCode', 'brCodeBase64', 'expiresAt', 'orderId', 'paidAt', 'planCode', 'status'], 'chaves de order_status');
+  array['amountCents', 'checkoutUrl', 'expiresAt', 'orderId', 'paidAt', 'paymentMethod', 'planCode', 'provider', 'status'], 'chaves de order_status');
 select public.payments_open_order('00000000-0000-4000-8000-0000000008e1', 'casamento', '44444444-4444-4444-8444-444444444444') ->> 'orderId' as o1b \gset
 reset role;
 update public.plans set price_cents = 20000 where code = 'casamento';

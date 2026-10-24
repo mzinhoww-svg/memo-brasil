@@ -24,6 +24,10 @@ insert into auth.users (id, aud, role, email, is_anonymous) values
 insert into public.profiles (id) select id from auth.users where id::text like '00000000-0000-4000-8000-0000000009%' on conflict do nothing;
 insert into public.platform_roles (user_id, role) values ('00000000-0000-4000-8000-0000000009c1', 'master');
 
+-- Estes testes cobrem o Master sobre pedidos HISTÓRICOS da AbacatePay (provider_charge_id): na transação, o padrão do provedor volta a ser
+-- 'abacatepay' para os inserts diretos (a migration 20261023000100 muda o padrão para 'mercadopago'; o Master dos pedidos MP está em 11_).
+alter table public.payment_orders alter column provider set default 'abacatepay';
+
 insert into public.events (id, title, category, host_id, host_name, duration_hours, capacity, shots_per_person, start_at) values
   ('00000000-0000-4000-8000-0000000009e1', 'Cortesia', 'festa', '00000000-0000-4000-8000-0000000009a1', 'H', 6, 10, 10, now()),
   ('00000000-0000-4000-8000-0000000009e2', 'Pix aberto', 'festa', '00000000-0000-4000-8000-0000000009a1', 'H', 6, 10, 10, now()),
@@ -317,7 +321,7 @@ reset role;
 select is((select count(*)::int from public.audit_logs where action = 'payment.pago_ignorado_reembolsar' and detail ->> 'orderId' = '00000000-0000-4000-8000-000000009d10'), 1,
   'PAID repetido em cancelado com needs_refund não grava nova auditoria');
 select is((select array_agg(outcome order by id) from public.payment_events where order_id = '00000000-0000-4000-8000-000000009d10'),
-  array['pago_ignorado_reembolsar', 'duplicado', 'duplicado'], 'PAID repetido vira duplicado');
+  array['pago_ignorado_reembolsar'], 'PAID repetido: duplicado não regrava evento (PAY-004)');
 select is((select needs_refund from public.payment_orders where id = '00000000-0000-4000-8000-000000009d10'), true, 'needs_refund continua marcado');
 select tests.login('00000000-0000-4000-8000-0000000009c1', 'master');
 select is((select (d ->> 'refundInProgress')::boolean from public.admin_payment_divergences() d
