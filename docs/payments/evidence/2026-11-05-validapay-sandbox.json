@@ -1,0 +1,144 @@
+{
+  "date_local": "2026-11-05 America/Sao_Paulo",
+  "environment": "ValidaPay sandbox only",
+  "provider_webhook_delivery_tested": false,
+  "native_card_checkout_homologated": false,
+  "three_ds_result": "Official SDK authenticate returned null (account not enabled); product remains fail-closed",
+  "idempotency_anomaly": "Distinct externalId and externalTxid for the same buyer/amount returned 409 with the prior charge. Its persisted externalTxid differed. Binding now verifies externalTxid against server order UUID before attach/confirmation/cancellation.",
+  "pix_checks": {
+    "environment": "sandbox",
+    "oauth": 200,
+    "checks": [
+      {
+        "check": "pix_create_for_cancel",
+        "http": 200,
+        "chargeId": "SANDBOX_cha_1793927323574_tkf0vszmu",
+        "status": "PENDING",
+        "errorCode": null
+      },
+      {
+        "check": "duplicate_external_id",
+        "http": 409,
+        "chargeId": null,
+        "status": null,
+        "errorCode": "DUPLICATE_CHARGE"
+      },
+      {
+        "check": "pix_pending",
+        "http": 200,
+        "chargeId": "SANDBOX_cha_1793927323574_tkf0vszmu",
+        "status": "PENDING",
+        "errorCode": null
+      },
+      {
+        "check": "pix_cancel",
+        "http": 200,
+        "chargeId": "SANDBOX_cha_1793927323574_tkf0vszmu",
+        "status": null,
+        "errorCode": null
+      },
+      {
+        "check": "pix_canceled_status",
+        "http": 200,
+        "chargeId": "SANDBOX_cha_1793927323574_tkf0vszmu",
+        "status": "CANCELED",
+        "errorCode": null
+      },
+      {
+        "check": "pix_create_for_payment",
+        "http": 409,
+        "chargeId": null,
+        "status": null,
+        "errorCode": "DUPLICATE_CHARGE"
+      }
+    ]
+  },
+  "paid_pix_detail": {
+    "chargeId": "SANDBOX_cha_1793927390822_nj8q0zlo2",
+    "status": "PAID",
+    "amount": 1.24,
+    "paidAmount": 1.24,
+    "currency": "BRL",
+    "paymentType": "PIX",
+    "externalId": null,
+    "expiresAt": "2027-01-06T02:59:59.999Z"
+  },
+  "repository_adapter": {
+    "check": "repository_adapter_live_sandbox",
+    "orderId": "3ce843f8-01b3-4318-82a0-55481bc6cb31",
+    "chargeId": "SANDBOX_cha_1793927742215_7us8eg1ma",
+    "status": "PENDING",
+    "amountCents": 128,
+    "currency": "BRL",
+    "environment": "sandbox",
+    "merchantReferenceMatches": true
+  },
+  "local_financial_flow": {
+    "check": "real_sandbox_pix_plus_local_database",
+    "environment": "sandbox + disposable local PostgreSQL",
+    "orderId": "94424fee-41c1-4596-bfe4-cf3bdca74c1e",
+    "chargeId": "SANDBOX_cha_1793928014207_kbiqxqpup",
+    "amountCents": 139,
+    "priceFromDatabase": true,
+    "providerStatus": "PAID",
+    "benefitsBeforePayment": 0,
+    "benefitsAfterRepeatedConfirmation": 1,
+    "orderStatus": "pago",
+    "localTransactionRolledBack": true,
+    "webhookDeliveryTested": false
+  },
+  "card_approval_diagnostic_without_3ds": {
+    "check": "card_charge",
+    "http": 200,
+    "chargeId": "SANDBOX_cha_1793927573197_jt5lk214r",
+    "status": "PAID"
+  },
+  "card_decline_diagnostic_without_3ds": {
+    "check": "card_charge",
+    "http": 402,
+    "chargeId": "SANDBOX_cha_1793927693916_q5cnk83n3",
+    "status": "CHARGE_FAILED"
+  },
+  "sandbox_card_refund": {
+    "check": "sandbox_card_refund",
+    "http": 201,
+    "chargeId": "SANDBOX_cha_1793927573197_jt5lk214r",
+    "refundId": "ref_1793927810633_2v4z619jc",
+    "status": "CONFIRMED",
+    "amount": 1.25,
+    "errorCode": null,
+    "confirmation": {
+      "http": 200,
+      "status": "CONFIRMED",
+      "amount": 1.25
+    }
+  },
+  "production_api_called": false,
+  "production_credentials_used_for_financial_operations": false,
+  "initial_credential_check": "Before the environment was identified, the existing pair was tested against sandbox OAuth and rejected (401). The user identified it as production; all subsequent tests used the separate sandbox variables. No production API was called.",
+  "local_financial_refund_flow": {
+    "check": "real_sandbox_pix_plus_local_database",
+    "environment": "sandbox + disposable local PostgreSQL",
+    "orderId": "65a65aac-c3d5-4a3d-a55c-aa0a14bc6fe5",
+    "chargeId": "SANDBOX_cha_1793929051537_ppveinp6g",
+    "amountCents": 142,
+    "priceFromDatabase": true,
+    "providerStatus": "PAID",
+    "benefitsBeforePayment": 0,
+    "benefitsAfterRepeatedConfirmation": 1,
+    "orderStatus": "pago",
+    "localTransactionRolledBack": true,
+    "webhookDeliveryTested": false,
+    "refund": {
+      "refundId": "ref_1793929092705_94ioiigpo",
+      "confirmedCents": 142,
+      "secondRequestClaimed": false,
+      "activeBenefitsAfterRepeatedRefundConfirmation": 0,
+      "finalOrderStatus": "estornado"
+    }
+  },
+  "aborted_diagnostics": [
+    "A later probe timed out before completion and was not counted as passing.",
+    "One diagnostic was interrupted by a concurrent local database reset; it was rerun sequentially and the successful result is recorded separately."
+  ]
+}

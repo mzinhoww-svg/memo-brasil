@@ -99,7 +99,11 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
         {banner}
         {returnHint === "falha" && <p className="app-p">Você voltou sem concluir o pagamento. Se quiser, continue de onde parou.</p>}
         <div className="app-stack">
-          {order.checkoutUrl ? (
+          {order.provider === "validapay" ? (
+            <a className="mm-btn mm-btn--cta mm-btn--bloco" href={`/painel/${encodeURIComponent(eventId)}/checkout-validapay?plano=${encodeURIComponent(order.planCode)}`}>
+              <span>Continuar pagamento no MemoriesMT</span>
+            </a>
+          ) : order.checkoutUrl ? (
             <a className="mm-btn mm-btn--cta mm-btn--bloco" href={order.checkoutUrl} rel="noopener">
               <span>Continuar para o Mercado Pago</span>
             </a>

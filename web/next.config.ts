@@ -9,15 +9,21 @@ const isProd = process.env.NODE_ENV === "production";
 const sbUrl = process.env.NEXT_PUBLIC_MM_BACKEND === "supabase" ? process.env.NEXT_PUBLIC_SUPABASE_URL : undefined;
 const sbOrigin = sbUrl ? new URL(sbUrl).origin : "";
 const sbWs = sbOrigin ? sbOrigin.replace(/^http/, "ws") : "";
+// Opt-in sandbox preview only. Backend still requires sandbox credentials, master and DB flag.
+const validapayPreview = process.env.NEXT_PUBLIC_VALIDAPAY_SANDBOX_PREVIEW === "1";
+const vpApi = validapayPreview ? " https://sandbox.validapay.com.br https://sandbox.api.marlim.co https://centinelapistag.cardinalcommerce.com https://geostag.cardinalcommerce.com" : "";
+const vpScripts = validapayPreview ? " https://cdn.marlim.co https://h.online-metrix.net https://geostag.cardinalcommerce.com" : "";
+const vpFrames = validapayPreview ? "frame-src 'self' https://h.online-metrix.net https://centinelapistag.cardinalcommerce.com https://geostag.cardinalcommerce.com https://cas.client.cardinaltrusted.com" : "frame-src 'self'";
 
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${vpScripts}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${sbOrigin ? ` ${sbOrigin}` : ""}`,
+  `img-src 'self' data: blob:${sbOrigin ? ` ${sbOrigin}` : ""}${validapayPreview ? " https://h.online-metrix.net" : ""}`,
   "media-src 'self' blob:",
   "font-src 'self' data:",
-  `connect-src 'self'${sbOrigin ? ` ${sbOrigin} ${sbWs}` : ""}`,
+  `connect-src 'self'${sbOrigin ? ` ${sbOrigin} ${sbWs}` : ""}${vpApi}`,
+  vpFrames,
   "worker-src 'self'",
   "manifest-src 'self'",
   "object-src 'none'",

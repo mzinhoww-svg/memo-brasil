@@ -23,6 +23,30 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npx vitest run --config vitest.functions.config.ts
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --config playwright.validapay.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validapay-local-browser
+          path: web/test-results/
+          if-no-files-found: ignore
+
+  payment-database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Start disposable local PostgreSQL
+        run: npx --yes supabase@3.0.0 db start
+      - name: Validate migrations, RLS and financial transitions
+        run: npx --yes supabase@3.0.0 test db
+      - name: Stop local database
+        if: always()
+        run: npx --yes supabase@3.0.0 stop
 
   test:
     runs-on: ubuntu-latest

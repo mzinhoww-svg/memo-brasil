@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/memoriesmt";
 import { useAdmin } from "@/features/admin/context";
@@ -41,6 +41,7 @@ function PlanoConteudo() {
   const [error, setError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [sandboxPlan, setSandboxPlan] = useState<string | null>(null);
   const [returnHint, setReturnHint] = useState<ReturnHint | null>(null);
   const inflight = useRef(false);
 
@@ -76,6 +77,10 @@ function PlanoConteudo() {
 
   const pay = useCallback(async (planCode: string, fresh = false) => {
     if (inflight.current) return; // clique duplo: um pedido só
+    if (process.env.NEXT_PUBLIC_VALIDAPAY_SANDBOX_PREVIEW === "1") {
+      setSandboxPlan(planCode);
+      return;
+    }
     inflight.current = true;
     setBusy(true); setError(null); setDown(null);
     try {
@@ -97,6 +102,8 @@ function PlanoConteudo() {
   }, [eventId, load, planName]);
 
   const toPicker = useCallback(() => { setOrder(null); setWarning(null); setDown(null); setError(null); setReturnHint(null); }, []);
+
+  if (sandboxPlan) redirect(`/painel/${encodeURIComponent(eventId)}/checkout-validapay?plano=${encodeURIComponent(sandboxPlan)}`);
 
   if (loadError) {
     return (
