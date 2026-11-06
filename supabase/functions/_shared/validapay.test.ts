@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { assertChargeOrder, ValidaPayClient, ValidaPayError, type ChargeInput } from "./validapay";
+import { assertChargeOrder, resolveValidaPayEnvironment, ValidaPayClient, ValidaPayError, type ChargeInput } from "./validapay";
 
 const buyer = { name: "Pessoa Teste", email: "test@example.test", documentNumber: "12345678901" };
 const input: ChargeInput = { orderId: "11111111-1111-4111-8111-111111111111", amountCents: 18900, method: "pix", customer: buyer };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 type Call = { url: string; init: RequestInit };
-function setup(reply: (call: Call) => Response | Promise<Response>, options: { now?: () => number; timeoutMs?: number; mode?: "checkout" | "refund" } = {}) {
+function setup(reply: (call: Call) => Response | Promise<Response>, options: { now?: () => number; timeoutMs?: number; environment?: "sandbox" | "production"; mode?: "checkout" | "refund" | "refund-read" } = {}) {
   const calls: Call[] = [];
   const client = new ValidaPayClient({ environment: "sandbox", clientId: "test-id", clientSecret: "test-secret", ...options,
     fetchImpl: (async (url: string | URL | Request, init: RequestInit = {}) => {
@@ -161,5 +161,42 @@ describe("ValidaPay checkout adapter (simulated transport, not homologation)", (
       }) as typeof fetch,
     });
     expect((await client.createCharge(input)).chargeId).toBe("cha_test");
+  });
+});
+
+describe("production isolation (simulated transport)", () => {
+  it("uses production endpoints and rejects sandbox charge IDs before transport", async () => {
+    const { client, calls } = setup(() => json({ chargeId: "cha_prod", status: "PAID", amount: 1, paidAmount: 1, currency: "BRL", paymentType: "CREDIT_CARD", externalTxid: input.orderId }), { environment: "production" });
+    await expect(client.getCharge("SANDBOX_cha_wrong")).rejects.toThrow();
+    expect(calls).toHaveLength(0);
+    expect((await client.getCharge("cha_prod")).environment).toBe("production");
+    expect(calls[0].url).toBe("https://oauth2.validapay.com.br/auth/token");
+    expect(calls[1].url).toBe("https://api.validapay.com.br/v1/charges/cha_prod");
+  });
+  it("allows production refund readback with read scopes but never financial refund POST", async () => {
+    const { client, calls } = setup((call) => json(call.url.includes("/wallet/refunds?") ? { items: [] } : { chargeId: "cha_prod", status: "PAID", amount: 1, paidAmount: 1, currency: "BRL", paymentType: "CREDIT_CARD", externalTxid: input.orderId }), { environment: "production", mode: "refund-read" });
+    await expect(client.requestRefund("cha_prod", input.orderId, 100)).rejects.toThrow();
+    expect(calls).toHaveLength(0);
+    expect((await client.getRefundEvidence("cha_prod", input.orderId)).environment).toBe("production");
+    expect(new URLSearchParams(String(calls[0].init.body)).get("scope")).toBe("charges/read wallet/read");
+    expect(calls.slice(1).every(c => !c.init.method || c.init.method === "GET")).toBe(true);
+  });
+  it("refuses production refunds even with writer mode", async () => {
+    const { client, calls } = setup(() => json({}), { environment: "production", mode: "refund" });
+    await expect(client.requestRefund("cha_prod", input.orderId, 100)).rejects.toThrow();
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe("trusted deployment selector", () => {
+  const resolve = (env: Record<string, string>) => resolveValidaPayEnvironment(name => env[name]);
+  it("defaults off and preserves only explicitly enabled legacy sandbox", () => {
+    expect(resolve({})).toBe(null);
+    expect(resolve({ VALIDAPAY_PRODUCTION_ENABLED: "true" })).toBe(null);
+    expect(resolve({ VALIDAPAY_SANDBOX_ENABLED: "true" })).toBe("sandbox");
+  });
+  it("never falls back from invalid or production selector into enabled sandbox", () => {
+    expect(resolve({ VALIDAPAY_ENVIRONMENT: "typo", VALIDAPAY_SANDBOX_ENABLED: "true" })).toBe(null);
+    expect(resolve({ VALIDAPAY_ENVIRONMENT: "production", VALIDAPAY_SANDBOX_ENABLED: "true" })).toBe("production");
   });
 });

@@ -77,7 +77,7 @@ function PlanoConteudo() {
 
   const pay = useCallback(async (planCode: string, fresh = false) => {
     if (inflight.current) return; // clique duplo: um pedido só
-    if (process.env.NEXT_PUBLIC_VALIDAPAY_SANDBOX_PREVIEW === "1") {
+    if (process.env.NEXT_PUBLIC_VALIDAPAY_CHECKOUT === "1" || process.env.NEXT_PUBLIC_VALIDAPAY_SANDBOX_PREVIEW === "1") {
       setSandboxPlan(planCode);
       return;
     }

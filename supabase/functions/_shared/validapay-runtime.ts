@@ -1,38 +1,52 @@
-// Sandbox only. Production credentials are deliberately never read here.
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { assertChargeOrder, ValidaPayClient } from "./validapay.ts";
+import { assertChargeOrder, resolveValidaPayEnvironment, ValidaPayClient, type ProviderEnvironment } from "./validapay.ts";
 
-let client: ValidaPayClient | null = null;
-let refundClient: ValidaPayClient | null = null;
-export function validapaySandbox(): ValidaPayClient {
-  if (Deno.env.get("VALIDAPAY_SANDBOX_ENABLED") !== "true") throw new Error("disabled");
-  if (!client) client = new ValidaPayClient({ environment: "sandbox",
-    clientId: Deno.env.get("VALIDAPAY_SANDBOX_CLIENT_ID") ?? "",
-    clientSecret: Deno.env.get("VALIDAPAY_SANDBOX_CLIENT_SECRET") ?? "",
-  });
+/** Trusted deployment selection only. An unset selector preserves explicitly enabled sandbox installations. */
+export function validapayEnvironment(): ProviderEnvironment | null {
+  return resolveValidaPayEnvironment((name) => Deno.env.get(name));
+}
+export function validapayRuntimeEnabled(environment = validapayEnvironment()): environment is ProviderEnvironment {
+  return environment !== null && Deno.env.get(environment === "production" ? "VALIDAPAY_PRODUCTION_ENABLED" : "VALIDAPAY_SANDBOX_ENABLED") === "true";
+}
+export function validapaySecret(kind: "WEBHOOK_SECRET" | "RECONCILE_TOKEN"): string {
+  const env = validapayEnvironment();
+  return env && validapayRuntimeEnabled(env) ? Deno.env.get(`VALIDAPAY_${env.toUpperCase()}_${kind}`) ?? "" : "";
+}
+const clients = new Map<string, ValidaPayClient>();
+export function validapayClient(environment: ProviderEnvironment, mode: "checkout" | "refund-read" | "refund" = "checkout"): ValidaPayClient {
+  if (!validapayRuntimeEnabled(environment) || (mode === "refund" && environment !== "sandbox")) throw new Error("disabled");
+  const key = `${environment}:${mode}`;
+  let client = clients.get(key);
+  if (!client) {
+    client = new ValidaPayClient({ environment, mode,
+      clientId: Deno.env.get(environment === "production" ? "CLIENTID_VALIDAPAY" : "VALIDAPAY_SANDBOX_CLIENT_ID") ?? "",
+      clientSecret: Deno.env.get(environment === "production" ? "CLIENTSECRET_VALIDAPAY" : "VALIDAPAY_SANDBOX_CLIENT_SECRET") ?? "" });
+    clients.set(key, client);
+  }
   return client;
 }
-export function validapayRefundSandbox(): ValidaPayClient {
-  if (Deno.env.get("VALIDAPAY_SANDBOX_ENABLED") !== "true") throw new Error("disabled");
-  if (!refundClient) refundClient = new ValidaPayClient({ environment: "sandbox", mode: "refund",
-    clientId: Deno.env.get("VALIDAPAY_SANDBOX_CLIENT_ID") ?? "", clientSecret: Deno.env.get("VALIDAPAY_SANDBOX_CLIENT_SECRET") ?? "" });
-  return refundClient;
+export function validapaySandbox() { return validapayClient("sandbox"); }
+export function validapayRefundSandbox() { return validapayClient("sandbox", "refund"); }
+async function orderEnvironment(admin: SupabaseClient, orderId: string): Promise<ProviderEnvironment> {
+  const read = await admin.from("payment_orders").select("provider_env").eq("id", orderId).eq("provider", "validapay").single();
+  if (read.error || !["production", "sandbox"].includes(read.data?.provider_env)) throw new Error("invalid_order_environment");
+  return read.data.provider_env;
+}
+export async function validapayEnabled(admin: SupabaseClient): Promise<boolean> {
+  const environment = validapayEnvironment();
+  if (!validapayRuntimeEnabled(environment)) return false;
+  const [env, flag] = await Promise.all([admin.rpc("payments_env"), admin.from("feature_flags").select("enabled").eq("key", "validapay_checkout").maybeSingle()]);
+  return !env.error && env.data === environment && !flag.error && flag.data?.enabled === true;
 }
 export async function confirmSandboxRefund(admin: SupabaseClient, orderId: string, id: string, source: "status" | "webhook" | "reconcile") {
-  const evidence = await validapayRefundSandbox().getRefundEvidence(id, orderId);
+  const environment = await orderEnvironment(admin, orderId);
+  const evidence = await validapayClient(environment, "refund-read").getRefundEvidence(id, orderId);
   const result = await admin.rpc("payments_validapay_confirm_refund", { p_order: orderId, p_refund: evidence, p_source: source });
   if (result.error) throw new Error("refund_confirmation_failed");
   return evidence;
 }
-export async function validapayEnabled(admin: SupabaseClient): Promise<boolean> {
-  if (Deno.env.get("VALIDAPAY_SANDBOX_ENABLED") !== "true") return false;
-  const [env, flag] = await Promise.all([
-    admin.rpc("payments_env"), admin.from("feature_flags").select("enabled").eq("key", "validapay_checkout").maybeSingle(),
-  ]);
-  return !env.error && env.data === "sandbox" && !flag.error && flag.data?.enabled === true;
-}
 export async function confirmSandboxCharge(admin: SupabaseClient, orderId: string, id: string, source: "status" | "webhook" | "reconcile") {
-  const charge = await validapaySandbox().getCharge(id);
+  const charge = await validapayClient(await orderEnvironment(admin, orderId)).getCharge(id);
   assertChargeOrder(charge, orderId);
   if (charge.status === "REFUNDED") { await confirmSandboxRefund(admin, orderId, id, source); return charge; }
   const result = await admin.rpc("payments_validapay_confirm", { p_order: orderId, p_charge: charge, p_source: source });

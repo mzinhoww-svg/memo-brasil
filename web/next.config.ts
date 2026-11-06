@@ -9,17 +9,23 @@ const isProd = process.env.NODE_ENV === "production";
 const sbUrl = process.env.NEXT_PUBLIC_MM_BACKEND === "supabase" ? process.env.NEXT_PUBLIC_SUPABASE_URL : undefined;
 const sbOrigin = sbUrl ? new URL(sbUrl).origin : "";
 const sbWs = sbOrigin ? sbOrigin.replace(/^http/, "ws") : "";
-// Opt-in sandbox preview only. Backend still requires sandbox credentials, master and DB flag.
-const validapayPreview = process.env.NEXT_PUBLIC_VALIDAPAY_SANDBOX_PREVIEW === "1";
-const vpApi = validapayPreview ? " https://sandbox.validapay.com.br https://sandbox.api.marlim.co https://centinelapistag.cardinalcommerce.com https://geostag.cardinalcommerce.com" : "";
-const vpScripts = validapayPreview ? " https://cdn.marlim.co https://h.online-metrix.net https://geostag.cardinalcommerce.com" : "";
-const vpFrames = validapayPreview ? "frame-src 'self' https://h.online-metrix.net https://centinelapistag.cardinalcommerce.com https://geostag.cardinalcommerce.com https://cas.client.cardinaltrusted.com" : "frame-src 'self'";
+// Production checkout and legacy sandbox preview each allow only their exact SDK hosts.
+const validapayProduction = process.env.NEXT_PUBLIC_VALIDAPAY_CHECKOUT === "1";
+const validapayPreview = !validapayProduction && process.env.NEXT_PUBLIC_VALIDAPAY_SANDBOX_PREVIEW === "1";
+const validapayEnabled = validapayProduction || validapayPreview;
+const vpCardinal = validapayProduction
+  ? " https://centinelapi.cardinalcommerce.com https://geo.cardinalcommerce.com"
+  : validapayPreview ? " https://centinelapistag.cardinalcommerce.com https://geostag.cardinalcommerce.com" : "";
+const vpApi = validapayEnabled
+  ? `${validapayProduction ? " https://api.validapay.com.br https://api.marlim.co" : " https://sandbox.validapay.com.br https://sandbox.api.marlim.co"} https://h.online-metrix.net https://cas.client.cardinaltrusted.com${vpCardinal}` : "";
+const vpScripts = validapayEnabled ? ` https://cdn.marlim.co https://h.online-metrix.net https://cas.client.cardinaltrusted.com${vpCardinal}` : "";
+const vpFrames = `frame-src 'self'${validapayEnabled ? ` https://h.online-metrix.net https://cas.client.cardinaltrusted.com${vpCardinal}` : ""}`;
 
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${vpScripts}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${sbOrigin ? ` ${sbOrigin}` : ""}${validapayPreview ? " https://h.online-metrix.net" : ""}`,
+  `img-src 'self' data: blob:${sbOrigin ? ` ${sbOrigin}` : ""}${validapayEnabled ? " https://h.online-metrix.net" : ""}`,
   "media-src 'self' blob:",
   "font-src 'self' data:",
   `connect-src 'self'${sbOrigin ? ` ${sbOrigin} ${sbWs}` : ""}${vpApi}`,

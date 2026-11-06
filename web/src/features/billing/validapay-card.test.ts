@@ -34,3 +34,14 @@ describe("browser card boundary (SDK simulation, not homologation)", () => {
     expect(sdk.authenticate).not.toHaveBeenCalled();
   });
 });
+
+it.each(["production", "sandbox"] as const)("uses explicit %s for every SDK operation", async (environment) => {
+  const { prepareCard } = await import("./validapay-card");
+  await prepareCard({ publicId: "public", environment }, 2900, card, customer);
+  for (const operation of [sdk.collectDevice, sdk.authenticate, sdk.tokenize]) expect(operation.mock.calls[0][0]).toMatchObject({ environment });
+});
+it("rejects an invalid trusted environment before contacting SDKs", async () => {
+  const { prepareCard } = await import("./validapay-card");
+  await expect(prepareCard({ publicId: "public", environment: "invalid" as "sandbox" }, 2900, card, customer)).rejects.toThrow();
+  expect(sdk.collectDevice).not.toHaveBeenCalled();
+});
