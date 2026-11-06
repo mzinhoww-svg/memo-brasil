@@ -94,7 +94,7 @@ const oneOf = <T extends string>(v: unknown, all: readonly T[], fallback: T): T 
 /** Status desconhecido vira "falhou": não aberto, sem direito concedido. */
 const toStatus = (v: unknown): OrderStatus => oneOf(v, ORDER_STATUSES, "falhou");
 
-const PROVIDERS: readonly PaymentProvider[] = ["mercadopago", "abacatepay"];
+const PROVIDERS: readonly PaymentProvider[] = ["mercadopago", "abacatepay", "validapay"];
 /** Provedor desconhecido cai em "mercadopago" (provedor ativo); pedidos históricos vêm com "abacatepay" explícito. */
 const toProvider = (v: unknown): PaymentProvider => oneOf(v, PROVIDERS, "mercadopago");
 

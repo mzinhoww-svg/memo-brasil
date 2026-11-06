@@ -15,6 +15,11 @@ const EVENT = "11111111-1111-4111-8111-111111111111";
 const ORDER = "22222222-2222-4222-8222-222222222222";
 const KEY = "33333333-3333-4333-8333-333333333333";
 
+it("preserves ValidaPay identity when recovering an order through the shared billing API", async () => {
+  fakeClient({ invoke: () => ({ data: { orderId: ORDER, status: "pendente", amountCents: 2900, planCode: "festa", provider: "validapay" } }) });
+  expect((await orderStatus(ORDER)).provider).toBe("validapay");
+});
+
 /** Erro de função com status e corpo, no formato do supabase-js (FunctionsHttpError.context = Response). */
 const httpError = (status: number, body: unknown) => ({ name: "FunctionsHttpError", message: "non-2xx", context: new Response(JSON.stringify(body), { status }) });
 

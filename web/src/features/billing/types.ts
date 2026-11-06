@@ -14,7 +14,7 @@ export type PublicPlan = {
 
 export type OrderStatus = "criado" | "pendente" | "pago" | "expirado" | "cancelado" | "falhou" | "estornado" | "em_disputa" | "perdido";
 
-export type PaymentProvider = "mercadopago" | "abacatepay";
+export type PaymentProvider = "mercadopago" | "abacatepay" | "validapay";
 
 /**
  * Contrato do pedido (design Mercado Pago §1.11). Campos opcionais ficam ausentes quando o servidor manda `null`.

@@ -437,3 +437,15 @@ verify_jwt = false # chamada pelo pg_cron: a função exige Authorization: Beare
 
 [functions.payments-diagnose]
 verify_jwt = true # a função ainda exige is_master(); devolve só metadados não secretos
+
+[functions.payments-validapay]
+verify_jwt = true # sandbox master-only, with server and database flags
+
+[functions.payments-validapay-refund]
+verify_jwt = true # sandbox-only, explicit full refund, master required by handler
+
+[functions.payments-validapay-webhook]
+verify_jwt = false # exact raw-body HMAC; never accepts an unsigned provider event
+
+[functions.payments-validapay-reconcile]
+verify_jwt = false # own sandbox-only bearer token; no public reconciliation access
