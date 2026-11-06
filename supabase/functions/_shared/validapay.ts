@@ -1,6 +1,12 @@
 import { centsToReais, reaisToCents } from "./payment-money.ts";
 
 export type ProviderEnvironment = "sandbox" | "production";
+/** Pure deployment resolver: invalid selectors fail closed and never switch environments. */
+export function resolveValidaPayEnvironment(read: (name: string) => string | undefined): ProviderEnvironment | null {
+  const selected = read("VALIDAPAY_ENVIRONMENT");
+  if (selected === "production" || selected === "sandbox") return selected;
+  return !selected && read("VALIDAPAY_SANDBOX_ENABLED") === "true" ? "sandbox" : null;
+}
 export type ChargeInput = {
   orderId: string;
   amountCents: number;
@@ -27,7 +33,7 @@ export class ValidaPayError extends Error {
 type Config = {
   environment: ProviderEnvironment; clientId: string; clientSecret: string;
   fetchImpl?: typeof fetch; now?: () => number; timeoutMs?: number; oauthTimeoutMs?: number;
-  mode?: "checkout" | "refund";
+  mode?: "checkout" | "refund" | "refund-read";
 };
 type Json = Record<string, unknown>;
 const object = (x: unknown): Json => x !== null && typeof x === "object" && !Array.isArray(x) ? x as Json : {};
@@ -79,7 +85,7 @@ export class ValidaPayClient {
       const r = await this.request(this.oauth, {
         method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ grant_type: "client_credentials", client_id: this.config.clientId,
-          client_secret: this.config.clientSecret, scope: this.config.mode === "refund" ? "charges/read wallet/read wallet/write" : "checkouts/write charges/read charges/write" }).toString(),
+          client_secret: this.config.clientSecret, scope: this.config.mode === "refund-read" ? "charges/read wallet/read" : this.config.mode === "refund" ? "charges/read wallet/read wallet/write" : "checkouts/write charges/read charges/write" }).toString(),
       }, this.config.oauthTimeoutMs ?? 20_000);
       if (r.status !== 200) throw new ValidaPayError("http", r.status);
       const value = r.body.access_token;
@@ -167,7 +173,7 @@ export class ValidaPayClient {
   }
 
   async getRefundEvidence(id: string, orderId: string) {
-    if (this.config.environment !== "sandbox" || this.config.mode !== "refund") throw new ValidaPayError("config");
+    if (this.config.mode !== "refund-read" && this.config.mode !== "refund") throw new ValidaPayError("config");
     const charge = await this.getCharge(id); assertChargeOrder(charge, orderId);
     if (charge.method === "pix" && !charge.endToEndId) throw new ValidaPayError("invalid");
     const query = new URLSearchParams(charge.method === "pix" ? { endToEndId: charge.endToEndId! } : { chargeId: id });
@@ -182,7 +188,7 @@ export class ValidaPayClient {
       if (r.status === "CONFIRMED" && r.success === true) refundedCents += reaisToCents(r.amount as number);
     }
     if (refundedCents > charge.amountCents) throw new ValidaPayError("invalid");
-    return { chargeId: id, merchantReference: orderId, environment: "sandbox", currency: "BRL", amountCents: charge.amountCents,
+    return { chargeId: id, merchantReference: orderId, environment: this.config.environment, currency: "BRL", amountCents: charge.amountCents,
       refundedCents, refundIds: [...ids] };
   }
 

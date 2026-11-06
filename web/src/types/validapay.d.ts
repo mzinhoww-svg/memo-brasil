@@ -1,8 +1,8 @@
 // The official JS packages currently ship no TypeScript declarations.
 declare module "@validapay/tokenize/browser" {
-  export function collectDevice(input: { publicId: string; environment: "sandbox" }): Promise<{ deviceId: string | null }>;
+  export function collectDevice(input: { publicId: string; environment: import("../features/billing/validapay-client").ValidaPayEnvironment }): Promise<{ deviceId: string | null }>;
   export function tokenize(input: {
-    publicId: string; environment: "sandbox";
+    publicId: string; environment: import("../features/billing/validapay-client").ValidaPayEnvironment;
     card: import("../features/billing/validapay-card").SandboxCard;
     customer: import("../features/billing/validapay-card").SandboxCustomer;
     authentication: { authenticationId: string; cardId: string };
@@ -10,7 +10,7 @@ declare module "@validapay/tokenize/browser" {
 }
 declare module "@validapay/3ds" {
   export function authenticate(input: {
-    publicId: string; environment: "sandbox"; amount: number;
+    publicId: string; environment: import("../features/billing/validapay-client").ValidaPayEnvironment; amount: number;
     card: import("../features/billing/validapay-card").SandboxCard;
     customer: import("../features/billing/validapay-card").SandboxCustomer;
     statementDescriptor: string;

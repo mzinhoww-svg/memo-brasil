@@ -1,4 +1,7 @@
-# ValidaPay — implementação sandbox, etapa A aberta
+# ValidaPay — registro histórico da implementação sandbox
+
+Este documento registra a avaliação do primeiro PR (#24). Para a preparação
+posteriormente autorizada de produção, consulte [VALIDAPAY-PRODUCTION.md](VALIDAPAY-PRODUCTION.md).
 
 ## Parecer
 
