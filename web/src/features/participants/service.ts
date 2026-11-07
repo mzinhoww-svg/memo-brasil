@@ -8,7 +8,7 @@ export type JoinOutcome =
   | { ok: true; event: MemoEvent; participant: Participant }
   | { ok: false; reason: JoinFailure };
 /** `ocupado` = limite de tentativas (tentar de novo logo); `inativo` = convite recusado pelo servidor; `rede` = sem conexão. */
-type JoinFailure = "codigo" | "encerrado" | "lotado" | "nome" | "ocupado" | "inativo" | "rede";
+export type JoinFailure = "codigo" | "encerrado" | "lotado" | "nome" | "ocupado" | "inativo" | "rede" | "bloqueado";
 
 /** Entrar na festa por código (REA F-05/F-11). Identidade local; entrada real depende do backend. */
 export async function joinEvent(repos: Repositories, user: User, codeInput: string, name: string, now: number, tableLabel?: string): Promise<JoinOutcome> {
@@ -22,12 +22,13 @@ export async function joinEvent(repos: Repositories, user: User, codeInput: stri
   return withLock(`entrar:${event.id}`, () => joinLocked(repos, event, user, name, now, tableLabel));
 }
 
-const JOIN_REASON: Record<string, JoinFailure> = { "capacity-full": "lotado", "event-ended": "encerrado", invalid: "codigo", "rate-limited": "ocupado", forbidden: "inativo", unavailable: "rede" };
+const JOIN_REASON: Record<string, JoinFailure> = { "capacity-full": "lotado", "event-ended": "encerrado", invalid: "codigo", "rate-limited": "ocupado", forbidden: "inativo", unavailable: "rede", blocked: "bloqueado" };
 
 async function joinLocked(repos: Repositories, event: MemoEvent, user: User, name: string, now: number, tableLabel?: string): Promise<JoinOutcome> {
   const trimmed = name.trim();
   if (!trimmed) return { ok: false, reason: "nome" };
   const existing = await repos.participants.get(event.id, user.id);
+  if (existing?.blockedAt !== undefined) return { ok: false, reason: "bloqueado" };
   const count = await repos.participants.count(event.id);
   const verdict = canJoin(event, count, now, Boolean(existing) || event.hostId === user.id);
   if (!verdict.ok) return { ok: false, reason: verdict.reason };
@@ -35,6 +36,7 @@ async function joinLocked(repos: Repositories, event: MemoEvent, user: User, nam
   try {
     await repos.participants.put(participant);
   } catch (e) {
+    if (e instanceof RepositoryError && e.code === "blocked") return { ok: false, reason: "bloqueado" };
     if (e instanceof RepositoryError && e.code === "capacity-full") return { ok: false, reason: "lotado" }; // o servidor fechou a lotação
     if (e instanceof RepositoryError && e.code === "event-ended") return { ok: false, reason: "encerrado" };
     throw e;

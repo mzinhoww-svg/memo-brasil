@@ -149,11 +149,32 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
       remove: (id) => guard((d) => d.delete("events", id)),
     },
     participants: {
+      setBlocked: (e, u, blocked) => guard(async (d) => {
+        const tx = d.transaction(["events", "meta", "participants"], "readwrite");
+        const event = await tx.objectStore("events").get(e);
+        const user = await tx.objectStore("meta").get("user") as User | undefined;
+        if (!event || event.hostId !== user?.id || u === event.hostId) throw new RepositoryError("forbidden", "Somente o anfitrião pode moderar participantes");
+        const store = tx.objectStore("participants");
+        const p = await store.get([e, u]);
+        if (!p) throw new RepositoryError("not-found", "Participante não encontrado");
+        await store.put({ ...p, blockedAt: blocked ? p.blockedAt ?? opts.now?.() ?? Date.now() : undefined });
+        await tx.done;
+      }),
       listByEvent: (id) => guard((d) => d.getAllFromIndex("participants", "eventId", id)),
       count: (id) => guard((d) => d.countFromIndex("participants", "eventId", id)),
       get: (e, u) => guard((d) => d.get("participants", [e, u])),
-      put: (p) => guard(async (d) => void (await d.put("participants", p))),
-      remove: (e, u) => guard((d) => d.delete("participants", [e, u])),
+      put: (p) => guard(async (d) => {
+        const tx = d.transaction("participants", "readwrite");
+        const cur = await tx.store.get([p.eventId, p.userId]);
+        if (cur?.blockedAt !== undefined) throw new RepositoryError("blocked", "Participante bloqueado");
+        const { blockedAt: _ignored, ...safe } = p; void _ignored;
+        await tx.store.put(safe); await tx.done;
+      }),
+      remove: (e, u) => guard(async (d) => {
+        const tx = d.transaction("participants", "readwrite");
+        if ((await tx.store.get([e, u]))?.blockedAt !== undefined) throw new RepositoryError("blocked", "Participante bloqueado");
+        await tx.store.delete([e,u]); await tx.done;
+      }),
       removeByEvent: (id) => guard((d) => wipe(d, "participants", "eventId", id)),
     },
     photos: {
@@ -163,24 +184,27 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
       get: (id) => guard((d) => d.get("photos", id)),
       begin: (p) =>
         guard(async (d) => {
-          const tx = d.transaction("photos", "readwrite");
-          const cur = await tx.store.get(p.id);
+          const tx = d.transaction(["photos", "participants"], "readwrite");
+          if ((await tx.objectStore("participants").get([p.eventId,p.authorId]))?.blockedAt !== undefined) throw new RepositoryError("blocked", "Participante bloqueado");
+          const store = tx.objectStore("photos");
+          const cur = await store.get(p.id);
           const row = cur ?? beginRow(p, opts.now);
-          if (!cur) await tx.store.put(row);
+          if (!cur) await store.put(row);
           await tx.done;
           return row;
         }),
       attach: (id, data) =>
         guard(async (d) => {
-          const tx = d.transaction(["photos", "photoData"], "readwrite");
+          const tx = d.transaction(["photos", "photoData", "participants"], "readwrite");
           if (!(await tx.objectStore("photos").get(id))) throw new RepositoryError("not-found", `Foto ${id} não existe`);
           await Promise.all([tx.objectStore("photoData").put(data, id), tx.done]);
         }),
       finalize: (id) =>
         guard(async (d) => {
-          const tx = d.transaction(["photos", "photoData"], "readwrite");
+          const tx = d.transaction(["photos", "photoData", "participants"], "readwrite");
           const cur = await tx.objectStore("photos").get(id);
           if (!cur) throw new RepositoryError("not-found", `Foto ${id} não existe`);
+          if ((await tx.objectStore("participants").get([cur.eventId,cur.authorId]))?.blockedAt !== undefined) throw new RepositoryError("blocked", "Participante bloqueado");
           if (!(await tx.objectStore("photoData").get(id))) throw new RepositoryError("invalid", `Foto ${id} ainda não recebeu os bytes`);
           const saved = { ...cur, uploadStatus: "pronta" as const, version: (cur.version ?? 1) + 1 };
           await Promise.all([tx.objectStore("photos").put(saved), tx.done]);
@@ -193,7 +217,8 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
       }),
       add: (p, data) =>
         guard(async (d) => {
-          const tx = d.transaction(["photos", "photoData"], "readwrite");
+          const tx = d.transaction(["photos", "photoData", "participants"], "readwrite");
+          if ((await tx.objectStore("participants").get([p.eventId,p.authorId]))?.blockedAt !== undefined) throw new RepositoryError("blocked", "Participante bloqueado");
           if (await tx.objectStore("photos").get(p.id)) return void (await tx.done);
           await Promise.all([tx.objectStore("photos").put({ ...beginRow(p, opts.now), uploadStatus: "pronta" }), tx.objectStore("photoData").put(data, p.id), tx.done]);
         }),
@@ -212,12 +237,12 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
       getData: (id) => guard((d) => d.get("photoData", id)),
       remove: (id) =>
         guard(async (d) => {
-          const tx = d.transaction(["photos", "photoData"], "readwrite");
+          const tx = d.transaction(["photos", "photoData", "participants"], "readwrite");
           await Promise.all([tx.objectStore("photos").delete(id), tx.objectStore("photoData").delete(id), tx.done]);
         }),
       removeByEvent: (eventId) =>
         guard(async (d) => {
-          const tx = d.transaction(["photos", "photoData"], "readwrite");
+          const tx = d.transaction(["photos", "photoData", "participants"], "readwrite");
           const ids = await tx.objectStore("photos").index("eventId").getAllKeys(eventId);
           await Promise.all(ids.flatMap((id) => [tx.objectStore("photos").delete(id), tx.objectStore("photoData").delete(id)]));
           await tx.done;

@@ -96,6 +96,7 @@ export async function expirePending(repos: Repositories, eventId: string, now: n
 }
 
 export async function reportPhoto(repos: Repositories, photoId: string): Promise<Photo | undefined> {
+  if (repos.photos.report) { await repos.photos.report(photoId); return undefined; }
   return withLock(`denuncia:${photoId}`, async () => {
     try {
       return await retryOnConflict(async () => {
