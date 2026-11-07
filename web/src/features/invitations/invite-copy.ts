@@ -53,12 +53,12 @@ export function inviteLines(f: InviteFacts, now: number): [InviteLine, InviteLin
   let reveal: InviteLine;
   if (f.revealStatus === "desativada") reveal = { head: "As fotos aparecem na hora." };
   else if (f.revealStatus === "revelada") reveal = { head: "As fotos já foram reveladas." };
-  else if (f.revealAt === null) reveal = { head: "Revela quando a festa terminar.", tail: `Até lá, só ${f.hostName} pode ver.` };
+  else if (f.revealAt === null) reveal = { head: "Revela quando a festa terminar.", tail: `Até lá, só ${f.hostName} pode ver; você também espera para ver suas próprias fotos.` };
   else {
     const w = revealDayTime(f.revealAt, f.timezone, now);
-    reveal = { head: `Revela ${w.day}, ${w.time}.`, tail: `Até lá, só ${f.hostName} pode ver.` };
+    reveal = { head: `Revela ${w.day}, ${w.time}.`, tail: `Até lá, só ${f.hostName} pode ver; você também espera para ver suas próprias fotos.` };
   }
-  const who: InviteLine = { head: "Quem vê:", tail: f.everyoneSeesAll ? `${f.hostName} e quem está na festa.` : `só ${f.hostName}.` };
+  const who: InviteLine = { head: "Quem vê:", tail: f.everyoneSeesAll ? `${f.hostName} e quem está na festa.` : `você e ${f.hostName} veem suas fotos ${f.revealStatus === "pendente" ? "após a revelação" : "na hora"}; os outros convidados não veem.` };
   return [shots, reveal, who];
 }
 

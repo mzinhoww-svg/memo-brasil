@@ -33,8 +33,8 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const isHost = Boolean(data.event && user && data.event.hostId === user.id);
 
   useEffect(() => {
-    if (ready && !data.loading && data.access === "convite") router.replace(`/e/${code}`);
-  }, [ready, data.loading, data.access, router, code]);
+    if (ready && !data.loading && !data.error && data.access === "convite") router.replace(`/e/${code}`);
+  }, [ready, data.loading, data.error, data.access, router, code]);
 
   const ev = data.event;
   const status = ev ? computeRevealStatus(ev, now) : "desativada";
@@ -99,6 +99,12 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, counts: data.counts, refresh, revealStatus: status, developed } : null), [data, user, participant, isHost, now, refresh, status, developed]);
 
   if (!ready || data.loading) return <main className="app-col"><p className="app-screen app-muted">Carregando a festa…</p></main>;
+  if (data.error) return <main className="app-col app-fluid"><div className="app-screen">
+    <h1 className="titulo-tela app-h1">{data.error === "forbidden" || data.error === "unauthorized" ? "Não foi possível confirmar seu acesso." : "Não deu para carregar o evento."}</h1>
+    <p className="app-p app-muted">{data.error === "forbidden" || data.error === "unauthorized" ? "Confira se você está com a conta usada neste evento e tente de novo." : "Confira a conexão e tente de novo. O link do evento continua o mesmo."}</p>
+    <Button block onClick={() => void refresh()}>Tentar de novo</Button>
+    {(data.error === "forbidden" || data.error === "unauthorized") && <Button href={`/e/${code}`} variant="texto">Voltar ao convite</Button>}
+  </div></main>;
   if (data.access === "convite") return <main className="app-col"><p className="app-screen app-muted">Entrando na festa…</p></main>;
   if (!data.event) {
     return (

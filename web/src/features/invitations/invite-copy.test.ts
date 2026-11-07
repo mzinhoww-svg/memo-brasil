@@ -10,7 +10,7 @@ describe("convite em 3 linhas", () => {
   it("fotos, revelação e quem vê, com o dia da semana no fuso do evento", () => {
     expect(inviteLines(base, NOW)).toEqual([
       { head: "Você tem 36 fotos.", tail: "Escolha bem, como num filme." },
-      { head: "Revela domingo, 10h.", tail: "Até lá, só Emy pode ver." },
+      { head: "Revela domingo, 10h.", tail: "Até lá, só Emy pode ver; você também espera para ver suas próprias fotos." },
       { head: "Quem vê:", tail: "Emy e quem está na festa." },
     ]);
   });
@@ -18,7 +18,7 @@ describe("convite em 3 linhas", () => {
     const lines = inviteLines({ ...base, shotsPerPerson: null, revealStatus: "desativada", revealAt: null, everyoneSeesAll: false }, NOW);
     expect(lines[0].head).toBe("Fotos sem limite.");
     expect(lines[1]).toEqual({ head: "As fotos aparecem na hora." });
-    expect(lines[2]).toEqual({ head: "Quem vê:", tail: "só Emy." });
+    expect(lines[2]).toEqual({ head: "Quem vê:", tail: "você e Emy veem suas fotos na hora; os outros convidados não veem." });
   });
   it("uma foto no singular; hoje e amanhã; horário com minutos; data quando passa de uma semana", () => {
     expect(inviteLines({ ...base, shotsPerPerson: 1 }, NOW)[0].head).toBe("Você tem 1 foto.");
@@ -35,7 +35,7 @@ describe("convite em 3 linhas", () => {
   });
   it("revelação já feita e revelação ao terminar sem data", () => {
     expect(inviteLines({ ...base, revealStatus: "revelada" }, NOW)[1].head).toBe("As fotos já foram reveladas.");
-    expect(inviteLines({ ...base, revealAt: null }, NOW)[1]).toEqual({ head: "Revela quando a festa terminar.", tail: "Até lá, só Emy pode ver." });
+    expect(inviteLines({ ...base, revealAt: null }, NOW)[1]).toEqual({ head: "Revela quando a festa terminar.", tail: "Até lá, só Emy pode ver; você também espera para ver suas próprias fotos." });
   });
 });
 

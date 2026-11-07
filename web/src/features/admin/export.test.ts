@@ -41,3 +41,14 @@ describe("CSV: espaço antes da fórmula", () => {
     expect(csvCell("\t@x")).toBe("'\t@x");
   });
 });
+
+describe('ZIP parcial em erro de leitura', () => {
+  it('inclui as fotos legíveis e contabiliza uma leitura rejeitada', async () => {
+    const repos = createMemoryRepositories();
+    const ev = { title: 'Festa' } as MemoEvent;
+    const photos = [1, 2].map((n) => ({id:String(n),status:'visivel',createdAt:n,moment:'Festa'} as Photo));
+    repos.photos.getData = async (id) => { if (id === '1') throw new Error('rede'); return {bytes:new Uint8Array([1]).buffer,type:'image/jpeg'}; };
+    const result = await zipAlbum(repos,ev,photos);
+    expect(result.saved).toBe(1); expect(result.missing).toBe(1);
+  });
+});

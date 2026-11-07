@@ -7,18 +7,19 @@ import { CapacityBanner, usePlanInfo } from "@/features/admin/PlanInfo";
 import { capacityState } from "@/features/billing/capacity";
 import { limitChoices } from "@/features/billing/limits";
 import { RedeemCodeSheet, type RedeemCodeProps } from "@/features/billing/RedeemCode";
-import { Button, Chip, Chips, Field, Notice, OptionGroup, Sheet } from "@/components/memoriesmt";
+import { Button, Chip, Chips, Field, Notice, OptionGroup, ConfirmSheet } from "@/components/memoriesmt";
 import { photosAvailableUntil } from "@/domain/retention";
-import { canEditEnd, endAt, eventStatus, type EventFontId, type PaletteId } from "@/domain/event";
+import { canEditEnd, endAt, eventStatus } from "@/domain/event";
 import { CAPACITY_OPTIONS, SHOTS_OPTIONS, type Capacity, type Shots } from "@/domain/options";
 import { RevealSettings } from "@/features/events/RevealSettings";
-import { EVENT_FONT_LABEL, PALETTES } from "@/lib/event-theme";
 import { useAdmin } from "@/features/admin/context";
 import { formatDate, formatTime } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
 import { deleteEvent, endEventNow, setEndIn, updateSettings } from "@/features/events/service";
+
+import { endConsequence } from "@/features/admin/end-consequence";
 
 const EXTEND = [1, 3, 6, 24];
 
@@ -34,7 +35,7 @@ export default function Configuracoes() {
   const info = usePlanInfo(event.id, `${event.version}-${planVersion}`);
   const [notice, setNotice] = useState(event.notice?.text ?? "");
   const [msg, setMsg] = useState<string | undefined>();
-  const [confirm, setConfirm] = useState<"encerrar" | "excluir" | undefined>();
+  const [confirm, setConfirm] = useState<"encerrar" | "excluir" | number | undefined>();
   const ended = eventStatus(event, now) === "encerrado";
   const photoCount = photos.filter((p) => p.status !== "removida").length;
   const locked = !canEditEnd(event, photoCount, now);
@@ -44,9 +45,11 @@ export default function Configuracoes() {
   const limitShots = info.current ? info.current.maxShots : event.shotsPerPerson;
 
   const save = async (patch: Parameters<typeof updateSettings>[2]) => {
-    const r = await updateSettings(repos, event.id, patch);
-    setMsg(r.ok ? "Salvo." : r.reason === "capacidade-menor-que-convidados" ? "Esse evento já tem mais convidados do que essa capacidade. Escolha um número maior." : "Não foi possível salvar. Tente de novo.");
-    await refresh();
+    try {
+      const r = await updateSettings(repos, event.id, patch);
+      setMsg(r.ok ? "Salvo." : r.reason === "capacidade-menor-que-convidados" ? "Esse evento já tem mais convidados do que essa capacidade. Escolha um número maior." : "Não foi possível salvar. Tente de novo.");
+      await refresh();
+    } catch { setMsg("Não foi possível salvar. Tente de novo."); }
   };
 
   const onCodeApplied: RedeemCodeProps["onApplied"] = async (r) => {
@@ -130,7 +133,7 @@ export default function Configuracoes() {
           <div className="app-stack-sm">
             <span className="mm-group-label">Mudar o fim para daqui a</span>
             <Chips label="Mudar o fim">
-              {EXTEND.map((h) => <Chip key={h} variant="filtro" onClick={() => extend(h)}>{h === 1 ? "1 hora" : h === 24 ? "1 dia" : `${h} horas`}</Chip>)}
+              {EXTEND.map((h) => <Chip key={h} variant="filtro" onClick={() => setConfirm(h)}>{h === 1 ? "1 hora" : h === 24 ? "1 dia" : `${h} horas`}</Chip>)}
             </Chips>
           </div>
         )}
@@ -139,28 +142,31 @@ export default function Configuracoes() {
 
       <section className="app-stack app-form-col" aria-labelledby="perigo">
         <h2 id="perigo" className="titulo-card app-h1">Excluir</h2>
-        <p className="app-p app-muted">Apaga o evento, as fotos e as reações deste aparelho.</p>
+        <p className="app-p app-muted">{copyFor(backendMode()).deleteBody}</p>
         <Button variant="destrutivo" onClick={() => setConfirm("excluir")}>Excluir evento</Button>
       </section>
 
       {codeOpen && <RedeemCodeSheet eventId={event.id} onApplied={(r) => void onCodeApplied(r)} onClose={() => setCodeOpen(false)} />}
-      {confirm === "encerrar" && (
-        <Sheet title="Encerrar agora?" onClose={() => setConfirm(undefined)}>
-          <p className="corpo app-p">Ninguém posta mais. A revelação segue o horário que você configurou.</p>
-          <div className="app-stack-sm">
-            <Button variant="destrutivo" block onClick={async () => { await endEventNow(repos, event.id, clock()); scheduler.cancel(event.id); setConfirm(undefined); await refresh(); }}>Encerrar agora</Button>
-            <Button variant="secundario" block onClick={() => setConfirm(undefined)}>Voltar</Button>
-          </div>
-        </Sheet>
+      {(confirm === "encerrar" || typeof confirm === "number") && (
+        <ConfirmSheet title={confirm === "encerrar" ? "Encerrar agora?" : "Mudar o fim do evento?"}
+          body={`${confirm === "encerrar" ? "Ninguém posta mais. " : "O fim muda para " + formatDate(clock() + confirm * 3_600_000) + " · " + formatTime(clock() + confirm * 3_600_000) + ". "}${endConsequence(event, confirm === "encerrar" ? clock() : clock() + confirm * 3_600_000, clock())}`}
+          confirmLabel={confirm === "encerrar" ? "Encerrar agora" : "Confirmar novo fim"}
+          onCancel={() => setConfirm(undefined)} onConfirm={async () => {
+            if (typeof confirm === "number") { await extend(confirm); }
+            else {
+              const updated = await endEventNow(repos, event.id, clock());
+              if (!updated) throw new Error("Evento indisponível");
+              scheduler.cancel(event.id);
+              await refresh();
+            }
+            setConfirm(undefined);
+          }} />
       )}
       {confirm === "excluir" && (
-        <Sheet title={copyFor(backendMode()).deleteQuestion} onClose={() => setConfirm(undefined)}>
-          <p className="corpo app-p">{copyFor(backendMode()).deleteBody}</p>
-          <div className="app-stack-sm">
-            <Button variant="destrutivo" block onClick={async () => { scheduler.cancel(event.id); await deleteEvent(repos, event.id); router.push("/"); }}>Excluir evento</Button>
-            <Button variant="secundario" block onClick={() => setConfirm(undefined)}>Voltar</Button>
-          </div>
-        </Sheet>
+        <ConfirmSheet title={copyFor(backendMode()).deleteQuestion} body={copyFor(backendMode()).deleteBody}
+          confirmLabel="Excluir evento" onCancel={() => setConfirm(undefined)} onConfirm={async () => {
+            await deleteEvent(repos, event.id); scheduler.cancel(event.id); router.push("/eventos");
+          }} />
       )}
     </>
   );
