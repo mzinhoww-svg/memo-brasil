@@ -9,6 +9,7 @@ import {
 } from "@/features/billing/api";
 import { currentPlanCode } from "@/features/billing/entitlement";
 import { PLAN_TEXT, checkoutErrorMessage, clearIdempotencyKey, idempotencyKeyFor, parseReturn, reconcileCheckout, type ReturnHint } from "@/features/billing/flow";
+import { validapayCheckoutEnabled } from "@/features/billing/checkout-provider";
 import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CheckoutPending, ProviderDown } from "@/features/billing/CheckoutPending";
 import { PlanPicker } from "@/features/billing/PlanPicker";
@@ -77,7 +78,7 @@ function PlanoConteudo() {
 
   const pay = useCallback(async (planCode: string, fresh = false) => {
     if (inflight.current) return; // clique duplo: um pedido só
-    if (process.env.NEXT_PUBLIC_VALIDAPAY_CHECKOUT === "1" || process.env.NEXT_PUBLIC_VALIDAPAY_SANDBOX_PREVIEW === "1") {
+    if (validapayCheckoutEnabled()) {
       setSandboxPlan(planCode);
       return;
     }
