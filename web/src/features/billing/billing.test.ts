@@ -230,6 +230,18 @@ describe("orderStatus", () => {
   });
 });
 
+it.each([true, false, undefined])("preserves only explicit disposition booleans: %s", async (entitlementActive) => {
+  fakeClient({ invoke: () => ({ data: { orderId: ORDER, status: "pago", planCode: "festa", amountCents: 2900, provider: "mercadopago", entitlementActive, needsRefund: false } }) });
+  const result = await orderStatus(ORDER);
+  expect(result.entitlementActive).toBe(entitlementActive);
+  expect(result.needsRefund).toBe(false);
+});
+it("does not coerce an untrusted disposition into activation", async () => {
+  fakeClient({ invoke: () => ({ data: { orderId: ORDER, status: "pago", planCode: "festa", amountCents: 2900, entitlementActive: "true", needsRefund: "false" } }) });
+  const result = await orderStatus(ORDER);
+  expect(result.entitlementActive).toBeUndefined(); expect(result.needsRefund).toBeUndefined();
+});
+
 describe("openOrder", () => {
   const row = (id: string, status: string, extra: Record<string, unknown> = {}) => ({
     id, status, plan_code: "festa", amount_cents: 2900, provider: "mercadopago", checkout_url: null, payment_method: null, expires_at: null, paid_at: null, created_at: "2026-10-22T12:00:00Z", ...extra,
@@ -259,7 +271,7 @@ describe("openOrder", () => {
     expect(await openOrder(EVENT)).toEqual({ orderId: ORDER, status: "pendente", planCode: "festa", amountCents: 2900, checkoutUrl: "https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=9", provider: "mercadopago" });
   });
   it("pedido histórico AbacatePay continua legível (provider preservado, sem checkoutUrl)", async () => {
-    fakeClient({ rows: [row("o-aba", "pago", { provider: "abacatepay", paid_at: "2026-10-22T12:01:00Z" })] });
+    fakeClient({ rows: [row("o-aba", "pago", { provider: "abacatepay", paid_at: "2026-10-22T12:01:00Z" })], invoke: () => ({ data: { orderId: "o-aba", status: "pago", planCode: "festa", amountCents: 2900, paidAt: "2026-10-22T12:01:00Z", provider: "abacatepay" } }) });
     expect(await openOrder(EVENT)).toEqual({ orderId: "o-aba", status: "pago", planCode: "festa", amountCents: 2900, paidAt: "2026-10-22T12:01:00Z", provider: "abacatepay" });
   });
   it("lê só colunas do contrato novo (sem brcode)", async () => {

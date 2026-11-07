@@ -31,6 +31,8 @@ export type OrderView = {
   paidAt?: string;
   provider: PaymentProvider;
   paymentMethod?: string;
+  needsRefund?: boolean;
+  entitlementActive?: boolean;
 };
 
 export type QuoteReason = "ok" | "ja_incluido" | "plano_inativo" | "evento_encerrado" | "valor_minimo";

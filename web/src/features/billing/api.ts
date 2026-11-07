@@ -117,7 +117,7 @@ function toOrderView(j: Json, fallbackPlan?: string): OrderView {
     amountCents: Number(j.amountCents),
     provider: toProvider(j.provider),
   };
-  const opt = { checkoutUrl: safeCheckoutUrl(j.checkoutUrl), expiresAt: str(j.expiresAt), paidAt: str(j.paidAt), paymentMethod: str(j.paymentMethod) };
+  const opt = { checkoutUrl: safeCheckoutUrl(j.checkoutUrl), expiresAt: str(j.expiresAt), paidAt: str(j.paidAt), paymentMethod: str(j.paymentMethod), needsRefund: typeof j.needsRefund === "boolean" ? j.needsRefund : undefined, entitlementActive: typeof j.entitlementActive === "boolean" ? j.entitlementActive : undefined };
   for (const [k, val] of Object.entries(opt)) if (val !== undefined) (v as Json)[k] = val;
   return v;
 }
@@ -245,9 +245,9 @@ async function readOrders(eventId: string): Promise<{ open: Json | undefined; la
   return { open: rows.find((x) => isOpenRow(x, now)), latest: rows[0] };
 }
 
-/** Reconsulta pedidos não terminais. Só 404/MM004 (evento excluído ou purgado) cai nos dados da linha; o resto propaga. */
+/** Reconsulta pedidos abertos e pagos (inclui disposição do direito). Só 404/MM004 cai nos dados da linha. */
 async function refresh(view: OrderView): Promise<OrderView> {
-  if (!OPEN.includes(view.status)) return view;
+  if (!OPEN.includes(view.status) && view.status !== "pago") return view;
   try {
     return await orderStatus(view.orderId);
   } catch (e) {

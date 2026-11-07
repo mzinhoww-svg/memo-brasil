@@ -84,7 +84,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
   }, [open, screen, order.orderId, recheck]);
 
   const painel = `/painel/${eventId}`;
-  const announce = screen === "pago" ? `Pagamento confirmado. Plano ${plan?.name ?? ""} ativo.` : screen === "expirado" ? "Este pagamento expirou." : screen === "falhou" ? "O pagamento não foi concluído." : "";
+  const announce = screen === "pago" ? (order.entitlementActive === true ? `Pagamento confirmado. Plano ${plan?.name ?? ""} ativo.` : "Pagamento recebido. Liberação do plano não confirmada.") : screen === "expirado" ? "Este pagamento expirou." : screen === "falhou" ? "O pagamento não foi concluído." : "";
   const banner = warning ? <div className="plano-aviso" role="status" data-testid="aviso-outro-plano">{warning}</div> : null;
   const live = <p className="sr-only" role="status" aria-live="polite">{announce}</p>;
 
@@ -130,10 +130,10 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
           </div>
           <section className="plano-como" aria-labelledby="como-pagar">
             <h2 id="como-pagar" className="titulo-card app-h1">Como pagar</h2>
-            <p className="app-p app-muted">No Mercado Pago você escolhe a forma de pagamento (cartão e, quando houver, Pix). Quando terminar, volte para cá.</p>
+            <p className="app-p app-muted">{order.provider === "validapay" ? "Continue no MemoriesMT para consultar seu Pix ou cartão e acompanhar a confirmação." : order.provider === "mercadopago" ? "No Mercado Pago você escolhe a forma de pagamento (cartão e, quando houver, Pix). Quando terminar, volte para cá." : "Consulte o estado deste pedido no painel. Se já pagou, aguarde a confirmação antes de iniciar outro pagamento."}</p>
           </section>
           <p className="app-p app-muted">Pode fechar esta tela. O pedido fica guardado no painel e o plano libera sozinho quando o pagamento for confirmado.</p>
-          <p className="app-p app-muted">Pagamento processado pelo Mercado Pago.</p>
+          <p className="app-p app-muted">{order.provider === "validapay" ? "Pagamento processado pela ValidaPay." : order.provider === "mercadopago" ? "Pagamento processado pelo Mercado Pago." : "Pedido histórico processado pela AbacatePay."}</p>
         </div>
       </div>
     );
@@ -146,8 +146,10 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
         {live}
         <span className="plano-selo" aria-hidden="true">✓</span>
         <p className="plano-eyebrow">Pagamento confirmado</p>
-        <h1 className="titulo-tela app-h1">Plano {plan?.name ?? ""} ativo.</h1>
-        {plan && <p className="app-p app-muted">{joinGuests(plan.maxGuests, plan.maxShots)} Já vale para quem entrar agora.</p>}
+        <h1 className="titulo-tela app-h1">{order.entitlementActive === true ? `Plano ${plan?.name ?? order.planCode} ativo.` : "Pagamento recebido"}</h1>
+        {order.entitlementActive !== true && <p className="app-p">{order.entitlementActive === false ? "O plano não foi liberado por este pagamento." : "A liberação do plano ainda não foi confirmada."} Consulte o suporte com a referência do pedido.</p>}
+        {order.needsRefund === true && <p className="app-p">A devolução está em análise. A confirmação do reembolso ainda não foi recebida.</p>}
+        {order.entitlementActive === true && plan && <p className="app-p app-muted">{joinGuests(plan.maxGuests, plan.maxShots)} Já vale para quem entrar agora.</p>}
         <dl className="plano-recibo">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
         <p className="app-p app-muted plano-nota">Guarde este comprovante. Ele também fica em Painel › Plano.</p>
         <div className="app-stack-sm plano-acoes">

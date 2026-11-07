@@ -33,7 +33,7 @@ describe("sandbox native checkout", () => {
     const sent = api.call.mock.calls[0][0];
     expect(sent).toMatchObject({ action: "reserve", method: "pix" });
     expect(sent).not.toHaveProperty("amountCents");
-    complete({ orderId: "order", environment: "sandbox", status: "criado", planCode: "festa", amountCents: 2900 });
+    complete({ orderId: "order", environment: "sandbox", status: "criado", planCode: "festa", amountCents: 2900, canAbandon: true });
     expect(await screen.findByDisplayValue("000201-test")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Mercado Pago/ })).not.toBeInTheDocument();
     expect(api.call.mock.calls[1][0]).toMatchObject({ action: "submit", customer: { name: "Pessoa Teste", documentNumber: "12345678901" } });
@@ -45,7 +45,7 @@ describe("sandbox native checkout", () => {
     expect(api.call).not.toHaveBeenCalled();
   });
   it("allows resuming an uncertain creation using the existing server order", async () => {
-    api.recover.mockResolvedValue({ orderId: "order", environment: "sandbox", status: "criado", amountCents: 2900, planCode: "festa", paymentMethod: "pix" });
+    api.recover.mockResolvedValue({ orderId: "order", environment: "sandbox", status: "criado", amountCents: 2900, planCode: "festa", paymentMethod: "pix", canAbandon: true });
     render(<ValidaPayCheckout eventId="event" planCode="festa" />);
     expect(await screen.findByRole("button", { name: "Gerar Pix" })).toBeInTheDocument();
   });
@@ -86,7 +86,7 @@ it("abandons only server-approved untouched orders and requotes before changing 
 it("does not offer abandonment for an uncertain server order", async () => {
   api.recover.mockResolvedValue({ orderId: "order", environment: "sandbox", status: "criado", amountCents: 2900, planCode: "festa", paymentMethod: "pix", canAbandon: false });
   render(<ValidaPayCheckout eventId="event" planCode="festa" />);
-  await screen.findByRole("button", { name: "Gerar Pix" });
+  await screen.findByRole("button", { name: "Consultar pagamento" });
   expect(screen.queryByRole("button", { name: "Trocar forma de pagamento" })).not.toBeInTheDocument();
 });
 
@@ -134,7 +134,7 @@ it("preserves the order after uncertain submission and refuses stale abandonment
   await screen.findByRole("alert");
   expect(api.call).toHaveBeenCalledWith({ action: "status", orderId: "order" });
   expect(screen.queryByRole("button", { name: "Trocar forma de pagamento" })).not.toBeInTheDocument();
-  expect(screen.getByRole("status")).toHaveTextContent("pagamento anterior");
+  expect(screen.getByRole("status")).toHaveTextContent("verificação");
 });
 it("rejects an invalid backend environment", async () => {
   api.config.mockResolvedValue({ enabled: true, environment: "invalid", publicId: "public", requires3DS: true });
@@ -198,4 +198,91 @@ it("parses only the allowlisted backend conflict error", async () => {
   await expect(realClient.sandboxCall({ action: "recover" })).rejects.toBeInstanceOf(realClient.ValidaPayEnvironmentConflictError);
   api.invoke.mockResolvedValue({ data: null, error: { context: new Response(JSON.stringify({ error: "sensitive backend detail" }), { status: 500 }) } });
   await expect(realClient.sandboxCall({ action: "recover" })).rejects.toThrow("Não foi possível confirmar");
+});
+
+const receipt = (extra = {}) => ({ orderId: "order", environment: "sandbox", status: "criado", planCode: "festa", amountCents: 2900, paymentMethod: "pix", canAbandon: true, ...extra });
+it("clears obsolete submit errors when readback confirms paid", async () => {
+  api.call.mockImplementation(async (body) => {
+    if (body.action === "reserve") return receipt();
+    if (body.action === "status") return receipt({ status: "pago", entitlementActive: true });
+    throw new Error("response lost");
+  });
+  render(<ValidaPayCheckout eventId="event" planCode="festa" />);
+  await screen.findByRole("button", { name: "Gerar Pix" });
+  fireEvent.change(screen.getByLabelText("Nome completo"), { target: { value: "Pessoa Teste" } });
+  fireEvent.change(screen.getByLabelText("CPF ou CNPJ"), { target: { value: "12345678901" } });
+  fireEvent.click(screen.getByRole("button", { name: "Gerar Pix" }));
+  await screen.findByText("Pagamento confirmado");
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+it("consults uncertain created card orders without requesting card data or another POST", async () => {
+  api.recover.mockResolvedValue(receipt({ canAbandon: false, paymentMethod: "card" }));
+  api.call.mockResolvedValue(receipt({ status: "pago", entitlementActive: true }));
+  render(<ValidaPayCheckout eventId="event" planCode="festa" />);
+  fireEvent.click(await screen.findByRole("button", { name: "Consultar pagamento" }));
+  await screen.findByText("Pagamento confirmado");
+  expect(screen.queryByLabelText("Número do cartão")).not.toBeInTheDocument();
+  expect(api.call.mock.calls.map(([b]) => b.action)).toEqual(["status"]);
+});
+it.each(["quote", "recover", "config"] as const)("retries failed initial %s without financial calls", async (stage) => {
+  api[stage].mockRejectedValueOnce(new Error("offline"));
+  render(<ValidaPayCheckout eventId="event" planCode="festa" />);
+  fireEvent.click(await screen.findByRole("button", { name: "Tentar novamente" }));
+  expect(await screen.findByRole("button", { name: "Gerar Pix" })).toBeEnabled();
+  expect(api.call).not.toHaveBeenCalled();
+});
+it("shows and resumes the actual reserved plan instead of mixing the requested plan and amount", async () => {
+  api.recover.mockResolvedValue(receipt());
+  api.call.mockImplementation(async (body) => receipt({ status: body.action === "reserve" ? "criado" : "pendente" }));
+  render(<ValidaPayCheckout eventId="event" planCode="grande" />);
+  expect(await screen.findByRole("heading", { name: "Pagar plano festa" })).toBeInTheDocument();
+  expect(screen.getByText(/Você já iniciou.*festa.*grande/)).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Nome completo"), { target: { value: "Pessoa Teste" } });
+  fireEvent.change(screen.getByLabelText("CPF ou CNPJ"), { target: { value: "12345678901" } });
+  fireEvent.click(screen.getByRole("button", { name: "Gerar Pix" }));
+  await screen.findByText("Aguardando pagamento");
+  expect(api.call.mock.calls[0][0]).toMatchObject({ planCode: "festa", method: "pix" });
+});
+it("shows paid but unfulfilled refund review without claiming activation", async () => {
+  api.recover.mockResolvedValue(receipt({ status: "pago", needsRefund: true, entitlementActive: false }));
+  render(<ValidaPayCheckout eventId="event" planCode="festa" />);
+  expect(await screen.findByText(/devolução.*análise/)).toBeInTheDocument();
+  expect(screen.getByText(/não foi liberado/)).toBeInTheDocument();
+});
+it.each([
+  ["ja_incluido", "já está incluído"], ["evento_encerrado", "evento foi encerrado"], ["plano_inativo", "plano não está disponível"],
+])("explains an unavailable quote: %s", async (reason, message) => {
+  api.quote.mockResolvedValue({ payable: false, reason, amountCents: 0 });
+  render(<ValidaPayCheckout eventId="event" planCode="festa" />);
+  expect(await screen.findByRole("alert")).toHaveTextContent(message);
+  expect(screen.getByRole("link", { name: "Voltar aos planos" })).toBeInTheDocument();
+  expect(api.call).not.toHaveBeenCalled();
+});
+it("does not submit a newly discovered reservation for another plan", async () => {
+  api.call.mockResolvedValue(receipt({ planCode: "celebracao", amountCents: 2900 }));
+  render(<ValidaPayCheckout eventId="event" planCode="festa" />);
+  await screen.findByRole("button", { name: "Gerar Pix" });
+  fireEvent.change(screen.getByLabelText("Nome completo"), { target: { value: "Pessoa Teste" } });
+  fireEvent.change(screen.getByLabelText("CPF ou CNPJ"), { target: { value: "12345678901" } });
+  fireEvent.click(screen.getByRole("button", { name: "Gerar Pix" }));
+  await screen.findByRole("heading", { name: "Pagar plano celebracao" });
+  expect(api.call.mock.calls.map(([b]) => b.action)).toEqual(["reserve"]);
+});
+it("preserves an open-order conflict as safe recovery guidance", async () => {
+  const realClient = await vi.importActual<typeof import("./validapay-client")>("./validapay-client");
+  api.invoke.mockResolvedValue({ data: null, error: { context: new Response(JSON.stringify({ error: "pedido_aberto" }), { status: 409 }) } });
+  const { ValidaPayOpenOrderError } = realClient;
+  await expect(realClient.sandboxCall({ action: "reserve" })).rejects.toBeInstanceOf(ValidaPayOpenOrderError);
+});
+it("reads back an order opened concurrently instead of repeating the financial action", async () => {
+  const { ValidaPayOpenOrderError } = await import("./validapay-client");
+  api.recover.mockResolvedValueOnce(null).mockResolvedValue(receipt({ planCode: "celebracao" }));
+  api.call.mockImplementation(async () => { throw new ValidaPayOpenOrderError(); });
+  render(<ValidaPayCheckout eventId="event" planCode="festa" />);
+  await screen.findByRole("button", { name: "Gerar Pix" });
+  fireEvent.change(screen.getByLabelText("Nome completo"), { target: { value: "Pessoa Teste" } });
+  fireEvent.change(screen.getByLabelText("CPF ou CNPJ"), { target: { value: "12345678901" } });
+  fireEvent.click(screen.getByRole("button", { name: "Gerar Pix" }));
+  await screen.findByRole("heading", { name: "Pagar plano celebracao" });
+  expect(api.call.mock.calls.map(([b]) => b.action)).toEqual(["reserve"]);
 });

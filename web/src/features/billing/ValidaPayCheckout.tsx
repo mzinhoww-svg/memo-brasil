@@ -6,7 +6,7 @@ import { Button, ConfirmSheet, Field, Skeleton } from "@/components/memoriesmt";
 import { browserSupabase } from "@/lib/supabase/client";
 import { formatBRL, quote } from "./api";
 import { prepareCard } from "./validapay-card";
-import { ValidaPayEnvironmentConflictError, validateReceiptEnvironment, recoverSandbox, sandboxCall, sandboxConfig, sandboxRefund, type SandboxConfig, type SandboxReceipt } from "./validapay-client";
+import { ValidaPayOpenOrderError, ValidaPayEnvironmentConflictError, validateReceiptEnvironment, recoverSandbox, sandboxCall, sandboxConfig, sandboxRefund, type SandboxConfig, type SandboxReceipt } from "./validapay-client";
 
 /** Native checkout. The Edge Function and database authorize payment operations. */
 export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; planCode: string }) {
@@ -17,6 +17,8 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadVersion, setLoadVersion] = useState(0);
   const [busy, setBusy] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -27,12 +29,13 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
 
   const fail = useCallback((cause: unknown, fallback: string) => {
     if (cause instanceof ValidaPayEnvironmentConflictError) { setConfig(null); setError(cause.message); }
-    else setError(fallback);
+    else setError(cause instanceof ValidaPayOpenOrderError ? cause.message : fallback);
   }, []);
 
   useEffect(() => {
     let stopped = false;
     async function load() {
+      setLoading(true); setLoadFailed(false); setError(null);
       try {
         const cfg = await sandboxConfig();
         if (stopped) return;
@@ -44,27 +47,37 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
         if (previous) validateReceiptEnvironment(previous, cfg.environment);
         const restore = previous && (previous.planCode === planCode || ["pendente", "criado"].includes(previous.status)) ? previous : null;
         setOrder(restore); setEmail(user.data.user?.email ?? "");
-        if (restore?.paymentMethod === "card") setMethod("card");
+        setMethod(restore?.paymentMethod === "card" ? "card" : "pix");
         if (!restore || !["pago", "pendente", "criado"].includes(restore.status)) {
           const quoted = await quote(eventId, planCode);
-          if (!stopped) { if (!quoted.payable) throw new Error("Este plano não está disponível para compra."); setAmount(quoted.amountCents); }
+          if (!stopped) {
+            if (!quoted.payable) {
+              const messages = { ja_incluido: "Este plano já está incluído no seu evento.", evento_encerrado: "O evento foi encerrado e não permite novas compras.", plano_inativo: "Este plano não está disponível para compra.", valor_minimo: "O valor disponível não permite esta compra.", ok: "Este plano não está disponível para compra." };
+              setError(messages[quoted.reason] ?? messages.plano_inativo); setLoadFailed(true); return;
+            }
+            setAmount(quoted.amountCents);
+          }
         } else setAmount(restore.amountCents);
-      } catch (cause) { if (!stopped) fail(cause, "Não foi possível abrir o checkout."); }
+      } catch (cause) { if (!stopped) { setLoadFailed(true); fail(cause, "Não foi possível abrir o checkout. Confira sua conexão e tente novamente."); } }
       finally { if (!stopped) setLoading(false); }
     }
     void load();
     return () => { stopped = true; };
-  }, [eventId, planCode, fail]);
+  }, [eventId, planCode, fail, loadVersion]);
 
   const refresh = useCallback(async () => {
     if (!order || !config || submitting.current) return;
     try { const next = await sandboxCall<SandboxReceipt>({ action: "status", orderId: order.orderId }); setOrder(validateReceiptEnvironment(next, config.environment)); setError(null); }
     catch (cause) { fail(cause, "A confirmação está demorando. Você pode consultar novamente sem criar outro pagamento."); }
   }, [order, config, fail]);
+  const uncertain = order?.status === "criado" && order.canAbandon !== true;
+  const effectivePlan = order && ["criado", "pendente"].includes(order.status) ? order.planCode : planCode;
+  const mismatch = order && order.planCode !== planCode && ["criado", "pendente"].includes(order.status);
+  const conflictNotice = mismatch ? <p className="app-p">Você já iniciou o plano {order.planCode}. Continue este pedido antes de escolher {planCode}.{order.canAbandon === true ? " Para escolher outro plano, abandone esta reserva primeiro." : " Aguarde a verificação do pagamento."}</p> : null;
   const pollingId = order?.orderId;
   const pollingStatus = order?.status;
   useEffect(() => {
-    if (!config || !pollingId || !pollingStatus || !["pendente", "expirado"].includes(pollingStatus)) return;
+    if (!config || !pollingId || !pollingStatus || (!["pendente", "expirado"].includes(pollingStatus) && !uncertain)) return;
     let inFlight = false, stopped = false;
     const poll = async () => {
       if (inFlight || document.visibilityState !== "visible") return;
@@ -79,7 +92,7 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
     const resume = () => void poll();
     document.addEventListener("visibilitychange", resume); window.addEventListener("pageshow", resume);
     return () => { stopped = true; clearInterval(interval); document.removeEventListener("visibilitychange", resume); window.removeEventListener("pageshow", resume); };
-  }, [pollingId, pollingStatus, config, fail]);
+  }, [pollingId, pollingStatus, config, fail, uncertain]);
 
   useEffect(() => {
     let stopped = false;
@@ -89,7 +102,7 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (submitting.current || !config?.enabled || amount === null) return;
+    if (submitting.current || !config?.enabled || amount === null || uncertain || loadFailed) return;
     submitting.current = true; setBusy(true); setError(null);
     const form = e.currentTarget;
     const values = new FormData(form);
@@ -97,7 +110,7 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
     const digits = (name: string) => text(name).replace(/\D/g, "");
     let submittedOrderId: string | null = null;
     try {
-      const storageKey = `validapay:${config.environment}:${eventId}:${planCode}:${method}`;
+      const storageKey = `validapay:${config.environment}:${eventId}:${effectivePlan}:${method}`;
       if (order && ["falhou", "cancelado", "expirado"].includes(order.status)) {
         key.current = null;
         try { sessionStorage.removeItem(storageKey); } catch { /* in-memory fallback */ }
@@ -110,10 +123,14 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
       const buyer = { name: text("name"), documentNumber: digits("document") };
       if (buyer.name.length < 2 || !/^(\d{11}|\d{14})$/.test(buyer.documentNumber)) throw new Error("invalid_buyer");
       // Freeze the backend price BEFORE 3DS/tokenization, and obtain explicit consent if the quote changed.
-      const reserved = await sandboxCall<SandboxReceipt>({ action: "reserve", eventId, planCode, method, idempotencyKey: key.current });
+      const reserved = await sandboxCall<SandboxReceipt>({ action: "reserve", eventId, planCode: effectivePlan, method, idempotencyKey: key.current });
       validateReceiptEnvironment(reserved, config.environment);
       setOrder(reserved);
-      if (reserved.status !== "criado") { setOrder(reserved); return; }
+      if (reserved.planCode !== effectivePlan || (reserved.paymentMethod && reserved.paymentMethod !== method)) {
+        setAmount(reserved.amountCents); setMethod(reserved.paymentMethod === "card" ? "card" : "pix");
+        setError("A reserva encontrada é de outro plano ou forma de pagamento. Confira o pedido antes de continuar."); return;
+      }
+      if (reserved.status !== "criado" || reserved.canAbandon !== true) { setOrder(reserved); return; }
       if (reserved.amountCents !== amount) { setAmount(reserved.amountCents); setOrder(reserved); setError("O valor foi atualizado. Confira o resumo e confirme novamente."); return; }
       let token = {};
       if (method === "card") {
@@ -126,16 +143,32 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
       }
       submittedOrderId = reserved.orderId;
       setOrder({ ...reserved, canAbandon: false });
-      const next = await sandboxCall<SandboxReceipt>({ action: "submit", eventId, planCode, method, idempotencyKey: key.current, customer: buyer, ...token });
+      const next = await sandboxCall<SandboxReceipt>({ action: "submit", eventId, planCode: effectivePlan, method, idempotencyKey: key.current, customer: buyer, ...token });
       setOrder(validateReceiptEnvironment(next, config.environment));
     } catch (cause) {
       // A failed response can follow a successful provider POST. Only the server may release this order.
       let failure = cause;
+      if (cause instanceof ValidaPayOpenOrderError) {
+        try {
+          const existing = await recoverSandbox(eventId);
+          if (existing) {
+            validateReceiptEnvironment(existing, config.environment);
+            setOrder(existing); setAmount(existing.amountCents); setMethod(existing.paymentMethod === "card" ? "card" : "pix");
+          }
+        } catch (readbackError) { if (readbackError instanceof ValidaPayEnvironmentConflictError) failure = readbackError; }
+      }
       if (submittedOrderId && !(cause instanceof ValidaPayEnvironmentConflictError)) {
-        try { setOrder(validateReceiptEnvironment(await sandboxCall<SandboxReceipt>({ action: "status", orderId: submittedOrderId }), config.environment)); }
+        try {
+          const recovered = validateReceiptEnvironment(await sandboxCall<SandboxReceipt>({ action: "status", orderId: submittedOrderId }), config.environment);
+          setOrder(recovered);
+          if (["pago", "estornado", "pendente", "expirado"].includes(recovered.status)) { setError(null); return; }
+        }
         catch (readbackError) { if (readbackError instanceof ValidaPayEnvironmentConflictError) failure = readbackError; }
       }
-      fail(failure, "Não foi possível concluir. Confira os dados e tente novamente; o mesmo pedido será reutilizado.");
+      fail(failure, submittedOrderId
+        ? "O pagamento está em verificação. Consulte o mesmo pedido antes de iniciar outro pagamento."
+        : method === "card" ? "Não foi possível preparar o cartão ou concluir a autenticação do banco. Confira os dados e tente novamente; nenhuma nova cobrança será criada automaticamente."
+        : "Não foi possível concluir. Confira os dados e tente novamente; o mesmo pedido será reutilizado.");
     }
     finally {
       for (const name of ["cardNumber", "cvv", "expiration", "holderName"]) { const input = form.elements.namedItem(name); if (input instanceof HTMLInputElement) input.value = ""; }
@@ -144,10 +177,14 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
   }
 
   if (loading) return <Skeleton label="Abrindo pagamento…" />;
+  if (loadFailed) return <div className="plano-estado app-stack"><h1 className="titulo-tela app-h1">Checkout indisponível</h1>{error && <p role="alert">{error}</p>}<Button onClick={() => setLoadVersion((version) => version + 1)}>Tentar novamente</Button><Button variant="texto" href={`/painel/${eventId}/plano`}>Voltar aos planos</Button></div>;
   if (!config?.enabled) return <div className="plano-estado"><h1 className="titulo-tela app-h1">Checkout indisponível</h1><p className="app-p">Esta forma de pagamento ainda não está disponível.</p>{error && <p role="alert">{error}</p>}</div>;
   if (order?.status === "estornado") return <div className="plano-estado"><h1 className="titulo-tela app-h1">Pagamento estornado</h1><p className="app-p">A devolução foi confirmada e o benefício deste pagamento foi revogado.</p><Button href={`/painel/${eventId}`}>Ir para o painel</Button></div>;
   if (order?.status === "pago") return <div className="plano-estado app-stack">
     <h1 className="titulo-tela app-h1">Pagamento confirmado</h1><p className="app-p">O pagamento foi confirmado pelo servidor.</p>
+    {order.entitlementActive === true ? <p className="app-p">O plano {order.planCode} está ativo.</p> : <p className="app-p">{order.entitlementActive === false ? "O plano não foi liberado por este pagamento." : "A liberação do plano ainda não foi confirmada."} Consulte o suporte com a referência do pedido.</p>}
+    {order.needsRefund === true && <p className="app-p">A devolução está em análise. Este recibo não confirma um reembolso concluído.</p>}
+    <p className="app-p">Pedido: {order.orderId}</p>
     <Button href={`/painel/${eventId}`}>Ir para o painel</Button>
     {config.environment === "sandbox" && <Button variant="texto" disabled={busy} onClick={() => setAskRefund(true)}>Solicitar estorno de teste</Button>}
     {error && <p role="alert" className="app-p">{error}</p>}
@@ -163,15 +200,17 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
       finally { submitting.current = false; setBusy(false); setAskRefund(false); }
     }} />}
   </div>;
-  if (order && ["pendente", "expirado"].includes(order.status)) return (
+  if (order && (["pendente", "expirado"].includes(order.status) || uncertain)) return (
     <div className="plano-estado app-stack" aria-busy={busy}>
-      <h1 className="titulo-tela app-h1">{order.status === "expirado" ? "Pagamento expirado" : "Aguardando pagamento"}</h1>
-      <p className="app-p">Plano {order.planCode} · {formatBRL(order.amountCents)}</p>
+      <h1 className="titulo-tela app-h1">{uncertain ? "Pagamento em verificação" : order.status === "expirado" ? "Pagamento expirado" : "Aguardando pagamento"}</h1>
+      <p className="app-p">Plano {order.planCode} · {formatBRL(order.amountCents)} · {order.paymentMethod === "card" ? "Cartão" : "Pix"}</p>
+      {conflictNotice}
+      {uncertain && <p className="app-p">A resposta da cobrança ainda não foi confirmada. Não inicie outro pagamento. Pedido: {order.orderId}</p>}
       {order.expiresAt && <p className="app-p">Válido até {new Date(order.expiresAt).toLocaleString("pt-BR")}</p>}
       {qr && <Image src={qr} alt="QR Code Pix" width={256} height={256} unoptimized style={{ maxWidth: "100%", height: "auto", alignSelf: "center" }} />}
       {order.emv && <><label className="mm-field-label" htmlFor="validapay-emv">Pix copia e cola</label><textarea id="validapay-emv" className="mm-field-input" readOnly value={order.emv} style={{ width: "100%", minHeight: 100, overflowWrap: "anywhere" }} /><Button onClick={() => { void navigator.clipboard.writeText(order.emv!).then(() => setCopied(true)).catch(() => setError("Selecione e copie o código Pix manualmente.")); }}>{copied ? "Código copiado" : "Copiar código Pix"}</Button></>}
       {error && <p role="alert" className="app-p">{error}</p>}
-      <p role="status" className="app-p">A confirmação será atualizada automaticamente.</p>
+      <p role="status" className="app-p">{uncertain ? "O pagamento está em verificação. A confirmação será atualizada automaticamente." : "A confirmação será atualizada automaticamente."}</p>
       <Button variant="secundario" onClick={() => void refresh()}>Consultar pagamento</Button>
       {order.status === "pendente" && <Button variant="texto" disabled={busy} onClick={() => {
         if (submitting.current) return;
@@ -182,13 +221,14 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
       }}>Cancelar pagamento</Button>}
       {order.status === "expirado" && <Button onClick={() => {
         key.current = null;
-        for (const chosen of ["pix", "card"]) { try { sessionStorage.removeItem(`validapay:${config.environment}:${eventId}:${planCode}:${chosen}`); } catch { /* in-memory fallback */ } }
+        for (const chosen of ["pix", "card"]) { try { sessionStorage.removeItem(`validapay:${config.environment}:${eventId}:${order.planCode}:${chosen}`); } catch { /* in-memory fallback */ } }
         setOrder(null); setQr(null); setCopied(false);
       }}>Tentar novo pagamento</Button>}
     </div>
   );
   return <div className="plano-estado app-stack">
-    <h1 className="titulo-tela app-h1">Pagar plano {planCode}</h1>
+    <h1 className="titulo-tela app-h1">Pagar plano {effectivePlan}</h1>
+    {conflictNotice}
     <p className="app-p">{amount !== null ? formatBRL(amount) : "Valor indisponível"} · Pagamento único</p>
     {order?.canAbandon === true && <Button variant="texto" disabled={busy} onClick={async () => {
       if (submitting.current) return;
@@ -197,15 +237,15 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
         const result = await sandboxCall<{ abandoned: boolean }>({ action: "abandon", orderId: order.orderId });
         if (result.abandoned !== true) throw new Error("not_abandoned");
         key.current = null;
-        for (const chosen of ["pix", "card"]) { try { sessionStorage.removeItem(`validapay:${config.environment}:${eventId}:${planCode}:${chosen}`); } catch { /* in-memory fallback */ } }
+        for (const chosen of ["pix", "card"]) { try { sessionStorage.removeItem(`validapay:${config.environment}:${eventId}:${order.planCode}:${chosen}`); } catch { /* in-memory fallback */ } }
         // Do not offer a fresh intention until its price is available.
         setAmount(null); setOrder(null); setQr(null); setCopied(false);
         const quoted = await quote(eventId, planCode);
         if (!quoted.payable) throw new Error("not_payable");
         setAmount(quoted.amountCents);
-      } catch (cause) { fail(cause, "Não foi possível trocar a forma de pagamento. Consulte o pagamento e tente novamente."); }
+      } catch (cause) { setLoadFailed(true); fail(cause, "Não foi possível trocar a forma de pagamento. Consulte o pagamento e tente novamente."); }
       finally { submitting.current = false; setBusy(false); }
-    }}>Trocar forma de pagamento</Button>}
+    }}>{mismatch ? "Abandonar reserva e escolher outro plano" : "Trocar forma de pagamento"}</Button>}
     {order && <p role="status" className="app-p">O pagamento anterior não foi concluído. Você pode tentar novamente.</p>}
     <form className="app-stack" onSubmit={(e) => void submit(e)} aria-busy={busy}>
       <fieldset disabled={busy} style={{ border: 0, padding: 0, minWidth: 0 }} className="app-stack">
