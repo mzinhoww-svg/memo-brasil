@@ -7,6 +7,7 @@ import { formatBRL, quote } from "./api";
 import { PLAN_TEXT, QUOTE_BLOCK, planRank } from "./flow";
 import { PlanCard } from "./PlanCard";
 import { RedeemCode, type RedeemCodeProps } from "./RedeemCode";
+import { validapayCheckoutEnabled } from "./checkout-provider";
 import { TrustBlock } from "./TrustBlock";
 import type { PublicPlan, PublicSettings, Quote } from "./types";
 
@@ -27,6 +28,7 @@ type Props = {
 
 /** B1 (escolha) e B7 (pagamentos desligados). Preços e valor a pagar vêm do servidor. */
 export function PlanPicker({ eventId, plans, currentCode, settings, busy, error, onPay, onRedeemed, initialPlan }: Props) {
+  const native = validapayCheckoutEnabled();
   const rank = planRank(plans, currentCode);
   const higher = useMemo(() => plans.filter((_, i) => i > rank), [plans, rank]);
   const paidOff = plans.every((p) => p.isFree);
@@ -75,7 +77,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
   return (
     <div className="plano-escolha">
       <h1 className="titulo-tela app-h1">{PLAN_TEXT.titulo}</h1>
-      <p className="app-p app-muted">{PLAN_TEXT.sub}</p>
+      <p className="app-p app-muted">{native ? "Pagamento único por evento. Pix ou cartão aqui no MemoriesMT. Sem assinatura." : PLAN_TEXT.sub}</p>
       <div className="plano-colunas">
         <div className="app-stack">
           <div className="plano-lista" role="radiogroup" aria-label="Planos">
@@ -105,10 +107,10 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
           )}
           <div className="plano-pagar">
             <Button variant="cta" block disabled={busy || !plan || !!blocked} aria-busy={busy} onClick={() => onPay(chosen)}>
-              {busy ? "Abrindo o Mercado Pago…" : pay !== undefined ? <>Pagar com Mercado Pago · <span className="nowrap">{formatBRL(pay)}</span></> : "Pagar com Mercado Pago"}
+              {busy ? (native ? "Abrindo pagamento…" : "Abrindo o Mercado Pago…") : pay !== undefined ? <>{native ? "Continuar para pagamento" : "Pagar com Mercado Pago"} · <span className="nowrap">{formatBRL(pay)}</span></> : (native ? "Continuar para pagamento" : "Pagar com Mercado Pago")}
             </Button>
           </div>
-          <p className="app-p app-muted plano-nota">Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado.</p>
+          <p className="app-p app-muted plano-nota">{native ? "Você paga aqui no MemoriesMT, com Pix ou cartão. O plano libera assim que o pagamento for confirmado." : "Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado."}</p>
         </div>
       </div>
     </div>

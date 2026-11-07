@@ -28,7 +28,7 @@ const MP_URL = "https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=123-
 const ORDER: OrderView = { orderId: "7f3a21c9-0000-4000-8000-000000000000", status: "pendente", planCode: "casamento", amountCents: 18900, checkoutUrl: MP_URL, provider: "mercadopago", expiresAt: new Date(Date.now() + 29 * 60_000 + 41_000).toISOString() };
 
 beforeEach(() => { sessionStorage.clear(); Object.values(api).forEach((m) => m.mockReset()); nav.goToCheckout.mockReset(); window.history.replaceState(null, "", "/painel/ev1/plano"); });
-afterEach(() => { vi.useRealTimers(); });
+afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); });
 
 describe("TrustBlock", () => {
   it("Casamento: 250 olhares por R$ 0,76 cada e folga vinda do servidor", () => {
@@ -413,5 +413,18 @@ describe("página /painel/[id]/plano", () => {
     expect(screen.getByText("Até 250 convidados e 36 fotos cada, sem pagar nada. Presente de MemoriesMT.")).toBeInTheDocument();
     expect(screen.getByText("MMT-7KQ4-XR2P")).toBeInTheDocument();
     expect(screen.getByText("Ana & Rui · este evento")).toBeInTheDocument();
+  });
+});
+
+describe("escolha de plano no checkout transparente de produção", () => {
+  it("apresenta pagamento interno e mantém o plano escolhido sem anunciar Mercado Pago", async () => {
+    vi.stubEnv("NEXT_PUBLIC_VALIDAPAY_CHECKOUT", "1");
+    api.quote.mockResolvedValue({ planCode: "festa", fromPlanCode: null, amountCents: 2900, payable: true, reason: "ok" });
+    const onPay = vi.fn();
+    render(<PlanPicker eventId="ev1" plans={PLANS} currentCode="gratis" settings={SETTINGS} busy={false} onPay={onPay} onRedeemed={vi.fn()} initialPlan="festa" />);
+    const button = await screen.findByRole("button", { name: "Continuar para pagamento · R$ 29,00" });
+    expect(screen.queryByText(/Mercado Pago/)).not.toBeInTheDocument();
+    await userEvent.click(button);
+    expect(onPay).toHaveBeenCalledWith("festa");
   });
 });
