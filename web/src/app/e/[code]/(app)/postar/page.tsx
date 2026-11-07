@@ -5,8 +5,8 @@ import { Breadcrumbs, Button, Chip, Chips, Field, Progress } from "@/components/
 import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
-import { cameraPromptWhen, factsFromEvent } from "@/features/invitations/invite-copy";
-import { cameraHelp, fileToImage, isEmbeddedBrowser, renderPhoto } from "@/features/photos/capture";
+import { cameraFailure, photoAudienceCopy, cameraHelp, fileToImage, isEmbeddedBrowser, renderPhoto } from "@/features/photos/capture";
+import { clearPhotoDraft, loadPhotoDraft, savePhotoDraft, type PhotoDraft } from "@/features/photos/draft";
 import { postPhoto, release, retryDelayMs } from "@/features/photos/service";
 import { useAlive } from "@/lib/use-alive";
 import type { PhotoData } from "@/repositories";
@@ -15,13 +15,18 @@ import type { PhotoData } from "@/repositories";
  * permissao = pré-permissão (explica a câmera antes de pedir); negada = o navegador recusou; sem-camera = aparelho sem câmera ao vivo;
  * guardando = enviando; sem-sinal = o envio caiu e a mesma foto tenta de novo (mesma photoId).
  */
-type Phase = "iniciando" | "permissao" | "camera" | "negada" | "sem-camera" | "capturada" | "guardando" | "sem-sinal" | "publicada";
+type Phase = "iniciando" | "permissao" | "camera" | "negada" | "sem-camera" | "camera-ocupada" | "camera-interrompida" | "capturada" | "guardando" | "sem-sinal" | "publicada";
 const REMEMBER_KEY = "mm-camera-liberada";
 const remembered = () => { try { return localStorage.getItem(REMEMBER_KEY) === "1"; } catch { return false; } };
 const remember = () => { try { localStorage.setItem(REMEMBER_KEY, "1"); } catch { /* sem armazenamento: pergunta de novo da próxima vez */ } };
 const SUGGESTIONS = ["Alguém precisava registrar isso.", "Ninguém segurou a emoção.", "Quem viu, viu.", "Só daqui dá para ver."];
 
 export default function Postar() {
+  const { event, user } = useGuest();
+  return <PostarSession key={JSON.stringify([event.id, user.id])} />;
+}
+
+function PostarSession() {
   const { repos, now: clock } = useApp();
   const { event, user, participant, now, counts, refresh } = useGuest();
   const [phase, setPhase] = useState<Phase>("iniciando");
@@ -30,6 +35,7 @@ export default function Postar() {
   const [moment, setMoment] = useState(event.moments[0] ?? "Agora");
   const [caption, setCaption] = useState("");
   const [error, setError] = useState<string | undefined>();
+  const [denial, setDenial] = useState<string>();
   const [attempt, setAttempt] = useState(0);
   const [shot, setShot] = useState<{ data: PhotoData; url: string } | undefined>();
   const [retry, setRetry] = useState<{ n: number; at: number } | "esgotado" | undefined>();
@@ -44,14 +50,80 @@ export default function Postar() {
   const sending = useRef(false);
   const picked = useRef(false); // já há foto (câmera ou galeria): uma resposta tardia do navegador não pode trocar a tela
   const alive = useAlive();
+  const [draftReady, setDraftReady] = useState(false);
+  const [savedDraft, setSavedDraft] = useState<PhotoDraft>();
+  const [draftWarning, setDraftWarning] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
+  const draftPersisted = useRef(false);
+  const draftCreatedAt = useRef(clock());
+  const attempted = useRef(false);
+  const confirmed = useRef(false);
+  const persistence = useRef(Promise.resolve());
+  const persist = (draft: PhotoDraft) => {
+    const work = persistence.current.then(async () => {
+      const result = await savePhotoDraft(draft);
+      if (result.ok) draftPersisted.current = true;
+      if (alive.current) setDraftWarning(!result.ok);
+    });
+    persistence.current = work;
+    return work;
+  };
+  const snapshot = (): PhotoDraft | undefined => shot ? {
+    eventId: event.id, userId: user.id, createdAt: draftCreatedAt.current,
+    photoId: photoId.current, data: shot.data, caption, moment,
+    attempted: attempted.current, failures: failures.current, denial,
+  } : undefined;
 
-  const inFlight = phase === "guardando" || phase === "sem-sinal";
+  useEffect(() => {
+    let live = true;
+    void loadPhotoDraft(event.id, user.id, clock()).then((result) => {
+      if (!live) return;
+      setDraftWarning(!result.ok);
+      draftPersisted.current = !!result.draft;
+      setSavedDraft(result.draft);
+      setDraftReady(true);
+    });
+    return () => { live = false; };
+  }, [event.id, user.id, clock]);
+
+  useEffect(() => {
+    const draft = snapshot();
+    if (draft && !confirmed.current) void persist(draft);
+    // Byte e metadados são salvos na mesma fila antes de uma limpeza.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shot, caption, moment]);
+
+  useEffect(() => {
+    if (!shot || phase === "publicada") return;
+    const beforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    // Cancela o handler do roteador antes de restaurar o histórico após Voltar.
+    let restoring = false;
+    const popstate = (e: PopStateEvent) => {
+      if (restoring) { restoring = false; e.stopImmediatePropagation(); return; }
+      if (!window.confirm("Sua foto ainda não foi enviada. Sair desta tela?")) {
+        e.stopImmediatePropagation();
+        restoring = true;
+        window.history.go(1);
+      }
+    };
+    const navigate = (e: MouseEvent) => {
+      const a = (e.target as Element)?.closest?.("a[href]");
+      if (!a || a.getAttribute("href")?.startsWith("#") || a.getAttribute("target") === "_blank" || e.metaKey || e.ctrlKey || e.defaultPrevented) return;
+      if (!window.confirm("Sua foto ainda não foi enviada. Sair desta tela?")) { e.preventDefault(); e.stopPropagation(); }
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    document.addEventListener("click", navigate, true);
+    window.addEventListener("popstate", popstate, true);
+    return () => { window.removeEventListener("beforeunload", beforeUnload); document.removeEventListener("click", navigate, true); window.removeEventListener("popstate", popstate, true); };
+  }, [shot, phase]);
+
+  const inFlight = discarding || phase === "guardando" || phase === "sem-sinal";
   const used = counts.mine;
   const realLeft = shotsLeft(event, used);
   const left = inFlight && frozenLeft !== undefined ? frozenLeft : realLeft;
   const ended = eventStatus(event, now) === "encerrado";
   const noRoll = left !== null && left <= 0;
-  const blocked = !inFlight && (ended || noRoll);
+  const blocked = !!denial || (!inFlight && !shot && (ended || noRoll));
   const ua = typeof navigator === "undefined" ? "" : navigator.userAgent;
 
   const stop = useCallback(() => {
@@ -61,7 +133,7 @@ export default function Postar() {
 
   // 1) decide se pede a câmera já ou explica antes (pré-permissão)
   useEffect(() => {
-    if (blocked || armed) return;
+    if (blocked || armed || !draftReady || savedDraft || picked.current) return;
     let live = true;
     (async () => {
       if (!navigator.mediaDevices?.getUserMedia) return void (live && setPhase("sem-camera"));
@@ -73,11 +145,11 @@ export default function Postar() {
       else setPhase("permissao");
     })();
     return () => { live = false; };
-  }, [blocked, armed, attempt]);
+  }, [blocked, armed, attempt, draftReady, savedDraft]);
 
   // 2) abre a câmera depois da pré-permissão
   useEffect(() => {
-    if (blocked || !armed) return;
+    if (blocked || !armed || !draftReady || savedDraft || picked.current) return;
     let live = true;
     (async () => {
       try {
@@ -92,15 +164,14 @@ export default function Postar() {
         if (picked.current) return; // escolheu da galeria durante o play(): a tela já é a da prévia
         setPhase((p) => (p === "iniciando" ? "camera" : p));
       } catch (e) {
-        const name = e instanceof DOMException ? e.name : "";
-        if (live) setPhase(name === "NotFoundError" || name === "OverconstrainedError" ? "sem-camera" : "negada");
+        if (live && !picked.current) setPhase(cameraFailure(e));
       }
     })();
     return () => {
       live = false;
       stop();
     };
-  }, [facing, stop, blocked, armed, attempt]);
+  }, [facing, stop, blocked, armed, attempt, draftReady, savedDraft]);
 
   useEffect(() => () => shot && URL.revokeObjectURL(shot.url), [shot]);
 
@@ -117,6 +188,7 @@ export default function Postar() {
     setError(undefined);
     try {
       const data = await renderPhoto(v, v.videoWidth, v.videoHeight, event.cameraStyle, facing === "user");
+      if (!alive.current) return;
       setShot({ data, url: URL.createObjectURL(new Blob([data.bytes], { type: data.type })) });
       picked.current = true;
       stop();
@@ -132,6 +204,7 @@ export default function Postar() {
     try {
       const img = await fileToImage(file);
       const data = await renderPhoto(img, img.naturalWidth, img.naturalHeight, event.cameraStyle);
+      if (!alive.current) return;
       setShot({ data, url: URL.createObjectURL(new Blob([data.bytes], { type: data.type })) });
       picked.current = true;
       stop();
@@ -146,37 +219,67 @@ export default function Postar() {
     if (!shot || sending.current) return;
     sending.current = true;
     if (!resume) { failures.current = 0; setFrozenLeft(realLeft); }
+    attempted.current = true;
     setRetry(undefined);
     setError(undefined);
     setPhase("guardando");
     try {
+      const draft = snapshot();
+      if (draft) await persist(draft);
       const r = await postPhoto(repos, event, user, shot.data, { moment, caption, tableLabel: participant?.tableLabel }, clock(), { photoId: photoId.current, resume });
       if (!alive.current) return;
       if (r.ok) {
-        await refresh();
+        confirmed.current = true;
+        await persistence.current;
+        const cleared = await clearPhotoDraft(event.id, user.id);
+        if (!alive.current) return;
+        setDraftWarning(!cleared.ok);
+        if (cleared.ok) draftPersisted.current = false;
+        // Publicação confirmada não depende da atualização do contador.
+        void Promise.resolve().then(refresh).catch(() => undefined);
         setFrozenLeft(undefined);
         photoId.current = crypto.randomUUID();
+        setShot(undefined);
         setPhase("publicada");
         return;
       }
       if (r.reason === "rede") {
         failures.current += 1;
+        const draft = snapshot();
+        if (draft) await persist(draft);
+        if (!alive.current) return;
         const delay = retryDelayMs(failures.current);
         setPhase("sem-sinal");
         setSecsLeft(delay === null ? 0 : Math.ceil(delay / 1000));
         setRetry(delay === null ? "esgotado" : { n: failures.current, at: Date.now() + delay });
         return;
       }
-      photoId.current = crypto.randomUUID(); // a reserva foi liberada: a próxima tentativa é uma foto nova
+      const denied = r.reason === "bloqueado" || r.reason === "acesso" || r.reason === "nao-encontrado";
+      if (!denied) {
+        attempted.current = false;
+        photoId.current = crypto.randomUUID(); // a reserva foi liberada: a próxima tentativa é uma foto nova
+      }
       setFrozenLeft(undefined);
       setPhase("capturada");
-      setError(
+      const message =
         r.reason === "rolo" ? "Você usou todas as suas fotos deste evento."
         : r.reason === "encerrado" ? "O evento terminou. Não dá mais para postar."
         : r.reason === "arquivo" ? "Essa foto não pode ser postada. Tire outra."
+        : r.reason === "bloqueado" ? "Seu acesso para postar foi bloqueado pelo organizador."
+        : r.reason === "acesso" ? "Você não tem acesso para postar neste evento."
+        : r.reason === "nao-encontrado" ? "O evento ou envio não foi encontrado. Volte ao convite para conferir."
         : r.reason === "armazenamento" ? "Não deu para guardar a foto. Verifique o espaço livre no aparelho."
-        : "Não deu para enviar a foto. Tente de novo.",
-      );
+        : "Não deu para enviar a foto. Tente de novo.";
+      setError(message);
+      if (denied) setDenial(message);
+      const nextDraft = snapshot();
+      if (nextDraft) void persist({ ...nextDraft, denial: denied ? message : undefined });
+    } catch {
+      if (alive.current) {
+        setPhase("sem-sinal");
+        setRetry("esgotado");
+        setError("Não foi possível confirmar o envio. Tente agora com a mesma foto.");
+      }
     } finally {
       sending.current = false;
     }
@@ -202,26 +305,90 @@ export default function Postar() {
   }, [phase]);
 
   async function again() {
-    if (inFlight) await release(repos, photoId.current); // descarta a foto que não chegou a sair
-    photoId.current = crypto.randomUUID();
-    failures.current = 0;
-    setFrozenLeft(undefined);
-    setRetry(undefined);
-    picked.current = false;
-    setShot(undefined);
-    setCaption("");
-    setError(undefined);
-    setPhase("iniciando");
-    setAttempt((n) => n + 1);
+    if (sending.current) return;
+    sending.current = true;
+    setDiscarding(true);
+    try {
+      await persistence.current;
+      const cleared = await clearPhotoDraft(event.id, user.id);
+      if (!alive.current) return;
+      if (!cleared.ok && draftPersisted.current) {
+        setDraftWarning(true);
+        setError("Não foi possível apagar o rascunho. Tente descartar novamente.");
+        return;
+      }
+      // Se nada pôde ser persistido, a pessoa ainda pode descartar os bytes em memória.
+      setDraftWarning(!cleared.ok);
+      if (cleared.ok) draftPersisted.current = false;
+      if (attempted.current) await release(repos, photoId.current);
+      if (!alive.current) return;
+      attempted.current = false;
+      confirmed.current = false;
+      draftCreatedAt.current = clock();
+      photoId.current = crypto.randomUUID();
+      failures.current = 0;
+      setFrozenLeft(undefined);
+      setRetry(undefined);
+      picked.current = false;
+      setShot(undefined);
+      setCaption("");
+      setError(undefined);
+      setPhase("iniciando");
+      setAttempt((n) => n + 1);
+    } finally {
+      sending.current = false;
+      if (alive.current) setDiscarding(false);
+    }
   }
 
   const base = `/e/${event.code}`;
-  const facts = factsFromEvent(event, now);
+  const audienceCopy = photoAudienceCopy(event.everyoneSeesAll, isRevealed(event, now));
   const embedded = isEmbeddedBrowser(ua);
   const help = cameraHelp(ua);
   const choosing = phase === "iniciando" || phase === "camera";
-  const picking = phase === "permissao" || phase === "negada" || phase === "sem-camera";
+  const picking = phase === "permissao" || phase === "negada" || phase === "sem-camera" || phase === "camera-ocupada" || phase === "camera-interrompida";
   const pickGallery = () => galleryInput.current?.click();
+  function resumeDraft() {
+    if (!savedDraft) return;
+    picked.current = true;
+    photoId.current = savedDraft.photoId;
+    draftCreatedAt.current = savedDraft.createdAt;
+    attempted.current = savedDraft.attempted;
+    failures.current = savedDraft.failures;
+    setMoment(savedDraft.moment);
+    setCaption(savedDraft.caption);
+    setDenial(savedDraft.denial);
+    setShot({ data: savedDraft.data, url: URL.createObjectURL(new Blob([savedDraft.data.bytes], { type: savedDraft.data.type })) });
+    setPhase(savedDraft.attempted && !savedDraft.denial ? "sem-sinal" : "capturada");
+    if (savedDraft.attempted && !savedDraft.denial) setRetry("esgotado");
+    setSavedDraft(undefined);
+  }
+
+  async function discardDraft() {
+    if (!savedDraft || sending.current) return;
+    sending.current = true;
+    setDiscarding(true);
+    try {
+      const result = await clearPhotoDraft(event.id, user.id);
+      if (!alive.current) return;
+      if (!result.ok) { setDraftWarning(true); return; }
+      draftPersisted.current = false;
+      if (savedDraft.attempted) await release(repos, savedDraft.photoId);
+      if (alive.current) setSavedDraft(undefined);
+    } finally {
+      sending.current = false;
+      if (alive.current) setDiscarding(false);
+    }
+  }
+
+  if (!draftReady) return <p role="status">Buscando foto não enviada…</p>;
+  if (savedDraft) return <section className="app-screen app-stack">
+    <h1 className="titulo-tela app-h1">Você tem uma foto não enviada.</h1>
+    <p className="app-p">O rascunho fica neste aparelho por até 24 horas. Retomar não envia automaticamente.</p>
+    {draftWarning && <p role="alert">Não foi possível apagar o rascunho. Tente novamente.</p>}
+    <Button block disabled={discarding} onClick={resumeDraft}>Retomar foto</Button>
+    <Button block variant="secundario" disabled={discarding} onClick={() => void discardDraft()}>Descartar foto</Button>
+  </section>;
   return (
     <div className="app-screen" data-fase={phase}>
       <div className="app-between">
@@ -232,11 +399,18 @@ export default function Postar() {
       {phase === "publicada" ? (
         <div className="app-stack">
           <p className="emocao-lg app-emocao">Sua visão entrou na história.</p>
-          {!isRevealed(event, now) && <p className="corpo app-p app-muted" data-testid="guardada-no-escuro">Sua foto ficou guardada no escuro. Ela aparece para todos na revelação.</p>}
+          {draftWarning && <p role="alert">Foto enviada. Não foi possível apagar o rascunho local; ele pode reaparecer até expirar.</p>}
+          <p className="corpo app-p app-muted" data-testid={isRevealed(event, now) ? undefined : "guardada-no-escuro"}>{audienceCopy}</p>
           <div className="app-stack-sm">
             <Button href={`${base}/agora`} block>Ver no Agora</Button>
             {(left === null || left > 0) && <Button variant="secundario" block onClick={again}>Postar outra</Button>}
           </div>
+        </div>
+      ) : denial ? (
+        <div className="app-stack">
+          <p className="corpo app-p" role="alert">{denial}</p>
+          <Button href={`${base}/agora`} block>Voltar ao evento</Button>
+          {shot && <Button variant="secundario" block disabled={discarding} onClick={() => void again()}>Descartar foto</Button>}
         </div>
       ) : blocked ? (
         <div className="app-stack">
@@ -251,7 +425,7 @@ export default function Postar() {
               <p className="eyebrow app-eyebrow">Para começar</p>
               <h1 id="perm-h" className="titulo-tela app-h1">Libere a câmera</h1>
               <p className="emocao app-emocao">{left === null ? "Ela destrava as suas fotos" : `Ela destrava suas ${left} ${left === 1 ? "foto" : "fotos"}`}</p>
-              <p className="corpo app-p">Cada foto vai para o álbum da festa e aparece para todos {cameraPromptWhen(facts, now)}.</p>
+              <p className="corpo app-p">{audienceCopy}</p>
               <div className="app-stack-sm">
                 <Button variant="cta-xl" icon="camera" block onClick={allowCamera}>Liberar câmera</Button>
                 <Button variant="texto" block onClick={pickGallery}>Prefiro escolher da galeria</Button>
@@ -272,10 +446,11 @@ export default function Postar() {
               </div>
               {embedded && <p className="corpo app-p">Abriu pelo Instagram ou WhatsApp? Toque em ⋯ e escolha <strong>Abrir no navegador</strong>.</p>}
             </section>
-          ) : phase === "sem-camera" ? (
+          ) : phase === "sem-camera" || phase === "camera-ocupada" || phase === "camera-interrompida" ? (
             <section className="app-stack" aria-labelledby="sem-h">
-              <h1 id="sem-h" className="titulo-tela app-h1">Sem câmera por aqui.</h1>
+              <h1 id="sem-h" className="titulo-tela app-h1">{phase === "camera-ocupada" ? "A câmera está ocupada." : phase === "camera-interrompida" ? "A câmera não iniciou desta vez." : "Sem câmera por aqui."}</h1>
               <p className="corpo app-p">Este aparelho ou navegador não abriu a câmera ao vivo. Use a câmera do aparelho ou escolha uma foto da galeria.</p>
+              {phase !== "sem-camera" && <Button variant="secundario" block onClick={allowCamera}>Tentar a câmera de novo</Button>}
               <div className="app-stack-sm">
                 <Button variant="cta" icon="camera" block onClick={() => cameraInput.current?.click()}>Abrir a câmera do aparelho</Button>
                 <Button variant="secundario" block onClick={pickGallery}>Escolher da galeria</Button>
@@ -307,6 +482,7 @@ export default function Postar() {
             </div>
           )}
 
+          {draftWarning && <p className="app-p" role="alert">Não foi possível salvar o rascunho neste aparelho. Mantenha esta tela aberta até enviar; sair pode perder a foto.</p>}
           {error && <p className="mm-field-erro" role="alert">{error}</p>}
 
           {phase === "guardando" && (
@@ -319,7 +495,7 @@ export default function Postar() {
           {phase === "sem-sinal" && (
             <div className="app-stack-sm" role="status" aria-live="polite" data-testid="sem-sinal">
               <h2 className="titulo-tela app-h1">Sem sinal.</h2>
-              <p className="corpo app-p">Não feche esta tela: sua foto vai assim que a internet voltar.</p>
+              <p className="corpo app-p">Sua foto ainda não foi confirmada. Você pode tentar novamente com a mesma foto ou descartá-la.</p>
               <p className="app-p app-muted">
                 {retry === "esgotado" ? "Ainda sem conexão. Toque em Tentar agora quando a internet voltar." : retry ? `Tentativa ${retry.n} de 3 · próxima em ${secsLeft} s` : null}
               </p>
@@ -347,20 +523,21 @@ export default function Postar() {
                 <span className="mm-group-label" id="mom">Momento</span>
                 <Chips label="Momento">
                   {event.moments.map((m) => (
-                    <Chip key={m} variant="filtro" pressed={moment === m} onClick={() => setMoment(m)}>{m}</Chip>
+                    <Chip key={m} variant="filtro" pressed={moment === m} onClick={() => { if (!inFlight) setMoment(m); }}>{m}</Chip>
                   ))}
                 </Chips>
               </div>
               <Field label="Legenda (opcional)" value={caption} maxLength={140} placeholder="Ex.: Ninguém segurou a emoção." onChange={(e) => setCaption(e.target.value)} disabled={inFlight} />
               <Chips label="Sugestões de legenda">
                 {SUGGESTIONS.map((s) => (
-                  <Chip key={s} variant="sugestao" onClick={() => setCaption(s)}>{s}</Chip>
+                  <Chip key={s} variant="sugestao" onClick={() => { if (!inFlight) setCaption(s); }}>{s}</Chip>
                 ))}
               </Chips>
+              <p className="app-p app-muted">{audienceCopy}</p>
               <p className="app-p app-muted">Ao postar, você declara ter o direito de compartilhar a foto com as pessoas autorizadas neste evento.</p>
               <div className="app-stack-sm">
                 <Button variant="cta" icon="camera" block disabled={inFlight} onClick={() => void send(false)}>{phase === "guardando" ? "Enviando…" : "Postar"}</Button>
-                <Button variant="texto" onClick={() => void again()} disabled={phase === "guardando"}>{phase === "sem-sinal" ? "Descartar e tirar outra" : "Tirar outra"}</Button>
+                <Button variant="texto" onClick={() => void again()} disabled={phase === "guardando" || discarding}>{phase === "sem-sinal" ? "Descartar e tirar outra" : "Tirar outra"}</Button>
               </div>
             </div>
           )}

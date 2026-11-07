@@ -6,7 +6,7 @@ import { takeFault } from "@/lib/test-faults";
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
-export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" | "rede" | "falha" };
+export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" | "rede" | "falha" | "bloqueado" | "acesso" | "nao-encontrado" };
 
 export async function usedShots(repos: Repositories, eventId: string, userId: string): Promise<number> {
   return (await repos.events.counts(eventId, { userId, host: false })).mine;
@@ -39,17 +39,19 @@ function classify(e: unknown): "rede" | "armazenamento" | "falha" {
 }
 
 async function postLocked(repos: Repositories, event: MemoEvent, user: User, data: PhotoData, meta: { moment: string; caption?: string; tableLabel?: string }, now: number, opts: PostOptions): Promise<PostOutcome> {
-  if (!opts.resume) {
-    const verdict = canPost(event, await usedShots(repos, event.id, user.id), now);
-    if (!verdict.ok) return { ok: false, reason: verdict.reason };
-  }
   const photo: Photo = {
     id: opts.photoId ?? crypto.randomUUID(), eventId: event.id, authorId: user.id, authorName: user.name, createdAt: now,
     moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "enviando",
   };
+  let began = false;
   try {
+    if (!opts.resume) {
+      const verdict = canPost(event, await usedShots(repos, event.id, user.id), now);
+      if (!verdict.ok) return { ok: false, reason: verdict.reason };
+    }
     // envio em duas fases: a linha reserva o rolo, os bytes seguem, e só então a foto fica visível
     await repos.photos.begin(photo);
+    began = true;
     if (takeFault("attach")) throw new RepositoryError("unavailable", "falha de rede simulada");
     await repos.photos.attach(photo.id, data);
     const published = await repos.photos.finalize(photo.id);
@@ -58,9 +60,15 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
     // o servidor tem a palavra final sobre rolo e encerramento (AC-07): a recusa vira a mesma razão da interface
     if (e instanceof RepositoryError && e.code === "shot-limit") { await release(repos, photo.id); return { ok: false, reason: "rolo" }; }
     if (e instanceof RepositoryError && e.code === "event-ended") { await release(repos, photo.id); return { ok: false, reason: "encerrado" }; }
+    if (e instanceof RepositoryError) {
+      // `blocked` é compartilhado com o contrato MM015 da moderação.
+      const code: string = e.code;
+      const denial = code === "blocked" ? "bloqueado" : code === "forbidden" ? "acesso" : code === "not-found" ? "nao-encontrado" : undefined;
+      if (denial) return { ok: false, reason: denial };
+    }
     const reason = classify(e);
     // queda de rede: a reserva fica e a próxima tentativa usa a mesma photoId; os demais erros não deixam envio pela metade ocupando o rolo
-    if (reason !== "rede") await release(repos, photo.id);
+    if (reason !== "rede" && (began || opts.resume)) await release(repos, photo.id);
     return { ok: false, reason };
   }
 }

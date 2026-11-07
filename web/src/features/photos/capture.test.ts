@@ -53,3 +53,20 @@ describe("navegador embutido e ajuda da câmera negada", () => {
     expect(android.steps).toHaveLength(3);
   });
 });
+
+import { cameraFailure, photoAudienceCopy } from "./capture";
+describe("recuperação de câmera e público", () => {
+  it("distingue negativa, ausência, ocupação e interrupção", () => {
+    expect(cameraFailure(new DOMException("", "NotAllowedError"))).toBe("negada");
+    expect(cameraFailure(new DOMException("", "NotFoundError"))).toBe("sem-camera");
+    expect(cameraFailure(new DOMException("", "NotReadableError"))).toBe("camera-ocupada");
+    expect(cameraFailure(new DOMException("", "AbortError"))).toBe("camera-interrompida");
+    expect(cameraFailure(new Error("unknown"))).toBe("camera-interrompida");
+  });
+  it("público restrito inclui autor e organizador, e próprios ficam guardados antes de revelar", () => {
+    expect(photoAudienceCopy(false, false)).toMatch(/você e.*organizador/);
+    expect(photoAudienceCopy(false, false)).toMatch(/inclusive para você/);
+    expect(photoAudienceCopy(false, true)).not.toMatch(/todos|guardada/);
+    expect(photoAudienceCopy(true, true)).toMatch(/todos/);
+  });
+});
