@@ -109,7 +109,8 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
         const cur = photos.get(p.id);
         if (!cur) throw new RepositoryError("not-found", `Foto ${p.id} não existe`);
         if (opts?.expectedVersion !== undefined && cur.version !== opts.expectedVersion) throw new RepositoryError("conflict", `Foto ${p.id}: versão ${opts.expectedVersion} desatualizada (atual ${cur.version})`);
-        const saved = { ...clone(p), version: cur.version + 1 };
+        // Generic moderation cannot alter identity or publish a pending upload.
+        const saved = { ...cur, status: p.status, highlighted: p.highlighted, reports: p.reports, version: cur.version + 1 };
         photos.set(p.id, saved);
         return clone(saved);
       },

@@ -229,7 +229,8 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
           if (!cur) throw new RepositoryError("not-found", `Foto ${p.id} não existe`);
           const curV = cur.version ?? 1;
           if (opts?.expectedVersion !== undefined && curV !== opts.expectedVersion) throw new RepositoryError("conflict", `Foto ${p.id}: versão ${opts.expectedVersion} desatualizada (atual ${curV})`);
-          const saved = { ...p, version: curV + 1 };
+          // Generic moderation cannot alter identity or publish a pending upload.
+          const saved = { ...cur, status: p.status, highlighted: p.highlighted, reports: p.reports, version: curV + 1 };
           await tx.store.put(saved);
           await tx.done;
           return saved;

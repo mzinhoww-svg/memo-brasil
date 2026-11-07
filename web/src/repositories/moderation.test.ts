@@ -32,6 +32,21 @@ describe.each([['memory',createMemoryRepositories],['indexeddb',()=>createIndexe
   expect((await joinEvent(r,guest,event.code,guest.name,12)).ok).toBe(true);
   await expect(r.photos.begin({...photo,id:'allowed-photo'})).resolves.toBeDefined();
  });
+ it('generic updates preserve publication and identity while host moderation remains available',async()=>{
+  const r=make(); await r.events.save(event); await r.users.save(host);
+  await joinEvent(r,guest,event.code,guest.name,10); await r.photos.add(photo,data);
+  const pending=await r.photos.begin({...photo,id:'pending-update',caption:'Original',tableLabel:'Mesa 1'});
+  await r.photos.attach(pending.id,data); await removeGuest(r,event.id,guest.id);
+  await r.users.save(guest);
+  const saved=await r.photos.update({...pending,uploadStatus:'pronta',eventId:'another-event',authorId:host.id,authorName:host.name,createdAt:99,capturedAt:98,moment:'Changed',caption:'Changed',tableLabel:'Mesa 2'});
+  expect(saved).toMatchObject({...pending,version:pending.version+1});
+  expect((await r.photos.listByEvent(event.id)).map(p=>p.id)).toEqual([photo.id]);
+  await expect(r.photos.finalize(pending.id)).rejects.toMatchObject({code:'blocked'});
+  expect((await r.participants.get(event.id,guest.id))?.blockedAt).toEqual(expect.any(Number));
+  await r.users.save(host);
+  const moderated=await r.photos.update({...photo,status:'oculta',highlighted:true,reports:0});
+  expect(moderated).toMatchObject({eventId:event.id,authorId:guest.id,status:'oculta',highlighted:true,uploadStatus:'pronta'});
+ });
  it('another host cannot block or unblock participants',async()=>{
   const r=make();await r.events.save(event);await r.users.save(host);await joinEvent(r,guest,event.code,guest.name,10);
   await r.users.save({...host,id:'other'});
