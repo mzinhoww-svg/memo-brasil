@@ -11,7 +11,8 @@ import { useBrandImages } from "@/features/studio/useBrandImages";
 
 export default function Pronto() {
   const { id } = useParams<{ id: string }>();
-  const { event, loading } = useEventData({ id });
+  const { event, loading, error, refresh } = useEventData({ id });
+  const [retrying, setRetrying] = useState(false);
   const [qr, setQr] = useState<string | undefined>();
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -25,6 +26,14 @@ export default function Pronto() {
   }, [link]);
 
   if (loading) return <main className="app-col" aria-busy="true"><p className="app-screen app-muted" role="status">Preparando o convite…</p></main>;
+  if (!event && error) return (
+    <main className="app-col app-fluid"><div className="app-screen">
+      <h1 className="titulo-tela app-h1">Não deu para abrir o convite agora.</h1>
+      <p className="app-p" role="alert">{error === "forbidden" ? "Esta conta não tem acesso ao evento. Entre com a conta Google que o criou." : "Não conseguimos carregar o evento. Confira sua conexão e tente novamente."}</p>
+      <Button disabled={retrying} aria-busy={retrying} onClick={async () => { setRetrying(true); try { await refresh(); } catch { /* o aviso continua disponível para repetir */ } finally { setRetrying(false); } }} block>{retrying ? "Tentando novamente…" : "Tentar novamente"}</Button>
+      <Button href="/eventos" variant="secundario" block>Meus eventos</Button>
+    </div></main>
+  );
   if (!event) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Não achamos esse evento.</h1><Button href="/" block>Voltar ao início</Button></div></main>;
 
   const text = `Você foi convidado para "${event.title}" no MemoriesMT. Entre com o código ${event.code} ou pelo link: ${link}`;

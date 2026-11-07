@@ -7,6 +7,7 @@ import { Button, Cover, Icon, type IconName, KnownPeople, Signature, ThemeToggle
 import { useApp } from "@/features/app/provider";
 import { LivePricingLine } from "@/features/marketing/PricingLine";
 import { BackendNotice } from "@/features/app/backend-notice";
+import { safeNextPath } from "@/features/auth/safe-next";
 
 const STEPS: { icon: IconName; text: string }[] = [
   { icon: "explorar", text: "Aponta para o QR da mesa" },
@@ -16,14 +17,28 @@ const STEPS: { icon: IconName; text: string }[] = [
 
 /** Retorno do OAuth com falha (`/?erro=login`, vindo de auth/callback): aviso dispensável no topo (tela E6). */
 function LoginErrorBanner() {
-  const failed = useSearchParams().get("erro") === "login";
+  const search = useSearchParams();
+  const failed = search.get("erro") === "login";
+  const next = safeNextPath(search.get("next"));
+  const { signInWithGoogle } = useApp();
   const [closed, setClosed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  async function retry() {
+    if (busy) return;
+    setBusy(true);
+    try { await signInWithGoogle(next); } catch { /* mantém o aviso e a nova tentativa */ }
+    finally { setBusy(false); }
+  }
   if (!failed || closed) return null;
   return (
     <div className="app-banner" role="alert" style={{ color: "var(--rec-texto)", fontWeight: 600, justifyContent: "space-between", borderRadius: 0 }}>
       <span style={{ display: "flex", gap: "var(--space-3)", alignItems: "flex-start" }}>
         <Icon name="sem-sinal" decorative size={22} />
-        <span>Não conseguimos entrar com o Google. Tente de novo.</span>
+        <span className="app-stack-sm">
+          <span>Não conseguimos entrar com o Google. Tente de novo.</span>
+          <Button onClick={() => void retry()} disabled={busy} aria-busy={busy}>{busy ? "Entrando com o Google…" : "Tentar novamente com o Google"}</Button>
+          <Link href="/ajuda" className="mm-link">Ajuda para entrar</Link>
+        </span>
       </span>
       <button type="button" className="mm-btn mm-btn--texto" aria-label="Fechar aviso" onClick={() => setClosed(true)} style={{ minWidth: 44, minHeight: 44 }}>
         <Icon name="fechar" decorative size={20} />

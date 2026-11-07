@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Button, Logo, Signature } from "@/components/memoriesmt";
 import { ContactEmail } from "@/features/marketing/ContactEmail";
+import { publicPaymentMethod } from "@/features/marketing/payment-copy";
 
 export const metadata: Metadata = { title: "Ajuda" };
 
 const FAQ: { id: string; q: string; a: string }[] = [
   { id: "como", q: "Como funciona?", a: "O organizador cria o evento e divulga o QR Code. Cada convidado aponta a câmera, entra com seu nome e tira as fotos do seu rolo, sem baixar app. As fotos ficam guardadas e aparecem para todos juntas, na hora que o organizador escolher." },
   { id: "camera", q: "Câmera ou galeria?", a: "O melhor caminho é a câmera do aparelho, direto no navegador. Se a câmera não abrir ou você preferir, dá para escolher uma foto do aparelho. O número de fotos por pessoa é definido pelo organizador e aparece no rolo." },
-  { id: "revelacao", q: "Quando as fotos aparecem?", a: "Depende da revelação programada pelo organizador: na hora, ao terminar o evento ou em data e horário escolhidos. Até lá, cada convidado vê só as próprias fotos. A revelação controla a exibição pelo serviço, mas não impede quem já recebeu acesso de fazer capturas ou compartilhar uma cópia." },
+  { id: "revelacao", q: "Quando as fotos aparecem?", a: "Depende da revelação programada pelo organizador: na hora, ao terminar o evento ou em data e horário escolhidos. As fotos, inclusive as próprias, ficam guardadas até a revelação. Depois, a visibilidade depende das regras do evento. A revelação controla a exibição pelo serviço, mas não impede quem já recebeu acesso de fazer capturas ou compartilhar uma cópia." },
   { id: "privacidade", q: "Privacidade e guarda das fotos", a: "As fotos ficam disponíveis por 90 dias após o encerramento do evento; baixe o que quiser antes disso. Depois, o acesso é encerrado e a exclusão do armazenamento ativo ocorre em até 30 dias. Não usamos as fotos em publicidade nem para treinar modelos de inteligência artificial sem autorização específica e separada." },
-  { id: "preco", q: "Como funciona o pagamento?", a: "O evento nasce grátis, até 10 convidados. Se a festa for maior, você escolhe um plano e paga com Pix ou cartão, no Mercado Pago, uma vez por evento, sem assinatura. Os planos pagos só aparecem quando estiverem ativos. Veja a página de preços." },
+  { id: "preco", q: "Como funciona o pagamento?", get a() { return `O evento nasce grátis, até 10 convidados. Se a festa for maior, você escolhe um plano e paga ${publicPaymentMethod()}, uma vez por evento, sem assinatura. Os planos pagos só aparecem quando estiverem ativos. Veja a página de preços.`; } },
 ];
 
 export default function Ajuda() {

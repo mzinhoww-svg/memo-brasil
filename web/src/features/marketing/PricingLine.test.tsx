@@ -9,19 +9,19 @@ const P = (code: string, cents: number, free = false) => ({ code, name: code, ma
 beforeEach(() => { Object.values(api).forEach((m) => m.mockReset()); api.getPublicSettings.mockResolvedValue({ supportEmail: null, supportPhone: null, companyLegalName: null, companyCnpj: null, paymentsEnv: "sandbox", capacityGracePct: 10 }); });
 
 describe("PricingLine", () => {
-  it("sem fromPrice, só a frase grátis", () => {
+  it("sem fromPrice, mostra grátis e acesso aos preços", () => {
     render(<PricingLine />);
-    expect(screen.getByTestId("linha-preco")).toHaveTextContent(/^Grátis até 10 convidados\.$/);
+    expect(screen.getByTestId("linha-preco")).toHaveTextContent(/^Grátis até 10 convidados\. Ver planos e preços$/);
   });
   it("LivePricingLine: com pagos ativos usa o menor preço do catálogo", async () => {
     api.listPublicPlans.mockResolvedValue([P("gratis", 0, true), P("casamento", 18900), P("festa", 2900)]);
     render(<LivePricingLine />);
     expect(await screen.findByText(/Planos a partir de R\$ 29,00, pagos uma vez por evento\./)).toBeInTheDocument();
   });
-  it("LivePricingLine: só Grátis não menciona planos", async () => {
+  it("LivePricingLine: só Grátis não anuncia preço pago", async () => {
     api.listPublicPlans.mockResolvedValue([P("gratis", 0, true)]);
     render(<LivePricingLine />);
     await new Promise((r) => setTimeout(r, 20));
-    expect(screen.getByTestId("linha-preco")).toHaveTextContent(/^Grátis até 10 convidados\.$/);
+    expect(screen.getByTestId("linha-preco")).toHaveTextContent(/^Grátis até 10 convidados\. Ver planos e preços$/);
   });
 });
