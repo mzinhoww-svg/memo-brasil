@@ -5,7 +5,8 @@ import { createMemoryRepositories, createIndexedDbRepositories, RepositoryError 
 import { createSupabaseRepositories, toRepositoryError } from './supabase';
 import { removeGuest, unblockGuest } from '@/features/admin/service';
 import { joinEvent } from '@/features/participants/service';
-import { reportPhoto } from '@/features/photos/service';
+import { react, reportPhoto } from '@/features/photos/service';
+import { readEventScoped, readPhotoData } from '@/features/access/read';
 import type { SupabaseClient } from '@supabase/supabase-js';
 const host = { id: 'host', name: 'Host', createdAt: 1 };
 const guest = { id: 'guest', name: 'Ana', createdAt: 1 };
@@ -14,6 +15,53 @@ const photo: Photo = { id:'photo',eventId:event.id,authorId:guest.id,authorName:
 const data = { bytes: new Uint8Array([1]).buffer, type:'image/jpeg' };
 let seq=0;
 describe.each([['memory',createMemoryRepositories],['indexeddb',()=>createIndexedDbRepositories(`moderation-${seq++}`)]] as const)('persistent moderation %s',(_,make)=>{
+ it('blocked participants receive only the invite preview until the host unblocks them',async()=>{
+  const r=make(); await r.events.save(event); await r.users.save(host);
+  await joinEvent(r,guest,event.code,guest.name,10); await r.photos.add(photo,data);
+  await react(r,event,photo.id,guest.id,'amei',10);
+  await removeGuest(r,event.id,guest.id);
+
+  for (const key of [{code:event.code},{id:event.id}]) {
+   for (const role of ['convidado','organizador'] as const) {
+    const scoped=await readEventScoped(r,key,{userId:guest.id,role},11);
+    expect(scoped.access).toBe('convite');
+    expect(scoped.preview).toMatchObject({code:event.code,title:'Festa'});
+    expect(scoped.event).toBeUndefined();
+    expect(scoped.participants).toEqual([]);
+    expect(scoped.photos).toEqual([]);
+    expect(scoped.reactions).toEqual([]);
+    expect(scoped.counts).toEqual({mine:0,total:0});
+   }
+  }
+
+  await unblockGuest(r,event.id,guest.id);
+  const restored=await readEventScoped(r,{code:event.code},{userId:guest.id,role:'convidado'},12);
+  expect(restored.access).toBe('membro');
+  expect(restored.photos.map(p=>p.id)).toEqual([photo.id]);
+  expect(restored.reactions).toHaveLength(1);
+  expect(restored.counts).toEqual({mine:1,total:1});
+ });
+ it('blocked participants cannot read photo bytes while host and master moderation access is preserved',async()=>{
+  const r=make(); await r.events.save(event); await r.users.save(host);
+  await joinEvent(r,guest,event.code,guest.name,10); await r.photos.add(photo,data);
+  await r.photos.add({...photo,id:'host-photo',authorId:host.id,authorName:host.name},data);
+  await removeGuest(r,event.id,guest.id);
+
+  for (const role of ['convidado','organizador'] as const) {
+   for (const photoId of [photo.id,'host-photo']) {
+    expect(await readPhotoData(r,{userId:guest.id,role},event,photoId,11)).toBeUndefined();
+   }
+  }
+  for (const actor of [{userId:host.id,role:'organizador'},{userId:guest.id,role:'master'}] as const) {
+   const scoped=await readEventScoped(r,{id:event.id},actor,11);
+   expect(scoped.access).toBe('organizador');
+   expect(scoped.photos).toHaveLength(2);
+   expect(await readPhotoData(r,actor,event,photo.id,11)).toBeDefined();
+  }
+
+  await unblockGuest(r,event.id,guest.id);
+  expect(await readPhotoData(r,{userId:guest.id,role:'convidado'},event,photo.id,12)).toBeDefined();
+ });
  it('blocks rejoining/posting without erasing history; explicit host unblock restores participation',async()=>{
   const r=make();await r.events.save(event);await r.users.save(host);
   await joinEvent(r,guest,event.code,guest.name,10);await r.photos.add(photo,data);
