@@ -43,7 +43,7 @@ jobs:
       - name: Start disposable local PostgreSQL
         run: npx --yes supabase@3.0.0 db start
       - name: Validate migrations, RLS and financial transitions
-        run: npx --yes supabase@3.0.0 test db
+        run: node scripts/test-db.mjs
       - name: Stop local database
         if: always()
         run: npx --yes supabase@3.0.0 stop
