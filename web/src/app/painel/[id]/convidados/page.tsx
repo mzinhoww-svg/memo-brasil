@@ -59,8 +59,8 @@ export default function Convidados() {
           <p className="corpo app-p">A pessoa não poderá entrar nem postar com esta identidade até você desbloqueá-la. O histórico e as fotos dela continuam no álbum.</p>
           {error && <p role="alert" className="app-p">{error}</p>}
           <div className="app-stack-sm">
-            <Button variant="destrutivo" block disabled={busy} onClick={() => void moderate(removing)}>{busy ? "Bloqueando…" : "Bloquear acesso"}</Button>
             <Button variant="secundario" block disabled={busy} onClick={() => setRemoving(undefined)}>Voltar</Button>
+            <Button variant="destrutivo" block disabled={busy} onClick={() => void moderate(removing)}>{busy ? "Bloqueando…" : "Bloquear acesso"}</Button>
           </div>
         </Sheet>
       )}
