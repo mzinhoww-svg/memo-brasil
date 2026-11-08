@@ -75,3 +75,16 @@ export function cameraHelp(ua: string): { browser: string; steps: [string, strin
   const android = /Android/i.test(ua);
   return { browser: android ? "Chrome no Android" : "Chrome", steps: ["Toque no cadeado ao lado do endereço.", "Permissões › Câmera › Permitir.", "Volte aqui e toque abaixo."] };
 }
+
+export function cameraFailure(error: unknown): "negada" | "sem-camera" | "camera-ocupada" | "camera-interrompida" {
+  const name = error instanceof DOMException || error instanceof Error ? error.name : "";
+  if (name === "NotAllowedError" || name === "SecurityError") return "negada";
+  if (name === "NotFoundError" || name === "OverconstrainedError") return "sem-camera";
+  if (name === "NotReadableError" || name === "TrackStartError") return "camera-ocupada";
+  return "camera-interrompida";
+}
+
+export function photoAudienceCopy(everyoneSeesAll: boolean, revealed: boolean): string {
+  const audience = everyoneSeesAll ? "todos do evento" : "você e o organizador";
+  return revealed ? `A foto pode ser vista por ${audience}.` : `A foto fica guardada até a revelação, inclusive para você. Na revelação, pode ser vista por ${audience}.`;
+}

@@ -38,7 +38,7 @@ export async function readEventScoped(repos: Repositories, key: EventKey, actor:
 
   const isHost = can(actor, "photo.moderate", event);
   const member = actor.userId ? await repos.participants.get(event.id, actor.userId) : undefined;
-  if (!isHost && !member) {
+  if (!isHost && (!member || member.blockedAt !== undefined)) {
     return { access: "convite", preview: toPreview(event, now, await repos.participants.count(event.id)), ...EMPTY };
   }
 
@@ -55,7 +55,10 @@ export async function readPhotoData(repos: Repositories, actor: Actor, event: Me
   const photo = await repos.photos.get(photoId);
   if (!photo || photo.eventId !== event.id) return undefined;
   const isHost = can(actor, "photo.moderate", event);
-  if (!isHost && !(actor.userId && (await repos.participants.get(event.id, actor.userId)))) return undefined;
+  if (!isHost) {
+    const member = actor.userId ? await repos.participants.get(event.id, actor.userId) : undefined;
+    if (!member || member.blockedAt !== undefined) return undefined;
+  }
   if (visiblePhotos(event, [photo], { id: actor.userId ?? "", host: isHost }, now).length === 0) return undefined;
   return repos.photos.getData(photoId);
 }

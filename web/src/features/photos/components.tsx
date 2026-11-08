@@ -23,6 +23,8 @@ export function PhotoReactions({ photo, reactions, userId, onReact }: { photo: P
 /** "Mais opções, incluindo pedir para remover". O pedido vai para a fila de moderação do anfitrião. */
 export function MoreSheet({ onReport, onClose, onDownload, editHref, reactors }: { onReport: () => Promise<void>; onClose: () => void; onDownload?: () => Promise<boolean>; editHref?: string; reactors?: { name: string; label: string }[] }) {
   const [sent, setSent] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [reportError, setReportError] = useState(false);
   const [saved, setSaved] = useState<"ok" | "falhou" | undefined>();
   return (
     <Sheet title="Mais opções" onClose={onClose}>
@@ -36,8 +38,15 @@ export function MoreSheet({ onReport, onClose, onDownload, editHref, reactors }:
       {onDownload && <Button variant="secundario" icon="baixar" block onClick={async () => setSaved((await onDownload().catch(() => false)) ? "ok" : "falhou")}>Baixar foto</Button>}
       <p className="app-p" role="status">{saved === "ok" ? "Foto baixada." : saved === "falhou" ? "Não deu para baixar essa foto. Tente de novo." : ""}</p>
       {sent ? <p className="corpo app-p">Pedido enviado. O anfitrião vai analisar.</p> : <p className="corpo app-p app-muted">Essa foto não deveria estar aqui? Peça para remover.</p>}
+      {reportError && <p className="app-p" role="alert">Não deu para enviar o pedido. Tente de novo.</p>}
       <div className="app-stack-sm">
-        {!sent && <Button variant="destrutivo" block onClick={async () => { await onReport(); setSent(true); }}>Pedir para remover</Button>}
+        {!sent && <Button variant="destrutivo" block disabled={reporting} onClick={async () => {
+          if (reporting) return;
+          setReporting(true); setReportError(false);
+          try { await onReport(); setSent(true); }
+          catch { setReportError(true); }
+          finally { setReporting(false); }
+        }}>{reporting ? "Enviando pedido…" : "Pedir para remover"}</Button>}
         <Button variant="secundario" block onClick={onClose}>{sent ? "Fechar" : "Voltar"}</Button>
       </div>
     </Sheet>

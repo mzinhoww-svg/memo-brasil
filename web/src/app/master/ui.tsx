@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { PAGE_SIZE, pageNumber, type ListSearch } from "./pagination";
 import type { ReactNode } from "react";
 import type { Load } from "./data";
 
@@ -25,4 +27,24 @@ export function Table({ cols, rows, vazio }: { cols: { k: string; h: string; num
       </table>
     </div>
   );
+}
+
+export function ListSearchForm({ q }: { q?: string }) {
+  return <form method="get" role="search" style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+    <label className="mm-field-label">Buscar <input name="q" className="mm-field-input" defaultValue={q} maxLength={80} /></label>
+    <button type="submit" className="mm-btn mm-btn--secundario">Buscar</button>
+  </form>;
+}
+export function ListPagination({ total, sp, pageKey = "p", label = "Paginação" }: { total: number; sp: ListSearch; pageKey?: "p" | "i"; label?: string }) {
+  const page = pageNumber(sp[pageKey]);
+  const link = (n: number) => {
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries({ ...sp, [pageKey]: String(n) })) if (v) qs.set(k, v);
+    return `?${qs}`;
+  };
+  return <nav aria-label={label} style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 16 }}>
+    {page > 1 && <Link href={link(page - 1)}>← Anterior</Link>}
+    <span>Página {page} de {Math.max(1, Math.ceil(total / PAGE_SIZE))} · {total} registros · {total ? Math.min((page - 1) * PAGE_SIZE + 1, total) : 0}–{Math.min(page * PAGE_SIZE, total)}</span>
+    {page * PAGE_SIZE < total && <Link href={link(page + 1)}>Próxima →</Link>}
+  </nav>;
 }

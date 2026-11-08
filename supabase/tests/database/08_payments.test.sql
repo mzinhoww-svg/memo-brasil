@@ -183,7 +183,7 @@ select tests.login('00000000-0000-4000-8000-0000000008a1');
 select is(public.payments_order_status(:'o1'::uuid) ->> 'status', 'pago', 'order_status pago');
 select ok(public.payments_order_status(:'o1'::uuid) ->> 'paidAt' is not null, 'order_status traz paidAt');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.payments_order_status(:'o1'::uuid)) k),
-  array['amountCents', 'checkoutUrl', 'expiresAt', 'orderId', 'paidAt', 'paymentMethod', 'planCode', 'provider', 'status'], 'chaves de order_status');
+  array['amountCents', 'checkoutUrl', 'entitlementActive', 'expiresAt', 'needsRefund', 'orderId', 'paidAt', 'paymentMethod', 'planCode', 'provider', 'status'], 'chaves de order_status');
 select public.payments_open_order('00000000-0000-4000-8000-0000000008e1', 'casamento', '44444444-4444-4444-8444-444444444444') ->> 'orderId' as o1b \gset
 reset role;
 update public.plans set price_cents = 20000 where code = 'casamento';

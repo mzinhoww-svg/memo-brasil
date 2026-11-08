@@ -39,7 +39,7 @@ const CLOUD: ModeCopy = {
   errorBody: "Algo deu errado. Suas fotos enviadas estão guardadas.",
   offlineBody: "Suas fotos enviadas estão guardadas. Tente de novo quando o sinal voltar.",
   storageBanner: "Este navegador não deixou guardar os dados. Libere espaço ou saia do modo privado e tente de novo.",
-  downloadsSaved: (saved) => `Baixamos ${plural(saved)}.`,
+  downloadsSaved: (saved, missing) => missing ? `Baixamos ${saved} de ${saved + missing} fotos. ${missing} não puderam ser incluídas. Tente de novo para completar o álbum.` : `Baixamos ${plural(saved)}.`,
   downloadsNote: "O álbum reúne as fotos do evento que ainda não foram removidas.",
   deleteQuestion: "Excluir este evento e todas as fotos?",
   deleteBody: "As fotos e reações deste evento serão apagadas. Não dá para desfazer.",

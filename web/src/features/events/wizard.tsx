@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Breadcrumbs, Button, Chip, Chips, Field, GoogleButton, OptionGroup, Progress, Select, Signature } from "@/components/memoriesmt";
 import { CATEGORY_LABEL, MIN_DURATION_HOURS, type EventCategory } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
@@ -14,7 +14,7 @@ import { REVEAL_CHOICES, buildRevealInput, type RevealChoice } from "./reveal-ch
 import { hostFallbackName, suggestEventNames } from "./name-suggestions";
 import { clearPendingCode, freeShots, hasPaidPlans, planForShots, readPendingCode } from "./plan-catalog";
 import { PAID_PLAN_LINE, PlanStep } from "./PlanStep";
-import { afterCreateDestination } from "./after-create";
+import { afterCreateDestination, type AfterCreate } from "./after-create";
 import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CodeApplied, REDEEM_TEXT, RedeemCode, redeemMessage } from "@/features/billing/RedeemCode";
 import { formatBRL, getPublicSettings, listPublicPlans, redeemCode } from "@/features/billing/api";
@@ -28,6 +28,7 @@ const STEPS = ["Nome", "Quando", "Fotos", "Convidados"] as const;
 const DURATIONS = [1, 3, 6, 12, 24, 48];
 const SHOTS_CHOICES = [10, 16, 24, 36];
 const OTHER_DATE = -1;
+type CreatedEvent = { eventId: string; title: string; paid: boolean; destination: AfterCreate; ready: boolean };
 
 const toLocalInput = (ts: number) => {
   const d = new Date(ts - new Date(ts).getTimezoneOffset() * 60_000);
@@ -58,6 +59,41 @@ export function CreateWizard() {
   const [errors, setErrors] = useState<{ title?: string; termino?: string; create?: string }>({});
   const [revealErrors, setRevealErrors] = useState<RevealErrors | undefined>();
   const [busy, setBusy] = useState(false);
+  const creating = useRef(false);
+  const createdResult = useRef<CreatedEvent | null>(null);
+  const [created, setCreated] = useState<CreatedEvent | null>(null);
+  const [handoffError, setHandoffError] = useState<string>();
+  const navigating = useRef(false);
+
+  function retainCreated(result: CreatedEvent) {
+    createdResult.current = result;
+    setCreated(result);
+  }
+
+  function recoverHandoff() {
+    const result = createdResult.current;
+    if (!result) return false;
+    retainCreated({ ...result, ready: true });
+    setHandoffError("Seu evento já foi criado. Não conseguimos abrir a próxima página. Tente continuar novamente.");
+    return true;
+  }
+
+  function continueCreated() {
+    const result = createdResult.current;
+    if (!result?.ready || navigating.current) return;
+    navigating.current = true;
+    setBusy(true);
+    setHandoffError(undefined);
+    try {
+      if (result.destination.kind === "checkout") goToCheckout(result.destination.url);
+      else router.push(result.destination.href);
+    } catch {
+      recoverHandoff();
+    } finally {
+      navigating.current = false;
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -78,7 +114,8 @@ export function CreateWizard() {
     const e: typeof errors = {};
     if (step === 0 && !title.trim()) e.title = "Escolha o nome do evento. Todos os convidados vão ver.";
     if (step === 1) {
-      if (durationHours() < MIN_DURATION_HOURS) e.termino = "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.";
+      if (otherDate && (untilMs === undefined || !Number.isFinite(untilMs))) e.termino = "Escolha a data e o horário para o fim da festa.";
+      else if (!Number.isFinite(durationHours()) || durationHours() < MIN_DURATION_HOURS) e.termino = "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.";
       else {
         const r = resolveReveal(revealInput(), endMs(), now());
         setRevealErrors(r.ok ? undefined : r.errors);
@@ -91,48 +128,65 @@ export function CreateWizard() {
 
   async function create() {
     if (!acceptedTerms || !ackedPrivacy) return setErrors({ create: CONSENT_REQUIRED });
+    if (creating.current || createdResult.current) return;
+    if (otherDate && (untilMs === undefined || !Number.isFinite(untilMs))) {
+      setStep(1);
+      return setErrors({ termino: "Escolha a data e o horário para o fim da festa." });
+    }
+    creating.current = true;
     setBusy(true);
-    const me = await signIn(hostName);
-    if (backend === "supabase") {
-      try { await recordConsent(currentConsent("organizador", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); } catch { setBusy(false); return setErrors({ create: CONSENT_FAILED }); }
-    }
-    const startNow = now();
-    const hoursNow = resolveDuration({ untilMs: otherDate ? untilMs : undefined, presetHours: hours }, startNow);
-    const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, startNow + hoursNow * 3_600_000, { date: revDate, time: revTime, timezone }), desiredShots });
-    const r = await createEvent(repos, me, input, startNow);
-    setBusy(false);
-    if (!r.ok) {
-      if (r.errors.reveal) {
-        setRevealErrors(r.errors.reveal);
-        setStep(1);
+    setErrors({});
+    try {
+      const me = await signIn(hostName);
+      if (backend === "supabase") {
+        try { await recordConsent(currentConsent("organizador", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); } catch { return setErrors({ create: CONSENT_FAILED }); }
       }
-      return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
-    }
-    const chosen = plans?.find((p) => p.code === planCode);
-    const eventId = r.event.id;
-    if (pendingCode) {
-      // o evento já existe: o código nunca impede a criação; a recusa aparece em B8, com mensagem neutra
-      clearPendingCode();
-      let outcome: NonNullable<typeof codeOutcome>;
-      try {
-        const red = await redeemCode(eventId, pendingCode);
-        outcome = red.applied && red.reason === "ok"
-          ? { eventId, eventTitle: r.event.title, code: pendingCode, applied: plans?.find((p) => p.code === red.planCode) ?? "sem-plano" }
-          : { eventId, eventTitle: r.event.title, code: pendingCode, applied: null, error: red.reason === "ok" ? undefined : redeemMessage(red.reason) };
-      } catch {
-        outcome = { eventId, eventTitle: r.event.title, code: pendingCode, applied: null, error: REDEEM_TEXT.falha };
+      const startNow = now();
+      const hoursNow = resolveDuration({ untilMs: otherDate ? untilMs : undefined, presetHours: hours }, startNow);
+      const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, startNow + hoursNow * 3_600_000, { date: revDate, time: revTime, timezone }), desiredShots });
+      const r = await createEvent(repos, me, input, startNow);
+      if (!r.ok) {
+        if (r.errors.reveal) {
+          setRevealErrors(r.errors.reveal);
+          setStep(1);
+        }
+        return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
       }
-      return setCodeOutcome(outcome);
-    }
-    if (chosen && !chosen.isFree) {
-      // plano pago escolhido: vai direto ao checkout (o botão fica ocupado até a página trocar)
-      setBusy(true);
-      const dest = await afterCreateDestination(eventId, chosen.code);
-      if (dest.kind === "checkout") return goToCheckout(dest.url);
+      const chosen = plans?.find((p) => p.code === planCode);
+      const eventId = r.event.id;
+      const paid = !!chosen && !chosen.isFree;
+      // A identidade salva é terminal: retomar a saída nunca repete a criação ou o pedido.
+      const result: CreatedEvent = {
+        eventId, title: r.event.title, paid, ready: !paid,
+        destination: { kind: "plan", href: paid ? `/painel/${eventId}/plano?plano=${encodeURIComponent(chosen.code)}` : `/criar/pronto/${eventId}` },
+      };
+      retainCreated(result);
+      if (pendingCode) {
+        // o evento já existe: o código nunca impede a criação; a recusa aparece em B8, com mensagem neutra
+        clearPendingCode();
+        let outcome: NonNullable<typeof codeOutcome>;
+        try {
+          const red = await redeemCode(eventId, pendingCode);
+          outcome = red.applied && red.reason === "ok"
+            ? { eventId, eventTitle: r.event.title, code: pendingCode, applied: plans?.find((p) => p.code === red.planCode) ?? "sem-plano" }
+            : { eventId, eventTitle: r.event.title, code: pendingCode, applied: null, error: red.reason === "ok" ? undefined : redeemMessage(red.reason) };
+        } catch {
+          outcome = { eventId, eventTitle: r.event.title, code: pendingCode, applied: null, error: REDEEM_TEXT.falha };
+        }
+        return setCodeOutcome(outcome);
+      }
+      if (chosen && !chosen.isFree) {
+        // plano pago escolhido: encaminha ao checkout do provedor vigente
+        const dest = await afterCreateDestination(eventId, chosen.code);
+        retainCreated({ ...result, destination: dest, ready: true });
+      }
+      continueCreated();
+    } catch {
+      if (!recoverHandoff()) setErrors({ create: "Não deu para criar o evento. Confira sua conexão e tente de novo." });
+    } finally {
+      if (!createdResult.current) creating.current = false;
       setBusy(false);
-      return router.push(dest.href);
     }
-    router.push(`/criar/pronto/${eventId}`);
   }
 
   const resolved = step === 1 ? resolveReveal(revealInput(), endMs(), now()) : undefined;
@@ -163,6 +217,17 @@ export function CreateWizard() {
     );
   }
 
+  if (created) return (
+    <div className="app-screen app-stack">
+      <h1 className="titulo-tela app-h1">Evento criado.</h1>
+      <p className="app-p">{created.title} já está salvo. Se a próxima página não abrir, continue por aqui.</p>
+      {handoffError && <p className="mm-field-erro" role="alert">{handoffError}</p>}
+      <Button block disabled={busy || !created.ready} aria-busy={busy} onClick={continueCreated}>{busy ? "Preparando a próxima página…" : created.paid ? "Continuar para o pagamento" : "Continuar para o convite"}</Button>
+      {created.paid && <Button href={`/criar/pronto/${created.eventId}`} variant="secundario" block>Ver o convite e o QR</Button>}
+      <Button href="/eventos" variant="texto">Meus eventos</Button>
+    </div>
+  );
+
   // na nuvem só o organizador com conta cria evento (RLS recusa convidado anônimo); a entrada é pelo Google
   if (ready && backend === "supabase" && !canCreate) {
     return (
@@ -183,7 +248,7 @@ export function CreateWizard() {
         <Progress variant="evento" label={`Passo ${step + 1} de ${STEPS.length}`} status={STEPS[step]} value={((step + 1) / STEPS.length) * 100} />
       </div>
 
-      <form className="app-stack" noValidate onSubmit={(e) => { e.preventDefault(); if (last) void create(); else next(); }}>
+      <form className="app-stack" aria-busy={busy} noValidate onSubmit={(e) => { e.preventDefault(); if (last) void create(); else next(); }}>
         {step === 0 && (
           <>
             <h1 className="titulo-tela app-h1">Como se chama a festa?</h1>
@@ -204,7 +269,7 @@ export function CreateWizard() {
           <>
             <h1 className="titulo-tela app-h1">Quando a festa acaba?</h1>
             <OptionGroup<number> label="Termina em" value={otherDate ? OTHER_DATE : hours} onChange={(v) => { if (v === OTHER_DATE) setOtherDate(true); else { setOtherDate(false); setHours(v); } setErrors((x) => ({ ...x, termino: undefined })); }} options={[...DURATIONS.map((h) => ({ value: h, label: h === 1 ? "1 hora" : `${h} horas` })), { value: OTHER_DATE, label: "Outra data" }]} />
-            {otherDate && <Field label="Escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => { setUntil(e.target.value); setErrors((x) => ({ ...x, termino: undefined })); }} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." />}
+            {otherDate && <div role={errors.termino ? "alert" : undefined}><Field label="Escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => { setUntil(e.target.value); setErrors((x) => ({ ...x, termino: undefined })); }} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." /></div>}
             {!otherDate && errors.termino && <p className="mm-field-erro" role="alert">{errors.termino}</p>}
             <OptionGroup<RevealChoice> label="E quando as fotos aparecem?" value={choice} onChange={(c) => { setChoice(c); setRevealErrors(undefined); }} options={REVEAL_CHOICES} />
             {choice === "dia" && (
@@ -232,9 +297,9 @@ export function CreateWizard() {
         {step === 2 && (
           <>
             <h1 className="titulo-tela app-h1">Quantas fotos cada pessoa tira?</h1>
-            <p className="app-p app-muted">Como num filme: poucas fotos fazem cada uma valer.</p>
+            <p className="app-p app-muted">Escolha a quantidade desejada para receber uma recomendação de plano. Como num filme: poucas fotos fazem cada uma valer.</p>
             <div className="app-card" style={{ background: "var(--tinta)", color: "var(--fundo)" }} aria-live="polite">
-              <span className="titulo-tela" data-testid="contador-previa"><strong style={{ fontSize: 40 }}>{desiredShots}</strong> FOTOS RESTANTES</span>
+              <span className="titulo-tela" data-testid="contador-previa"><strong style={{ fontSize: 40 }}>{desiredShots}</strong> FOTOS DESEJADAS</span>
             </div>
             <div className="mm-group" role="group" aria-label="Fotos por pessoa">
               <div className="mm-opts" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
@@ -262,15 +327,23 @@ export function CreateWizard() {
           <>
             <h1 className="titulo-tela app-h1">Quantos convidados vão fotografar?</h1>
             <PlanStep plans={plans} settings={settings} selected={planCode} onSelect={setPlanCode} pendingCode={pendingCode} />
+            <p className="app-p" role="status">Limite ao criar: {WIZARD_DEFAULTS.shots} fotos por pessoa no Grátis. Você deseja {desiredShots}.</p>
+            {shotsPlan && (
+              <div className="app-card">
+                <p className="app-p">Para {desiredShots} fotos por pessoa, recomendamos {shotsPlan.name} ({formatBRL(shotsPlan.priceCents)}). O limite aumenta depois da confirmação do pagamento.</p>
+                <Button variant="secundario" onClick={() => setPlanCode(shotsPlan.code)}>Escolher {shotsPlan.name}</Button>
+              </div>
+            )}
+            {planCode !== "gratis" && <p className="app-p app-muted">O plano escolhido só será ativado após o pagamento; até lá, valem os limites do Grátis.</p>}
             <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); setErrors((e) => ({ ...e, create: undefined })); }} onPrivacy={(v) => { setAckedPrivacy(v); setErrors((e) => ({ ...e, create: undefined })); }} />
             {errors.create && <p className="mm-field-erro" role="alert">{errors.create}</p>}
           </>
         )}
 
         <div className="app-stack-sm">
-          <Button type="submit" variant="primario" block disabled={busy}>{last ? "Criar evento" : "Continuar"}</Button>
+          <Button type="submit" variant="primario" block disabled={busy}>{busy ? "Criando evento…" : last ? "Criar evento" : "Continuar"}</Button>
           {last && hasPaidPlans(catalog) && <p className="app-p app-muted">{PAID_PLAN_LINE}</p>}
-          {step > 0 && <Button variant="texto" onClick={() => setStep(step - 1)}>Voltar</Button>}
+          {step > 0 && <Button variant="texto" disabled={busy} onClick={() => setStep(step - 1)}>Voltar</Button>}
         </div>
       </form>
       <div style={{ marginTop: "auto" }}><Signature /></div>

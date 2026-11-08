@@ -6,7 +6,7 @@ import { takeFault } from "@/lib/test-faults";
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
-export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" | "rede" | "falha" };
+export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" | "rede" | "falha" | "bloqueado" | "acesso" | "nao-encontrado" };
 
 export async function usedShots(repos: Repositories, eventId: string, userId: string): Promise<number> {
   return (await repos.events.counts(eventId, { userId, host: false })).mine;
@@ -39,15 +39,15 @@ function classify(e: unknown): "rede" | "armazenamento" | "falha" {
 }
 
 async function postLocked(repos: Repositories, event: MemoEvent, user: User, data: PhotoData, meta: { moment: string; caption?: string; tableLabel?: string }, now: number, opts: PostOptions): Promise<PostOutcome> {
-  if (!opts.resume) {
-    const verdict = canPost(event, await usedShots(repos, event.id, user.id), now);
-    if (!verdict.ok) return { ok: false, reason: verdict.reason };
-  }
   const photo: Photo = {
     id: opts.photoId ?? crypto.randomUUID(), eventId: event.id, authorId: user.id, authorName: user.name, createdAt: now,
     moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "enviando",
   };
   try {
+    if (!opts.resume) {
+      const verdict = canPost(event, await usedShots(repos, event.id, user.id), now);
+      if (!verdict.ok) return { ok: false, reason: verdict.reason };
+    }
     // envio em duas fases: a linha reserva o rolo, os bytes seguem, e só então a foto fica visível
     await repos.photos.begin(photo);
     if (takeFault("attach")) throw new RepositoryError("unavailable", "falha de rede simulada");
@@ -56,18 +56,19 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
     return { ok: true, photo: published };
   } catch (e) {
     // o servidor tem a palavra final sobre rolo e encerramento (AC-07): a recusa vira a mesma razão da interface
-    if (e instanceof RepositoryError && e.code === "shot-limit") { await release(repos, photo.id); return { ok: false, reason: "rolo" }; }
-    if (e instanceof RepositoryError && e.code === "event-ended") { await release(repos, photo.id); return { ok: false, reason: "encerrado" }; }
+    if (e instanceof RepositoryError && e.code === "shot-limit") return { ok: false, reason: "rolo" };
+    if (e instanceof RepositoryError && e.code === "event-ended") return { ok: false, reason: "encerrado" };
+    if (e instanceof RepositoryError) {
+      // `blocked` é compartilhado com o contrato MM015 da moderação.
+      const code: string = e.code;
+      const denial = code === "blocked" ? "bloqueado" : code === "forbidden" ? "acesso" : code === "not-found" ? "nao-encontrado" : undefined;
+      if (denial) return { ok: false, reason: denial };
+    }
     const reason = classify(e);
-    // queda de rede: a reserva fica e a próxima tentativa usa a mesma photoId; os demais erros não deixam envio pela metade ocupando o rolo
-    if (reason !== "rede") await release(repos, photo.id);
+    // Uma resposta perdida pode seguir uma publicação confirmada. Nunca DELETE aqui:
+    // a mesma identidade permite retomar; reservas pendentes ficam para a expiração existente.
     return { ok: false, reason };
   }
-}
-
-/** Descarta o envio inacabado (best effort: sem rede a limpeza fica para `expirePending`). */
-export async function release(repos: Repositories, photoId: string): Promise<void> {
-  await repos.photos.remove(photoId).catch(() => undefined);
 }
 
 export async function loadFeed(repos: Repositories, event: MemoEvent, viewer: Viewer, now: number): Promise<Photo[]> {
@@ -96,6 +97,7 @@ export async function expirePending(repos: Repositories, eventId: string, now: n
 }
 
 export async function reportPhoto(repos: Repositories, photoId: string): Promise<Photo | undefined> {
+  if (repos.photos.report) { await repos.photos.report(photoId); return undefined; }
   return withLock(`denuncia:${photoId}`, async () => {
     try {
       return await retryOnConflict(async () => {

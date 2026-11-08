@@ -30,6 +30,7 @@ export function SiteFooter() {
   return (
     <footer className="app-col app-col--card app-fluid mm-rodape" aria-label="Rodapé">
       <nav className="app-row" aria-label="Links do rodapé" style={{ flexWrap: "wrap", gap: "var(--space-4)", justifyContent: "center" }}>
+        <Link href="/precos" className="mm-link">Preços</Link>
         <Link href="/termos" className="mm-link">Termos</Link>
         <Link href="/privacidade" className="mm-link">Privacidade</Link>
         <Link href="/ajuda" className="mm-link">Ajuda</Link>

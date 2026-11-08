@@ -52,5 +52,15 @@ export async function guestRanking(repos: Repositories, e: MemoEvent): Promise<{
 }
 
 export async function removeGuest(repos: Repositories, eventId: string, userId: string): Promise<void> {
-  await repos.participants.remove(eventId, userId);
+  await blockGuest(repos, eventId, userId);
+}
+
+export async function blockGuest(repos: Repositories, eventId: string, userId: string): Promise<void> {
+  if (!repos.participants.setBlocked) throw new RepositoryError("unavailable", "Moderação indisponível");
+  await repos.participants.setBlocked(eventId, userId, true);
+}
+
+export async function unblockGuest(repos: Repositories, eventId: string, userId: string): Promise<void> {
+  if (!repos.participants.setBlocked) throw new RepositoryError("unavailable", "Moderação indisponível");
+  await repos.participants.setBlocked(eventId, userId, false);
 }

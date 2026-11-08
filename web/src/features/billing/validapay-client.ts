@@ -1,7 +1,11 @@
 import { browserSupabase } from "@/lib/supabase/client";
 export type ValidaPayEnvironment = "sandbox" | "production";
-export type SandboxReceipt = { orderId: string; environment: ValidaPayEnvironment; status: string; canAbandon: boolean; amountCents: number; planCode: string; paymentMethod?: string; expiresAt?: string; emv?: string };
+export type SandboxReceipt = { orderId: string; environment: ValidaPayEnvironment; status: string; canAbandon: boolean; amountCents: number; planCode: string; paymentMethod?: string; expiresAt?: string; emv?: string; needsRefund?: boolean; entitlementActive?: boolean };
 export type SandboxConfig = { enabled: boolean; environment: ValidaPayEnvironment; publicId: string | null; requires3DS: true };
+
+export class ValidaPayOpenOrderError extends Error {
+  constructor() { super("Já existe um pedido aberto. Consulte o pagamento no painel ou abandone a reserva somente quando essa opção estiver disponível."); this.name = "ValidaPayOpenOrderError"; }
+}
 
 export class ValidaPayEnvironmentConflictError extends Error {
   constructor() { super("Existe um pedido em outro ambiente de pagamento. Não crie outro pagamento; consulte o suporte para regularizar o pedido."); this.name = "ValidaPayEnvironmentConflictError"; }
@@ -20,6 +24,7 @@ export async function sandboxCall<T>(body: Record<string, unknown>): Promise<T> 
       const context: unknown = result.error.context;
       if (context instanceof Response) code = (await context.clone().json())?.error;
     } catch { /* Only the allowlisted code below changes the public error. */ }
+    if (code === "pedido_aberto") throw new ValidaPayOpenOrderError();
     if (code === "pedido_outro_ambiente") throw new ValidaPayEnvironmentConflictError();
     throw new Error("Não foi possível confirmar o pagamento. Tente novamente; o pedido será reutilizado.");
   }

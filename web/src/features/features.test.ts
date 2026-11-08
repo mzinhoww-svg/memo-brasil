@@ -408,15 +408,15 @@ describe("jornada do convidado: entrada e envio com falhas", () => {
     expect(await postPhoto(r, e, guest, img, { moment: "O sim" }, NOW + 1, { photoId })).toEqual({ ok: false, reason: "rede" });
     expect((await postPhoto(r, e, guest, img, { moment: "O sim" }, NOW + 2, { photoId, resume: true })).ok).toBe(true);
   });
-  it("'verifique o espaço livre' só para erro de armazenamento; erro desconhecido é genérico e libera o rolo", async () => {
+  it("'verifique o espaço livre' só para armazenamento; falhas conservam a reserva para retry ou expiração", async () => {
     const quota = flaky(() => new StorageUnavailableError(), 1);
     const e1 = await makeEvent(quota, 5);
     expect(await postPhoto(quota, e1, guest, img, { moment: "O sim" }, NOW + 1)).toEqual({ ok: false, reason: "armazenamento" });
-    expect(await usedShots(quota, e1.id, guest.id)).toBe(0);
+    expect(await usedShots(quota, e1.id, guest.id)).toBe(1);
     const odd = flaky(() => new Error("boom"), 1);
     const e2 = await makeEvent(odd, 5);
     expect(await postPhoto(odd, e2, guest, img, { moment: "O sim" }, NOW + 1)).toEqual({ ok: false, reason: "falha" });
-    expect(await usedShots(odd, e2.id, guest.id)).toBe(0);
+    expect(await usedShots(odd, e2.id, guest.id)).toBe(1);
   });
   it("tentativas automáticas em 2 s, 5 s e 15 s; depois só manual", () => {
     expect([1, 2, 3, 4].map(retryDelayMs)).toEqual([2000, 5000, 15000, null]);

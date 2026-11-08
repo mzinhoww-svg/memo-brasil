@@ -21,6 +21,7 @@ const MESSAGES = {
   encerrado: "Esta festa já terminou. As fotos continuam com quem estava lá.",
   lotado: "A festa está lotada. Fale com quem convidou você.",
   nome: "Escreva como te chamam na festa.",
+  bloqueado: "Sua participação foi bloqueada pelo anfitrião. Fale com quem convidou você.",
   rede: "Sem conexão agora. Confira a internet e toque de novo.",
 } as const;
 
@@ -91,19 +92,33 @@ export default function Convite() {
     setError(undefined);
     if (!acceptedTerms || !ackedPrivacy) return setConsentError(CONSENT_REQUIRED);
     setConsentError(undefined);
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError(MESSAGES.nome);
+      document.querySelector<HTMLInputElement>('input[autocomplete="given-name"]')?.focus();
+      return;
+    }
+    if (busy) return;
     setBusy(true);
-    const me = await signIn(name || "");
-    if (backend === "supabase") {
-      try { await recordConsent(currentConsent("convidado", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); } catch { setBusy(false); return setConsentError(CONSENT_FAILED); }
+    try {
+      const me = await signIn(trimmed);
+      if (backend === "supabase") {
+        try { await recordConsent(currentConsent("convidado", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); }
+        catch { setConsentError(CONSENT_FAILED); return; }
+      }
+      const r = await joinEvent(repos, me, code, trimmed, now(), tableFromSearch(window.location.search));
+      if (!r.ok) {
+        if (r.reason === "ocupado") { setSecs(RETRY_IN_S); setJoinAt(Date.now() + RETRY_IN_S * 1000); return; }
+        if (r.reason === "inativo") { setInactive(true); return; }
+        setError(r.reason === "codigo" ? copyFor(backendMode()).inviteInvalid : MESSAGES[r.reason]);
+        return;
+      }
+      router.push(`/e/${code}/postar`);
+    } catch {
+      setError(MESSAGES.rede);
+    } finally {
+      setBusy(false);
     }
-    const r = await joinEvent(repos, me, code, name, now(), tableFromSearch(window.location.search));
-    setBusy(false);
-    if (!r.ok) {
-      if (r.reason === "ocupado") { setSecs(RETRY_IN_S); return setJoinAt(Date.now() + RETRY_IN_S * 1000); }
-      if (r.reason === "inativo") return setInactive(true);
-      return setError(r.reason === "codigo" ? copyFor(backendMode()).inviteInvalid : MESSAGES[r.reason]);
-    }
-    router.push(`/e/${code}/postar`);
   }
   useEffect(() => { enterRef.current = enter; });
 

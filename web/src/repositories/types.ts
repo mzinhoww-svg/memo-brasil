@@ -12,6 +12,7 @@ export interface Participant {
   name: string;
   joinedAt: number;
   tableLabel?: string;
+  blockedAt?: number;
 }
 /** Convite rastreável por origem (ex.: "Mesa 8"): "cada QR sabe de onde veio". */
 export interface Invitation {
@@ -34,7 +35,7 @@ export type RepositoryErrorCode =
   /** Recusas de política do servidor (RLS/trigger/RPC). */
   | "forbidden" | "reveal-locked" | "rate-limited" | "invalid-invite" | "reopen-forbidden"
   /** Limite de convidados/fotos acima do plano efetivo do evento (MM012): o servidor recusa até haver direito. */
-  | "not-entitled";
+  | "not-entitled" | "blocked";
 export class RepositoryError extends Error {
   readonly code: RepositoryErrorCode;
   constructor(code: RepositoryErrorCode, message: string, cause?: unknown) {
@@ -99,6 +100,8 @@ export interface EventRepository {
   remove(id: string): Promise<void>;
 }
 export interface ParticipantRepository {
+  /** Moderação persistente, autorizada pelo anfitrião do evento. */
+  setBlocked?(eventId: string, userId: string, blocked: boolean): Promise<void>;
   listByEvent(eventId: string): Promise<Participant[]>;
   count(eventId: string): Promise<number>;
   get(eventId: string, userId: string): Promise<Participant | undefined>;
@@ -107,6 +110,8 @@ export interface ParticipantRepository {
   removeByEvent(eventId: string): Promise<void>;
 }
 export interface PhotoRepository {
+  /** Denúncia dedicada; na nuvem chama report_photo, sem UPDATE genérico. */
+  report?(photoId: string): Promise<void>;
   listByEvent(eventId: string): Promise<Photo[]>;
   get(id: string): Promise<Photo | undefined>;
   count(eventId: string, filter?: PhotoCountFilter): Promise<number>;

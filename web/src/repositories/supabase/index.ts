@@ -21,7 +21,7 @@ const iso = (v: number | null | undefined): string | null => (v === null || v ==
 
 const PG_CODES: Record<string, RepositoryErrorCode> = {
   MM001: "shot-limit", MM002: "event-ended", MM003: "capacity-full", MM004: "forbidden", MM005: "invalid", MM006: "rate-limited",
-  MM007: "invalid-invite", MM008: "reveal-locked", MM009: "reopen-forbidden", MM012: "not-entitled", "42501": "forbidden", "23505": "conflict", PGRST116: "not-found",
+  MM007: "invalid-invite", MM008: "reveal-locked", MM009: "reopen-forbidden", MM015: "blocked", MM012: "not-entitled", "42501": "forbidden", "23505": "conflict", PGRST116: "not-found",
 };
 
 /** Traduz erro do PostgREST/Storage para o erro tipado do contrato. Falha de rede é `unavailable`. */
@@ -181,6 +181,7 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       remove: async (id) => void ok(await sb.rpc("delete_event", { p_event: id })),
     },
     participants: {
+      setBlocked: async (eventId, userId, blocked) => void ok(await sb.rpc(blocked ? "block_participant" : "unblock_participant", { p_event: eventId, p_user: userId })),
       listByEvent: async (id) => (await selectAll("participants", (q) => q.select("*").eq("event_id", id).order("joined_at"))).map(toParticipant),
       count: async (id) => {
         const r = await sb.from("participants").select("user_id", { count: "exact", head: true }).eq("event_id", id);
@@ -200,6 +201,7 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       removeByEvent: async () => undefined, // cascata do banco (delete_event)
     },
     photos: {
+      report: async (photoId) => void ok(await sb.rpc("report_photo", { p_photo: photoId })),
       listByEvent: async (id) => sortNewestFirst((await selectAll("photos", (q) => q.select("*").eq("event_id", id).eq("upload_status", "pronta").order("created_at", { ascending: false }))).map(toPhoto)),
       count: async (id, f) => {
         let q = sb.from("photos").select("id", { count: "exact", head: true }).eq("event_id", id);
@@ -312,4 +314,4 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
   };
 }
 
-const toParticipant = (r: Row): Participant => ({ eventId: r.event_id as string, userId: r.user_id as string, name: r.name as string, joinedAt: ms(r.joined_at)!, tableLabel: (r.table_label as string | null) ?? undefined });
+const toParticipant = (r: Row): Participant => ({ eventId: r.event_id as string, userId: r.user_id as string, name: r.name as string, joinedAt: ms(r.joined_at)!, blockedAt: ms(r.blocked_at), tableLabel: (r.table_label as string | null) ?? undefined });

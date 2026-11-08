@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatBRL } from "@/features/billing/api";
 import { lowestPaidPrice } from "@/features/events/plan-catalog";
 import { usePublicCatalog } from "./usePublicCatalog";
@@ -9,6 +10,7 @@ export function PricingLine({ fromPrice }: { fromPrice?: string }) {
   return (
     <p className="meta app-muted" style={{ textAlign: "center" }} data-testid="linha-preco">
       Grátis até 10 convidados.{fromPrice ? ` Planos a partir de ${fromPrice}, pagos uma vez por evento.` : ""}
+      {" "}<Link href="/precos" className="mm-link">Ver planos e preços</Link>
     </p>
   );
 }

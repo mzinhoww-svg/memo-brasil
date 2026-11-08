@@ -1,7 +1,7 @@
 {
   "name": "memo-brasil",
   "version": "1.0.0",
-  "description": "Álbum colaborativo de casamento (MVP web)",
+  "description": "\u00c1lbum colaborativo de casamento (MVP web)",
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
@@ -9,7 +9,8 @@
     "migrate": "node scripts/migrate-json.js",
     "backup": "bash scripts/backup.sh",
     "deploy": "bash scripts/deploy.sh",
-    "restore": "bash scripts/restore.sh"
+    "restore": "bash scripts/restore.sh",
+    "test:db": "node scripts/test-db.mjs"
   },
   "engines": {
     "node": ">=22.5.0"

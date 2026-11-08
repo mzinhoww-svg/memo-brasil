@@ -10,7 +10,7 @@ describe("textos por modo", () => {
     expect(c.inviteInvalidBody).toBe("Confira as 8 letras e números no card da mesa.");
     expect(c.errorBody).toBe("Algo deu errado. Suas fotos enviadas estão guardadas.");
     expect(c.downloadsSaved(1, 0)).toBe("Baixamos 1 foto.");
-    expect(c.downloadsSaved(3, 2)).toBe("Baixamos 3 fotos.");
+    expect(c.downloadsSaved(3, 2)).toMatch(/3 de 5 fotos.*2.*Tente de novo/);
     expect(c.deleteQuestion).toBe("Excluir este evento e todas as fotos?");
   });
   it("modo local mantém os textos atuais", () => {

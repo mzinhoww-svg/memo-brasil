@@ -33,6 +33,34 @@ jobs:
           path: web/test-results/
           if-no-files-found: ignore
 
+  ux-browser:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_PUBLIC_MM_BACKEND: local
+      NEXT_PUBLIC_MM_DEV_TOOLS: "1"
+      NEXT_PUBLIC_MM_TEST_CLOCK: "1"
+      NEXT_PUBLIC_VALIDAPAY_CHECKOUT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --config playwright.ux.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ux-local-browser
+          path: web/test-results/ux-flow-hardening/
+          if-no-files-found: ignore
+
   payment-database:
     runs-on: ubuntu-latest
     steps:
@@ -43,7 +71,7 @@ jobs:
       - name: Start disposable local PostgreSQL
         run: npx --yes supabase@3.0.0 db start
       - name: Validate migrations, RLS and financial transitions
-        run: npx --yes supabase@3.0.0 test db
+        run: node scripts/test-db.mjs
       - name: Stop local database
         if: always()
         run: npx --yes supabase@3.0.0 stop

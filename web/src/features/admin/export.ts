@@ -34,7 +34,7 @@ export async function zipAlbum(repos: Repositories, event: MemoEvent, photos: Ph
   let saved = 0;
   let missing = 0;
   for (const [i, p] of list.entries()) {
-    const d = await repos.photos.getData(p.id);
+    const d = await repos.photos.getData(p.id).catch(() => undefined);
     if (!d) missing++;
     else {
       zip.file(`${slug(event.title)}-${String(i + 1).padStart(3, "0")}-${slug(p.moment)}.${EXT[d.type] ?? "jpg"}`, d.bytes);

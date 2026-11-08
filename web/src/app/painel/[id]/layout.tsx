@@ -47,6 +47,13 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
   const pending = useMemo(() => moderationQueue(data.photos).length, [data.photos]);
 
   if (!ready || data.loading) return <main className="app-admin"><div className="app-admin-main"><Skeleton label="Abrindo o painel…" /></div></main>;
+  if (data.error) return <main className="app-col app-fluid"><div className="app-screen">
+    <h1 className="titulo-tela app-h1">{data.error === "forbidden" || data.error === "unauthorized" ? "Não foi possível confirmar seu acesso." : "Não deu para carregar o evento."}</h1>
+    <p className="app-p app-muted">{data.error === "forbidden" || data.error === "unauthorized" ? "Confira se você está com a conta usada neste evento e tente de novo." : "Confira a conexão e tente de novo. O link do evento continua o mesmo."}</p>
+    <Button block onClick={() => void refresh()}>Tentar de novo</Button>
+    {(data.error === "forbidden" || data.error === "unauthorized") && backend === "supabase" && <GoogleButton block label="Entrar com a conta do evento" onClick={() => void signInWithGoogle(`/painel/${id}`)} />}
+    <Button href="/eventos" variant="texto">Meus eventos</Button>
+  </div></main>;
   if (data.access === "convite" && data.preview) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Só o anfitrião abre o painel.</h1><Button href={`/e/${data.preview.code}`} block>Entrar na festa</Button></div></main>;
   if (!data.event) {
     // na nuvem, sem a conta do organizador o servidor não devolve o evento: pedir o login é mais útil que "não existe"
@@ -83,11 +90,11 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
   });
 
   const section = items.find((i) => i.current);
-  const crumbs = [{ label: "Início", href: "/" }, section && section.href !== base ? { label: event.title, href: base } : { label: event.title }, ...(section && section.href !== base ? [{ label: section.label }] : [])];
+  const crumbs = [{ label: "Meus eventos", href: "/eventos" }, section && section.href !== base ? { label: event.title, href: base } : { label: event.title }, ...(section && section.href !== base ? [{ label: section.label }] : [])];
   return (
     <AdminProvider value={{ event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh }}>
       <EventTheme palette={event.palette} font={event.eventFont} className="app-admin app-fluid">
-        <div className="app-admin-side no-print"><AdminNav eventName={event.title} eventState={state} switchHref="/" items={items} /></div>
+        <div className="app-admin-side no-print"><AdminNav eventName={event.title} eventState={state} switchHref="/eventos" items={items} /></div>
         <main className="app-admin-main">
           <nav className="app-admin-navm no-print" aria-label="Administração do evento">
             {items.map((i) => (

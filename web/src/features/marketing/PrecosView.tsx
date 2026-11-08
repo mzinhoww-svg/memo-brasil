@@ -7,6 +7,7 @@ import type { PublicPlan } from "@/features/billing/types";
 import { hasPaidPlans } from "@/features/events/plan-catalog";
 import { contactFrom } from "@/components/memoriesmt/SiteFooter";
 import { usePublicCatalog } from "./usePublicCatalog";
+import { publicPaymentMethod } from "./payment-copy";
 
 const HIGHLIGHT = "casamento";
 
@@ -58,8 +59,8 @@ export function PrecosView() {
         <section className="app-stack-sm" aria-labelledby="q-pago">
           <h2 id="q-pago" className="titulo-card app-h1">Como pago?</h2>
           {paid
-            ? <p className="app-p">Com Pix ou cartão, no Mercado Pago, em pagamento único por evento. Você cria o evento grátis e só paga na tela seguinte, se escolher um plano maior. O plano libera assim que o pagamento for confirmado.</p>
-            : <p className="app-p">Os planos pagos ainda não estão abertos. Quando abrirem, o pagamento será único por evento, com Pix ou cartão, no Mercado Pago. Por enquanto o evento grátis já nasce no ar.</p>}
+            ? <p className="app-p">Pagamento único por evento, {publicPaymentMethod()}. Você cria o evento grátis e só paga na tela seguinte, se escolher um plano maior. O plano libera assim que o pagamento for confirmado.</p>
+            : <p className="app-p">Os planos pagos ainda não estão abertos. Quando abrirem, o pagamento será único por evento, {publicPaymentMethod()}. Por enquanto o evento grátis já nasce no ar.</p>}
         </section>
         <section className="app-stack-sm" aria-labelledby="q-limite">
           <h2 id="q-limite" className="titulo-card app-h1">E se passar do limite?</h2>

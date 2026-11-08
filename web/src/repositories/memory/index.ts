@@ -22,6 +22,9 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
     for (const [k, v] of m) if (pred(v)) m.delete(k);
   };
 
+  const assertAllowed = (p: { eventId: string; authorId: string }) => {
+    if (participants.get(pk(p.eventId, p.authorId))?.blockedAt !== undefined) throw new RepositoryError("blocked", "Participante bloqueado");
+  };
   return {
     events: {
       preview: async (code, now) => {
@@ -46,11 +49,26 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
       remove: async (id) => void events.delete(id),
     },
     participants: {
+      setBlocked: async (e, u, blocked) => {
+        const event = events.get(e);
+        if (!event || event.hostId !== user?.id || u === event.hostId) throw new RepositoryError("forbidden", "Somente o anfitrião pode moderar participantes");
+        const p = participants.get(pk(e, u));
+        if (!p) throw new RepositoryError("not-found", "Participante não encontrado");
+        participants.set(pk(e, u), { ...p, blockedAt: blocked ? p.blockedAt ?? opts.now?.() ?? Date.now() : undefined });
+      },
       listByEvent: async (id) => [...participants.values()].filter((p) => p.eventId === id).map(clone),
       count: async (id) => [...participants.values()].filter((p) => p.eventId === id).length,
       get: async (e, u) => (participants.has(pk(e, u)) ? clone(participants.get(pk(e, u))!) : undefined),
-      put: async (p) => void participants.set(pk(p.eventId, p.userId), clone(p)),
-      remove: async (e, u) => void participants.delete(pk(e, u)),
+      put: async (p) => {
+        assertAllowed({eventId:p.eventId, authorId:p.userId});
+        const { blockedAt: _ignored, ...safe } = p;
+        void _ignored;
+        participants.set(pk(p.eventId, p.userId), clone(safe));
+      },
+      remove: async (e, u) => {
+        assertAllowed({eventId:e, authorId:u});
+        participants.delete(pk(e, u));
+      },
       removeByEvent: async (id) => dropWhere(participants, (p) => p.eventId === id),
     },
     photos: {
@@ -62,6 +80,7 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
         return { ...pg, items: pg.items.map(clone) };
       },
       begin: async (p) => {
+        assertAllowed(p);
         if (!photos.has(p.id)) photos.set(p.id, beginRow(clone(p), opts.now));
         return clone(photos.get(p.id)!);
       },
@@ -72,6 +91,7 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
       finalize: async (id) => {
         const cur = photos.get(id);
         if (!cur) throw new RepositoryError("not-found", `Foto ${id} não existe`);
+        assertAllowed(cur);
         if (!data.has(id)) throw new RepositoryError("invalid", `Foto ${id} ainda não recebeu os bytes`);
         const saved = { ...cur, uploadStatus: "pronta" as const, version: cur.version + 1 };
         photos.set(id, saved);
@@ -80,6 +100,7 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
       pending: async (id) => sortNewestFirst([...photos.values()].filter((p) => p.eventId === id && !isPublished(p))).map(clone),
       getUrl: async (id) => (data.has(id) ? objectUrl(data.get(id)!) : undefined),
       add: async (p, d) => {
+        assertAllowed(p);
         if (photos.has(p.id)) return;
         photos.set(p.id, { ...beginRow(clone(p), opts.now), uploadStatus: "pronta" });
         data.set(p.id, { bytes: d.bytes.slice(0), type: d.type });
@@ -88,7 +109,8 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
         const cur = photos.get(p.id);
         if (!cur) throw new RepositoryError("not-found", `Foto ${p.id} não existe`);
         if (opts?.expectedVersion !== undefined && cur.version !== opts.expectedVersion) throw new RepositoryError("conflict", `Foto ${p.id}: versão ${opts.expectedVersion} desatualizada (atual ${cur.version})`);
-        const saved = { ...clone(p), version: cur.version + 1 };
+        // Generic moderation cannot alter identity or publish a pending upload.
+        const saved = { ...cur, status: p.status, highlighted: p.highlighted, reports: p.reports, version: cur.version + 1 };
         photos.set(p.id, saved);
         return clone(saved);
       },

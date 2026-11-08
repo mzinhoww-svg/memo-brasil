@@ -207,7 +207,7 @@ describe("CheckoutPending", () => {
   });
   it("pago pelo polling vira B3 sem recarregar e para de consultar", async () => {
     vi.useFakeTimers();
-    const paid = { ...ORDER, status: "pago" as const, paidAt: "2026-10-22T17:32:00Z", paymentMethod: "pix" };
+    const paid = { ...ORDER, status: "pago" as const, entitlementActive: true, paidAt: "2026-10-22T17:32:00Z", paymentMethod: "pix" };
     api.orderStatus.mockResolvedValue(paid);
     const Wrap = () => { const [o, setO] = useState<OrderView>(ORDER); return <CheckoutPending {...props} order={o} onOrder={setO} />; };
     render(<Wrap />);
@@ -236,7 +236,7 @@ describe("CheckoutPending", () => {
   });
   it("B4: expirado ainda confirma depois (Pix tardio): consulta devagar e vira pago", async () => {
     vi.useFakeTimers();
-    api.orderStatus.mockResolvedValueOnce({ ...ORDER, status: "expirado" }).mockResolvedValue({ ...ORDER, status: "pago", paidAt: "2026-10-22T17:40:00Z" });
+    api.orderStatus.mockResolvedValueOnce({ ...ORDER, status: "expirado" }).mockResolvedValue({ ...ORDER, status: "pago", entitlementActive: true, paidAt: "2026-10-22T17:40:00Z" });
     const Wrap = () => { const [o, setO] = useState<OrderView>({ ...ORDER, status: "expirado" }); return <CheckoutPending {...props} order={o} onOrder={setO} />; };
     render(<Wrap />);
     await act(async () => { await vi.advanceTimersByTimeAsync(31_000); });
@@ -385,7 +385,7 @@ describe("página /painel/[id]/plano", () => {
   });
   it("retorno ?retorno=sucesso com pedido pago no servidor mostra o plano ativo", async () => {
     window.history.replaceState(null, "", "/painel/ev1/plano?retorno=sucesso&status=approved");
-    api.openOrder.mockResolvedValue({ ...ORDER, status: "pago", paidAt: "2026-10-22T17:32:00Z" });
+    api.openOrder.mockResolvedValue({ ...ORDER, status: "pago", entitlementActive: true, paidAt: "2026-10-22T17:32:00Z" });
     render(<PlanoPage />);
     expect(await screen.findByRole("heading", { name: "Plano Casamento ativo." })).toBeInTheDocument();
     expect(window.location.search).toBe("");
