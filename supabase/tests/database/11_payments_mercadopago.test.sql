@@ -106,7 +106,7 @@ select is((select status::text from public.payment_orders where id = :'o1'::uuid
 select tests.login('00000000-0000-4000-8000-0000000011a1');
 select is(public.payments_open_order(tests.ev(1), 'festa', '11111111-1111-4111-8111-111111111111') ->> 'reused', 'true', 'mesma chave: reusa');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.payments_order_status(:'o1'::uuid)) k),
-  array['amountCents', 'checkoutUrl', 'expiresAt', 'orderId', 'paidAt', 'paymentMethod', 'planCode', 'provider', 'status'],
+  array['amountCents', 'checkoutUrl', 'entitlementActive', 'expiresAt', 'needsRefund', 'orderId', 'paidAt', 'paymentMethod', 'planCode', 'provider', 'status'],
   'order_status: chaves do OrderView');
 select is(public.payments_order_status(:'o1'::uuid) ->> 'provider', 'mercadopago', 'order_status.provider');
 reset role;
