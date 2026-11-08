@@ -14,7 +14,7 @@ import { REVEAL_CHOICES, buildRevealInput, type RevealChoice } from "./reveal-ch
 import { hostFallbackName, suggestEventNames } from "./name-suggestions";
 import { clearPendingCode, freeShots, hasPaidPlans, planForShots, readPendingCode } from "./plan-catalog";
 import { PAID_PLAN_LINE, PlanStep } from "./PlanStep";
-import { afterCreateDestination } from "./after-create";
+import { afterCreateDestination, type AfterCreate } from "./after-create";
 import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CodeApplied, REDEEM_TEXT, RedeemCode, redeemMessage } from "@/features/billing/RedeemCode";
 import { formatBRL, getPublicSettings, listPublicPlans, redeemCode } from "@/features/billing/api";
@@ -28,6 +28,7 @@ const STEPS = ["Nome", "Quando", "Fotos", "Convidados"] as const;
 const DURATIONS = [1, 3, 6, 12, 24, 48];
 const SHOTS_CHOICES = [10, 16, 24, 36];
 const OTHER_DATE = -1;
+type CreatedEvent = { eventId: string; title: string; paid: boolean; destination: AfterCreate; ready: boolean };
 
 const toLocalInput = (ts: number) => {
   const d = new Date(ts - new Date(ts).getTimezoneOffset() * 60_000);
@@ -59,6 +60,40 @@ export function CreateWizard() {
   const [revealErrors, setRevealErrors] = useState<RevealErrors | undefined>();
   const [busy, setBusy] = useState(false);
   const creating = useRef(false);
+  const createdResult = useRef<CreatedEvent | null>(null);
+  const [created, setCreated] = useState<CreatedEvent | null>(null);
+  const [handoffError, setHandoffError] = useState<string>();
+  const navigating = useRef(false);
+
+  function retainCreated(result: CreatedEvent) {
+    createdResult.current = result;
+    setCreated(result);
+  }
+
+  function recoverHandoff() {
+    const result = createdResult.current;
+    if (!result) return false;
+    retainCreated({ ...result, ready: true });
+    setHandoffError("Seu evento já foi criado. Não conseguimos abrir a próxima página. Tente continuar novamente.");
+    return true;
+  }
+
+  function continueCreated() {
+    const result = createdResult.current;
+    if (!result?.ready || navigating.current) return;
+    navigating.current = true;
+    setBusy(true);
+    setHandoffError(undefined);
+    try {
+      if (result.destination.kind === "checkout") goToCheckout(result.destination.url);
+      else router.push(result.destination.href);
+    } catch {
+      recoverHandoff();
+    } finally {
+      navigating.current = false;
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -93,7 +128,7 @@ export function CreateWizard() {
 
   async function create() {
     if (!acceptedTerms || !ackedPrivacy) return setErrors({ create: CONSENT_REQUIRED });
-    if (creating.current) return;
+    if (creating.current || createdResult.current) return;
     if (otherDate && (untilMs === undefined || !Number.isFinite(untilMs))) {
       setStep(1);
       return setErrors({ termino: "Escolha a data e o horário para o fim da festa." });
@@ -119,6 +154,13 @@ export function CreateWizard() {
       }
       const chosen = plans?.find((p) => p.code === planCode);
       const eventId = r.event.id;
+      const paid = !!chosen && !chosen.isFree;
+      // A identidade salva é terminal: retomar a saída nunca repete a criação ou o pedido.
+      const result: CreatedEvent = {
+        eventId, title: r.event.title, paid, ready: !paid,
+        destination: { kind: "plan", href: paid ? `/painel/${eventId}/plano?plano=${encodeURIComponent(chosen.code)}` : `/criar/pronto/${eventId}` },
+      };
+      retainCreated(result);
       if (pendingCode) {
         // o evento já existe: o código nunca impede a criação; a recusa aparece em B8, com mensagem neutra
         clearPendingCode();
@@ -136,14 +178,13 @@ export function CreateWizard() {
       if (chosen && !chosen.isFree) {
         // plano pago escolhido: encaminha ao checkout do provedor vigente
         const dest = await afterCreateDestination(eventId, chosen.code);
-        if (dest.kind === "checkout") return goToCheckout(dest.url);
-        return router.push(dest.href);
+        retainCreated({ ...result, destination: dest, ready: true });
       }
-      router.push(`/criar/pronto/${eventId}`);
+      continueCreated();
     } catch {
-      setErrors({ create: "Não deu para criar o evento. Confira sua conexão e tente de novo." });
+      if (!recoverHandoff()) setErrors({ create: "Não deu para criar o evento. Confira sua conexão e tente de novo." });
     } finally {
-      creating.current = false;
+      if (!createdResult.current) creating.current = false;
       setBusy(false);
     }
   }
@@ -175,6 +216,17 @@ export function CreateWizard() {
       </div>
     );
   }
+
+  if (created) return (
+    <div className="app-screen app-stack">
+      <h1 className="titulo-tela app-h1">Evento criado.</h1>
+      <p className="app-p">{created.title} já está salvo. Se a próxima página não abrir, continue por aqui.</p>
+      {handoffError && <p className="mm-field-erro" role="alert">{handoffError}</p>}
+      <Button block disabled={busy || !created.ready} aria-busy={busy} onClick={continueCreated}>{busy ? "Preparando a próxima página…" : created.paid ? "Continuar para o pagamento" : "Continuar para o convite"}</Button>
+      {created.paid && <Button href={`/criar/pronto/${created.eventId}`} variant="secundario" block>Ver o convite e o QR</Button>}
+      <Button href="/eventos" variant="texto">Meus eventos</Button>
+    </div>
+  );
 
   // na nuvem só o organizador com conta cria evento (RLS recusa convidado anônimo); a entrada é pelo Google
   if (ready && backend === "supabase" && !canCreate) {
