@@ -43,7 +43,6 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
     id: opts.photoId ?? crypto.randomUUID(), eventId: event.id, authorId: user.id, authorName: user.name, createdAt: now,
     moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "enviando",
   };
-  let began = false;
   try {
     if (!opts.resume) {
       const verdict = canPost(event, await usedShots(repos, event.id, user.id), now);
@@ -51,15 +50,14 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
     }
     // envio em duas fases: a linha reserva o rolo, os bytes seguem, e só então a foto fica visível
     await repos.photos.begin(photo);
-    began = true;
     if (takeFault("attach")) throw new RepositoryError("unavailable", "falha de rede simulada");
     await repos.photos.attach(photo.id, data);
     const published = await repos.photos.finalize(photo.id);
     return { ok: true, photo: published };
   } catch (e) {
     // o servidor tem a palavra final sobre rolo e encerramento (AC-07): a recusa vira a mesma razão da interface
-    if (e instanceof RepositoryError && e.code === "shot-limit") { await release(repos, photo.id); return { ok: false, reason: "rolo" }; }
-    if (e instanceof RepositoryError && e.code === "event-ended") { await release(repos, photo.id); return { ok: false, reason: "encerrado" }; }
+    if (e instanceof RepositoryError && e.code === "shot-limit") return { ok: false, reason: "rolo" };
+    if (e instanceof RepositoryError && e.code === "event-ended") return { ok: false, reason: "encerrado" };
     if (e instanceof RepositoryError) {
       // `blocked` é compartilhado com o contrato MM015 da moderação.
       const code: string = e.code;
@@ -67,15 +65,10 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
       if (denial) return { ok: false, reason: denial };
     }
     const reason = classify(e);
-    // queda de rede: a reserva fica e a próxima tentativa usa a mesma photoId; os demais erros não deixam envio pela metade ocupando o rolo
-    if (reason !== "rede" && (began || opts.resume)) await release(repos, photo.id);
+    // Uma resposta perdida pode seguir uma publicação confirmada. Nunca DELETE aqui:
+    // a mesma identidade permite retomar; reservas pendentes ficam para a expiração existente.
     return { ok: false, reason };
   }
-}
-
-/** Descarta o envio inacabado (best effort: sem rede a limpeza fica para `expirePending`). */
-export async function release(repos: Repositories, photoId: string): Promise<void> {
-  await repos.photos.remove(photoId).catch(() => undefined);
 }
 
 export async function loadFeed(repos: Repositories, event: MemoEvent, viewer: Viewer, now: number): Promise<Photo[]> {

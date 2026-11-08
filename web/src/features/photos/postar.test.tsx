@@ -40,7 +40,7 @@ describe("envio resiliente na tela", () => {
     const photoId = crypto.randomUUID();
     await savePhotoDraft({ eventId: fixture.event.id, userId: fixture.user.id, createdAt: now, photoId, data, caption: "Continuar aqui", moment: "Agora", attempted: true, failures: 1 });
     const view = render(<Postar />);
-    await screen.findByText("Você tem uma foto não enviada.");
+    await screen.findByText("Você tem uma foto sem confirmação.");
     expect(screen.queryByAltText("Prévia da sua foto")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Retomar foto" }));
     await screen.findByDisplayValue("Continuar aqui");
@@ -95,14 +95,90 @@ describe("envio resiliente na tela", () => {
     expect(screen.queryByRole("button", { name: "Tentar agora" })).toBeNull();
     await waitFor(async () => expect((await loadPhotoDraft(fixture.event.id, fixture.user.id, now)).draft?.denial).toMatch(/bloqueado/));
   });
-  it("protege saída por link e voltar quando há bytes não enviados", async () => {
+  it.each(["Voltar", "Avançar"])("cancela %s antes da travessia sem alterar histórico ou URL", async (direction) => {
+    const navigation = new EventTarget();
+    vi.stubGlobal("navigation", navigation);
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    const go = vi.spyOn(window.history, "go").mockImplementation(() => {});
+    const go = vi.spyOn(window.history, "go");
+    const url = window.location.href;
     render(<Postar />); await choose();
     fireEvent.click(screen.getByRole("link", { name: "Agora" }));
-    expect(confirm).toHaveBeenCalled();
-    window.dispatchEvent(new PopStateEvent("popstate"));
-    expect(go).toHaveBeenCalledWith(1);
+    expect(confirm).toHaveBeenCalledTimes(1);
+    const event = new Event("navigate", { cancelable: true });
+    Object.assign(event, { navigationType: "traverse", destination: { index: direction === "Voltar" ? 0 : 2 } });
+    navigation.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(go).not.toHaveBeenCalled();
+    expect(window.location.href).toBe(url);
+    confirm.mockReturnValue(true);
+    const accepted = new Event("navigate", { cancelable: true });
+    Object.assign(accepted, { navigationType: "traverse" });
+    navigation.dispatchEvent(accepted);
+    expect(accepted.defaultPrevented).toBe(false);
+  });
+  it("sem Navigation API mantém popstate e router alinhados e preserva rascunho", async () => {
+    vi.stubGlobal("navigation", undefined);
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    const go = vi.spyOn(window.history, "go").mockImplementation(() => {});
+    render(<Postar />); await choose();
+    await waitFor(async () => expect((await loadPhotoDraft(fixture.event.id, fixture.user.id, now)).draft).toBeDefined());
+    const router = vi.fn();
+    window.addEventListener("popstate", router);
+    try {
+      window.dispatchEvent(new PopStateEvent("popstate"));
+      expect(router).toHaveBeenCalledTimes(1);
+      expect(go).not.toHaveBeenCalled();
+    } finally { window.removeEventListener("popstate", router); }
+  });
+  it.each(["salvo", "retomado", "tirar outra", "bloqueado"])("descarte %s preserva foto publicada quando a resposta de finalize se perde", async (path) => {
+    const finalize = repos.photos.finalize;
+    const begin = vi.spyOn(repos.photos, "begin");
+    vi.spyOn(repos.photos, "finalize").mockImplementation(async (id) => {
+      await finalize(id);
+      throw new RepositoryError("unavailable", "resposta perdida");
+    });
+    const view = render(<Postar />); await choose();
+    fireEvent.click(screen.getByRole("button", { name: "Postar" }));
+    await screen.findByText("Sem sinal.");
+    const photoId = (await repos.photos.listByEvent(fixture.event.id))[0].id;
+    if (path !== "tirar outra") {
+      view.unmount(); render(<Postar />);
+      await screen.findByRole("button", { name: "Retomar foto" });
+      expect(begin).toHaveBeenCalledTimes(1);
+      if (path !== "salvo") {
+        fireEvent.click(screen.getByRole("button", { name: "Retomar foto" }));
+        await screen.findByRole("button", { name: "Tentar agora" });
+        if (path === "bloqueado") {
+          begin.mockRejectedValue(new RepositoryError("forbidden", "denied"));
+          fireEvent.click(screen.getByRole("button", { name: "Tentar agora" }));
+          await screen.findByText("Você não tem acesso para postar neste evento.");
+        }
+      }
+    }
+    expect(screen.getByText(/Descartar apaga apenas o rascunho neste aparelho/)).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: path === "salvo" || path === "bloqueado" ? "Descartar foto" : "Descartar e tirar outra" }));
+    await screen.findByText("Sem câmera por aqui.");
+    expect((await repos.photos.get(photoId))?.uploadStatus).toBe("pronta");
+    expect((await loadPhotoDraft(fixture.event.id, fixture.user.id, now)).draft).toBeUndefined();
+  });
+  it("erro inesperado após finalize mantém identidade no retry manual", async () => {
+    const finalize = repos.photos.finalize;
+    let fail = true;
+    vi.spyOn(repos.photos, "finalize").mockImplementation(async (id) => {
+      const result = await finalize(id);
+      if (fail) { fail = false; throw new Error("resposta perdida"); }
+      return result;
+    });
+    const begin = vi.spyOn(repos.photos, "begin");
+    render(<Postar />); await choose();
+    fireEvent.click(screen.getByRole("button", { name: "Postar" }));
+    await screen.findByText("Não deu para enviar a foto. Tente de novo.");
+    const originalId = begin.mock.calls[0][0].id;
+    fireEvent.click(screen.getByRole("button", { name: "Postar" }));
+    await screen.findByText("Sua visão entrou na história.");
+    expect(begin.mock.calls[1][0].id).toBe(originalId);
+    expect(await repos.photos.listByEvent(fixture.event.id)).toHaveLength(1);
   });
   it("revoga a prévia depois de publicar", async () => {
     render(<Postar />); await choose();

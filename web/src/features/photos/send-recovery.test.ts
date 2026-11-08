@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMemoryRepositories, RepositoryError, type Repositories, type User } from "@/repositories";
+import { createMemoryRepositories, RepositoryError, StorageUnavailableError, type Repositories, type User } from "@/repositories";
 import { createEvent, type EventInput } from "../events/service";
 import { postPhoto, usedShots } from "./service";
 const now = 1_800_000_000_000;
@@ -47,5 +47,24 @@ describe("recusas do envio", () => {
     if (!created.ok) throw new Error("fixture");
     base.events.counts = async () => { throw new RepositoryError(code, "denied"); };
     expect(await postPhoto(base, created.event, user, data, { moment: "Agora" }, now)).toEqual({ ok: false, reason });
+  });
+});
+
+describe("finalização com resposta incerta", () => {
+  it.each(["unexpected", "quota", "event-ended", "shot-limit"])("%s após publicar não apaga foto confirmada no servidor", async (failure) => {
+    const repos = createMemoryRepositories();
+    const created = await createEvent(repos, user, input, now);
+    if (!created.ok) throw new Error("fixture");
+    const finalize = repos.photos.finalize;
+    repos.photos.finalize = async (id) => {
+      await finalize(id);
+      if (failure === "unexpected") throw new Error("resposta perdida");
+      if (failure === "quota") throw new StorageUnavailableError();
+      throw new RepositoryError(failure as "event-ended" | "shot-limit", "resposta perdida");
+    };
+    const photoId = crypto.randomUUID();
+    const result = await postPhoto(repos, created.event, user, data, { moment: "Agora" }, now, { photoId });
+    expect(result.ok).toBe(false);
+    expect((await repos.photos.get(photoId))?.uploadStatus).toBe("pronta");
   });
 });

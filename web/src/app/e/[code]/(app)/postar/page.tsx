@@ -7,7 +7,7 @@ import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
 import { cameraFailure, photoAudienceCopy, cameraHelp, fileToImage, isEmbeddedBrowser, renderPhoto } from "@/features/photos/capture";
 import { clearPhotoDraft, loadPhotoDraft, savePhotoDraft, type PhotoDraft } from "@/features/photos/draft";
-import { postPhoto, release, retryDelayMs } from "@/features/photos/service";
+import { postPhoto, retryDelayMs } from "@/features/photos/service";
 import { useAlive } from "@/lib/use-alive";
 import type { PhotoData } from "@/repositories";
 
@@ -19,6 +19,7 @@ type Phase = "iniciando" | "permissao" | "camera" | "negada" | "sem-camera" | "c
 const REMEMBER_KEY = "mm-camera-liberada";
 const remembered = () => { try { return localStorage.getItem(REMEMBER_KEY) === "1"; } catch { return false; } };
 const remember = () => { try { localStorage.setItem(REMEMBER_KEY, "1"); } catch { /* sem armazenamento: pergunta de novo da próxima vez */ } };
+const DISCARD_NOTICE = "Descartar apaga apenas o rascunho neste aparelho. O envio pode ter sido confirmado; confira as fotos do evento.";
 const SUGGESTIONS = ["Alguém precisava registrar isso.", "Ninguém segurou a emoção.", "Quem viu, viu.", "Só daqui dá para ver."];
 
 export default function Postar() {
@@ -57,6 +58,7 @@ function PostarSession() {
   const draftPersisted = useRef(false);
   const draftCreatedAt = useRef(clock());
   const attempted = useRef(false);
+  const [hasAttempt, setHasAttempt] = useState(false);
   const confirmed = useRef(false);
   const persistence = useRef(Promise.resolve());
   const persist = (draft: PhotoDraft) => {
@@ -96,25 +98,23 @@ function PostarSession() {
   useEffect(() => {
     if (!shot || phase === "publicada") return;
     const beforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
-    // Cancela o handler do roteador antes de restaurar o histórico após Voltar.
-    let restoring = false;
-    const popstate = (e: PopStateEvent) => {
-      if (restoring) { restoring = false; e.stopImmediatePropagation(); return; }
-      if (!window.confirm("Sua foto ainda não foi enviada. Sair desta tela?")) {
-        e.stopImmediatePropagation();
-        restoring = true;
-        window.history.go(1);
-      }
+    // Navigation API cancela antes de mudar URL/entrada, em ambas as direções.
+    // Sem ela, popstate segue ao roteador: não há como inferir entradas anteriores
+    // com segurança. O rascunho persistido permite retomar e beforeunload protege recargas.
+    const navigation = (window as Window & { navigation?: EventTarget }).navigation;
+    const traverse = (e: Event) => {
+      if ((e as Event & { navigationType?: string }).navigationType !== "traverse" || !e.cancelable) return;
+      if (!window.confirm("Há um rascunho de foto nesta tela. Sair?")) e.preventDefault();
     };
     const navigate = (e: MouseEvent) => {
       const a = (e.target as Element)?.closest?.("a[href]");
       if (!a || a.getAttribute("href")?.startsWith("#") || a.getAttribute("target") === "_blank" || e.metaKey || e.ctrlKey || e.defaultPrevented) return;
-      if (!window.confirm("Sua foto ainda não foi enviada. Sair desta tela?")) { e.preventDefault(); e.stopPropagation(); }
+      if (!window.confirm("Há um rascunho de foto nesta tela. Sair?")) { e.preventDefault(); e.stopPropagation(); }
     };
     window.addEventListener("beforeunload", beforeUnload);
     document.addEventListener("click", navigate, true);
-    window.addEventListener("popstate", popstate, true);
-    return () => { window.removeEventListener("beforeunload", beforeUnload); document.removeEventListener("click", navigate, true); window.removeEventListener("popstate", popstate, true); };
+    navigation?.addEventListener("navigate", traverse);
+    return () => { window.removeEventListener("beforeunload", beforeUnload); document.removeEventListener("click", navigate, true); navigation?.removeEventListener("navigate", traverse); };
   }, [shot, phase]);
 
   const inFlight = discarding || phase === "guardando" || phase === "sem-sinal";
@@ -218,15 +218,17 @@ function PostarSession() {
   async function send(resume: boolean) {
     if (!shot || sending.current) return;
     sending.current = true;
-    if (!resume) { failures.current = 0; setFrozenLeft(realLeft); }
+    const resuming = resume || attempted.current;
+    if (!resuming) { failures.current = 0; setFrozenLeft(realLeft); }
     attempted.current = true;
+    setHasAttempt(true);
     setRetry(undefined);
     setError(undefined);
     setPhase("guardando");
     try {
       const draft = snapshot();
       if (draft) await persist(draft);
-      const r = await postPhoto(repos, event, user, shot.data, { moment, caption, tableLabel: participant?.tableLabel }, clock(), { photoId: photoId.current, resume });
+      const r = await postPhoto(repos, event, user, shot.data, { moment, caption, tableLabel: participant?.tableLabel }, clock(), { photoId: photoId.current, resume: resuming });
       if (!alive.current) return;
       if (r.ok) {
         confirmed.current = true;
@@ -255,10 +257,8 @@ function PostarSession() {
         return;
       }
       const denied = r.reason === "bloqueado" || r.reason === "acesso" || r.reason === "nao-encontrado";
-      if (!denied) {
-        attempted.current = false;
-        photoId.current = crypto.randomUUID(); // a reserva foi liberada: a próxima tentativa é uma foto nova
-      }
+      // Mesmo erros não classificados como rede podem ter resposta perdida.
+      // Só sucesso ou descarte local encerram esta identidade.
       setFrozenLeft(undefined);
       setPhase("capturada");
       const message =
@@ -320,9 +320,9 @@ function PostarSession() {
       // Se nada pôde ser persistido, a pessoa ainda pode descartar os bytes em memória.
       setDraftWarning(!cleared.ok);
       if (cleared.ok) draftPersisted.current = false;
-      if (attempted.current) await release(repos, photoId.current);
       if (!alive.current) return;
       attempted.current = false;
+      setHasAttempt(false);
       confirmed.current = false;
       draftCreatedAt.current = clock();
       photoId.current = crypto.randomUUID();
@@ -332,6 +332,7 @@ function PostarSession() {
       picked.current = false;
       setShot(undefined);
       setCaption("");
+      setDenial(undefined);
       setError(undefined);
       setPhase("iniciando");
       setAttempt((n) => n + 1);
@@ -354,6 +355,7 @@ function PostarSession() {
     photoId.current = savedDraft.photoId;
     draftCreatedAt.current = savedDraft.createdAt;
     attempted.current = savedDraft.attempted;
+    setHasAttempt(savedDraft.attempted);
     failures.current = savedDraft.failures;
     setMoment(savedDraft.moment);
     setCaption(savedDraft.caption);
@@ -373,7 +375,6 @@ function PostarSession() {
       if (!alive.current) return;
       if (!result.ok) { setDraftWarning(true); return; }
       draftPersisted.current = false;
-      if (savedDraft.attempted) await release(repos, savedDraft.photoId);
       if (alive.current) setSavedDraft(undefined);
     } finally {
       sending.current = false;
@@ -383,8 +384,9 @@ function PostarSession() {
 
   if (!draftReady) return <p role="status">Buscando foto não enviada…</p>;
   if (savedDraft) return <section className="app-screen app-stack">
-    <h1 className="titulo-tela app-h1">Você tem uma foto não enviada.</h1>
+    <h1 className="titulo-tela app-h1">{savedDraft.attempted ? "Você tem uma foto sem confirmação." : "Você tem uma foto não enviada."}</h1>
     <p className="app-p">O rascunho fica neste aparelho por até 24 horas. Retomar não envia automaticamente.</p>
+    {savedDraft.attempted && <p className="app-p">{DISCARD_NOTICE}</p>}
     {draftWarning && <p role="alert">Não foi possível apagar o rascunho. Tente novamente.</p>}
     <Button block disabled={discarding} onClick={resumeDraft}>Retomar foto</Button>
     <Button block variant="secundario" disabled={discarding} onClick={() => void discardDraft()}>Descartar foto</Button>
@@ -409,6 +411,7 @@ function PostarSession() {
       ) : denial ? (
         <div className="app-stack">
           <p className="corpo app-p" role="alert">{denial}</p>
+          {shot && hasAttempt && <p className="app-p">{DISCARD_NOTICE}</p>}
           <Button href={`${base}/agora`} block>Voltar ao evento</Button>
           {shot && <Button variant="secundario" block disabled={discarding} onClick={() => void again()}>Descartar foto</Button>}
         </div>
@@ -484,6 +487,7 @@ function PostarSession() {
 
           {draftWarning && <p className="app-p" role="alert">Não foi possível salvar o rascunho neste aparelho. Mantenha esta tela aberta até enviar; sair pode perder a foto.</p>}
           {error && <p className="mm-field-erro" role="alert">{error}</p>}
+          {shot && hasAttempt && <p className="app-p">{DISCARD_NOTICE}</p>}
 
           {phase === "guardando" && (
             <div className="app-stack-sm" role="status">
