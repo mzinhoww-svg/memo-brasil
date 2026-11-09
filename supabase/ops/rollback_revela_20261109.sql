@@ -124,5 +124,6 @@ alter table public.events drop constraint if exists events_camera_style_check;
 alter table public.events drop column if exists film_look;
 alter table public.events alter column camera_style set default 'original';
 update public.events set camera_style = 'original' where camera_style in ('festa', 'casamento', 'aniversario', 'noite');
-delete from supabase_migrations.schema_migrations where version in ('20261109000100', '20261109000200', '20261109000300', '20261109000400');
+drop function if exists public.my_pose_times(uuid);
+delete from supabase_migrations.schema_migrations where version in ('20261109000100', '20261109000200', '20261109000300', '20261109000400', '20261109000500');
 commit;
