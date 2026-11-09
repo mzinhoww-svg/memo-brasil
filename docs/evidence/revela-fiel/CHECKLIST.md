@@ -19,7 +19,7 @@ Referência (esquerda) | implementação com os dados do desenho (centro) | dife
 | 12 | Filme | Camera-filtro | 0.82% | ![](12.png) | referência portada (dados do desenho) | não ligada ao app |
 | 13 | Quem vê o quê | Camera-privacidade | 0.99% | ![](13.png) | referência portada (dados do desenho) | não ligada ao app |
 | 14 | Publicar | Camera-publicar | 1.59% | ![](14.png) | portada e ligada a dados reais | passo 8: planos do catálogo, pré-seleção pelas poses, aceites em diálogo "Antes de criar" |
-| 15 | Câmera pronta | Camera-pronta | 4.06% | ![](15.png) | referência portada (dados do desenho) | não ligada ao app |
+| 15 | Câmera pronta | Camera-pronta | 4.07% | ![](15.png) | portada e ligada a dados reais | `/criar/pronto/[id]`: compartilhar convite (Web Share/cópia) e imprimir QR; código e link só em elemento oculto para teste |
 | 14a | Resumo e forma de pagamento | Pagamento-resumo | 2.38% | ![](14a.png) | portada e ligada a dados reais | `ValidaPayCheckout`: resumo, Pix/cartão (cartão só com publicId/flag), CPF/CNPJ extra no Pix (exigido pelo provedor; não está no desenho) |
 | 14b | Pix | Pagamento-pix | 1.61% | ![](14b.png) | portada e ligada a dados reais | `ValidaPayCheckout`: QR, contagem de expiração, copia e cola, polling |
 | 14c | Cartão | Pagamento-cartao | 1.27% | ![](14c.png) | portada e ligada a dados reais | `ValidaPayCheckout`: cartão tokenizado; telefone e endereço extras (exigidos pelo provedor; só com cartão ligado) |
@@ -28,7 +28,7 @@ Referência (esquerda) | implementação com os dados do desenho (centro) | dife
 | 14f | Pago | Pagamento-aprovado | 4.30% | ![](14f.png) | portada e ligada a dados reais | `ValidaPayCheckout`: pago |
 | 14g | Não deu certo | Pagamento-falhou | 1.08% | ![](14g.png) | portada e ligada a dados reais | `ValidaPayCheckout`: recusado, expirado, indisponível, estornado |
 | 14h | Trocar de plano | Pagamento-trocar-plano | 3.41% | ![](14h.png) | portada e ligada a dados reais | `PlanPicker` (checkout nativo) em `/painel/[id]/plano` |
-| 16 | Câmeras (anfitrião) | Anfitriao-inicio | 0.79% | ![](16.png) | referência portada (dados do desenho) | não ligada ao app |
+| 16 | Câmeras (anfitrião) | Anfitriao-inicio | 0.81% | ![](16.png) | portada e ligada a dados reais | `/eventos`: câmera em destaque + prateleira (criadas e convidadas); abas `HostTabs` |
 | 17 | Ajustes do evento | Anfitriao-ajustes | 1.37% | ![](17.png) | referência portada (dados do desenho) | não ligada ao app |
 | 17b | Convidados | Anfitriao-convidados | 1.39% | ![](17b.png) | referência portada (dados do desenho) | não ligada ao app |
 | 17c | Revisar antes de revelar | Anfitriao-moderar | 0.90% | ![](17c.png) | referência portada (dados do desenho) | não ligada ao app |
@@ -72,7 +72,7 @@ Referência (esquerda) | implementação com os dados do desenho (centro) | dife
 | 24j | Sair dos avisos por e-mail | Feed-email-sair | 1.00% | ![](24j.png) | referência portada (dados do desenho) | não ligada ao app |
 | 25 | QR para as mesas | QR-convite | 1.24% | ![](25.png) | referência portada (dados do desenho) | não ligada ao app |
 | 26 | Compartilhar | QR-compartilhar | 0.61% | ![](26.png) | referência portada (dados do desenho) | não ligada ao app |
-| 27 | Você | Voce | 1.34% | ![](27.png) | referência portada (dados do desenho) | não ligada ao app |
+| 27 | Você | Voce | 1.36% | ![](27.png) | portada e ligada a dados reais | `/eventos/voce`: conta, extras e ajuda; "Nome e foto", "Telefone" e "Ícone do app" só informativos (conta Google, sem campo no produto) |
 | 28 | Sem internet | Apoio-offline | 0.60% | ![](28.png) | referência portada (dados do desenho) | não ligada ao app |
 | 29 | Excluir conta | Apoio-excluir-conta | 1.30% | ![](29.png) | referência portada (dados do desenho) | não ligada ao app |
 | 30 | Preços | Apoio-precos | 1.97% | ![](30.png) | referência portada (dados do desenho) | não ligada ao app |
