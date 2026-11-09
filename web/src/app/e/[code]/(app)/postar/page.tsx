@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Chip, Chips, Field, GuestShell, Icon, Progress, ShotCounter } from "@/components/revela";
+import { useRollPickerOptional } from "@/features/photos/roll-picker";
 import { DEFAULT_FILM } from "@/domain/options";
+import { momentName } from "@/domain/moments";
 import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
@@ -39,7 +41,7 @@ function PostarSession() {
   const [phase, setPhase] = useState<Phase>("iniciando");
   const [armed, setArmed] = useState(false); // true depois que a pessoa liberou (ou já tinha liberado) a câmera
   const [facing, setFacing] = useState<"environment" | "user">("environment");
-  const [moment, setMoment] = useState(event.moments[0] ?? "Agora");
+  const [moment, setMoment] = useState(momentName(event.moments[0] ?? "Agora"));
   const [caption, setCaption] = useState("");
   const [error, setError] = useState<string | undefined>();
   const [denial, setDenial] = useState<string>();
@@ -368,7 +370,8 @@ function PostarSession() {
   const audienceCopy = photoAudienceCopy(event.everyoneSeesAll, isRevealed(event, now));
   const embedded = isEmbeddedBrowser(ua);
   const help = cameraHelp(ua);
-  const pickGallery = () => galleryInput.current?.click();
+  const roll = useRollPickerOptional();
+  const pickGallery = () => (roll ? roll.open() : galleryInput.current?.click());
   function resumeDraft() {
     if (!savedDraft) return;
     picked.current = true;
@@ -525,7 +528,7 @@ function PostarSession() {
           <>
             <div className="app-stack-sm">
               <span className="rv-group-label" id="mom">Momento</span>
-              <Chips label="Momento">{event.moments.map((m) => <Chip key={m} variant="filtro" pressed={moment === m} onClick={() => { if (!inFlight) setMoment(m); }}>{m}</Chip>)}</Chips>
+              <Chips label="Momento">{event.moments.map(momentName).map((m) => <Chip key={m} variant="filtro" pressed={moment === m} onClick={() => { if (!inFlight) setMoment(m); }}>{m}</Chip>)}</Chips>
             </div>
             <Field label="Legenda (opcional)" value={caption} maxLength={140} placeholder="Ex.: Ninguém segurou a emoção." onChange={(e) => setCaption(e.target.value)} disabled={inFlight} />
             <Chips label="Sugestões de legenda">{SUGGESTIONS.map((x) => <Chip key={x} variant="sugestao" onClick={() => { if (!inFlight) setCaption(x); }}>{x}</Chip>)}</Chips>

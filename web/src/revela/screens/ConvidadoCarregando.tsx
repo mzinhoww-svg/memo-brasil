@@ -1,12 +1,16 @@
 /* Gerado de design-system/revela/html/Convidado-carregando.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function ConvidadoCarregando() {
+import { CameraStage } from "@/components/revela";
+import type { CameraStyle } from "@/domain/options";
+
+/** 20g: a câmera do evento com o nome impresso; `name` ausente (convite ainda carregando) omite o "de …". */
+export function ConvidadoCarregando({ name = "Ana & Leo", wrap = "casamento" }: { name?: string | null; wrap?: CameraStyle } = {}) {
   return (
     <>
     <div className="scr">
       <div className="safe" style={{ "alignItems": "center", "textAlign": "center" }}>
         <div className="grow" style={{ "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
-          <div className="rv-stagebox" style={{ "filter": "brightness(.85)" }}>
-            <img src="/revela/ref/cam-casamento.webp" alt="" style={{ "width": "300px" }} />
+          <div style={{ "filter": "brightness(.85)", "width": "300px" }}>
+            <CameraStage wrap={wrap} size={640} priority label="" print={{ name: name ?? undefined }} />
           </div>
         </div>
         <p className="rv-stamp">
@@ -14,8 +18,7 @@ export function ConvidadoCarregando() {
         </p>
         <h1 className="rv-title-lg" style={{ "marginTop": "10px" }}>
           Abrindo a câmera
-          <br />
-          {"de Ana & Leo"}
+          {name ? <><br />{"de " + name}</> : null}
         </h1>
         <div className="dotsload" style={{ "margin": "22px 0 60px" }}>
           <i />

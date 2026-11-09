@@ -34,16 +34,14 @@ beforeEach(() => {
 });
 
 describe("voce (UX-01)", () => {
-  it("voce não mostra 'Entrar como outra pessoa' quando canSwitchIdentity=false", async () => {
+  it("a tela Você (23g) segue o desenho: nada de 'Entrar como outra pessoa' nem de Voltar ao início", async () => {
     process.env.NEXT_PUBLIC_MM_DEV_TOOLS = "1";
     const { default: Voce } = await import("./e/[code]/(app)/voce/page");
-    app.canSwitchIdentity = false;
-    const { unmount } = render(<Voce />);
-    expect(screen.queryByRole("button", { name: "Entrar como outra pessoa" })).toBeNull();
-    unmount();
-    app.canSwitchIdentity = true;
+    app.canSwitchIdentity = true; mode = "local";
     render(<Voce />);
-    expect(screen.getByRole("button", { name: "Entrar como outra pessoa" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Entrar como outra pessoa" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Você" })).toBeInTheDocument();
+    expect(screen.getByText("Apagar meus dados")).toBeInTheDocument();
   });
 });
 
@@ -126,17 +124,13 @@ describe("criar/pronto (UX-12, O7)", () => {
 });
 
 describe("textos por modo na tela", () => {
-  it("convite inválido na nuvem não menciona o aparelho", async () => {
-    const { default: Convite } = await import("./e/[code]/page");
-    render(<Convite />);
-    expect(screen.getByText("Confira as 8 letras e números no card da mesa.")).toBeInTheDocument();
+  it("código que não abre festa vai para a tela do código, em vermelho (20h), sem mencionar o aparelho", async () => {
+    search = "erro=ZZZZ2222";
+    const { default: Entrar } = await import("./entrar/page");
+    render(<Entrar />);
+    expect(screen.getByText("Esse código não abre nenhuma festa. Confira as letras no convite.")).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/neste aparelho/);
-  });
-  it("convite inválido no modo local mantém o texto atual", async () => {
-    mode = "local"; app.backend = "local";
-    const { default: Convite } = await import("./e/[code]/page");
-    render(<Convite />);
-    expect(document.body.textContent).toMatch(/neste aparelho/);
+    search = "";
   });
   it("erro e offline na nuvem", async () => {
     const { default: Erro } = await import("./error");

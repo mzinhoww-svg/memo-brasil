@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button, Icon, LiveIndicator, Notice, PostCard } from "@/components/revela";
-import { eventStatus, isRevealed, retrospectiveOpen } from "@/domain/event";
+import { eventStatus, isRevealed, retrospectiveOpen, shotsLeft } from "@/domain/event";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
-import { relativeTime, usePhotoUrls } from "@/features/app/hooks";
+import { relativeTime, useNow, usePhotoUrls } from "@/features/app/hooks";
+import { countdown, revealLine, stampDay } from "@/features/guest/format";
+import { ConvidadoLaboratorio } from "@/revela/screens/ConvidadoLaboratorio";
 import { CreateYourOwn } from "@/features/reveal/CreateYourOwn";
 import { WaitingReveal } from "@/features/reveal/WaitingReveal";
 import { useApp } from "@/features/app/provider";
@@ -16,7 +18,34 @@ import { react, reportPhoto } from "@/features/photos/service";
 import { downloadPhoto, reactorsOf } from "@/features/photos/share";
 import { plural } from "@/lib/plural";
 
+/** 23b · Feed antes da revelação: o convidado vê só a contagem, a espera e o botão da câmera. */
+function Laboratorio() {
+  const { event, counts, participants } = useGuest();
+  const now = useNow(1000);
+  const left = shotsLeft(event, counts.mine);
+  const ms = event.revealEnabled && event.revealAt ? event.revealAt - now : null;
+  return (
+    <ConvidadoLaboratorio
+      code={event.code}
+      stamp={stampDay(event.startAt, event.timezone)}
+      title={event.title}
+      live={eventStatus(event, now) === "ativo"}
+      photos={counts.total}
+      guests={Math.max(participants.length, 1)}
+      countdown={ms === null ? null : countdown(ms)}
+      revealLabel={event.revealAt ? revealLine(event.revealAt, event.timezone) : "Revela na hora"}
+      cta={left === null || left <= 0 ? "Abrir câmera" : `Abrir câmera · ${left} ${left === 1 ? "pose" : "poses"}`}
+    />
+  );
+}
+
 export default function Agora() {
+  const g = useGuest();
+  if (!g.viewer.host && !isRevealed(g.event, g.now)) return <Laboratorio />;
+  return <FeedAntigo />;
+}
+
+function FeedAntigo() {
   const { repos } = useApp();
   const { event, user, viewer, now, photos, reactions, participants, counts, refresh, revealStatus, developed } = useGuest();
   const [more, setMore] = useState<string | undefined>();

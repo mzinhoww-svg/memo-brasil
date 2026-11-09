@@ -5,8 +5,8 @@ import GuestLayout from '@/app/e/[code]/(app)/layout';
 import PainelLayout from '@/app/painel/[id]/layout';
 import Downloads from '@/app/painel/[id]/downloads/page';
 import Configuracoes from '@/app/painel/[id]/configuracoes/page';
-const m = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn(), signIn: vi.fn(), join: vi.fn(), zip: vi.fn(), download: vi.fn(), error: undefined as string | undefined, access: 'convite' }));
-vi.mock('next/navigation', () => ({ useParams: () => ({ code: 'ABCDEFGH', id: 'event' }), usePathname: () => '/e/ABCDEFGH/agora', useRouter: () => ({ push: m.push, replace: vi.fn() }) }));
+const m = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn(), signIn: vi.fn(), join: vi.fn(), zip: vi.fn(), download: vi.fn(), error: undefined as string | undefined, access: 'convite' }));
+vi.mock('next/navigation', () => ({ useParams: () => ({ code: 'ABCDEFGH', id: 'event' }), usePathname: () => '/e/ABCDEFGH/agora', useRouter: () => ({ push: m.push, replace: m.replace }) }));
 vi.mock('@/features/app/provider', () => ({ useApp: () => ({ ready: true, user: null, signIn: m.signIn, repos: {}, now: () => 0, backend: 'local', ensureSession: async () => {}, authority: {}, scheduler: {}, canCreate: true }) }));
 vi.mock('@/features/app/hooks', () => ({ useEventData: () => ({ loading: false, error: m.error, access: m.error ? 'inexistente' : m.access, preview: m.error || m.access === 'inexistente' ? undefined : { title: 'Festa', hostName: 'Ana', startAt: 100, status: 'ativo', timezone: 'UTC', revealStatus: 'desativada' }, participants: [], photos: [], reactions: [], counts: { mine: 0, total: 0 }, refresh: m.refresh }), useClock: () => ({ now: 0, sync: vi.fn() }), useOnline: () => true, formatDate: () => '01/01', formatTime: () => '01h00', isUuid: () => true }));
 vi.mock('@/features/studio/useBrandImages', () => ({ useBrandImages: () => ({}) }));
@@ -88,10 +88,14 @@ it.each([GuestLayout, PainelLayout])('negação de acesso não é descrita como 
  expect(screen.getByText('Não foi possível confirmar seu acesso.')).toBeInTheDocument();
  expect(screen.queryByText(/Código não confere|Não achamos este evento/)).toBeNull();
 });
-it.each([GuestLayout, PainelLayout])('ausência confirmada apresenta evento não encontrado', async (Layout) => {
- m.access = 'inexistente'; render(<Layout>conteúdo</Layout>);
+it('ausência confirmada no painel apresenta evento não encontrado', async () => {
+ m.access = 'inexistente'; render(<PainelLayout>conteúdo</PainelLayout>);
  expect(screen.getByText(/Código não confere|Não achamos este evento/)).toBeInTheDocument();
  expect(screen.queryByRole('button',{name:'Tentar de novo'})).toBeNull();
+});
+it('ausência confirmada no convidado leva à tela do código (20h)', async () => {
+ m.access = 'inexistente'; m.replace.mockClear(); render(<GuestLayout>conteúdo</GuestLayout>);
+ expect(m.replace).toHaveBeenCalledWith('/entrar?erro=ABCDEFGH');
 });
 it('ZIP parcial informa incluídas e ausentes; todas ausentes não vira álbum vazio', async () => {
  m.zip.mockResolvedValueOnce({saved:0,missing:2});

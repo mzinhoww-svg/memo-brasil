@@ -2,10 +2,13 @@
 
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { TabBar, EventTheme, Button, Icon } from "@/components/revela";
+import { EventTheme, Button, Icon } from "@/components/revela";
+import { ConvidadoCarregando } from "@/revela/screens/ConvidadoCarregando";
 import { useApp } from "@/features/app/provider";
 import { useClock, useEventData, useOnline } from "@/features/app/hooks";
 import { GuestProvider } from "@/features/events/guest-context";
+import { devToolsEnabled } from "@/lib/dev-tools";
+import { RollPickerProvider } from "@/features/photos/roll-picker";
 import { normalizeShareCode } from "@/domain/share-code";
 import { notificationPlan } from "@/domain/notifications";
 import { computeRevealStatus } from "@/domain/reveal";
@@ -20,7 +23,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const code = normalizeShareCode(params.code ?? "") ?? "";
   const path = usePathname();
   const router = useRouter();
-  const { ready, user, scheduler, now: clock, repos, authority } = useApp();
+  const { ready, user, scheduler, now: clock, repos, authority, signOut, canSwitchIdentity } = useApp();
   const data = useEventData({ code });
   const { now, sync } = useClock();
   const { refresh: reload } = data;
@@ -98,51 +101,35 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
 
   const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, counts: data.counts, refresh, revealStatus: status, developed } : null), [data, user, participant, isHost, now, refresh, status, developed]);
 
-  if (!ready || data.loading) return <main className="app-col"><p className="app-screen app-muted">Carregando a festa…</p></main>;
+  if (!ready || data.loading) return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
   if (data.error) return <main className="app-col app-fluid"><div className="app-screen">
     <h1 className="titulo-tela app-h1">{data.error === "forbidden" || data.error === "unauthorized" ? "Não foi possível confirmar seu acesso." : "Não deu para carregar o evento."}</h1>
     <p className="app-p app-muted">{data.error === "forbidden" || data.error === "unauthorized" ? "Confira se você está com a conta usada neste evento e tente de novo." : "Confira a conexão e tente de novo. O link do evento continua o mesmo."}</p>
     <Button block onClick={() => void refresh()}>Tentar de novo</Button>
     {(data.error === "forbidden" || data.error === "unauthorized") && <Button href={`/e/${code}`} variant="texto">Voltar ao convite</Button>}
   </div></main>;
-  if (data.access === "convite") return <main className="app-col"><p className="app-screen app-muted">Entrando na festa…</p></main>;
+  if (data.access === "convite") return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
   if (!data.event) {
-    return (
-      <main className="app-col app-fluid">
-        <div className="app-screen">
-          <h1 className="titulo-tela app-h1">Código não confere.</h1>
-          <p className="app-p app-muted">{copyFor(backendMode()).inviteInvalidBody}</p>
-          <Button href="/entrar" variant="primario" block>Tentar outro código</Button>
-        </div>
-      </main>
-    );
+    router.replace(`/entrar?erro=${encodeURIComponent(code)}`); // 20h: o código não abre nenhuma festa
+    return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
   }
-  if (!ctx) return <main className="app-col"><p className="app-screen app-muted">Entrando na festa…</p></main>;
+  if (!ctx) return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
 
   const base = `/e/${code}`;
-  const onPost = path.endsWith("/postar") || path.includes("/editar/");
   return (
     <GuestProvider value={ctx}>
-      <EventTheme wrap={data.event.cameraStyle} className="app-col app-col--card app-fluid">
+      <EventTheme wrap={data.event.cameraStyle}>
         {celebrate && <RevealTransition title={data.event.title} onClose={() => setCelebrate(false)} />}
         {!online && (
-          <div className="app-banner" role="status" style={{ margin: "var(--space-4)" }}>
+          <div className="app-banner" role="status" style={{ position: "fixed", top: "var(--space-4)", left: "var(--space-4)", right: "var(--space-4)", zIndex: 80 }}>
             <Icon name="sem-sinal" label="Sem sinal" />
             <span>Sem sinal agora. {data.counts.mine === 1 ? "Sua foto está guardada." : `Suas ${data.counts.mine} fotos estão guardadas.`}</span>
           </div>
         )}
-        <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>{children}</main>
-        {!onPost && (
-          <div className="app-fixed-bottom">
-            <TabBar
-              cta={{ href: `${base}/postar`, label: "Postar daqui" }}
-              items={[
-                { href: `${base}/agora`, label: "Agora", icon: "agora", current: path.endsWith("/agora") },
-                { href: `${base}/explorar`, label: "Explorar", icon: "explorar", current: path.endsWith("/explorar") },
-                { href: `${base}/voce`, label: "Você", icon: "voce", current: path.endsWith("/voce") },
-              ]}
-            />
-          </div>
+        <RollPickerProvider code={code}><main>{children}</main></RollPickerProvider>
+        {devToolsEnabled() && canSwitchIdentity && (
+          // só no build de homologação (nunca em produção): trocar de pessoa neste aparelho para testar a festa com mais de um convidado
+          <button type="button" className="rv-sr-only" style={{ position: "fixed", top: 0, left: 0 }} onClick={async () => { await signOut(); router.push(`/e/${code}`); }}>Entrar como outra pessoa</button>
         )}
       </EventTheme>
     </GuestProvider>

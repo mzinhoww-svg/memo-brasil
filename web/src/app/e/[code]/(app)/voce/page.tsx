@@ -1,104 +1,75 @@
-/* eslint-disable @next/next/no-img-element -- fotos locais vêm de blob URLs; next/image não se aplica */
 "use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useApp } from "@/features/app/provider";
-import { useState } from "react";
 import { notificationPlan } from "@/domain/notifications";
-import { Button, Icon, Progress, Signature } from "@/components/revela";
-import { isRevealed, shotsLeft } from "@/domain/event";
-import { usePhotoUrls } from "@/features/app/hooks";
+import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
-import { devToolsEnabled } from "@/lib/dev-tools";
-import { copyFor } from "@/features/app/copy";
+import { download, zipAlbum } from "@/features/admin/export";
+import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
+import { ConvidadoVoce } from "@/revela/screens/ConvidadoVoce";
 
+/** 23g · Você */
 export default function Voce() {
-  const { event, user, now, photos, counts, isHost } = useGuest();
-  const { signOut, scheduler, now: clock, canSwitchIdentity } = useApp();
-  const [avisos, setAvisos] = useState<string | undefined>();
+  const { repos, scheduler, now: clock, signOut } = useApp();
+  const { event, user, participant, photos, counts, now } = useGuest();
   const router = useRouter();
-  const mine = photos.filter((p) => p.authorId === user.id && p.status !== "removida");
-  const urls = usePhotoUrls(isRevealed(event, now) ? mine : [], "thumb");
-  const left = shotsLeft(event, counts.mine);
-  const revealed = isRevealed(event, now);
+  const cloud = backendMode() === "supabase";
+  const [notify, setNotify] = useState(false);
+  const [email, setEmail] = useState<string | undefined>();
+  const [msg, setMsg] = useState<string | undefined>();
+  useEffect(() => {
+    if (!cloud) return;
+    let live = true;
+    void browserSupabase().rpc("get_my_email", { p_event: event.id }).then(({ data }) => { if (live && data?.email) { setEmail(String(data.email)); setNotify(true); } });
+    return () => { live = false; };
+  }, [cloud, event.id]);
+
+  async function toggleNotify() {
+    if (notify) { setNotify(false); if (cloud) await browserSupabase().rpc("email_opt_out_mine", { p_event: event.id }); setEmail(undefined); return; }
+    if (typeof Notification !== "undefined" && Notification.permission !== "denied") {
+      const p = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+      if (p === "granted") scheduler.schedule(event.id, notificationPlan(event, clock()));
+    }
+    setNotify(true);
+  }
+  async function editEmail() {
+    const v = window.prompt("E-mail para o aviso de revelação (só serve para isso)", email ?? "");
+    if (v === null) return;
+    if (!cloud) return setMsg("O aviso por e-mail precisa do servidor ligado.");
+    const { error } = await browserSupabase().rpc("set_my_email", { p_event: event.id, p_email: v, p_consent: v.trim() !== "" });
+    if (error) return setMsg("Confira o e-mail e tente de novo.");
+    setEmail(v.trim() || undefined);
+    setNotify(true);
+  }
+  async function downloadMine() {
+    const mine = photos.filter((p) => p.authorId === user.id);
+    if (!mine.length) return setMsg(counts.mine ? "Suas fotos aparecem para baixar depois da revelação." : "Você ainda não tirou fotos.");
+    const z = await zipAlbum(repos, event, mine);
+    download(z.blob, z.filename);
+  }
+  async function leave() {
+    if (!window.confirm("Sair deste evento? Suas fotos continuam no evento.")) return;
+    await repos.participants.remove(event.id, user.id);
+    router.push("/");
+  }
+  async function wipe() {
+    if (!window.confirm("Apagar meus dados? Suas fotos e comentários deixam de ter o seu nome e você sai do evento.")) return;
+    if (cloud) await browserSupabase().rpc("request_account_deletion");
+    for (const p of photos.filter((x) => x.authorId === user.id)) await repos.photos.remove(p.id).catch(() => undefined);
+    await repos.participants.remove(event.id, user.id).catch(() => undefined);
+    await signOut();
+    router.push("/");
+  }
   const total = event.shotsPerPerson;
-
+  const sub = `${event.hostName ? `Convidado de ${event.title}` : "Convidado"}${participant?.tableLabel ? ` · ${participant.tableLabel}` : ""}`;
   return (
-    <div className="app-screen">
-      <div className="app-stack-sm">
-        <p className="eyebrow app-eyebrow">Você está dentro, {user.name}.</p>
-        <h1 className="titulo-tela app-h1">Você</h1>
-      </div>
-
-      <section className="app-stack-sm" aria-labelledby="rolo">
-        <h2 id="rolo" className="titulo-card app-h1">Seu rolo</h2>
-        {total === null ? (
-          <p className="corpo app-p">Rolo ilimitado. {counts.mine === 1 ? "Já é 1 foto." : `Já são ${counts.mine.toLocaleString("pt-BR")} fotos.`}</p>
-        ) : (
-          <Progress variant="evento" label={`Restam ${left} de ${total}`} status={`${counts.mine} usadas`} value={(counts.mine / total) * 100} />
-        )}
-      </section>
-
-      <section className="app-stack-sm" aria-labelledby="minhas">
-        <h2 id="minhas" className="titulo-card app-h1">Suas fotos</h2>
-        {counts.mine === 0 ? (
-          <div className="app-empty">
-            <Icon name="camera" label="Câmera" size={28} />
-            <p className="corpo app-p">Você ainda não postou.</p>
-            <p className="app-p">Viu alguma coisa boa? Posta.</p>
-          </div>
-        ) : !revealed ? (
-          // antes da revelação a lista vem vazia (ITG-101): só a contagem chega, e cada foto é um marcador sem conteúdo
-          <div className="app-grid-3">
-            {Array.from({ length: Math.min(counts.mine, 60) }, (_, i) => (
-              <div key={i} className="app-thumb"><span className="app-thumb-badge">Guardada</span></div>
-            ))}
-          </div>
-        ) : (
-          <div className="app-grid-3">
-            {mine.map((p) => (
-              <div key={p.id} className="app-thumb">
-                {urls[p.id] && <img src={urls[p.id]} alt={`Sua foto, momento ${p.moment}`} />}
-                <span className="app-thumb-badge">{p.status === "oculta" ? "Oculta" : revealed ? "Publicada" : "Guardada"}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {counts.mine > 0 && !revealed && <p className="app-p app-muted">Suas fotos estão guardadas no escuro. Elas aparecem na revelação.</p>}
-      </section>
-
-      <section className="app-stack-sm" aria-labelledby="avisos">
-        <h2 id="avisos" className="titulo-card app-h1">Avisos do evento</h2>
-        <p className="app-p app-muted meta">Lembretes de fim e de revelação. Nesta versão funcionam só enquanto o Revela estiver aberto.</p>
-        <Button
-          variant="secundario"
-          block
-          onClick={async () => {
-            if (typeof Notification === "undefined") return setAvisos("Este navegador não mostra avisos.");
-            const p = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
-            if (p !== "granted") return setAvisos("Avisos bloqueados. Libere nas permissões do navegador.");
-            scheduler.schedule(event.id, notificationPlan(event, clock()));
-            setAvisos(copyFor(backendMode()).noticeOn);
-          }}
-        >
-          Ativar avisos
-        </Button>
-        {avisos && <p className="app-p" role="status">{avisos}</p>}
-      </section>
-
-      <div className="app-stack-sm">
-        {isHost && <Button href={`/painel/${event.id}`} variant="secundario" block>Abrir o painel do evento</Button>}
-        <Link href="/" className="rv-btn rv-btn--texto" style={{ alignSelf: "flex-start" }}>Voltar ao início</Link>
-        {canSwitchIdentity && devToolsEnabled() && (
-        <div className="app-stack-sm">
-            <Button variant="secundario" block onClick={async () => { await signOut(); router.push(`/e/${event.code}`); }}>Entrar como outra pessoa</Button>
-            <p className="app-p app-muted">Demonstração: serve para testar a festa com mais de uma pessoa neste aparelho. Você volta para {user.name} pela tela inicial ou pelo convite, na lista Continuar como.</p>
-          </div>
-        )}
-      </div>
-      <div style={{ marginTop: "auto" }}><Signature /></div>
-    </div>
+    <>
+      <ConvidadoVoce code={event.code} name={user.name} sub={sub} used={counts.mine} total={total} notify={notify} email={email ?? "Adicionar e-mail"}
+        onNotify={() => void toggleNotify()} onEmail={() => void editEmail()} onDownload={() => void downloadMine()} onLeave={() => void leave()} onDelete={() => void wipe()} />
+      {msg && <p className="rv-field-erro" role="status" style={{ position: "fixed", left: 20, right: 20, bottom: 84, textAlign: "center", zIndex: 40 }} onClick={() => setMsg(undefined)}>{msg}</p>}
+      <span className="rv-sr-only" data-now={now} />
+    </>
   );
 }

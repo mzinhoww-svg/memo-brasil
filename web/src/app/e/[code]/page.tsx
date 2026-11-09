@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button, CameraStage, EventTheme, GuestShell, Icon, KnownPeople, PrintBack, ShotCounter } from "@/components/revela";
+import { ConvidadoCarregando } from "@/revela/screens/ConvidadoCarregando";
 import { eventStatus } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
 import { formatDate, useEventData } from "@/features/app/hooks";
@@ -131,10 +132,16 @@ export default function Convite() {
   const dateStamp = event ? stampDate(event.startAt) : undefined;
   const top = dateStamp ? <span className="rv-stamp">{dateStamp}</span> : undefined;
 
-  if (!ready || data.loading) return <GuestShell><p className="corpo app-muted" role="status">Abrindo o convite…</p></GuestShell>;
-  // 20e: convite vencido ou trocado (e código que não existe), mesmo layout
-  if (inactive || data.error === "forbidden" || (!data.error && !sessionFailed && !waiting && (!event || data.access === "inexistente"))) {
-    const missing = !(inactive || data.error === "forbidden");
+  // 20g · Carregando a festa: a câmera do evento com o nome, assim que o convite chega
+  if (!ready || data.loading) return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={event?.title ?? null} wrap={event?.cameraStyle} /></main>;
+  // 20h: o código não abre nenhuma festa — volta para a tela do código, em vermelho
+  if (!inactive && data.error !== "forbidden" && !data.error && !sessionFailed && !waiting && (!event || data.access === "inexistente")) {
+    router.replace(`/entrar?erro=${encodeURIComponent(code)}`);
+    return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
+  }
+  // 20e: convite vencido ou trocado
+  if (inactive || data.error === "forbidden") {
+    const missing = false;
     return (
       <GuestShell closeHref="/" action={<Button href="/entrar#codigo" variant="primario" block>Digitar outro código</Button>}>
         <PrintBack stamp={missing ? undefined : "VENCIDO"} />

@@ -186,5 +186,18 @@ reset role;
 select is((select email from public.participant_emails where event_id = '00000000-0000-4000-8000-0000000028e3' and user_id = '00000000-0000-4000-8000-0000000028b1'), null, 'descadastro apaga o e-mail');
 select is((select opt_out_at is not null from public.participant_emails where event_id = '00000000-0000-4000-8000-0000000028e3' and user_id = '00000000-0000-4000-8000-0000000028b1'), true, 'e registra a saída');
 
+
+-- ===================================================================== 5. minhas poses (23c)
+select tests.login('00000000-0000-4000-8000-0000000028b1');
+select is(jsonb_array_length(public.my_pose_times('00000000-0000-4000-8000-0000000028e1')), 1, 'my_pose_times devolve só as poses da própria pessoa (Ana tem 1 em e1)');
+select is(jsonb_array_length(public.my_pose_times('00000000-0000-4000-8000-0000000028e2')), 1, 'e em outro evento em que também participa');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000028b2');
+select is(jsonb_array_length(public.my_pose_times('00000000-0000-4000-8000-0000000028e1')), 0, 'quem não tirou foto recebe lista vazia, sem ver as de outras pessoas');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000028d1');
+select throws_ok($$select public.my_pose_times('00000000-0000-4000-8000-0000000028e1')$$, 'MM004', null, 'estranho não lê horários de poses');
+reset role;
+
 select * from finish();
 rollback;
