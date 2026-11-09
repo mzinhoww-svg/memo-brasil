@@ -168,10 +168,11 @@ reset role;
 
 -- o evento 3 chega na hora da revelação: o job enfileira uma vez, idempotente
 update public.events set reveal_at = now() - interval '1 minute', start_at = now() - interval '7 hours' where id = '00000000-0000-4000-8000-0000000028e3';
-select is(public.reveal_due_events(), 1, 'job revela o evento vencido');
+select is(public.reveal_due_events(), 1, 'job revela o evento vencido (via release_reveal)');
 select is((select count(*)::int from public.reveal_email_queue where event_id = '00000000-0000-4000-8000-0000000028e3'), 1, 'um e-mail na fila (só quem consentiu)');
 select is(public.reveal_due_events(), 0, 'segunda execução não revela nem enfileira de novo');
 select is((select count(*)::int from public.reveal_email_queue where event_id = '00000000-0000-4000-8000-0000000028e3'), 1, 'fila segue com uma linha por pessoa');
+select is(public.release_reveal('00000000-0000-4000-8000-0000000028e3', now(), 'master'), false, 'revelar de novo (manual) não faz nada nem duplica o aviso');
 select is((select count(*)::int from public.claim_reveal_emails(10)), 1, 'envio reivindica o lote');
 select is((select count(*)::int from public.claim_reveal_emails(10)), 0, 'lote já reivindicado não sai de novo');
 select is(public.mark_reveal_email_sent((select id from public.reveal_email_queue limit 1)), true, 'marca como enviado');

@@ -80,27 +80,26 @@ begin
    where event_id = p_event and user_id = auth.uid();
 end $$;
 
--- Job de revelação: o mesmo de antes (idempotente: só toca eventos sem revealed_at), agora também enfileira o aviso por e-mail
--- para quem consentiu e não saiu da lista. `unique (event_id, user_id)` garante uma única linha por pessoa mesmo se o job rodar de novo.
-create or replace function public.reveal_due_events() returns int
+-- Revelação: release_reveal (20261024000100) é o ponto único usado pelo job reveal_due_events e pelo "revelar agora" do Master.
+-- Mantém o corpo vigente e, só quando a revelação acontece de fato, enfileira o aviso por e-mail para quem consentiu e não saiu
+-- da lista. `unique (event_id, user_id)` garante uma linha por pessoa mesmo que a função rode de novo.
+create or replace function public.release_reveal(p_event uuid, p_at timestamptz, p_source text default null) returns boolean
 language plpgsql security definer set search_path = '' as $$
-declare r record; n int := 0;
+declare ev public.events;
 begin
-  for r in
-    select id, reveal_at, title, code from public.events
-    where reveal_enabled and revealed_at is null and deleted_at is null and reveal_at <= now()
-    for update skip locked
-  loop
-    update public.events set revealed_at = r.reveal_at, reveal_status = 'revelada' where id = r.id;
-    insert into public.audit_logs (actor_id, event_id, action, detail) values (null, r.id, 'reveal.released', jsonb_build_object('at', r.reveal_at, 'ran_at', now()));
-    insert into public.reveal_email_queue (event_id, user_id, email, optout_token, event_title, event_code)
-      select pe.event_id, pe.user_id, pe.email, pe.optout_token, r.title, r.code
-      from public.participant_emails pe join public.participants p on p.event_id = pe.event_id and p.user_id = pe.user_id
-      where pe.event_id = r.id and pe.email is not null and pe.consent_at is not null and pe.opt_out_at is null and p.blocked_at is null
-    on conflict (event_id, user_id) do nothing;
-    n := n + 1;
-  end loop;
-  return n;
+  update public.events set revealed_at = p_at, reveal_status = 'revelada'
+   where id = p_event and reveal_enabled and revealed_at is null and deleted_at is null
+  returning * into ev;
+  if not found then return false; end if;
+  insert into public.audit_logs (actor_id, event_id, action, detail)
+  values (null, p_event, 'reveal.released', jsonb_build_object('at', p_at, 'ran_at', now())
+          || case when p_source is null then '{}'::jsonb else jsonb_build_object('source', p_source) end);
+  insert into public.reveal_email_queue (event_id, user_id, email, optout_token, event_title, event_code)
+    select pe.event_id, pe.user_id, pe.email, pe.optout_token, ev.title, ev.code
+    from public.participant_emails pe join public.participants p on p.event_id = pe.event_id and p.user_id = pe.user_id
+    where pe.event_id = p_event and pe.email is not null and pe.consent_at is not null and pe.opt_out_at is null and p.blocked_at is null
+  on conflict (event_id, user_id) do nothing;
+  return true;
 end $$;
 
 -- Envio (Edge Function reveal-emails, com service_role): reivindica um lote com trava, sem repetir quem já foi enviado.
