@@ -12,8 +12,8 @@ describe("formatos do feed", () => {
   });
   it("pose N de M entre as fotos do mesmo autor", () => {
     const a = [photo("1", "a", 100), photo("2", "a", 300), photo("3", "b", 200)];
-    expect(poseLabel(a[1], a, { shotsPerPerson: 27 })).toBe("pose 2 de 27");
-    expect(poseLabel(a[2], a, { shotsPerPerson: 27 })).toBe("pose 1 de 27");
+    expect(poseLabel(a[1], a, { shotsPerPerson: 24 })).toBe("pose 2 de 24");
+    expect(poseLabel(a[2], a, { shotsPerPerson: 24 })).toBe("pose 1 de 24");
     expect(poseLabel(a[0], a, { shotsPerPerson: null })).toBe("pose 1");
   });
   it("textos de curtidas e comentários no singular e plural", () => {
