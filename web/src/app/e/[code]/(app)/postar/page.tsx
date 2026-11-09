@@ -24,6 +24,10 @@ const remember = () => { try { localStorage.setItem(REMEMBER_KEY, "1"); } catch 
 const DISCARD_NOTICE = "Descartar apaga apenas o rascunho neste aparelho. O envio pode ter sido confirmado; confira as fotos do evento.";
 const SUGGESTIONS = ["Alguém precisava registrar isso.", "Ninguém segurou a emoção.", "Quem viu, viu.", "Só daqui dá para ver."];
 
+/** Filme das fotos: eventos antigos com filtro vintage ou preto e branco continuam com o filtro escolhido na época. */
+const lookOf = (e: { cameraStyle: string; filmLook?: "natural" | "filme35" }) =>
+  e.cameraStyle === "vintage" || e.cameraStyle === "preto-e-branco" ? e.cameraStyle : (e.filmLook ?? DEFAULT_FILM);
+
 export default function Postar() {
   const { event, user } = useGuest();
   return <PostarSession key={JSON.stringify([event.id, user.id])} />;
@@ -194,7 +198,7 @@ function PostarSession() {
     setError(undefined);
     if (flashOn) { setFlashing(true); setTimeout(() => setFlashing(false), 140); }
     try {
-      const data = await renderPhoto(v, v.videoWidth, v.videoHeight, event.filmLook ?? DEFAULT_FILM, facing === "user");
+      const data = await renderPhoto(v, v.videoWidth, v.videoHeight, lookOf(event) as "natural" | "filme35" | "vintage" | "preto-e-branco", facing === "user");
       if (!alive.current) return;
       quick.current = true;
       picked.current = true;
@@ -211,7 +215,7 @@ function PostarSession() {
     setError(undefined);
     try {
       const img = await fileToImage(file);
-      const data = await renderPhoto(img, img.naturalWidth, img.naturalHeight, event.filmLook ?? DEFAULT_FILM);
+      const data = await renderPhoto(img, img.naturalWidth, img.naturalHeight, lookOf(event) as "natural" | "filme35" | "vintage" | "preto-e-branco");
       if (!alive.current) return;
       setShot({ data, url: URL.createObjectURL(new Blob([data.bytes], { type: data.type })) });
       picked.current = true;

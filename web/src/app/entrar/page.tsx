@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Breadcrumbs, Button, Field, GoogleButton, Logo } from "@/components/revela";
 import { extractShareCode } from "@/domain/share-code";
 import { useApp } from "@/features/app/provider";
+import { emailLoginEnabled } from "@/features/auth/email-login";
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -43,7 +44,7 @@ export default function Entrar() {
             <h1 id="anfitriao" className="titulo-tela app-h1">Entre para montar a câmera.</h1>
             <p className="corpo app-muted" style={{ margin: 0 }}>Quem organiza usa uma conta. Convidados entram só pelo QR, sem conta.</p>
             <GoogleButton block label="Continuar com Google" onClick={() => void signInWithGoogle("/criar")} />
-            {sent ? (
+            {!emailLoginEnabled() ? null : sent ? (
               <p className="app-banner" role="status">Link enviado para {email.trim()}. Abra o e-mail neste aparelho e toque no botão para entrar.</p>
             ) : (
               <form className="app-stack-sm" noValidate onSubmit={(e) => { e.preventDefault(); void submitEmail(); }}>

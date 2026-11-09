@@ -7,6 +7,7 @@ import { Abertura, Button, GoogleButton, Icon, KnownPeople, Logo } from "@/compo
 import { useApp } from "@/features/app/provider";
 import { BackendNotice } from "@/features/app/backend-notice";
 import { safeNextPath } from "@/features/auth/safe-next";
+import { emailLoginEnabled } from "@/features/auth/email-login";
 
 /** Retorno do OAuth com falha (`/?erro=login`, vindo de auth/callback): aviso dispensável no topo. */
 function LoginErrorBanner() {
@@ -67,7 +68,7 @@ export default function Home() {
           ) : cloud ? (
             <>
               <GoogleButton block label="Continuar com Google" onClick={() => void signInWithGoogle("/criar")} />
-              <Button href="/entrar" variant="secundario" block icon="email">Receber link por e-mail</Button>
+              {emailLoginEnabled() && <Button href="/entrar" variant="secundario" block icon="email">Receber link por e-mail</Button>}
             </>
           ) : (
             <Button href="/criar" variant="papel" block icon="camera">Montar câmera</Button>
