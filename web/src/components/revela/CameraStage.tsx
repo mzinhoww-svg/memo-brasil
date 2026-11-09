@@ -65,8 +65,8 @@ export function CameraStage({ wrap, size = 640, priority = false, label, classNa
   const base = `/revela/3d/cam-${w}`;
   const h = (HOMOGRAPHY as Record<Wrap, number[][]>)[w];
   return (
-    <div className={`rv-stagebox ${className ?? ""}`} data-wrap={w}>
-      <div className="rv-stagebox__obj">
+    <div className={`rvl-stagebox ${className ?? ""}`} data-wrap={w}>
+      <div className="rvl-stagebox__obj">
         <picture>
           <source type="image/avif" srcSet={`${base}-640.avif`} />
           <img
@@ -81,7 +81,7 @@ export function CameraStage({ wrap, size = 640, priority = false, label, classNa
             fetchPriority={priority ? "high" : "auto"}
           />
         </picture>
-        <svg className="rv-stagebox__print" viewBox="0 0 1200 1200" aria-hidden="true" focusable="false">
+        <svg className="rvl-stagebox__print" viewBox="0 0 1200 1200" aria-hidden="true" focusable="false">
           {texts(w, print ?? {}).map((t, k) => {
             const est = t.text.length * t.size * CHAR_W[t.family] + (t.ls ?? 0) * t.text.length;
             return (

@@ -12,7 +12,7 @@ export interface TabBarItem {
 /** Rodapé fixo do convidado: CTA "Postar daqui" acima das abas. Sem CTA, 4 abas (painel). */
 export function TabBar({ items, cta, label = "Navegação principal" }: { items: TabBarItem[]; cta?: { href: string; label: string }; label?: string }) {
   return (
-    <div className="rv-tabbar">
+    <div className="rvl-tabbar">
       {cta && <Button variant="cta" href={cta.href} icon="camera" block>{cta.label}</Button>}
       <nav className={items.length === 4 ? "rv-tabbar-nav rv-tabbar-nav--4" : "rv-tabbar-nav"} aria-label={label}>
         {items.map((i) => (

@@ -25,10 +25,10 @@ export function PaywallPreview({ plans, env }: { plans: PlanRow[]; env: Env }) {
         <p className="rv-caption">Pague uma vez por evento. Sem assinatura.</p>
         <div className="adm-phone__plans">
           {visible.map((p) => (
-            <div key={p.code} className={`rv-plan ${p.code === chosen?.code ? "rv-plan--on" : ""}`}>
-              <span className="rv-plan__tier">{p.name}{p.highlighted ? " · destaque" : ""}</span>
-              <span className="rv-plan__price">{brl(p.priceCents)}</span>
-              <span className="rv-plan__note">{p.maxGuests == null ? "convidados sem limite" : `${p.maxGuests} convidados`}<br />{p.maxShots == null ? "poses livres" : `${p.maxShots} poses cada`}</span>
+            <div key={p.code} className={`rvl-plan ${p.code === chosen?.code ? "rvl-plan--on" : ""}`}>
+              <span className="rvl-plan__tier">{p.name}{p.highlighted ? " · destaque" : ""}</span>
+              <span className="rvl-plan__price">{brl(p.priceCents)}</span>
+              <span className="rvl-plan__note">{p.maxGuests == null ? "convidados sem limite" : `${p.maxGuests} convidados`}<br />{p.maxShots == null ? "poses livres" : `${p.maxShots} poses cada`}</span>
             </div>
           ))}
         </div>
@@ -113,7 +113,7 @@ function ConfirmSheet({ original, draft, onClose, onDone }: { original: PlanRow[
           <a href={enroll.uri} className="rv-link">Abrir no autenticador</a>
         </div>
       )}
-      <div className="rv-field">
+      <div className="rvl-field">
         <label className="rv-field-label" htmlFor={codeId}>Código do autenticador</label>
         <input id={codeId} className="rv-field-input rv-field-input--codigo" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code}
           aria-invalid={cErr ? true : undefined} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} />

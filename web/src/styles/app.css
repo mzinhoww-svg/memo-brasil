@@ -9,7 +9,7 @@
 .app-topbar { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); gap: var(--space-3); }
 .app-fixed-bottom { position: sticky; bottom: 0; z-index: 20; }
 .app-with-tabbar { padding-bottom: var(--space-6); }
-.app-fluid .rv-post, .app-fluid .rv-field, .app-fluid .rv-progress, .app-fluid .rv-notice, .app-fluid .rv-visions, .app-fluid .rv-stats, .app-fluid .rv-list, .app-fluid .rv-group, .app-fluid .rv-tabbar, .app-fluid .rv-event-header { max-width: none; }
+.app-fluid .rv-post, .app-fluid .rvl-field, .app-fluid .rv-progress, .app-fluid .rvl-notice, .app-fluid .rv-visions, .app-fluid .rv-stats, .app-fluid .rv-list, .app-fluid .rvl-group, .app-fluid .rvl-tabbar, .app-fluid .rv-event-header { max-width: none; }
 .app-fluid .rv-media { height: auto; aspect-ratio: 4 / 5; }
 .app-h1 { margin: 0; } .app-p { margin: 0; font-size: 17px; line-height: 1.4; }
 .app-eyebrow { color: var(--ink-muted); margin: 0; }
@@ -41,7 +41,7 @@
 .app-sheet-handle { height: 4px; width: 40px; border-radius: 2px; background: var(--line); align-self: center; }
 
 /* iPhone: a barra de navegação e a TabBar respeitam a área segura (viewport-fit=cover) */
-.rv-tabbar { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+.rvl-tabbar { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
 .app-topbar { padding-top: calc(var(--space-4) + env(safe-area-inset-top)); }
 .rv-event-nome, .nome-evento, .rv-card-mesa-nome { overflow-wrap: anywhere; }
 
@@ -136,7 +136,7 @@
 .plano-cartao, .plano-codigo { background: var(--surface-2); border-radius: var(--radius-lg); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
 .plano-codigo-topo { display: flex; justify-content: space-between; align-items: center; }
 .plano-codigo-linha { display: flex; gap: var(--space-2); align-items: flex-start; flex-wrap: wrap; }
-.plano-codigo-linha .rv-field { flex: 1; min-width: 180px; }
+.plano-codigo-linha .rvl-field { flex: 1; min-width: 180px; }
 .plano-codigo-linha .rv-btn { margin-top: 28px; }
 .plano-fechar { width: var(--size-alvo); height: var(--size-alvo); border: 0; background: none; font-size: 28px; line-height: 1; color: var(--ink); cursor: pointer; }
 .plano-aviso { background: var(--surface-2); color: var(--carimbo); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: 16px; line-height: 1.35; }

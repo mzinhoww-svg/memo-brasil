@@ -11,7 +11,7 @@ export function Field({ label, error, help, code, ...input }: Props) {
   const helpId = help ? `${id}-ajuda` : undefined;
   const errId = error ? `${id}-erro` : undefined;
   return (
-    <div className="rv-field">
+    <div className="rvl-field">
       <label className="rv-field-label" htmlFor={id}>{label}</label>
       <input
         id={id}

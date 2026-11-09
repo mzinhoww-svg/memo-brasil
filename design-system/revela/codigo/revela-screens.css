@@ -552,3 +552,19 @@ b.was { font: 400 26px/30px var(--font-display); margin: 0; }
 .rv-field input { min-width: 0; width: 100%; }
 i.rv-toggle { display: inline-block; }
 .dsk .rv-btn { white-space: nowrap; }
+.otp--err span { box-shadow: inset 0 0 0 1.5px var(--danger); color: var(--danger); }
+.errline { display: flex; gap: 8px; align-items: flex-start; margin-top: 14px; font: 500 14px/20px var(--font-sans); color: var(--danger); }
+.errline svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.pplan { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: var(--radius-md); background: var(--surface-2); }
+.pplan b { display: block; font: 400 20px/24px var(--font-display); }
+.pplan span { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.pplan strong { font: 400 24px/1 var(--font-display); }
+.pplan.on { background: var(--revela-soft); box-shadow: inset 0 0 0 1.5px var(--revela); }
+.legal h2 { font: 400 22px/26px var(--font-display); margin: 20px 0 6px; }
+.legal p { font: 400 16px/24px var(--font-sans); color: var(--ink-muted); margin: 0; }
+.faqs { margin-top: 16px; }
+.faq { padding: 16px 0; box-shadow: inset 0 -1px 0 var(--line); }
+.faq b { font: 600 16px/22px var(--font-sans); }
+.faq svg { width: 20px; height: 20px; color: var(--ink-muted); flex: none; }
+.faq.open svg { transform: rotate(90deg); color: var(--revela-text); }
+.faq p { margin: 8px 0 0; font: 400 15px/22px var(--font-sans); color: var(--ink-muted); }

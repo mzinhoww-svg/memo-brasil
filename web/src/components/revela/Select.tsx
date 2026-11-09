@@ -6,7 +6,7 @@ import { useId, type SelectHTMLAttributes } from "react";
 export function Select({ label, options, help, ...select }: Omit<SelectHTMLAttributes<HTMLSelectElement>, "id" | "className"> & { label: string; options: { value: string; label: string }[]; help?: string }) {
   const id = useId();
   return (
-    <div className="rv-field">
+    <div className="rvl-field">
       <label className="rv-field-label" htmlFor={id}>{label}</label>
       <select id={id} className="rv-field-input" aria-describedby={help ? `${id}-ajuda` : undefined} {...select}>
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}

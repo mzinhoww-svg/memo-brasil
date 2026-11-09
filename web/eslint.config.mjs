@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Telas portadas da referência: imagens estáticas já em WebP/JPG nos tamanhos do desenho.
+  { files: ["src/revela/screens/**"], rules: { "@next/next/no-img-element": "off" } },
 ]);
 
 export default eslintConfig;

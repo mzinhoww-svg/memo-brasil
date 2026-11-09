@@ -55,7 +55,7 @@ export function AppearanceStudio({ event, locked, onSave, onSaveLook, images }: 
           </div>
           <OptionGroup<FilmLook> label="Filme" value={film} onChange={(f) => { setMsg(undefined); setFilm(f); }} options={(Object.keys(FILM_LABEL) as FilmLook[]).map((f) => ({ value: f, label: FILM_LABEL[f] }))} />
           <p className="rv-caption">Filme 35mm: tons quentes, grão, carimbo de data e o brilho do flash.</p>
-          <div className="rv-field">
+          <div className="rvl-field">
             <label className="rv-field-label" htmlFor="ap-msg">Mensagem de boas-vindas</label>
             <textarea id="ap-msg" className="rv-field-input studio-msg" rows={3} maxLength={MESSAGE_MAX} value={draft.welcomeMessage} onChange={(e) => set({ welcomeMessage: e.target.value })} aria-describedby="ap-msg-ajuda" />
             <p id="ap-msg-ajuda" className="rv-field-ajuda">{draft.welcomeMessage.length}/{MESSAGE_MAX}. Só texto; aparece no convite e na entrada.</p>
@@ -65,7 +65,7 @@ export function AppearanceStudio({ event, locked, onSave, onSaveLook, images }: 
             <span className="rv-group-label">Imagens</span>
             {images ? (
               (["logo", "cover"] as const).map((k) => (
-                <div className="rv-field" key={k}>
+                <div className="rvl-field" key={k}>
                   <label className="rv-field-label" htmlFor={`ap-${k}`}>{k === "logo" ? "Logotipo (PNG, JPEG ou WebP, até 2 MB)" : "Capa (PNG, JPEG ou WebP, até 5 MB)"}</label>
                   <input id={`ap-${k}`} type="file" accept="image/png,image/jpeg,image/webp" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setMsg((await images.onUpload(k, f)) ?? (k === "logo" ? "Logotipo atualizado." : "Capa atualizada.")); e.target.value = ""; }} />
                 </div>

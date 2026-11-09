@@ -273,7 +273,7 @@ export function CreateWizard() {
         </div>
         <h1 className="titulo-tela app-h1" id="wiz-titulo">{info.title}</h1>
         <p className="corpo app-muted" style={{ margin: 0 }}>{step === 3 && shotsPlan ? `Cada convidado tem um filme. No plano ${shotsPlan.name}, até ${shotsPlan.maxShots ?? "sem limite de"} por pessoa.` : info.hint}</p>
-        <div className="rv-steps" role="progressbar" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={step + 1} aria-label={`Passo ${step + 1} de ${STEPS.length}: ${info.title}`}>
+        <div className="rvl-steps" role="progressbar" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={step + 1} aria-label={`Passo ${step + 1} de ${STEPS.length}: ${info.title}`}>
           {STEPS.map((x, i) => <i key={x.key} className={i <= step ? "on" : undefined} />)}
         </div>
       </header>
@@ -315,9 +315,9 @@ export function CreateWizard() {
           {step === 3 && (
             <>
               <div style={{ display: "grid", placeItems: "center" }}><ShotCounter value={desiredShots} label="poses por pessoa" /></div>
-              <div className="rv-choices" role="group" aria-label="Poses por pessoa">
+              <div className="rvl-choices" role="group" aria-label="Poses por pessoa">
                 {shotsChoices.map((n) => (
-                  <button key={n} type="button" className={`rv-choice rv-choice--num ${desiredShots === n ? "rv-choice--on" : ""}`} aria-pressed={desiredShots === n} onClick={() => setDesiredShots(n)}>
+                  <button key={n} type="button" className={`rvl-choice rvl-choice--num ${desiredShots === n ? "rvl-choice--on" : ""}`} aria-pressed={desiredShots === n} onClick={() => setDesiredShots(n)}>
                     {n}<small>poses</small>
                   </button>
                 ))}
@@ -340,7 +340,7 @@ export function CreateWizard() {
                 </>
               )}
               {choice !== "dia" && revealErrors?.data && <p className="rv-field-erro" role="alert">{REVEAL_ERROR_TEXT[revealErrors.data]}</p>}
-              <div className="rv-notice" style={{ maxWidth: "none" }} aria-live="polite">
+              <div className="rvl-notice" style={{ maxWidth: "none" }} aria-live="polite">
                 <span className="rv-notice-eyebrow">Como o convidado recebe</span>
                 {choice === "na-hora" ? (
                   <span className="rv-notice-texto">As fotos aparecem para todos assim que são tiradas.</span>
@@ -374,7 +374,7 @@ export function CreateWizard() {
             </>
           )}
           {step === 6 && (
-            <div className="rv-group" style={{ maxWidth: "none" }}>
+            <div className="rvl-group" style={{ maxWidth: "none" }}>
               <ToggleRow icon="olho" label="Convidados veem o feed" hint="Curtem e comentam depois da revelação" checked={everyoneSeesAll} onChange={setEveryoneSeesAll} />
               <p className="corpo-sm app-muted" style={{ margin: "var(--space-3) 0 0" }}>
                 {everyoneSeesAll ? "Depois da revelação, cada convidado vê as fotos de todos." : "Depois da revelação, cada convidado vê só as próprias fotos. Você continua vendo tudo."}

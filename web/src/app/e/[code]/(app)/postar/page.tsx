@@ -428,7 +428,7 @@ function PostarSession() {
 
   if (phase === "publicada") return (
     <GuestShell closeHref={close} action={<div className="app-stack-sm"><Button href={close} block>Ver o feed</Button>{(left === null || left > 0) && <Button variant="secundario" block onClick={again}>Tirar outra</Button>}</div>}>
-      <div className="rv-stack" aria-hidden="true"><span className="rv-print rv-print--back" /><span className="rv-print rv-print--back" /><span className="rv-print rv-print--back" /></div>
+      <div className="rv-stack" aria-hidden="true"><span className="rvl-print rvl-print--back" /><span className="rvl-print rvl-print--back" /><span className="rvl-print rvl-print--back" /></div>
       <div className="rv-guest__center">
         <h1 className="titulo-pagina app-h1">Foi para o laboratório</h1>
         {draftWarning && <p role="alert" className="rv-field-erro">Foto enviada. Não foi possível apagar o rascunho local; ele pode reaparecer até expirar.</p>}
@@ -455,7 +455,7 @@ function PostarSession() {
     const p2 = (n: number) => String(n).padStart(2, "0");
     return (
       <GuestShell closeHref={close} action={revealed ? <Button href={close} block>Ver o feed</Button> : <Button variant="secundario" block disabled>Ver o feed quando abrir</Button>}>
-        <div className="rv-stack" aria-hidden="true"><span className="rv-print rv-print--back" /><span className="rv-print rv-print--back" /><span className="rv-print rv-print--back" /></div>
+        <div className="rv-stack" aria-hidden="true"><span className="rvl-print rvl-print--back" /><span className="rvl-print rvl-print--back" /><span className="rvl-print rvl-print--back" /></div>
         <div className="rv-guest__center">
           {!ended && <ShotCounter value={0} label="poses restantes" />}
           <h1 className="titulo-pagina app-h1">{ended ? "A câmera fechou" : "Seu filme acabou"}</h1>
@@ -490,7 +490,7 @@ function PostarSession() {
           <p className="corpo app-muted" style={{ margin: 0 }}>{negada ? "Escolha fotos que você tirou hoje na festa. Elas contam nas suas poses como as da câmera." : "Este aparelho ou navegador não abriu a câmera ao vivo. Use a câmera do aparelho ou escolha uma foto da galeria."}</p>
         </div>
         {negada && (
-          <div className="rv-group" data-testid="ajuda-camera" style={{ padding: "var(--space-4)", maxWidth: "none" }}>
+          <div className="rvl-group" data-testid="ajuda-camera" style={{ padding: "var(--space-4)", maxWidth: "none" }}>
             <h2 className="titulo-card app-h1">Quer usar a câmera?</h2>
             <ol className="app-passos">{help.steps.map((t) => <li key={t}>{t}</li>)}</ol>
             <span className="meta app-muted">Passos para {help.browser}.</span>
@@ -512,7 +512,7 @@ function PostarSession() {
         <Button variant="texto" block onClick={() => void again()} disabled={phase === "guardando" || discarding}>{phase === "sem-sinal" ? "Descartar e tirar outra" : "Tirar outra"}</Button>
       </div>}>
         {/* eslint-disable-next-line @next/next/no-img-element -- prévia local (blob) */}
-        {shot && <figure className="rv-print" style={{ margin: "0 auto", width: "78%", transform: "rotate(-2deg)" }}><img src={shot.url} alt="Prévia da sua foto" style={{ aspectRatio: "3 / 4" }} /></figure>}
+        {shot && <figure className="rvl-print" style={{ margin: "0 auto", width: "78%", transform: "rotate(-2deg)" }}><img src={shot.url} alt="Prévia da sua foto" style={{ aspectRatio: "3 / 4" }} /></figure>}
         {phase === "sem-sinal" && (
           <div className="rv-guest__center" role="status" aria-live="polite" data-testid="sem-sinal">
             <h2 className="titulo-card app-h1">Sem sinal</h2>
@@ -573,7 +573,7 @@ function PostarSession() {
         <ShotCounter value={left ?? "∞"} label="poses restantes" />
         <button type="button" className="rv-shutter" aria-label="Tirar foto" disabled={phase !== "camera" || sending.current} onClick={() => void shoot()} />
         <span className="rv-wheel" aria-hidden="true" />
-        <button type="button" className="rv-cam__thumb" aria-label="Enviar do rolo da câmera" onClick={pickGallery}><span className="rv-print rv-print--back" /></button>
+        <button type="button" className="rv-cam__thumb" aria-label="Enviar do rolo da câmera" onClick={pickGallery}><span className="rvl-print rvl-print--back" /></button>
         <button type="button" className="rv-icon-btn" aria-label="Virar câmera" disabled={!live} onClick={() => setFacing(facing === "environment" ? "user" : "environment")}><Icon name="camera" decorative /></button>
         {(phase === "guardando" || error) && <p className="rv-cam__status" role={error ? "alert" : "status"}>{error ?? "Mandando para o laboratório…"}</p>}
         <span data-testid="contador-rolo" className="rv-sr-only">{left ?? "ilimitado"}</span>

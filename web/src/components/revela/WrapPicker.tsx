@@ -6,7 +6,7 @@ import { WRAPS, WRAP_INFO, wrapOf, type CameraStyle, type Wrap } from "@/domain/
 export function WrapPicker({ value, onChange, disabled }: { value: CameraStyle | null | undefined; onChange: (w: Wrap) => void; disabled?: boolean }) {
   const current = wrapOf(value);
   return (
-    <div className="rv-wraps" role="radiogroup" aria-label="Embalagem da câmera">
+    <div className="rvl-wraps" role="radiogroup" aria-label="Embalagem da câmera">
       {WRAPS.map((w) => (
         <button
           key={w}
@@ -14,10 +14,10 @@ export function WrapPicker({ value, onChange, disabled }: { value: CameraStyle |
           role="radio"
           aria-checked={current === w}
           disabled={disabled}
-          className="rv-wrap"
+          className="rvl-wrap"
           onClick={() => onChange(w)}
         >
-          <span className="rv-wrap__sw" aria-hidden="true" style={{ backgroundImage: `url(/revela/embalagens/wrap-${w}.webp)` }} />
+          <span className="rvl-wrap__sw" aria-hidden="true" style={{ backgroundImage: `url(/revela/embalagens/wrap-${w}.webp)` }} />
           {WRAP_INFO[w].label}
         </button>
       ))}

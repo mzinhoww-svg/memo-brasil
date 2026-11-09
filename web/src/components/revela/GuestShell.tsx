@@ -21,7 +21,7 @@ export function GuestShell({ closeHref, top, children, action }: { closeHref?: s
 export function PrintBack({ stamp, tilt = 4, className }: { stamp?: string; tilt?: number; className?: string }) {
   return (
     <div className={`rv-printback ${className ?? ""}`} style={{ transform: `rotate(${tilt}deg)` }} aria-hidden="true">
-      <span className="rv-print rv-print--back rv-printback__paper" />
+      <span className="rvl-print rvl-print--back rv-printback__paper" />
       {stamp && <span className="rv-printback__stamp">{stamp}</span>}
     </div>
   );

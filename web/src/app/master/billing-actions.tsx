@@ -10,7 +10,7 @@ import { adminErrorText, brl, parseBrl, paymentRef, planPreview, reasonError, RE
 export function ReasonField({ label, value, onChange, error }: { label: string; value: string; onChange: (v: string) => void; error: string | null }) {
   const id = useId();
   return (
-    <div className="rv-field">
+    <div className="rvl-field">
       <label className="rv-field-label" htmlFor={id}>{label}</label>
       <textarea id={id} className="rv-field-input adm-textarea" rows={4} maxLength={REASON_MAX + 50} value={value}
         aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-erro` : undefined} onChange={(e) => onChange(e.target.value)} />

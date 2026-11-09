@@ -98,7 +98,7 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
         <main className="app-admin-main">
           <nav className="app-admin-navm no-print" aria-label="Administração do evento">
             {items.map((i) => (
-              <Link key={i.href} href={i.href} className="rv-tab" aria-current={i.current ? "page" : undefined} style={i.current ? { background: "var(--revela)", color: "var(--on-revela)", fontWeight: 700 } : undefined}>
+              <Link key={i.href} href={i.href} className="rvl-tab" aria-current={i.current ? "page" : undefined} style={i.current ? { background: "var(--revela)", color: "var(--on-revela)", fontWeight: 700 } : undefined}>
                 {i.label}
                 {i.count ? <CountBadge count={i.count} /> : null}
               </Link>
