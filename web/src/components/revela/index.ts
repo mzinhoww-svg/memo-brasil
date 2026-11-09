@@ -36,3 +36,4 @@ export { Print } from "./Print";
 export { ShotCounter } from "./ShotCounter";
 export { ToggleRow } from "./Toggle";
 export { Abertura } from "./Abertura";
+export { GuestShell, PrintBack } from "./GuestShell";

@@ -26,7 +26,7 @@ export type RevealOpt = "ao-terminar" | "desligada" | { date: string; time: stri
  * então o teste planta a identidade do aparelho (a mesma que `signIn` grava) e recarrega a tela.
  */
 export async function seedHost(page: Page, name: string): Promise<void> {
-  await page.getByRole("heading", { level: 1, name: "Como se chama a festa?" }).waitFor();
+  await page.getByRole("heading", { level: 1, name: "Escolha a embalagem" }).waitFor();
   type Result = "planted" | "has-user" | "retry";
   const attempt = () => page.evaluate((n) => new Promise<Result>((res) => {
     // nunca cria o banco (abrir sem versão criaria um v1 vazio e travaria a migração do app): só usa o que o app já abriu
@@ -60,21 +60,25 @@ export async function seedHost(page: Page, name: string): Promise<void> {
     if (out === "retry") await page.waitForTimeout(250);
   }
   if (out === "retry") throw new Error("seedHost: o banco local do app não abriu");
-  if (out === "planted") { await page.reload(); await page.getByRole("heading", { level: 1, name: "Como se chama a festa?" }).waitFor(); }
+  if (out === "planted") { await page.reload(); await page.getByRole("heading", { level: 1, name: "Escolha a embalagem" }).waitFor(); }
 }
 
 /**
- * Percorre os passos 1 a 3 do assistente (Nome, Quando, Fotos) pela interface real e para no passo 4 (Convidados).
+ * Percorre os 8 passos de "Monte a câmera" pela interface real e para no passo 8 (plano):
+ * embalagem → nome → até quando (6 h) → poses (Grátis) → quando revelar → filme → quem vê o quê → plano.
  * O evento sempre nasce no Grátis (10/10): `shots`/`capacity` fora disso são ajustados no painel por `createViaWizard`.
  */
 export async function wizardToSummary(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string; host?: string } = {}): Promise<void> {
+  const next = () => page.getByRole("button", { name: "Próximo" }).click();
   await page.goto("/criar");
   await seedHost(page, opts.host ?? "Emy");
+  await next(); // 1 embalagem (Festa)
   await page.getByLabel("Nome que os convidados vão ver").fill(opts.title ?? "Emy e Igor");
-  await page.getByRole("button", { name: "Continuar" }).click();
-  // passo Quando: término padrão de 6 horas
+  await next(); // 2 nome
+  await next(); // 3 até quando: 6 horas
+  await next(); // 4 poses: Grátis
   const reveal = opts.reveal ?? "ao-terminar";
-  const group = page.getByRole("group", { name: "E quando as fotos aparecem?" });
+  const group = page.getByRole("group", { name: "Revelar" });
   if (reveal === "desligada") await group.getByRole("button", { name: "Na hora" }).click();
   else if (reveal === "ao-terminar") await group.getByRole("button", { name: "Quando acabar" }).click();
   else {
@@ -83,9 +87,10 @@ export async function wizardToSummary(page: Page, opts: { title?: string; reveal
     await page.getByLabel("Horário", { exact: true }).fill(reveal.time);
     if (reveal.tz) await page.getByLabel("Fuso horário").selectOption(reveal.tz);
   }
-  await page.getByRole("button", { name: "Continuar" }).click();
-  // passo Fotos: 10 (Grátis) por padrão
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await next(); // 5 quando revelar
+  await next(); // 6 filme
+  await next(); // 7 quem vê o quê
+  await page.getByRole("heading", { level: 1, name: "Escolha o plano" }).waitFor();
 }
 
 /** Aceita os Termos e confirma a leitura da Política (duas caixas, ambas obrigatórias para criar o evento e para entrar na festa). */
@@ -94,10 +99,20 @@ export async function acceptTerms(page: Page) {
   await page.getByRole("checkbox", { name: /Li a Política/ }).check();
 }
 
+/** Convidado (20b → 20d): nome, "Entrar e fotografar", aceites no diálogo "Antes de fotografar". */
+export async function enterAsGuest(page: Page, name: string) {
+  await page.getByLabel("Seu nome").fill(name);
+  await page.getByRole("button", { name: /Entrar e fotografar/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Antes de fotografar" });
+  await dialog.getByRole("checkbox", { name: /Li e aceito os Termos/ }).check();
+  await dialog.getByRole("checkbox", { name: /Li a Política/ }).check();
+  await dialog.getByRole("button", { name: "Aceitar" }).click();
+}
+
 export async function createViaWizard(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string; host?: string } = {}): Promise<{ code: string; id: string }> {
   await wizardToSummary(page, opts);
   await acceptTerms(page);
-  await page.getByRole("button", { name: "Criar evento" }).click();
+  await page.getByRole("button", { name: /Criar câmera|Continuar ·/ }).click();
   await page.waitForURL(/\/criar\/pronto\//);
   const code = (await page.getByTestId("codigo").textContent())!.trim();
   const id = page.url().split("/").pop()!;
@@ -127,9 +142,7 @@ export async function switchPerson(page: Page, code: string, name: string) {
   await page.goto(`/e/${code}/voce`);
   await page.getByRole("button", { name: "Entrar como outra pessoa" }).click();
   await page.waitForURL(new RegExp(`/e/${code}$`));
-  await page.getByLabel("Como te chamam na festa?").fill(name);
-  await acceptTerms(page);
-  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+  await enterAsGuest(page, name);
   await page.waitForURL(/postar$/);
   await page.goto(`/e/${code}/agora`);
 }

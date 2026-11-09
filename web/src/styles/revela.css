@@ -299,3 +299,44 @@
 .rv-film__frame--filme35::after { content: ""; position: absolute; inset: 0; background: url("/revela/fx/grain.webp") 0 0 / 200px; opacity: .35; mix-blend-mode: overlay; pointer-events: none; }
 .rv-film__opt--on { color: var(--ink); }
 .rv-film__opt--on .rv-film__frame { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--revela); }
+
+/* Convidado (20a–24): moldura, campos com ícone e cartão da cota */
+.rv-guest { width: 100%; max-width: 480px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg); box-sizing: border-box; }
+.rv-guest__top { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: var(--space-2); padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--space-5) 0; min-height: 44px; text-align: center; }
+.rv-guest__body { flex: 1; display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4) var(--space-5) var(--space-6); }
+.rv-guest__action { position: sticky; bottom: 0; padding: var(--space-3) var(--space-5) calc(var(--space-4) + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--bg) 30%); }
+.rv-guest__center { text-align: center; display: flex; flex-direction: column; gap: var(--space-2); align-items: center; }
+.rv-guest__title { font: 400 44px/46px var(--font-display); letter-spacing: -0.02em; margin: 0; text-align: center; overflow-wrap: anywhere; }
+.rv-quota { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); border-radius: var(--radius-lg); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line); }
+.rv-quota p { margin: 0; font: 400 14px/20px var(--font-sans); color: var(--ink-muted); }
+.rv-inrow { display: flex; align-items: center; gap: var(--space-3); min-height: var(--size-campo); padding: 0 var(--space-4); border-radius: var(--radius-md); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-muted); }
+.rv-inrow:focus-within { box-shadow: inset 0 0 0 2px var(--revela); }
+.rv-inrow[data-invalid] { box-shadow: inset 0 0 0 2px var(--danger); }
+.rv-inrow input { all: unset; flex: 1; min-width: 0; min-height: 44px; font: 400 16px/20px var(--font-sans); color: var(--ink); caret-color: var(--revela); }
+.rv-inrow input::placeholder { color: var(--ink-faint); }
+.rv-printback { position: relative; width: min(60%, 220px); aspect-ratio: 0.82; margin: var(--space-6) auto var(--space-4); }
+.rv-printback__paper { position: absolute; inset: 0; display: block; }
+.rv-printback__stamp { position: absolute; right: -14%; top: 52%; transform: rotate(-10deg); padding: 2px 12px; border: 3px solid var(--danger); border-radius: 6px; color: var(--danger); font: 400 30px/1.1 var(--font-stamp); letter-spacing: .12em; background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.rv-camera--off img { filter: grayscale(.85) brightness(.75); }
+
+/* Diálogo sobre a câmera (20d consentimento, 23 permissão) */
+.rv-dialog { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: var(--space-5); background: var(--scrim); }
+.rv-dialog .rv-notice { max-width: 400px; }
+.rv-notice__body h2 { font: 400 22px/28px var(--font-display); margin: 0; }
+.rv-check { display: flex; gap: var(--space-3); align-items: flex-start; min-height: 44px; font: 400 15px/21px var(--font-sans); color: var(--ink); cursor: pointer; }
+.rv-check input { width: 24px; height: 24px; margin: 0; flex: none; accent-color: var(--revela); }
+.rv-check a { color: var(--ink); }
+.rv-btn > span { display: inline-flex; align-items: center; gap: var(--space-2); }
+.rv-guest .rv-icon-btn { background: var(--surface-2); box-shadow: inset 0 1px 0 var(--hl); }
+.rv-guest__cam { width: 78%; margin: -12% auto -16%; }
+.rv-guest__cam--lg { width: 92%; margin-top: var(--space-6); }
+/* painel do diálogo (20d, 23): corpo + ações em régua */
+.rv-dialog__panel { width: 100%; max-width: 360px; border-radius: var(--radius-lg); background: var(--surface-1); overflow: hidden; box-shadow: 0 24px 50px var(--shade-strong); }
+.rv-dialog__body { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+.rv-dialog__body h2 { font: 400 24px/30px var(--font-display); margin: 0; }
+.rv-dialog__body p { font: 400 15px/22px var(--font-sans); color: var(--ink-muted); margin: 0; }
+.rv-dialog__body small { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.rv-dialog__actions { display: flex; box-shadow: inset 0 1px 0 var(--line); }
+.rv-dialog__actions button { flex: 1; min-height: 52px; border: 0; background: none; font: 700 16px/20px var(--font-sans); color: var(--ink-muted); cursor: pointer; }
+.rv-dialog__actions button + button { box-shadow: inset 1px 0 0 var(--line); }
+.rv-dialog__actions .go { color: var(--revela-text); }

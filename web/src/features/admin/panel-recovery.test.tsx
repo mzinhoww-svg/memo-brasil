@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import Convite from '@/app/e/[code]/page';
 import GuestLayout from '@/app/e/[code]/(app)/layout';
@@ -17,17 +17,34 @@ vi.mock('@/features/admin/PlanInfo', () => ({usePlanInfo:() => ({loaded:false,pl
 vi.mock('@/features/events/RevealSettings', () => ({RevealSettings:() => null}));
 vi.mock('@/features/app/backend-notice', () => ({ BackendNotice: () => null }));
 beforeEach(() => { vi.clearAllMocks(); m.error = undefined; m.access = 'convite'; m.signIn.mockResolvedValue({ id: 'u' }); m.join.mockResolvedValue({ ok: true }); });
+/** 20b → 20d: nome e e-mail no formulário; os aceites ficam no diálogo "Antes de fotografar". */
+const nome = () => screen.getByLabelText('Seu nome');
+const entrar = () => fireEvent.click(screen.getByRole('button', { name: /Entrar e fotografar/ }));
+function aceitar() {
+ const d = screen.getByRole('dialog');
+ for (const box of within(d).getAllByRole('checkbox')) fireEvent.click(box);
+ fireEvent.click(within(d).getByRole('button', { name: 'Aceitar' }));
+}
 it('nome em branco pode ser corrigido sem iniciar sessão e mantém os aceites', async () => {
  render(<Convite />);
- for (const box of screen.getAllByRole('checkbox')) fireEvent.click(box);
- fireEvent.change(screen.getByLabelText('Como te chamam na festa?'), { target: { value: '   ' } });
- fireEvent.click(screen.getByRole('button', { name: 'Entrar e abrir a câmera' }));
+ fireEvent.change(nome(), { target: { value: '   ' } });
+ entrar();
  expect(m.signIn).not.toHaveBeenCalled();
- expect(screen.getByLabelText('Como te chamam na festa?')).toHaveAttribute('aria-invalid', 'true');
- fireEvent.change(screen.getByLabelText('Como te chamam na festa?'), { target: { value: ' Ana ' } });
- fireEvent.click(screen.getByRole('button', { name: 'Entrar e abrir a câmera' }));
+ expect(screen.queryByRole('dialog')).toBeNull();
+ expect(nome()).toHaveAttribute('aria-invalid', 'true');
+ fireEvent.change(nome(), { target: { value: ' Ana ' } });
+ entrar();
+ aceitar();
  await waitFor(() => expect(m.push).toHaveBeenCalledWith('/e/ABCDEFGH/postar'));
  expect(m.signIn).toHaveBeenCalledWith('Ana');
+});
+it('sem os dois aceites o diálogo não deixa entrar', async () => {
+ render(<Convite />);
+ fireEvent.change(nome(), { target: { value: 'Ana' } });
+ entrar();
+ fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Aceitar' }));
+ expect(screen.getByRole('alert')).toHaveTextContent(/Aceite os Termos/);
+ expect(m.signIn).not.toHaveBeenCalled();
 });
 it.each([GuestLayout, PainelLayout])('leitura inicial de rede oferece repetir sem alegar código/evento inexistente', async (Layout) => {
  m.error = 'unavailable'; render(<Layout>conteúdo</Layout>);
@@ -48,21 +65,21 @@ it.each(['session', 'join'])('falha de rede em %s mantém nome e aceites e permi
  if (step === 'session') m.signIn.mockRejectedValueOnce(new Error('rede'));
  else m.join.mockRejectedValueOnce(new Error('rede'));
  render(<Convite />);
- for (const box of screen.getAllByRole('checkbox')) fireEvent.click(box);
- fireEvent.change(screen.getByLabelText('Como te chamam na festa?'), {target:{value:'Ana'}});
- fireEvent.click(screen.getByRole('button',{name:'Entrar e abrir a câmera'}));
+ fireEvent.change(nome(), {target:{value:'Ana'}});
+ entrar();
+ aceitar();
  await screen.findByText(/Sem conexão agora/);
- expect(screen.getByLabelText('Como te chamam na festa?')).toHaveValue('Ana');
- for (const box of screen.getAllByRole('checkbox')) expect(box).toBeChecked();
- fireEvent.click(screen.getByRole('button',{name:'Entrar e abrir a câmera'}));
+ expect(nome()).toHaveValue('Ana');
+ entrar(); // os aceites continuam valendo: não pergunta de novo
+ expect(screen.queryByRole('dialog')).toBeNull();
  await waitFor(() => expect(m.push).toHaveBeenCalledWith('/e/ABCDEFGH/postar'));
 });
 it('bloqueio de participação explica o impedimento sem alegar sucesso', async () => {
  m.join.mockResolvedValueOnce({ok:false,reason:'bloqueado'});
  render(<Convite />);
- for (const box of screen.getAllByRole('checkbox')) fireEvent.click(box);
- fireEvent.change(screen.getByLabelText('Como te chamam na festa?'),{target:{value:'Ana'}});
- fireEvent.click(screen.getByRole('button',{name:'Entrar e abrir a câmera'}));
+ fireEvent.change(nome(),{target:{value:'Ana'}});
+ entrar();
+ aceitar();
  await screen.findByText(/participação foi bloqueada pelo anfitrião/);
  expect(m.push).not.toHaveBeenCalled();
 });
