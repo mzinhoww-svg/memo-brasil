@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { assertChargeOrder, resolveValidaPayEnvironment, ValidaPayClient, type ProviderEnvironment } from "./validapay.ts";
+import { assertChargeOrder, capPixExpiry, normalizePixExpiry, resolveValidaPayEnvironment, ValidaPayClient, type ProviderEnvironment } from "./validapay.ts";
 
 /** Trusted deployment selection only. An unset selector preserves explicitly enabled sandbox installations. */
 export function validapayEnvironment(): ProviderEnvironment | null {
@@ -38,6 +38,16 @@ export async function validapayEnabled(admin: SupabaseClient): Promise<boolean> 
   const [env, flag] = await Promise.all([admin.rpc("payments_env"), admin.from("feature_flags").select("enabled").eq("key", "validapay_checkout").maybeSingle()]);
   return !env.error && env.data === environment && !flag.error && flag.data?.enabled === true;
 }
+/** Cartão no checkout: só com a chave `validapay_card` ligada pelo Master (feature_flags). Sem linha = desligada. */
+export async function validapayCardEnabled(admin: SupabaseClient): Promise<boolean> {
+  const flag = await admin.from("feature_flags").select("enabled").eq("key", "validapay_card").maybeSingle();
+  return !flag.error && flag.data?.enabled === true;
+}
+/** Minutos de validade do Pix (Master, platform_settings); padrão 15. */
+export async function pixExpiryMinutes(admin: SupabaseClient): Promise<number> {
+  const row = await admin.from("platform_settings").select("value").eq("key", "validapay_pix_expiry_minutes").maybeSingle();
+  return normalizePixExpiry(row.error ? null : row.data?.value);
+}
 export async function confirmSandboxRefund(admin: SupabaseClient, orderId: string, id: string, source: "status" | "webhook" | "reconcile") {
   const environment = await orderEnvironment(admin, orderId);
   const evidence = await validapayClient(environment, "refund-read").getRefundEvidence(id, orderId);
@@ -53,7 +63,12 @@ export async function confirmSandboxCharge(admin: SupabaseClient, orderId: strin
   if (result.error) throw new Error("confirmation_failed");
   const metadata: Record<string, string> = {};
   if (charge.emv) metadata.brcode = charge.emv;
-  if (charge.expiresAt && Number.isFinite(Date.parse(charge.expiresAt))) metadata.expires_at = charge.expiresAt;
+  if (charge.method === "pix") {
+    // o Master pode encurtar a validade do Pix: vale o menor prazo entre o do provedor e o configurado
+    const created = await admin.from("payment_orders").select("created_at").eq("id", orderId).maybeSingle();
+    const capped = created.data?.created_at ? capPixExpiry(charge.expiresAt, created.data.created_at, await pixExpiryMinutes(admin)) : charge.expiresAt;
+    if (capped && Number.isFinite(Date.parse(capped))) metadata.expires_at = capped;
+  } else if (charge.expiresAt && Number.isFinite(Date.parse(charge.expiresAt))) metadata.expires_at = charge.expiresAt;
   if (Object.keys(metadata).length) {
     const saved = await admin.from("payment_orders").update(metadata).eq("id", orderId).eq("provider", "validapay").eq("provider_charge_id", id);
     if (saved.error) throw new Error("metadata_save_failed");

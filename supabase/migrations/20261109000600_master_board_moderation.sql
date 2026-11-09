@@ -1,8 +1,10 @@
--- Revela 2.0 · Master M02 (Eventos) e M09 (Moderação). ADITIVA: duas leituras novas, sem alterar RPC, tabela ou política existentes.
+-- Revela 2.0 · Master M02 (Eventos), M08 (Revelações) e M09 (Moderação). ADITIVA: três leituras novas, sem alterar RPC, tabela ou política existentes.
 --
 -- admin_events_board: a lista de Eventos do desenho (categoria, plano, convidados, revelação, situação e denúncias) com os seis filtros
 --   (Todos, Rolando, Aguardando revelação, Revelados, Com denúncias, Excluídos) e a contagem de cada um. Só metadados e contagens;
 --   nada de fotos nem de conteúdo de convidados. Eventos de teste ficam de fora, como em "Todos" do console.
+-- admin_reveals_board: fila de revelações (pendentes primeiro, depois as últimas 7 dias) com contagem do aviso por e-mail
+--   (inscritos com consentimento, enviados, falhas, na fila). Só números; nenhum endereço.
 -- admin_moderation_queue: fila de denúncias de todos os eventos. Fotos: só identificação, evento e número de denúncias (o console não exibe
 --   fotografias privadas; o acesso excepcional continua em admin_request_photo_access). Comentários e participantes bloqueados: o texto e
 --   o nome só voltam para o master, que já os vê em list_comments_for_moderation / admin_search_participants.
@@ -87,5 +89,27 @@ begin
   return jsonb_build_object('photos', photos, 'comments', comments, 'blocked', blocked);
 end $$;
 
-revoke all on function public.admin_events_board(text, text, int, int), public.admin_moderation_queue() from public, anon;
-grant execute on function public.admin_events_board(text, text, int, int), public.admin_moderation_queue() to authenticated;
+create function public.admin_reveals_board(p_limit int default 50) returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+declare lim int := least(greatest(coalesce(p_limit, 50), 1), 200); items jsonb;
+begin
+  if not public.is_platform_staff() then raise exception 'forbidden' using errcode = 'MM004'; end if;
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'id', x.id, 'title', x.title, 'revealAt', x.reveal_at, 'revealedAt', x.revealed_at, 'photos', x.photos,
+           'emailOptIns', x.opt_ins, 'emailsSent', x.sent, 'emailsFailed', x.failed, 'emailsQueued', x.queued) order by x.pending desc, x.sort_at, x.id), '[]'::jsonb)
+    into items
+    from (select e.id, e.title, e.reveal_at, e.revealed_at, (e.revealed_at is null) as pending, coalesce(e.revealed_at, e.reveal_at) as sort_at,
+                 (select count(*) from public.photos ph where ph.event_id = e.id and ph.upload_status = 'pronta' and ph.deleted_at is null) as photos,
+                 (select count(*) from public.participant_emails pe where pe.event_id = e.id and pe.email is not null and pe.consent_at is not null and pe.opt_out_at is null) as opt_ins,
+                 (select count(*) from public.reveal_email_queue q where q.event_id = e.id and q.sent_at is not null) as sent,
+                 (select count(*) from public.reveal_email_queue q where q.event_id = e.id and q.sent_at is null and q.last_error is not null) as failed,
+                 (select count(*) from public.reveal_email_queue q where q.event_id = e.id and q.sent_at is null and q.last_error is null) as queued
+            from public.events e
+           where e.deleted_at is null and not e.is_test and e.reveal_enabled
+             and (e.revealed_at is null or e.revealed_at >= now() - interval '7 days')
+           order by (e.revealed_at is null) desc, coalesce(e.revealed_at, e.reveal_at), e.id limit lim) x;
+  return jsonb_build_object('items', items);
+end $$;
+
+revoke all on function public.admin_events_board(text, text, int, int), public.admin_moderation_queue(), public.admin_reveals_board(int) from public, anon;
+grant execute on function public.admin_events_board(text, text, int, int), public.admin_moderation_queue(), public.admin_reveals_board(int) to authenticated;

@@ -83,13 +83,13 @@ Referência (esquerda) | implementação com os dados do desenho (centro) | dife
 | M02 | Eventos | Master-eventos | 1.35% | ![](M02.png) | referência portada (dados do desenho) | não ligada ao app |
 | M03 | Planos e preços | Master-planos | 1.29% | ![](M03.png) | referência portada (dados do desenho) | não ligada ao app |
 | M04 | Confirmar novo preço | Master-plano-publicar | 0.82% | ![](M04.png) | referência portada (dados do desenho) | não ligada ao app |
-| M05 | Pagamentos | Master-pagamentos | 1.35% | ![](M05.png) | referência portada (dados do desenho) | não ligada ao app |
-| M06 | Detalhe do pagamento | Master-pagamento-detalhe | 1.31% | ![](M06.png) | referência portada (dados do desenho) | não ligada ao app |
-| M07 | Cortesias | Master-cortesias | 0.83% | ![](M07.png) | referência portada (dados do desenho) | não ligada ao app |
-| M08 | Revelações | Master-revelacoes | 1.28% | ![](M08.png) | referência portada (dados do desenho) | não ligada ao app |
-| M09 | Moderação | Master-moderacao | 0.90% | ![](M09.png) | referência portada (dados do desenho) | não ligada ao app |
-| M10 | Pessoas | Master-pessoas | 1.06% | ![](M10.png) | referência portada (dados do desenho) | não ligada ao app |
+| M05 | Pagamentos | Master-pagamentos | 1.36% | ![](M05.png) | referência portada (dados do desenho) | não ligada ao app |
+| M06 | Detalhe do pagamento | Master-pagamento-detalhe | 1.32% | ![](M06.png) | referência portada (dados do desenho) | não ligada ao app |
+| M07 | Cortesias | Master-cortesias | 0.85% | ![](M07.png) | referência portada (dados do desenho) | não ligada ao app |
+| M08 | Revelações | Master-revelacoes | 1.29% | ![](M08.png) | referência portada (dados do desenho) | não ligada ao app |
+| M09 | Moderação | Master-moderacao | 0.91% | ![](M09.png) | referência portada (dados do desenho) | não ligada ao app |
+| M10 | Pessoas | Master-pessoas | 1.07% | ![](M10.png) | referência portada (dados do desenho) | não ligada ao app |
 | M11 | Storage e saúde | Master-saude | 0.82% | ![](M11.png) | referência portada (dados do desenho) | não ligada ao app |
 | M12 | LGPD | Master-lgpd | 0.82% | ![](M12.png) | referência portada (dados do desenho) | não ligada ao app |
 | M13 | Auditoria | Master-auditoria | 1.16% | ![](M13.png) | referência portada (dados do desenho) | não ligada ao app |
-| M14 | Configurações | Master-config | 1.02% | ![](M14.png) | referência portada (dados do desenho) | não ligada ao app |
+| M14 | Configurações | Master-config | 1.04% | ![](M14.png) | referência portada (dados do desenho) | não ligada ao app |

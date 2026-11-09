@@ -37,6 +37,7 @@ insert into public.photo_comments (id, photo_id, event_id, author_id, author_nam
 select tests.login('00000000-0000-4000-8000-0000000029d1');
 select throws_ok($$select public.admin_events_board()$$, 'MM004', null, 'quem não é da equipe não lê o quadro de eventos');
 select throws_ok($$select public.admin_moderation_queue()$$, 'MM004', null, 'nem a fila de moderação');
+select throws_ok($$select public.admin_reveals_board()$$, 'MM004', null, 'nem a fila de revelações');
 reset role;
 
 select tests.login('00000000-0000-4000-8000-0000000029c1', true);
@@ -50,12 +51,29 @@ select is((public.admin_events_board('revelados', 'Board 29') ->> 'total')::int,
 select is((public.admin_events_board(null, 'Board 29') -> 'counts' ->> 'excluidos')::int, 1, 'contagem dos chips');
 select throws_ok($$select public.admin_events_board('qualquer')$$, 'MM005', null, 'filtro inválido é recusado');
 
+-- ===================================================================== admin_reveals_board
+select ok((select bool_or(i ->> 'title' = 'Board 29 ativo') from jsonb_array_elements(public.admin_reveals_board() -> 'items') i), 'fila de revelações traz o evento pendente');
+select is((select (i ->> 'emailOptIns')::int from jsonb_array_elements(public.admin_reveals_board() -> 'items') i where i ->> 'title' = 'Board 29 ativo'), 0, 'sem e-mails com consentimento: zero');
+select ok(not (public.admin_reveals_board() -> 'items' -> 0 ? 'email'), 'só números: nenhum endereço de e-mail');
+
 -- ===================================================================== admin_moderation_queue
 select is(jsonb_array_length(public.admin_moderation_queue() -> 'photos'), 1, 'fila traz a foto denunciada (sem a imagem)');
 select is(public.admin_moderation_queue() -> 'photos' -> 0 ->> 'reports', '3', 'com o número de denúncias');
 select ok(not (public.admin_moderation_queue() -> 'photos' -> 0 ? 'storagePath'), 'sem caminho de arquivo');
 select is(public.admin_moderation_queue() -> 'comments' -> 0 ->> 'body', 'comentário 29', 'master vê o texto do comentário denunciado');
 select is(public.admin_moderation_queue() -> 'blocked' -> 0 ->> 'name', 'Bia 29', 'master vê quem foi bloqueado');
+
+-- ===================================================================== chave validapay_card e validade do Pix (Master > Configurações)
+select is((select count(*)::int from public.feature_flags where key = 'validapay_card' and enabled), 0, 'cartão ValidaPay nasce desligado (sem linha = desligado)');
+select lives_ok($$select public.admin_set_feature_flag('validapay_card', true, '{}'::jsonb, 'Ligar o cartão para homologação do 3DS')$$, 'master liga a chave do cartão com motivo');
+select is((select enabled from public.feature_flags where key = 'validapay_card'), true, 'a chave ficou ligada');
+select ok(exists(select 1 from public.audit_logs where action like 'feature_flags.%' and target_id = 'validapay_card'), 'a gravação da chave foi auditada');
+select lives_ok($$select public.admin_set_setting('validapay_pix_expiry_minutes', '30'::jsonb, 'Pix com 30 minutos de validade')$$, 'master grava a validade do Pix');
+select is((select value::text from public.platform_settings where key = 'validapay_pix_expiry_minutes'), '30', 'valor gravado');
+select throws_ok($$select public.admin_set_feature_flag('validapay_card', false, '{}'::jsonb, 'curto')$$, 'MM011', null, 'sem motivo suficiente a chave não muda');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000029d1');
+select throws_ok($$select public.admin_set_feature_flag('validapay_card', true, '{}'::jsonb, 'tentando ligar sem ser master')$$, 'MM004', null, 'quem não é master não liga o cartão');
 reset role;
 
 select * from finish();
