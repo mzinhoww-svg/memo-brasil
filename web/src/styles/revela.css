@@ -201,7 +201,9 @@
 /* ---- Componentes novos do Revela ---- */
 /* CameraStage: render 3D sobre palco escuro */
 .rv-stagebox { position: relative; display: flex; align-items: center; justify-content: center; }
-.rv-stagebox img { position: relative; z-index: 1; display: block; width: 100%; height: auto; filter: drop-shadow(0 28px 22px var(--shade-strong)); }
+.rv-stagebox__obj { position: relative; z-index: 1; width: 100%; filter: drop-shadow(0 28px 22px var(--shade-strong)); }
+.rv-stagebox img { display: block; width: 100%; height: auto; }
+.rv-stagebox__print { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .rv-stagebox::before { content: ""; position: absolute; left: 14%; right: 14%; bottom: 12%; height: 18%; border-radius: 50%; background: radial-gradient(closest-side, var(--shade-mid), transparent); filter: blur(6px); }
 
 /* WrapPicker: amostras de material das 4 embalagens */

@@ -66,6 +66,14 @@
   --on-flash: #17120F;
   --white-1: #ffffff;
   --black-1: #000000;
+  /* tinta impressa nas embalagens (mesmas cores das texturas em design-system/revela/codigo/blender/wraps.py) */
+  --wrap-festa-ink: #1A0700;
+  --wrap-festa-stamp: #FFB27A;
+  --wrap-casamento-ink: #2A211A;
+  --wrap-casamento-sub: #6A5A48;
+  --wrap-aniversario-ink: #F6EFE6;
+  --wrap-aniversario-stamp: #FFD23F;
+  --wrap-noite-ink: #E8CF9E;
 }
 
 [data-theme="light"] {
@@ -132,6 +140,14 @@
   --on-flash: #17120F;
   --white-1: #ffffff;
   --black-1: #000000;
+  /* tinta impressa nas embalagens (mesmas cores das texturas em design-system/revela/codigo/blender/wraps.py) */
+  --wrap-festa-ink: #1A0700;
+  --wrap-festa-stamp: #FFB27A;
+  --wrap-casamento-ink: #2A211A;
+  --wrap-casamento-sub: #6A5A48;
+  --wrap-aniversario-ink: #F6EFE6;
+  --wrap-aniversario-stamp: #FFD23F;
+  --wrap-noite-ink: #E8CF9E;
 }
 
 /* Extensões de app sem cor: alvos de toque e larguras. */

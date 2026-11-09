@@ -261,6 +261,8 @@ export function CreateWizard() {
   }
 
   const info = STEPS[step];
+  const printDate = (() => { const d = new Date(now() + durationHours() * 3_600_000); return Number.isFinite(d.getTime()) ? `${String(d.getDate()).padStart(2, "0")} · ${String(d.getMonth() + 1).padStart(2, "0")} · ${d.getFullYear()}` : undefined; })();
+  const print = { name: title.trim(), poses: desiredShots, date: printDate };
   const ctaLabel = busy ? "Criando câmera…" : last ? (chosenPlan && !chosenPlan.isFree ? `Continuar · ${formatBRL(chosenPlan.priceCents)}` : "Criar câmera") : "Próximo";
   return (
     <div className="rv-wiz">
@@ -280,7 +282,7 @@ export function CreateWizard() {
         <div className="rv-wiz__body app-stack">
           {step === 0 && (
             <>
-              <CameraStage wrap={wrap} size={640} priority />
+              <CameraStage wrap={wrap} size={640} priority print={print} />
               <div className="app-stack-sm" style={{ textAlign: "center" }}>
                 <h2 className="titulo-card app-h1">{WRAP_INFO[wrap].label}</h2>
                 <p className="corpo-sm app-muted" style={{ margin: 0 }}>{WRAP_INFO[wrap].blurb}</p>
@@ -290,7 +292,7 @@ export function CreateWizard() {
           )}
           {step === 1 && (
             <>
-              <CameraStage wrap={wrap} size={360} />
+              <CameraStage wrap={wrap} size={360} print={print} />
               <Field label="Nome que os convidados vão ver" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: undefined })); }} maxLength={60} placeholder="Ex.: Ana & Leo" error={errors.title} />
               <div className="app-stack-sm">
                 <span className="rv-group-label">Sugestões</span>
@@ -381,7 +383,7 @@ export function CreateWizard() {
           )}
           {step === 7 && (
             <>
-              <CameraStage wrap={wrap} size={360} />
+              <CameraStage wrap={wrap} size={360} print={print} />
               <dl className="rv-summary">
                 <div><dt>Embalagem</dt><dd>{WRAP_INFO[wrap].label}</dd></div>
                 <div><dt>Poses</dt><dd>{desiredShots} por pessoa</dd></div>

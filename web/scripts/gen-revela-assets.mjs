@@ -26,8 +26,8 @@ async function avif(input, output, width) {
 
 // Câmeras 3D por embalagem (render com alfa, 3/4 frontal)
 for (const w of ["festa", "casamento", "aniversario", "noite"]) {
-  for (const size of [360, 640, 960]) await webp(`3d/cam-${w}.png`, `3d/cam-${w}-${size}.webp`, size);
-  await avif(`3d/cam-${w}.png`, `3d/cam-${w}-640.avif`, 640);
+  for (const size of [360, 640, 960]) await webp(`3d/clean/cam-${w}.png`, `3d/cam-${w}-${size}.webp`, size);
+  await avif(`3d/clean/cam-${w}.png`, `3d/cam-${w}-640.avif`, 640);
   // amostras de material para o seletor de embalagem
   await webp(`embalagens/wrap-${w}.png`, `embalagens/wrap-${w}.webp`, 640, { quality: 78 });
   await webp(`embalagens/label-${w}.jpg`, `embalagens/label-${w}.webp`, 640, { quality: 78 });
