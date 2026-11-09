@@ -4,6 +4,26 @@
 
 :where(.rv-btn, .rv-chip, .rv-opt, .rv-step-btn, .rv-tab, .rv-nav-item, .rv-tabbar-item, .rv-icon-btn, .rv-field-input, .rv-event-switch, .rv-link, .rv-wrap):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
+/* Escala tipográfica (Gloock nos títulos, Schibsted Grotesk na interface, Share Tech Mono no carimbo) */
+.display-xl { font: 400 52px/52px var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.display { font: 400 40px/42px var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.titulo-pagina { font: 400 32px/36px var(--font-display); letter-spacing: -0.01em; text-wrap: balance; }
+.numero { font: 400 30px/34px var(--font-display); }
+.titulo-tela { font: 400 28px/32px var(--font-display); letter-spacing: -0.01em; text-wrap: balance; }
+.titulo-card { font: 400 20px/26px var(--font-display); }
+.cta { font: 700 18px/22px var(--font-sans); }
+.botao { font: 700 16px/20px var(--font-sans); }
+.corpo { font: 400 16px/24px var(--font-sans); }
+.nome { font: 700 16px/20px var(--font-sans); }
+.rotulo { font: 600 15px/20px var(--font-sans); }
+.corpo-sm { font: 400 15px/22px var(--font-sans); }
+.meta { font: 400 13px/18px var(--font-sans); }
+.eyebrow { font: 600 13px/18px var(--font-sans); color: var(--ink-muted); } /* caixa de frase: o Revela não usa rótulo em caixa alta */
+.emocao-lg { font: 400 42px/46px var(--font-display); }
+.emocao { font: 400 34px/38px var(--font-display); }
+.emocao-sm { font: 400 22px/28px var(--font-display); }
+.nome-evento { font: 400 48px/50px var(--font-display); }
+
 /* Tipografia utilitária */
 .rv-display { font: 400 52px/52px var(--font-display); letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
 .rv-title-lg { font: 400 32px/36px var(--font-display); letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
@@ -232,3 +252,48 @@
 .rv-confetti { position: absolute; inset: 0; pointer-events: none; background: url("/revela/3d/obj-confetti.webp") center top / 360px auto repeat-y; opacity: .85; animation: rv-confetti-cai 6s linear infinite; }
 @keyframes rv-confetti-cai { from { background-position-y: -360px; } to { background-position-y: 0; } }
 @media (prefers-reduced-motion: reduce) { .rv-confetti { animation: none; } }
+
+/* Abertura: vídeo de fundo + conteúdo ancorado embaixo */
+.rv-abertura { position: relative; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; isolation: isolate; background: var(--bg); }
+.rv-abertura__bg { position: absolute; inset: 0; z-index: -1; }
+.rv-abertura__poster, .rv-abertura__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.rv-abertura__video { z-index: 1; }
+.rv-abertura__veil { position: absolute; inset: 0; z-index: 2; background: linear-gradient(to bottom, transparent 28%, color-mix(in srgb, var(--bg) 82%, transparent) 52%, var(--bg) 74%); }
+.rv-abertura__content { margin-top: auto; width: 100%; max-width: 480px; margin-inline: auto; box-sizing: border-box; padding: var(--space-6) var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: var(--space-4); }
+.rv-abertura__top { display: flex; align-items: center; justify-content: space-between; padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--space-5) 0; max-width: 480px; margin-inline: auto; width: 100%; box-sizing: border-box; position: absolute; top: 0; left: 0; right: 0; }
+.rv-abertura p .rv-link { display: inline; min-height: 0; text-decoration: underline; }
+.rv-abertura .rv-link { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--size-alvo); font: 600 15px/20px var(--font-sans); color: var(--ink); text-decoration: none; }
+@media (prefers-reduced-motion: reduce) { .rv-abertura__video { display: none; } }
+
+/* Choice (poses) */
+.rv-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: var(--space-2); width: 100%; }
+.rv-choice { min-height: var(--size-opcao); border-radius: var(--radius-md); background: var(--surface-2); color: var(--ink); display: flex; align-items: center; justify-content: center; font: 600 15px/20px var(--font-sans); border: 0; cursor: pointer; box-shadow: inset 0 1px 0 var(--hl); }
+.rv-choice--num { min-height: 68px; flex-direction: column; gap: 2px; font: 400 30px/1 var(--font-display); }
+.rv-choice--num small { font: 500 11px/14px var(--font-sans); color: var(--ink-muted); }
+.rv-choice--on { background: var(--revela-soft); color: var(--revela-text); box-shadow: inset 0 0 0 1.5px var(--revela); }
+.rv-choice--on small { color: var(--revela-text); }
+.rv-steps { display: flex; gap: 4px; margin-top: var(--space-3); }
+.rv-steps i { flex: 1; height: 3px; border-radius: 2px; background: var(--surface-3); }
+.rv-steps i.on { background: var(--revela); }
+
+/* Wizard "Monte a câmera": folha escura, título em Gloock, barra inferior fixa com voltar + próximo */
+.rv-wiz { width: 100%; max-width: 480px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg); }
+.rv-wiz__head { padding: var(--space-4) var(--space-5) var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
+.rv-wiz__top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.rv-wiz__form { flex: 1; display: flex; flex-direction: column; }
+.rv-wiz__body { flex: 1; padding: var(--space-4) var(--space-5) var(--space-6); }
+.rv-wiz__bar { position: sticky; bottom: 0; z-index: 20; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-5) calc(var(--space-3) + env(safe-area-inset-bottom)); background: var(--nav-glass); box-shadow: inset 0 1px 0 var(--line); }
+.rv-wiz__bar .rv-btn { flex: 1; }
+.rv-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin: 0; padding: var(--space-3) 0; box-shadow: inset 0 1px 0 var(--line), inset 0 -1px 0 var(--line); }
+.rv-summary dt { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.rv-summary dd { margin: 0; font: 700 15px/20px var(--font-sans); }
+
+/* Filme: Natural x Filme 35mm sobre o objeto 3D (nada de foto de convidado) */
+.rv-film { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.rv-film__opt { display: flex; flex-direction: column; gap: var(--space-2); align-items: stretch; padding: 0; border: 0; background: none; color: var(--ink-muted); cursor: pointer; font: 600 15px/20px var(--font-sans); text-align: center; }
+.rv-film__frame { position: relative; display: block; aspect-ratio: 3 / 4; border-radius: var(--radius-lg); background: var(--surface-1); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.rv-film__frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.rv-film__frame--filme35 img { filter: sepia(.35) saturate(1.25) contrast(1.08) brightness(1.05); }
+.rv-film__frame--filme35::after { content: ""; position: absolute; inset: 0; background: url("/revela/fx/grain.webp") 0 0 / 200px; opacity: .35; mix-blend-mode: overlay; pointer-events: none; }
+.rv-film__opt--on { color: var(--ink); }
+.rv-film__opt--on .rv-film__frame { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--revela); }

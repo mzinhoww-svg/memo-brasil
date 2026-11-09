@@ -35,3 +35,4 @@ export { WrapPicker } from "./WrapPicker";
 export { Print } from "./Print";
 export { ShotCounter } from "./ShotCounter";
 export { ToggleRow } from "./Toggle";
+export { Abertura } from "./Abertura";

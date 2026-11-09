@@ -3,19 +3,12 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Button, Cover, Icon, type IconName, KnownPeople, Signature, Logo } from "@/components/revela";
+import { Abertura, Button, GoogleButton, Icon, KnownPeople, Logo } from "@/components/revela";
 import { useApp } from "@/features/app/provider";
-import { LivePricingLine } from "@/features/marketing/PricingLine";
 import { BackendNotice } from "@/features/app/backend-notice";
 import { safeNextPath } from "@/features/auth/safe-next";
 
-const STEPS: { icon: IconName; text: string }[] = [
-  { icon: "explorar", text: "Aponta para o QR da mesa" },
-  { icon: "camera", text: "Cada um tem seu rolo" },
-  { icon: "agora", text: "Tudo revela junto" },
-];
-
-/** Retorno do OAuth com falha (`/?erro=login`, vindo de auth/callback): aviso dispensável no topo (tela E6). */
+/** Retorno do OAuth com falha (`/?erro=login`, vindo de auth/callback): aviso dispensável no topo. */
 function LoginErrorBanner() {
   const search = useSearchParams();
   const failed = search.get("erro") === "login";
@@ -31,12 +24,12 @@ function LoginErrorBanner() {
   }
   if (!failed || closed) return null;
   return (
-    <div className="app-banner" role="alert" style={{ color: "var(--danger)", fontWeight: 600, justifyContent: "space-between", borderRadius: 0 }}>
+    <div className="app-banner" role="alert" style={{ color: "var(--danger)", fontWeight: 600, justifyContent: "space-between" }}>
       <span style={{ display: "flex", gap: "var(--space-3)", alignItems: "flex-start" }}>
         <Icon name="sem-sinal" decorative size={22} />
         <span className="app-stack-sm">
           <span>Não conseguimos entrar com o Google. Tente de novo.</span>
-          <Button onClick={() => void retry()} disabled={busy} aria-busy={busy}>{busy ? "Entrando com o Google…" : "Tentar novamente com o Google"}</Button>
+          <Button small onClick={() => void retry()} disabled={busy} aria-busy={busy}>{busy ? "Entrando com o Google…" : "Tentar novamente com o Google"}</Button>
           <Link href="/ajuda" className="rv-link">Ajuda para entrar</Link>
         </span>
       </span>
@@ -47,61 +40,50 @@ function LoginErrorBanner() {
   );
 }
 
+/** Abertura (00/01): vídeo de fundo, a promessa em uma frase e a entrada do anfitrião. O convidado entra pelo QR, não por aqui. */
 export default function Home() {
-  const { ready, user, persistent, storageError, known, switchTo, canSwitchIdentity } = useApp();
+  const { ready, user, persistent, storageError, known, switchTo, canSwitchIdentity, backend, canCreate, signInWithGoogle } = useApp();
+  const cloud = backend === "supabase";
+  const host = ready && (cloud ? canCreate : true);
 
   return (
-    <main className="app-col app-col--card app-fluid">
-      <Suspense fallback={null}><LoginErrorBanner /></Suspense>
-      <div className="app-topbar">
-        <Logo variant="wordmark" size={128} />
-        <div className="app-row" style={{ alignItems: "center" }}>
-          {ready && user && <Link href="/eventos" className="rv-link app-topbar-link">Meus eventos</Link>}
-        </div>
-      </div>
-      <div className="app-landing-hero"><Cover /></div>
-      <div className="app-screen">
+    <main>
+      <Abertura>
+        <header className="rv-abertura__top">
+          <Link href="/" aria-label="Revela, início"><Logo variant="lockup" size={120} /></Link>
+          <Link href="/entrar#codigo" className="rv-link"><Icon name="qr" decorative size={20} />Tenho um convite</Link>
+        </header>
+        <Suspense fallback={null}><LoginErrorBanner /></Suspense>
         <div className="app-stack-sm">
-          <p className="eyebrow app-eyebrow">CÂMERA DESCARTÁVEL COLETIVA</p>
-          <h1 className="display app-h1" style={{ fontSize: 36 }}>Seu evento pelo olhar de cada convidado.</h1>
-          <p className="corpo app-p app-muted">Sem baixar app. As fotos ficam no escuro e aparecem juntas, na hora que você escolher.</p>
+          <h1 className="display-xl app-h1" style={{ fontSize: 44, lineHeight: "46px" }}>Cada convidado é uma câmera.</h1>
+          <p className="corpo app-muted" style={{ margin: 0 }}>Monte a câmera do evento, espalhe o QR pela festa e veja tudo revelado no dia seguinte.</p>
         </div>
-        <ol className="app-passos" aria-label="Como funciona">
-          {STEPS.map((st) => (
-            <li key={st.text}>
-              <Icon name={st.icon} decorative size={24} />
-              <span>{st.text}</span>
-            </li>
-          ))}
-        </ol>
-        <section className="app-demo" aria-labelledby="demo-titulo">
-          <div className="app-demo-linha">
-            <span className="app-demo-icone" aria-hidden="true"><Icon name="play" decorative size={24} /></span>
-            <span className="app-stack-sm" style={{ gap: 2 }}>
-              <h2 id="demo-titulo" className="titulo-card" style={{ margin: 0 }}>Experimente a câmera agora</h2>
-              <span className="meta app-muted">Festa de exemplo · sem cadastro · nada é salvo</span>
-            </span>
-          </div>
-          <Button href="/exemplo" variant="secundario" icon="camera" block>Experimentar câmera</Button>
-        </section>
         <div className="app-stack-sm">
-          <Button href="/criar" variant="cta" block>Criar meu evento grátis</Button>
-          <Button href="/entrar" variant="texto">Entrar com código</Button>
-          <LivePricingLine />
+          {host && user ? (
+            <>
+              <Button href="/criar" variant="papel" block icon="camera">Montar câmera</Button>
+              <Button href="/eventos" variant="secundario" block>Minhas câmeras</Button>
+            </>
+          ) : cloud ? (
+            <>
+              <GoogleButton block label="Continuar com Google" onClick={() => void signInWithGoogle("/criar")} />
+              <Button href="/entrar" variant="secundario" block icon="email">Receber link por e-mail</Button>
+            </>
+          ) : (
+            <Button href="/criar" variant="papel" block icon="camera">Montar câmera</Button>
+          )}
+          <Button href="/exemplo" variant="texto" block>Experimentar câmera</Button>
         </div>
-
         {ready && canSwitchIdentity && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
-
         {(!persistent || storageError) && ready && (
           <div className="app-banner" role="status">
             <Icon name="sem-sinal" label="Aviso" />
             <span>Este navegador não deixa guardar dados. O que você fizer some ao fechar a página.</span>
           </div>
         )}
-
         <BackendNotice localText="Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor." />
-        <div style={{ marginTop: "auto" }}><Signature /></div>
-      </div>
+        <p className="rv-caption" style={{ textAlign: "center" }}>Ao continuar, você aceita os <Link href="/termos" className="rv-link">Termos</Link> e a <Link href="/privacidade" className="rv-link">Privacidade</Link>.</p>
+      </Abertura>
     </main>
   );
 }

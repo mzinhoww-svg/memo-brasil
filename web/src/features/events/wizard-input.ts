@@ -14,8 +14,13 @@ export interface WizardForm {
   category: EventCategory;
   durationHours: number;
   reveal: RevealInput;
-  /** Escolha do passo Fotos: só orienta o plano; NÃO é enviada acima do Grátis. */
+  /** Escolha do passo Poses: só orienta o plano; NÃO é enviada acima do Grátis. */
   desiredShots: number | null;
+  /** Embalagem e filme escolhidos nos passos 1 e 6; ausentes = padrões. */
+  cameraStyle?: CameraStyle;
+  filmLook?: FilmLook;
+  /** Passo 7: se os convidados veem o feed de todos depois da revelação. */
+  everyoneSeesAll?: boolean;
 }
 
 export function buildCreateInput(f: WizardForm): EventInput {
@@ -25,8 +30,10 @@ export function buildCreateInput(f: WizardForm): EventInput {
     durationHours: f.durationHours,
     reveal: f.reveal,
     ...IDENTITY_DEFAULTS,
+    ...(f.cameraStyle ? { cameraStyle: f.cameraStyle } : {}),
+    ...(f.filmLook ? { filmLook: f.filmLook } : {}),
     capacity: WIZARD_DEFAULTS.capacity,
     shotsPerPerson: WIZARD_DEFAULTS.shots,
-    everyoneSeesAll: true,
+    everyoneSeesAll: f.everyoneSeesAll ?? true,
   };
 }

@@ -105,8 +105,8 @@ describe("planos e configurações públicas", () => {
       { code: "grande", name: "Grande", maxGuests: 500, maxShots: null, priceCents: 34900, sort: 4, isFree: false, features: ["a"] },
     ] }) });
     expect(await listPublicPlans()).toEqual([
-      { code: "gratis", name: "Grátis", maxGuests: 10, maxShots: 10, priceCents: 0, isFree: true, features: [] },
-      { code: "grande", name: "Grande", maxGuests: 500, maxShots: null, priceCents: 34900, isFree: false, features: ["a"] },
+      { code: "gratis", name: "Grátis", maxGuests: 10, maxShots: 10, priceCents: 0, isFree: true, features: [], highlighted: false },
+      { code: "grande", name: "Grande", maxGuests: 500, maxShots: null, priceCents: 34900, isFree: false, features: ["a"], highlighted: false },
     ]);
   });
   it("getPublicSettings converte snake_case", async () => {

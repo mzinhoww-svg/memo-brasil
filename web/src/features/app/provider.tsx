@@ -38,6 +38,8 @@ interface AppState {
   canCreate: boolean;
   /** Organizador entra com Google (só na nuvem). `next` é um caminho do próprio site. */
   signInWithGoogle: (next?: string) => Promise<void>;
+  /** Organizador recebe um link de acesso por e-mail (Supabase Auth, OTP). Devolve `null` se enviou, ou o motivo da falha. */
+  signInWithEmail: (email: string, next?: string) => Promise<string | null>;
   /** Na nuvem, abre a sessão anônima do convidado (necessária até para ver a prévia do convite, com limite de tentativas por pessoa). */
   ensureSession: () => Promise<void>;
   /** Outras identidades já usadas neste aparelho (ex.: o anfitrião depois de testar como convidado). */
@@ -142,9 +144,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [mode],
   );
 
+  const signInWithEmail = useCallback(
+    async (email: string, next = "/criar") => {
+      if (mode !== "supabase") return "Disponível só com o servidor ligado.";
+      const safe = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+      const { error } = await browserSupabase().auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safe)}`, shouldCreateUser: true } });
+      return error ? "Não conseguimos enviar o link agora. Confira o e-mail e tente de novo." : null;
+    },
+    [mode],
+  );
+
   const value = useMemo<AppState>(
-    () => ({ repos, persistent, ready, user, storageError, scheduler, authority: mode === "supabase" ? serverRevealAuthority : localRevealAuthority, clock, identityMode: mode === "supabase" ? "cloud" : "local", canSwitchIdentity: identityPolicy(mode === "supabase" ? "cloud" : "local").canSwitch, backend: mode, canCreate, signInWithGoogle, ensureSession, now: clock.now, signIn, signOut, known, switchTo, reportStorageError: () => setStorageError(true) }),
-    [repos, persistent, ready, user, known, storageError, scheduler, clock, mode, canCreate, signInWithGoogle, ensureSession, signIn, signOut, switchTo],
+    () => ({ repos, persistent, ready, user, storageError, scheduler, authority: mode === "supabase" ? serverRevealAuthority : localRevealAuthority, clock, identityMode: mode === "supabase" ? "cloud" : "local", canSwitchIdentity: identityPolicy(mode === "supabase" ? "cloud" : "local").canSwitch, backend: mode, canCreate, signInWithGoogle, signInWithEmail, ensureSession, now: clock.now, signIn, signOut, known, switchTo, reportStorageError: () => setStorageError(true) }),
+    [repos, persistent, ready, user, known, storageError, scheduler, clock, mode, canCreate, signInWithGoogle, signInWithEmail, ensureSession, signIn, signOut, switchTo],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -3,7 +3,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cx } from "./cx";
 import { Icon, type IconName } from "./Icon";
 
-export type ButtonVariant = "primario" | "cta" | "cta-xl" | "secundario" | "pequeno" | "texto" | "destrutivo";
+export type ButtonVariant = "primario" | "cta" | "cta-xl" | "secundario" | "papel" | "pequeno" | "texto" | "destrutivo";
 
 type Common = { variant?: ButtonVariant; small?: boolean; block?: boolean; icon?: IconName; children: ReactNode; className?: string };
 type AsButton = Common & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children"> & { href?: undefined };

@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Breadcrumbs, Button, Chip, Chips, Field, GoogleButton, OptionGroup, Progress, Select, Signature } from "@/components/revela";
-import { CATEGORY_LABEL, MIN_DURATION_HOURS, type EventCategory } from "@/domain/options";
+import { Breadcrumbs, Button, CameraStage, Chip, Chips, Field, GoogleButton, Icon, OptionGroup, Select, ShotCounter, ToggleRow, WrapPicker } from "@/components/revela";
+import { CATEGORY_LABEL, DEFAULT_FILM, DEFAULT_WRAP, FILM_LABEL, MIN_DURATION_HOURS, WRAP_INFO, type EventCategory, type FilmLook, type Wrap } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
 import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
 import { currentConsent, recordConsent } from "@/lib/consent";
@@ -24,9 +24,20 @@ import { TIMEZONES, defaultTimezone, formatInZone, zoneLabel, type RevealErrors 
 
 export { WIZARD_DEFAULTS };
 
-const STEPS = ["Nome", "Quando", "Fotos", "Convidados"] as const;
+/** Os 8 passos de "Monte a câmera". Cada um tem título, apoio e o que mostra; o contador "n/8" é o visor da câmera. */
+const STEPS = [
+  { key: "embalagem", title: "Escolha a embalagem", hint: "É a cara da câmera: aparece no convite, no QR e na tela de cada convidado." },
+  { key: "nome", title: "Nome impresso", hint: "O que sai impresso na câmera e que todos os convidados vão ver." },
+  { key: "ate-quando", title: "Até quando vale?", hint: "Depois desse horário ninguém tira mais fotos." },
+  { key: "poses", title: "Quantas poses?", hint: "Cada convidado tem um filme. Quanto menos poses, mais cada uma vale." },
+  { key: "revelar", title: "Quando revelar?", hint: "As fotos ficam no escuro até a revelação. Aí aparecem para todos, juntas." },
+  { key: "filme", title: "Qual filme?", hint: "O filme é aplicado em todas as fotos." },
+  { key: "quem-ve", title: "Quem vê o quê", hint: "Você vê tudo e pode tirar qualquer foto antes da revelação." },
+  { key: "plano", title: "Escolha o plano", hint: "Pague uma vez por evento. Sem assinatura." },
+] as const;
+const LAST_STEP = STEPS.length - 1;
 const DURATIONS = [1, 3, 6, 12, 24, 48];
-const SHOTS_CHOICES = [10, 16, 24, 36];
+const SHOTS_FALLBACK = [10, 24, 36];
 const OTHER_DATE = -1;
 type CreatedEvent = { eventId: string; title: string; paid: boolean; destination: AfterCreate; ready: boolean };
 
@@ -39,6 +50,9 @@ export function CreateWizard() {
   const router = useRouter();
   const { repos, user, signIn, now, ready, backend, canCreate, signInWithGoogle } = useApp();
   const [step, setStep] = useState(0);
+  const [wrap, setWrap] = useState<Wrap>(DEFAULT_WRAP);
+  const [film, setFilm] = useState<FilmLook>(DEFAULT_FILM);
+  const [everyoneSeesAll, setEveryoneSeesAll] = useState(true);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [ackedPrivacy, setAckedPrivacy] = useState(false);
   const [title, setTitle] = useState("");
@@ -112,25 +126,25 @@ export function CreateWizard() {
 
   function next() {
     const e: typeof errors = {};
-    if (step === 0 && !title.trim()) e.title = "Escolha o nome do evento. Todos os convidados vão ver.";
-    if (step === 1) {
+    if (step === 1 && !title.trim()) e.title = "Escolha o nome do evento. Todos os convidados vão ver.";
+    if (step === 2) {
       if (otherDate && (untilMs === undefined || !Number.isFinite(untilMs))) e.termino = "Escolha a data e o horário para o fim da festa.";
       else if (!Number.isFinite(durationHours()) || durationHours() < MIN_DURATION_HOURS) e.termino = "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.";
-      else {
-        const r = resolveReveal(revealInput(), endMs(), now());
-        setRevealErrors(r.ok ? undefined : r.errors);
-        if (!r.ok) return setErrors(e);
-      }
+    }
+    if (step === 4) {
+      const r = resolveReveal(revealInput(), endMs(), now());
+      setRevealErrors(r.ok ? undefined : r.errors);
+      if (!r.ok) return setErrors(e);
     }
     setErrors(e);
-    if (Object.keys(e).length === 0) setStep((s) => Math.min(STEPS.length - 1, s + 1));
+    if (Object.keys(e).length === 0) setStep((x) => Math.min(LAST_STEP, x + 1));
   }
 
   async function create() {
     if (!acceptedTerms || !ackedPrivacy) return setErrors({ create: CONSENT_REQUIRED });
     if (creating.current || createdResult.current) return;
     if (otherDate && (untilMs === undefined || !Number.isFinite(untilMs))) {
-      setStep(1);
+      setStep(2);
       return setErrors({ termino: "Escolha a data e o horário para o fim da festa." });
     }
     creating.current = true;
@@ -143,12 +157,12 @@ export function CreateWizard() {
       }
       const startNow = now();
       const hoursNow = resolveDuration({ untilMs: otherDate ? untilMs : undefined, presetHours: hours }, startNow);
-      const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, startNow + hoursNow * 3_600_000, { date: revDate, time: revTime, timezone }), desiredShots });
+      const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, startNow + hoursNow * 3_600_000, { date: revDate, time: revTime, timezone }), desiredShots, cameraStyle: wrap, filmLook: film, everyoneSeesAll });
       const r = await createEvent(repos, me, input, startNow);
       if (!r.ok) {
         if (r.errors.reveal) {
           setRevealErrors(r.errors.reveal);
-          setStep(1);
+          setStep(4);
         }
         return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
       }
@@ -189,15 +203,21 @@ export function CreateWizard() {
     }
   }
 
-  const resolved = step === 1 ? resolveReveal(revealInput(), endMs(), now()) : undefined;
+  const resolved = step === 4 ? resolveReveal(revealInput(), endMs(), now()) : undefined;
   const revealWhen = resolved?.ok && resolved.enabled ? formatInZone(resolved.at, resolved.timezone) : undefined;
   const eventName = title.trim() || "sua festa";
   const catalog = plans ?? [];
   const shotsPlan = planForShots(catalog, desiredShots);
   const freeShotsLimit = freeShots(catalog);
+  const chosenPlan = catalog.find((p) => p.code === planCode);
+  // opções de poses vêm do catálogo (limites de cada plano); sem catálogo, o padrão
+  const shotsChoices = (() => {
+    const set = new Set<number>(catalog.flatMap((p) => (p.maxShots === null ? [] : [p.maxShots])));
+    return (set.size ? [...set] : SHOTS_FALLBACK).sort((x, y) => x - y);
+  })();
 
   if (!ready) return <p className="app-screen app-muted">Carregando…</p>;
-  const last = step === STEPS.length - 1;
+  const last = step === LAST_STEP;
 
   if (codeOutcome) {
     const { eventId, eventTitle, code, applied, error } = codeOutcome;
@@ -240,113 +260,154 @@ export function CreateWizard() {
     );
   }
 
+  const info = STEPS[step];
+  const ctaLabel = busy ? "Criando câmera…" : last ? (chosenPlan && !chosenPlan.isFree ? `Continuar · ${formatBRL(chosenPlan.priceCents)}` : "Criar câmera") : "Próximo";
   return (
-    <div className="app-screen">
-      <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: "Criar evento" }]} />
-      <div className="app-stack-sm">
-        <Button variant="texto" href="/">Cancelar</Button>
-        <Progress variant="evento" label={`Passo ${step + 1} de ${STEPS.length}`} status={STEPS[step]} value={((step + 1) / STEPS.length) * 100} />
-      </div>
+    <div className="rv-wiz">
+      <header className="rv-wiz__head">
+        <div className="rv-wiz__top">
+          <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: "Montar câmera" }]} />
+          <span className="rv-stamp" aria-label={`Passo ${step + 1} de ${STEPS.length}`}>{step + 1}/{STEPS.length}</span>
+        </div>
+        <h1 className="titulo-tela app-h1" id="wiz-titulo">{info.title}</h1>
+        <p className="corpo app-muted" style={{ margin: 0 }}>{step === 3 && shotsPlan ? `Cada convidado tem um filme. No plano ${shotsPlan.name}, até ${shotsPlan.maxShots ?? "sem limite de"} por pessoa.` : info.hint}</p>
+        <div className="rv-steps" role="progressbar" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={step + 1} aria-label={`Passo ${step + 1} de ${STEPS.length}: ${info.title}`}>
+          {STEPS.map((x, i) => <i key={x.key} className={i <= step ? "on" : undefined} />)}
+        </div>
+      </header>
 
-      <form className="app-stack" aria-busy={busy} noValidate onSubmit={(e) => { e.preventDefault(); if (last) void create(); else next(); }}>
-        {step === 0 && (
-          <>
-            <h1 className="titulo-tela app-h1">Como se chama a festa?</h1>
-            <Field label="Nome que os convidados vão ver" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: undefined })); }} maxLength={60} placeholder="Ex.: Emy e Igor" error={errors.title} />
-            <div className="app-stack-sm">
-              <span className="rv-group-label">Sugestões</span>
-              <Chips label="Sugestões de nome">
-                {suggestEventNames(category, user?.name ?? "", now()).map((s) => (
-                  <Chip key={s} variant="filtro" pressed={title === s} onClick={() => { setTitle(s); setErrors((x) => ({ ...x, title: undefined })); }}>{s}</Chip>
+      <form className="rv-wiz__form" aria-busy={busy} aria-labelledby="wiz-titulo" noValidate onSubmit={(e) => { e.preventDefault(); if (last) void create(); else next(); }}>
+        <div className="rv-wiz__body app-stack">
+          {step === 0 && (
+            <>
+              <CameraStage wrap={wrap} size={640} priority />
+              <div className="app-stack-sm" style={{ textAlign: "center" }}>
+                <h2 className="titulo-card app-h1">{WRAP_INFO[wrap].label}</h2>
+                <p className="corpo-sm app-muted" style={{ margin: 0 }}>{WRAP_INFO[wrap].blurb}</p>
+              </div>
+              <WrapPicker value={wrap} onChange={setWrap} />
+            </>
+          )}
+          {step === 1 && (
+            <>
+              <CameraStage wrap={wrap} size={360} />
+              <Field label="Nome que os convidados vão ver" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: undefined })); }} maxLength={60} placeholder="Ex.: Ana & Leo" error={errors.title} />
+              <div className="app-stack-sm">
+                <span className="rv-group-label">Sugestões</span>
+                <Chips label="Sugestões de nome">
+                  {suggestEventNames(category, user?.name ?? "", now()).map((s) => (
+                    <Chip key={s} variant="filtro" pressed={title === s} onClick={() => { setTitle(s); setErrors((x) => ({ ...x, title: undefined })); }}>{s}</Chip>
+                  ))}
+                </Chips>
+              </div>
+              <OptionGroup<EventCategory> label="Tipo de evento" value={category} onChange={setCategory} options={(Object.keys(CATEGORY_LABEL) as EventCategory[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c] }))} />
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <OptionGroup<number> label="Termina em" value={otherDate ? OTHER_DATE : hours} onChange={(v) => { if (v === OTHER_DATE) setOtherDate(true); else { setOtherDate(false); setHours(v); } setErrors((x) => ({ ...x, termino: undefined })); }} options={[...DURATIONS.map((h) => ({ value: h, label: h === 1 ? "1 hora" : `${h} horas` })), { value: OTHER_DATE, label: "Outra data" }]} />
+              {otherDate && <div role={errors.termino ? "alert" : undefined}><Field label="Escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => { setUntil(e.target.value); setErrors((x) => ({ ...x, termino: undefined })); }} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." /></div>}
+              {!otherDate && errors.termino && <p className="rv-field-erro" role="alert">{errors.termino}</p>}
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <div style={{ display: "grid", placeItems: "center" }}><ShotCounter value={desiredShots} label="poses por pessoa" /></div>
+              <div className="rv-choices" role="group" aria-label="Poses por pessoa">
+                {shotsChoices.map((n) => (
+                  <button key={n} type="button" className={`rv-choice rv-choice--num ${desiredShots === n ? "rv-choice--on" : ""}`} aria-pressed={desiredShots === n} onClick={() => setDesiredShots(n)}>
+                    {n}<small>poses</small>
+                  </button>
                 ))}
-              </Chips>
-            </div>
-            <OptionGroup<EventCategory> label="Tipo de evento" value={category} onChange={setCategory} options={(Object.keys(CATEGORY_LABEL) as EventCategory[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c] }))} />
-            <p className="app-p app-muted">Local, capa e estilo ficam para depois, no painel.</p>
-          </>
-        )}
-        {step === 1 && (
-          <>
-            <h1 className="titulo-tela app-h1">Quando a festa acaba?</h1>
-            <OptionGroup<number> label="Termina em" value={otherDate ? OTHER_DATE : hours} onChange={(v) => { if (v === OTHER_DATE) setOtherDate(true); else { setOtherDate(false); setHours(v); } setErrors((x) => ({ ...x, termino: undefined })); }} options={[...DURATIONS.map((h) => ({ value: h, label: h === 1 ? "1 hora" : `${h} horas` })), { value: OTHER_DATE, label: "Outra data" }]} />
-            {otherDate && <div role={errors.termino ? "alert" : undefined}><Field label="Escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => { setUntil(e.target.value); setErrors((x) => ({ ...x, termino: undefined })); }} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." /></div>}
-            {!otherDate && errors.termino && <p className="rv-field-erro" role="alert">{errors.termino}</p>}
-            <OptionGroup<RevealChoice> label="E quando as fotos aparecem?" value={choice} onChange={(c) => { setChoice(c); setRevealErrors(undefined); }} options={REVEAL_CHOICES} />
-            {choice === "dia" && (
-              <>
-                <Field label="Data" type="date" value={revDate} onChange={(e) => setRevDate(e.target.value)} error={revealErrors?.data ? REVEAL_ERROR_TEXT[revealErrors.data] : undefined} />
-                <Field label="Horário" type="time" value={revTime} onChange={(e) => setRevTime(e.target.value)} />
-                <Select label="Fuso horário" value={timezone} onChange={(e) => setTimezone(e.target.value)} options={(TIMEZONES.some((z) => z.id === timezone) ? TIMEZONES : [{ id: timezone, label: timezone }, ...TIMEZONES]).map((z) => ({ value: z.id, label: z.label }))} help="A contagem regressiva dos convidados usa este fuso." />
-              </>
-            )}
-            {choice !== "dia" && revealErrors?.data && <p className="rv-field-erro" role="alert">{REVEAL_ERROR_TEXT[revealErrors.data]}</p>}
-            <div className="app-card" aria-live="polite" style={{ background: "var(--ink)", color: "var(--bg)" }}>
-              <span className="eyebrow">Como o convidado recebe</span>
-              {choice === "na-hora" ? (
-                <span className="corpo">As fotos aparecem para todos assim que são postadas.</span>
-              ) : (
+              </div>
+              <p className="corpo-sm app-muted" style={{ margin: 0 }}>
+                {shotsPlan
+                  ? `Acima de ${freeShotsLimit} poses pede o plano ${shotsPlan.name} (${formatBRL(shotsPlan.priceCents)}). A câmera nasce Grátis, com ${freeShotsLimit} poses por pessoa, e passa para o plano quando o pagamento for confirmado.`
+                  : `${freeShotsLimit} poses por pessoa cabem no plano Grátis.`}
+              </p>
+            </>
+          )}
+          {step === 4 && (
+            <>
+              <OptionGroup<RevealChoice> label="Revelar" value={choice} onChange={(c) => { setChoice(c); setRevealErrors(undefined); }} options={REVEAL_CHOICES} />
+              {choice === "dia" && (
                 <>
-                  <span className="titulo-card">O filme de {eventName} foi revelado.</span>
-                  <span className="corpo">{revealWhen ? `${revealWhen.date} às ${revealWhen.time}, ${zoneLabel(timezone).split(" (")[0]}.` : "Escolha a data e a hora para ver quando."}</span>
+                  <Field label="Data" type="date" value={revDate} onChange={(e) => setRevDate(e.target.value)} error={revealErrors?.data ? REVEAL_ERROR_TEXT[revealErrors.data] : undefined} />
+                  <Field label="Horário" type="time" value={revTime} onChange={(e) => setRevTime(e.target.value)} />
+                  <Select label="Fuso horário" value={timezone} onChange={(e) => setTimezone(e.target.value)} options={(TIMEZONES.some((z) => z.id === timezone) ? TIMEZONES : [{ id: timezone, label: timezone }, ...TIMEZONES]).map((z) => ({ value: z.id, label: z.label }))} help="A contagem regressiva dos convidados usa este fuso." />
                 </>
               )}
-            </div>
-            {choice === "manha" && <p className="app-p app-muted">Revelar na manhã seguinte deixa a noite para a pista.</p>}
-          </>
-        )}
-        {step === 2 && (
-          <>
-            <h1 className="titulo-tela app-h1">Quantas fotos cada pessoa tira?</h1>
-            <p className="app-p app-muted">Escolha a quantidade desejada para receber uma recomendação de plano. Como num filme: poucas fotos fazem cada uma valer.</p>
-            <div className="app-card" style={{ background: "var(--ink)", color: "var(--bg)" }} aria-live="polite">
-              <span className="titulo-tela" data-testid="contador-previa"><strong style={{ fontSize: 40 }}>{desiredShots}</strong> FOTOS DESEJADAS</span>
-            </div>
-            <div className="rv-group" role="group" aria-label="Fotos por pessoa">
-              <div className="rv-opts" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-                {SHOTS_CHOICES.map((n) => {
-                  const hint = planForShots(catalog, n)?.name;
-                  return (
-                    <button key={n} type="button" className="rv-opt" aria-pressed={desiredShots === n} onClick={() => setDesiredShots(n)} style={{ height: "auto", minHeight: "var(--size-opcao)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "8px 14px" }}>
-                      <span>{n}</span>
-                      {hint && <span data-testid="selo-plano" style={{ fontSize: 12, fontWeight: 700 }}>{`Plano ${hint}`}</span>}
-                    </button>
-                  );
-                })}
+              {choice !== "dia" && revealErrors?.data && <p className="rv-field-erro" role="alert">{REVEAL_ERROR_TEXT[revealErrors.data]}</p>}
+              <div className="rv-notice" style={{ maxWidth: "none" }} aria-live="polite">
+                <span className="rv-notice-eyebrow">Como o convidado recebe</span>
+                {choice === "na-hora" ? (
+                  <span className="rv-notice-texto">As fotos aparecem para todos assim que são tiradas.</span>
+                ) : (
+                  <>
+                    <span className="rv-notice-texto">O filme de {eventName} foi revelado.</span>
+                    <span className="rv-stamp">{revealWhen ? `${revealWhen.date} · ${revealWhen.time} · ${zoneLabel(timezone).split(" (")[0]}` : "Escolha a data e a hora"}</span>
+                  </>
+                )}
               </div>
-            </div>
-            <p className="app-p app-muted">
-              {shotsPlan
-                ? `Acima de ${freeShotsLimit} fotos pede o plano ${shotsPlan.name} (${formatBRL(shotsPlan.priceCents)}). O evento nasce Grátis, com ${freeShotsLimit} fotos por pessoa.`
-                : desiredShots <= freeShotsLimit
-                  ? `${freeShotsLimit} fotos por pessoa cabem no plano Grátis.`
-                  : `O evento nasce Grátis, com ${freeShotsLimit} fotos por pessoa.`}
-            </p>
-          </>
-        )}
-        {step === 3 && (
-          <>
-            <h1 className="titulo-tela app-h1">Quantos convidados vão fotografar?</h1>
-            <PlanStep plans={plans} settings={settings} selected={planCode} onSelect={setPlanCode} pendingCode={pendingCode} />
-            <p className="app-p" role="status">Limite ao criar: {WIZARD_DEFAULTS.shots} fotos por pessoa no Grátis. Você deseja {desiredShots}.</p>
-            {shotsPlan && (
-              <div className="app-card">
-                <p className="app-p">Para {desiredShots} fotos por pessoa, recomendamos {shotsPlan.name} ({formatBRL(shotsPlan.priceCents)}). O limite aumenta depois da confirmação do pagamento.</p>
-                <Button variant="secundario" onClick={() => setPlanCode(shotsPlan.code)}>Escolher {shotsPlan.name}</Button>
+              {choice === "manha" && <p className="corpo-sm app-muted" style={{ margin: 0 }}>Revelar na manhã seguinte deixa a noite para a pista.</p>}
+            </>
+          )}
+          {step === 5 && (
+            <>
+              <div className="rv-film" role="radiogroup" aria-label="Filme">
+                {(["natural", "filme35"] as const).map((f) => (
+                  <button key={f} type="button" role="radio" aria-checked={film === f} className={`rv-film__opt ${film === f ? "rv-film__opt--on" : ""}`} onClick={() => setFilm(f)}>
+                    <span className={`rv-film__frame rv-film__frame--${f}`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element -- objeto 3D do kit (bolo), WebP responsivo */}
+                      <img src="/revela/3d/obj-cake.webp" alt="" width={240} height={240} loading="lazy" decoding="async" />
+                      {f === "filme35" && <span className="rv-tag" style={{ top: "auto", left: "auto", right: 8, bottom: 8 }}>&apos;27 03 14</span>}
+                    </span>
+                    <span className="rv-film__name">{FILM_LABEL[f]}</span>
+                  </button>
+                ))}
               </div>
-            )}
-            {planCode !== "gratis" && <p className="app-p app-muted">O plano escolhido só será ativado após o pagamento; até lá, valem os limites do Grátis.</p>}
-            <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); setErrors((e) => ({ ...e, create: undefined })); }} onPrivacy={(v) => { setAckedPrivacy(v); setErrors((e) => ({ ...e, create: undefined })); }} />
-            {errors.create && <p className="rv-field-erro" role="alert">{errors.create}</p>}
-          </>
-        )}
+              <p className="corpo-sm app-muted" style={{ margin: 0, textAlign: "center" }}>
+                {film === "filme35" ? "Filme 35mm: tons quentes, grão, carimbo de data e o brilho do flash." : "Natural: a foto como a câmera do celular viu, sem efeito."}
+              </p>
+            </>
+          )}
+          {step === 6 && (
+            <div className="rv-group" style={{ maxWidth: "none" }}>
+              <ToggleRow icon="olho" label="Convidados veem o feed" hint="Curtem e comentam depois da revelação" checked={everyoneSeesAll} onChange={setEveryoneSeesAll} />
+              <p className="corpo-sm app-muted" style={{ margin: "var(--space-3) 0 0" }}>
+                {everyoneSeesAll ? "Depois da revelação, cada convidado vê as fotos de todos." : "Depois da revelação, cada convidado vê só as próprias fotos. Você continua vendo tudo."}
+              </p>
+            </div>
+          )}
+          {step === 7 && (
+            <>
+              <CameraStage wrap={wrap} size={360} />
+              <dl className="rv-summary">
+                <div><dt>Embalagem</dt><dd>{WRAP_INFO[wrap].label}</dd></div>
+                <div><dt>Poses</dt><dd>{desiredShots} por pessoa</dd></div>
+                <div><dt>Revela</dt><dd>{choice === "na-hora" ? "na hora" : choice === "ao-acabar" ? "ao acabar" : choice === "manha" ? "manhã seguinte" : `${revDate || "—"} ${revTime}`}</dd></div>
+              </dl>
+              <PlanStep plans={plans} settings={settings} selected={planCode} onSelect={setPlanCode} pendingCode={pendingCode} />
+              <p className="app-p" role="status">Limite ao criar: {WIZARD_DEFAULTS.shots} poses por pessoa no Grátis. Você deseja {desiredShots}.</p>
+              {shotsPlan && (
+                <div className="app-card">
+                  <p className="app-p">Para {desiredShots} poses por pessoa, recomendamos {shotsPlan.name} ({formatBRL(shotsPlan.priceCents)}). O limite aumenta depois da confirmação do pagamento.</p>
+                  <Button variant="secundario" onClick={() => setPlanCode(shotsPlan.code)}>Escolher {shotsPlan.name}</Button>
+                </div>
+              )}
+              {planCode !== "gratis" && <p className="corpo-sm app-muted" style={{ margin: 0 }}>O plano escolhido só é ativado depois do pagamento; até lá valem os limites do Grátis.</p>}
+              <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); setErrors((e) => ({ ...e, create: undefined })); }} onPrivacy={(v) => { setAckedPrivacy(v); setErrors((e) => ({ ...e, create: undefined })); }} />
+              {errors.create && <p className="rv-field-erro" role="alert">{errors.create}</p>}
+              {hasPaidPlans(catalog) && <p className="corpo-sm app-muted" style={{ margin: 0 }}>{PAID_PLAN_LINE}</p>}
+            </>
+          )}
+        </div>
 
-        <div className="app-stack-sm">
-          <Button type="submit" variant="primario" block disabled={busy}>{busy ? "Criando evento…" : last ? "Criar evento" : "Continuar"}</Button>
-          {last && hasPaidPlans(catalog) && <p className="app-p app-muted">{PAID_PLAN_LINE}</p>}
-          {step > 0 && <Button variant="texto" disabled={busy} onClick={() => setStep(step - 1)}>Voltar</Button>}
+        <div className="rv-wiz__bar">
+          {step > 0 ? <button type="button" className="rv-icon-btn" aria-label="Voltar" disabled={busy} onClick={() => setStep(step - 1)}><Icon name="voltar" decorative /></button> : <Button href="/" variant="texto" small>Cancelar</Button>}
+          <Button type="submit" variant="primario" block disabled={busy}>{ctaLabel}</Button>
         </div>
       </form>
-      <div style={{ marginTop: "auto" }}><Signature /></div>
     </div>
   );
 }
