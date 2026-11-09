@@ -1,162 +1,69 @@
-/* Gerado de design-system/revela/html/Camera-publicar.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function CameraPublicar() {
+"use client";
+/* Camera-publicar.html (passo 8): mesmo markup e classes da referência; planos do catálogo por props (padrão = desenho). */
+import { WizardSheet } from "../WizardSheet";
+
+export interface PlanView { code: string; tier: string; price: string; lines: [string, string]; gold?: boolean }
+export const PLANS_REF: PlanView[] = [
+  { code: "gratis", tier: "Grátis", price: "Grátis", lines: ["10 convidados", "10 poses cada"] },
+  { code: "festa", tier: "Festa", price: "R$ 29", lines: ["30 convidados", "24 poses cada"] },
+  { code: "celebracao", tier: "Celebração", price: "R$ 89", lines: ["100 convidados", "24 poses cada"] },
+  { code: "casamento", tier: "Casamento", price: "R$ 189", lines: ["250 convidados", "36 poses cada"] },
+  { code: "grande", tier: "Grande", price: "R$ 349", lines: ["500 convidados", "poses livres"], gold: true },
+];
+
+const PLAN_W = 112, GAP = 8, VIEW = 350;
+/** Deslocamento da faixa para o plano marcado ficar à vista (no desenho, o 4º plano pede 150 px). */
+export function planShift(index: number, count: number): number {
+  const total = count * PLAN_W + (count - 1) * GAP;
+  return Math.max(0, Math.min(index * (PLAN_W + GAP) - 210, total - VIEW));
+}
+
+export interface CameraPublicarProps {
+  image?: string; wrapLabel?: string; posesLabel?: string; revealLabel?: string;
+  plans?: PlanView[]; selected?: string; payNote?: string; next?: string; busy?: boolean; error?: string;
+  onSelect?: (code: string) => void; onBack?: () => void; onNext?: () => void;
+}
+
+export function CameraPublicar({
+  image = "/revela/ref/cam-casamento.webp", wrapLabel = "Casamento", posesLabel = "27 por pessoa", revealLabel = "dom, 12:00",
+  plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, onSelect, onBack, onNext,
+}: CameraPublicarProps = {}) {
+  const idx = Math.max(0, plans.findIndex((p) => p.code === selected));
   return (
-    <>
-    <div className="scr sheet-scr">
-      <div className="sheet-full">
-        <div className="rv-sheet__grab" />
-        <div className="row between" style={{ "alignItems": "flex-start" }}>
-          <div>
-            <h1 className="rv-title">
-              Escolha o plano
-            </h1>
-            <p className="rv-caption" style={{ "marginTop": "4px", "maxWidth": "290px" }}>
-              Pague uma vez por evento. Sem assinatura.
-            </p>
-          </div>
-          <span className="rv-stamp" style={{ "fontSize": "12px", "marginTop": "6px" }}>
-            8/8
-          </span>
-        </div>
-        <div className="rv-steps">
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-        </div>
-        <div className="sheet-body">
-          <div className="rv-stagebox" style={{ "marginTop": "-6px" }}>
-            <img src="/revela/ref/cam-casamento.webp" alt="Câmera do evento" style={{ "width": "260px" }} />
-          </div>
-          <div className="summary">
-            <div>
-              <span className="rv-caption">
-                Embalagem
-              </span>
-              <b>
-                Casamento
-              </b>
+    <WizardSheet step={8} title="Escolha o plano" caption="Pague uma vez por evento. Sem assinatura." onBack={onBack} onNext={onNext} next={next} busy={busy}>
+      <div className="rv-stagebox" style={{ marginTop: "-6px" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- render 3D do kit, WebP responsivo */}
+        <img src={image} alt="Câmera do evento" style={{ width: "260px" }} />
+      </div>
+      <div className="summary">
+        <div><span className="rv-caption">Embalagem</span><b>{wrapLabel}</b></div>
+        <div><span className="rv-caption">Poses</span><b>{posesLabel}</b></div>
+        <div><span className="rv-caption">Revela</span><b>{revealLabel}</b></div>
+      </div>
+      <div className="planscroll">
+        <div className="rv-plans rv-plans--scroll" role="radiogroup" aria-label="Plano do evento" style={{ transform: `translateX(-${planShift(idx, plans.length)}px)` }}>
+          {plans.map((p) => (
+            <div key={p.code} role="radio" aria-checked={p.code === selected} tabIndex={0} aria-label={`${p.tier}, ${p.price}`} className={`rv-plan${p.code === selected ? " rv-plan--on" : ""}${p.gold ? " rv-plan--gold" : ""}`} onClick={() => onSelect?.(p.code)} style={{ cursor: "pointer" }}
+              onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); onSelect?.(p.code); } }}>
+              <span className="rv-plan__tier">{p.tier}</span>
+              <span className="rv-plan__price">{p.price}</span>
+              <span className="rv-plan__note">{p.lines[0]}<br />{p.lines[1]}</span>
             </div>
-            <div>
-              <span className="rv-caption">
-                Poses
-              </span>
-              <b>
-                27 por pessoa
-              </b>
-            </div>
-            <div>
-              <span className="rv-caption">
-                Revela
-              </span>
-              <b>
-                dom, 12:00
-              </b>
-            </div>
-          </div>
-          <div className="planscroll">
-            <div className="rv-plans rv-plans--scroll" style={{ "transform": "translateX(-150px)" }}>
-              <div className="rv-plan">
-                <span className="rv-plan__tier">
-                  Grátis
-                </span>
-                <span className="rv-plan__price">
-                  Grátis
-                </span>
-                <span className="rv-plan__note">
-                  10 convidados
-                  <br />
-                  10 poses cada
-                </span>
-              </div>
-              <div className="rv-plan">
-                <span className="rv-plan__tier">
-                  Festa
-                </span>
-                <span className="rv-plan__price">
-                  R$ 29
-                </span>
-                <span className="rv-plan__note">
-                  30 convidados
-                  <br />
-                  24 poses cada
-                </span>
-              </div>
-              <div className="rv-plan">
-                <span className="rv-plan__tier">
-                  Celebração
-                </span>
-                <span className="rv-plan__price">
-                  R$ 89
-                </span>
-                <span className="rv-plan__note">
-                  100 convidados
-                  <br />
-                  24 poses cada
-                </span>
-              </div>
-              <div className="rv-plan rv-plan--on">
-                <span className="rv-plan__tier">
-                  Casamento
-                </span>
-                <span className="rv-plan__price">
-                  R$ 189
-                </span>
-                <span className="rv-plan__note">
-                  250 convidados
-                  <br />
-                  36 poses cada
-                </span>
-              </div>
-              <div className="rv-plan rv-plan--gold">
-                <span className="rv-plan__tier">
-                  Grande
-                </span>
-                <span className="rv-plan__price">
-                  R$ 349
-                </span>
-                <span className="rv-plan__note">
-                  500 convidados
-                  <br />
-                  poses livres
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="paynote">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2.5l3.6 3.6-3.6 3.6-3.6-3.6zM12 14.3l3.6 3.6-3.6 3.6-3.6-3.6zM2.5 12l3.6-3.6 3.6 3.6-3.6 3.6zM14.3 12l3.6-3.6 3.6 3.6-3.6 3.6z" />
-            </svg>
-            <span>
-              Pix ou cartão, sem sair do app
-            </span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="11" width="14" height="10" rx="2" />
-              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-            </svg>
-            <span>
-              ValidaPay
-            </span>
-          </div>
-        </div>
-        <div className="cta-bar">
-          <button className="rv-icon-btn" aria-label="Voltar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <button className="rv-btn rv-btn--primary">
-            Continuar · R$ 189
-          </button>
+          ))}
         </div>
       </div>
-      <div className="home-ind" />
-      <div className="grain" />
-    </div>
-    </>
+      {error && <p className="rv-caption center" role="alert" style={{ color: "var(--danger)" }}>{error}</p>}
+      <div className="paynote">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2.5l3.6 3.6-3.6 3.6-3.6-3.6zM12 14.3l3.6 3.6-3.6 3.6-3.6-3.6zM2.5 12l3.6-3.6 3.6 3.6-3.6 3.6zM14.3 12l3.6-3.6 3.6 3.6-3.6 3.6z" />
+        </svg>
+        <span>{payNote}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+        <span>ValidaPay</span>
+      </div>
+    </WizardSheet>
   );
 }

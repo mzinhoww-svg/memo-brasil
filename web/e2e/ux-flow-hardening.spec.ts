@@ -86,21 +86,21 @@ async function changeKnownPerson(page: Page, code: string, name: string) {
   await page.getByRole("button", { name, exact: true }).click();
 }
 
-test("Outra data vazia é rejeitada e a duração padrão continua recuperável", async ({ page }) => {
+test("Dia vazio é rejeitado e a janela padrão continua recuperável", async ({ page }) => {
   const next = () => page.getByRole("button", { name: "Próximo" }).click();
   await page.goto("/criar");
   await seedHost(page, "Emy");
   await next(); // embalagem
   await page.getByLabel("Nome que os convidados vão ver").fill("Data explícita");
   await next();
-  await page.getByRole("button", { name: "Outra data", exact: true }).click();
-  const date = page.getByLabel("Escolha o horário");
-  await expect(date).toHaveValue("");
+  await expect(page.getByRole("heading", { name: "Quando é a festa?" })).toBeVisible();
+  const day = page.getByLabel("Dia", { exact: true });
+  const valid = await day.inputValue();
+  await day.fill("");
   await next();
-  await expect(page.getByRole("heading", { name: "Até quando vale?" })).toBeVisible();
-  await expect(date).toHaveAttribute("aria-invalid", "true");
-  await expect(page.getByRole("alert").filter({ has: date })).toContainText(/data e.*horário/);
-  await page.getByRole("group", { name: "Termina em" }).getByRole("button", { name: "6 horas", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Quando é a festa?" })).toBeVisible();
+  await expect(page.getByText("Escolha o dia e os horários da festa.")).toBeVisible();
+  await day.fill(valid);
   await next();
   await expect(page.getByRole("heading", { name: "Quantas poses?" })).toBeVisible();
   expect(await localPhotos(page)).toEqual([]);
@@ -155,9 +155,9 @@ test("rascunho sobrevive à recarga e só retoma ou descarta por decisão explí
 test("rascunho protege Voltar e Avançar sem perder as entradas reais do histórico", async ({ page }) => {
   const { code } = await createViaWizard(page, { reveal: "desligada" });
   test.skip(!await page.evaluate(() => "navigation" in window), "A confirmação de travessia exige Navigation API; persistência é coberta separadamente.");
-  // Three real Next links leave /voce behind and /agora ahead of /postar.
-  await page.goto(`/e/${code}/voce`);
-  await page.getByRole("link", { name: "Postar daqui", exact: true }).click();
+  // Two real Next links leave /agora behind and /agora ahead of /postar.
+  await page.goto(`/e/${code}/agora`);
+  await page.getByRole("link", { name: /^Abrir câmera/ }).click();
   await expect(page.getByLabel("Escolher foto do aparelho")).toBeAttached();
   await page.getByRole("link", { name: "Fechar câmera", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/e/${code}/agora$`));
@@ -173,7 +173,7 @@ test("rascunho protege Voltar e Avançar sem perder as entradas reais do histór
   }, direction);
 
   for (const direction of ["forward", "back"] as const) {
-    const destination = direction === "forward" ? "agora" : "voce";
+    const destination = "agora";
     const rejected = page.waitForEvent("dialog", { timeout: 10_000 });
     const cancelTraversal = traverse(direction);
     const first = await rejected;

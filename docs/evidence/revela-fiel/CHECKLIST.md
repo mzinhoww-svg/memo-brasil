@@ -13,12 +13,12 @@ Referência (esquerda) | implementação com os dados do desenho (centro) | dife
 | 06 | Monte a câmera | Camera-montar | 3.25% | ![](06.png) | referência portada (dados do desenho) | não ligada ao app |
 | 07 | Embalagem | Camera-embalagem | 10.44% | ![](07.png) | referência portada (dados do desenho) | não ligada ao app |
 | 08 | Nome impresso | Camera-nome | 0.64% | ![](08.png) | referência portada (dados do desenho) | não ligada ao app |
-| 09 | Até quando | Camera-data | 0.81% | ![](09.png) | referência portada (dados do desenho) | não ligada ao app |
-| 10 | Poses por pessoa | Camera-poses | 1.21% | ![](10.png) | referência portada (dados do desenho) | não ligada ao app |
-| 11 | Quando revelar | Camera-revelacao | 1.02% | ![](11.png) | referência portada (dados do desenho) | não ligada ao app |
+| 09 | Até quando | Camera-data | 1.93% | ![](09.png) | portada e ligada a dados reais | passo 3 do assistente (`features/events/wizard.tsx`): dia, começa, termina; vira a meia-noite |
+| 10 | Poses por pessoa | Camera-poses | 1.32% | ![](10.png) | portada e ligada a dados reais | passo 4: opções 10/24/27/36, legenda pelo catálogo; rolo da câmera é só visual (sem campo no evento) |
+| 11 | Quando revelar | Camera-revelacao | 1.83% | ![](11.png) | portada e ligada a dados reais | passo 5: 4 opções calculadas no fuso do evento; bloqueia revelar antes do fim |
 | 12 | Filme | Camera-filtro | 0.82% | ![](12.png) | referência portada (dados do desenho) | não ligada ao app |
 | 13 | Quem vê o quê | Camera-privacidade | 0.99% | ![](13.png) | referência portada (dados do desenho) | não ligada ao app |
-| 14 | Publicar | Camera-publicar | 1.52% | ![](14.png) | referência portada (dados do desenho) | não ligada ao app |
+| 14 | Publicar | Camera-publicar | 1.59% | ![](14.png) | portada e ligada a dados reais | passo 8: planos do catálogo, pré-seleção pelas poses, aceites em diálogo "Antes de criar" |
 | 15 | Câmera pronta | Camera-pronta | 4.06% | ![](15.png) | referência portada (dados do desenho) | não ligada ao app |
 | 14a | Resumo e forma de pagamento | Pagamento-resumo | 1.95% | ![](14a.png) | referência portada (dados do desenho) | não ligada ao app |
 | 14b | Pix | Pagamento-pix | 1.44% | ![](14b.png) | referência portada (dados do desenho) | não ligada ao app |
@@ -45,22 +45,22 @@ Referência (esquerda) | implementação com os dados do desenho (centro) | dife
 | 19b | Álbum impresso | Revelados-album | 1.66% | ![](19b.png) | referência portada (dados do desenho) | não ligada ao app |
 | 20a | Leitura do QR | Convidado-qr | 0.25% | ![](20a.png) | referência portada (dados do desenho) | não ligada ao app |
 | 20b | Entrar no evento | Convidado-entrar | 1.27% | ![](20b.png) | referência portada (dados do desenho) | não ligada ao app |
-| 20c | Código do convite | Convidado-codigo | 0.88% | ![](20c.png) | referência portada (dados do desenho) | não ligada ao app |
+| 20c | Código do convite | Convidado-codigo | 0.89% | ![](20c.png) | portada e ligada a dados reais | `/entrar` (código de 8 caixas) |
 | 20d | Consentimento | Convidado-consentimento | 1.85% | ![](20d.png) | referência portada (dados do desenho) | não ligada ao app |
 | 20e | Convite inválido | Convidado-invalido | 0.87% | ![](20e.png) | referência portada (dados do desenho) | não ligada ao app |
 | 20f | Câmera lotada | Convidado-lotado | 0.90% | ![](20f.png) | referência portada (dados do desenho) | não ligada ao app |
-| 20g | Carregando a festa | Convidado-carregando | 6.14% | ![](20g.png) | referência portada (dados do desenho) | não ligada ao app |
-| 20h | Código não confere | Convidado-codigo-erro | 1.21% | ![](20h.png) | referência portada (dados do desenho) | não ligada ao app |
+| 20g | Carregando a festa | Convidado-carregando | 5.25% | ![](20g.png) | portada e ligada a dados reais | carregando a festa em `/e/[code]` (nome omitido até o convite carregar) |
+| 20h | Código não confere | Convidado-codigo-erro | 1.39% | ![](20h.png) | portada e ligada a dados reais | `/entrar?erro=` (código não confere) |
 | 21 | Câmera | Convidado-camera | 0.07% | ![](21.png) | referência portada (dados do desenho) | não ligada ao app |
 | 22 | Disparo | Convidado-flash | 0.07% | ![](22.png) | referência portada (dados do desenho) | não ligada ao app |
 | 23 | Acesso à câmera | Convidado-permissao | 0.92% | ![](23.png) | referência portada (dados do desenho) | não ligada ao app |
 | 24 | Filme acabou | Convidado-fim | 1.47% | ![](24.png) | referência portada (dados do desenho) | não ligada ao app |
-| 23b | Feed antes da revelação | Convidado-laboratorio | 2.53% | ![](23b.png) | referência portada (dados do desenho) | não ligada ao app |
-| 23c | Minhas poses | Convidado-minhas | 0.86% | ![](23c.png) | referência portada (dados do desenho) | não ligada ao app |
-| 23d | Enviar do rolo | Convidado-postar | 0.65% | ![](23d.png) | referência portada (dados do desenho) | não ligada ao app |
-| 23e | Editar foto | Convidado-editar | 0.88% | ![](23e.png) | referência portada (dados do desenho) | não ligada ao app |
-| 23f | Programação | Convidado-programacao | 0.97% | ![](23f.png) | referência portada (dados do desenho) | não ligada ao app |
-| 23g | Você (convidado) | Convidado-voce | 1.47% | ![](23g.png) | referência portada (dados do desenho) | não ligada ao app |
+| 23b | Feed antes da revelação | Convidado-laboratorio | 2.55% | ![](23b.png) | portada e ligada a dados reais | `/e/[code]/agora` antes da revelação |
+| 23c | Minhas poses | Convidado-minhas | 0.87% | ![](23c.png) | portada e ligada a dados reais | `/e/[code]/minhas` |
+| 23d | Enviar do rolo | Convidado-postar | 0.85% | ![](23d.png) | portada e ligada a dados reais | sheet "Do rolo da câmera" em `/postar` |
+| 23e | Editar foto | Convidado-editar | 0.89% | ![](23e.png) | portada e ligada a dados reais | `/e/[code]/editar/[photoId]` |
+| 23f | Programação | Convidado-programacao | 0.98% | ![](23f.png) | portada e ligada a dados reais | `/e/[code]/programacao` |
+| 23g | Você (convidado) | Convidado-voce | 1.48% | ![](23g.png) | portada e ligada a dados reais | `/e/[code]/voce` |
 | 24b | Aviso de revelação | Feed-aviso | 0.70% | ![](24b.png) | referência portada (dados do desenho) | não ligada ao app |
 | 24c | Revelou | Feed-revelou | 12.58% | ![](24c.png) | referência portada (dados do desenho) | não ligada ao app |
 | 24d | Feed do evento | Feed-evento | 0.37% | ![](24d.png) | referência portada (dados do desenho) | não ligada ao app |

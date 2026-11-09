@@ -1,3 +1,4 @@
+"use client";
 /* Gerado de design-system/revela/html/Convidado-programacao.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 export interface Momento { time: string; name: string; state: "done" | "on" | "next" }
 export interface ProgramacaoProps {

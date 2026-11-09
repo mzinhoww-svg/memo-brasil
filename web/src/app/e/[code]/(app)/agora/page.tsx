@@ -7,6 +7,7 @@ import { eventStatus, isRevealed, retrospectiveOpen, shotsLeft } from "@/domain/
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
 import { relativeTime, useNow, usePhotoUrls } from "@/features/app/hooks";
 import { countdown, revealLine, stampDay } from "@/features/guest/format";
+import { GuestTabs } from "@/revela/GuestTabs";
 import { ConvidadoLaboratorio } from "@/revela/screens/ConvidadoLaboratorio";
 import { CreateYourOwn } from "@/features/reveal/CreateYourOwn";
 import { WaitingReveal } from "@/features/reveal/WaitingReveal";
@@ -62,7 +63,7 @@ function FeedAntigo() {
   }
 
   return (
-    <div className="app-screen">
+    <div className="scr"><div style={{ flex: 1, overflowY: "auto", paddingBottom: 96 }}><div className="app-screen">
       <div className="app-stack-sm">
         <div className="app-between">
           {live ? <LiveIndicator /> : <span className="eyebrow app-muted">Encerrado</span>}
@@ -71,6 +72,8 @@ function FeedAntigo() {
         <h1 className="titulo-tela app-h1">Agora</h1>
         <p className="app-p app-muted" style={{ fontFamily: "var(--font-display)", fontSize: 30, lineHeight: 1.05, color: "var(--ink)" }}>{event.title}</p>
       </div>
+
+      {live && <Link className="rv-btn rv-btn--primary rv-btn--bloco" href={`/e/${event.code}/postar`}>Abrir câmera</Link>}
 
       {!live && retrospectiveOpen(event, now, viewer.host) && <Link className="rv-btn rv-btn--secundario rv-btn--bloco" href={`/e/${event.code}/retrospectiva`}>Ver a retrospectiva</Link>}
 
@@ -123,6 +126,7 @@ function FeedAntigo() {
           }}
         />
       )}
-    </div>
+    </div></div>
+    <GuestTabs code={event.code} current="feed" /></div>
   );
 }

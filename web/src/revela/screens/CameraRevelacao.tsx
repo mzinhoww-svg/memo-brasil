@@ -1,82 +1,62 @@
-/* Gerado de design-system/revela/html/Camera-revelacao.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function CameraRevelacao() {
+"use client";
+/* Camera-revelacao.html (passo 5): mesmo markup e classes da referência; dados reais por props (padrão = desenho). */
+import { WizardSheet } from "../WizardSheet";
+
+export interface RevealChoiceView { id: string; label: string; small: string }
+export const REVEAL_CHOICES_REF: RevealChoiceView[] = [
+  { id: "ao-acabar", label: "Quando a festa acabar", small: "dom 02:00" },
+  { id: "manha", label: "No dia seguinte", small: "dom 12:00" },
+  { id: "um-dia", label: "Um dia depois", small: "seg 02:00" },
+  { id: "dia", label: "Escolher dia e hora", small: " " },
+];
+
+export interface CameraRevelacaoProps {
+  /** Rótulos curtos da linha do tempo: "sáb 16:30", "dom 02:00", "dom 12:00". */
+  startLabel?: string; endLabel?: string; revealLabel?: string;
+  choices?: RevealChoiceView[]; value?: string;
+  /** Linha final: "Todo mundo recebe o aviso no domingo, 15 de março, às 12:00." */
+  notice?: string; error?: string; busy?: boolean;
+  /** Campo "Escolher dia e hora" (aaaa-mm-ddTHH:MM), só usado quando value = "dia". */
+  custom?: string; customMin?: string;
+  onPick?: (id: string) => void; onCustom?: (v: string) => void; onBack?: () => void; onNext?: () => void;
+}
+
+export function CameraRevelacao({
+  startLabel = "sáb 16:30", endLabel = "dom 02:00", revealLabel = "dom 12:00", choices = REVEAL_CHOICES_REF, value = "manha",
+  notice = "Todo mundo recebe o aviso no domingo, 15 de março, às 12:00.", error, busy, custom = "", customMin, onPick, onCustom, onBack, onNext,
+}: CameraRevelacaoProps = {}) {
   return (
-    <>
-    <div className="scr sheet-scr">
-      <div className="sheet-full">
-        <div className="rv-sheet__grab" />
-        <div className="row between" style={{ "alignItems": "flex-start" }}>
-          <div>
-            <h1 className="rv-title">
-              Quando revelar?
-            </h1>
-            <p className="rv-caption" style={{ "marginTop": "4px", "maxWidth": "290px" }}>
-              Ninguém vê as fotos até a revelação. Nem quem tirou.
-            </p>
-          </div>
-          <span className="rv-stamp" style={{ "fontSize": "12px", "marginTop": "6px" }}>
-            5/8
-          </span>
+    <WizardSheet step={5} title="Quando revelar?" caption="Depois que o filme fecha, as fotos ficam no laboratório. Ninguém vê até a revelação, nem quem tirou." onBack={onBack} onNext={onNext} busy={busy}>
+      <div className="tline">
+        <div className="tl-p">
+          <i />
+          <b>Festa</b>
+          <span>{startLabel}</span>
         </div>
-        <div className="rv-steps">
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="" />
-          <i className="" />
-          <i className="" />
+        <div className="tl-p">
+          <i />
+          <b>Filme fecha</b>
+          <span>{endLabel}</span>
         </div>
-        <div className="sheet-body">
-          <div className="develop">
-            <div className="rv-print" style={{ "width": "210px", "height": "262px", "transform": "rotate(-4deg)" }}>
-              <div className="dev-img">
-                <img src="/revela/ref/sc-pista.jpg" alt="Foto revelando" style={{  }} />
-                <i />
-              </div>
-              <div className="rv-print__cap">
-                <span>
-                  {"'27 03 15"}
-                </span>
-                <span>
-                  12:00
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="rv-choices" style={{ "gridTemplateColumns": "1fr 1fr" }}>
-            <button className="rv-choice">
-              Ao fim do evento
-            </button>
-            <button className="rv-choice rv-choice--on">
-              12h depois
-            </button>
-            <button className="rv-choice">
-              24h depois
-            </button>
-            <button className="rv-choice">
-              Eu escolho
-            </button>
-          </div>
-          <p className="rv-caption center">
-            Revela no domingo, 15 de março, às 12:00.
-          </p>
-        </div>
-        <div className="cta-bar">
-          <button className="rv-icon-btn" aria-label="Voltar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <button className="rv-btn rv-btn--primary">
-            Próximo
-          </button>
+        <div className="tl-p on">
+          <i />
+          <b>Revela</b>
+          <span>{revealLabel}</span>
         </div>
       </div>
-      <div className="home-ind" />
-      <div className="grain" />
-    </div>
-    </>
+      <div className="rv-choices rv-choices--stack" style={{ gridTemplateColumns: "1fr 1fr", alignSelf: "stretch" }} role="group" aria-label="Quando revelar">
+        {choices.map((c) => (
+          <button key={c.id} type="button" className={`rv-choice${c.id === value ? " rv-choice--on" : ""}`} aria-pressed={c.id === value} onClick={() => onPick?.(c.id)}>
+            {c.label}
+            <small>{c.small}</small>
+          </button>
+        ))}
+      </div>
+      {value === "dia" && (
+        <input type="datetime-local" className="rv-sr-only" aria-label="Dia e hora da revelação" value={custom} min={customMin} onChange={(e) => onCustom?.(e.target.value)} ref={(el) => { if (el && !custom) { try { el.showPicker(); } catch { /* sem showPicker: o campo continua no teclado */ } } }} />
+      )}
+      {error && <p className="rv-caption center" role="alert" style={{ color: "var(--danger)" }}>{error}</p>}
+      <p className="rv-caption center">{notice}</p>
+    </WizardSheet>
   );
 }

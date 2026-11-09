@@ -566,6 +566,25 @@ i.rv-toggle { display: inline-block; }
 .faq svg { width: 20px; height: 20px; color: var(--ink-muted); flex: none; }
 .faq.open svg { transform: rotate(90deg); color: var(--revela-text); }
 .faq p { margin: 8px 0 0; font: 400 15px/22px var(--font-sans); color: var(--ink-muted); }
+.wrow-on { box-shadow: inset 3px 0 0 var(--revela); }
+.openbar { margin-top: 16px; padding: 14px 16px; border-radius: var(--radius-md); background: var(--surface-2); }
+.openbar > i { display: block; height: 8px; border-radius: 4px; background: var(--surface-3); margin: 8px 0; position: relative; }
+.openbar > i s { position: absolute; left: 0; right: 0; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, var(--revela), var(--carimbo)); }
+.openbar .row span:not(.rv-stamp) { font: 500 12px/16px var(--font-sans); color: var(--ink-muted); }
+.tline { display: flex; justify-content: space-between; position: relative; margin: 6px 4px 22px; }
+.tline::before { content: ""; position: absolute; left: 10%; right: 10%; top: 9px; height: 2px; background: var(--surface-3); }
+.tl-p { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 33%; position: relative; text-align: center; }
+.tl-p i { width: 18px; height: 18px; border-radius: 50%; background: var(--surface-3); box-shadow: 0 0 0 4px var(--surface-1); }
+.tl-p b { font: 600 14px/18px var(--font-sans); margin-top: 4px; }
+.tl-p span { font: 400 12px/14px var(--font-stamp); color: var(--ink-muted); }
+.tl-p.on i { background: var(--revela); box-shadow: 0 0 0 4px var(--surface-1), 0 0 0 7px var(--k-ff4d1f44); }
+.tl-p.on b { color: var(--revela-text); font: 400 20px/22px var(--font-display); }
+.tl-p.on span { color: var(--carimbo); }
+.rv-choice small { display: block; font: 400 12px/16px var(--font-sans); color: var(--ink-muted); margin-top: 2px; }
+.tline { align-self: stretch; width: calc(100% - 8px); }
+.rv-choices--stack .rv-choice { flex-direction: column; justify-content: center; gap: 2px; height: auto; min-height: 64px; padding: 10px 8px; text-align: center; }
+.rv-choices--stack .rv-choice small { margin: 0; }
+.rv-choices--stack .rv-choice--on small { color: var(--revela-text); }
 
 /* fundos de textura do <style> de cada tela da referência */
 .grain{background-image:url(/revela/ref/fx-grain.png)}.flashfx{background-image:url(/revela/ref/fx-bloom.png)}.body--casamento{background-image:url(/revela/ref/body-casamento.jpg)}.sw-festa{background-image:url(/revela/ref/label-festa.jpg)}.sw-casamento{background-image:url(/revela/ref/label-casamento.jpg)}.sw-aniversario{background-image:url(/revela/ref/label-aniversario.jpg)}.sw-noite{background-image:url(/revela/ref/label-noite.jpg)}

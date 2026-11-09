@@ -1,3 +1,4 @@
+"use client";
 /* Gerado de design-system/revela/html/Convidado-editar.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 export type FilmId = "none" | "filme400" | "pb" | "quente" | "vintage";
 export const FILMS: { id: FilmId; label: string }[] = [

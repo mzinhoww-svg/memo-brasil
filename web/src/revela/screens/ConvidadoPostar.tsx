@@ -1,3 +1,4 @@
+"use client";
 /* Gerado de design-system/revela/html/Convidado-postar.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 export interface RoloItem { src: string; on: boolean }
 export interface RoloProps {

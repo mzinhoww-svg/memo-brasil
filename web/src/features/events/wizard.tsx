@@ -2,25 +2,28 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Breadcrumbs, Button, CameraStage, Chip, Chips, Field, GoogleButton, Icon, OptionGroup, Select, ShotCounter, ToggleRow, WrapPicker } from "@/components/revela";
-import { CATEGORY_LABEL, DEFAULT_FILM, DEFAULT_WRAP, FILM_LABEL, MIN_DURATION_HOURS, WRAP_INFO, type EventCategory, type FilmLook, type Wrap } from "@/domain/options";
+import { Breadcrumbs, Button, CameraStage, Chip, Chips, Field, GoogleButton, Icon, OptionGroup, ToggleRow, WrapPicker } from "@/components/revela";
+import { CATEGORY_LABEL, DEFAULT_FILM, DEFAULT_WRAP, FILM_LABEL, WRAP_INFO, type EventCategory, type FilmLook, type Wrap } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
 import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
 import { currentConsent, recordConsent } from "@/lib/consent";
 import { createEvent } from "./service";
-import { resolveDuration } from "./duration";
 import { REVEAL_ERROR_TEXT, resolveReveal } from "./reveal-input";
-import { REVEAL_CHOICES, buildRevealInput, type RevealChoice } from "./reveal-choice";
+import { buildRevealInput, type RevealChoice } from "./reveal-choice";
+import { WINDOW_ERROR_TEXT, REVEAL_BEFORE_END_TEXT, defaultWindow, longDay, noticeLine, resolveWindow, revealOptions, shortWhen, type WindowInput } from "./wizard-time";
+import { CameraData } from "@/revela/screens/CameraData";
+import { CameraPoses, type PoseChoice } from "@/revela/screens/CameraPoses";
+import { CameraRevelacao, type RevealChoiceView } from "@/revela/screens/CameraRevelacao";
+import { CameraPublicar, type PlanView } from "@/revela/screens/CameraPublicar";
 import { hostFallbackName, suggestEventNames } from "./name-suggestions";
-import { clearPendingCode, freeShots, hasPaidPlans, planForShots, readPendingCode } from "./plan-catalog";
-import { PAID_PLAN_LINE, PlanStep } from "./PlanStep";
+import { clearPendingCode, planForShots, readPendingCode } from "./plan-catalog";
 import { afterCreateDestination, type AfterCreate } from "./after-create";
 import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CodeApplied, REDEEM_TEXT, RedeemCode, redeemMessage } from "@/features/billing/RedeemCode";
-import { formatBRL, getPublicSettings, listPublicPlans, redeemCode } from "@/features/billing/api";
-import type { PublicPlan, PublicSettings } from "@/features/billing/types";
+import { formatBRL, listPublicPlans, redeemCode } from "@/features/billing/api";
+import type { PublicPlan } from "@/features/billing/types";
 import { buildCreateInput, WIZARD_DEFAULTS } from "./wizard-input";
-import { TIMEZONES, defaultTimezone, formatInZone, zoneLabel, type RevealErrors } from "@/domain/reveal";
+import { defaultTimezone, zonedToEpoch, zoneLabel, type RevealErrors } from "@/domain/reveal";
 
 export { WIZARD_DEFAULTS };
 
@@ -36,15 +39,9 @@ const STEPS = [
   { key: "plano", title: "Escolha o plano", hint: "Pague uma vez por evento. Sem assinatura." },
 ] as const;
 const LAST_STEP = STEPS.length - 1;
-const DURATIONS = [1, 3, 6, 12, 24, 48];
-const SHOTS_FALLBACK = [10, 24, 36];
-const OTHER_DATE = -1;
+/** Opções de poses do desenho; a legenda de cada uma vem do catálogo (plano que a comporta). */
+const POSE_OPTIONS = [10, 24, 27, 36];
 type CreatedEvent = { eventId: string; title: string; paid: boolean; destination: AfterCreate; ready: boolean };
-
-const toLocalInput = (ts: number) => {
-  const d = new Date(ts - new Date(ts).getTimezoneOffset() * 60_000);
-  return d.toISOString().slice(0, 16);
-};
 
 export function CreateWizard() {
   const router = useRouter();
@@ -57,20 +54,19 @@ export function CreateWizard() {
   const [ackedPrivacy, setAckedPrivacy] = useState(false);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<EventCategory>("casamento");
-  const [hours, setHours] = useState<number>(6);
-  const [until, setUntil] = useState("");
-  const [otherDate, setOtherDate] = useState(false);
+  const [timezone] = useState(defaultTimezone);
+  const [win, setWin] = useState<WindowInput>(() => defaultWindow(now(), defaultTimezone()));
   const [choice, setChoice] = useState<RevealChoice>("manha");
-  const [revDate, setRevDate] = useState("");
-  const [revTime, setRevTime] = useState("");
-  const [timezone, setTimezone] = useState(defaultTimezone);
+  const [revCustom, setRevCustom] = useState(""); // aaaa-mm-ddTHH:MM no fuso do evento
+  const [planTouched, setPlanTouched] = useState(false);
+  const [consentOpen, setConsentOpen] = useState(false);
+  const [rollOn, setRollOn] = useState(true);
   const [desiredShots, setDesiredShots] = useState<number>(WIZARD_DEFAULTS.shots);
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
-  const [settings, setSettings] = useState<PublicSettings | null>(null);
   const [planCode, setPlanCode] = useState("gratis");
   const [pendingCode, setPendingCode] = useState<string | null>(null);
   const [codeOutcome, setCodeOutcome] = useState<{ eventId: string; eventTitle: string; code: string; applied: PublicPlan | null | "sem-plano"; error?: string } | null>(null);
-  const [errors, setErrors] = useState<{ title?: string; termino?: string; create?: string }>({});
+  const [errors, setErrors] = useState<{ title?: string; termino?: string; reveal?: string; create?: string }>({});
   const [revealErrors, setRevealErrors] = useState<RevealErrors | undefined>();
   const [busy, setBusy] = useState(false);
   const creating = useRef(false);
@@ -112,29 +108,29 @@ export function CreateWizard() {
   useEffect(() => {
     const t = setTimeout(() => {
       setPendingCode(readPendingCode());
-      void Promise.all([listPublicPlans(), getPublicSettings()]).then(([p, st]) => { setPlans(p); setSettings(st); }, () => setPlans([]));
+      void Promise.all([listPublicPlans()]).then(([p]) => { setPlans(p); }, () => setPlans([]));
     }, 0);
     return () => clearTimeout(t);
   }, []);
 
   // o nome de quem organiza vem da conta Google (editável depois no painel); padrão seguro quando vazio
   const hostName = hostFallbackName(user?.name);
-  const untilMs = until ? new Date(until).getTime() : undefined;
-  const durationHours = () => resolveDuration({ untilMs: otherDate ? untilMs : undefined, presetHours: hours }, now());
-  const endMs = () => now() + durationHours() * 3_600_000;
-  const revealInput = () => buildRevealInput(choice, endMs(), { date: revDate, time: revTime, timezone });
+  const windowNow = resolveWindow(win, now());
+  // fim da festa (instante); sem janela válida, mantém um fim razoável só para os rótulos
+  const endMs = () => (windowNow.ok ? windowNow.endMs : now() + 6 * 3_600_000);
+  const durationHours = () => (windowNow.ok ? windowNow.hoursFromNow : NaN);
+  const [customDate, customTime] = revCustom.split("T");
+  const revealInput = () => buildRevealInput(choice, endMs(), { date: customDate ?? "", time: customTime ?? "", timezone });
 
   function next() {
     const e: typeof errors = {};
     if (step === 1 && !title.trim()) e.title = "Escolha o nome do evento. Todos os convidados vão ver.";
-    if (step === 2) {
-      if (otherDate && (untilMs === undefined || !Number.isFinite(untilMs))) e.termino = "Escolha a data e o horário para o fim da festa.";
-      else if (!Number.isFinite(durationHours()) || durationHours() < MIN_DURATION_HOURS) e.termino = "Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.";
-    }
+    if (step === 2 && !windowNow.ok) e.termino = WINDOW_ERROR_TEXT[windowNow.error];
     if (step === 4) {
       const r = resolveReveal(revealInput(), endMs(), now());
       setRevealErrors(r.ok ? undefined : r.errors);
       if (!r.ok) return setErrors(e);
+      if (r.enabled && r.at < endMs()) return setErrors({ ...e, reveal: REVEAL_BEFORE_END_TEXT });
     }
     setErrors(e);
     if (Object.keys(e).length === 0) setStep((x) => Math.min(LAST_STEP, x + 1));
@@ -143,9 +139,10 @@ export function CreateWizard() {
   async function create() {
     if (!acceptedTerms || !ackedPrivacy) return setErrors({ create: CONSENT_REQUIRED });
     if (creating.current || createdResult.current) return;
-    if (otherDate && (untilMs === undefined || !Number.isFinite(untilMs))) {
+    const w = resolveWindow(win, now());
+    if (!w.ok) {
       setStep(2);
-      return setErrors({ termino: "Escolha a data e o horário para o fim da festa." });
+      return setErrors({ termino: WINDOW_ERROR_TEXT[w.error] });
     }
     creating.current = true;
     setBusy(true);
@@ -156,8 +153,8 @@ export function CreateWizard() {
         try { await recordConsent(currentConsent("organizador", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); } catch { return setErrors({ create: CONSENT_FAILED }); }
       }
       const startNow = now();
-      const hoursNow = resolveDuration({ untilMs: otherDate ? untilMs : undefined, presetHours: hours }, startNow);
-      const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, startNow + hoursNow * 3_600_000, { date: revDate, time: revTime, timezone }), desiredShots, cameraStyle: wrap, filmLook: film, everyoneSeesAll });
+      const hoursNow = (w.endMs - startNow) / 3_600_000;
+      const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, w.endMs, { date: customDate ?? "", time: customTime ?? "", timezone }), desiredShots, cameraStyle: wrap, filmLook: film, everyoneSeesAll });
       const r = await createEvent(repos, me, input, startNow);
       if (!r.ok) {
         if (r.errors.reveal) {
@@ -166,7 +163,7 @@ export function CreateWizard() {
         }
         return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
       }
-      const chosen = plans?.find((p) => p.code === planCode);
+      const chosen = plans?.find((p) => p.code === planCodeEff);
       const eventId = r.event.id;
       const paid = !!chosen && !chosen.isFree;
       // A identidade salva é terminal: retomar a saída nunca repete a criação ou o pedido.
@@ -203,18 +200,28 @@ export function CreateWizard() {
     }
   }
 
-  const resolved = step === 4 ? resolveReveal(revealInput(), endMs(), now()) : undefined;
-  const revealWhen = resolved?.ok && resolved.enabled ? formatInZone(resolved.at, resolved.timezone) : undefined;
-  const eventName = title.trim() || "sua festa";
   const catalog = plans ?? [];
   const shotsPlan = planForShots(catalog, desiredShots);
-  const freeShotsLimit = freeShots(catalog);
-  const chosenPlan = catalog.find((p) => p.code === planCode);
-  // opções de poses vêm do catálogo (limites de cada plano); sem catálogo, o padrão
-  const shotsChoices = (() => {
-    const set = new Set<number>(catalog.flatMap((p) => (p.maxShots === null ? [] : [p.maxShots])));
-    return (set.size ? [...set] : SHOTS_FALLBACK).sort((x, y) => x - y);
-  })();
+  // pré-seleção do plano: o mais barato que comporta as poses escolhidas, até a pessoa tocar em outro
+  const planCodeEff = planTouched ? planCode : (shotsPlan?.code ?? catalog.find((p) => p.isFree)?.code ?? planCode);
+  const chosenPlan = catalog.find((p) => p.code === planCodeEff);
+  const tz = timezone;
+  const cityLabel = zoneLabel(tz).split(" (")[0].replace(/^.*\//, "").replace(/_/g, " ");
+  const money = (cents: number) => (cents % 100 === 0 ? `R$ ${cents / 100}` : formatBRL(cents));
+  const options = revealOptions(endMs(), tz);
+  const customAt = customDate && customTime ? zonedToEpoch(customDate, customTime, tz) : NaN;
+  const revealAtMs = choice === "dia" ? customAt : options.find((o) => o.id === choice)?.at;
+  const poseChoices: PoseChoice[] = POSE_OPTIONS.map((n) => {
+    const need = planForShots(catalog, n);
+    return { n, caption: need ? `exige ${need.name}` : "Grátis" };
+  });
+  const planViews: PlanView[] = catalog.map((p, i) => ({
+    code: p.code, tier: p.name, price: p.isFree ? "Grátis" : money(p.priceCents),
+    lines: [p.maxGuests === null ? "convidados sem limite" : `${p.maxGuests} convidados`, p.maxShots === null ? "poses livres" : `${p.maxShots} poses cada`],
+    gold: !p.isFree && i === catalog.length - 1 && catalog.length > 2,
+  }));
+  const revealChoiceViews: RevealChoiceView[] = options.map((o) => ({ id: o.id, label: o.label, small: o.at !== undefined ? shortWhen(o.at, tz) : (choice === "dia" && Number.isFinite(customAt) ? shortWhen(customAt, tz) : " ") }));
+  const wrapLabelUi = WRAP_INFO[wrap].label;
 
   if (!ready) return <p className="app-screen app-muted">Carregando…</p>;
   const last = step === LAST_STEP;
@@ -257,6 +264,64 @@ export function CreateWizard() {
         <p className="corpo app-p app-muted">Quem organiza usa uma conta Google. Convidados entram só com o código, sem conta.</p>
         <GoogleButton block onClick={() => void signInWithGoogle("/criar")} />
       </div>
+    );
+  }
+
+  const back = () => setStep((x) => Math.max(0, x - 1));
+  if (step === 2) {
+    const w = windowNow.ok ? windowNow : undefined;
+    return (
+      <CameraData
+        date={win.date} start={win.start} end={win.end} cityLabel={cityLabel} busy={busy} error={errors.termino}
+        dayLabel={Number.isFinite(zonedToEpoch(win.date, win.start, tz)) ? longDay(zonedToEpoch(win.date, win.start, tz), tz, true) : "Escolha o dia"}
+        endLabel={w ? `${win.end} · ${longDay(w.endMs, tz)}` : win.end}
+        minDate={defaultWindow(now(), tz).date}
+        onDate={(v) => { setWin((x) => ({ ...x, date: v })); setErrors((x) => ({ ...x, termino: undefined })); }}
+        onStart={(v) => { setWin((x) => ({ ...x, start: v })); setErrors((x) => ({ ...x, termino: undefined })); }}
+        onEnd={(v) => { setWin((x) => ({ ...x, end: v })); setErrors((x) => ({ ...x, termino: undefined })); }}
+        onBack={back} onNext={next}
+      />
+    );
+  }
+  if (step === 3) {
+    return <CameraPoses value={desiredShots} choices={poseChoices} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
+  }
+  if (step === 4) {
+    const rErr = errors.reveal ?? (revealErrors?.data ? REVEAL_ERROR_TEXT[revealErrors.data] : undefined);
+    return (
+      <CameraRevelacao
+        startLabel={shortWhen(windowNow.ok ? windowNow.startMs : now(), tz)} endLabel={shortWhen(endMs(), tz)}
+        revealLabel={revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz) : "—"}
+        choices={revealChoiceViews} value={choice} error={rErr} busy={busy} custom={revCustom} customMin={`${defaultWindow(now(), tz).date}T00:00`}
+        notice={revealAtMs !== undefined && Number.isFinite(revealAtMs) ? `Todo mundo recebe o aviso ${/^(sábado|domingo)/.test(longDay(revealAtMs, tz)) ? "no" : "na"} ${noticeLine(revealAtMs, tz)}.` : "Escolha o dia e a hora da revelação."}
+        onPick={(id) => { setChoice(id as RevealChoice); setRevealErrors(undefined); setErrors((x) => ({ ...x, reveal: undefined })); }}
+        onCustom={(v) => { setRevCustom(v); setRevealErrors(undefined); setErrors((x) => ({ ...x, reveal: undefined })); }}
+        onBack={back} onNext={next}
+      />
+    );
+  }
+  if (step === 7) {
+    const revealShort = revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz).replace(" ", ", ") : "—";
+    const cta = busy ? "Criando câmera…" : chosenPlan && !chosenPlan.isFree ? `Continuar · ${money(chosenPlan.priceCents)}` : "Criar câmera";
+    return (
+      <>
+        <CameraPublicar
+          image={`/revela/3d/cam-${wrap}-640.webp`} wrapLabel={wrapLabelUi} posesLabel={`${desiredShots} por pessoa`} revealLabel={revealShort}
+          plans={planViews.length ? planViews : undefined} selected={chosenPlan?.code ?? "gratis"} next={cta} busy={busy} error={errors.create}
+          onSelect={(c) => { setPlanCode(c); setPlanTouched(true); }} onBack={back}
+          onNext={() => { if (acceptedTerms && ackedPrivacy) void create(); else setConsentOpen(true); }}
+        />
+        {consentOpen && (
+          <div className="rv-dialog-scrim" style={{ position: "fixed", inset: 0, zIndex: 20, display: "grid", placeItems: "center", background: "var(--scrim, rgb(0 0 0 / .6))", padding: 20 }}>
+            <div className="rv-dialog" role="dialog" aria-modal="true" aria-labelledby="consent-h">
+              <h2 id="consent-h" className="rv-title">Antes de criar</h2>
+              <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={setAcceptedTerms} onPrivacy={setAckedPrivacy} />
+              <Button block disabled={!acceptedTerms || !ackedPrivacy} onClick={() => { setConsentOpen(false); void create(); }}>Aceitar</Button>
+              <Button variant="texto" block onClick={() => setConsentOpen(false)}>Cancelar</Button>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -305,55 +370,6 @@ export function CreateWizard() {
               <OptionGroup<EventCategory> label="Tipo de evento" value={category} onChange={setCategory} options={(Object.keys(CATEGORY_LABEL) as EventCategory[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c] }))} />
             </>
           )}
-          {step === 2 && (
-            <>
-              <OptionGroup<number> label="Termina em" value={otherDate ? OTHER_DATE : hours} onChange={(v) => { if (v === OTHER_DATE) setOtherDate(true); else { setOtherDate(false); setHours(v); } setErrors((x) => ({ ...x, termino: undefined })); }} options={[...DURATIONS.map((h) => ({ value: h, label: h === 1 ? "1 hora" : `${h} horas` })), { value: OTHER_DATE, label: "Outra data" }]} />
-              {otherDate && <div role={errors.termino ? "alert" : undefined}><Field label="Escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => { setUntil(e.target.value); setErrors((x) => ({ ...x, termino: undefined })); }} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." /></div>}
-              {!otherDate && errors.termino && <p className="rv-field-erro" role="alert">{errors.termino}</p>}
-            </>
-          )}
-          {step === 3 && (
-            <>
-              <div style={{ display: "grid", placeItems: "center" }}><ShotCounter value={desiredShots} label="poses por pessoa" /></div>
-              <div className="rvl-choices" role="group" aria-label="Poses por pessoa">
-                {shotsChoices.map((n) => (
-                  <button key={n} type="button" className={`rvl-choice rvl-choice--num ${desiredShots === n ? "rvl-choice--on" : ""}`} aria-pressed={desiredShots === n} onClick={() => setDesiredShots(n)}>
-                    {n}<small>poses</small>
-                  </button>
-                ))}
-              </div>
-              <p className="corpo-sm app-muted" style={{ margin: 0 }}>
-                {shotsPlan
-                  ? `Acima de ${freeShotsLimit} poses pede o plano ${shotsPlan.name} (${formatBRL(shotsPlan.priceCents)}). A câmera nasce Grátis, com ${freeShotsLimit} poses por pessoa, e passa para o plano quando o pagamento for confirmado.`
-                  : `${freeShotsLimit} poses por pessoa cabem no plano Grátis.`}
-              </p>
-            </>
-          )}
-          {step === 4 && (
-            <>
-              <OptionGroup<RevealChoice> label="Revelar" value={choice} onChange={(c) => { setChoice(c); setRevealErrors(undefined); }} options={REVEAL_CHOICES} />
-              {choice === "dia" && (
-                <>
-                  <Field label="Data" type="date" value={revDate} onChange={(e) => setRevDate(e.target.value)} error={revealErrors?.data ? REVEAL_ERROR_TEXT[revealErrors.data] : undefined} />
-                  <Field label="Horário" type="time" value={revTime} onChange={(e) => setRevTime(e.target.value)} />
-                  <Select label="Fuso horário" value={timezone} onChange={(e) => setTimezone(e.target.value)} options={(TIMEZONES.some((z) => z.id === timezone) ? TIMEZONES : [{ id: timezone, label: timezone }, ...TIMEZONES]).map((z) => ({ value: z.id, label: z.label }))} help="A contagem regressiva dos convidados usa este fuso." />
-                </>
-              )}
-              {choice !== "dia" && revealErrors?.data && <p className="rv-field-erro" role="alert">{REVEAL_ERROR_TEXT[revealErrors.data]}</p>}
-              <div className="rvl-notice" style={{ maxWidth: "none" }} aria-live="polite">
-                <span className="rv-notice-eyebrow">Como o convidado recebe</span>
-                {choice === "na-hora" ? (
-                  <span className="rv-notice-texto">As fotos aparecem para todos assim que são tiradas.</span>
-                ) : (
-                  <>
-                    <span className="rv-notice-texto">O filme de {eventName} foi revelado.</span>
-                    <span className="rv-stamp">{revealWhen ? `${revealWhen.date} · ${revealWhen.time} · ${zoneLabel(timezone).split(" (")[0]}` : "Escolha a data e a hora"}</span>
-                  </>
-                )}
-              </div>
-              {choice === "manha" && <p className="corpo-sm app-muted" style={{ margin: 0 }}>Revelar na manhã seguinte deixa a noite para a pista.</p>}
-            </>
-          )}
           {step === 5 && (
             <>
               <div className="rv-film" role="radiogroup" aria-label="Filme">
@@ -380,28 +396,6 @@ export function CreateWizard() {
                 {everyoneSeesAll ? "Depois da revelação, cada convidado vê as fotos de todos." : "Depois da revelação, cada convidado vê só as próprias fotos. Você continua vendo tudo."}
               </p>
             </div>
-          )}
-          {step === 7 && (
-            <>
-              <CameraStage wrap={wrap} size={360} print={print} />
-              <dl className="rv-summary">
-                <div><dt>Embalagem</dt><dd>{WRAP_INFO[wrap].label}</dd></div>
-                <div><dt>Poses</dt><dd>{desiredShots} por pessoa</dd></div>
-                <div><dt>Revela</dt><dd>{choice === "na-hora" ? "na hora" : choice === "ao-acabar" ? "ao acabar" : choice === "manha" ? "manhã seguinte" : `${revDate || "—"} ${revTime}`}</dd></div>
-              </dl>
-              <PlanStep plans={plans} settings={settings} selected={planCode} onSelect={setPlanCode} pendingCode={pendingCode} />
-              <p className="app-p" role="status">Limite ao criar: {WIZARD_DEFAULTS.shots} poses por pessoa no Grátis. Você deseja {desiredShots}.</p>
-              {shotsPlan && (
-                <div className="app-card">
-                  <p className="app-p">Para {desiredShots} poses por pessoa, recomendamos {shotsPlan.name} ({formatBRL(shotsPlan.priceCents)}). O limite aumenta depois da confirmação do pagamento.</p>
-                  <Button variant="secundario" onClick={() => setPlanCode(shotsPlan.code)}>Escolher {shotsPlan.name}</Button>
-                </div>
-              )}
-              {planCode !== "gratis" && <p className="corpo-sm app-muted" style={{ margin: 0 }}>O plano escolhido só é ativado depois do pagamento; até lá valem os limites do Grátis.</p>}
-              <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); setErrors((e) => ({ ...e, create: undefined })); }} onPrivacy={(v) => { setAckedPrivacy(v); setErrors((e) => ({ ...e, create: undefined })); }} />
-              {errors.create && <p className="rv-field-erro" role="alert">{errors.create}</p>}
-              {hasPaidPlans(catalog) && <p className="corpo-sm app-muted" style={{ margin: 0 }}>{PAID_PLAN_LINE}</p>}
-            </>
           )}
         </div>
 

@@ -129,7 +129,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
         <RollPickerProvider code={code}><main>{children}</main></RollPickerProvider>
         {devToolsEnabled() && canSwitchIdentity && (
           // só no build de homologação (nunca em produção): trocar de pessoa neste aparelho para testar a festa com mais de um convidado
-          <button type="button" className="rv-sr-only" style={{ position: "fixed", top: 0, left: 0 }} onClick={async () => { await signOut(); router.push(`/e/${code}`); }}>Entrar como outra pessoa</button>
+          <button type="button" aria-label="Entrar como outra pessoa" style={{ position: "fixed", top: 0, left: 0, width: 32, height: 32, opacity: 0, zIndex: 9999 }} onClick={async () => { await signOut(); router.push(`/e/${code}`); }} />
         )}
       </EventTheme>
     </GuestProvider>

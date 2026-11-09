@@ -1,40 +1,34 @@
 import { describe, expect, it } from "vitest";
 import { epochToZoned, zonedToEpoch } from "@/domain/reveal";
 import { resolveReveal } from "./reveal-input";
-import { buildRevealInput, REVEAL_CHOICES } from "./reveal-choice";
+import { buildRevealInput } from "./reveal-choice";
+import { revealOptions } from "./wizard-time";
 
-const TZ = "America/Cuiaba";
-const NOW = zonedToEpoch("2026-11-15", "18:00", TZ);
-const END = zonedToEpoch("2026-11-15", "23:30", TZ);
-const base = { date: "", time: "", timezone: TZ };
+const base = (tz: string) => ({ date: "", time: "", timezone: tz });
 
-describe("buildRevealInput", () => {
-  it("lista as quatro opções do passo Quando", () => {
-    expect(REVEAL_CHOICES.map((c) => c.label)).toEqual(["Na hora", "Quando acabar", "Na manhã seguinte (10h)", "Escolher dia"]);
+describe.each(["America/Cuiaba", "America/Sao_Paulo", "Europe/Lisbon"])("opções de revelação em %s", (TZ) => {
+  const NOW = zonedToEpoch("2027-03-14", "15:00", TZ);
+  const END = zonedToEpoch("2027-03-15", "02:00", TZ); // festa que vira a meia-noite
+  it("lista quatro opções, na ordem do desenho", () => {
+    expect(revealOptions(END, TZ).map((o) => o.label)).toEqual(["Quando a festa acabar", "No dia seguinte", "Um dia depois", "Escolher dia e hora"]);
   });
-  it("Na hora desliga a revelação", () => {
-    expect(buildRevealInput("na-hora", END, base).enabled).toBe(false);
+  it("Quando a festa acabar = fim; No dia seguinte = próximo meio-dia; Um dia depois = fim + 1 dia civil", () => {
+    const [a, m, u] = revealOptions(END, TZ);
+    expect(a.at).toBe(END);
+    expect(epochToZoned(m.at!, TZ)).toEqual({ date: "2027-03-15", time: "12:00" });
+    expect(epochToZoned(u.at!, TZ)).toEqual({ date: "2027-03-16", time: "02:00" });
   });
-  it("Quando acabar ancora no fim do evento", () => {
-    const r = resolveReveal(buildRevealInput("ao-acabar", END, base), END, NOW);
-    expect(r).toMatchObject({ ok: true, enabled: true, at: END, anchor: "fim" });
+  it("fim depois do meio-dia: 'No dia seguinte' vai para o meio-dia do outro dia", () => {
+    const late = zonedToEpoch("2027-03-14", "23:30", TZ);
+    expect(epochToZoned(revealOptions(late, TZ)[1].at!, TZ)).toEqual({ date: "2027-03-15", time: "12:00" });
   });
-  it("Na manhã seguinte (10h) é o dia seguinte ao fim às 10h no fuso do evento", () => {
-    const r = resolveReveal(buildRevealInput("manha", END, base), END, NOW);
-    expect(r.ok && r.enabled && r.at).toBe(zonedToEpoch("2026-11-16", "10:00", TZ));
+  it.each(["ao-acabar", "manha", "um-dia"] as const)("%s resolve para o instante mostrado", (id) => {
+    const want = revealOptions(END, TZ).find((o) => o.id === id)!.at!;
+    const r = resolveReveal(buildRevealInput(id, END, base(TZ)), END, NOW);
+    expect(r.ok && r.enabled && r.at).toBe(want);
   });
-  it("manhã seguinte vira o dia certo mesmo quando o fim passa da meia-noite no fuso", () => {
-    const endLate = zonedToEpoch("2026-11-16", "01:30", TZ); // fim já na madrugada
-    const r = resolveReveal(buildRevealInput("manha", endLate, base), endLate, NOW);
-    expect(r.ok && r.enabled && epochToZoned(r.at, TZ)).toEqual({ date: "2026-11-17", time: "10:00" });
-  });
-  it("manhã seguinte respeita o fuso (mesmo instante, fuso diferente, outro dia civil)", () => {
-    const tokyo = "Asia/Tokyo";
-    const r = resolveReveal(buildRevealInput("manha", END, { ...base, timezone: tokyo }), END, NOW);
-    expect(r.ok && r.enabled && epochToZoned(r.at, tokyo)).toEqual({ date: "2026-11-17", time: "10:00" });
-  });
-  it("Escolher dia usa data e hora digitadas", () => {
-    const r = resolveReveal(buildRevealInput("dia", END, { date: "2026-11-20", time: "12:00", timezone: TZ }), END, NOW);
-    expect(r.ok && r.enabled && r.at).toBe(zonedToEpoch("2026-11-20", "12:00", TZ));
+  it("Escolher dia e hora usa a data e a hora digitadas no fuso", () => {
+    const r = resolveReveal(buildRevealInput("dia", END, { date: "2027-03-16", time: "20:00", timezone: TZ }), END, NOW);
+    expect(r.ok && r.enabled && r.at).toBe(zonedToEpoch("2027-03-16", "20:00", TZ));
   });
 });

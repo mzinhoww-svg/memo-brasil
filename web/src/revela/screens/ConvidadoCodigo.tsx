@@ -1,3 +1,4 @@
+"use client";
 /* Convidado-codigo.html (20c) e Convidado-codigo-erro.html (20h): uma só tela, com a mesma árvore e as mesmas classes. */
 import type { ChangeEvent, FormEvent, ClipboardEvent } from "react";
 

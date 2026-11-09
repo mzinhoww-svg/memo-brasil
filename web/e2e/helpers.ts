@@ -75,17 +75,16 @@ export async function wizardToSummary(page: Page, opts: { title?: string; reveal
   await next(); // 1 embalagem (Festa)
   await page.getByLabel("Nome que os convidados vão ver").fill(opts.title ?? "Emy e Igor");
   await next(); // 2 nome
-  await next(); // 3 até quando: 6 horas
-  await next(); // 4 poses: Grátis
+  await next(); // 3 quando é a festa: hoje, próxima meia hora + 6 h
+  await next(); // 4 poses: 10 (Grátis)
   const reveal = opts.reveal ?? "ao-terminar";
-  const group = page.getByRole("group", { name: "Revelar" });
-  if (reveal === "desligada") await group.getByRole("button", { name: "Na hora" }).click();
-  else if (reveal === "ao-terminar") await group.getByRole("button", { name: "Quando acabar" }).click();
-  else {
-    await group.getByRole("button", { name: "Escolher dia" }).click();
-    await page.getByLabel("Data", { exact: true }).fill(reveal.date);
-    await page.getByLabel("Horário", { exact: true }).fill(reveal.time);
-    if (reveal.tz) await page.getByLabel("Fuso horário").selectOption(reveal.tz);
+  // O assistente tem quatro opções (acabar, dia seguinte, um dia depois, escolher dia e hora) no fuso do aparelho.
+  // "Na hora" (desligada) e fuso diferente do aparelho ficam nas configurações do painel: `createViaWizard` aplica depois.
+  const inWizard = reveal !== "desligada" && !(typeof reveal === "object" && reveal.tz);
+  if (!inWizard || reveal === "ao-terminar") await page.getByRole("button", { name: /Quando a festa acabar/ }).click();
+  else if (typeof reveal === "object") {
+    await page.getByRole("button", { name: /Escolher dia e hora/ }).click();
+    await page.getByLabel("Dia e hora da revelação").fill(`${reveal.date}T${reveal.time}`);
   }
   await next(); // 5 quando revelar
   await next(); // 6 filme
@@ -93,10 +92,30 @@ export async function wizardToSummary(page: Page, opts: { title?: string; reveal
   await page.getByRole("heading", { level: 1, name: "Escolha o plano" }).waitFor();
 }
 
-/** Aceita os Termos e confirma a leitura da Política (duas caixas, ambas obrigatórias para criar o evento e para entrar na festa). */
+/** Passo 8 → diálogo "Antes de criar": aceita os Termos e a Política (as duas são obrigatórias) e confirma. */
 export async function acceptTerms(page: Page) {
-  await page.getByRole("checkbox", { name: /Li e aceito os Termos/ }).check();
-  await page.getByRole("checkbox", { name: /Li a Política/ }).check();
+  const dialog = page.getByRole("dialog", { name: "Antes de criar" });
+  await dialog.getByRole("checkbox", { name: /Li e aceito os Termos/ }).check();
+  await dialog.getByRole("checkbox", { name: /Li a Política/ }).check();
+  await dialog.getByRole("button", { name: "Aceitar" }).click();
+}
+
+/** Aplica pelas configurações do painel a revelação que o assistente não oferece (desligada ou com outro fuso). */
+export async function applyReveal(page: Page, id: string, reveal: RevealOpt) {
+  if (reveal === "ao-terminar" || (typeof reveal === "object" && !reveal.tz)) return;
+  await page.goto(`/painel/${id}/configuracoes`);
+  const box = page.getByTestId("config-revelacao");
+  if (reveal === "desligada") {
+    await box.getByRole("button", { name: /Desligada/ }).click();
+  } else {
+    await box.getByRole("button", { name: /^Ligada/ }).click();
+    await box.getByRole("button", { name: /Escolher data e hora/ }).click();
+    await box.getByLabel("Data", { exact: true }).fill(reveal.date);
+    await box.getByLabel("Horário", { exact: true }).fill(reveal.time);
+    await box.getByLabel("Fuso horário").selectOption(reveal.tz!);
+  }
+  await box.getByRole("button", { name: "Salvar revelação" }).click();
+  await expect(box.getByText("Revelação salva.")).toBeVisible();
 }
 
 /** Convidado (20b → 20d): nome, "Entrar e fotografar", aceites no diálogo "Antes de fotografar". */
@@ -111,11 +130,12 @@ export async function enterAsGuest(page: Page, name: string) {
 
 export async function createViaWizard(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string; host?: string } = {}): Promise<{ code: string; id: string }> {
   await wizardToSummary(page, opts);
-  await acceptTerms(page);
   await page.getByRole("button", { name: /Criar câmera|Continuar ·/ }).click();
+  await acceptTerms(page);
   await page.waitForURL(/\/criar\/pronto\//);
   const code = (await page.getByTestId("codigo").textContent())!.trim();
   const id = page.url().split("/").pop()!;
+  await applyReveal(page, id, opts.reveal ?? "ao-terminar");
   // o assistente só cria no Grátis (10/10); limites diferentes entram pelas configurações do painel
   const wanted = [["Fotos por pessoa", opts.shots, "10"], ["Convidados", opts.capacity, "10"]] as const;
   if (wanted.some(([, v, free]) => v && v !== free)) {

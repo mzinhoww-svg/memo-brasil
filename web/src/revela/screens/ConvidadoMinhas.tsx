@@ -1,3 +1,4 @@
+"use client";
 /* Gerado de design-system/revela/html/Convidado-minhas.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 import Link from "next/link";
 import { GuestTabs } from "../GuestTabs";

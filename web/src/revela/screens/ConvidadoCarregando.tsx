@@ -9,7 +9,7 @@ export function ConvidadoCarregando({ name = "Ana & Leo", wrap = "casamento" }: 
     <div className="scr">
       <div className="safe" style={{ "alignItems": "center", "textAlign": "center" }}>
         <div className="grow" style={{ "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
-          <div style={{ "filter": "brightness(.85)", "width": "300px" }}>
+          <div style={{ "filter": "brightness(.85)", "width": "300px", "transform": "scale(1.6)" }}>
             <CameraStage wrap={wrap} size={640} priority label="" print={{ name: name ?? undefined }} />
           </div>
         </div>
