@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon } from "./Icon";
 
@@ -6,7 +7,7 @@ export function GuestShell({ closeHref, top, children, action }: { closeHref?: s
   return (
     <main className="rv-guest">
       <header className="rv-guest__top">
-        {closeHref ? <a href={closeHref} className="rv-icon-btn" aria-label="Fechar"><Icon name="fechar" decorative /></a> : <span />}
+        {closeHref ? <Link href={closeHref} className="rv-icon-btn" aria-label="Fechar"><Icon name="fechar" decorative /></Link> : <span />}
         {top}
         <span className="rv-guest__spacer" />
       </header>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Chip, Chips, Field, GuestShell, Icon, Progress, ShotCounter } from "@/components/revela";
 import { DEFAULT_FILM } from "@/domain/options";
@@ -543,7 +544,7 @@ function PostarSession() {
         <video ref={video} playsInline muted aria-label="Câmera ao vivo" style={{ display: live ? "block" : "none", transform: facing === "user" ? "scaleX(-1)" : undefined }} />
         {phase === "iniciando" && <p className="rv-cam__msg">Abrindo a câmera…</p>}
         <div className="rv-cam__bar">
-          <a href={close} className="rv-icon-btn" aria-label="Fechar câmera"><Icon name="fechar" decorative /></a>
+          <Link href={close} className="rv-icon-btn" aria-label="Fechar câmera"><Icon name="fechar" decorative /></Link>
           <span className="rv-cam__title">{event.title}</span>
           <button type="button" className="rv-icon-btn" aria-label="Flash" aria-pressed={flashOn} onClick={() => setFlashOn((f) => !f)}><Icon name="flash" decorative /></button>
         </div>

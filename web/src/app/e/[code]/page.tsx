@@ -211,7 +211,7 @@ export default function Convite() {
           <p>Foi o que o anfitrião liberou para você. Ninguém vê as fotos antes da revelação.</p>
         </div>
         {inside ? (
-          <p className="corpo app-muted" style={{ margin: 0, textAlign: "center" }}>Você está dentro, {member?.name ?? user?.name}.</p>
+          <h2 className="corpo app-muted" style={{ margin: 0, textAlign: "center" }}>Você está dentro, {member?.name ?? user?.name}.</h2>
         ) : (
           <form id="entrar-form" className="app-stack-sm" noValidate onSubmit={(e) => { e.preventDefault(); void enter(); }}>
             <label className="rv-inrow" data-invalid={error ? true : undefined}>

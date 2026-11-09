@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { acceptTerms, createViaWizard, openInviteAsGuest, seedHost } from "./helpers";
+import { createViaWizard, enterAsGuest, openInviteAsGuest, seedHost } from "./helpers";
 
 const PNG = fs.readFileSync(path.resolve(__dirname, "../public/pwa/icon-192.png"));
 
@@ -76,7 +76,7 @@ async function choosePhoto(page: Page, caption: string) {
 async function reloadDraft(page: Page) {
   page.once("dialog", (dialog) => dialog.accept());
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Você tem uma foto não enviada." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Você tem uma pose não enviada" })).toBeVisible();
 }
 
 async function changeKnownPerson(page: Page, code: string, name: string) {
@@ -87,37 +87,37 @@ async function changeKnownPerson(page: Page, code: string, name: string) {
 }
 
 test("Outra data vazia é rejeitada e a duração padrão continua recuperável", async ({ page }) => {
+  const next = () => page.getByRole("button", { name: "Próximo" }).click();
   await page.goto("/criar");
   await seedHost(page, "Emy");
+  await next(); // embalagem
   await page.getByLabel("Nome que os convidados vão ver").fill("Data explícita");
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await next();
   await page.getByRole("button", { name: "Outra data", exact: true }).click();
   const date = page.getByLabel("Escolha o horário");
   await expect(date).toHaveValue("");
-  await page.getByRole("button", { name: "Continuar" }).click();
-  await expect(page.getByRole("heading", { name: "Quando a festa acaba?" })).toBeVisible();
+  await next();
+  await expect(page.getByRole("heading", { name: "Até quando vale?" })).toBeVisible();
   await expect(date).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByRole("alert").filter({ has: date })).toContainText(/data e.*horário/);
   await page.getByRole("group", { name: "Termina em" }).getByRole("button", { name: "6 horas", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar" }).click();
-  await expect(page.getByText("Passo 3 de 4")).toBeVisible();
+  await next();
+  await expect(page.getByRole("heading", { name: "Quantas poses?" })).toBeVisible();
   expect(await localPhotos(page)).toEqual([]);
 });
 
 test("nome vazio no convite explica o erro e permite entrar na segunda tentativa", async ({ page }) => {
   const { code } = await createViaWizard(page, { reveal: "desligada" });
   await openInviteAsGuest(page, code);
-  await acceptTerms(page);
-  const name = page.getByLabel("Como te chamam na festa?");
+  const name = page.getByLabel("Seu nome");
   await name.fill("   ");
-  const enter = page.getByRole("button", { name: "Entrar e abrir a câmera" });
+  const enter = page.getByRole("button", { name: /Entrar e fotografar/ });
   await enter.click();
   await expect(name).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByText("Escreva como te chamam na festa.", { exact: true })).toBeVisible();
   await expect(enter).toBeEnabled();
   await expect(page).toHaveURL(new RegExp(`/e/${code}$`));
-  await name.fill("Ana");
-  await enter.click();
+  await enterAsGuest(page, "Ana");
   await expect(page).toHaveURL(new RegExp(`/e/${code}/postar$`));
   await expect(page.getByLabel("Escolher foto do aparelho")).toBeAttached();
   expect(await localPhotos(page)).toEqual([]);
@@ -159,7 +159,7 @@ test("rascunho protege Voltar e Avançar sem perder as entradas reais do histór
   await page.goto(`/e/${code}/voce`);
   await page.getByRole("link", { name: "Postar daqui", exact: true }).click();
   await expect(page.getByLabel("Escolher foto do aparelho")).toBeAttached();
-  await page.getByRole("link", { name: "Agora", exact: true }).click();
+  await page.getByRole("link", { name: "Fechar câmera", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/e/${code}/agora$`));
   await page.goBack();
   await expect(page).toHaveURL(new RegExp(`/e/${code}/postar$`));
@@ -263,9 +263,7 @@ test("confirmação contém o foco também enquanto a gravação local está pen
 test("bloqueio persiste após recarregar e recusa a mesma identidade sem apagar suas fotos", async ({ page }) => {
   const { code, id } = await createViaWizard(page, { reveal: "desligada" });
   await openInviteAsGuest(page, code);
-  await page.getByLabel("Como te chamam na festa?").fill("Ana");
-  await acceptTerms(page);
-  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+  await enterAsGuest(page, "Ana");
   await expect(page).toHaveURL(new RegExp(`/e/${code}/postar$`));
   await choosePhoto(page, "História preservada depois do bloqueio");
   await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
@@ -287,10 +285,8 @@ test("bloqueio persiste após recarregar e recusa a mesma identidade sem apagar 
   expect(blocked.blockedAt).toEqual(expect.any(Number));
 
   await changeKnownPerson(page, code, "Ana");
-  const name = page.getByLabel("Como te chamam na festa?");
-  await expect(name).toHaveValue("Ana");
-  await acceptTerms(page);
-  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+  await expect(page.getByLabel("Seu nome")).toHaveValue("Ana");
+  await enterAsGuest(page, "Ana");
   await expect(page.getByText("Sua participação foi bloqueada pelo anfitrião. Fale com quem convidou você.", { exact: true })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/e/${code}$`));
   await page.goto(`/e/${code}/postar`);
