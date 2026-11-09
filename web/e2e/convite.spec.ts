@@ -11,8 +11,8 @@ async function openStudio(page: Page, title: string, reveal: RevealOpt = "deslig
   const { id, code } = await createViaWizard(page, { title, reveal, shots: "10" });
   await page.goto(`/painel/${id}/convite`);
   // a folha vetorial só aparece no papel (print-only): fica no DOM, escondida na tela
-  await expect(page.locator(`svg.convite-a5[aria-label*="QR Code para https://newmemocuiaba.vercel.app/e/${code}, código ${code}"]`)).toBeAttached();
-  await expect(page.getByText(code, { exact: true })).toBeVisible();
+  await expect(page.locator(`svg.convite-a5[aria-label*="/e/${code}, código ${code}"]`)).toBeAttached();
+  await expect(page.locator(".a5-code b")).toHaveText(code);
   return { id, code };
 }
 
