@@ -10,6 +10,8 @@ export type PublicPlan = {
   priceCents: number;
   isFree: boolean;
   features: string[];
+  /** Plano em destaque no paywall (um só; definido pelo Master). */
+  highlighted?: boolean;
 };
 
 export type OrderStatus = "criado" | "pendente" | "pago" | "expirado" | "cancelado" | "falhou" | "estornado" | "em_disputa" | "perdido";

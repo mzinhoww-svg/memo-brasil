@@ -449,3 +449,6 @@ verify_jwt = false # exact raw-body HMAC; never accepts an unsigned provider eve
 
 [functions.payments-validapay-reconcile]
 verify_jwt = false # own sandbox-only bearer token; no public reconciliation access
+
+[functions.reveal-emails]
+verify_jwt = false # bearer próprio (REVEAL_EMAILS_TOKEN); chamado só pelo agendador

@@ -67,3 +67,21 @@
   .adm-nav { flex-direction: row; flex-wrap: wrap; }
 }
 @media (prefers-reduced-motion: reduce) { .adm-shell * { transition: none !important; animation: none !important; } }
+
+/* Revela · M03/M04: preços editáveis, barra "não publicadas", prévia do paywall no celular */
+.adm-prices { display: grid; gap: var(--space-6); grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1100px) { .adm-prices { grid-template-columns: minmax(0, 1fr) 340px; } }
+.adm-prices__foot { display: flex; gap: var(--space-3); margin-top: var(--space-3); flex-wrap: wrap; }
+.adm-prices__preview { display: flex; flex-direction: column; gap: var(--space-3); position: sticky; top: var(--space-6); }
+.adm-cell { height: 44px; min-width: 88px; width: 100%; box-sizing: border-box; }
+.adm-cell.num { text-align: right; font-variant-numeric: tabular-nums; }
+.adm-radio { width: 24px; height: 24px; accent-color: var(--revela); }
+.adm-table tr[data-changed] td:first-child { box-shadow: inset 3px 0 0 var(--revela); }
+.adm-unpublished { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-3); border-radius: var(--radius-md); background: var(--revela-soft); color: var(--revela-text); }
+.adm-unpublished__actions { display: inline-flex; gap: var(--space-2); }
+.adm-diff { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.adm-diff ul { margin: 4px 0 0; padding-left: var(--space-4); }
+.adm-diff s { color: var(--ink-faint); }
+.adm-phone { width: 300px; max-width: 100%; margin: 0 auto; padding: 10px; border-radius: 36px; background: var(--surface-3); box-shadow: var(--shadow-object); }
+.adm-phone__screen { border-radius: 28px; padding: var(--space-5) var(--space-4); background: var(--bg); display: flex; flex-direction: column; gap: var(--space-3); min-height: 420px; }
+.adm-phone__plans { display: grid; grid-auto-flow: column; grid-auto-columns: 62%; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-2); }

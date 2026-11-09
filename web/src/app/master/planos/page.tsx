@@ -1,9 +1,10 @@
-import { num, requireMaster, rpc } from "../data";
-import { Badge, StateBox, Table } from "../ui";
-import { brl, envLabel, lastChange } from "../billing";
-import { PlanEditButton, type PlanRow } from "../billing-actions";
+import { requireMaster, rpc } from "../data";
+import { Badge, StateBox } from "../ui";
+import { envLabel, lastChange } from "../billing";
+import { PricesEditor } from "./PricesEditor";
+import type { PlanRow } from "../prices";
 
-type Plan = PlanRow & { updatedAt: string; sort: number };
+type Plan = PlanRow & { updatedAt: string; history: { at: string }[] };
 
 const day = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Cuiaba" }) : "—");
 
@@ -27,24 +28,10 @@ export default async function Planos() {
         </div>
       </header>
       {plans.state === "ok" ? (
-        <Table
-          vazio="Nenhum plano cadastrado."
-          cols={[{ k: "n", h: "Plano" }, { k: "g", h: "Convidados", num: true }, { k: "f", h: "Fotos/pessoa", num: true }, { k: "p", h: "Preço", num: true },
-                 { k: "s", h: "Sandbox" }, { k: "r", h: "Produção" }, { k: "u", h: "Alterado em" }, { k: "a", h: "Ações" }]}
-          rows={plans.data.map((p) => ({
-            n: p.name,
-            g: p.maxGuests == null ? "sem limite" : num(p.maxGuests),
-            f: p.maxShots == null ? "sem limite" : num(p.maxShots),
-            p: brl(p.priceCents),
-            s: p.sandboxActive ? "sim" : <Badge s="info">não</Badge>,
-            r: p.productionActive ? "sim" : <Badge s="info">não</Badge>,
-            u: p.isFree ? "—" : day(p.updatedAt),
-            a: <PlanEditButton plan={p} />,
-          }))}
-        />
+        <PricesEditor plans={plans.data.map(({ updatedAt: _u, ...p }) => { void _u; return p; })} env={env} />
       ) : <StateBox load={plans} />}
       <p className="adm-nota" style={{ marginTop: 16, fontSize: 14 }}>
-        Limites de convidados e fotos mudam só por migration (afetam direitos já vendidos). Aqui: preço e ativação.
+        Publicar grava em <code>plans</code> e registra <code>plan.price_changed</code> na auditoria. Direitos já concedidos e Pix abertos não mudam.
       </p>
     </>
   );

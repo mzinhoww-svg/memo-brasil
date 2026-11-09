@@ -174,6 +174,7 @@ export async function listPublicPlans(): Promise<PublicPlan[]> {
     priceCents: Number(p.priceCents),
     isFree: p.isFree === true,
     features: Array.isArray(p.features) ? p.features.filter((f): f is string => typeof f === "string") : [],
+    highlighted: p.highlighted === true,
   }));
 }
 
