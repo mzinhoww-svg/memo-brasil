@@ -107,9 +107,9 @@ describe("criar/pronto (UX-12, O7)", () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error("negado")) } });
     const { default: Pronto } = await import("./criar/pronto/[id]/page");
     render(<Pronto />);
-    await userEvent.click(screen.getByRole("button", { name: "Copiar link" }));
+    await userEvent.click(screen.getByRole("button", { name: "Compartilhar convite" }));
     expect(await screen.findByText("Não conseguimos copiar. O link está selecionado.")).toBeInTheDocument();
-    expect(screen.queryByText(/Link copiado/)).toBeNull();
+    expect(screen.queryByText(/Convite copiado/)).toBeNull();
     await waitFor(() => expect(document.activeElement).toBe(screen.getByTestId("link-convite")));
   });
   it("clipboard ok diz copiado", async () => {
@@ -118,8 +118,9 @@ describe("criar/pronto (UX-12, O7)", () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
     const { default: Pronto } = await import("./criar/pronto/[id]/page");
     render(<Pronto />);
-    await userEvent.click(screen.getByRole("button", { name: "Copiar link" }));
-    expect(await screen.findByText("Link copiado para a área de transferência.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Compartilhar convite" }));
+    expect(await screen.findByRole("button", { name: "Convite copiado" })).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalled();
   });
 });
 

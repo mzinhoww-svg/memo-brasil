@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Button, GoogleButton, LiveIndicator, Logo, Skeleton } from "@/components/revela";
-import { eventStatus, type MemoEvent } from "@/domain/event";
+import { endAt, eventStatus, type MemoEvent } from "@/domain/event";
+import { hhmm } from "@/features/guest/format";
+import { AnfitriaoInicio } from "@/revela/screens/AnfitriaoInicio";
 import { formatDate } from "@/features/app/hooks";
 import { loadMyEvents, type MyEvents } from "@/features/app/my-events";
 import { useApp } from "@/features/app/provider";
@@ -25,12 +27,30 @@ export default function MeusEventos() {
   }, [repos, user, now]);
 
   useEffect(() => {
-    if (ready) void load();
+    if (!ready) return;
+    const t = setTimeout(() => void load(), 0);
+    return () => clearTimeout(t);
   }, [ready, load]);
 
   const organizer = backend === "local" || canCreate;
+  const [counts, setCounts] = useState<{ guests: number; photos: number } | undefined>();
+  const hero = data ? (data.active[0] ?? data.ended[0]) : undefined;
+  useEffect(() => {
+    if (!hero) return;
+    let live = true;
+    void Promise.all([repos.participants.count(hero.id), repos.photos.count(hero.id)]).then(([guests, photos]) => { if (live) setCounts({ guests, photos }); }, () => undefined);
+    return () => { live = false; };
+  }, [repos, hero]);
+  const nowMs = now();
+  const revealText = (e: MemoEvent) => {
+    if (e.revealedAt || (e.revealEnabled && e.revealAt && e.revealAt <= nowMs) || !e.revealEnabled) return "Revelada";
+    if (!e.revealAt) return "Revela quando acabar";
+    const days = Math.ceil((e.revealAt - nowMs) / 86_400_000);
+    return days <= 0 ? "Revela hoje" : `Revela em ${days} ${days === 1 ? "dia" : "dias"}`;
+  };
+
   const row = (e: MemoEvent, host: boolean) => {
-    const live = eventStatus(e, now()) === "ativo";
+    const live = eventStatus(e, nowMs) === "ativo";
     return (
     <li key={e.id} className="app-card app-card--borda" style={{ listStyle: "none" }}>
       <div className="app-between">
@@ -45,13 +65,6 @@ export default function MeusEventos() {
     </li>
     );
   };
-  const section = (id: string, title: string, list: MemoEvent[], host: boolean) =>
-    list.length > 0 && (
-      <section className="app-stack-sm" aria-labelledby={id}>
-        <h2 id={id} className="titulo-card app-h1">{title}</h2>
-        <ul className="app-stack" style={{ padding: 0, margin: 0 }}>{list.map((e) => row(e, host))}</ul>
-      </section>
-    );
 
   let body;
   if (!ready || (user && !data && !failed)) body = <Skeleton label="Carregando seus eventos…" />;
@@ -77,15 +90,28 @@ export default function MeusEventos() {
         <Button href="/criar" variant="cta" block>Criar meu evento grátis</Button>
       </>
     );
-  } else if (data) {
-    body = (
-      <>
-        {section("ativos", "Ativos", data.active, true)}
-        {section("encerrados", "Encerrados", data.ended, true)}
-        {section("entrei", "Festas em que você entrou", data.joined, false)}
-        {organizer && <Button href="/criar" block>Criar outro evento</Button>}
-      </>
+  }
+
+  if (data && (data.active.length || data.ended.length)) {
+    const mine = [...data.active, ...data.ended];
+    const heroEv = mine[0];
+    const heroLive = eventStatus(heroEv, nowMs) === "ativo";
+    const endAtMs = endAt(heroEv);
+    return (
+      <AnfitriaoInicio
+        hero={{
+          name: heroEv.title, cam: `/revela/3d/cam-${heroEv.cameraStyle}-960.webp`, live: heroLive,
+          stamp: heroLive ? `FECHA ${hhmm(endAtMs, heroEv.timezone)}` : "ENCERRADA",
+          caption: counts ? `${counts.guests} ${counts.guests === 1 ? "convidado entrou" : "convidados entraram"} · ${counts.photos} ${counts.photos === 1 ? "pose tirada" : "poses tiradas"}` : " ",
+          openHref: `/e/${heroEv.code}/agora`, qrHref: `/painel/${heroEv.id}/qr`,
+          onShare: () => { const url = `${window.location.origin}/e/${heroEv.code}`; if (navigator.share) void navigator.share({ title: heroEv.title, url }).catch(() => undefined); else void navigator.clipboard?.writeText(url); },
+        }}
+        shelf={[...mine.slice(1), ...data.joined].map((e) => ({ id: e.id, name: e.title, cam: `/revela/3d/cam-${e.cameraStyle}-640.webp`, caption: revealText(e), href: e.hostId === user?.id ? `/painel/${e.id}` : `/e/${e.code}/agora` }))}
+      />
     );
+  }
+  if (data && data.joined.length) {
+    body = <section className="app-stack-sm"><h2 className="titulo-card app-h1">Festas em que você entrou</h2><ul className="app-stack" style={{ padding: 0, margin: 0 }}>{data.joined.map((e) => row(e, false))}</ul>{organizer && <Button href="/criar" block>Criar meu evento</Button>}</section>;
   }
 
   return (
