@@ -4,11 +4,15 @@ import QRCode from "qrcode";
 import { BLEED, TRIM, layoutInvite, type FontId, type InviteLayout, type Measure } from "./invite-layout";
 import type { PrintInvite } from "./invite-print";
 
-/** Fontes estáticas (SIL OFL 1.1, licenças em /fonts/pdf) embutidas no PDF; as mesmas métricas diagramam a prévia. */
+/**
+ * Fontes do Revela (SIL OFL 1.1, licenças em /fonts/pdf) embutidas no PDF; as mesmas métricas diagramam a prévia.
+ * `bold` = Gloock (títulos e marca), `regular` = Schibsted Grotesk (texto), `mono` = Share Tech Mono (carimbo: código, passos, limites).
+ * A Schibsted vem da variável do pacote, instanciada em wght 400 (o PDF precisa de fonte estática).
+ */
 export const FONT_FILES: Record<FontId, string> = {
-  bold: "/fonts/pdf/BricolageGrotesque-ExtraBold.woff",
-  regular: "/fonts/pdf/BricolageGrotesque-Regular.woff",
-  italic: "/fonts/pdf/InstrumentSerif-Italic.woff",
+  bold: "/fonts/pdf/Gloock-Regular.woff",
+  regular: "/fonts/pdf/SchibstedGrotesk-Regular.woff",
+  mono: "/fonts/pdf/ShareTechMono-Regular.woff",
 };
 
 interface KitFont { unitsPerEm: number; layout(t: string): { advanceWidth: number }; hasGlyphForCodePoint(cp: number): boolean }
