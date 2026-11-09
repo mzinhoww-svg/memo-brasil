@@ -41,3 +41,22 @@ test("feed: curtir, abrir a foto, comentar e denunciar", async ({ page }) => {
   await denuncia.getByRole("button", { name: "Enviar denúncia" }).click();
   await expect(denuncia.getByText("Denúncia enviada")).toBeVisible();
 });
+
+test("24i abre pelo sino com a folha do e-mail; 24j mostra link inválido sem servidor", async ({ page }) => {
+  const { code } = await createViaWizard(page, { title: "Aviso e-mail", reveal: "desligada" });
+  await switchPerson(page, code, "Ana");
+  await postViaFile(page, code);
+  await page.goto(`/e/${code}/agora`);
+  await page.getByRole("link", { name: "Notificações" }).click();
+  await page.waitForURL(/aviso-email$/);
+  const sheet = page.getByRole("dialog", { name: "Aviso por e-mail" });
+  await expect(sheet).toContainText("o único e-mail que enviamos");
+  await expect(page.getByText("Revelou, Ana.")).toBeVisible();
+  await sheet.getByRole("button", { name: "Voltar ao feed" }).click();
+  await page.waitForURL(/agora$/);
+
+  await page.goto("/email/sair?t=0b9a5c2e-6f0e-4e7e-9f55-1d8c2d2f7a10");
+  await expect(page.getByRole("heading", { name: /Esse link não/ })).toBeVisible();
+  await page.goto("/email/sair");
+  await expect(page.getByRole("heading", { name: /Esse link não/ })).toBeVisible();
+});
