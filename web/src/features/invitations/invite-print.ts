@@ -16,7 +16,7 @@ export interface PrintInvite {
   shots: string;
   reveal: string;
   code: string;
-  /** Endereço digitável, sem protocolo: "newmemocuiaba.vercel.app/entrar". */
+  /** Endereço digitável, sem protocolo: "fotosdocasamento.online/entrar". */
   altAddress: string;
   /** Conteúdo do QR: a URL canônica do convite (`/e/<código>`), que é o mesmo destino de digitar o código em /entrar. */
   qrText: string;

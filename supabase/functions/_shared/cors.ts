@@ -1,5 +1,5 @@
 // CORS da Edge Function: origem restrita a uma lista (nunca `*`). Módulo puro, testado no vitest.
-const FIXED = [/^https:\/\/memoriesmt-v2\.vercel\.app$/, /^https:\/\/memoriesmt-v2-[a-z0-9-]+-mzinhoww-gmailcoms-projects\.vercel\.app$/, /^https:\/\/newmemocuiaba\.vercel\.app$/, /^https:\/\/newmemocuiaba-[a-z0-9-]+-mzinhoww-gmailcoms-projects\.vercel\.app$/, /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}$/];
+const FIXED = [/^https:\/\/(www\.)?fotosdocasamento\.online$/, /^https:\/\/memoriesmt-v2\.vercel\.app$/, /^https:\/\/memoriesmt-v2-[a-z0-9-]+-mzinhoww-gmailcoms-projects\.vercel\.app$/, /^https:\/\/newmemocuiaba\.vercel\.app$/, /^https:\/\/newmemocuiaba-[a-z0-9-]+-mzinhoww-gmailcoms-projects\.vercel\.app$/, /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}$/];
 
 /** `extra`: origens adicionais separadas por vírgula (ex.: domínio próprio), vindas da variável de ambiente ALLOWED_ORIGINS. */
 export function isAllowedOrigin(origin: string | null | undefined, extra = ""): boolean {

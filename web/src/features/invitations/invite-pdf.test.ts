@@ -42,11 +42,11 @@ describe("textos do convite impresso", () => {
   });
   it("QR e código levam ao mesmo evento no endereço canônico, mesmo gerado num preview", () => {
     const p = printInvite(ev(), NOW, siteOrigin("https://newmemocuiaba-abc123xyz-equipe.vercel.app"));
-    expect(p.qrText).toBe("https://newmemocuiaba.vercel.app/e/ABCD2345");
-    expect(p.altAddress).toBe("newmemocuiaba.vercel.app/entrar");
+    expect(p.qrText).toBe("https://fotosdocasamento.online/e/ABCD2345");
+    expect(p.altAddress).toBe("fotosdocasamento.online/entrar");
     expect(p.code).toBe("ABCD2345");
     expect(new URL(p.qrText).pathname.endsWith(`/${p.code}`)).toBe(true);
-    for (const bad of ["http://localhost:3000", "https://127.0.0.1", "https://x.vercel.app/?token=1", "nada"]) expect(siteOrigin(bad)).toBe("https://newmemocuiaba.vercel.app");
+    for (const bad of ["http://localhost:3000", "https://127.0.0.1", "https://x.vercel.app/?token=1", "nada"]) expect(siteOrigin(bad)).toBe("https://fotosdocasamento.online");
     expect(siteOrigin("https://memoriesmt.com.br")).toBe("https://memoriesmt.com.br");
   });
   it("não promete 'sem cadastro' e não usa fonte manuscrita", () => {
@@ -82,7 +82,7 @@ describe("diagramação A5", () => {
   }
   it("QR com módulos de pelo menos 1 mm e zona de proteção de 4 módulos", () => {
     const lay = inviteLayout(printInvite(ev({ title: LONG }), NOW), fonts);
-    const n = qrMatrix("https://newmemocuiaba.vercel.app/e/ABCD2345").length;
+    const n = qrMatrix("https://fotosdocasamento.online/e/ABCD2345").length;
     expect(lay.qr.size / (n + 8)).toBeGreaterThanOrEqual(1);
   });
 });
