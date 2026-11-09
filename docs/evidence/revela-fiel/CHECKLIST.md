@@ -20,14 +20,14 @@ Referência (esquerda) | implementação com os dados do desenho (centro) | dife
 | 13 | Quem vê o quê | Camera-privacidade | 0.99% | ![](13.png) | referência portada (dados do desenho) | não ligada ao app |
 | 14 | Publicar | Camera-publicar | 1.59% | ![](14.png) | portada e ligada a dados reais | passo 8: planos do catálogo, pré-seleção pelas poses, aceites em diálogo "Antes de criar" |
 | 15 | Câmera pronta | Camera-pronta | 4.06% | ![](15.png) | referência portada (dados do desenho) | não ligada ao app |
-| 14a | Resumo e forma de pagamento | Pagamento-resumo | 1.95% | ![](14a.png) | referência portada (dados do desenho) | não ligada ao app |
-| 14b | Pix | Pagamento-pix | 1.44% | ![](14b.png) | referência portada (dados do desenho) | não ligada ao app |
-| 14c | Cartão | Pagamento-cartao | 1.10% | ![](14c.png) | referência portada (dados do desenho) | não ligada ao app |
-| 14d | Confirmação do banco | Pagamento-3ds | 0.66% | ![](14d.png) | referência portada (dados do desenho) | não ligada ao app |
-| 14e | Confirmando | Pagamento-processando | 7.74% | ![](14e.png) | referência portada (dados do desenho) | não ligada ao app |
-| 14f | Pago | Pagamento-aprovado | 4.13% | ![](14f.png) | referência portada (dados do desenho) | não ligada ao app |
-| 14g | Não deu certo | Pagamento-falhou | 1.07% | ![](14g.png) | referência portada (dados do desenho) | não ligada ao app |
-| 14h | Trocar de plano | Pagamento-trocar-plano | 2.15% | ![](14h.png) | referência portada (dados do desenho) | não ligada ao app |
+| 14a | Resumo e forma de pagamento | Pagamento-resumo | erro | ![](14a.png) | portada e ligada a dados reais | `ValidaPayCheckout`: resumo, Pix/cartão (cartão só com publicId/flag), CPF/CNPJ extra no Pix (exigido pelo provedor; não está no desenho) |
+| 14b | Pix | Pagamento-pix | erro | ![](14b.png) | portada e ligada a dados reais | `ValidaPayCheckout`: QR, contagem de expiração, copia e cola, polling |
+| 14c | Cartão | Pagamento-cartao | erro | ![](14c.png) | portada e ligada a dados reais | `ValidaPayCheckout`: cartão tokenizado; telefone e endereço extras (exigidos pelo provedor; só com cartão ligado) |
+| 14d | Confirmação do banco | Pagamento-3ds | erro | ![](14d.png) | portada e ligada a dados reais | `ValidaPayCheckout`: aguardando o banco (3DS) |
+| 14e | Confirmando | Pagamento-processando | erro | ![](14e.png) | portada e ligada a dados reais | `ValidaPayCheckout`: confirmando/verificação; "Fechar e avisar depois" consulta o servidor |
+| 14f | Pago | Pagamento-aprovado | erro | ![](14f.png) | portada e ligada a dados reais | `ValidaPayCheckout`: pago |
+| 14g | Não deu certo | Pagamento-falhou | erro | ![](14g.png) | portada e ligada a dados reais | `ValidaPayCheckout`: recusado, expirado, indisponível, estornado |
+| 14h | Trocar de plano | Pagamento-trocar-plano | erro | ![](14h.png) | portada e ligada a dados reais | `PlanPicker` (checkout nativo) em `/painel/[id]/plano` |
 | 16 | Câmeras (anfitrião) | Anfitriao-inicio | 0.79% | ![](16.png) | referência portada (dados do desenho) | não ligada ao app |
 | 17 | Ajustes do evento | Anfitriao-ajustes | 1.37% | ![](17.png) | referência portada (dados do desenho) | não ligada ao app |
 | 17b | Convidados | Anfitriao-convidados | 1.39% | ![](17b.png) | referência portada (dados do desenho) | não ligada ao app |

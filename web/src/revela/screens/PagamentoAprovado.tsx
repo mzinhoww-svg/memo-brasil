@@ -1,5 +1,7 @@
 /* Gerado de design-system/revela/html/Pagamento-aprovado.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function PagamentoAprovado() {
+export interface PagamentoAprovadoProps { cam?: string; message?: string; paid?: string; when?: string; onContinue?: () => void }
+
+export function PagamentoAprovado({ cam = "/revela/ref/cam-casamento.webp", message = "A câmera de Ana & Leo está liberada para 250 convidados, com 36 poses cada.", paid = "Pix · R$ 189,00", when = "hoje, 08:42 · comprovante por e-mail", onContinue }: PagamentoAprovadoProps = {}) {
   return (
     <>
     <div className="scr">
@@ -7,14 +9,14 @@ export function PagamentoAprovado() {
       <div className="safe" style={{ "alignItems": "center", "textAlign": "center" }}>
         <div style={{ "marginTop": "150px" }}>
           <div className="rv-stagebox" style={{  }}>
-            <img src="/revela/ref/cam-casamento.webp" alt="" style={{ "width": "280px" }} />
+            <img src={cam} alt="" style={{ "width": "280px" }} />
           </div>
         </div>
         <h1 className="rv-display" style={{ "marginTop": "4px" }}>
           Pago.
         </h1>
         <p className="rv-body muted" style={{ "margin": "10px 0 18px", "maxWidth": "300px" }}>
-          {"A câmera de Ana & Leo está liberada para 250 convidados, com 36 poses cada."}
+          {message}
         </p>
         <div className="rv-group">
           <div className="rv-row">
@@ -22,9 +24,9 @@ export function PagamentoAprovado() {
               <path d="M12 2.5l3.6 3.6-3.6 3.6-3.6-3.6zM12 14.3l3.6 3.6-3.6 3.6-3.6-3.6zM2.5 12l3.6-3.6 3.6 3.6-3.6 3.6zM14.3 12l3.6-3.6 3.6 3.6-3.6 3.6z" />
             </svg>
             <div className="rv-row__text">
-              Pix · R$ 189,00
+              {paid}
               <span className="rv-row__meta">
-                hoje, 08:42 · comprovante por e-mail
+                {when}
               </span>
             </div>
             <span className="rv-row__end" style={{ "color": "var(--success)" }}>
@@ -35,7 +37,7 @@ export function PagamentoAprovado() {
           </div>
         </div>
         <div className="grow" />
-        <button className="rv-btn rv-btn--block rv-btn--primary" style={{  }}>
+        <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={onContinue}>
           Ver a câmera pronta
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12h14M13 6l6 6-6 6" />

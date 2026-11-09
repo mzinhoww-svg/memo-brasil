@@ -29,7 +29,7 @@ export default function PlanoPage() {
 }
 
 function PlanoConteudo() {
-  const { event, refresh } = useAdmin();
+  const { event, refresh, participants } = useAdmin();
   const initialPlan = useSearchParams()?.get("plano") ?? null;
   const eventId = event.id;
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
@@ -127,7 +127,7 @@ function PlanoConteudo() {
     body = <CheckoutPending order={order} plans={plans} warning={warning} eventId={eventId} returnHint={returnHint} busy={busy} onOrder={onOrder} onChoosePlan={toPicker} onNewCheckout={() => void pay(order.planCode, true)} />;
   } else {
     body = (
-      <PlanPicker eventId={eventId} plans={plans} currentCode={current} settings={settings} busy={busy} error={error} initialPlan={initialPlan} onPay={(c) => void pay(c)}
+      <PlanPicker eventId={eventId} plans={plans} currentCode={current} settings={settings} busy={busy} error={error} initialPlan={initialPlan} usage={{ guests: participants?.length ?? 0, shots: event.shotsPerPerson ?? null }} onPay={(c) => void pay(c)}
         onRedeemed={(r) => { setApplied({ planCode: r.planCode ?? "", code: r.code }); void currentPlanCode(eventId).then(setCurrent); void refresh(); }} />
     );
   }

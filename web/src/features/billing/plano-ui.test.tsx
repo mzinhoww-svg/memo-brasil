@@ -422,7 +422,7 @@ describe("escolha de plano no checkout transparente de produção", () => {
     api.quote.mockResolvedValue({ planCode: "festa", fromPlanCode: null, amountCents: 2900, payable: true, reason: "ok" });
     const onPay = vi.fn();
     render(<PlanPicker eventId="ev1" plans={PLANS} currentCode="gratis" settings={SETTINGS} busy={false} onPay={onPay} onRedeemed={vi.fn()} initialPlan="festa" />);
-    const button = await screen.findByRole("button", { name: "Continuar para pagamento · R$ 29,00" });
+    const button = await screen.findByRole("button", { name: "Escolher para Festa · R$ 29" });
     expect(screen.queryByText(/Mercado Pago/)).not.toBeInTheDocument();
     await userEvent.click(button);
     expect(onPay).toHaveBeenCalledWith("festa");

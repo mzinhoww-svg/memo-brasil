@@ -1,11 +1,13 @@
 /* Gerado de design-system/revela/html/Pagamento-processando.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function PagamentoProcessando() {
+export interface PagamentoProcessandoProps { cam?: string; onClose?: () => void }
+
+export function PagamentoProcessando({ cam = "/revela/ref/cam-casamento.webp", onClose }: PagamentoProcessandoProps = {}) {
   return (
     <>
     <div className="scr">
       <div className="safe" style={{ "alignItems": "center", "textAlign": "center" }}>
         <div className="row between" style={{ "alignSelf": "stretch" }}>
-          <button className="rv-icon-btn" aria-label="Fechar">
+          <button type="button" className="rv-icon-btn" aria-label="Fechar" onClick={onClose}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
@@ -14,7 +16,7 @@ export function PagamentoProcessando() {
         </div>
         <div className="grow" style={{ "display": "flex", "alignItems": "center", "justifyContent": "center", "margin": "0 -40px" }}>
           <div className="rv-stagebox" style={{ "filter": "saturate(.6)" }}>
-            <img src="/revela/ref/cam-casamento.webp" alt="" style={{ "width": "320px" }} />
+            <img src={cam} alt="" style={{ "width": "320px" }} />
           </div>
         </div>
         <p className="rv-stamp">
@@ -32,7 +34,7 @@ export function PagamentoProcessando() {
           <i />
         </div>
         <div style={{ "height": "30px" }} />
-        <button className="rv-btn rv-btn--block" style={{  }}>
+        <button type="button" className="rv-btn rv-btn--block" onClick={onClose}>
           Fechar e avisar depois
         </button>
       </div>

@@ -10,6 +10,8 @@ import { RedeemCode, type RedeemCodeProps } from "./RedeemCode";
 import { validapayCheckoutEnabled } from "./checkout-provider";
 import { TrustBlock } from "./TrustBlock";
 import type { PublicPlan, PublicSettings, Quote } from "./types";
+import { PagamentoTrocarPlano, type Gauge } from "@/revela/screens/PagamentoTrocarPlano";
+import type { PlanView } from "@/revela/screens/CameraPublicar";
 
 const RECOMMENDED = "casamento";
 
@@ -24,10 +26,19 @@ type Props = {
   onRedeemed: RedeemCodeProps["onApplied"];
   /** Plano vindo de `?plano=<code>` (assistente): pré-seleciona se for maior que o atual. */
   initialPlan?: string | null;
+  /** Uso atual do evento, para os medidores do plano (convidados dentro e poses por pessoa). */
+  usage?: { guests: number; shots: number | null };
 };
 
+const money = (cents: number) => (cents % 100 === 0 ? `R$ ${cents / 100}` : formatBRL(cents));
+const planView = (p: PublicPlan, last: boolean, n: number): PlanView => ({
+  code: p.code, tier: p.name, price: p.isFree ? "Grátis" : money(p.priceCents),
+  lines: [p.maxGuests === null ? "convidados sem limite" : `${p.maxGuests} convidados`, p.maxShots === null ? "poses livres" : `${p.maxShots} poses cada`],
+  gold: !p.isFree && last && n > 2,
+});
+
 /** B1 (escolha) e B7 (pagamentos desligados). Preços e valor a pagar vêm do servidor. */
-export function PlanPicker({ eventId, plans, currentCode, settings, busy, error, onPay, onRedeemed, initialPlan }: Props) {
+export function PlanPicker({ eventId, plans, currentCode, settings, busy, error, onPay, onRedeemed, initialPlan, usage }: Props) {
   const native = validapayCheckoutEnabled();
   const rank = planRank(plans, currentCode);
   const higher = useMemo(() => plans.filter((_, i) => i > rank), [plans, rank]);
@@ -68,6 +79,30 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
   }
 
   const cur = q && q.code === chosen ? q.quote : null;
+  if (native) {
+    const current = plans[rank] ?? plans[0];
+    const gauges: Gauge[] = [];
+    if (usage && current) {
+      if (current.maxGuests !== null) gauges.push({ label: "Convidados", text: `${usage.guests} de ${current.maxGuests}`, pct: Math.min(100, Math.round((usage.guests / current.maxGuests) * 100)), warn: usage.guests >= current.maxGuests * 0.9 });
+      if (current.maxShots !== null && usage.shots !== null) gauges.push({ label: "Poses por pessoa", text: `${usage.shots} de ${current.maxShots}`, pct: Math.min(100, Math.round((usage.shots / current.maxShots) * 100)) });
+    }
+    const left = usage && current?.maxGuests != null ? Math.max(0, current.maxGuests - usage.guests) : null;
+    const nowPay = cur && cur !== "erro" && cur.payable ? cur.amountCents : plan?.priceCents;
+    const blockedText = cur && cur !== "erro" && !cur.payable ? (QUOTE_BLOCK[cur.reason] ?? "Este plano não pode ser comprado agora.") : null;
+    return (
+      <PagamentoTrocarPlano
+        current={current ? `${current.name} · ${current.isFree ? "Grátis" : money(current.priceCents)}` : "Grátis"}
+        gauges={gauges}
+        warning={left !== null && left <= 5 ? `Faltam ${left} lugares. Quem chegar depois vê "câmera lotada".` : null}
+        plans={plans.map((p, i) => planView(p, i === plans.length - 1, plans.length))}
+        selected={chosen} busy={busy} error={blockedText ?? error ?? undefined}
+        cta={busy ? "Abrindo pagamento…" : plan && nowPay !== undefined ? `${rank >= 0 && current && !current.isFree ? "Trocar" : "Escolher"} para ${plan.name} · ${money(nowPay)}` : "Escolha um plano"}
+        onSelect={(code) => { const i = plans.findIndex((p) => p.code === code); if (i > rank) setSelected(code); }}
+        onBack={() => { if (typeof window !== "undefined") window.history.back(); }}
+        onConfirm={() => { if (plan && !blockedText) onPay(chosen); }}
+      />
+    );
+  }
   const blocked = cur && cur !== "erro" && !cur.payable ? (QUOTE_BLOCK[cur.reason] ?? "Este plano não pode ser comprado agora.") : null;
   const pay = cur && cur !== "erro" ? cur.amountCents : plan?.priceCents;
   const diff = cur && cur !== "erro" && plan && cur.payable && cur.amountCents !== plan.priceCents;

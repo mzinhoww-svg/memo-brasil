@@ -1,11 +1,13 @@
 /* Gerado de design-system/revela/html/Pagamento-3ds.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function Pagamento3ds() {
+export interface Pagamento3dsProps { amount?: string; onBack?: () => void; onApproved?: () => void; onPix?: () => void; busy?: boolean }
+
+export function Pagamento3ds({ amount = "R$ 189", onBack, onApproved, onPix, busy }: Pagamento3dsProps = {}) {
   return (
     <>
     <div className="scr sheet-scr">
       <div className="safe" style={{ "opacity": ".35" }}>
         <div className="row between">
-          <button className="rv-icon-btn" aria-label="Voltar">
+          <button type="button" className="rv-icon-btn" aria-label="Voltar" onClick={onBack}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -28,14 +30,14 @@ export function Pagamento3ds() {
           Confirme no app do banco
         </h1>
         <p className="rv-caption" style={{ "marginTop": "8px", "maxWidth": "290px" }}>
-          Seu banco pediu uma verificação para esta compra de R$ 189. Abra o app dele, aprove e volte aqui.
+          Seu banco pediu uma verificação para esta compra de {amount}. Abra o app dele, aprove e volte aqui.
         </p>
         <div className="spinner" style={{ "marginTop": "26px" }} />
         <div className="grow" />
-        <button className="rv-btn rv-btn--block rv-btn--primary" style={{  }}>
+        <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={onApproved} disabled={busy}>
           Já aprovei
         </button>
-        <button className="rv-btn rv-btn--text rv-btn--block">
+        <button type="button" className="rv-btn rv-btn--text rv-btn--block" onClick={onPix}>
           Pagar com Pix
         </button>
       </div>

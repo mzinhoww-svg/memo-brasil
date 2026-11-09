@@ -1,11 +1,22 @@
+"use client";
 /* Gerado de design-system/revela/html/Pagamento-resumo.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function PagamentoResumo() {
+export interface PagamentoResumoProps {
+  cam?: string; planName?: string; caption?: string; price?: string; eventName?: string; priceExact?: string;
+  method?: "pix" | "card"; /** Cartão só aparece com a chave validapay_card ligada. */ cardEnabled?: boolean;
+  /** O provedor exige CPF/CNPJ no Pix; o desenho não tem o campo, então só aparece quando falta. */ askDocument?: boolean; document?: string; busy?: boolean; error?: string;
+  onMethod?: (m: "pix" | "card") => void; onDocument?: (v: string) => void; onBack?: () => void; onPay?: () => void;
+}
+
+export function PagamentoResumo({
+  cam = "/revela/ref/cam-casamento.webp", planName = "Casamento", caption = "250 convidados · 36 poses cada", price = "R$ 189", eventName = "Ana & Leo", priceExact = "R$ 189,00",
+  method = "pix", cardEnabled = true, askDocument = false, document: doc = "", busy, error, onMethod, onDocument, onBack, onPay,
+}: PagamentoResumoProps = {}) {
   return (
     <>
     <div className="scr">
       <div className="safe">
         <div className="row between">
-          <button className="rv-icon-btn" aria-label="Voltar">
+          <button type="button" className="rv-icon-btn" aria-label="Voltar" onClick={onBack}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -17,30 +28,30 @@ export function PagamentoResumo() {
         </div>
         <div className="order">
           <div className="order-cam">
-            <img src="/revela/ref/cam-casamento.webp" alt="" style={{ "width": "96px" }} />
+            <img src={cam} alt="" style={{ "width": "96px" }} />
           </div>
           <div style={{ "flex": "1" }}>
             <span className="rv-caption">
               Plano
             </span>
             <b className="order-t">
-              Casamento
+              {planName}
             </b>
             <span className="rv-caption">
-              250 convidados · 36 poses cada
+              {caption}
             </span>
           </div>
           <div className="order-p">
-            R$ 189
+            {price}
           </div>
         </div>
         <div className="rv-group" style={{ "marginTop": "14px" }}>
           <div className="rv-row">
             <div className="rv-row__text">
-              {"Câmera Ana & Leo"}
+              {`Câmera ${eventName}`}
             </div>
             <span className="rv-row__end muted">
-              R$ 189,00
+              {priceExact}
             </span>
           </div>
           <div className="rv-row">
@@ -53,14 +64,14 @@ export function PagamentoResumo() {
               </span>
             </div>
             <span className="rv-row__end" style={{ "font": "400 24px/1 var(--font-display)", "color": "var(--ink)" }}>
-              R$ 189
+              {price}
             </span>
           </div>
         </div>
         <h2 className="rv-group-h">
           Como você quer pagar?
         </h2>
-        <div className="paym on">
+        <div className={`paym${method === "pix" ? " on" : ""}`} role="radio" aria-checked={method === "pix"} aria-label="Pix" tabIndex={0} onClick={() => onMethod?.("pix")} style={{ cursor: "pointer" }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2.5l3.6 3.6-3.6 3.6-3.6-3.6zM12 14.3l3.6 3.6-3.6 3.6-3.6-3.6zM2.5 12l3.6-3.6 3.6 3.6-3.6 3.6zM14.3 12l3.6-3.6 3.6 3.6-3.6 3.6z" />
           </svg>
@@ -72,13 +83,9 @@ export function PagamentoResumo() {
               Libera na hora. QR ou copia e cola.
             </span>
           </div>
-          <i className="radio on" />
+          <i className={`radio${method === "pix" ? " on" : ""}`} />
         </div>
-        <div className="paym">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
-            <path d="M2.5 10h19M6 15h4" />
-          </svg>
+        {cardEnabled && (<div className={`paym${method === "card" ? " on" : ""}`} role="radio" aria-checked={method === "card"} aria-label="Cartão de crédito" tabIndex={0} onClick={() => onMethod?.("card")} style={{ cursor: "pointer" }}>
           <div>
             <b>
               Cartão de crédito
@@ -87,8 +94,10 @@ export function PagamentoResumo() {
               Visa, Mastercard, Elo. Confirmação pelo seu banco.
             </span>
           </div>
-          <i className="radio" />
-        </div>
+          <i className={`radio${method === "card" ? " on" : ""}`} />
+        </div>)}
+        {askDocument && method === "pix" && (<label className="rv-field" style={{ marginTop: "14px" }}><input value={doc} onChange={(e) => onDocument?.(e.target.value)} aria-label="CPF ou CNPJ" placeholder="CPF ou CNPJ" inputMode="numeric" autoComplete="off" /></label>)}
+        {error && <p className="rv-caption" role="alert" style={{ color: "var(--danger)", marginTop: "10px" }}>{error}</p>}
         <div className="grow" />
         <p className="secure">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -97,8 +106,8 @@ export function PagamentoResumo() {
           </svg>
           Processado pela ValidaPay. Os dados do cartão não passam pelo Revela.
         </p>
-        <button className="rv-btn rv-btn--block rv-btn--primary" style={{  }}>
-          Pagar R$ 189 com Pix
+        <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={onPay} disabled={busy}>
+          {busy ? "Preparando…" : method === "pix" ? `Pagar ${price} com Pix` : `Pagar ${price} com cartão`}
         </button>
       </div>
       <div className="home-ind" />
