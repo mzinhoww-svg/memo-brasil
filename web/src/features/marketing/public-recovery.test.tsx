@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({ login: vi.fn(), search: "erro=login&next=%2Feventos" }));
-vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(m.search), usePathname: () => "/" }));
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(m.search), usePathname: () => "/", useRouter: () => ({ back: () => undefined, push: () => undefined, replace: () => undefined }) }));
 vi.mock("@/features/app/provider", () => ({ useApp: () => ({ signInWithGoogle: m.login, ready: true, persistent: true, known: [] }) }));
 vi.mock("@/features/marketing/usePublicCatalog", () => ({ usePublicCatalog: () => ({ plans: [], settings: null, failed: false }) }));
 vi.mock("@/features/marketing/ContactEmail", () => ({ ContactEmail: () => <span>suporte</span> }));
@@ -13,8 +13,8 @@ import { PrecosView } from "./PrecosView";
 beforeEach(() => { m.search = "erro=login&next=%2Feventos"; m.login.mockReset().mockResolvedValue(undefined); });
 describe("jornada pública", () => {
  it("rodapé oferece Preços", () => { render(<SiteFooter />); expect(screen.getByRole("link", { name: "Preços" })).toHaveAttribute("href", "/precos"); });
- it("pagamento público acompanha ValidaPay ativo", () => { vi.stubEnv("NEXT_PUBLIC_VALIDAPAY_CHECKOUT", "1"); const { unmount } = render(<Ajuda />); expect(screen.queryByText(/Mercado Pago/)).toBeNull(); expect(screen.getByText(/Pix ou cartão.*sem sair do Revela/)).toBeInTheDocument(); unmount(); render(<PrecosView />); expect(screen.queryByText(/Mercado Pago/)).toBeNull(); vi.unstubAllEnvs(); });
+ it("pagamento público acompanha ValidaPay ativo", () => { vi.stubEnv("NEXT_PUBLIC_VALIDAPAY_CHECKOUT", "1"); const { unmount } = render(<Ajuda />); fireEvent.click(screen.getByText("O pagamento é seguro?")); expect(screen.queryByText(/Mercado Pago/)).toBeNull(); expect(screen.getByText(/Pix ou cartão.*sem sair do Revela/)).toBeInTheDocument(); unmount(); render(<PrecosView />); expect(screen.queryByText(/Mercado Pago/)).toBeNull(); expect(screen.getByText("ValidaPay")).toBeInTheDocument(); vi.unstubAllEnvs(); });
  it("home mostra caminho direto para preços", () => { render(<PricingLine />); expect(screen.getByRole("link", { name: "Ver planos e preços" })).toHaveAttribute("href", "/precos"); });
- it("FAQ protege inclusive fotos próprias até revelação e respeita regras do evento", () => { render(<Ajuda />); expect(screen.queryByText(/Até lá, cada convidado vê só as próprias fotos/)).toBeNull(); expect(screen.getByText(/inclusive as próprias.*revelação/)).toBeInTheDocument(); expect(screen.getByText(/visibilidade depende das regras do evento/)).toBeInTheDocument(); });
+ it("FAQ protege inclusive fotos próprias até revelação e respeita regras do evento", () => { render(<Ajuda />); fireEvent.click(screen.getByText("Quando as fotos aparecem?")); expect(screen.queryByText(/Até lá, cada convidado vê só as próprias fotos/)).toBeNull(); expect(screen.getByText(/inclusive as próprias.*revelação/)).toBeInTheDocument(); expect(screen.getByText(/visibilidade depende das regras do evento/)).toBeInTheDocument(); });
  it.each(["/eventos", "/\\evil.test"])("login recuperável com destino %s", async (next) => { m.search = `erro=login&next=${encodeURIComponent(next)}`; m.login.mockRejectedValueOnce(new Error("offline")); render(<Home />); fireEvent.click(screen.getByRole("button", { name: "Tentar novamente com o Google" })); await waitFor(() => expect(m.login).toHaveBeenCalledWith(next === "/eventos" ? "/eventos" : "/")); expect(screen.getByRole("button", { name: "Tentar novamente com o Google" })).toBeEnabled(); expect(screen.getByRole("link", { name: "Ajuda para entrar" })).toHaveAttribute("href", "/ajuda"); });
 });

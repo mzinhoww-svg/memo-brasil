@@ -73,11 +73,11 @@ Referência (esquerda) | implementação com os dados do desenho (centro) | dife
 | 25 | QR para as mesas | QR-convite | 1.24% | ![](25.png) | referência portada (dados do desenho) | não ligada ao app |
 | 26 | Compartilhar | QR-compartilhar | 0.61% | ![](26.png) | referência portada (dados do desenho) | não ligada ao app |
 | 27 | Você | Voce | 1.36% | ![](27.png) | portada e ligada a dados reais | `/eventos/voce`: conta, extras e ajuda; "Nome e foto", "Telefone" e "Ícone do app" só informativos (conta Google, sem campo no produto) |
-| 28 | Sem internet | Apoio-offline | 0.60% | ![](28.png) | referência portada (dados do desenho) | não ligada ao app |
-| 29 | Excluir conta | Apoio-excluir-conta | 1.30% | ![](29.png) | referência portada (dados do desenho) | não ligada ao app |
-| 30 | Preços | Apoio-precos | 1.97% | ![](30.png) | referência portada (dados do desenho) | não ligada ao app |
-| 31 | Termos e privacidade | Apoio-termos | 5.69% | ![](31.png) | referência portada (dados do desenho) | não ligada ao app |
-| 32 | Ajuda | Apoio-ajuda | 2.46% | ![](32.png) | referência portada (dados do desenho) | não ligada ao app |
+| 28 | Sem internet | Apoio-offline | 0.87% | ![](28.png) | portada e ligada ao app | `/offline` (fallback do service worker): tocar na faixa, no disparo ou em Fechar; título "Revela" e contador "—" porque o fallback estático não conhece o evento nem a fila (a contagem de fotos esperando não é exibida) |
+| 29 | Excluir conta | Apoio-excluir-conta | 1.31% | ![](29.png) | portada e ligada a dados reais | `/conta/excluir` (nova rota; sem link em Você porque `app/eventos/**` é de outro agente): pedido via RPC `request_account_deletion`, contagem de eventos da conta; "Baixar meus dados antes" leva a `/eventos` (não há exportação de conta no produto) |
+| 30 | Preços | Apoio-precos | 2.15% | ![](30.png) | portada e ligada a dados reais | `/precos`: planos de `listPublicPlans` (destaque = plano `highlighted` ou Casamento); sem pagos ativos mostra só o Grátis e "Os planos pagos voltam em breve"; chip de provedor ValidaPay/Mercado Pago conforme o checkout; "Montar câmera" abre `/criar` |
+| 31 | Termos e privacidade | Apoio-termos | 2.83% | ![](31.png) | portada e ligada a dados reais | `/termos` e `/privacidade`: textos de `lib/legal-text` e versões de `lib/consent` inalterados (selo mostra data e versão); abas alternam as rotas; aviso de rascunho se a versão terminar em `-rascunho` |
+| 32 | Ajuda | Apoio-ajuda | 2.47% | ![](32.png) | portada e ligada a dados reais | `/ajuda`: busca e acordeão reais; 5 perguntas do desenho com respostas do produto (plano pela diferença, guarda 90/30 dias, pagamento conforme provedor); "Falar com o suporte" = mailto do e-mail público (`get_public_settings`) |
 | M00 | Login | Master-login | 0.19% | ![](M00.png) | referência portada (dados do desenho) | não ligada ao app |
 | M01 | Visão geral | Master-visao | 0.84% | ![](M01.png) | referência portada (dados do desenho) | não ligada ao app |
 | M02 | Eventos | Master-eventos | 1.34% | ![](M02.png) | referência portada (dados do desenho) | não ligada ao app |

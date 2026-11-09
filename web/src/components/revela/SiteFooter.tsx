@@ -9,7 +9,7 @@ import { CONTACT_EMAIL } from "@/lib/contact";
 import { Signature } from "./Signature";
 
 /** Só nas rotas públicas; o app do convidado e o painel ficam sem rodapé. */
-const PUBLIC_PATHS = new Set(["/", "/precos", "/ajuda", "/termos", "/privacidade"]);
+const PUBLIC_PATHS = new Set(["/"]);
 
 /** Contato público: e-mail de `get_public_settings()`; padrão do projeto quando vazio ou indisponível. */
 export const contactFrom = (s: PublicSettings | null): string => s?.supportEmail || CONTACT_EMAIL;
