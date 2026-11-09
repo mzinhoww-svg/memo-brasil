@@ -19,7 +19,7 @@ export default async function Saude() {
             <Metric rotulo="Exclusões LGPD pendentes" valor={num(r.data.lgpd.pendingDeletions)} />
           </div>
           {!r.data.cronAvailable ? <div className="adm-state" role="alert">pg_cron indisponível: as tarefas agendadas não estão rodando.</div> : (
-            <Table vazio="Nenhuma tarefa mm-* registrada." cols={[{ k: "n", h: "Tarefa" }, { k: "c", h: "Agenda" }, { k: "a", h: "Ativa" }, { k: "l", h: "Última execução" }, { k: "s", h: "Resultado" }]}
+            <Table vazio="Nenhuma tarefa rv-* registrada." cols={[{ k: "n", h: "Tarefa" }, { k: "c", h: "Agenda" }, { k: "a", h: "Ativa" }, { k: "l", h: "Última execução" }, { k: "s", h: "Resultado" }]}
               rows={r.data.jobs.map((j) => ({ n: j.name, c: <code>{j.schedule}</code>, a: <Badge s={j.active ? "ok" : "erro"}>{j.active ? "sim" : "não"}</Badge>, l: when(j.lastRun?.startedAt), s: j.lastRun ? <Badge s={j.lastRun.status === "succeeded" ? "ok" : "erro"}>{j.lastRun.status}</Badge> : "—" }))} />
           )}
         </>

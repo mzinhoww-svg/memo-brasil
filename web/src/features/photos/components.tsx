@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Chip, Chips, Sheet } from "@/components/memoriesmt";
+import { Button, Chip, Chips, Sheet } from "@/components/revela";
 import { REACTION_LABEL, type Photo, type Reaction, type ReactionKind } from "@/domain/photo";
 
 const KINDS = Object.keys(REACTION_LABEL) as ReactionKind[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Chip, ConfirmSheet, Chips, Field, Progress } from "@/components/memoriesmt";
+import { Button, Chip, ConfirmSheet, Chips, Field, Progress } from "@/components/revela";
 import { useAdmin } from "@/features/admin/context";
 import { useApp } from "@/features/app/provider";
 import { updateSettings } from "@/features/events/service";

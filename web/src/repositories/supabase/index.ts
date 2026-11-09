@@ -52,7 +52,7 @@ const sameTheme = (a?: ThemeSpec, b?: ThemeSpec) => JSON.stringify(a ?? null) ==
 const toEvent = (r: Row): MemoEvent => ({
   id: r.id as string, code: r.code as string, title: r.title as string, category: r.category as MemoEvent["category"],
   hostId: r.host_id as string, hostName: r.host_name as string, startAt: ms(r.start_at)!, durationHours: Number(r.duration_hours),
-  endedAt: ms(r.ended_at), cameraStyle: r.camera_style as MemoEvent["cameraStyle"],
+  endedAt: ms(r.ended_at), cameraStyle: r.camera_style as MemoEvent["cameraStyle"], filmLook: (r.film_look as MemoEvent["filmLook"] | null) ?? undefined,
   revealEnabled: r.reveal_enabled as boolean, revealAt: ms(r.reveal_at) ?? null, revealAnchor: r.reveal_anchor as MemoEvent["revealAnchor"],
   revealOffsetDays: r.reveal_offset_days as number, timezone: r.timezone as string, revealStatus: r.reveal_status as MemoEvent["revealStatus"],
   revealedAt: ms(r.revealed_at) ?? null, version: r.version as number, retentionPolicy: (r.retention_policy as string | null) ?? undefined,
@@ -67,7 +67,7 @@ const toEvent = (r: Row): MemoEvent => ({
 /** Colunas editáveis pelo cliente. host_id, code, version, revealed_at, reveal_status e created_at são do servidor. */
 const eventPatch = (e: MemoEvent): Row => ({
   title: e.title, category: e.category, host_name: e.hostName, start_at: iso(e.startAt), duration_hours: e.durationHours, ended_at: iso(e.endedAt),
-  camera_style: e.cameraStyle, reveal_enabled: e.revealEnabled, reveal_at: iso(e.revealAt), reveal_anchor: e.revealAnchor,
+  camera_style: e.cameraStyle, film_look: e.filmLook ?? "filme35", reveal_enabled: e.revealEnabled, reveal_at: iso(e.revealAt), reveal_anchor: e.revealAnchor,
   reveal_offset_days: e.revealOffsetDays, timezone: e.timezone, capacity: e.capacity, shots_per_person: e.shotsPerPerson,
   everyone_sees_all: e.everyoneSeesAll, reactions_enabled: e.reactionsEnabled, palette: e.palette, event_font: e.eventFont,
   place: e.place ?? null, moments: e.moments, tables: e.tables, notice: e.notice ?? null,

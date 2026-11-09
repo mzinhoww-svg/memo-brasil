@@ -2,7 +2,7 @@
 
 import { redirect, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { Skeleton } from "@/components/memoriesmt";
+import { Skeleton } from "@/components/revela";
 import { useAdmin } from "@/features/admin/context";
 import {
   BillingError, BillingUnavailableError, ProviderUnavailableError, formatBRL, getPublicSettings, listPublicPlans, openOrder, startCheckout,
@@ -110,7 +110,7 @@ function PlanoConteudo() {
     return (
       <div className="plano-estado"><h1 className="titulo-tela app-h1">Não deu para abrir o plano.</h1>
         <p className="app-p app-muted">Confira a conexão e tente de novo.</p>
-        <button type="button" className="mm-btn mm-btn--primario mm-btn--bloco" onClick={() => void load()}><span>Tentar de novo</span></button>
+        <button type="button" className="rv-btn rv-btn--primario rv-btn--bloco" onClick={() => void load()}><span>Tentar de novo</span></button>
       </div>
     );
   }

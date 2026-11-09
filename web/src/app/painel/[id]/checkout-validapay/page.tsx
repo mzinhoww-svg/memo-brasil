@@ -2,7 +2,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAdmin } from "@/features/admin/context";
-import { Skeleton } from "@/components/memoriesmt";
+import { Skeleton } from "@/components/revela";
 import { ValidaPayCheckout } from "@/features/billing/ValidaPayCheckout";
 
 function Checkout() {

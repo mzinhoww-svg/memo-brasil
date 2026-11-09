@@ -8,7 +8,7 @@ test("service worker assume o controle, guarda o shell e abre páginas visitadas
   await page.goto("/entrar");
   await expect(page.getByRole("heading", { name: "Entrar na festa" })).toBeVisible();
 
-  const cached = await page.evaluate(async () => (await (await caches.open((await caches.keys()).find((k) => k.startsWith("mm-"))!)).keys()).map((r) => new URL(r.url).pathname));
+  const cached = await page.evaluate(async () => (await (await caches.open((await caches.keys()).find((k) => k.startsWith("rv-"))!)).keys()).map((r) => new URL(r.url).pathname));
   expect(cached).toEqual(expect.arrayContaining(["/", "/entrar", "/criar", "/offline"]));
 
   await context.setOffline(true);

@@ -20,7 +20,6 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }), usePathname: () => "/painel/x", useParams: () => ({ id: paramId }),
   useSearchParams: () => new URLSearchParams(search),
 }));
-vi.mock("@/components/memoriesmt/ThemeToggle", () => ({ ThemeToggle: () => null }));
 vi.mock("next/link", () => ({ default: ({ href, children, ...p }: { href: string; children: React.ReactNode }) => <a href={href} {...p}>{children}</a> }));
 vi.mock("@/features/app/hooks", async (orig) => ({ ...(await orig<typeof import("@/features/app/hooks")>()), useEventData: () => eventData, useClock: () => ({ now: 1, sync: vi.fn() }) }));
 vi.mock("@/features/events/guest-context", () => ({ useGuest: () => ({ event: { id: "e1", code: "ABCD2345", shotsPerPerson: 10, revealStatus: "desativada", revealEnabled: false }, user: app.user, now: 1, photos: [], counts: { mine: 0, total: 0 }, isHost: false }) }));

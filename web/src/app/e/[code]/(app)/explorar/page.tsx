@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, Chip, Chips, Icon, PostCard, VisionGrid, VisionTile } from "@/components/memoriesmt";
+import { Button, Chip, Chips, Icon, PostCard, VisionGrid, VisionTile } from "@/components/revela";
 import { isRevealed } from "@/domain/event";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
 import { WaitingReveal } from "@/features/reveal/WaitingReveal";

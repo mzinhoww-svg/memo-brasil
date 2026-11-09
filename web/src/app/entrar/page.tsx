@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Breadcrumbs, Button, Field, Signature } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, Field, Signature } from "@/components/revela";
 import { extractShareCode } from "@/domain/share-code";
 
 export default function Entrar() {

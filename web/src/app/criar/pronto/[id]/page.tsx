@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Button, EventHeader, EventTheme, Signature } from "@/components/memoriesmt";
+import { Button, EventHeader, EventTheme, Signature } from "@/components/revela";
 import { formatDate, useEventData } from "@/features/app/hooks";
 import { inviteUrl } from "@/features/invitations/links";
 import { qrDataUrl } from "@/features/invitations/qr";
@@ -36,7 +36,7 @@ export default function Pronto() {
   );
   if (!event) return <main className="app-col app-fluid"><div className="app-screen"><h1 className="titulo-tela app-h1">Não achamos esse evento.</h1><Button href="/" block>Voltar ao início</Button></div></main>;
 
-  const text = `Você foi convidado para "${event.title}" no MemoriesMT. Entre com o código ${event.code} ou pelo link: ${link}`;
+  const text = `Você foi convidado para "${event.title}" no Revela. Entre com o código ${event.code} ou pelo link: ${link}`;
   async function share() {
     if (navigator.share) {
       try {
@@ -68,7 +68,7 @@ export default function Pronto() {
   }
 
   return (
-    <EventTheme palette={event.palette} font={event.eventFont} theme={event.theme} className="app-col app-col--card app-col--pronto app-fluid">
+    <EventTheme wrap={event.cameraStyle} className="app-col app-col--card app-col--pronto app-fluid">
       <main style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <EventHeader meta={[formatDate(event.startAt), event.place].filter(Boolean).join(" · ")} name={event.title} {...brand} />
         <div className="app-screen">
@@ -82,7 +82,7 @@ export default function Pronto() {
             </div>
             <div className="app-stack">
               <div className="app-stack-sm">
-                <label className="mm-field-label" htmlFor="link-convite">Link do convite</label>
+                <label className="rv-field-label" htmlFor="link-convite">Link do convite</label>
                 <div className="pronto-url">
                   <input ref={linkInput} id="link-convite" data-testid="link-convite" readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
                   <Button variant="secundario" onClick={async () => { if (await copyText(link)) { setCopyFailed(false); setLinkCopied(true); } else failCopy(); }}>{linkCopied ? "Link copiado" : "Copiar link"}</Button>

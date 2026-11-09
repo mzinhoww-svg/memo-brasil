@@ -62,8 +62,8 @@ test("convidado fotografa, não vê fotos bloqueadas, espera com contagem e a ga
   await expect(espera).toContainText("O filme ainda está no escuro.");
   await expect(page.getByTestId("contagem")).toContainText(/\d{2}h \d{2}min \d{2}s/);
   await expect(espera).toContainText(/1\s*foto sua guardada/);
-  await expect(page.locator(".mm-post")).toHaveCount(0); // nenhuma foto bloqueada na galeria
-  await expect(page.locator(".mm-media img")).toHaveCount(0);
+  await expect(page.locator(".rv-post")).toHaveCount(0); // nenhuma foto bloqueada na galeria
+  await expect(page.locator(".rv-media img")).toHaveCount(0);
 
   await page.goto(`/e/${code}/voce`);
   await expect(page.getByText("Guardada", { exact: true })).toBeVisible();
@@ -80,8 +80,8 @@ test("convidado fotografa, não vê fotos bloqueadas, espera com contagem e a ga
   await expect(page.getByText("O filme foi revelado.")).toBeVisible({ timeout: 6000 });
   await page.getByRole("button", { name: "Ver as fotos" }).click();
   await expect(page.getByTestId("aguardando-revelacao")).toHaveCount(0);
-  await expect(page.locator(".mm-post")).toHaveCount(1);
-  await expect(page.locator(".mm-media img").first()).toBeVisible();
+  await expect(page.locator(".rv-post")).toHaveCount(1);
+  await expect(page.locator(".rv-media img").first()).toBeVisible();
   await context.setOffline(false);
 });
 
@@ -183,7 +183,7 @@ test("BG-102: com o relógio do aparelho recuado, a revelação já ocorrida nã
   await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
   await page.getByRole("button", { name: "Ver as fotos", exact: true }).click({ timeout: 8000 });
   await page.getByRole("link", { name: "Agora", exact: true }).click();
-  await expect(page.locator(".mm-post")).toHaveCount(1);
+  await expect(page.locator(".rv-post")).toHaveCount(1);
   await expect.poll(() => page.evaluate(async (eid) => {
     const db: IDBDatabase = await new Promise((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => res(r.result); });
     const e: { revealedAt: number | null } = await new Promise((res) => { const r = db.transaction("events").objectStore("events").get(eid); r.onsuccess = () => res(r.result); });
@@ -193,7 +193,7 @@ test("BG-102: com o relógio do aparelho recuado, a revelação já ocorrida nã
   await page.clock.setFixedTime(t0 - 60 * MIN); // relógio do aparelho recuado para uma hora antes do evento
   await page.reload();
   await expect(page.getByTestId("aguardando-revelacao")).toHaveCount(0);
-  await expect(page.locator(".mm-post")).toHaveCount(1);
+  await expect(page.locator(".rv-post")).toHaveCount(1);
   const revealedAt = await page.evaluate(async (eid) => {
     const db: IDBDatabase = await new Promise((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => res(r.result); });
     const e: { revealStatus: string; revealedAt: number | null } = await new Promise((res) => { const r = db.transaction("events").objectStore("events").get(eid); r.onsuccess = () => res(r.result); });

@@ -7,7 +7,7 @@ import { CapacityBanner, usePlanInfo } from "@/features/admin/PlanInfo";
 import { capacityState } from "@/features/billing/capacity";
 import { limitChoices } from "@/features/billing/limits";
 import { RedeemCodeSheet, type RedeemCodeProps } from "@/features/billing/RedeemCode";
-import { Button, Chip, Chips, Field, Notice, OptionGroup, ConfirmSheet } from "@/components/memoriesmt";
+import { Button, Chip, Chips, Field, Notice, OptionGroup, ConfirmSheet } from "@/components/revela";
 import { photosAvailableUntil } from "@/domain/retention";
 import { canEditEnd, endAt, eventStatus } from "@/domain/event";
 import { CAPACITY_OPTIONS, SHOTS_OPTIONS, type Capacity, type Shots } from "@/domain/options";
@@ -131,7 +131,7 @@ export default function Configuracoes() {
         <p className="app-p">{ended ? "Terminou" : "Termina"} em {formatDate(endAt(event))} · {formatTime(endAt(event))}.</p>
         {locked ? <p className="app-p app-muted">Este álbum já terminou e tem fotos. Não dá para reabrir.</p> : (
           <div className="app-stack-sm">
-            <span className="mm-group-label">Mudar o fim para daqui a</span>
+            <span className="rv-group-label">Mudar o fim para daqui a</span>
             <Chips label="Mudar o fim">
               {EXTEND.map((h) => <Chip key={h} variant="filtro" onClick={() => setConfirm(h)}>{h === 1 ? "1 hora" : h === 24 ? "1 dia" : `${h} horas`}</Chip>)}
             </Chips>

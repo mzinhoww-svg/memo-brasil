@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { Breadcrumbs, Button } from "@/components/memoriesmt";
+import { Breadcrumbs, Button } from "@/components/revela";
 import { visiblePhotos } from "@/domain/photo";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";

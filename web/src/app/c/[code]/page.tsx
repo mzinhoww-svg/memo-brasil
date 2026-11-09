@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Skeleton } from "@/components/memoriesmt";
+import { Skeleton } from "@/components/revela";
 import { savePendingCode } from "@/features/events/plan-catalog";
 
 /** Link `/c/<código>`: guarda o código nesta aba e abre o assistente. O código só é aplicado ao criar o evento. */

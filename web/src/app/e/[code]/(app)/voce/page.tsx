@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useApp } from "@/features/app/provider";
 import { useState } from "react";
 import { notificationPlan } from "@/domain/notifications";
-import { Button, Icon, Progress, Signature } from "@/components/memoriesmt";
+import { Button, Icon, Progress, Signature } from "@/components/revela";
 import { isRevealed, shotsLeft } from "@/domain/event";
 import { usePhotoUrls } from "@/features/app/hooks";
 import { useGuest } from "@/features/events/guest-context";
@@ -71,7 +71,7 @@ export default function Voce() {
 
       <section className="app-stack-sm" aria-labelledby="avisos">
         <h2 id="avisos" className="titulo-card app-h1">Avisos do evento</h2>
-        <p className="app-p app-muted meta">Lembretes de fim e de revelação. Nesta versão funcionam só enquanto o MemoriesMT estiver aberto.</p>
+        <p className="app-p app-muted meta">Lembretes de fim e de revelação. Nesta versão funcionam só enquanto o Revela estiver aberto.</p>
         <Button
           variant="secundario"
           block
@@ -90,7 +90,7 @@ export default function Voce() {
 
       <div className="app-stack-sm">
         {isHost && <Button href={`/painel/${event.id}`} variant="secundario" block>Abrir o painel do evento</Button>}
-        <Link href="/" className="mm-btn mm-btn--texto" style={{ alignSelf: "flex-start" }}>Voltar ao início</Link>
+        <Link href="/" className="rv-btn rv-btn--texto" style={{ alignSelf: "flex-start" }}>Voltar ao início</Link>
         {canSwitchIdentity && devToolsEnabled() && (
         <div className="app-stack-sm">
             <Button variant="secundario" block onClick={async () => { await signOut(); router.push(`/e/${event.code}`); }}>Entrar como outra pessoa</Button>

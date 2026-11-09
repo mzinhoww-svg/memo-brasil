@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
-import { AdminNav, Breadcrumbs, Button, CountBadge, EventTheme, GoogleButton, Icon, Skeleton } from "@/components/memoriesmt";
+import { AdminNav, Breadcrumbs, Button, CountBadge, EventTheme, GoogleButton, Icon, Skeleton } from "@/components/revela";
 import { eventStatus } from "@/domain/event";
 import { LOCAL_ACTOR, can } from "@/domain/roles";
 import { computeRevealStatus } from "@/domain/reveal";
@@ -69,7 +69,7 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
     }
     return (
       <main className="app-col app-fluid"><div className="app-screen">
-        <span aria-hidden="true" className="app-empty-icon" style={{ display: "grid", placeItems: "center", width: 72, height: 72, borderRadius: "50%", background: "var(--neutro)" }}><Icon name="explorar" decorative size={28} /></span>
+        <span aria-hidden="true" className="app-empty-icon" style={{ display: "grid", placeItems: "center", width: 72, height: 72, borderRadius: "50%", background: "var(--surface-2)" }}><Icon name="explorar" decorative size={28} /></span>
         <h1 className="titulo-tela app-h1">Não achamos este evento.</h1>
         <p className="app-p app-muted">{copyFor(backend).panelNotFoundBody}</p>
         <div className="app-stack-sm" style={{ marginTop: "auto" }}>
@@ -93,12 +93,12 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
   const crumbs = [{ label: "Meus eventos", href: "/eventos" }, section && section.href !== base ? { label: event.title, href: base } : { label: event.title }, ...(section && section.href !== base ? [{ label: section.label }] : [])];
   return (
     <AdminProvider value={{ event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh }}>
-      <EventTheme palette={event.palette} font={event.eventFont} className="app-admin app-fluid">
+      <EventTheme wrap={event.cameraStyle} className="app-admin app-fluid">
         <div className="app-admin-side no-print"><AdminNav eventName={event.title} eventState={state} switchHref="/eventos" items={items} /></div>
         <main className="app-admin-main">
           <nav className="app-admin-navm no-print" aria-label="Administração do evento">
             {items.map((i) => (
-              <Link key={i.href} href={i.href} className="mm-tab" aria-current={i.current ? "page" : undefined} style={i.current ? { background: "var(--acao)", color: "var(--on-acao)", fontWeight: 700 } : undefined}>
+              <Link key={i.href} href={i.href} className="rv-tab" aria-current={i.current ? "page" : undefined} style={i.current ? { background: "var(--revela)", color: "var(--on-revela)", fontWeight: 700 } : undefined}>
                 {i.label}
                 {i.count ? <CountBadge count={i.count} /> : null}
               </Link>

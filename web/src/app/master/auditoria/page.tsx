@@ -14,8 +14,8 @@ export default async function Auditoria({ searchParams }: { searchParams: Promis
       <PageHead titulo="Auditoria e segurança" texto="Registro imutável de ações administrativas e de segurança. Ações sensíveis exigem justificativa." />
       <form method="get" role="search" style={{ display: "flex", gap: 8, marginBottom: 16 }}>
         <label htmlFor="a" style={{ position: "absolute", left: -9999 }}>Prefixo da ação</label>
-        <input id="a" name="a" className="mm-field-input" placeholder="Ação começa com… (ex.: photo.)" defaultValue={sp.a} style={{ maxWidth: 320 }} />
-        <button className="mm-btn mm-btn--secundario" type="submit">Filtrar</button>
+        <input id="a" name="a" className="rv-field-input" placeholder="Ação começa com… (ex.: photo.)" defaultValue={sp.a} style={{ maxWidth: 320 }} />
+        <button className="rv-btn rv-btn--secundario" type="submit">Filtrar</button>
       </form>
       {r.state !== "ok" ? <StateBox load={r} /> : (
         <>

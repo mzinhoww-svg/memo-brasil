@@ -1,4 +1,4 @@
-import type { CameraStyle, Capacity, EventCategory, Shots } from "./options";
+import type { CameraStyle, Capacity, EventCategory, FilmLook, Shots } from "./options";
 import { computeRevealStatus, type RevealAnchor, type RevealStatus } from "./reveal";
 import { MIN_DURATION_HOURS } from "./options";
 import type { ThemeSpec } from "./theme";
@@ -16,7 +16,10 @@ export interface MemoEvent {
   startAt: number; // ms epoch
   durationHours: number;
   endedAt?: number; // "Encerrar agora"
+  /** Embalagem da câmera (festa, casamento, aniversario, noite). */
   cameraStyle: CameraStyle;
+  /** Filme aplicado nas fotos; ausente = Filme 35mm. */
+  filmLook?: FilmLook;
   /** Revelação programada: desligada = fotos visíveis na hora. */
   revealEnabled: boolean;
   revealAt: number | null; // epoch UTC

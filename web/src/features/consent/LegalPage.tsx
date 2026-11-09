@@ -1,4 +1,4 @@
-import { Breadcrumbs, Button, Signature } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, Signature } from "@/components/revela";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/consent";
 import { LEGAL_UPDATED_AT, type LegalSection } from "@/lib/legal-text";
 

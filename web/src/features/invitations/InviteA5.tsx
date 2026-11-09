@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/memoriesmt";
+import { Button } from "@/components/revela";
 import type { MemoEvent } from "@/domain/event";
 import { PT, TRIM, type FontId, type InviteLayout } from "./invite-layout";
 import { buildInvitePdf, FONT_FILES, inviteLayout, loadInviteFonts, printable, type InviteFonts } from "./invite-pdf";
@@ -106,7 +106,7 @@ export function InviteA5({ event, now }: { event: MemoEvent; now: number }) {
         {loadError && (
           <p className="app-banner" role="alert">
             Não conseguimos carregar as fontes do convite.{" "}
-            <button type="button" className="mm-link" onClick={() => { setLoadError(false); fontsFromSite().then(setFonts, () => setLoadError(true)); }}>Tentar de novo</button>
+            <button type="button" className="rv-link" onClick={() => { setLoadError(false); fontsFromSite().then(setFonts, () => setLoadError(true)); }}>Tentar de novo</button>
           </p>
         )}
       </div>

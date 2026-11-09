@@ -34,13 +34,13 @@ test("Baixar PDF para gráfica: arquivo A5 com sangria, nome seguro e sem contro
 test("Imprimir: só o convite, em uma página A5, sem controles nem cards de mesa", async ({ page }) => {
   await openStudio(page, "Ana & Rui");
   await page.getByRole("button", { name: "Mais uma mesa" }).click();
-  await expect(page.locator(".mm-card-mesa")).toHaveCount(1);
+  await expect(page.locator(".rv-card-mesa")).toHaveCount(1);
   // o botão Imprimir marca o modo e chama window.print(); aqui o diálogo é trocado por um PDF do Chromium com o mesmo CSS de impressão
   await page.evaluate(() => { window.print = () => undefined; });
   await page.getByRole("button", { name: "Imprimir", exact: true }).click();
   expect(await page.evaluate(() => document.body.dataset.imprimir)).toBe("convite");
   await page.emulateMedia({ media: "print" });
-  for (const hidden of [page.getByRole("button", { name: "Baixar PDF para gráfica" }), page.locator(".mm-card-mesa"), page.getByRole("heading", { name: "QR Code Studio" })]) await expect(hidden.first()).toBeHidden();
+  for (const hidden of [page.getByRole("button", { name: "Baixar PDF para gráfica" }), page.locator(".rv-card-mesa"), page.getByRole("heading", { name: "QR Code Studio" })]) await expect(hidden.first()).toBeHidden();
   await expect(page.locator(".convite-a5")).toBeVisible();
   const pdf = await PDFDocument.load(await page.pdf({ preferCSSPageSize: true, printBackground: true }));
   expect(pdf.getPageCount()).toBe(1);

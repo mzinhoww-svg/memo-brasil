@@ -1,6 +1,6 @@
 "use client";
 
-import { GoogleButton } from "@/components/memoriesmt";
+import { GoogleButton } from "@/components/revela";
 import { useApp } from "@/features/app/provider";
 
 export function MasterLogin() {

@@ -21,7 +21,7 @@ export function RevealTransition({ title, onClose }: { title: string; onClose: (
         <p className="emocao-lg" style={{ margin: 0 }} aria-live="polite">{done ? "O filme foi revelado." : "Revelando…"}</p>
         <div className="app-reveal-frame" aria-hidden="true"><span className={done ? "app-reveal-bar app-reveal-bar--done" : "app-reveal-bar"} /></div>
         {done && (
-          <button ref={btn} type="button" className="mm-btn mm-btn--cta mm-btn--bloco" style={{ background: "var(--fundo)", color: "var(--tinta)" }} onClick={onClose}>Ver as fotos</button>
+          <button ref={btn} type="button" className="rv-btn rv-btn--cta rv-btn--bloco" style={{ background: "var(--bg)", color: "var(--ink)" }} onClick={onClose}>Ver as fotos</button>
         )}
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, EventHeader, EventTheme, Field, KnownPeople, Signature } from "@/components/memoriesmt";
+import { Button, EventHeader, EventTheme, Field, KnownPeople, Signature } from "@/components/revela";
 import { eventStatus } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
 import { formatDate, useEventData } from "@/features/app/hooks";
@@ -131,7 +131,7 @@ export default function Convite() {
           <h1 className="titulo-tela app-h1">Este convite não está mais ativo.</h1>
           <p className="corpo app-p app-muted">Fale com quem convidou você. Pode ser que a festa tenha um link novo.</p>
           <Button href="/entrar" block>Tenho outro código</Button>
-          <Button href="/" variant="texto">Conhecer o MemoriesMT</Button>
+          <Button href="/" variant="texto">Conhecer o Revela</Button>
         </div>
       </main>
     );
@@ -184,7 +184,7 @@ export default function Convite() {
   const ended = (data.preview?.status ?? (data.event ? eventStatus(data.event, now()) : "ativo")) === "encerrado";
   const meta = [formatDate(event.startAt), event.place].filter(Boolean).join(" · ");
   return (
-    <EventTheme palette={event.palette} font={event.eventFont} theme={event.theme} className="app-col app-col--card app-fluid">
+    <EventTheme wrap={event.cameraStyle} className="app-col app-col--card app-fluid">
       <main style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <EventHeader meta={meta} name={event.title} {...brand} />
         <div className="app-screen">
@@ -210,11 +210,11 @@ export default function Convite() {
               <h1 className="titulo-tela app-h1">Entrar na festa</h1>
               <Field label="Como te chamam na festa?" value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" maxLength={40} error={error} />
               {!ended && <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); if (v) setConsentError(undefined); }} onPrivacy={(v) => { setAckedPrivacy(v); if (v) setConsentError(undefined); }} />}
-              {consentError && <p className="mm-field-erro" role="alert">{consentError}</p>}
+              {consentError && <p className="rv-field-erro" role="alert">{consentError}</p>}
               {!ended && <p className="app-p app-muted">Ao postar, você declara ter o direito de compartilhar a foto com as pessoas autorizadas neste evento.</p>}
               <Button type="submit" variant="primario" block disabled={busy || ended}>{busy ? "Entrando…" : "Entrar e abrir a câmera"}</Button>
               <p className="meta app-muted">Sem conta e sem baixar app.</p>
-              {ended && <p className="mm-field-erro">{MESSAGES.encerrado}</p>}
+              {ended && <p className="rv-field-erro">{MESSAGES.encerrado}</p>}
             </form>
           )}
 

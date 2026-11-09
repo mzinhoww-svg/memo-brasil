@@ -1,4 +1,4 @@
-import { Button, Icon, Signature } from "@/components/memoriesmt";
+import { Button, Icon, Signature } from "@/components/revela";
 
 export default function NotFound() {
   return (

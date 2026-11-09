@@ -5,7 +5,7 @@ export const LEGAL_UPDATED_AT = "22 de outubro de 2026";
 
 export const TERMS_TEXT: LegalSection[] = [
   { title: "1. Sobre o serviço", blocks: [
-    "O MemoriesMT permite criar eventos, convidar participantes, compartilhar fotografias e disponibilizar uma galeria conforme as configurações de acesso e revelação escolhidas pelo organizador.",
+    "O Revela permite criar eventos, convidar participantes, compartilhar fotografias e disponibilizar uma galeria conforme as configurações de acesso e revelação escolhidas pelo organizador.",
     "O responsável pela operação é Aurimar Espindola Nogueira. Dúvidas, suporte e solicitações podem ser encaminhados para mazinhoww@gmail.com.",
   ] },
   { title: "2. Organizador e participantes", blocks: [
@@ -15,9 +15,9 @@ export const TERMS_TEXT: LegalSection[] = [
   ] },
   { title: "3. Fotografias e direitos de imagem", blocks: [
     "Quem envia uma fotografia declara possuir os direitos ou autorizações necessários para compartilhá-la naquele contexto.",
-    "O envio não transfere a propriedade da fotografia ao MemoriesMT. Você autoriza apenas o tratamento necessário para armazenar, processar tecnicamente e exibir o conteúdo às pessoas autorizadas no evento.",
+    "O envio não transfere a propriedade da fotografia ao Revela. Você autoriza apenas o tratamento necessário para armazenar, processar tecnicamente e exibir o conteúdo às pessoas autorizadas no evento.",
     "O aceite destes Termos não representa autorização irrestrita de uso da imagem de terceiros. O organizador e quem envia o conteúdo devem respeitar os direitos das pessoas retratadas.",
-    "O MemoriesMT não utilizará fotografias do evento em publicidade, divulgação comercial ou treinamento de modelos de inteligência artificial sem autorização específica e separada.",
+    "O Revela não utilizará fotografias do evento em publicidade, divulgação comercial ou treinamento de modelos de inteligência artificial sem autorização específica e separada.",
   ] },
   { title: "4. Acesso e revelação", blocks: [
     "As configurações do evento determinam quando a galeria será disponibilizada e quais funcionalidades estarão acessíveis aos participantes. O organizador e operadores autorizados podem ter acessos necessários à gestão, suporte e segurança.",
@@ -44,7 +44,7 @@ export const TERMS_TEXT: LegalSection[] = [
   ] },
   { title: "9. Responsabilidades", blocks: [
     "O organizador responde pelas configurações e convites que administra; cada usuário responde pelo conteúdo que envia e por seu uso do serviço.",
-    "O MemoriesMT responde por suas próprias obrigações e falhas na forma da legislação aplicável. Estes Termos não excluem direitos do consumidor nem afastam responsabilidades que não possam ser limitadas por contrato.",
+    "O Revela responde por suas próprias obrigações e falhas na forma da legislação aplicável. Estes Termos não excluem direitos do consumidor nem afastam responsabilidades que não possam ser limitadas por contrato.",
   ] },
   { title: "10. Atualizações e legislação", blocks: [
     "Alterações relevantes serão comunicadas pela plataforma. Quando necessário, será solicitado novo aceite. Mudanças não retirarão retroativamente direitos ou condições já contratadas.",
@@ -54,7 +54,7 @@ export const TERMS_TEXT: LegalSection[] = [
 
 export const PRIVACY_TEXT: LegalSection[] = [
   { title: "1. Responsável e contato", blocks: [
-    "Aurimar Espindola Nogueira é o responsável indicado pela operação do MemoriesMT e pelo tratamento de dados relacionado à administração da plataforma.",
+    "Aurimar Espindola Nogueira é o responsável indicado pela operação do Revela e pelo tratamento de dados relacionado à administração da plataforma.",
     "Contato para privacidade e exercício de direitos: mazinhoww@gmail.com.",
     "O organizador também toma decisões sobre seu evento, convidados e conteúdo. As responsabilidades relativas a esses tratamentos dependem das decisões efetivamente tomadas por cada parte.",
   ] },
@@ -77,7 +77,7 @@ export const PRIVACY_TEXT: LegalSection[] = [
   ] },
   { title: "4. Acesso às fotografias", blocks: [
     "Fotografias são disponibilizadas conforme as permissões e o momento de revelação do evento. Organizadores e pessoas autorizadas podem acessar o conteúdo nos limites das funcionalidades oferecidas.",
-    "O convite pode ser encaminhado por terceiros; mantenha seus códigos e links sob controle. Depois de uma fotografia ser acessada ou baixada legitimamente, não conseguimos controlar todas as cópias mantidas fora do MemoriesMT.",
+    "O convite pode ser encaminhado por terceiros; mantenha seus códigos e links sob controle. Depois de uma fotografia ser acessada ou baixada legitimamente, não conseguimos controlar todas as cópias mantidas fora do Revela.",
     "Acesso operacional ao conteúdo deve ocorrer somente quando necessário para suporte, segurança, atendimento de solicitações ou obrigação legal.",
   ] },
   { title: "5. Fornecedores e compartilhamento", blocks: [

@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Icon } from "@/components/memoriesmt";
+import { Button, Icon } from "@/components/revela";
 import type { Photo } from "@/domain/photo";
 import { createExampleParty, type ExampleParty } from "@/features/demo/example";
 import { sampleImage } from "@/features/demo/seed";
@@ -102,7 +102,7 @@ export default function Exemplo() {
 
   return (
     <main className="app-col app-col--card app-fluid">
-      <div className="app-topbar" style={{ background: "var(--tinta)", color: "var(--on-acao, #fff)", padding: "12px var(--space-4)" }}>
+      <div className="app-topbar" style={{ background: "var(--ink)", color: "var(--on-revela)", padding: "12px var(--space-4)" }}>
         <span className="eyebrow" data-testid="selo-exemplo" style={{ color: "inherit", fontWeight: 800 }}>Exemplo · nada é salvo</span>
         <Link href="/" className="app-link" style={{ color: "inherit", minHeight: 44, display: "inline-flex", alignItems: "center" }}>Sair</Link>
       </div>
@@ -113,10 +113,10 @@ export default function Exemplo() {
           <p className="corpo app-p app-muted">Tire até {party.shotsLimit} fotos para sentir como é. Elas ficam só neste aparelho e somem quando você sair.</p>
         </div>
 
-        <div className="app-camera-box" style={{ borderRadius: "var(--radius-panel)", overflow: "hidden", background: "var(--tinta)", aspectRatio: "4 / 3", display: "grid", placeItems: "center" }}>
+        <div className="app-camera-box" style={{ borderRadius: "var(--radius-lg)", overflow: "hidden", background: "var(--ink)", aspectRatio: "4 / 3", display: "grid", placeItems: "center" }}>
           <video ref={video} playsInline muted aria-label="Câmera ao vivo" style={{ width: "100%", height: "100%", objectFit: "cover", display: camera === "ligada" ? "block" : "none", gridArea: "1 / 1" }} />
           {camera !== "ligada" && (
-            <div className="app-stack-sm" style={{ alignItems: "center", textAlign: "center", padding: "var(--space-4)", color: "var(--on-acao, #fff)" }}>
+            <div className="app-stack-sm" style={{ alignItems: "center", textAlign: "center", padding: "var(--space-4)", color: "var(--on-revela)" }}>
               <span className="meta" role="status">
                 {camera === "parada" ? "A câmera fica desligada até você pedir." : camera === "pedindo" ? "Permita o acesso no aviso do navegador." : camera === "recusada" ? "Acesso à câmera recusado. O disparo usa uma imagem de exemplo." : "Sem câmera: o disparo usa uma imagem de exemplo."}
               </span>

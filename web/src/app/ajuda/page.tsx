@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Button, Logo, Signature } from "@/components/memoriesmt";
+import { Button, Logo, Signature } from "@/components/revela";
 import { ContactEmail } from "@/features/marketing/ContactEmail";
 import { publicPaymentMethod } from "@/features/marketing/payment-copy";
 
@@ -21,7 +21,7 @@ export default function Ajuda() {
       <div className="app-screen">
         <div className="app-stack-sm">
           <h1 className="titulo-tela app-h1">Ajuda</h1>
-          <p className="app-p app-muted">Respostas rápidas sobre o MemoriesMT.</p>
+          <p className="app-p app-muted">Respostas rápidas sobre o Revela.</p>
         </div>
         {FAQ.map((f) => (
           <section key={f.id} className="app-stack-sm" aria-labelledby={`faq-${f.id}`}>

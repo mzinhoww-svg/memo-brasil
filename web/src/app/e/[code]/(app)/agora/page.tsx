@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button, Icon, LiveIndicator, Notice, PostCard } from "@/components/memoriesmt";
+import { Button, Icon, LiveIndicator, Notice, PostCard } from "@/components/revela";
 import { eventStatus, isRevealed, retrospectiveOpen } from "@/domain/event";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
 import { relativeTime, usePhotoUrls } from "@/features/app/hooks";
@@ -40,10 +40,10 @@ export default function Agora() {
           {!pending && <span className="meta app-muted">{shown.length.toLocaleString("pt-BR")} {plural(shown.length, "foto", "fotos")}</span>}
         </div>
         <h1 className="titulo-tela app-h1">Agora</h1>
-        <p className="app-p app-muted" style={{ fontFamily: "var(--font-evento)", fontSize: 30, lineHeight: 1.05, color: "var(--evento-profundo)" }}>{event.title}</p>
+        <p className="app-p app-muted" style={{ fontFamily: "var(--font-display)", fontSize: 30, lineHeight: 1.05, color: "var(--ink)" }}>{event.title}</p>
       </div>
 
-      {!live && retrospectiveOpen(event, now, viewer.host) && <Link className="mm-btn mm-btn--secundario mm-btn--bloco" href={`/e/${event.code}/retrospectiva`}>Ver a retrospectiva</Link>}
+      {!live && retrospectiveOpen(event, now, viewer.host) && <Link className="rv-btn rv-btn--secundario rv-btn--bloco" href={`/e/${event.code}/retrospectiva`}>Ver a retrospectiva</Link>}
 
       {event.notice && (!event.notice.expiresAt || event.notice.expiresAt > now) && <Notice text={event.notice.text} eyebrow={event.category === "casamento" ? "Aviso · cerimonial" : "Aviso · organização"} />}
 

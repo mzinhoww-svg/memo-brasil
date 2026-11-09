@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Progress } from "@/components/memoriesmt";
+import { Button, Progress } from "@/components/revela";
 import { download, guestsCsv, zipAlbum } from "@/features/admin/export";
 import { guestRanking } from "@/features/admin/service";
 import { useAdmin } from "@/features/admin/context";
@@ -39,7 +39,7 @@ export default function Downloads() {
     setError(undefined);
     setCsvBusy(true);
     try {
-      download(new Blob([guestsCsv(await guestRanking(repos, event))], { type: "text/csv;charset=utf-8" }), `memoriesmt-${event.code}-convidados.csv`);
+      download(new Blob([guestsCsv(await guestRanking(repos, event))], { type: "text/csv;charset=utf-8" }), `revela-${event.code}-convidados.csv`);
     } catch {
       setError("Não foi possível preparar a lista. Tente de novo.");
     } finally { setCsvBusy(false); }

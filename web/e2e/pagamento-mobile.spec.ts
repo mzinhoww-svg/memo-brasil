@@ -33,7 +33,7 @@ for (const vp of SIZES) {
     await expect(page.getByTestId("resumo-pedido")).toContainText("Pagamento único");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await expect(pay).toBeInViewport({ ratio: 1 });
-    const alturas = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>(".plano-card, .mm-btn--cta")].map((e) => Math.round(e.getBoundingClientRect().height)));
+    const alturas = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>(".plano-card, .rv-btn--cta")].map((e) => Math.round(e.getBoundingClientRect().height)));
     expect(alturas.length).toBeGreaterThan(0);
     for (const h of alturas) expect(h).toBeGreaterThanOrEqual(44);
     await page.screenshot({ path: path.join(SHOTS, `plano-${vp.width}.png`), fullPage: false });

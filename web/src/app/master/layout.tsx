@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Logo } from "@/components/memoriesmt";
+import { Logo } from "@/components/revela";
 import { masterAccess } from "@/lib/master/server";
 import "@/styles/admin.css";
 import { MasterLogin } from "./MasterLogin";

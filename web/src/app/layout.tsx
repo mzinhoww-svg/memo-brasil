@@ -1,52 +1,37 @@
 import type { Metadata, Viewport } from "next";
-import { Birthstone_Bounce, Great_Vibes, Pinyon_Script } from "next/font/google";
 import "./globals.css";
-import { THEME_INIT_SCRIPT, ThemeProvider } from "@/lib/theme";
-import { paletteCss } from "@/lib/event-theme";
 import { AppProvider } from "@/features/app/provider";
-import { SiteFooter, StorageBanner } from "@/components/memoriesmt";
+import { SiteFooter, StorageBanner } from "@/components/revela";
 import { RegisterServiceWorker } from "@/lib/register-sw";
 
-// Fontes do evento (só no nome do evento). Bricolage e Instrument Serif são locais (tokens.css).
-const birthstone = Birthstone_Bounce({ weight: "400", subsets: ["latin"], variable: "--fonte-birthstone", display: "swap" });
-const pinyon = Pinyon_Script({ weight: "400", subsets: ["latin"], variable: "--fonte-pinyon", display: "swap" });
-const vibes = Great_Vibes({ weight: "400", subsets: ["latin"], variable: "--fonte-vibes", display: "swap" });
-
 export const metadata: Metadata = {
-  title: { default: "MemoriesMT", template: "%s · MemoriesMT" },
-  description: "A festa vista por todo mundo.",
-  applicationName: "MemoriesMT",
-  icons: { icon: "/brand/memoriesmt-selo.svg", apple: "/pwa/apple-touch-icon.png" },
-  appleWebApp: { capable: true, title: "MemoriesMT", statusBarStyle: "default" },
+  title: { default: "Revela", template: "%s · Revela" },
+  description: "A câmera descartável coletiva para eventos. Cada convidado tem suas poses, e a festa revela junta.",
+  applicationName: "Revela",
+  icons: { icon: "/revela/logos/revela-mark.svg", apple: "/pwa/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Revela", statusBarStyle: "black-translucent" },
 };
 
+/** Tema Noite fixo (tokens.css: --bg). A cor da barra do sistema precisa ser literal; ela acompanha `--bg`. */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
-    { media: "(prefers-color-scheme: dark)", color: "#141211" },
-  ],
+  themeColor: "#0E0C0B",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" data-theme="dia" suppressHydrationWarning className={`${birthstone.variable} ${pinyon.variable} ${vibes.variable}`}>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <style dangerouslySetInnerHTML={{ __html: paletteCss() }} />
-      </head>
+    <html lang="pt-BR" data-theme="dark" suppressHydrationWarning>
       <body>
-        <a className="mm-skip" href="#conteudo">Ir para o conteúdo</a>
-        <ThemeProvider>
-          <RegisterServiceWorker />
-          <AppProvider>
-            <StorageBanner />
-            <div id="conteudo">{children}</div>
-            <SiteFooter />
-          </AppProvider>
-        </ThemeProvider>
+        <a className="rv-skip" href="#conteudo">Ir para o conteúdo</a>
+        <RegisterServiceWorker />
+        <AppProvider>
+          <StorageBanner />
+          <div id="conteudo">{children}</div>
+          <SiteFooter />
+        </AppProvider>
       </body>
     </html>
   );

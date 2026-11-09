@@ -1,6 +1,6 @@
 "use client";
 
-import { Breadcrumbs, Button, PostCard, StatGrid, StatTile } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, PostCard, StatGrid, StatTile } from "@/components/revela";
 import { retrospectiveOpen } from "@/domain/event";
 import { visiblePhotos } from "@/domain/photo";
 import { formatDate, usePhotoUrls } from "@/features/app/hooks";

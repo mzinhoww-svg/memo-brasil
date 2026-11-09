@@ -113,15 +113,15 @@ export function layoutInvite(inv: PrintInvite, qrModules: boolean[][], measure: 
   y += 9;
   text(y - 1, inv.code, "bold", 20, INK, 1.2);
 
-  // assinatura discreta: "por ● MemoriesMT" no rodapé da área segura
+  // assinatura discreta: "por ● Revela" no rodapé da área segura
   const sigY = TRIM.h - SAFE;
-  const por = measure("por", "regular", 8), brand = measure("MemoriesMT", "bold", 8);
+  const por = measure("por", "regular", 8), brand = measure("Revela", "bold", 8);
   const total = por + 1.2 + 3.2 + 1.2 + brand;
   const sx0 = cx - total / 2;
   prims.push({ kind: "text", x: sx0, y: sigY, text: "por", font: "regular", size: 8, color: MUTED, anchor: "start" });
   prims.push({ kind: "circle", cx: sx0 + por + 1.2 + 1.6, cy: sigY - 1, r: 1.6, color: MUTED });
   prims.push({ kind: "text", x: sx0 + por + 1.2 + 1.6, y: sigY - 0.45, text: "MT", font: "bold", size: 3.6, color: "#FFFFFF", anchor: "middle" });
-  prims.push({ kind: "text", x: sx0 + por + 1.2 + 3.2 + 1.2, y: sigY, text: "MemoriesMT", font: "bold", size: 8, color: MUTED, anchor: "start" });
+  prims.push({ kind: "text", x: sx0 + por + 1.2 + 3.2 + 1.2, y: sigY, text: "Revela", font: "bold", size: 8, color: MUTED, anchor: "start" });
 
   return { prims, qr, fitsSafeArea: y <= sigY - 3 };
 }

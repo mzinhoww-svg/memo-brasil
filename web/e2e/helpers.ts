@@ -135,13 +135,13 @@ export async function switchPerson(page: Page, code: string, name: string) {
 }
 
 
-/** Data civil (aaaa-mm-dd) daqui a `days` dias no fuso dado; o fuso do evento é quem manda no convite. */
+/** Data civil (aaaa-rv-dd) daqui a `days` dias no fuso dado; o fuso do evento é quem manda no convite. */
 export function dateIn(tz: string, days: number): string {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const [y, m, d] = today.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
 }
-/** Dia da semana em português de uma data civil aaaa-mm-dd ("domingo", "segunda-feira"). */
+/** Dia da semana em português de uma data civil aaaa-rv-dd ("domingo", "segunda-feira"). */
 export function weekdayOf(isoDate: string): string {
   return new Intl.DateTimeFormat("pt-BR", { weekday: "long", timeZone: "UTC" }).format(new Date(`${isoDate}T12:00:00Z`));
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Icon, Signature } from "@/components/memoriesmt";
+import { Icon, Signature } from "@/components/revela";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
 

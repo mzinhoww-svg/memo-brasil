@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LiveIndicator, Notice, Progress, StatGrid, StatTile, Button, Skeleton } from "@/components/memoriesmt";
+import { LiveIndicator, Notice, Progress, StatGrid, StatTile, Button, Skeleton } from "@/components/revela";
 import { endAt } from "@/domain/event";
 import { computeRevealStatus, formatInZone, zoneLabel } from "@/domain/reveal";
 import { eventStats, type EventStats } from "@/features/admin/service";

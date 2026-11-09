@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, ConfirmSheet, PostCard, Tabs, panelId } from "@/components/memoriesmt";
+import { Button, ConfirmSheet, PostCard, Tabs, panelId } from "@/components/revela";
 import { moderationQueue } from "@/domain/photo";
 import { moderate, type ModerationAction } from "@/features/admin/service";
 import { useAdmin } from "@/features/admin/context";

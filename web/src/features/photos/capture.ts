@@ -1,9 +1,9 @@
-import type { CameraStyle } from "@/domain/options";
+import type { CameraStyle, FilmLook } from "@/domain/options";
 import type { PhotoData } from "@/repositories";
 
 /** Estilo da câmera aplicado nos pixels (RGBA). Funciona em todos os navegadores (sem ctx.filter). */
-export function applyStylePixels(px: Uint8ClampedArray, style: CameraStyle): void {
-  if (style === "original") return;
+export function applyStylePixels(px: Uint8ClampedArray, style: CameraStyle | FilmLook): void {
+  if (style === "original" || style === "natural" || style === "festa" || style === "casamento" || style === "aniversario" || style === "noite") return;
   for (let i = 0; i < px.length; i += 4) {
     const r = px[i], g = px[i + 1], b = px[i + 2];
     const gray = 0.299 * r + 0.587 * g + 0.114 * b;
@@ -11,7 +11,7 @@ export function applyStylePixels(px: Uint8ClampedArray, style: CameraStyle): voi
       const v = (gray - 128) * 1.1 + 128;
       px[i] = px[i + 1] = px[i + 2] = v;
     } else {
-      // vintage: dessatura 35%, tom quente, contraste suave e pretos levantados
+      // vintage / Filme 35mm: dessatura 35%, tom quente, contraste suave e pretos levantados
       const mix = (c: number) => gray * 0.35 + c * 0.65;
       px[i] = (mix(r) - 128) * 1.05 + 128 + 14;
       px[i + 1] = (mix(g) - 128) * 1.05 + 128 + 4;
@@ -23,8 +23,27 @@ export function applyStylePixels(px: Uint8ClampedArray, style: CameraStyle): voi
 
 export const MAX_SIDE = 1600;
 
+/** Carimbo de data do Filme 35mm (`'27 03 14`), canto inferior direito, em laranja. A cor é a do carimbo da câmera física. */
+export function stampText(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `'${p(d.getFullYear() % 100)} ${p(d.getMonth() + 1)} ${p(d.getDate())}`;
+}
+function stampDate(ctx: CanvasRenderingContext2D, w: number, h: number, d: Date) {
+  const size = Math.max(14, Math.round(Math.min(w, h) * 0.035));
+  ctx.save();
+  ctx.font = `${size}px "Share Tech Mono", ui-monospace, monospace`;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "alphabetic";
+  const stamp = getComputedStyle(document.documentElement).getPropertyValue("--carimbo").trim() || "orange";
+  ctx.shadowColor = stamp;
+  ctx.shadowBlur = size * 0.6;
+  ctx.fillStyle = stamp;
+  ctx.fillText(stampText(d), w - size, h - size);
+  ctx.restore();
+}
+
 /** Desenha a fonte (vídeo ou imagem) num canvas reduzido, aplica o estilo e devolve JPEG em bytes. */
-export async function renderPhoto(source: CanvasImageSource, width: number, height: number, style: CameraStyle, mirror = false): Promise<PhotoData> {
+export async function renderPhoto(source: CanvasImageSource, width: number, height: number, style: CameraStyle | FilmLook, mirror = false, takenAt: Date = new Date()): Promise<PhotoData> {
   const scale = Math.min(1, MAX_SIDE / Math.max(width, height));
   const w = Math.round(width * scale);
   const h = Math.round(height * scale);
@@ -38,11 +57,12 @@ export async function renderPhoto(source: CanvasImageSource, width: number, heig
     ctx.scale(-1, 1);
   }
   ctx.drawImage(source, 0, 0, w, h);
-  if (style !== "original") {
+  if (style !== "original" && style !== "natural") {
     const img = ctx.getImageData(0, 0, w, h);
     applyStylePixels(img.data, style);
     ctx.putImageData(img, 0, 0);
   }
+  if (style === "filme35") stampDate(ctx, w, h, takenAt);
   const blob: Blob = await new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("toBlob"))), "image/jpeg", 0.85));
   return { bytes: await blob.arrayBuffer(), type: "image/jpeg" };
 }

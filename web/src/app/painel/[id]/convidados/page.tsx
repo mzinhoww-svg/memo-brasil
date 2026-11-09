@@ -2,7 +2,7 @@
 
 import { plural } from "@/lib/plural";
 import { useEffect, useState } from "react";
-import { Button, DataList, Sheet } from "@/components/memoriesmt";
+import { Button, DataList, Sheet } from "@/components/revela";
 import { guestRanking, removeGuest, unblockGuest } from "@/features/admin/service";
 import { useAdmin } from "@/features/admin/context";
 import { useApp } from "@/features/app/provider";

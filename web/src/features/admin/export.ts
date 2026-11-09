@@ -43,7 +43,7 @@ export async function zipAlbum(repos: Repositories, event: MemoEvent, photos: Ph
     onProgress?.(i + 1, list.length);
   }
   const blob = await zip.generateAsync({ type: "blob" });
-  return { blob, filename: `memoriesmt-${slug(event.title)}.zip`, saved, missing };
+  return { blob, filename: `revela-${slug(event.title)}.zip`, saved, missing };
 }
 
 export function download(blob: Blob, filename: string): void {

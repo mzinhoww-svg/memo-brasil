@@ -15,7 +15,7 @@ export async function downloadPhoto(repos: Repositories, photo: Photo): Promise<
   const url = URL.createObjectURL(new Blob([d.bytes], { type: d.type }));
   const a = document.createElement("a");
   a.href = url;
-  a.download = `memoriesmt-${photo.id.slice(0, 8)}.${ext}`;
+  a.download = `revela-${photo.id.slice(0, 8)}.${ext}`;
   document.body.appendChild(a);
   a.click();
   a.remove();

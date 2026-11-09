@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Breadcrumbs, type Crumb } from "@/components/memoriesmt";
+import { Breadcrumbs, type Crumb } from "@/components/revela";
 import { MODULES } from "./modules";
 
 /** Início › Console › módulo atual (o dashboard é a própria página "Console"). */

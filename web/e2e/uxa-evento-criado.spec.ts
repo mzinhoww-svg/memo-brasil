@@ -10,8 +10,8 @@ test("UXA-101/102/103: Evento criado em 320 e 1440", async ({ page, context }) =
     await expect(page.getByTestId("link-convite")).toBeVisible();
     const m = await page.evaluate(() => ({
       colw: document.querySelector(".app-col")!.getBoundingClientRect().width,
-      lines: Math.round(document.querySelector(".mm-event-nome")!.getBoundingClientRect().height / parseFloat(getComputedStyle(document.querySelector(".mm-event-nome")!).lineHeight)),
-      titleFont: getComputedStyle(document.querySelector(".mm-event-nome")!).fontSize,
+      lines: Math.round(document.querySelector(".rv-event-nome")!.getBoundingClientRect().height / parseFloat(getComputedStyle(document.querySelector(".rv-event-nome")!).lineHeight)),
+      titleFont: getComputedStyle(document.querySelector(".rv-event-nome")!).fontSize,
       overflow: document.documentElement.scrollWidth > window.innerWidth,
       copyH: Math.round(document.querySelector(".pronto-url button")!.getBoundingClientRect().height),
     }));

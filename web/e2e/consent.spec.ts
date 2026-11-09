@@ -14,7 +14,7 @@ test("termos e privacidade são páginas públicas na versão 2026-10-22-v1, sem
     await expect(page.getByText("Aurimar Espindola Nogueira").first()).toBeVisible();
     await expect(page.getByText(/90 dias após o encerramento do evento/).first()).toBeVisible();
     await expect(page.getByText(/em até 30 dias/).first()).toBeVisible();
-    await expect(page).toHaveTitle(`${titulo} · MemoriesMT`);
+    await expect(page).toHaveTitle(`${titulo} · Revela`);
   }
 });
 

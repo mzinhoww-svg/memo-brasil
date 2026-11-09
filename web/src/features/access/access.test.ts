@@ -76,14 +76,14 @@ describe("ITG-101: leitura escopada por papel", () => {
     expect(v.event).toBeUndefined();
     expect(v.photos).toEqual([]); expect(v.participants).toEqual([]); expect(v.reactions).toEqual([]);
     expect(v.preview).toMatchObject({ code, title: "Emy e Igor", hostName: "Emy", full: false });
-    expect(Object.keys(v.preview!).sort()).toEqual(["capacity", "category", "code", "eventFont", "full", "hostName", "palette", "place", "startAt", "status", "title", "everyoneSeesAll", "revealAt", "revealStatus", "shotsPerPerson", "timezone"].sort());
+    expect(Object.keys(v.preview!).sort()).toEqual(["cameraStyle", "filmLook", "capacity", "category", "code", "eventFont", "full", "hostName", "palette", "place", "startAt", "status", "title", "everyoneSeesAll", "revealAt", "revealStatus", "shotsPerPerson", "timezone"].sort());
   });
   it("com tema personalizado a prévia ganha só a chave theme, sem expor nada além", async () => {
     const { PRESETS } = await import("@/lib/event-theme/spec");
     const { saveTheme } = await import("@/features/events/theme");
     await saveTheme(repos, id, { preset: "oceano", colors: { ...PRESETS.oceano.dia }, font: "vibes", welcomeMessage: "Oi!", qrStyle: "arredondado" }, NOW);
     const v = await readEventScoped(repos, { code }, asGuest(null), NOW + 1);
-    expect(Object.keys(v.preview!).sort()).toEqual(["capacity", "category", "code", "eventFont", "full", "hostName", "palette", "place", "startAt", "status", "theme", "title", "everyoneSeesAll", "revealAt", "revealStatus", "shotsPerPerson", "timezone"].sort());
+    expect(Object.keys(v.preview!).sort()).toEqual(["cameraStyle", "filmLook", "capacity", "category", "code", "eventFont", "full", "hostName", "palette", "place", "startAt", "status", "theme", "title", "everyoneSeesAll", "revealAt", "revealStatus", "shotsPerPerson", "timezone"].sort());
   });
   it("preview indica lotação sem listar quem está dentro", async () => {
     await updateSettings(repos, id, { capacity: 5 });

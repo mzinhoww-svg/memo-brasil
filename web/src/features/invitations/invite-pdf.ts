@@ -108,10 +108,10 @@ export async function buildInvitePdf(inv: PrintInvite, fonts: InviteFonts, opts:
   }
 
   doc.setTitle(`Convite · ${inv.title}`);
-  doc.setAuthor("MemoriesMT");
+  doc.setAuthor("Revela");
   doc.setSubject(`Convite A5 (148 × 210 mm) com sangria de 3 mm. Código ${inv.code}.`);
-  doc.setCreator("MemoriesMT");
-  doc.setProducer("MemoriesMT (pdf-lib)");
+  doc.setCreator("Revela");
+  doc.setProducer("Revela (pdf-lib)");
   doc.setLanguage("pt-BR");
   const now = opts.now ?? new Date();
   doc.setCreationDate(now);

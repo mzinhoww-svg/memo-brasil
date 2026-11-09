@@ -84,7 +84,7 @@ test("service worker: registro, cache, offline", async ({ browser }) => {
   res.offlineVisited = offlineVisited;
   await page.goto(`/e/${code}/agora`); await page.waitForTimeout(800);
   await page.screenshot({ path: path.join(SHOTS, "a2-pwa-offline-agora-390-dia.png") });
-  const posts = await page.locator(".mm-post").count();
+  const posts = await page.locator(".rv-post").count();
   res.offlineAgoraPosts = posts;
 
   // 3. offline: rotas nunca visitadas
@@ -117,16 +117,16 @@ test("service worker: registro, cache, offline", async ({ browser }) => {
   res.postOffline = { posted };
   await page.screenshot({ path: path.join(SHOTS, "a2-pwa-offline-postado-390-dia.png") });
   await page.goto(`/e/${code}/agora`); await page.waitForTimeout(800);
-  const afterPost = await page.locator(".mm-post").count();
+  const afterPost = await page.locator(".rv-post").count();
   const dbCount = await page.evaluate(() => new Promise<number>((r) => { const q = indexedDB.open("memoriesmt"); q.onsuccess = () => { const c = q.result.transaction("photos").objectStore("photos").count(); c.onsuccess = () => r(c.result); }; }));
   res.postOffline = { posted, postsInFeedAfter: afterPost, postsBefore: posts, photosInDb: dbCount };
   await page.reload(); await page.waitForTimeout(800);
-  res.reopenOfflinePosts = await page.locator(".mm-post").count();
+  res.reopenOfflinePosts = await page.locator(".rv-post").count();
 
   // 5. reconectar
   await ctx.setOffline(false);
   await page.goto(`/e/${code}/agora`); await page.waitForTimeout(800);
-  res.afterReconnectPosts = await page.locator(".mm-post").count();
+  res.afterReconnectPosts = await page.locator(".rv-post").count();
   const reqs: string[] = [];
   page.on("request", (r) => { if (!/\/_next\/|\/fonts\/|\/brand\/|\/icons\/|\/pwa\//.test(r.url())) reqs.push(r.method() + " " + r.url().replace(/^https?:\/\/[^/]+/, "")); });
   await page.waitForTimeout(3000);
@@ -134,7 +134,7 @@ test("service worker: registro, cache, offline", async ({ browser }) => {
 
   // 6. persistência após limpar caches do SW
   await page.evaluate(async () => { for (const k of await caches.keys()) await caches.delete(k); });
-  res.postsAfterClearCache = (await page.reload().then(() => page.waitForTimeout(800)).then(() => page.locator(".mm-post").count()));
+  res.postsAfterClearCache = (await page.reload().then(() => page.waitForTimeout(800)).then(() => page.locator(".rv-post").count()));
   await ctx.setOffline(true);
   const afterClear = await page.goto(`/e/${code}/agora`).then((r) => r?.status() ?? 0).catch((e) => "ERR " + String(e).slice(0, 60));
   res.offlineAfterClearCache = { result: afterClear, body: (await page.locator("body").innerText().catch(() => "")).slice(0, 80) };

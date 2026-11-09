@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Stepper, TableCard } from "@/components/memoriesmt";
+import { Button, Stepper, TableCard } from "@/components/revela";
 import { useAdmin } from "@/features/admin/context";
 import { useApp } from "@/features/app/provider";
 import { updateSettings } from "@/features/events/service";

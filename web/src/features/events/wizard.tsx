@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Breadcrumbs, Button, Chip, Chips, Field, GoogleButton, OptionGroup, Progress, Select, Signature } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, Chip, Chips, Field, GoogleButton, OptionGroup, Progress, Select, Signature } from "@/components/revela";
 import { CATEGORY_LABEL, MIN_DURATION_HOURS, type EventCategory } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
 import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
@@ -221,7 +221,7 @@ export function CreateWizard() {
     <div className="app-screen app-stack">
       <h1 className="titulo-tela app-h1">Evento criado.</h1>
       <p className="app-p">{created.title} já está salvo. Se a próxima página não abrir, continue por aqui.</p>
-      {handoffError && <p className="mm-field-erro" role="alert">{handoffError}</p>}
+      {handoffError && <p className="rv-field-erro" role="alert">{handoffError}</p>}
       <Button block disabled={busy || !created.ready} aria-busy={busy} onClick={continueCreated}>{busy ? "Preparando a próxima página…" : created.paid ? "Continuar para o pagamento" : "Continuar para o convite"}</Button>
       {created.paid && <Button href={`/criar/pronto/${created.eventId}`} variant="secundario" block>Ver o convite e o QR</Button>}
       <Button href="/eventos" variant="texto">Meus eventos</Button>
@@ -254,7 +254,7 @@ export function CreateWizard() {
             <h1 className="titulo-tela app-h1">Como se chama a festa?</h1>
             <Field label="Nome que os convidados vão ver" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: undefined })); }} maxLength={60} placeholder="Ex.: Emy e Igor" error={errors.title} />
             <div className="app-stack-sm">
-              <span className="mm-group-label">Sugestões</span>
+              <span className="rv-group-label">Sugestões</span>
               <Chips label="Sugestões de nome">
                 {suggestEventNames(category, user?.name ?? "", now()).map((s) => (
                   <Chip key={s} variant="filtro" pressed={title === s} onClick={() => { setTitle(s); setErrors((x) => ({ ...x, title: undefined })); }}>{s}</Chip>
@@ -270,7 +270,7 @@ export function CreateWizard() {
             <h1 className="titulo-tela app-h1">Quando a festa acaba?</h1>
             <OptionGroup<number> label="Termina em" value={otherDate ? OTHER_DATE : hours} onChange={(v) => { if (v === OTHER_DATE) setOtherDate(true); else { setOtherDate(false); setHours(v); } setErrors((x) => ({ ...x, termino: undefined })); }} options={[...DURATIONS.map((h) => ({ value: h, label: h === 1 ? "1 hora" : `${h} horas` })), { value: OTHER_DATE, label: "Outra data" }]} />
             {otherDate && <div role={errors.termino ? "alert" : undefined}><Field label="Escolha o horário" type="datetime-local" value={until} min={toLocalInput(now() + 30 * 60_000)} onChange={(e) => { setUntil(e.target.value); setErrors((x) => ({ ...x, termino: undefined })); }} error={errors.termino} help="Pelo menos 30 minutos a partir de agora." /></div>}
-            {!otherDate && errors.termino && <p className="mm-field-erro" role="alert">{errors.termino}</p>}
+            {!otherDate && errors.termino && <p className="rv-field-erro" role="alert">{errors.termino}</p>}
             <OptionGroup<RevealChoice> label="E quando as fotos aparecem?" value={choice} onChange={(c) => { setChoice(c); setRevealErrors(undefined); }} options={REVEAL_CHOICES} />
             {choice === "dia" && (
               <>
@@ -279,8 +279,8 @@ export function CreateWizard() {
                 <Select label="Fuso horário" value={timezone} onChange={(e) => setTimezone(e.target.value)} options={(TIMEZONES.some((z) => z.id === timezone) ? TIMEZONES : [{ id: timezone, label: timezone }, ...TIMEZONES]).map((z) => ({ value: z.id, label: z.label }))} help="A contagem regressiva dos convidados usa este fuso." />
               </>
             )}
-            {choice !== "dia" && revealErrors?.data && <p className="mm-field-erro" role="alert">{REVEAL_ERROR_TEXT[revealErrors.data]}</p>}
-            <div className="app-card" aria-live="polite" style={{ background: "var(--tinta)", color: "var(--fundo)" }}>
+            {choice !== "dia" && revealErrors?.data && <p className="rv-field-erro" role="alert">{REVEAL_ERROR_TEXT[revealErrors.data]}</p>}
+            <div className="app-card" aria-live="polite" style={{ background: "var(--ink)", color: "var(--bg)" }}>
               <span className="eyebrow">Como o convidado recebe</span>
               {choice === "na-hora" ? (
                 <span className="corpo">As fotos aparecem para todos assim que são postadas.</span>
@@ -298,15 +298,15 @@ export function CreateWizard() {
           <>
             <h1 className="titulo-tela app-h1">Quantas fotos cada pessoa tira?</h1>
             <p className="app-p app-muted">Escolha a quantidade desejada para receber uma recomendação de plano. Como num filme: poucas fotos fazem cada uma valer.</p>
-            <div className="app-card" style={{ background: "var(--tinta)", color: "var(--fundo)" }} aria-live="polite">
+            <div className="app-card" style={{ background: "var(--ink)", color: "var(--bg)" }} aria-live="polite">
               <span className="titulo-tela" data-testid="contador-previa"><strong style={{ fontSize: 40 }}>{desiredShots}</strong> FOTOS DESEJADAS</span>
             </div>
-            <div className="mm-group" role="group" aria-label="Fotos por pessoa">
-              <div className="mm-opts" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+            <div className="rv-group" role="group" aria-label="Fotos por pessoa">
+              <div className="rv-opts" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
                 {SHOTS_CHOICES.map((n) => {
                   const hint = planForShots(catalog, n)?.name;
                   return (
-                    <button key={n} type="button" className="mm-opt" aria-pressed={desiredShots === n} onClick={() => setDesiredShots(n)} style={{ height: "auto", minHeight: "var(--size-opcao)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "8px 14px" }}>
+                    <button key={n} type="button" className="rv-opt" aria-pressed={desiredShots === n} onClick={() => setDesiredShots(n)} style={{ height: "auto", minHeight: "var(--size-opcao)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "8px 14px" }}>
                       <span>{n}</span>
                       {hint && <span data-testid="selo-plano" style={{ fontSize: 12, fontWeight: 700 }}>{`Plano ${hint}`}</span>}
                     </button>
@@ -336,7 +336,7 @@ export function CreateWizard() {
             )}
             {planCode !== "gratis" && <p className="app-p app-muted">O plano escolhido só será ativado após o pagamento; até lá, valem os limites do Grátis.</p>}
             <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); setErrors((e) => ({ ...e, create: undefined })); }} onPrivacy={(v) => { setAckedPrivacy(v); setErrors((e) => ({ ...e, create: undefined })); }} />
-            {errors.create && <p className="mm-field-erro" role="alert">{errors.create}</p>}
+            {errors.create && <p className="rv-field-erro" role="alert">{errors.create}</p>}
           </>
         )}
 

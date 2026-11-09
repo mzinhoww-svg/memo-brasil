@@ -348,7 +348,7 @@ test("R12 acessibilidade da espera e da transição (axe, role=timer, foco)", as
   const { code } = await setup(page);
   await switchPerson(page, code, "Ana");
   const timer = page.getByRole("timer");
-  const attrs = { role_timer: await timer.count(), aria_live: await timer.getAttribute("aria-live"), sr_polite: await page.locator(".mm-sr-only[aria-live=polite]").innerText() };
+  const attrs = { role_timer: await timer.count(), aria_live: await timer.getAttribute("aria-live"), sr_polite: await page.locator(".rv-sr-only[aria-live=polite]").innerText() };
   const axe1 = await new AxeBuilder({ page }).analyze();
   await page.clock.fastForward(3_600_000 + 5000);
   await expect(page.getByTestId("transicao-revelacao")).toBeVisible();

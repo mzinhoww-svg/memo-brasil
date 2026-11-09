@@ -1,5 +1,5 @@
 'use client';
-import { Button } from '@/components/memoriesmt';
+import { Button } from '@/components/revela';
 import { offlineDestination } from '@/features/admin/offline-destination';
 export function OfflineRetry() {
   // Navegação completa força a rede, inclusive quando o SW serviu o fallback em outra rota.

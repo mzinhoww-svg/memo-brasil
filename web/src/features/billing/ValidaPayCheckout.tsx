@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { Button, ConfirmSheet, Field, Skeleton } from "@/components/memoriesmt";
+import { Button, ConfirmSheet, Field, Skeleton } from "@/components/revela";
 import { browserSupabase } from "@/lib/supabase/client";
 import { formatBRL, quote } from "./api";
 import { prepareCard } from "./validapay-card";
@@ -208,7 +208,7 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
       {uncertain && <p className="app-p">A resposta da cobrança ainda não foi confirmada. Não inicie outro pagamento. Pedido: {order.orderId}</p>}
       {order.expiresAt && <p className="app-p">Válido até {new Date(order.expiresAt).toLocaleString("pt-BR")}</p>}
       {qr && <Image src={qr} alt="QR Code Pix" width={256} height={256} unoptimized style={{ maxWidth: "100%", height: "auto", alignSelf: "center" }} />}
-      {order.emv && <><label className="mm-field-label" htmlFor="validapay-emv">Pix copia e cola</label><textarea id="validapay-emv" className="mm-field-input" readOnly value={order.emv} style={{ width: "100%", minHeight: 100, overflowWrap: "anywhere" }} /><Button onClick={() => { void navigator.clipboard.writeText(order.emv!).then(() => setCopied(true)).catch(() => setError("Selecione e copie o código Pix manualmente.")); }}>{copied ? "Código copiado" : "Copiar código Pix"}</Button></>}
+      {order.emv && <><label className="rv-field-label" htmlFor="validapay-emv">Pix copia e cola</label><textarea id="validapay-emv" className="rv-field-input" readOnly value={order.emv} style={{ width: "100%", minHeight: 100, overflowWrap: "anywhere" }} /><Button onClick={() => { void navigator.clipboard.writeText(order.emv!).then(() => setCopied(true)).catch(() => setError("Selecione e copie o código Pix manualmente.")); }}>{copied ? "Código copiado" : "Copiar código Pix"}</Button></>}
       {error && <p role="alert" className="app-p">{error}</p>}
       <p role="status" className="app-p">{uncertain ? "O pagamento está em verificação. A confirmação será atualizada automaticamente." : "A confirmação será atualizada automaticamente."}</p>
       <Button variant="secundario" onClick={() => void refresh()}>Consultar pagamento</Button>
@@ -249,7 +249,7 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
     {order && <p role="status" className="app-p">O pagamento anterior não foi concluído. Você pode tentar novamente.</p>}
     <form className="app-stack" onSubmit={(e) => void submit(e)} aria-busy={busy}>
       <fieldset disabled={busy} style={{ border: 0, padding: 0, minWidth: 0 }} className="app-stack">
-        <legend className="mm-field-label">Forma de pagamento</legend>
+        <legend className="rv-field-label">Forma de pagamento</legend>
         <label><input type="radio" name="method" checked={method === "pix"} disabled={!!order && ["criado", "pendente"].includes(order.status) && method !== "pix"} onChange={() => { setMethod("pix"); key.current = null; }} /> Pix</label>
         <label><input type="radio" name="method" checked={method === "card"} disabled={!config.publicId || (!!order && ["criado", "pendente"].includes(order.status) && method !== "card")} onChange={() => { setMethod("card"); key.current = null; }} /> Cartão</label>
         <Field label="Nome completo" name="name" autoComplete="name" required minLength={2} maxLength={200} />

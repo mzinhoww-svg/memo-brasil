@@ -67,6 +67,8 @@ export interface EventPreview {
   hostName: string;
   startAt: number;
   place?: string;
+  cameraStyle?: MemoEvent["cameraStyle"];
+  filmLook?: MemoEvent["filmLook"];
   palette: MemoEvent["palette"];
   eventFont: MemoEvent["eventFont"];
   theme?: MemoEvent["theme"];

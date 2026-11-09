@@ -31,8 +31,8 @@ export function Table({ cols, rows, vazio }: { cols: { k: string; h: string; num
 
 export function ListSearchForm({ q }: { q?: string }) {
   return <form method="get" role="search" style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-    <label className="mm-field-label">Buscar <input name="q" className="mm-field-input" defaultValue={q} maxLength={80} /></label>
-    <button type="submit" className="mm-btn mm-btn--secundario">Buscar</button>
+    <label className="rv-field-label">Buscar <input name="q" className="rv-field-input" defaultValue={q} maxLength={80} /></label>
+    <button type="submit" className="rv-btn rv-btn--secundario">Buscar</button>
   </form>;
 }
 export function ListPagination({ total, sp, pageKey = "p", label = "Paginação" }: { total: number; sp: ListSearch; pageKey?: "p" | "i"; label?: string }) {

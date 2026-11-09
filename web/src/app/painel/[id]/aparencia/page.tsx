@@ -6,7 +6,8 @@ import { assetUrl, currentAsset, uploadBrandAsset, type AssetKind } from "@/feat
 import { browserSupabase } from "@/lib/supabase/client";
 import { useAdmin } from "@/features/admin/context";
 import { useApp } from "@/features/app/provider";
-import { restoreDefaultTheme, saveTheme } from "@/features/events/theme";
+import { saveTheme } from "@/features/events/theme";
+import { updateSettings } from "@/features/events/service";
 import { computeRevealStatus } from "@/domain/reveal";
 
 const MOTIVO = { invalido: "Tema inválido: confira as cores.", bloqueado: "A revelação já aconteceu; não dá para mudar.", inexistente: "Evento não encontrado." } as const;
@@ -47,7 +48,7 @@ export default function Aparencia() {
       locked={locked}
       images={images}
       onSave={async (t) => { const r = await saveTheme(repos, event.id, t, clock()); await refresh(); return r.ok ? undefined : MOTIVO[r.reason]; }}
-      onRestore={async () => { const r = await restoreDefaultTheme(repos, event.id, clock()); await refresh(); return r.ok ? undefined : MOTIVO[r.reason]; }}
+      onSaveLook={async (p) => { const r = await updateSettings(repos, event.id, p); await refresh(); return r.ok ? undefined : MOTIVO.inexistente; }}
     />
   );
 }

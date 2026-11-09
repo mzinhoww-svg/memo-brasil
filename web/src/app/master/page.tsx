@@ -21,7 +21,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHead titulo="Visão geral" texto={`Indicadores reais da plataforma; períodos de criação e envio consideram os últimos ${dias} dias.`}
-        acao={<nav aria-label="Período" style={{ display: "flex", gap: 8 }}>{PERIODOS.map((d) => <Link key={d} href={`/master?dias=${d}`} className="adm-badge" aria-current={d === dias ? "true" : undefined} style={d === dias ? { background: "var(--tinta)", color: "var(--fundo)" } : undefined}>{d} dias</Link>)}</nav>} />
+        acao={<nav aria-label="Período" style={{ display: "flex", gap: 8 }}>{PERIODOS.map((d) => <Link key={d} href={`/master?dias=${d}`} className="adm-badge" aria-current={d === dias ? "true" : undefined} style={d === dias ? { background: "var(--ink)", color: "var(--bg)" } : undefined}>{d} dias</Link>)}</nav>} />
       {r.state !== "ok" ? <StateBox load={r} /> : (
         <div className="adm-grid">
           <Metric rotulo="Eventos criados" valor={num(r.data.events.created)} nota={`${num(r.data.events.total)} no total`} />

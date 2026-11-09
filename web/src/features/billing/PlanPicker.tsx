@@ -1,8 +1,8 @@
 "use client";
 
-import { contactFrom } from "@/components/memoriesmt/SiteFooter";
+import { contactFrom } from "@/components/revela/SiteFooter";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/memoriesmt";
+import { Button } from "@/components/revela";
 import { formatBRL, quote } from "./api";
 import { PLAN_TEXT, QUOTE_BLOCK, planRank } from "./flow";
 import { PlanCard } from "./PlanCard";
@@ -77,7 +77,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
   return (
     <div className="plano-escolha">
       <h1 className="titulo-tela app-h1">{PLAN_TEXT.titulo}</h1>
-      <p className="app-p app-muted">{native ? "Pagamento único por evento. Pix ou cartão aqui no MemoriesMT. Sem assinatura." : PLAN_TEXT.sub}</p>
+      <p className="app-p app-muted">{native ? "Pagamento único por evento. Pix ou cartão aqui no Revela. Sem assinatura." : PLAN_TEXT.sub}</p>
       <div className="plano-colunas">
         <div className="app-stack">
           <div className="plano-lista" role="radiogroup" aria-label="Planos">
@@ -110,7 +110,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
               {busy ? (native ? "Abrindo pagamento…" : "Abrindo o Mercado Pago…") : pay !== undefined ? <>{native ? "Continuar para pagamento" : "Pagar com Mercado Pago"} · <span className="nowrap">{formatBRL(pay)}</span></> : (native ? "Continuar para pagamento" : "Pagar com Mercado Pago")}
             </Button>
           </div>
-          <p className="app-p app-muted plano-nota">{native ? "Você paga aqui no MemoriesMT, com Pix ou cartão. O plano libera assim que o pagamento for confirmado." : "Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado."}</p>
+          <p className="app-p app-muted plano-nota">{native ? "Você paga aqui no Revela, com Pix ou cartão. O plano libera assim que o pagamento for confirmado." : "Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado."}</p>
         </div>
       </div>
     </div>

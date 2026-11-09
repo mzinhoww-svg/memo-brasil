@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/memoriesmt";
+import { Button } from "@/components/revela";
 import { formatBRL, getPublicSettings, listPublicPlans, openOrder } from "@/features/billing/api";
 import { currentPlanCode } from "@/features/billing/entitlement";
 import type { OrderView, PublicPlan, PublicSettings } from "@/features/billing/types";
@@ -44,8 +44,8 @@ export function PlanSummaryCard({ planName, guests, capacity, planHref, canUpgra
 
 export function CapacityBanner({ guests, capacity, limit, planHref }: { guests: number; capacity: number; limit: number; planHref: string }) {
   return (
-    <section className="app-card" role="status" aria-labelledby="lotacao" data-testid="aviso-lotacao" style={{ borderColor: "var(--rec-texto)" }}>
-      <p id="lotacao" className="eyebrow" style={{ color: "var(--rec-texto)" }}>LOTAÇÃO CHEGANDO</p>
+    <section className="app-card" role="status" aria-labelledby="lotacao" data-testid="aviso-lotacao" style={{ borderColor: "var(--danger)" }}>
+      <p id="lotacao" className="eyebrow" style={{ color: "var(--danger)" }}>LOTAÇÃO CHEGANDO</p>
       <p className="app-p"><strong>Lotação chegando: {nf(guests)} de {nf(capacity)}.</strong> Ninguém será barrado até {nf(limit)}.</p>
       <Button variant="pequeno" href={planHref}>Aumentar plano</Button>
     </section>

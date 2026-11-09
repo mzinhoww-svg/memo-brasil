@@ -1,4 +1,4 @@
-/* MemoriesMT · service worker. Estratégia:
+/* Revela · service worker. Estratégia:
  * - estáticos (/_next/static, fontes, marca, ícones): cache primeiro;
  * - navegação: rede primeiro; guarda a página visitada; sem rede usa a cópia ou /offline.
  * Os dados (eventos e fotos) vivem no IndexedDB e não passam pelo SW.

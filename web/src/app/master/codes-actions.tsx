@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Field, OptionGroup, Sheet } from "@/components/memoriesmt";
+import { Button, Field, OptionGroup, Sheet } from "@/components/revela";
 import { browserSupabase } from "@/lib/supabase/client";
 import { adminErrorText, reasonError } from "./billing";
 import { ReasonField } from "./billing-actions";
@@ -97,7 +97,7 @@ export function GenerateCodeButton({ plans }: { plans: { code: string; name: str
               </div>
             </div>
           )}
-          {error && <p className="mm-field-erro" role="alert">{error}</p>}
+          {error && <p className="rv-field-erro" role="alert">{error}</p>}
           {code
             ? <Button block onClick={reset}>Gerar outro</Button> /* só limpa o formulário: o próximo código sai em "Gerar código" */
             : <Button block onClick={submit} disabled={busy}>{busy ? "Gerando…" : "Gerar código"}</Button>}
@@ -134,7 +134,7 @@ export function RevokeCodeButton({ code }: { code: { id: string; hint: string; p
           <p className="adm-nota adm-sheet-nota">{hintText(code.hint)} · {code.planName ?? "—"}</p>
           <ReasonField label="Motivo (obrigatório, 10 a 500 caracteres)" value={reason} onChange={setReason} error={tried ? reasonError(reason) : null} />
           <p className="adm-nota adm-sheet-nota">O código para de funcionar agora. Planos já liberados com ele continuam. Fica no registro de auditoria.</p>
-          {error && <p className="mm-field-erro" role="alert">{error}</p>}
+          {error && <p className="rv-field-erro" role="alert">{error}</p>}
           <Button variant="destrutivo" block onClick={submit} disabled={busy}>{busy ? "Revogando…" : "Revogar código"}</Button>
           <Button variant="texto" block onClick={close}>Cancelar</Button>
         </Sheet>

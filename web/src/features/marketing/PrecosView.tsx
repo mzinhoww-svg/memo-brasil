@@ -1,11 +1,11 @@
 "use client";
 
-import { Breadcrumbs, Button, Logo, Skeleton } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, Logo, Skeleton } from "@/components/revela";
 import { formatBRL } from "@/features/billing/api";
 import { TrustBlock } from "@/features/billing/TrustBlock";
 import type { PublicPlan } from "@/features/billing/types";
 import { hasPaidPlans } from "@/features/events/plan-catalog";
-import { contactFrom } from "@/components/memoriesmt/SiteFooter";
+import { contactFrom } from "@/components/revela/SiteFooter";
 import { usePublicCatalog } from "./usePublicCatalog";
 import { publicPaymentMethod } from "./payment-copy";
 

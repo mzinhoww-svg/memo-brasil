@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Field, Sheet } from "@/components/memoriesmt";
+import { Button, Field, Sheet } from "@/components/revela";
 import { normalizeCode, redeemCode, type RedeemResult } from "./api";
 import { joinGuests } from "./flow";
 import type { PublicPlan } from "./types";
@@ -76,7 +76,7 @@ export function CodeApplied({ plan, code, eventTitle, backHref, printHref }: { p
       <span className="plano-selo" aria-hidden="true">✓</span>
       <p className="plano-eyebrow">Código aplicado</p>
       <h1 className="titulo-tela app-h1" aria-live="polite">{name ? `Plano ${name} liberado.` : "Plano liberado."}</h1>
-      {plan && <p className="app-p app-muted">{joinGuests(plan.maxGuests, plan.maxShots).replace(/\.$/, "")}, sem pagar nada. Presente de MemoriesMT.</p>}
+      {plan && <p className="app-p app-muted">{joinGuests(plan.maxGuests, plan.maxShots).replace(/\.$/, "")}, sem pagar nada. Presente de Revela.</p>}
       <dl className="plano-recibo">
         <div><dt>Código</dt><dd>{code}</dd></div>
         <div><dt>Valor</dt><dd>R$ 0,00</dd></div>

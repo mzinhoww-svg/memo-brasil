@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Sheet } from "@/components/memoriesmt";
+import { Button, Sheet } from "@/components/revela";
 import { endAt, type MemoEvent } from "@/domain/event";
 import { computeRevealStatus, epochToZoned, formatInZone, type RevealErrors } from "@/domain/reveal";
 import { useApp } from "@/features/app/provider";

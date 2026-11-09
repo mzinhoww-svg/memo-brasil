@@ -51,7 +51,7 @@ for (const vp of [{ n: "390", w: 390, h: 844 }, { n: "1440", w: 1440, h: 900 }])
       await shot(page, `${key}-transicao`);
       await axe(page, `transição ${key}`);
       await page.getByRole("button", { name: "Ver as fotos" }).click();
-      await expect(page.locator(".mm-post")).toHaveCount(1);
+      await expect(page.locator(".rv-post")).toHaveCount(1);
       await page.waitForTimeout(0);
       await shot(page, `${key}-galeria`);
     });

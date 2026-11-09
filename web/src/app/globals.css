@@ -1,81 +1,48 @@
 @import "tailwindcss";
+@import "@fontsource/gloock/400.css";
+@import "@fontsource-variable/schibsted-grotesk/index.css";
+@import "@fontsource/share-tech-mono/400.css";
 @import "../styles/tokens.css";
-@import "../styles/mm.css";
+@import "../styles/revela.css";
 @import "../styles/app.css";
 
-/* Tokens semânticos do MemoriesMT expostos ao Tailwind v4 (modo inline: as utilities
-   apontam para as variáveis de tokens.css, que continuam a fonte de verdade). */
+/* Revela: tokens expostos ao Tailwind v4 (modo inline; tokens.css continua a fonte de verdade). */
 @theme inline {
   --color-*: initial;
-  --color-fundo: var(--fundo);
-  --color-neutro: var(--neutro);
-  --color-tinta: var(--tinta);
-  --color-apoio: var(--apoio);
-  --color-borda: var(--borda);
-  --color-divisor: var(--divisor);
-  --color-acao: var(--acao);
-  --color-on-acao: var(--on-acao);
-  --color-foco: var(--foco);
-  --color-rec: var(--rec);
-  --color-rec-texto: var(--rec-texto);
-  --color-on-rec: var(--on-rec);
-  --color-desabilitado: var(--desabilitado);
-  --color-on-desabilitado: var(--on-desabilitado);
-  --color-evento-superficie: var(--evento-superficie);
-  --color-evento-grafismo: var(--evento-grafismo);
-  --color-evento-controle: var(--evento-controle);
-  --color-evento-texto: var(--evento-texto);
-  --color-evento-profundo: var(--evento-profundo);
-  --color-on-evento: var(--on-evento);
+  --color-bg: var(--bg);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-revela: var(--revela);
+  --color-on-revela: var(--on-revela);
+  --color-revela-text: var(--revela-text);
+  --color-revela-soft: var(--revela-soft);
+  --color-carimbo: var(--carimbo);
+  --color-champanhe: var(--champanhe);
+  --color-paper: var(--paper);
+  --color-on-paper: var(--on-paper);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  --spacing-1: var(--space-1);
-  --spacing-2: var(--space-2);
-  --spacing-3: var(--space-3);
-  --spacing-4: var(--space-4);
-  --spacing-5: var(--space-5);
-  --spacing-6: var(--space-6);
-  --spacing-7: var(--space-7);
-  --spacing-8: var(--space-8);
-  --spacing-9: var(--space-9);
-  --spacing-10: var(--space-10);
-  --spacing-avatar: var(--size-avatar);
-  --spacing-alvo: var(--size-alvo);
-  --spacing-opcao: var(--size-opcao);
-  --spacing-nav: var(--size-nav);
-  --spacing-campo: var(--size-campo);
-  --spacing-cta: var(--size-cta);
-  --spacing-cta-xl: var(--size-cta-xl);
-
-  --radius-xs: var(--radius-xs);
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-control: var(--radius-control);
-  --radius-panel: var(--radius-panel);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-icone: var(--radius-icone);
-  --radius-pill: var(--radius-pill);
-
   --font-sans: var(--font-sans);
-  --font-serif: var(--font-serif);
-  --font-evento: var(--font-evento);
+  --font-display: var(--font-display);
+  --font-stamp: var(--font-stamp);
 }
 
-/* O preflight do Tailwind põe line-height 1.5 no html; o kit herda `normal` do navegador. */
-html { background: var(--fundo); color: var(--tinta); line-height: normal; }
-body {
-  margin: 0;
-  min-height: 100dvh;
-  font-family: var(--font-sans);
-  background: var(--fundo);
-  color: var(--tinta);
-  -webkit-font-smoothing: antialiased;
-}
+/* O preflight do Tailwind põe line-height 1.5 no html; o Revela herda `normal`. */
+html { background: var(--bg); color: var(--ink); line-height: normal; color-scheme: dark; }
+body { margin: 0; min-height: 100dvh; font-family: var(--font-sans); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--revela); color: var(--on-revela); }
 a { color: inherit; }
-:where(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
-.mm-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.mm-skip { position: absolute; left: var(--space-4); top: -100px; padding: var(--space-3) var(--space-4); background: var(--acao); color: var(--on-acao); border-radius: var(--radius-md); z-index: 100; }
-.mm-skip:focus { top: var(--space-4); }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; }
+:where(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.rv-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.rv-skip { position: absolute; left: var(--space-4); top: -100px; padding: var(--space-3) var(--space-4); background: var(--revela); color: var(--on-revela); border-radius: var(--radius-md); z-index: 100; }
+.rv-skip:focus { top: var(--space-4); }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

@@ -2,7 +2,7 @@
 
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { TabBar, EventTheme, Button, Icon } from "@/components/memoriesmt";
+import { TabBar, EventTheme, Button, Icon } from "@/components/revela";
 import { useApp } from "@/features/app/provider";
 import { useClock, useEventData, useOnline } from "@/features/app/hooks";
 import { GuestProvider } from "@/features/events/guest-context";
@@ -123,7 +123,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const onPost = path.endsWith("/postar") || path.includes("/editar/");
   return (
     <GuestProvider value={ctx}>
-      <EventTheme palette={data.event.palette} font={data.event.eventFont} theme={data.event.theme} className="app-col app-col--card app-fluid">
+      <EventTheme wrap={data.event.cameraStyle} className="app-col app-col--card app-fluid">
         {celebrate && <RevealTransition title={data.event.title} onClose={() => setCelebrate(false)} />}
         {!online && (
           <div className="app-banner" role="status" style={{ margin: "var(--space-4)" }}>

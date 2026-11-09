@@ -410,7 +410,7 @@ describe("página /painel/[id]/plano", () => {
     await userEvent.type(screen.getByLabelText("Código"), "mmt7kq4xr2p");
     await userEvent.click(screen.getByRole("button", { name: "Aplicar" }));
     expect(await screen.findByRole("heading", { name: "Plano Casamento liberado." })).toBeInTheDocument();
-    expect(screen.getByText("Até 250 convidados e 36 fotos cada, sem pagar nada. Presente de MemoriesMT.")).toBeInTheDocument();
+    expect(screen.getByText("Até 250 convidados e 36 fotos cada, sem pagar nada. Presente de Revela.")).toBeInTheDocument();
     expect(screen.getByText("MMT-7KQ4-XR2P")).toBeInTheDocument();
     expect(screen.getByText("Ana & Rui · este evento")).toBeInTheDocument();
   });

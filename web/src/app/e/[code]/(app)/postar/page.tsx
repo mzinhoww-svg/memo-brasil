@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Breadcrumbs, Button, Chip, Chips, Field, Progress } from "@/components/memoriesmt";
+import { Breadcrumbs, Button, Chip, Chips, Field, Progress } from "@/components/revela";
+import { DEFAULT_FILM } from "@/domain/options";
 import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
@@ -187,7 +188,7 @@ function PostarSession() {
     if (!v || !v.videoWidth) return;
     setError(undefined);
     try {
-      const data = await renderPhoto(v, v.videoWidth, v.videoHeight, event.cameraStyle, facing === "user");
+      const data = await renderPhoto(v, v.videoWidth, v.videoHeight, event.filmLook ?? DEFAULT_FILM, facing === "user");
       if (!alive.current) return;
       setShot({ data, url: URL.createObjectURL(new Blob([data.bytes], { type: data.type })) });
       picked.current = true;
@@ -203,7 +204,7 @@ function PostarSession() {
     setError(undefined);
     try {
       const img = await fileToImage(file);
-      const data = await renderPhoto(img, img.naturalWidth, img.naturalHeight, event.cameraStyle);
+      const data = await renderPhoto(img, img.naturalWidth, img.naturalHeight, event.filmLook ?? DEFAULT_FILM);
       if (!alive.current) return;
       setShot({ data, url: URL.createObjectURL(new Blob([data.bytes], { type: data.type })) });
       picked.current = true;
@@ -486,7 +487,7 @@ function PostarSession() {
           )}
 
           {draftWarning && <p className="app-p" role="alert">Não foi possível salvar o rascunho neste aparelho. Mantenha esta tela aberta até enviar; sair pode perder a foto.</p>}
-          {error && <p className="mm-field-erro" role="alert">{error}</p>}
+          {error && <p className="rv-field-erro" role="alert">{error}</p>}
           {shot && hasAttempt && <p className="app-p">{DISCARD_NOTICE}</p>}
 
           {phase === "guardando" && (
@@ -524,7 +525,7 @@ function PostarSession() {
           {(phase === "capturada" || phase === "guardando" || phase === "sem-sinal") && (
             <div className="app-stack">
               <div className="app-stack-sm">
-                <span className="mm-group-label" id="mom">Momento</span>
+                <span className="rv-group-label" id="mom">Momento</span>
                 <Chips label="Momento">
                   {event.moments.map((m) => (
                     <Chip key={m} variant="filtro" pressed={moment === m} onClick={() => { if (!inFlight) setMoment(m); }}>{m}</Chip>

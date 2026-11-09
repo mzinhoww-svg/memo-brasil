@@ -17,10 +17,10 @@ export default async function Eventos({ searchParams }: { searchParams: Promise<
     <>
       <PageHead titulo="Eventos" texto="Metadados e contagens. Fotos privadas não aparecem aqui." />
       <form method="get" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }} role="search">
-        <label className="mm-field-label" htmlFor="q" style={{ position: "absolute", left: -9999 }}>Buscar</label>
-        <input id="q" name="q" className="mm-field-input" placeholder="Nome do evento ou do anfitrião" defaultValue={sp.q} style={{ maxWidth: 320 }} />
-        <select name="status" className="mm-field-input" defaultValue={status ?? ""} aria-label="Situação" style={{ maxWidth: 180 }}><option value="">Todos</option><option value="ativo">Ativos</option><option value="encerrado">Encerrados</option></select>
-        <button className="mm-btn mm-btn--secundario" type="submit">Filtrar</button>
+        <label className="rv-field-label" htmlFor="q" style={{ position: "absolute", left: -9999 }}>Buscar</label>
+        <input id="q" name="q" className="rv-field-input" placeholder="Nome do evento ou do anfitrião" defaultValue={sp.q} style={{ maxWidth: 320 }} />
+        <select name="status" className="rv-field-input" defaultValue={status ?? ""} aria-label="Situação" style={{ maxWidth: 180 }}><option value="">Todos</option><option value="ativo">Ativos</option><option value="encerrado">Encerrados</option></select>
+        <button className="rv-btn rv-btn--secundario" type="submit">Filtrar</button>
       </form>
       {r.state !== "ok" ? <StateBox load={r} /> : (
         <>

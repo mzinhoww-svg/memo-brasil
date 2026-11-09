@@ -156,7 +156,7 @@ test("rodapé tem Termos, Privacidade, Ajuda e a assinatura nas rotas públicas,
     await expect(rodape.getByRole("link", { name: "Termos" })).toHaveAttribute("href", "/termos");
     await expect(rodape.getByRole("link", { name: "Privacidade" })).toHaveAttribute("href", "/privacidade");
     await expect(rodape.getByRole("link", { name: "Ajuda" })).toHaveAttribute("href", "/ajuda");
-    await expect(rodape.getByText("MemoriesMT")).toBeVisible();
+    await expect(rodape.getByText("Revela")).toBeVisible();
     await expect(rodape.getByText(/CNPJ/)).toHaveCount(0); // só aparece quando preenchido
   }
   const { code, id } = await createViaWizard(page, {});

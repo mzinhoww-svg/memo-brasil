@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Field, Select, Sheet } from "@/components/memoriesmt";
+import { Button, Field, Select, Sheet } from "@/components/revela";
 import { browserSupabase } from "@/lib/supabase/client";
 import { adminErrorText, brl, parseBrl, paymentRef, planPreview, reasonError, REASON_MAX, refundFailureText, refundNote } from "./billing";
 
@@ -10,11 +10,11 @@ import { adminErrorText, brl, parseBrl, paymentRef, planPreview, reasonError, RE
 export function ReasonField({ label, value, onChange, error }: { label: string; value: string; onChange: (v: string) => void; error: string | null }) {
   const id = useId();
   return (
-    <div className="mm-field">
-      <label className="mm-field-label" htmlFor={id}>{label}</label>
-      <textarea id={id} className="mm-field-input adm-textarea" rows={4} maxLength={REASON_MAX + 50} value={value}
+    <div className="rv-field">
+      <label className="rv-field-label" htmlFor={id}>{label}</label>
+      <textarea id={id} className="rv-field-input adm-textarea" rows={4} maxLength={REASON_MAX + 50} value={value}
         aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-erro` : undefined} onChange={(e) => onChange(e.target.value)} />
-      {error && <span id={`${id}-erro`} className="mm-field-erro">{error}</span>}
+      {error && <span id={`${id}-erro`} className="rv-field-erro">{error}</span>}
     </div>
   );
 }
@@ -64,7 +64,7 @@ export function CourtesyButton({ events, plans }: { events: { id: string; label:
           <Select label="Plano" value={plan} onChange={(e) => setPlan(e.target.value)} options={plans.map((p) => ({ value: p.code, label: p.name }))} />
           <ReasonField label="Motivo (obrigatório, 10 a 500 caracteres)" value={reason} onChange={setReason} error={rErr} />
           <p className="adm-nota adm-sheet-nota">O evento ganha os limites do plano sem cobrança, em qualquer ambiente. Fica no registro de auditoria.</p>
-          {a.error && <p className="mm-field-erro" role="alert">{a.error}</p>}
+          {a.error && <p className="rv-field-erro" role="alert">{a.error}</p>}
           <Button block onClick={submit} disabled={a.busy}>{a.busy ? "Concedendo…" : "Conceder cortesia"}</Button>
           <Button variant="texto" block onClick={close}>Cancelar</Button>
         </Sheet>
@@ -116,7 +116,7 @@ export function RefundButton({ order }: { order: RefundOrder }) {
           <p className="adm-nota adm-sheet-nota">{resumo}</p>
           {!retry && <ReasonField label="Motivo (obrigatório, 10 a 500 caracteres)" value={reason} onChange={setReason} error={rErr} />}
           <p className="adm-nota adm-sheet-nota">{refundNote(order.provider)}</p>
-          {a.error && <p className="mm-field-erro" role="alert">{a.error}</p>}
+          {a.error && <p className="rv-field-erro" role="alert">{a.error}</p>}
           <Button variant="destrutivo" block onClick={submit} disabled={a.busy}>{a.busy ? "Enviando…" : retry ? "Reenviar ao provedor" : "Solicitar reembolso integral"}</Button>
           <Button variant="texto" block onClick={close}>Cancelar</Button>
         </Sheet>
@@ -185,7 +185,7 @@ export function PlanEditButton({ plan }: { plan: PlanRow }) {
               </ul>
             ) : <p className="adm-nota adm-sheet-nota">Sem alterações registradas desde a aprovação.</p>}
           </div>
-          {a.error && <p className="mm-field-erro" role="alert">{a.error}</p>}
+          {a.error && <p className="rv-field-erro" role="alert">{a.error}</p>}
           {!plan.isFree && <Button block onClick={submit} disabled={a.busy}>{a.busy ? "Salvando…" : "Salvar com motivo"}</Button>}
           <Button variant="texto" block onClick={close}>{plan.isFree ? "Fechar" : "Cancelar"}</Button>
         </Sheet>

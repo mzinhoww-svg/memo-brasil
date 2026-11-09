@@ -223,7 +223,7 @@ test("downloads: baixa o álbum em ZIP e a lista de convidados em CSV", async ({
   });
   await page.goto(`/painel/${id}/downloads`);
   const [zip] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar o álbum (ZIP)" }).click()]);
-  expect(zip.suggestedFilename()).toBe("memoriesmt-emy-e-igor.zip");
+  expect(zip.suggestedFilename()).toBe("revela-emy-e-igor.zip");
   const [csv] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Lista de convidados (CSV)" }).click()]);
   expect(csv.suggestedFilename()).toMatch(/convidados\.csv$/);
 });
@@ -237,7 +237,7 @@ test("mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem,
   await expect(sheet.getByRole("heading", { name: "Quem reagiu" })).toBeVisible();
   await expect(sheet.locator("li").first()).toBeVisible();
   const [dl] = await Promise.all([page.waitForEvent("download"), sheet.getByRole("button", { name: "Baixar foto" }).click()]);
-  expect(dl.suggestedFilename()).toMatch(/^memoriesmt-.*\.(svg|jpg|png)$/);
+  expect(dl.suggestedFilename()).toMatch(/^revela-.*\.(svg|jpg|png)$/);
 
   await sheet.getByRole("link", { name: "Editar foto" }).click();
   await page.waitForURL(/\/editar\//);
@@ -262,7 +262,7 @@ test("mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem,
   await expect(page.getByRole("button", { name: "2 lado a lado" })).toHaveAttribute("aria-pressed", "false");
   await expect(page.getByRole("button", { name: "Refazer" })).toBeEnabled();
   const [edited] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Concluir e baixar" }).click()]);
-  expect(edited.suggestedFilename()).toMatch(/^memoriesmt-editada-.*\.jpg$/);
+  expect(edited.suggestedFilename()).toMatch(/^revela-editada-.*\.jpg$/);
   await page.waitForURL(/agora$/);
 });
 
@@ -464,7 +464,7 @@ test.describe("jornada do convidado (Task 13)", () => {
     await expect(page.getByRole("heading", { name: "Este convite não está mais ativo." })).toBeVisible();
     await expect(page.getByText("Fale com quem convidou você. Pode ser que a festa tenha um link novo.")).toBeVisible();
     await expect(page.getByRole("link", { name: "Tenho outro código" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Conhecer o MemoriesMT" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Conhecer o Revela" })).toBeVisible();
   });
 
   test("espera: título e 'a noite fica para a pista' quando a revelação é no dia seguinte", async ({ page }) => {

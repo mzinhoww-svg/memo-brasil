@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Button, GoogleButton, LiveIndicator, Logo, Skeleton } from "@/components/memoriesmt";
+import { Button, GoogleButton, LiveIndicator, Logo, Skeleton } from "@/components/revela";
 import { eventStatus, type MemoEvent } from "@/domain/event";
 import { formatDate } from "@/features/app/hooks";
 import { loadMyEvents, type MyEvents } from "@/features/app/my-events";

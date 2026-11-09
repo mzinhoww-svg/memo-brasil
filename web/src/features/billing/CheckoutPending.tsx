@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/memoriesmt";
+import { Button } from "@/components/revela";
 import { formatBRL, orderStatus } from "./api";
 import { PLAN_TEXT, countdown, formatDateTime, joinGuests, paymentLabel, screenFor, type ReturnHint } from "./flow";
 import { getCheckoutBridge } from "./checkout-nav";
@@ -100,11 +100,11 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
         {returnHint === "falha" && <p className="app-p">Você voltou sem concluir o pagamento. Se quiser, continue de onde parou.</p>}
         <div className="app-stack">
           {order.provider === "validapay" ? (
-            <a className="mm-btn mm-btn--cta mm-btn--bloco" href={`/painel/${encodeURIComponent(eventId)}/checkout-validapay?plano=${encodeURIComponent(order.planCode)}`}>
-              <span>Continuar pagamento no MemoriesMT</span>
+            <a className="rv-btn rv-btn--cta rv-btn--bloco" href={`/painel/${encodeURIComponent(eventId)}/checkout-validapay?plano=${encodeURIComponent(order.planCode)}`}>
+              <span>Continuar pagamento no Revela</span>
             </a>
           ) : order.checkoutUrl ? (
-            <a className="mm-btn mm-btn--cta mm-btn--bloco" href={order.checkoutUrl} rel="noopener">
+            <a className="rv-btn rv-btn--cta rv-btn--bloco" href={order.checkoutUrl} rel="noopener">
               <span>Continuar para o Mercado Pago</span>
             </a>
           ) : (
@@ -130,7 +130,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
           </div>
           <section className="plano-como" aria-labelledby="como-pagar">
             <h2 id="como-pagar" className="titulo-card app-h1">Como pagar</h2>
-            <p className="app-p app-muted">{order.provider === "validapay" ? "Continue no MemoriesMT para consultar seu Pix ou cartão e acompanhar a confirmação." : order.provider === "mercadopago" ? "No Mercado Pago você escolhe a forma de pagamento (cartão e, quando houver, Pix). Quando terminar, volte para cá." : "Consulte o estado deste pedido no painel. Se já pagou, aguarde a confirmação antes de iniciar outro pagamento."}</p>
+            <p className="app-p app-muted">{order.provider === "validapay" ? "Continue no Revela para consultar seu Pix ou cartão e acompanhar a confirmação." : order.provider === "mercadopago" ? "No Mercado Pago você escolhe a forma de pagamento (cartão e, quando houver, Pix). Quando terminar, volte para cá." : "Consulte o estado deste pedido no painel. Se já pagou, aguarde a confirmação antes de iniciar outro pagamento."}</p>
           </section>
           <p className="app-p app-muted">Pode fechar esta tela. O pedido fica guardado no painel e o plano libera sozinho quando o pagamento for confirmado.</p>
           <p className="app-p app-muted">{order.provider === "validapay" ? "Pagamento processado pela ValidaPay." : order.provider === "mercadopago" ? "Pagamento processado pelo Mercado Pago." : "Pedido histórico processado pela AbacatePay."}</p>

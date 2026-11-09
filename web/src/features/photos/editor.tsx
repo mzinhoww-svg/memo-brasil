@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button, Chip, Chips, Field } from "@/components/memoriesmt";
+import { Button, Chip, Chips, Field } from "@/components/revela";
 import { COLLAGE_LABEL, COLLAGE_SLOTS, collageSlots, coverCrop, type CollageLayout } from "@/domain/collage";
 import type { Photo } from "@/domain/photo";
 import { download } from "@/features/admin/export";
@@ -13,11 +13,13 @@ interface Stroke { color: string; size: number; erase: boolean; pts: [number, nu
 interface TextItem { id: string; text: string; x: number; y: number; color: string; font: FontId; size: number }
 interface Snap { strokes: Stroke[]; texts: TextItem[]; layout?: CollageLayout; slotIds: string[] }
 
-const COLORS = [{ id: "#FFFFFF", label: "Branco" }, { id: "#1C1917", label: "Tinta" }, { id: "#5B6752", label: "Sálvia" }, { id: "#AAB4A2", label: "Sálvia clara" }];
+/** Cores do editor = tokens do Revela (resolvidos em tempo de uso no canvas). */
+const COLORS = [{ id: "--paper", label: "Papel" }, { id: "--on-paper", label: "Tinta" }, { id: "--revela", label: "Revela" }, { id: "--carimbo", label: "Carimbo" }];
+const tok = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const FONTS: Record<FontId, { label: string; css: (px: number) => string }> = {
-  serif: { label: "Serif", css: (px) => `italic 400 ${px}px "Instrument Serif", serif` },
-  elegante: { label: "Elegante", css: (px) => `400 ${px}px var(--fonte-pinyon), "Pinyon Script", cursive` },
-  sans: { label: "Sans", css: (px) => `800 ${px}px "Bricolage Grotesque", sans-serif` },
+  serif: { label: "Título", css: (px) => `400 ${px}px Gloock, Georgia, serif` },
+  elegante: { label: "Carimbo", css: (px) => `400 ${px}px "Share Tech Mono", ui-monospace, monospace` },
+  sans: { label: "Texto", css: (px) => `800 ${px}px "Schibsted Grotesk", system-ui, sans-serif` },
 };
 
 function load(url: string): Promise<HTMLImageElement> {
@@ -75,7 +77,7 @@ export function PhotoEditor({ repos, photo, others, onDone }: { repos: Repositor
   const paint = useCallback((ctx: CanvasRenderingContext2D, withText: boolean) => {
     const { w, h } = size;
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = tok("--paper");
     ctx.fillRect(0, 0, w, h);
     if (snap.layout) {
       const slots = collageSlots(snap.layout, w, h, Math.round(w * 0.01));
@@ -93,7 +95,7 @@ export function PhotoEditor({ repos, photo, others, onDone }: { repos: Repositor
     const ic = ink.getContext("2d")!;
     for (const s of [...snap.strokes, ...(drawing.current ? [drawing.current] : [])]) {
       ic.globalCompositeOperation = s.erase ? "destination-out" : "source-over";
-      ic.strokeStyle = s.color;
+      ic.strokeStyle = tok(s.color);
       ic.lineWidth = s.size;
       ic.lineCap = ic.lineJoin = "round";
       ic.beginPath();
@@ -105,13 +107,13 @@ export function PhotoEditor({ repos, photo, others, onDone }: { repos: Repositor
     if (withText) {
       for (const t of snap.texts) {
         ctx.font = FONTS[t.font].css(t.size * w);
-        ctx.fillStyle = t.color;
+        ctx.fillStyle = tok(t.color);
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(t.text, t.x * w, t.y * h);
         if (t.id === selected && withText === true && ctx.canvas === stage.current) {
           const m = ctx.measureText(t.text);
-          ctx.strokeStyle = "#1C1917";
+          ctx.strokeStyle = tok("--on-paper");
           ctx.lineWidth = Math.max(2, w * 0.004);
           ctx.setLineDash([12, 8]);
           ctx.strokeRect(t.x * w - m.width / 2 - 10, t.y * h - t.size * w * 0.6, m.width + 20, t.size * w * 1.2);
@@ -197,7 +199,7 @@ export function PhotoEditor({ repos, photo, others, onDone }: { repos: Repositor
     setSelected(undefined);
     paint(out.getContext("2d")!, true);
     const blob: Blob = await new Promise((res, rej) => out.toBlob((b) => (b ? res(b) : rej(new Error("toBlob"))), "image/jpeg", 0.9));
-    download(blob, `memoriesmt-editada-${photo.id.slice(0, 8)}.jpg`);
+    download(blob, `revela-editada-${photo.id.slice(0, 8)}.jpg`);
     onDone();
   }
 
@@ -214,7 +216,7 @@ export function PhotoEditor({ repos, photo, others, onDone }: { repos: Repositor
       <div className="app-camera" style={{ aspectRatio: `${size.w} / ${size.h}`, touchAction: "none" }}>
         <canvas ref={stage} aria-label="Foto em edição" role="img" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} style={{ width: "100%", height: "100%", touchAction: "none", cursor: mode === "texto" ? "move" : "crosshair" }} />
       </div>
-      {error && <p className="mm-field-erro" role="alert">{error}</p>}
+      {error && <p className="rv-field-erro" role="alert">{error}</p>}
       <Chips label="Ferramentas">
         {tools.map((t) => <Chip key={t.id} variant="filtro" pressed={mode === t.id} onClick={() => setMode(t.id)}>{t.label}</Chip>)}
       </Chips>
@@ -238,7 +240,7 @@ export function PhotoEditor({ repos, photo, others, onDone }: { repos: Repositor
       )}
       {mode === "colagem" && (
         <div className="app-stack-sm">
-          <span className="mm-group-label">Criar colagem</span>
+          <span className="rv-group-label">Criar colagem</span>
           <Chips label="Layout da colagem">
             {(Object.keys(COLLAGE_LABEL) as CollageLayout[]).map((l) => <Chip key={l} variant="filtro" pressed={snap.layout === l} onClick={() => chooseLayout(l)}>{COLLAGE_LABEL[l]}</Chip>)}
           </Chips>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Button, Cover, Icon, type IconName, KnownPeople, Signature, ThemeToggle, Logo } from "@/components/memoriesmt";
+import { Button, Cover, Icon, type IconName, KnownPeople, Signature, Logo } from "@/components/revela";
 import { useApp } from "@/features/app/provider";
 import { LivePricingLine } from "@/features/marketing/PricingLine";
 import { BackendNotice } from "@/features/app/backend-notice";
@@ -31,16 +31,16 @@ function LoginErrorBanner() {
   }
   if (!failed || closed) return null;
   return (
-    <div className="app-banner" role="alert" style={{ color: "var(--rec-texto)", fontWeight: 600, justifyContent: "space-between", borderRadius: 0 }}>
+    <div className="app-banner" role="alert" style={{ color: "var(--danger)", fontWeight: 600, justifyContent: "space-between", borderRadius: 0 }}>
       <span style={{ display: "flex", gap: "var(--space-3)", alignItems: "flex-start" }}>
         <Icon name="sem-sinal" decorative size={22} />
         <span className="app-stack-sm">
           <span>Não conseguimos entrar com o Google. Tente de novo.</span>
           <Button onClick={() => void retry()} disabled={busy} aria-busy={busy}>{busy ? "Entrando com o Google…" : "Tentar novamente com o Google"}</Button>
-          <Link href="/ajuda" className="mm-link">Ajuda para entrar</Link>
+          <Link href="/ajuda" className="rv-link">Ajuda para entrar</Link>
         </span>
       </span>
-      <button type="button" className="mm-btn mm-btn--texto" aria-label="Fechar aviso" onClick={() => setClosed(true)} style={{ minWidth: 44, minHeight: 44 }}>
+      <button type="button" className="rv-btn rv-btn--texto" aria-label="Fechar aviso" onClick={() => setClosed(true)} style={{ minWidth: 44, minHeight: 44 }}>
         <Icon name="fechar" decorative size={20} />
       </button>
     </div>
@@ -56,8 +56,7 @@ export default function Home() {
       <div className="app-topbar">
         <Logo variant="wordmark" size={128} />
         <div className="app-row" style={{ alignItems: "center" }}>
-          {ready && user && <Link href="/eventos" className="mm-link app-topbar-link">Meus eventos</Link>}
-          <ThemeToggle />
+          {ready && user && <Link href="/eventos" className="rv-link app-topbar-link">Meus eventos</Link>}
         </div>
       </div>
       <div className="app-landing-hero"><Cover /></div>
