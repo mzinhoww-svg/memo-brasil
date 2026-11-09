@@ -1,11 +1,27 @@
-/* Gerado de design-system/revela/html/QR-compartilhar.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function QRCompartilhar() {
+"use client";
+/* QR-compartilhar.html (26): mesmo markup da referência; dados reais por props (padrão = desenho). */
+import { svgProps } from "../painel-ui";
+
+export interface QRCompartilharProps {
+  cam?: string;
+  link?: string;
+  /** "Copiar" vira "Copiado" por um instante. */
+  copied?: boolean;
+  onClose?: () => void;
+  onCopy?: () => void;
+  onWhatsapp?: () => void;
+  onStories?: () => void;
+  onQr?: () => void;
+  onPrint?: () => void;
+}
+
+export function QRCompartilhar({ cam = "/revela/ref/cam-casamento.webp", link = "revela.app/e/ana-leo", copied = false, onClose, onCopy, onWhatsapp, onStories, onQr, onPrint }: QRCompartilharProps = {}) {
   return (
     <>
     <div className="scr sheet-scr">
       <div className="safe" style={{ "opacity": ".4" }}>
-        <div className="rv-stagebox" style={{  }}>
-          <img src="/revela/ref/cam-casamento.webp" alt="" style={{ "width": "340px" }} />
+        <div className="rv-stagebox">
+          <img src={cam} alt="" style={{ "width": "340px" }} />
         </div>
       </div>
       <div className="sheet-full" style={{ "top": "auto", "height": "520px" }}>
@@ -18,23 +34,23 @@ export function QRCompartilhar() {
         </p>
         <div className="linkbox">
           <span>
-            revela.app/e/ana-leo
+            {link}
           </span>
-          <button className="rv-btn rv-btn--sm rv-btn--primary">
-            Copiar
+          <button type="button" className="rv-btn rv-btn--sm rv-btn--primary" onClick={onCopy}>
+            {copied ? "Copiado" : "Copiar"}
           </button>
         </div>
         <div className="sharegrid">
-          <button>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <button type="button" onClick={onWhatsapp}>
+            <svg {...svgProps}>
               <path d="M21 12a8 8 0 0 1-12 7l-5 1 1-4a8 8 0 1 1 16-4z" />
             </svg>
             <span>
               WhatsApp
             </span>
           </button>
-          <button>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <button type="button" onClick={onStories}>
+            <svg {...svgProps}>
               <rect x="3" y="3" width="18" height="18" rx="5" />
               <circle cx="12" cy="12" r="4" />
               <circle cx="17.5" cy="6.5" r=".8" fill="currentColor" />
@@ -43,8 +59,8 @@ export function QRCompartilhar() {
               Stories
             </span>
           </button>
-          <button>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <button type="button" onClick={onQr}>
+            <svg {...svgProps}>
               <rect x="3" y="3" width="7" height="7" rx="1" />
               <rect x="14" y="3" width="7" height="7" rx="1" />
               <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -54,8 +70,8 @@ export function QRCompartilhar() {
               QR na tela
             </span>
           </button>
-          <button>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <button type="button" onClick={onPrint}>
+            <svg {...svgProps}>
               <path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" />
             </svg>
             <span>
@@ -64,7 +80,7 @@ export function QRCompartilhar() {
           </button>
         </div>
         <div className="grow" />
-        <button className="rv-btn rv-btn--block" style={{  }}>
+        <button type="button" className="rv-btn rv-btn--block" onClick={onClose}>
           Fechar
         </button>
       </div>

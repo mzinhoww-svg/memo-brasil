@@ -10,7 +10,7 @@ export const BLEED = 3;
 export const SAFE = 10;
 export const PT = 0.3528; // 1 pt em mm
 
-export type FontId = "bold" | "regular" | "italic";
+export type FontId = "bold" | "regular" | "mono";
 export type Measure = (text: string, font: FontId, sizePt: number) => number; // largura em mm
 
 export type Prim =
@@ -67,8 +67,8 @@ export function layoutInvite(inv: PrintInvite, qrModules: boolean[][], measure: 
 
   const title = fitTitle(inv.title, measure, width);
   const titleLead = title.size * PT * 1.08;
-  const tagLines = wrap(inv.tagline, "italic", 15, width, measure);
-  const tagLead = 15 * PT * 1.2;
+  const tagLines = wrap(inv.tagline, "regular", 12, width, measure);
+  const tagLead = 12 * PT * 1.25;
   const revealLines = wrap(inv.reveal, "regular", 10.5, width, measure);
   const altLines = wrap(`Sem leitor de QR? Acesse ${inv.altAddress} e digite o código:`, "regular", 9, width, measure);
 
@@ -84,7 +84,7 @@ export function layoutInvite(inv: PrintInvite, qrModules: boolean[][], measure: 
   let y = SAFE + 4 + extra / 2;
   for (const l of title.lines) { y += titleLead; text(y - titleLead * 0.22, l, "bold", title.size); }
   y += 3;
-  for (const l of tagLines) { y += tagLead; text(y - tagLead * 0.25, l, "italic", 15, MUTED); }
+  for (const l of tagLines) { y += tagLead; text(y - tagLead * 0.25, l, "regular", 12, MUTED); }
   y += 4 + extra; // a zona de proteção do QR já é branca: pouco respiro externo
 
   const qrX = cx - qrSize / 2;
@@ -98,7 +98,7 @@ export function layoutInvite(inv: PrintInvite, qrModules: boolean[][], measure: 
   const sx = cx - stepW / 2;
   inv.steps.forEach((s, i) => {
     y += 5.8;
-    prims.push({ kind: "text", x: sx, y, text: `${i + 1}.`, font: "bold", size: stepSize, color: inv.accent, anchor: "start" });
+    prims.push({ kind: "text", x: sx, y, text: `${i + 1}.`, font: "mono", size: stepSize, color: inv.accent, anchor: "start" });
     prims.push({ kind: "text", x: sx + indent, y, text: s, font: "regular", size: stepSize, color: INK, anchor: "start" });
   });
   y += 5;
@@ -106,12 +106,12 @@ export function layoutInvite(inv: PrintInvite, qrModules: boolean[][], measure: 
   y += 5 + extra / 2;
   prims.push({ kind: "line", x1: cx - 20, y1: y, x2: cx + 20, y2: y, color: RULE, widthMm: 0.3 });
   y += 5 + extra / 2 + 5.2;
-  text(y - 1, inv.shots, "bold", 11);
+  text(y - 1, inv.shots, "mono", 10.5);
   for (const l of revealLines) { y += 4.6; text(y, l, "regular", 10.5); }
   y += 5 + extra;
   for (const l of altLines) { y += 4; text(y, l, "regular", 9, MUTED); }
   y += 9;
-  text(y - 1, inv.code, "bold", 20, INK, 1.2);
+  text(y - 1, inv.code, "mono", 22, INK, 1.2);
 
   // assinatura discreta: "por ● Revela" no rodapé da área segura
   const sigY = TRIM.h - SAFE;

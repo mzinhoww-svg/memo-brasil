@@ -103,6 +103,11 @@ describe("PDF para gráfica", () => {
     const fontsUsed = [...doc.context.enumerateIndirectObjects()].map(([, o]) => o).filter((o): o is PDFDict => o instanceof PDFDict && o.get(PDFName.of("Type")) === PDFName.of("FontDescriptor"));
     expect(fontsUsed.length).toBe(3);
     for (const d of fontsUsed) expect(d.has(PDFName.of("FontFile2")) || d.has(PDFName.of("FontFile3"))).toBe(true);
+    // as três fontes do Revela: Gloock (títulos), Schibsted Grotesk (texto) e Share Tech Mono (carimbo)
+    const names = fontsUsed.map((d) => String(d.get(PDFName.of("FontName")))).join(" ");
+    expect(names).toMatch(/Gloock/);
+    expect(names).toMatch(/Schibsted/);
+    expect(names).toMatch(/ShareTechMono/);
   });
 
   it("gera os PDFs de exemplo com dados sintéticos (quando INVITE_SAMPLE_DIR está definido)", async () => {

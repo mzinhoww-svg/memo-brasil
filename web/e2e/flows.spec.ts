@@ -70,8 +70,8 @@ test("cria evento grátis em 4 passos e chega em 'Evento criado'", async ({ page
   // nasce no Grátis mesmo com 24 fotos escolhidas no passo Fotos
   const id = page.url().split("/").pop()!;
   await page.goto(`/painel/${id}/configuracoes`);
-  await expect(page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: "10", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("group", { name: "Convidados" }).getByRole("button", { name: "10", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /^Poses\b.*10 por pessoa/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Plano\b.*até 10 convidados/ })).toBeVisible();
 });
 
 test("nenhum texto 'demonstração' ou 'teria valor' no assistente", async ({ page }) => {
@@ -170,13 +170,17 @@ test("pedido de remoção cai na fila do anfitrião, que oculta e depois remove 
   await page.getByRole("link", { name: "Meus eventos" }).click();
   await expect(page.getByRole("link", { name: "Painel" }).first()).toBeVisible();
   await page.goto(`/painel/${id}/conteudo`);
-  await expect(page.getByRole("tab", { name: "Pedidos de remoção · 1" })).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("button", { name: "Ocultar" }).click();
-  await page.getByRole("tab", { name: /Ocultas/ }).click();
-  await expect(page.getByText("Visão de Ana")).toBeVisible();
-  await page.getByRole("button", { name: "Remover", exact: true }).click();
-  await page.getByRole("dialog", { name: "Remover esta foto?" }).getByRole("button", { name: "Remover", exact: true }).click();
-  await expect(page.getByText("Nenhuma foto oculta.")).toBeVisible();
+  // moderação (17i): a foto denunciada aparece em "Fotos"; "Esconder" a tira do álbum
+  await page.goto(`/painel/${id}/moderacao`);
+  await expect(page.getByRole("button", { name: /^Fotos 1/ })).toBeVisible();
+  await page.getByRole("button", { name: "Esconder" }).click();
+  await expect(page.getByText("Nenhuma foto denunciada.")).toBeVisible();
+  // revisão (17c): a foto escondida aparece apagada; a folha da foto exclui de vez
+  await page.goto(`/painel/${id}/conteudo`);
+  await page.getByRole("button", { name: /^Foto de Ana/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Excluir a foto" }).click();
+  await page.getByRole("dialog", { name: "Excluir esta foto?" }).getByRole("button", { name: "Excluir foto" }).click();
+  await expect(page.getByText("Ainda sem fotos.")).toBeVisible();
 });
 
 test("tema Noite persiste ao recarregar e vale para o app inteiro", async ({ page }) => {
@@ -201,13 +205,18 @@ test("sem sinal: aviso na área do convidado e fotos continuam guardadas", async
 test("evento: encerrar agora e excluir, com confirmação", async ({ page }) => {
   const { id, code } = await createViaWizard(page, { title: "Para excluir" });
   await page.goto(`/painel/${id}/configuracoes`);
-  await page.getByRole("button", { name: "Encerrar agora" }).click();
+  await page.getByRole("button", { name: "Encerrar o filme agora" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Encerrar agora" }).click();
-  await expect(page.getByText(/Terminou em/)).toBeVisible();
-  await page.getByRole("button", { name: "Excluir evento" }).click();
-  await expect(page.getByRole("dialog", { name: "Excluir evento?" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Encerrar o filme agora" })).toBeHidden();
+  await page.getByRole("button", { name: "Mais", exact: true }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Excluir evento" }).click();
-  await page.waitForURL("/");
+  await page.waitForURL(/\/excluir$/);
+  const del = page.getByRole("button", { name: "Excluir para sempre" });
+  await expect(del).toHaveAttribute("aria-disabled", "true");
+  await page.getByLabel("Nome do evento").fill("Para excluir");
+  await expect(del).not.toHaveAttribute("aria-disabled", "true");
+  await del.click();
+  await page.waitForURL("/eventos");
   await page.goto(`/e/${code}`);
   await expect(page.getByRole("heading", { name: "Código não confere." })).toBeVisible();
 });
@@ -222,9 +231,9 @@ test("downloads: baixa o álbum em ZIP e a lista de convidados em CSV", async ({
     return all[0].id;
   });
   await page.goto(`/painel/${id}/downloads`);
-  const [zip] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar o álbum (ZIP)" }).click()]);
+  const [zip] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar" }).first().click()]);
   expect(zip.suggestedFilename()).toBe("revela-emy-e-igor.zip");
-  const [csv] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Lista de convidados (CSV)" }).click()]);
+  const [csv] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar" }).nth(1).click()]);
   expect(csv.suggestedFilename()).toMatch(/convidados\.csv$/);
 });
 

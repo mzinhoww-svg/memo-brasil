@@ -29,6 +29,7 @@ for (const vp of [{ n: "390", w: 390, h: 844 }, { n: "1440", w: 1440, h: 900 }])
 
       // organizador: configuração
       await page.goto(`/painel/${id}/configuracoes`);
+      await page.getByRole("button", { name: /^Revela\b/ }).click();
       await expect(page.getByTestId("config-revelacao")).toBeVisible();
       await page.getByTestId("config-revelacao").scrollIntoViewIfNeeded();
       await shot(page, `${key}-config`);

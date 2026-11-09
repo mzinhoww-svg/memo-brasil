@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/revela";
 import type { MemoEvent } from "@/domain/event";
 import { PT, TRIM, type FontId, type InviteLayout } from "./invite-layout";
 import { buildInvitePdf, FONT_FILES, inviteLayout, loadInviteFonts, printable, type InviteFonts } from "./invite-pdf";
-import { printInvite } from "./invite-print";
+import { printInvite, type PrintInvite } from "./invite-print";
 
 /** As mesmas fontes estáticas do PDF, para a prévia ter as mesmas quebras de linha. */
-const FAMILY: Record<FontId, string> = { bold: "MM Convite Bold", regular: "MM Convite Regular", italic: "MM Convite Italic" };
+const FAMILY: Record<FontId, string> = { bold: "MM Convite Bold", regular: "MM Convite Regular", mono: "MM Convite Mono" };
 const FACES = (Object.keys(FONT_FILES) as FontId[]).map((id) => `@font-face{font-family:"${FAMILY[id]}";src:url("${FONT_FILES[id]}") format("woff");font-display:block}`).join("");
 
 let fontsOnce: Promise<InviteFonts> | null = null;
@@ -58,8 +57,19 @@ function download(bytes: Uint8Array, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-/** Convite A5 do evento: prévia fiel, "Baixar PDF para gráfica" e "Imprimir" (só o convite, em A5). */
-export function InviteA5({ event, now }: { event: MemoEvent; now: number }) {
+export interface InviteA5State {
+  inv: PrintInvite;
+  fonts?: InviteFonts;
+  layout?: InviteLayout;
+  busy: boolean;
+  /** Falha ao gerar o PDF ou ao carregar as fontes (mensagem pronta). */
+  error?: string;
+  onDownload: () => Promise<void>;
+  onPrint: () => void;
+}
+
+/** Convite A5 do evento: PDF para gráfica ("Baixar PDF") e impressão só do convite, em A5. A prévia na tela é a do painel (17k). */
+export function useInviteA5(event: MemoEvent, now: number): InviteA5State {
   const inv = useMemo(() => printInvite(event, now), [event, now]);
   const [fonts, setFonts] = useState<InviteFonts | undefined>();
   const [loadError, setLoadError] = useState(false);
@@ -78,6 +88,7 @@ export function InviteA5({ event, now }: { event: MemoEvent; now: number }) {
     setPdfError(undefined);
     try {
       download(await buildInvitePdf(inv, fonts ?? (await fontsFromSite())), inv.fileName);
+      setLoadError(false);
     } catch {
       setPdfError("Não conseguimos gerar o PDF. Confira a conexão e tente de novo.");
     } finally {
@@ -92,27 +103,19 @@ export function InviteA5({ event, now }: { event: MemoEvent; now: number }) {
     window.print();
   }
 
+  const error = pdfError ?? (loadError ? "Não conseguimos carregar as fontes do convite. Confira a conexão e tente de novo." : undefined);
+  return { inv, fonts, layout, busy, error, onDownload, onPrint };
+}
+
+/** Folha A5 que só aparece no papel (impressão do convite): o desenho vetorial igual ao do PDF. */
+export function InvitePrintSheet({ state }: { state: InviteA5State }) {
+  const { inv, layout, fonts } = state;
   return (
-    <section className="app-stack-sm convite-a5-bloco" aria-labelledby="convite-titulo">
+    <div className="print-only print-convite" aria-hidden="true">
       <style>{FACES}</style>
-      <div className="no-print app-stack-sm">
-        <h2 id="convite-titulo" className="titulo-card app-h1">Convite A5</h2>
-        <p className="app-p app-muted">148 × 210 mm, fundo claro. O PDF já sai com 3 mm de sangria para a gráfica.</p>
-        <div className="app-row" style={{ flexWrap: "wrap" }}>
-          <Button variant="pequeno" icon="baixar" onClick={() => void onDownload()} disabled={busy || loadError}>{busy ? "Gerando PDF…" : "Baixar PDF para gráfica"}</Button>
-          <Button variant="secundario" small onClick={onPrint} disabled={!layout}>Imprimir</Button>
-        </div>
-        {pdfError && <p className="app-banner" role="alert">{pdfError}</p>}
-        {loadError && (
-          <p className="app-banner" role="alert">
-            Não conseguimos carregar as fontes do convite.{" "}
-            <button type="button" className="rv-link" onClick={() => { setLoadError(false); fontsFromSite().then(setFonts, () => setLoadError(true)); }}>Tentar de novo</button>
-          </p>
-        )}
-      </div>
       <div className="convite-a5-folha">
-        {layout && fonts ? <InviteSvg layout={layout} fonts={fonts} label={`Convite de ${inv.title}: QR Code para ${inv.qrText}, código ${inv.code}`} /> : !loadError && <p className="app-muted" role="status">Montando o convite…</p>}
+        {layout && fonts ? <InviteSvg layout={layout} fonts={fonts} label={`Convite de ${inv.title}: QR Code para ${inv.qrText}, código ${inv.code}`} /> : null}
       </div>
-    </section>
+    </div>
   );
 }

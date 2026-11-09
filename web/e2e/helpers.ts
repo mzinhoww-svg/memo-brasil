@@ -104,6 +104,7 @@ export async function acceptTerms(page: Page) {
 export async function applyReveal(page: Page, id: string, reveal: RevealOpt) {
   if (reveal === "ao-terminar" || (typeof reveal === "object" && !reveal.tz)) return;
   await page.goto(`/painel/${id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click(); // linha "Revela" abre a folha "Quando revelar"
   const box = page.getByTestId("config-revelacao");
   if (reveal === "desligada") {
     await box.getByRole("button", { name: /Desligada/ }).click();
@@ -137,14 +138,18 @@ export async function createViaWizard(page: Page, opts: { title?: string; reveal
   const id = page.url().split("/").pop()!;
   await applyReveal(page, id, opts.reveal ?? "ao-terminar");
   // o assistente só cria no Grátis (10/10); limites diferentes entram pelas configurações do painel
-  const wanted = [["Fotos por pessoa", opts.shots, "10"], ["Convidados", opts.capacity, "10"]] as const;
+  // poses ficam na linha "Poses"; capacidade, na folha do botão "Mais"
+  const wanted = [["Fotos por pessoa", opts.shots, "10", "poses"], ["Convidados", opts.capacity, "10", "mais"]] as const;
   if (wanted.some(([, v, free]) => v && v !== free)) {
     await page.goto(`/painel/${id}/configuracoes`);
-    for (const [group, value, free] of wanted) {
+    for (const [group, value, free, where] of wanted) {
       if (!value || value === free) continue;
-      const btn = page.getByRole("group", { name: group }).getByRole("button", { name: value, exact: true });
+      await (where === "poses" ? page.getByRole("button", { name: /^Poses\b/ }) : page.getByRole("button", { name: "Mais", exact: true })).click();
+      const dialog = page.getByRole("dialog");
+      const btn = dialog.getByRole("group", { name: group }).getByRole("button", { name: value, exact: true });
       await btn.click();
       await expect(btn).toHaveAttribute("aria-pressed", "true");
+      await page.keyboard.press("Escape");
     }
   }
   return { code, id };

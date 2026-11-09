@@ -1,32 +1,54 @@
 /* Gerado de design-system/revela/html/Painel-resumo.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function PainelResumo() {
+"use client";
+import Link from "next/link";
+
+export interface PainelResumoProps {
+  name?: string;
+  live?: boolean;
+  stamp?: string;
+  tiles?: { guests: string; guestsOf: string; photos: string; photosNote: string; reports: string; reportsNote: string };
+  gauge?: { label: string; text: string; pct: number; warn?: boolean };
+  /** Os oito cartões do painel, na ordem do desenho: texto de apoio e destino. */
+  cards?: { sub: string; href: string }[];
+  settingsHref?: string;
+  onBack?: () => void;
+}
+export const PAINEL_RESUMO_REF: Required<PainelResumoProps> = {
+  name: "Ana & Leo", live: true, stamp: "REVELA DOM 12:00",
+  tiles: { guests: "32", guestsOf: "de 250", photos: "418", photosNote: "+38 na última hora", reports: "2", reportsNote: "para revisar" },
+  gauge: { label: "Lugares usados", text: "32 de 250", pct: 13 },
+  cards: [
+    { sub: "32 entraram", href: "#" }, { sub: "12 links", href: "#" }, { sub: "6 momentos", href: "#" }, { sub: "1 agendado", href: "#" },
+    { sub: "2 denúncias", href: "#" }, { sub: "ZIP e CSV", href: "#" }, { sub: "Casamento", href: "#" }, { sub: "Casamento", href: "#" },
+  ],
+  settingsHref: "#", onBack: () => undefined,
+};
+
+export function PainelResumo({ name = PAINEL_RESUMO_REF.name, live = PAINEL_RESUMO_REF.live, stamp = PAINEL_RESUMO_REF.stamp, tiles = PAINEL_RESUMO_REF.tiles, gauge = PAINEL_RESUMO_REF.gauge, cards = PAINEL_RESUMO_REF.cards, settingsHref = "#", onBack }: PainelResumoProps = {}) {
   return (
     <>
     <div className="scr">
       <div className="safe">
         <div className="row between">
-          <button className="rv-icon-btn" aria-label="Voltar">
+          <button type="button" className="rv-icon-btn" aria-label="Voltar" onClick={onBack}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
-          <span className="rv-title" style={{ "fontSize": "18px" }}>
-            {"Ana & Leo"}
-          </span>
-          <button className="rv-icon-btn" aria-label="Ajustes">
+          <h1 className="rv-title" style={{ "fontSize": "18px" }}>
+            {name}
+          </h1>
+          <Link href={settingsHref} className="rv-icon-btn" aria-label="Ajustes">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
             </svg>
-          </button>
+          </Link>
         </div>
         <div className="row between" style={{ "marginTop": "16px" }}>
-          <span className="live">
-            <i />
-            Rolando agora
-          </span>
+          {live ? <span className="live"><i />Rolando agora</span> : <span className="rv-caption">Encerrado</span>}
           <span className="rv-stamp" style={{ "fontSize": "12px" }}>
-            REVELA DOM 12:00
+            {stamp}
           </span>
         </div>
         <div className="tiles" style={{ "marginTop": "12px" }}>
@@ -35,10 +57,10 @@ export function PainelResumo() {
               Convidados
             </span>
             <b>
-              32
+              {tiles.guests}
             </b>
             <small>
-              de 250
+              {tiles.guestsOf}
             </small>
           </div>
           <div className="tile">
@@ -46,10 +68,10 @@ export function PainelResumo() {
               Fotos
             </span>
             <b>
-              418
+              {tiles.photos}
             </b>
             <small>
-              +38 na última hora
+              {tiles.photosNote}
             </small>
           </div>
           <div className="tile">
@@ -57,25 +79,25 @@ export function PainelResumo() {
               Denúncias
             </span>
             <b>
-              2
+              {tiles.reports}
             </b>
             <small>
-              para revisar
+              {tiles.reportsNote}
             </small>
           </div>
         </div>
         <div className="stack" style={{ "marginTop": "14px" }}>
-          <div className="gauge">
+          <div className={`gauge${gauge.warn ? " gauge--warn" : ""}`}>
             <div className="row between">
               <span>
-                Lugares usados
+                {gauge.label}
               </span>
               <b>
-                32 de 250
+                {gauge.text}
               </b>
             </div>
             <i>
-              <s style={{ "width": "13%" }} />
+              <s style={{ "width": `${gauge.pct}%` }} />
             </i>
           </div>
         </div>
@@ -83,7 +105,7 @@ export function PainelResumo() {
           Painel
         </h2>
         <div className="pgrid">
-          <div className="pcard">
+          <Link href={cards[0].href} className="pcard">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="9" cy="8" r="3.5" />
               <path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5" />
@@ -93,10 +115,10 @@ export function PainelResumo() {
               Convidados
             </b>
             <span>
-              32 entraram
+              {cards[0].sub}
             </span>
-          </div>
-          <div className="pcard">
+          </Link>
+          <Link href={cards[1].href} className="pcard">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
             </svg>
@@ -104,10 +126,10 @@ export function PainelResumo() {
               Convites e mesas
             </b>
             <span>
-              12 links
+              {cards[1].sub}
             </span>
-          </div>
-          <div className="pcard">
+          </Link>
+          <Link href={cards[2].href} className="pcard">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="5" width="18" height="16" rx="2" />
               <path d="M3 10h18M8 3v4M16 3v4" />
@@ -116,10 +138,10 @@ export function PainelResumo() {
               Programação
             </b>
             <span>
-              6 momentos
+              {cards[2].sub}
             </span>
-          </div>
-          <div className="pcard">
+          </Link>
+          <Link href={cards[3].href} className="pcard">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
               <path d="M10 21a2 2 0 0 0 4 0" />
@@ -128,10 +150,10 @@ export function PainelResumo() {
               Avisos
             </b>
             <span>
-              1 agendado
+              {cards[3].sub}
             </span>
-          </div>
-          <div className="pcard">
+          </Link>
+          <Link href={cards[4].href} className="pcard">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
             </svg>
@@ -139,10 +161,10 @@ export function PainelResumo() {
               Moderação
             </b>
             <span>
-              2 denúncias
+              {cards[4].sub}
             </span>
-          </div>
-          <div className="pcard">
+          </Link>
+          <Link href={cards[5].href} className="pcard">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
             </svg>
@@ -150,10 +172,10 @@ export function PainelResumo() {
               Downloads
             </b>
             <span>
-              ZIP e CSV
+              {cards[5].sub}
             </span>
-          </div>
-          <div className="pcard">
+          </Link>
+          <Link href={cards[6].href} className="pcard">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="9" />
               <circle cx="8" cy="10" r="1.2" fill="currentColor" />
@@ -165,10 +187,10 @@ export function PainelResumo() {
               Aparência
             </b>
             <span>
-              Casamento
+              {cards[6].sub}
             </span>
-          </div>
-          <div className="pcard">
+          </Link>
+          <Link href={cards[7].href} className="pcard">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z" />
             </svg>
@@ -176,9 +198,9 @@ export function PainelResumo() {
               Plano
             </b>
             <span>
-              Casamento
+              {cards[7].sub}
             </span>
-          </div>
+          </Link>
         </div>
       </div>
       <div className="home-ind" />

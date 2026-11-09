@@ -77,7 +77,7 @@ function FeedAntigo() {
 
       {!live && retrospectiveOpen(event, now, viewer.host) && <Link className="rv-btn rv-btn--secundario rv-btn--bloco" href={`/e/${event.code}/retrospectiva`}>Ver a retrospectiva</Link>}
 
-      {event.notice && (!event.notice.expiresAt || event.notice.expiresAt > now) && <Notice text={event.notice.text} eyebrow={event.category === "casamento" ? "Aviso · cerimonial" : "Aviso · organização"} />}
+      {event.notice && (!event.notice.startsAt || event.notice.startsAt <= now) && (!event.notice.expiresAt || event.notice.expiresAt > now) && <Notice text={event.notice.text} eyebrow={event.category === "casamento" ? "Aviso · cerimonial" : "Aviso · organização"} />}
 
       {pending ? (
         <WaitingReveal event={event} ownCount={counts.mine} totalCount={counts.total} />
