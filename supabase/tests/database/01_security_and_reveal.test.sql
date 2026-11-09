@@ -64,7 +64,7 @@ select code as ev_code from public.events where id = '10000000-0000-4000-8000-00
 select tests.login('00000000-0000-4000-8000-0000000000b1', true);
 select is((public.event_preview(:'ev_code') ->> 'title'), 'Emy & Igor', 'prévia devolve título');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.event_preview(:'ev_code')) k),
-  array['capacity','category','code','eventFont','everyoneSeesAll','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
+  array['cameraStyle','capacity','category','code','eventFont','everyoneSeesAll','filmLook','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
   'prévia só tem os 11 campos seguros da v1 + theme (v2) + campos de plano/revelação (COM-003)');
 select throws_ok($$select public.join_event('ZZZZZZZZ', 'Ana')$$, 'MM005', 'invalid', 'código inexistente');
 select throws_ok(format($$select public.join_event(%L, '  ')$$, :'ev_code'), 'MM005', 'invalid', 'nome vazio');
