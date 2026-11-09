@@ -76,8 +76,8 @@ test("organizador cria → convidado entra e posta → servidor revela (cron) �
   await expect(gp.getByTestId("aguardando-revelacao")).toBeVisible();
   await gp.goto(`/e/${code}/postar`);
   await gp.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
-  await gp.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(gp.getByText("Sua visão entrou na história.")).toBeVisible({ timeout: 30_000 });
+  await gp.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(gp.getByText("Foi para o laboratório")).toBeVisible({ timeout: 30_000 });
 
   // 3) upload persistido e Storage privado
   const photos = (await admin.from("photos").select("id,storage_path,upload_status").eq("event_id", eventId.id)).data!;

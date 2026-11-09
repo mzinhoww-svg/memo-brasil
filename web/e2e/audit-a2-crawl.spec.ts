@@ -64,8 +64,8 @@ for (const vp of VPS) {
       await page.getByLabel("Legenda (opcional)").fill(CAPTION);
       await snap("postar-preview");
       await page.getByRole("button", { name: "O sim", exact: true }).click();
-      await page.getByRole("button", { name: "Postar", exact: true }).click();
-      await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+      await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+      await expect(page.getByText("Foi para o laboratório")).toBeVisible();
       await snap("postar-publicado");
 
       // 4. convite com novo convidado de nome longo
@@ -81,8 +81,8 @@ for (const vp of VPS) {
       await page.goto(`/e/${code}/postar`);
       await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
       await page.getByLabel("Legenda (opcional)").fill(CAPTION);
-      await page.getByRole("button", { name: "Postar", exact: true }).click();
-      await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+      await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+      await expect(page.getByText("Foi para o laboratório")).toBeVisible();
 
       const photoId = await page.evaluate(() => new Promise<string>((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => { const q = r.result.transaction("photos").objectStore("photos").getAllKeys(); q.onsuccess = () => res(String((q.result as string[])[0])); }; }));
 

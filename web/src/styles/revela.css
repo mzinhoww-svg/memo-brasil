@@ -340,3 +340,49 @@
 .rv-dialog__actions button { flex: 1; min-height: 52px; border: 0; background: none; font: 700 16px/20px var(--font-sans); color: var(--ink-muted); cursor: pointer; }
 .rv-dialog__actions button + button { box-shadow: inset 1px 0 0 var(--line); }
 .rv-dialog__actions .go { color: var(--revela-text); }
+
+/* Câmera do convidado (21–24): visor com cantoneiras + corpo da câmera física + faixa da embalagem */
+.rv-cam { width: 100%; max-width: 480px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; background: var(--black-1); }
+.rv-cam__finder { position: relative; flex: 1; min-height: 52dvh; margin: calc(var(--space-2) + env(safe-area-inset-top)) var(--space-2) 0; border-radius: var(--radius-xl); overflow: hidden; background: var(--surface-1); }
+.rv-cam__finder video, .rv-cam__finder img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.rv-cam__bar { position: absolute; top: 0; left: 0; right: 0; z-index: 3; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: var(--space-2); padding: var(--space-4); text-align: center; }
+.rv-cam__bar .rv-icon-btn { background: color-mix(in srgb, var(--black-1) 45%, transparent); color: var(--ink); }
+.rv-cam__bar .rv-icon-btn[aria-pressed="true"] { color: var(--carimbo); }
+.rv-cam__title { font: 400 22px/28px var(--font-display); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 8px var(--shade-mid); }
+.rv-cam__corners { position: absolute; inset: 22% 7% 12%; z-index: 2; pointer-events: none; background:
+  linear-gradient(var(--ink), var(--ink)) left top / 22px 2px no-repeat, linear-gradient(var(--ink), var(--ink)) left top / 2px 22px no-repeat,
+  linear-gradient(var(--ink), var(--ink)) right top / 22px 2px no-repeat, linear-gradient(var(--ink), var(--ink)) right top / 2px 22px no-repeat,
+  linear-gradient(var(--ink), var(--ink)) left bottom / 22px 2px no-repeat, linear-gradient(var(--ink), var(--ink)) left bottom / 2px 22px no-repeat,
+  linear-gradient(var(--ink), var(--ink)) right bottom / 22px 2px no-repeat, linear-gradient(var(--ink), var(--ink)) right bottom / 2px 22px no-repeat; opacity: .85; }
+.rv-cam__date { position: absolute; right: var(--space-5); bottom: var(--space-4); z-index: 2; font: 400 22px/1 var(--font-stamp); letter-spacing: .08em; color: var(--carimbo); text-shadow: 0 0 8px var(--glow-carimbo); }
+.rv-cam__msg { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; padding: var(--space-6); text-align: center; color: var(--ink-muted); }
+.rv-cam__body { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; grid-template-rows: auto auto; align-items: center; gap: var(--space-3) var(--space-4); padding: var(--space-5) var(--space-5) var(--space-4); margin-top: calc(-1 * var(--space-2)); border-radius: var(--radius-xl) var(--radius-xl) 0 0; background: var(--wrap-casamento); box-shadow: inset 0 2px 0 var(--hl-strong), 0 -10px 30px var(--shade); }
+[data-wrap="festa"] .rv-cam__body { background: var(--wrap-festa); }
+[data-wrap="aniversario"] .rv-cam__body { background: var(--wrap-aniversario); }
+[data-wrap="noite"] .rv-cam__body { background: var(--wrap-noite); }
+.rv-cam__body .rv-counter { justify-self: start; }
+.rv-shutter { width: 96px; height: 96px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: radial-gradient(circle at 50% 45%, var(--revela) 0 52%, var(--black-1) 53% 62%, var(--surface-3) 63%); box-shadow: 0 6px 16px var(--shade-mid), inset 0 2px 0 var(--hl-strong); transition: transform .08s; }
+.rv-shutter:active { transform: scale(.94); }
+.rv-shutter:disabled { cursor: default; filter: grayscale(.6) brightness(.8); }
+.rv-shutter:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.rv-wheel { justify-self: end; width: 48px; height: 96px; border-radius: 10px; background: repeating-linear-gradient(var(--surface-2) 0 4px, var(--black-1) 4px 7px); box-shadow: inset 0 0 0 2px var(--black-1), 0 4px 10px var(--shade); }
+.rv-cam__thumb { justify-self: start; width: 52px; height: 52px; padding: 0; border: 0; background: none; cursor: pointer; transform: rotate(-6deg); }
+.rv-cam__thumb .rv-print { width: 100%; height: 100%; padding: 4px 4px 10px; box-sizing: border-box; }
+.rv-cam__thumb .rv-print--back::after { inset: 4px 4px 10px; }
+.rv-cam__body > .rv-icon-btn { justify-self: end; background: color-mix(in srgb, var(--black-1) 12%, transparent); color: var(--black-1); grid-column: 3; }
+.rv-cam__band { padding: var(--space-3) var(--space-5) calc(var(--space-3) + env(safe-area-inset-bottom)); font: 400 13px/16px var(--font-stamp); letter-spacing: .22em; text-transform: uppercase; background: var(--wrap-casamento-band); color: var(--wrap-casamento-ink); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+[data-wrap="festa"] .rv-cam__band { background: var(--wrap-festa-ink); color: var(--wrap-festa-stamp); }
+[data-wrap="aniversario"] .rv-cam__band { background: var(--wrap-aniversario-band); color: var(--wrap-aniversario-stamp); }
+[data-wrap="noite"] .rv-cam__band { background: var(--wrap-noite-band); color: var(--wrap-noite-ink); }
+.rv-cam__status { grid-column: 1 / -1; margin: 0; text-align: center; font: 600 13px/18px var(--font-sans); color: var(--black-1); opacity: .75; }
+.rv-cam .rv-dialog { position: absolute; }
+/* 24 · filme acabou: impressões empilhadas + visores */
+.rv-stack { position: relative; width: 66%; aspect-ratio: 1.05; margin: var(--space-4) auto 0; }
+.rv-stack .rv-print { position: absolute; width: 62%; aspect-ratio: .82; }
+.rv-stack .rv-print:nth-child(1) { left: 2%; top: 8%; transform: rotate(-7deg); }
+.rv-stack .rv-print:nth-child(2) { right: 0; top: 0; transform: rotate(5deg); }
+.rv-stack .rv-print:nth-child(3) { left: 18%; top: 14%; transform: rotate(-1deg); }
+.rv-timer { display: flex; justify-content: center; gap: var(--space-3); }
+.rv-timer div { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 76px; padding: var(--space-3) var(--space-2); border-radius: var(--radius-md); background: var(--viewfinder); box-shadow: inset 0 2px 6px var(--black-1), inset 0 0 0 1px var(--hl); }
+.rv-timer b { font: 400 34px/1 var(--font-stamp); color: var(--carimbo); text-shadow: 0 0 10px var(--glow-carimbo); }
+.rv-timer span { font: 400 13px/16px var(--font-sans); color: var(--ink-muted); }

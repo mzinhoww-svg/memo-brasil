@@ -268,8 +268,8 @@ test("bloqueio persiste após recarregar e recusa a mesma identidade sem apagar 
   await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
   await expect(page).toHaveURL(new RegExp(`/e/${code}/postar$`));
   await choosePhoto(page, "História preservada depois do bloqueio");
-  await page.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+  await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(page.getByText("Foi para o laboratório")).toBeVisible();
   const photos = await localPhotos(page);
   expect(photos).toHaveLength(1);
   expect(photos[0].uploadStatus).toBe("pronta");

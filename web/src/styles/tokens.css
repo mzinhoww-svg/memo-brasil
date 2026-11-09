@@ -74,6 +74,9 @@
   --wrap-aniversario-ink: #F6EFE6;
   --wrap-aniversario-stamp: #FFD23F;
   --wrap-noite-ink: #E8CF9E;
+  --wrap-casamento-band: #C9A35B;
+  --wrap-aniversario-band: #0E1A66;
+  --wrap-noite-band: #0B1F17;
 }
 
 [data-theme="light"] {
@@ -148,6 +151,9 @@
   --wrap-aniversario-ink: #F6EFE6;
   --wrap-aniversario-stamp: #FFD23F;
   --wrap-noite-ink: #E8CF9E;
+  --wrap-casamento-band: #C9A35B;
+  --wrap-aniversario-band: #0E1A66;
+  --wrap-noite-band: #0B1F17;
 }
 
 /* Extensões de app sem cor: alvos de toque e larguras. */

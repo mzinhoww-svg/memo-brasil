@@ -112,8 +112,8 @@ test("service worker: registro, cache, offline", async ({ browser }) => {
   await page.goto(`/e/${code}/postar`); await page.waitForTimeout(500);
   await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
   await page.getByRole("button", { name: "O sim", exact: true }).click();
-  await page.getByRole("button", { name: "Postar", exact: true }).click();
-  const posted = await page.getByText("Sua visão entrou na história.").isVisible({ timeout: 8000 }).catch(() => false);
+  await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  const posted = await page.getByText("Foi para o laboratório").isVisible({ timeout: 8000 }).catch(() => false);
   res.postOffline = { posted };
   await page.screenshot({ path: path.join(SHOTS, "a2-pwa-offline-postado-390-dia.png") });
   await page.goto(`/e/${code}/agora`); await page.waitForTimeout(800);

@@ -36,8 +36,8 @@ test.describe("A3 uploads", () => {
       if (k === "svg-script") results["svg-xss-flag"] = await page.evaluate(() => (window as unknown as { __svgxss?: number }).__svgxss ?? null);
       if (k === "gps-jpg" && r.outcome === "previa-aceita") {
         await page.getByRole("button", { name: "O sim", exact: true }).click().catch(() => undefined);
-        await page.getByRole("button", { name: "Postar", exact: true }).click();
-        await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+        await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+        await expect(page.getByText("Foi para o laboratório")).toBeVisible();
         results["gps-stored"] = await page.evaluate(
           () => new Promise((res) => {
             const o = indexedDB.open("memoriesmt");

@@ -16,13 +16,13 @@ for (const offline of [false, true, "reload"] as const) {
     const t0 = Date.now();
     await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
     await page.getByRole("button", { name: "O sim", exact: true }).click();
-    await page.getByRole("button", { name: "Postar", exact: true }).click();
+    await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
     const states: string[] = [];
     let ok = false;
     for (let i = 0; i < 40; i++) {
       await page.waitForTimeout(500);
       const t = await page.locator("main").innerText();
-      const s = /Sua visão entrou na história/.test(t) ? "publicado" : /Guardando/.test(t) ? "guardando" : "outro";
+      const s = /Foi para o laboratório/.test(t) ? "publicado" : /Guardando/.test(t) ? "guardando" : "outro";
       if (states[states.length - 1] !== s) states.push(s + "@" + (Date.now() - t0) + "ms");
       if (s === "publicado") { ok = true; break; }
     }
@@ -41,9 +41,9 @@ test("rede cai no envio: foto entra uma vez ao voltar, quota desconta 1", async 
   await page.goto(`/e/${code}/postar`);
   await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
   await page.getByRole("button", { name: "O sim", exact: true }).click();
-  await page.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(page.getByText("Sem sinal.", { exact: true })).toBeVisible();
-  await expect(page.getByText("Sua visão entrou na história.")).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(page.getByText("Sem sinal", { exact: true })).toBeVisible();
+  await expect(page.getByText("Foi para o laboratório")).toBeVisible({ timeout: 20_000 });
   const ready = await page.evaluate(() => new Promise<number>((resolve) => {
     const q = indexedDB.open("memoriesmt");
     q.onsuccess = () => { const all = q.result.transaction("photos").objectStore("photos").getAll(); all.onsuccess = () => resolve(all.result.filter((p: { uploadStatus: string; authorId: string }) => p.uploadStatus === "pronta").length); };

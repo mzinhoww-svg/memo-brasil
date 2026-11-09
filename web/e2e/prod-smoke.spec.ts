@@ -22,8 +22,8 @@ test("publicado: convidado entra pelo código, aceita termos, posta e vê no Ago
   await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
   await page.waitForURL(new RegExp(`/e/${CODE}/postar$`));
   await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
-  await page.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(page.getByText("Sua visão entrou na história.")).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(page.getByText("Foi para o laboratório")).toBeVisible({ timeout: 30_000 });
   await page.goto(`/e/${CODE}/agora`);
   await expect(page.getByText(/Visão de Convidado Smoke/)).toBeVisible({ timeout: 30_000 });
 });

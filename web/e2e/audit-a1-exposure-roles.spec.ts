@@ -27,7 +27,7 @@ async function scenario(page: Page, reveal: Parameters<typeof createViaWizard>[1
   await page.clock.install({ time: BASE });
   const { code, id } = await createViaWizard(page, { reveal, title: "Segredo" });
   await postViaFile(page, code, "O sim");
-  await page.getByRole("button", { name: "Postar outra" }).click().catch(() => undefined);
+  await page.getByRole("button", { name: "Tirar outra" }).click().catch(() => undefined);
   await switchPerson(page, code, "Ana");
   return { code, id };
 }

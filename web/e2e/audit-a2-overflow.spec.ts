@@ -22,8 +22,8 @@ test("textos longos", async ({ browser }) => {
       await page.goto(`/e/${code}/postar`);
       await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "f.png", mimeType: "image/png", buffer: PNG });
       await page.getByLabel("Legenda (opcional)").fill(cap);
-      await page.getByRole("button", { name: "Postar", exact: true }).click();
-      await page.getByText("Sua visão entrou na história.").waitFor();
+      await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+      await page.getByText("Foi para o laboratório").waitFor();
     };
     await post(CAP);
     await page.goto(`/e/${code}/voce`);

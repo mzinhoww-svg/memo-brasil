@@ -134,8 +134,8 @@ export async function postViaFile(page: Page, code: string, moment = "O sim") {
   await page.goto(`/e/${code}/postar`);
   await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
   await page.getByRole("button", { name: moment, exact: true }).click();
-  await page.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+  await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(page.getByText("Foi para o laboratório")).toBeVisible();
 }
 
 export async function switchPerson(page: Page, code: string, name: string) {

@@ -115,8 +115,8 @@ test("convidado entra, posta com a câmera de teste, gasta o rolo e reage uma ve
   await expect(page.getByRole("button", { name: "Tirar foto" })).toBeVisible({ timeout: 15_000 });
   await page.getByRole("button", { name: "Tirar foto" }).click();
   await expect(page.getByAltText("Prévia da sua foto")).toBeVisible();
-  await page.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+  await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(page.getByText("Foi para o laboratório")).toBeVisible();
 
   await page.goto(`/e/${code}/agora`);
   const amei = page.getByRole("button", { name: /^Amei/ });
@@ -128,7 +128,7 @@ test("convidado entra, posta com a câmera de teste, gasta o rolo e reage uma ve
 
   for (let i = 0; i < 4; i++) await postViaFile(page, code);
   await page.goto(`/e/${code}/postar`);
-  await expect(page.getByRole("heading", { name: "Seu rolo acabou." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Seu filme acabou" })).toBeVisible();
   await expect(page.getByText("Você usou todas as suas fotos deste evento.")).toBeVisible();
   await page.goto(`/e/${code}/voce`);
   await expect(page.getByText("Restam 0 de 5")).toBeVisible();
@@ -348,9 +348,9 @@ test.describe("jornada do convidado (Task 13)", () => {
     await expect(page.getByRole("heading", { name: "Libere a câmera" })).toBeVisible();
     await expect(page.getByText("Ela destrava suas 5 fotos")).toBeVisible();
     await expect(page.getByText(/Cada foto vai para o álbum da festa e aparece para todos na hora\./)).toBeVisible();
-    await page.getByRole("button", { name: "Liberar câmera" }).click();
+    await page.getByRole("button", { name: "Liberar" }).click();
 
-    await expect(page.getByText("Tudo bem, use a galeria.")).toBeVisible();
+    await expect(page.getByText("Tudo bem, use a galeria")).toBeVisible();
     await expect(page.getByTestId("ajuda-camera").getByRole("listitem")).toHaveCount(3);
     await expect(page.getByText("Permissões › Câmera › Permitir.")).toBeVisible(); // Chrome (o iPhone/Safari tem os próprios passos, cobertos em capture.test.ts)
     await expect(page.getByRole("button", { name: "Tentar a câmera de novo" })).toBeVisible();
@@ -360,8 +360,8 @@ test.describe("jornada do convidado (Task 13)", () => {
 
     await gallery.setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
     await page.getByRole("button", { name: "O sim", exact: true }).click();
-    await page.getByRole("button", { name: "Postar", exact: true }).click();
-    await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+    await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+    await expect(page.getByText("Foi para o laboratório")).toBeVisible();
   });
 
   test("pré-permissão: 'Prefiro escolher da galeria' vai direto para a galeria", async ({ page }) => {
@@ -381,7 +381,7 @@ test.describe("jornada do convidado (Task 13)", () => {
       await switchPerson(page, code, "Ana");
       await denyCamera(page);
       await page.goto(`/e/${code}/postar`);
-      await page.getByRole("button", { name: "Liberar câmera" }).click();
+      await page.getByRole("button", { name: "Liberar" }).click();
       await expect(page.getByText("Toque em ⋯ e escolha")).toBeVisible();
       await expect(page.getByText("Abrir no navegador")).toBeVisible();
     });
@@ -394,16 +394,16 @@ test.describe("jornada do convidado (Task 13)", () => {
     await expect(page.getByText("5 fotos restantes")).toBeVisible();
     await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
     await page.getByRole("button", { name: "O sim", exact: true }).click();
-    await page.getByRole("button", { name: "Postar", exact: true }).click();
+    await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
 
-    await expect(page.getByText("Sem sinal.", { exact: true })).toBeVisible();
+    await expect(page.getByText("Sem sinal", { exact: true })).toBeVisible();
     await expect(page.getByText("Não feche esta tela: sua foto vai assim que a internet voltar.")).toBeVisible();
     await expect(page.getByText(/Tentativa 1 de 3 · próxima em \d+ s/)).toBeVisible();
     await expect(page.getByText("5 fotos restantes")).toBeVisible(); // o contador só muda quando a foto chegar
     await expect(page.getByRole("button", { name: "Tentar agora" })).toBeVisible();
     await expect(page.getByText(/Verifique o espaço livre/)).toHaveCount(0);
 
-    await expect(page.getByText("Sua visão entrou na história.")).toBeVisible({ timeout: 20_000 }); // 2 s + 5 s
+    await expect(page.getByText("Foi para o laboratório")).toBeVisible({ timeout: 20_000 }); // 2 s + 5 s
     const ready = await page.evaluate(() => new Promise<number>((resolve) => {
       const q = indexedDB.open("memoriesmt");
       q.onsuccess = () => { const all = q.result.transaction("photos").objectStore("photos").getAll(); all.onsuccess = () => resolve(all.result.filter((p: { uploadStatus: string }) => p.uploadStatus === "pronta").length); };
@@ -419,10 +419,10 @@ test.describe("jornada do convidado (Task 13)", () => {
     await page.goto(`/e/${code}/postar`);
     await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
     await page.getByRole("button", { name: "O sim", exact: true }).click();
-    await page.getByRole("button", { name: "Postar", exact: true }).click();
+    await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
     await expect(page.getByText(/Tentativa 2 de 3 · próxima em \d+ s/)).toBeVisible({ timeout: 10_000 }); // a 2ª falha abre a espera de 5 s
     await page.getByRole("button", { name: "Tentar agora" }).click();
-    await expect(page.getByText("Sua visão entrou na história.")).toBeVisible({ timeout: 2500 }); // bem antes dos 5 s
+    await expect(page.getByText("Foi para o laboratório")).toBeVisible({ timeout: 2500 }); // bem antes dos 5 s
   });
 
   test("join rate-limited mostra 'Muita gente entrando agora' e 'Tentar agora' entra na festa", async ({ page }) => {

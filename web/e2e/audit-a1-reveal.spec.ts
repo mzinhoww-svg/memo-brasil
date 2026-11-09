@@ -227,11 +227,11 @@ test("R8 postagem durante a revelação e exatamente em revealAt", async ({ page
   const t0 = Date.now();
   await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
   const modalSobrePostagem = true;
-  const cliqueBloqueado = await page.getByRole("button", { name: "Postar", exact: true }).click({ timeout: 1500 }).then(() => false, () => true);
+  const cliqueBloqueado = await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click({ timeout: 1500 }).then(() => false, () => true);
   await page.getByRole("button", { name: "Ver as fotos" }).click({ timeout: 6000 });
   const msAteLiberar = Date.now() - t0;
-  await page.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+  await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(page.getByText("Foi para o laboratório")).toBeVisible();
   const msgEscuro = await page.getByTestId("guardada-no-escuro").isVisible();
   // exatamente em revealAt (em outro evento)
   const ctx2 = await context.browser()!.newContext({ permissions: ["camera"] });
@@ -241,8 +241,8 @@ test("R8 postagem durante a revelação e exatamente em revealAt", async ({ page
   await p2.clock.setFixedTime(REVEAL);
   await p2.goto(`/e/${s2.code}/postar`);
   await p2.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "f.png", mimeType: "image/png", buffer: PNG });
-  await p2.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(p2.getByText("Sua visão entrou na história.")).toBeVisible();
+  await p2.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(p2.getByText("Foi para o laboratório")).toBeVisible();
   const msgEscuroExato = await p2.getByTestId("guardada-no-escuro").isVisible();
   await p2.goto(`/e/${s2.code}/agora`);
   await p2.waitForTimeout(500);
