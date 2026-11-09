@@ -1,6 +1,9 @@
 # Retomar A.5
 
-## Revela 2.0 (09/11/2026) — leia primeiro
+## Revela 2.0 publicado (09/11/2026, fim do dia) — leia primeiro
+**No ar em https://fotosdocasamento.online** (`dpl_EZtKyENbbEP26KTZVpn2EeQ3T73i`, `main` = `df2970f`). Rollback do app: `dpl_Hm4o7eyrFkZEdQWShh5fdmKp1bY1`. Migrations `20261109000100…400` aplicadas no Supabase de produção; Auth e `ALLOWED_ORIGINS` ajustados para o domínio. Detalhes em `../supabase/PUBLISH-AND-ROLLBACK.md` §9–§10. Desde a nota abaixo, ficaram prontas no desenho Revela: câmera 3D com dados reais impressos, entrada do convidado (20b, 20d, 20e, 20f) e câmera (21–24). O resto da lista "NÃO feito" abaixo continua valendo. Atenção: as migrations `20261024000100/200` estavam em produção e fora da `main`; agora estão no repositório.
+
+## Revela 2.0 (09/11/2026) — estado anterior à publicação
 **Estado: redesign PARCIAL em `feat/revela-redesign`, NADA publicado.** Nenhuma migration foi aplicada no Supabase remoto e nenhum deploy foi feito: esta sessão não tinha credencial do Supabase nem da Vercel (sem CLI, sem token). Produção segue como estava na Rodada 10 (rollback ver `docs/supabase/PUBLISH-AND-ROLLBACK.md` §8). Fonte do design: `design-system/revela/` (TELAS.md, tokens, assets); regras de pagamento em `design-system/revela/PAGAMENTO-E-PRECOS.md`.
 
 ### Feito e verificado
