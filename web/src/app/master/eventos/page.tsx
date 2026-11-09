@@ -1,38 +1,63 @@
-import Link from "next/link";
-import { num, requireMaster, rpc, when } from "../data";
-import { Badge, PageHead, StateBox, Table } from "../ui";
+import { MasterEventosView, type EventoRow } from "@/revela/screens/MasterEventos";
+import { MState } from "@/revela/master-kit";
+import { requireMaster, rpc } from "../data";
+import { CATEGORY, nf, revealShort } from "../format";
 
-interface Ev { id: string; title: string; hostName: string; status: string; startAt: string; revealState: string; participants: number; photos: number; failedUploads: number; capacity: number | null }
-interface Page { total: number; limit: number; offset: number; items: Ev[] }
+interface Ev {
+  id: string; title: string; hostName: string; category: string; planCode: string | null; planName: string | null; participants: number; capacity: number | null; photos: number;
+  reports: number; revealEnabled: boolean; revealAt: string | null; revealedAt: string | null; live: boolean; deletedAt: string | null;
+}
+interface Board { total: number; counts: { todos: number; rolando: number; aguardando: number; revelados: number; denuncias: number; excluidos: number }; items: Ev[] }
 const POR_PAGINA = 25;
+const FILTROS = [["", "Todos"], ["rolando", "Rolando"], ["aguardando", "Aguardando revelação"], ["revelados", "Revelados"], ["denuncias", "Com denúncias"], ["excluidos", "Excluídos"]] as const;
 
-export default async function Eventos({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; p?: string }> }) {
+function situacao(e: Ev): { tone: "ok" | "bad" | "wait" | "info"; label: string } {
+  if (e.deletedAt) return { tone: "info", label: "Excluído" };
+  if (e.reports > 0) return { tone: "bad", label: `${e.reports} ${e.reports === 1 ? "denúncia" : "denúncias"}` };
+  if (e.revealedAt) return { tone: "info", label: "Revelado" };
+  if (e.capacity && e.participants >= e.capacity * 0.9 && e.live) return { tone: "wait", label: "Quase cheio" };
+  if (e.live) return { tone: "ok", label: "Rolando" };
+  return { tone: "wait", label: e.revealEnabled ? "Aguardando revelação" : "Encerrado" };
+}
+
+export default async function Eventos({ searchParams }: { searchParams: Promise<{ q?: string; f?: string; p?: string }> }) {
   const sb = await requireMaster();
   const sp = await searchParams;
-  const status = sp.status === "ativo" || sp.status === "encerrado" ? sp.status : undefined;
+  const filtro = FILTROS.some(([k]) => k && k === sp.f) ? sp.f! : "";
   const p = Math.max(1, Number(sp.p) || 1);
-  const r = await rpc<Page>(sb, "admin_list_events", { p_limit: POR_PAGINA, p_offset: (p - 1) * POR_PAGINA, p_search: sp.q?.slice(0, 80) || null, p_status: status ?? null });
-  const qs = (o: Record<string, string | undefined>) => { const u = new URLSearchParams(); for (const [k, v] of Object.entries({ q: sp.q, status, ...o })) if (v) u.set(k, v); return `/master/eventos?${u}`; };
+  const r = await rpc<Board>(sb, "admin_events_board", { p_filter: filtro || null, p_search: sp.q?.slice(0, 80) || null, p_limit: POR_PAGINA, p_offset: (p - 1) * POR_PAGINA });
+  if (r.state !== "ok") return <MState kind={r.state === "denied" ? "denied" : "error"} text={r.state === "error" ? `Não foi possível carregar: ${r.message}` : undefined} />;
+  const href = (o: { f?: string; p?: number }) => {
+    const u = new URLSearchParams();
+    if (sp.q) u.set("q", sp.q);
+    const f = o.f ?? filtro;
+    if (f) u.set("f", f);
+    if (o.p && o.p > 1) u.set("p", String(o.p));
+    const s = u.toString();
+    return `/master/eventos${s ? `?${s}` : ""}`;
+  };
+  const rows: EventoRow[] = r.data.items.map((e) => {
+    const s = situacao(e);
+    return {
+      key: e.id, title: e.title, host: e.hostName || "—", category: CATEGORY[e.category] ?? e.category, plan: e.planName ?? e.planCode ?? "Grátis",
+      guests: `${nf(e.participants)}${e.capacity ? ` / ${nf(e.capacity)}` : ""}`, photos: nf(e.photos),
+      reveal: e.revealedAt ? "revelado" : e.revealEnabled ? revealShort(e.revealAt) : "—", tone: s.tone, status: s.label,
+    };
+  });
+  const c = r.data.counts;
+  const last = Math.max(1, Math.ceil(r.data.total / POR_PAGINA));
   return (
-    <>
-      <PageHead titulo="Eventos" texto="Metadados e contagens. Fotos privadas não aparecem aqui." />
-      <form method="get" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }} role="search">
-        <label className="rv-field-label" htmlFor="q" style={{ position: "absolute", left: -9999 }}>Buscar</label>
-        <input id="q" name="q" className="rv-field-input" placeholder="Nome do evento ou do anfitrião" defaultValue={sp.q} style={{ maxWidth: 320 }} />
-        <select name="status" className="rv-field-input" defaultValue={status ?? ""} aria-label="Situação" style={{ maxWidth: 180 }}><option value="">Todos</option><option value="ativo">Ativos</option><option value="encerrado">Encerrados</option></select>
-        <button className="rv-btn rv-btn--secundario" type="submit">Filtrar</button>
-      </form>
-      {r.state !== "ok" ? <StateBox load={r} /> : (
-        <>
-          <Table vazio="Nenhum evento encontrado." cols={[{ k: "t", h: "Evento" }, { k: "h", h: "Anfitrião" }, { k: "s", h: "Situação" }, { k: "r", h: "Revelação" }, { k: "p", h: "Convidados", num: true }, { k: "f", h: "Fotos", num: true }, { k: "x", h: "Falhas", num: true }, { k: "d", h: "Início" }]}
-            rows={r.data.items.map((e) => ({ t: e.title, h: e.hostName, s: <Badge s={e.status === "ativo" ? "ok" : "info"}>{e.status}</Badge>, r: <Badge s={e.revealState === "atrasada" ? "erro" : e.revealState === "pendente" ? "aviso" : e.revealState === "revelada" ? "ok" : "info"}>{e.revealState}</Badge>, p: `${num(e.participants)}${e.capacity ? ` / ${num(e.capacity)}` : ""}`, f: num(e.photos), x: num(e.failedUploads), d: when(e.startAt) }))} />
-          <nav aria-label="Paginação" style={{ display: "flex", gap: 12, marginTop: 16, alignItems: "center" }}>
-            {p > 1 && <Link href={qs({ p: String(p - 1) })}>← Anterior</Link>}
-            <span>Página {p} de {Math.max(1, Math.ceil(r.data.total / POR_PAGINA))} · {num(r.data.total)} eventos</span>
-            {p * POR_PAGINA < r.data.total && <Link href={qs({ p: String(p + 1) })}>Próxima →</Link>}
-          </nav>
-        </>
-      )}
-    </>
+    <MasterEventosView
+      caption={`${nf(c.todos)} eventos · ${nf(c.rolando)} rolando agora${sp.q ? ` · busca "${sp.q}"` : ""}`}
+      chips={FILTROS.map(([k, label]) => ({ label, href: href({ f: k, p: 1 }), on: k === filtro }))}
+      rows={rows} exportHref={null}
+      pager={last > 1 ? (
+        <nav aria-label="Paginação" className="row" style={{ gap: "12px", marginTop: "16px", alignItems: "center" }}>
+          {p > 1 && <a className="link" href={href({ p: p - 1 })}>← Anterior</a>}
+          <span className="rv-caption">Página {p} de {last} · {nf(r.data.total)} eventos</span>
+          {p < last && <a className="link" href={href({ p: p + 1 })}>Próxima →</a>}
+        </nav>
+      ) : undefined}
+    />
   );
 }

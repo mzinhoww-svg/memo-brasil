@@ -77,7 +77,7 @@ export function canRefund(o: { status: string; needsRefund: boolean; providerCha
 /** Nome do provedor no console. Pedidos antigos continuam legíveis e identificados como históricos. */
 export function providerLabel(provider: string | null | undefined): string {
   if (!provider) return "—";
-  return provider === "mercadopago" ? "Mercado Pago" : provider === "abacatepay" ? "AbacatePay (histórico)" : provider;
+  return provider === "validapay" ? "ValidaPay" : provider === "mercadopago" ? "Mercado Pago" : provider === "abacatepay" ? "AbacatePay (histórico)" : provider;
 }
 
 /**

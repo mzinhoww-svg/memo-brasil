@@ -79,10 +79,10 @@ Referência (esquerda) | implementação com os dados do desenho (centro) | dife
 | 31 | Termos e privacidade | Apoio-termos | 2.83% | ![](31.png) | portada e ligada a dados reais | `/termos` e `/privacidade`: textos de `lib/legal-text` e versões de `lib/consent` inalterados (selo mostra data e versão); abas alternam as rotas; aviso de rascunho se a versão terminar em `-rascunho` |
 | 32 | Ajuda | Apoio-ajuda | 2.47% | ![](32.png) | portada e ligada a dados reais | `/ajuda`: busca e acordeão reais; 5 perguntas do desenho com respostas do produto (plano pela diferença, guarda 90/30 dias, pagamento conforme provedor); "Falar com o suporte" = mailto do e-mail público (`get_public_settings`) |
 | M00 | Login | Master-login | 0.19% | ![](M00.png) | referência portada (dados do desenho) | não ligada ao app |
-| M01 | Visão geral | Master-visao | 0.84% | ![](M01.png) | referência portada (dados do desenho) | não ligada ao app |
-| M02 | Eventos | Master-eventos | 1.34% | ![](M02.png) | referência portada (dados do desenho) | não ligada ao app |
-| M03 | Planos e preços | Master-planos | 1.27% | ![](M03.png) | referência portada (dados do desenho) | não ligada ao app |
-| M04 | Confirmar novo preço | Master-plano-publicar | 0.79% | ![](M04.png) | referência portada (dados do desenho) | não ligada ao app |
+| M01 | Visão geral | Master-visao | 0.85% | ![](M01.png) | referência portada (dados do desenho) | não ligada ao app |
+| M02 | Eventos | Master-eventos | 1.35% | ![](M02.png) | referência portada (dados do desenho) | não ligada ao app |
+| M03 | Planos e preços | Master-planos | 1.29% | ![](M03.png) | referência portada (dados do desenho) | não ligada ao app |
+| M04 | Confirmar novo preço | Master-plano-publicar | 0.82% | ![](M04.png) | referência portada (dados do desenho) | não ligada ao app |
 | M05 | Pagamentos | Master-pagamentos | 1.35% | ![](M05.png) | referência portada (dados do desenho) | não ligada ao app |
 | M06 | Detalhe do pagamento | Master-pagamento-detalhe | 1.31% | ![](M06.png) | referência portada (dados do desenho) | não ligada ao app |
 | M07 | Cortesias | Master-cortesias | 0.83% | ![](M07.png) | referência portada (dados do desenho) | não ligada ao app |
