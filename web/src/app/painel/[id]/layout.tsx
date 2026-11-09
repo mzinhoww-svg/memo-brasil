@@ -83,6 +83,10 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
 
   const event = data.event;
   const base = `/painel/${id}`;
+  // Só Plano, Aparência e o checkout ainda não têm tela do desenho: mantêm o cabeçalho e a navegação do painel.
+  const legacy = /^\/painel\/[^/]+\/(plano|aparencia|checkout-validapay)(\/|$)/.test(path);
+  const ctx = { event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh };
+  if (!legacy) return <AdminProvider value={ctx}>{children}</AdminProvider>;
   const state = `${formatDate(event.startAt)} · ${eventStatus(event, now) === "ativo" ? "ao vivo" : "encerrado"}`;
   const items = SECTIONS.map((s) => {
     const href = s.slug ? `${base}/${s.slug}` : base;
@@ -92,7 +96,7 @@ export default function PainelLayout({ children }: { children: ReactNode }) {
   const section = items.find((i) => i.current);
   const crumbs = [{ label: "Meus eventos", href: "/eventos" }, section && section.href !== base ? { label: event.title, href: base } : { label: event.title }, ...(section && section.href !== base ? [{ label: section.label }] : [])];
   return (
-    <AdminProvider value={{ event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh }}>
+    <AdminProvider value={ctx}>
       <EventTheme wrap={event.cameraStyle} className="app-admin app-fluid">
         <div className="app-admin-side no-print"><AdminNav eventName={event.title} eventState={state} switchHref="/eventos" items={items} /></div>
         <main className="app-admin-main">

@@ -2,10 +2,10 @@ import { expect, test } from "@playwright/test";
 import { createViaWizard } from "./helpers";
 
 // Modo local (sem backend): cobrança não existe; a rota nova abre em B7 e nunca oferece pagamento.
-test("modo local: /painel/[id]/plano mostra B7 (Evento maior?) e o item Plano na navegação", async ({ page }) => {
+test("modo local: /painel/[id]/plano mostra B7 (Evento maior?) e o atalho Plano no resumo", async ({ page }) => {
   const { id } = await createViaWizard(page, { title: "Plano local" });
   await page.goto(`/painel/${id}`);
-  await page.getByRole("navigation", { name: "Administração do evento" }).getByRole("link", { name: "Plano" }).click();
+  await page.getByRole("link", { name: /^Plano/ }).click();
   await expect(page).toHaveURL(new RegExp(`/painel/${id}/plano$`));
   await expect(page.getByRole("heading", { level: 1, name: "De que tamanho é a festa?" })).toBeVisible();
   await expect(page.getByText("Seu plano")).toBeVisible();

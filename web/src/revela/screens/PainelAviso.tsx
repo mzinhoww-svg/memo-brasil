@@ -1,56 +1,87 @@
-/* Gerado de design-system/revela/html/Painel-aviso.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function PainelAviso() {
+"use client";
+/* Painel-aviso.html (17g): mesmo markup da referência; dados reais por props (padrão = desenho). */
+import { BackButton, Chevron, RowAction, ScreenFoot, svgProps } from "../painel-ui";
+
+export interface PainelAvisoProps {
+  text?: string;
+  max?: number;
+  mode?: "agora" | "agendar";
+  /** "sáb, 14 mar, 22:15": só aparece em "Agendar". */
+  when?: string;
+  previewName?: string;
+  previewTime?: string;
+  cta?: string;
+  busy?: boolean;
+  disabled?: boolean;
+  error?: string;
+  /** Aviso que já está no ar (um por vez): linha de apoio com a ação de apagar. */
+  current?: string;
+  onText?: (value: string) => void;
+  onMode?: (mode: "agora" | "agendar") => void;
+  onWhen?: () => void;
+  onSend?: () => void;
+  onClear?: () => void;
+  onBack?: () => void;
+}
+
+export const AVISO_REF = {
+  text: "O bolo vai ser cortado às 22:30. Guardem umas poses para esse momento!", max: 140, when: "sáb, 14 mar, 22:15", previewName: "Ana & Leo", previewTime: "22:15", cta: "Agendar aviso",
+};
+
+export function PainelAviso({ text = AVISO_REF.text, max = AVISO_REF.max, mode = "agendar", when = AVISO_REF.when, previewName = AVISO_REF.previewName, previewTime = AVISO_REF.previewTime, cta = AVISO_REF.cta, busy = false, disabled = false, error, current, onText, onMode, onWhen, onSend, onClear, onBack }: PainelAvisoProps = {}) {
+  const seg = (m: "agora" | "agendar", label: string) => (
+    <span className={mode === m ? "on" : ""} role={onMode ? "button" : undefined} tabIndex={onMode ? 0 : undefined} aria-pressed={onMode ? mode === m : undefined}
+      onClick={onMode ? () => onMode(m) : undefined} onKeyDown={onMode ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onMode(m); } } : undefined} style={onMode ? { cursor: "pointer" } : undefined}>
+      {label}
+    </span>
+  );
   return (
     <>
     <div className="scr">
       <div className="safe">
         <div className="row between">
-          <button className="rv-icon-btn" aria-label="Voltar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <span className="rv-title" style={{ "fontSize": "18px" }}>
+          <BackButton onBack={onBack} />
+          <h1 className="rv-title" style={{ "fontSize": "18px" }}>
             Novo aviso
-          </span>
+          </h1>
           <span style={{ "width": "44px" }} />
         </div>
+        {current && (
+          <p className="rv-caption" style={{ "marginTop": "14px" }}>
+            {current}{" "}
+            <button type="button" className="rv-btn rv-btn--text" onClick={onClear}>Apagar aviso</button>
+          </p>
+        )}
         <label className="rv-field rv-field--focus area" style={{ "marginTop": "16px" }}>
-          <textarea aria-label="Mensagem" defaultValue={"O bolo vai ser cortado às 22:30. Guardem umas poses para esse momento!"} />
+          <textarea aria-label="Mensagem" value={onText ? text : undefined} defaultValue={onText ? undefined : text} maxLength={max} onChange={onText ? (e) => onText(e.target.value) : undefined} />
         </label>
         <p className="rv-caption" style={{ "textAlign": "right", "marginTop": "6px" }}>
-          71/140
+          {text.length}/{max}
         </p>
         <h2 className="rv-group-h">
           Quando enviar
         </h2>
         <div className="seg">
-          <span className="">
-            Agora
-          </span>
-          <span className="on">
-            Agendar
-          </span>
+          {seg("agora", "Agora")}
+          {seg("agendar", "Agendar")}
         </div>
-        <div className="rv-group" style={{ "marginTop": "10px" }}>
-          <div className="rv-row">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" />
-            </svg>
-            <div className="rv-row__text">
-              <span className="rv-row__meta">
-                Envia
-              </span>
-              sáb, 14 mar, 22:15
-            </div>
-            <span className="rv-row__end">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 6l6 6-6 6" />
+        {mode === "agendar" && (
+          <div className="rv-group" style={{ "marginTop": "10px" }}>
+            <RowAction onClick={onWhen}>
+              <svg {...svgProps}>
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
               </svg>
-            </span>
+              <div className="rv-row__text">
+                <span className="rv-row__meta">
+                  Envia
+                </span>
+                {when}
+              </div>
+              <Chevron />
+            </RowAction>
           </div>
-        </div>
+        )}
         <h2 className="rv-group-h">
           Prévia
         </h2>
@@ -63,28 +94,28 @@ export function PainelAviso() {
           <div>
             <div className="lk-h">
               <b>
-                {"Ana & Leo"}
+                {previewName}
               </b>
               <span>
-                22:15
+                {previewTime}
               </span>
             </div>
             <div className="lk-b">
-              O bolo vai ser cortado às 22:30. Guardem umas poses para esse momento!
+              {text}
             </div>
           </div>
         </div>
         <div className="grow" />
-        <button className="rv-btn rv-btn--block rv-btn--primary" style={{  }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        {error && <p className="rv-caption" role="alert" style={{ "color": "var(--danger)", "marginBottom": "8px" }}>{error}</p>}
+        <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={onSend} disabled={busy || disabled}>
+          <svg {...svgProps}>
             <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
             <path d="M10 21a2 2 0 0 0 4 0" />
           </svg>
-          Agendar aviso
+          {busy ? "Enviando…" : cta}
         </button>
       </div>
-      <div className="home-ind" />
-      <div className="grain" />
+      <ScreenFoot />
     </div>
     </>
   );

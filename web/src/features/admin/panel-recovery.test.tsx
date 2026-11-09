@@ -54,10 +54,10 @@ it.each([GuestLayout, PainelLayout])('leitura inicial de rede oferece repetir se
 });
 it('falha ao preparar ZIP libera nova tentativa', async () => {
  m.zip.mockRejectedValueOnce(new Error('rede')).mockResolvedValueOnce({ saved: 1, missing: 0, blob: new Blob(), filename: 'a.zip' });
- render(<Downloads />); fireEvent.click(screen.getByRole('button', { name: 'Baixar o álbum (ZIP)' }));
- await waitFor(() => expect(screen.getByRole('button', { name: 'Baixar o álbum (ZIP)' })).toBeEnabled());
+ render(<Downloads />); fireEvent.click(screen.getAllByRole('button', { name: 'Baixar' })[0]);
+ await waitFor(() => expect(screen.getAllByRole('button', { name: 'Baixar' })[0]).toBeEnabled());
  expect(screen.getByRole('alert')).toHaveTextContent(/Tente de novo/);
- fireEvent.click(screen.getByRole('button', { name: 'Baixar o álbum (ZIP)' }));
+ fireEvent.click(screen.getAllByRole('button', { name: 'Baixar' })[0]);
  await waitFor(() => expect(m.download).toHaveBeenCalled());
 });
 
@@ -100,20 +100,21 @@ it('ausência confirmada no convidado leva à tela do código (20h)', async () =
 it('ZIP parcial informa incluídas e ausentes; todas ausentes não vira álbum vazio', async () => {
  m.zip.mockResolvedValueOnce({saved:0,missing:2});
  render(<Downloads />);
- fireEvent.click(screen.getByRole('button',{name:'Baixar o álbum (ZIP)'}));
+ fireEvent.click(screen.getAllByRole('button',{name:'Baixar'})[0]);
  await screen.findByText(/Nenhuma foto pôde ser incluída; 2 ausentes/);
  expect(m.download).not.toHaveBeenCalled();
 });
 
 it('Encerrar agora apresenta consequência real antes de qualquer mutação e foca Cancelar', () => {
  render(<Configuracoes />);
- fireEvent.click(screen.getByRole('button',{name:'Encerrar agora'}));
+ fireEvent.click(screen.getByRole('button',{name:'Encerrar o filme agora'}));
  expect(screen.getByRole('dialog')).toHaveTextContent(/Ninguém posta mais.*fotos serão reveladas agora.*autor e o anfitrião/);
  expect(screen.getByRole('button',{name:'Cancelar'})).toHaveFocus();
 });
 it('mudar o fim mostra prévia de revelação antes da confirmação', () => {
  render(<Configuracoes />);
+ fireEvent.click(screen.getByRole('button',{name:/^Fecha(?!r)/}));
  fireEvent.click(screen.getByRole('button',{name:'1 hora'}));
- expect(screen.getByRole('dialog')).toHaveTextContent(/fotos serão reveladas em.*01h00.*UTC/);
+ expect(screen.getByRole('dialog', { name: 'Mudar o fim do evento?' })).toHaveTextContent(/fotos serão reveladas em.*01h00.*UTC/);
  expect(screen.getByRole('button',{name:'Cancelar'})).toHaveFocus();
 });

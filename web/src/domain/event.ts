@@ -43,7 +43,8 @@ export interface MemoEvent {
   place?: string;
   moments: string[];
   tables: number;
-  notice?: { text: string; expiresAt?: number };
+  /** `startsAt`: aviso agendado, só aparece aos convidados a partir desse instante. */
+  notice?: { text: string; expiresAt?: number; startsAt?: number };
   createdAt: number;
   /** Política de retenção gravada pelo servidor na criação (ex.: "2026-10-22-v1"); ausente em eventos anteriores. */
   retentionPolicy?: string;

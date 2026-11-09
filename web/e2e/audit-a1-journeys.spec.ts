@@ -124,8 +124,8 @@ test("J3 moderação, reações (uma por pessoa), 'Quem reagiu', exportação va
   await page.goto(`/painel/${id}/conteudo`);
   await page.waitForTimeout(600);
   const fila = await body(page, 330);
-  await page.getByRole("tab", { name: /Todas/ }).click();
-  await page.getByRole("button", { name: "Ocultar" }).first().click();
+  await page.getByRole("button", { name: /^Foto de/ }).first().click();
+  await page.getByRole("dialog").getByRole("button", { name: "Tirar do álbum" }).click();
   await page.waitForTimeout(400);
   await asPerson(page, "Ana");
   await page.goto(`/e/${code}/agora`);
@@ -133,8 +133,8 @@ test("J3 moderação, reações (uma por pessoa), 'Quem reagiu', exportação va
   const aposOcultar = await page.locator("img[alt^='Foto de']").count();
   await asPerson(page, "Emy");
   await page.goto(`/painel/${id}/conteudo`);
-  await page.getByRole("tab", { name: /Ocultas/ }).click();
-  await page.getByRole("button", { name: "Mostrar de novo" }).first().click();
+  await page.getByRole("button", { name: /^Foto de/ }).first().click();
+  await page.getByRole("dialog").getByRole("button", { name: "Devolver ao álbum" }).click();
   await page.waitForTimeout(400);
   await asPerson(page, "Ana");
   await page.goto(`/e/${code}/agora`);

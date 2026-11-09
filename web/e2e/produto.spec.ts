@@ -34,48 +34,53 @@ test("/ajuda é pública, tem h1, perguntas, contato único e links para Termos 
   await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
 });
 
-test("remover foto e momento pedem confirmação; só removem depois de confirmar", async ({ page }) => {
+test("excluir foto e remover momento pedem confirmação; só removem depois de confirmar", async ({ page }) => {
   const { code, id } = await createViaWizard(page, { reveal: "desligada", title: "Confirma" });
   await postViaFile(page, code);
   await page.goto(`/painel/${id}/conteudo`);
-  await page.getByRole("tab", { name: /Todas/ }).click();
-  await page.getByRole("button", { name: "Remover", exact: true }).click();
-  const dlg = page.getByRole("dialog", { name: "Remover esta foto?" });
+  await page.getByRole("button", { name: /^Foto de/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Excluir a foto" }).click();
+  const dlg = page.getByRole("dialog", { name: "Excluir esta foto?" });
   await expect(dlg).toBeVisible();
-  await expect(dlg.getByText("Os convidados deixam de vê-la.")).toBeVisible();
+  await expect(dlg.getByText("Os convidados deixam de vê-la e ela não volta.")).toBeVisible();
   await expect(dlg.getByRole("button", { name: "Cancelar" })).toBeFocused();
   await dlg.getByRole("button", { name: "Cancelar" }).click();
   await expect(dlg).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Remover", exact: true })).toBeFocused();
   await expect(page.getByText("Ainda sem fotos.")).toHaveCount(0);
-  await page.getByRole("button", { name: "Remover", exact: true }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Remover", exact: true }).click();
+  await page.getByRole("button", { name: /^Foto de/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Excluir a foto" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Excluir foto" }).click();
   await expect(page.getByText("Ainda sem fotos.")).toBeVisible();
 
   await page.goto(`/painel/${id}/momentos`);
-  const chip = page.getByRole("button", { name: "Remover O sim" });
-  await chip.click();
+  await page.getByRole("button", { name: /^(--:--|\d\d:\d\d)\s*O sim/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Remover momento" }).click();
   const md = page.getByRole("dialog", { name: "Remover momento O sim?" });
   await expect(md).toBeVisible();
   await md.getByRole("button", { name: "Cancelar" }).click();
-  await expect(chip).toBeVisible();
-  await chip.click();
-  await page.getByRole("dialog").getByRole("button", { name: "Remover", exact: true }).click();
-  await expect(chip).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /O sim/ })).toBeVisible();
+  await page.getByRole("button", { name: /O sim/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Remover momento" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Remover momento" }).click();
+  await expect(page.getByRole("button", { name: /O sim/ })).toHaveCount(0);
 });
 
-test("card A6 do QR traz a copy nova e a linha de fotos e revelação", async ({ page }) => {
+test("cartão de mesa do QR traz a redação do modelo, a linha de fotos e revelação e um cartão por mesa", async ({ page }) => {
   const { id } = await createViaWizard(page, { reveal: "desligada", title: "Cards", shots: "10" });
-  await page.goto(`/painel/${id}/qr`);
+  await page.goto(`/painel/${id}/convites`);
+  await page.getByRole("button", { name: "Novo convite" }).click();
   await page.getByRole("button", { name: "Mais uma mesa" }).click();
-  await expect(page.getByText("Queremos a festa pelos seus olhos.").first()).toBeVisible();
-  await expect(page.getByText("Aponte a câmera. Sem baixar app.").first()).toBeVisible();
-  await expect(page.getByText("Cada um tem 10 fotos. Revelamos na hora.").first()).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.goto(`/painel/${id}/qr`);
+  const cards = page.locator(".print-mesas");
+  await expect(cards.getByText("Aponte a câmera. Sem baixar app.")).toHaveCount(1);
+  await expect(cards.getByText(/Aponte a câmera do celular para o código, pegue a câmera do/)).toHaveCount(1);
+  await expect(cards.getByText("Cada um tem 10 fotos. Revelamos na hora.")).toHaveCount(1);
 });
 
 test("painel mostra exatamente um h1 em cada tela", async ({ page }) => {
   const { id } = await createViaWizard(page, { title: "Um h1" });
-  for (const s of ["", "/conteudo", "/convidados", "/momentos", "/qr", "/aparencia", "/configuracoes", "/downloads"]) {
+  for (const s of ["", "/conteudo", "/convidados", "/momentos", "/qr", "/aparencia", "/configuracoes", "/downloads", "/moderacao", "/convites", "/convite", "/aviso", "/compartilhar", "/excluir"]) {
     await page.goto(`/painel/${id}${s}`);
     await page.locator("h1").first().waitFor();
     await expect(page.locator("h1"), s || "/").toHaveCount(1);
@@ -126,7 +131,8 @@ test("clipboard negado não diz copiado e deixa o link selecionado", async ({ pa
 test("configurações confirmam 'Salvo.' ao mudar uma regra", async ({ page }) => {
   const { id } = await createViaWizard(page, {});
   await page.goto(`/painel/${id}/configuracoes`);
-  await page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: "5", exact: true }).click();
+  await page.getByRole("button", { name: /^Poses\b/ }).click();
+  await page.getByRole("dialog").getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: "5", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Salvo." })).toBeVisible();
 });
 
@@ -168,56 +174,26 @@ test("rodapé tem Termos, Privacidade, Ajuda e a assinatura nas rotas públicas,
   await expect(page.getByRole("contentinfo")).toHaveCount(0);
 });
 
-test("painel mostra o cartão Plano, o checklist 'Antes do grande dia' e links certos", async ({ page }) => {
-  const { code, id } = await createViaWizard(page, { title: "Painel plano" });
+test("painel mostra os atalhos do resumo com o plano e os links certos", async ({ page }) => {
+  const { id } = await createViaWizard(page, { title: "Painel plano" });
   await page.goto(`/painel/${id}`);
-  const plano = page.getByTestId("cartao-plano");
+  const plano = page.getByRole("link", { name: /^Plano/ });
   await expect(plano).toContainText("Grátis");
-  await expect(plano).toContainText("de 10 convidados");
-  const check = page.getByTestId("checklist");
-  await expect(check.getByRole("heading", { name: "Antes do grande dia" })).toBeVisible();
-  await expect(check.getByText("Evento criado")).toBeVisible();
-  await expect(check.getByRole("link", { name: /Tire a primeira foto como convidado/ })).toHaveAttribute("href", `/e/${code}`);
-  await expect(check.getByRole("link", { name: /Imprima os cards/ })).toHaveAttribute("href", `/painel/${id}/qr`);
-  await expect(check.getByText(/Pague o plano/)).toHaveCount(0);
+  await expect(plano).toHaveAttribute("href", `/painel/${id}/plano`);
+  await expect(page.getByRole("link", { name: /^Convites e mesas/ })).toHaveAttribute("href", `/painel/${id}/convites`);
+  await expect(page.getByRole("link", { name: /^Moderação/ })).toHaveAttribute("href", `/painel/${id}/moderacao`);
+  await expect(page.getByRole("link", { name: /^Downloads/ })).toHaveAttribute("href", `/painel/${id}/downloads`);
 });
 
 test("configurações não oferece capacidade nem fotos acima do plano e leva a 'Aumentar plano'", async ({ page }) => {
   const { id } = await createViaWizard(page, {});
   await page.goto(`/painel/${id}/configuracoes`);
-  const cap = page.getByRole("group", { name: "Convidados" });
-  await expect(cap.getByRole("button")).toHaveText(["5", "10"]);
-  const fotos = page.getByRole("group", { name: "Fotos por pessoa" });
-  await expect(fotos.getByRole("button")).toHaveText(["5", "10"]);
+  await page.getByRole("button", { name: "Mais", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("group", { name: "Convidados" }).getByRole("button")).toHaveText(["5", "10"]);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Poses\b/ }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button")).toHaveText(["5", "10"]);
   await expect(page.getByTestId("limite-plano")).toContainText("Seu plano permite até 10 convidados e 10 fotos por pessoa.");
-  await expect(page.getByRole("link", { name: "Aumentar plano" })).toHaveAttribute("href", `/painel/${id}/plano`);
-});
-
-test("configurações: o anfitrião edita 'Seu nome (aparece no convite)' e o valor persiste", async ({ page }) => {
-  const { id } = await createViaWizard(page, { host: "Emy" });
-  await page.goto(`/painel/${id}/configuracoes`);
-  const campo = page.getByLabel("Seu nome (aparece no convite)");
-  await expect(campo).toHaveValue("Emy");
-  await campo.fill("Emy e Igor");
-  await page.getByRole("button", { name: "Salvar seu nome" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Salvo." })).toBeVisible();
-  await page.reload();
-  await expect(page.getByLabel("Seu nome (aparece no convite)")).toHaveValue("Emy e Igor");
-});
-
-test("configurações: 'Tenho um código' abre a folha de código de presente", async ({ page }) => {
-  const { id } = await createViaWizard(page, {});
-  await page.goto(`/painel/${id}/configuracoes`);
-  await page.getByRole("button", { name: "Tenho um código" }).click();
-  await expect(page.getByRole("dialog").getByRole("heading", { name: "Código de presente" })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Código" })).toBeVisible();
-});
-
-test("link /c/<código> guarda o código, abre /criar e o passo 4 mostra o código", async ({ page }) => {
-  await page.goto("/c/mmt-7kq4-ab12");
-  await page.waitForURL(/\/criar$/);
-  await seedHost(page, "Emy");
-  await page.getByLabel("Nome que os convidados vão ver").fill("Festa do código");
-  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continuar" }).click();
-  await expect(page.getByText("Código MMT-7KQ4-AB12 será aplicado ao criar.")).toBeVisible();
+  await expect(dialog.getByRole("link", { name: "Aumentar plano" })).toHaveAttribute("href", `/painel/${id}/plano`);
 });

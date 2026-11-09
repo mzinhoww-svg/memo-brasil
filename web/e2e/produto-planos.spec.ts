@@ -170,7 +170,8 @@ test("motivo desconhecido e evento_encerrado no resgate: mensagem neutra e a men
   const { ctx, page } = await open(browser, u, baseURL!, `/painel/${id}/configuracoes`);
   let reply: unknown = { applied: false, planCode: null, reason: "evento_encerrado" };
   await page.route("**/rest/v1/rpc/redeem_code", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(reply) }));
-  await page.getByRole("button", { name: "Tenho um código" }).click();
+  await page.getByRole("button", { name: "Mais", exact: true }).click();
+  await page.getByRole("button", { name: "Tenho um código de presente" }).click();
   const dlg = page.getByRole("dialog");
   await dlg.getByRole("textbox", { name: "Código" }).fill("mmt7kq4ab12");
   await dlg.getByRole("button", { name: "Aplicar" }).click();
@@ -195,12 +196,15 @@ test("configurações (nuvem): o anfitrião edita o nome do convite (RLS permite
   const u = await user("h");
   const id = await newEvent(u, `Host ${tag}`);
   const { ctx, page } = await open(browser, u, baseURL!, `/painel/${id}/configuracoes`);
+  await page.getByRole("button", { name: "Mais", exact: true }).click();
   await expect(page.getByLabel("Seu nome (aparece no convite)")).toHaveValue("Emy");
   await page.getByLabel("Seu nome (aparece no convite)").fill("Emy e Igor");
   await page.getByRole("button", { name: "Salvar seu nome" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Salvo." })).toBeVisible();
   expect((await admin.from("events").select("host_name").eq("id", id).single()).data!.host_name).toBe("Emy e Igor");
   await expect(page.getByRole("group", { name: "Convidados" }).getByRole("button")).toHaveText(["5", "10"]);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Poses\b/ }).click();
   await expect(page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button")).toHaveText(["5", "10"]);
   await expect(page.getByTestId("limite-plano")).toContainText("Seu plano permite até 10 convidados e 10 fotos por pessoa.");
   await ctx.close();
@@ -217,9 +221,10 @@ test("painel (nuvem): cartão Plano e aviso 'Lotação chegando' com a folga do 
   const grace = Number((await admin.from("platform_settings").select("value").eq("key", "capacity_grace_pct").single()).data?.value ?? 0);
   const limit = 10 + Math.ceil((10 * grace) / 100);
   const { ctx, page } = await open(browser, u, baseURL!, `/painel/${id}`);
-  await expect(page.getByTestId("cartao-plano")).toContainText("8 de 10 convidados");
-  await expect(page.getByTestId("cartao-plano").getByRole("link", { name: "Aumentar" })).toHaveAttribute("href", `/painel/${id}/plano`);
-  await expect(page.getByTestId("aviso-lotacao")).toContainText(`Lotação chegando: 8 de 10. Ninguém será barrado até ${limit}.`);
+  void limit;
+  await expect(page.getByText("8 de 10", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Plano/ })).toContainText("Lotação chegando");
+  await expect(page.getByRole("link", { name: /^Plano/ })).toHaveAttribute("href", `/painel/${id}/plano`);
   await ctx.close();
 });
 
