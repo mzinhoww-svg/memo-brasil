@@ -56,16 +56,16 @@ export function ReveladosGaleria({ caption = "Ana & Leo · 418 fotos de 32 convi
           {prints.slice(0, 5).map((p, i) => {
             const body = (
               <>
-                <img src={p.src} alt="Foto de convidado" />
+                <img src={p.src} alt={p.href ? "" : "Foto de convidado"} />
                 <div className="rv-print__cap">
-                  <span>{p.stampLeft}</span>
+                  <span>{p.stampLeft}</span>{" "}
                   <span>{p.stampRight}</span>
                 </div>
               </>
             );
             const style = { position: "absolute" as const, ...SLOTS[i] };
             return p.href
-              ? <Link key={i} href={p.href} className="rv-print" style={style} aria-label={`Abrir a foto de ${p.stampRight}`}>{body}</Link>
+              ? <Link key={i} href={p.href} className="rv-print" style={style} aria-label={`${p.stampLeft} ${p.stampRight} · Abrir a foto de ${p.stampRight}`}>{body}</Link>
               : <div key={i} className="rv-print" style={style}>{body}</div>;
           })}
           {empty && <p className="rv-caption" style={{ textAlign: "center", marginTop: "24px" }}>{empty}</p>}

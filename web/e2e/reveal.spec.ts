@@ -19,13 +19,22 @@ async function setup(page: Page, t0: number, minutes = 3, title = "Revelação")
   return { code, id };
 }
 
+/** Nas configurações redesenhadas, a revelação mora na folha "Quando revelar" (linha "Revela"). */
+async function openRevealSheet(page: Page, id: string) {
+  await page.goto(`/painel/${id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click();
+  const cfg = page.getByTestId("config-revelacao");
+  await expect(cfg).toBeVisible();
+  return cfg;
+}
+
 test("organizador liga a revelação, escolhe data, hora e fuso e vê o resumo; pode alterar enquanto pendente", async ({ page }) => {
   const t0 = Date.now();
   const { id } = await setup(page, t0, 120);
   await page.goto(`/painel/${id}`);
-  await expect(page.getByTestId("resumo-revelacao")).toContainText("Pendente");
-  await page.goto(`/painel/${id}/configuracoes`);
-  const cfg = page.getByTestId("config-revelacao");
+  // o resumo do painel agora mostra o carimbo "REVELA <dia> <hora>" (pendente) no topo
+  await expect(page.locator(".rv-stamp").first()).toContainText(/^REVELA /);
+  const cfg = await openRevealSheet(page, id);
   await expect(cfg).toContainText("Ligada: revela em");
   await cfg.getByLabel("Fuso horário").selectOption("America/Cuiaba");
   await cfg.getByRole("button", { name: "Salvar revelação" }).click();
@@ -40,8 +49,7 @@ test("organizador liga a revelação, escolhe data, hora e fuso e vê o resumo; 
 test("data no passado é recusada com mensagem clara", async ({ page }) => {
   const t0 = Date.now();
   const { id } = await setup(page, t0, 120);
-  await page.goto(`/painel/${id}/configuracoes`);
-  const cfg = page.getByTestId("config-revelacao");
+  const cfg = await openRevealSheet(page, id);
   const past = revealAt(t0, -60);
   await cfg.getByLabel("Data", { exact: true }).fill(past.date);
   await cfg.getByLabel("Horário", { exact: true }).fill(past.time);
@@ -122,9 +130,8 @@ test("app fechado na hora da revelação: ao reabrir já está revelada e o esta
 test("organizador não altera a revelação depois que ela aconteceu", async ({ page }) => {
   const t0 = Date.now();
   const { id } = await setup(page, t0, 3);
-  await page.goto(`/painel/${id}/configuracoes`);
+  const cfg = await openRevealSheet(page, id);
   await page.clock.fastForward("04:00");
-  const cfg = page.getByTestId("config-revelacao");
   await expect(cfg).toContainText("A revelação aconteceu em");
   await expect(cfg.getByRole("button", { name: "Salvar revelação" })).toHaveCount(0);
 });
@@ -132,7 +139,7 @@ test("organizador não altera a revelação depois que ela aconteceu", async ({ 
 test("prévia do convidado no painel mostra a tela de espera", async ({ page }) => {
   const t0 = Date.now();
   const { id } = await setup(page, t0, 120);
-  await page.goto(`/painel/${id}/configuracoes`);
+  await openRevealSheet(page, id);
   await page.getByRole("button", { name: "Pré-visualizar como convidado" }).click();
   const prev = page.getByRole("dialog", { name: "Prévia do convidado" });
   await expect(prev.getByTestId("aguardando-revelacao")).toContainText("Prévia · como o convidado vê");
@@ -155,17 +162,22 @@ test("administrador master: rota é só um ponto de integração, sem login e se
 
 test("BG-101: 'ao terminar' acompanha o fim ao estender e ao encerrar agora (pela interface)", async ({ page }) => {
   const { id } = await createViaWizard(page, { title: "Acompanha o fim", reveal: "ao-terminar" });
-  await page.goto(`/painel/${id}/configuracoes`);
-  const cfg = page.getByTestId("config-revelacao");
+  const cfg = await openRevealSheet(page, id);
   const fim = async () => (await cfg.getByText(/Fim do evento:/).textContent())!.replace(/^.*Fim do evento: /, "").replace(/\.$/, "");
   const revela = async () => (await cfg.getByText(/Ligada: revela em/).textContent())!.replace(/^.*Ligada: revela em /, "").split(". Fim do evento")[0];
   expect(await revela()).toBe(await fim());
   const antes = await fim();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Fecha\b/ }).first().click(); // linha do fim: folha "Fim do evento"
   await page.getByRole("button", { name: "1 dia" }).click(); // estende o fim para daqui a 1 dia
+  await page.getByRole("dialog").getByRole("button", { name: "Confirmar novo fim" }).click();
+  await page.getByRole("button", { name: /^Revela\b/ }).click();
   await expect.poll(fim).not.toBe(antes);
   expect(await revela()).toBe(await fim()); // a revelação foi junto
-  await page.getByRole("button", { name: "Encerrar agora" }).click();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Encerrar o filme agora" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Encerrar agora" }).click();
+  await page.getByRole("button", { name: /^Revela\b/ }).click();
   await expect(cfg).toContainText("A revelação aconteceu em"); // revelou no encerramento, sem esperar horas
 });
 
