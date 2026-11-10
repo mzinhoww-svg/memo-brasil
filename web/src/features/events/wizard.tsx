@@ -122,7 +122,7 @@ export function CreateWizard() {
     const e: typeof errors = {};
     if (step === 1 && !title.trim()) e.title = "Escolha o nome do evento. Todos os convidados vão ver.";
     if (step === 2 && !windowNow.ok) e.termino = WINDOW_ERROR_TEXT[windowNow.error];
-    if (step === 4) {
+    if (step === 3) {
       const r = resolveReveal(revealInput(), endMs(), now());
       setRevealErrors(r.ok ? undefined : r.errors);
       if (!r.ok) return setErrors(e);
@@ -155,7 +155,7 @@ export function CreateWizard() {
       if (!r.ok) {
         if (r.errors.reveal) {
           setRevealErrors(r.errors.reveal);
-          setStep(4);
+          setStep(3);
         }
         return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
       }
@@ -291,12 +291,10 @@ export function CreateWizard() {
     );
   }
   if (step === 3) {
-    return <CameraPoses value={desiredShots} choices={poseChoices} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
-  }
-  if (step === 4) {
     const rErr = errors.reveal ?? (revealErrors?.data ? REVEAL_ERROR_TEXT[revealErrors.data] : undefined);
     return (
       <CameraRevelacao
+        step={4}
         startLabel={shortWhen(windowNow.ok ? windowNow.startMs : now(), tz)} endLabel={shortWhen(endMs(), tz)}
         revealLabel={revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz) : "—"}
         choices={revealChoiceViews} value={choice} error={rErr} busy={busy} custom={revCustom} customMin={`${defaultWindow(now(), tz).date}T00:00`}
@@ -306,6 +304,9 @@ export function CreateWizard() {
         onBack={back} onNext={next}
       />
     );
+  }
+  if (step === 4) {
+    return <CameraPoses step={5} value={desiredShots} choices={poseChoices} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
   }
   if (step === 5) return <CameraFiltro film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
   if (step === 6) return <CameraPrivacidade showDownload={false} feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;

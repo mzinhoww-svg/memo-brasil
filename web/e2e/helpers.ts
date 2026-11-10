@@ -65,7 +65,7 @@ export async function seedHost(page: Page, name: string): Promise<void> {
 
 /**
  * Percorre os 8 passos de "Monte a câmera" pela interface real e para no passo 8 (plano):
- * embalagem → nome → até quando (6 h) → poses (Grátis) → quando revelar → filme → quem vê o quê → plano.
+ * embalagem → nome → quando é a festa (6 h) → quando revelar → poses (Grátis) → filme → quem vê o quê → plano.
  * O evento sempre nasce no Grátis (10/10): `shots`/`capacity` fora disso são ajustados no painel por `createViaWizard`.
  */
 export async function wizardToSummary(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string; host?: string } = {}): Promise<void> {
@@ -76,7 +76,6 @@ export async function wizardToSummary(page: Page, opts: { title?: string; reveal
   await page.getByLabel("Nome do evento").fill(opts.title ?? "Emy e Igor");
   await next(); // 2 nome
   await next(); // 3 quando é a festa: hoje, próxima meia hora + 6 h
-  await next(); // 4 poses: 10 (Grátis)
   const reveal = opts.reveal ?? "ao-terminar";
   // O assistente tem quatro opções (acabar, dia seguinte, um dia depois, escolher dia e hora) no fuso do aparelho.
   // "Na hora" (desligada) e fuso diferente do aparelho ficam nas configurações do painel: `createViaWizard` aplica depois.
@@ -86,7 +85,8 @@ export async function wizardToSummary(page: Page, opts: { title?: string; reveal
     await page.getByRole("button", { name: /Escolher dia e hora/ }).click();
     await page.getByLabel("Dia e hora da revelação").fill(`${reveal.date}T${reveal.time}`);
   }
-  await next(); // 5 quando revelar
+  await next(); // 4 quando revelar
+  await next(); // 5 poses: 10 (Grátis)
   await next(); // 6 filme
   await next(); // 7 quem vê o quê
   await page.getByRole("heading", { level: 1, name: "Escolha o plano" }).waitFor();

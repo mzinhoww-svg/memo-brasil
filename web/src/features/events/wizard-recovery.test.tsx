@@ -90,10 +90,10 @@ describe("recuperação do assistente", () => {
     expect(mocks.save.mock.calls[0][0].title).toBe("Festa preservada");
   });
   it("36 fotos são desejo: o plano que comporta vem marcado no passo 8 e o Grátis segue disponível", async () => {
-    render(<CreateWizard />); await nameAndNext(); next();
+    render(<CreateWizard />); await nameAndNext(); next(); next(); // quando é → quando revelar → poses
     fireEvent.click(await screen.findByRole("button", { name: /^36/ }));
     expect(screen.getByRole("button", { name: /^36/ })).toHaveAttribute("aria-pressed", "true");
-    for (let i = 0; i < 4; i++) next();
+    for (let i = 0; i < 3; i++) next();
     expect(screen.getByRole("radio", { name: /^Casamento/ })).toBeChecked();
     expect(screen.getByRole("button", { name: "Continuar · R$ 189" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("radio", { name: /^Grátis/ }));
@@ -106,7 +106,7 @@ describe("recuperação do assistente", () => {
     expect(screen.getByRole("button", { name: "Criar câmera" })).toBeInTheDocument();
   });
   it("passo 5: quatro opções; revelar antes do fim da festa é bloqueado", async () => {
-    render(<CreateWizard />); await nameAndNext(); next(); next();
+    render(<CreateWizard />); await nameAndNext(); next(); // quando é a festa → quando revelar
     for (const t of ["Quando a festa acabar", "No dia seguinte", "Um dia depois", "Escolher dia e hora"]) expect(screen.getByRole("button", { name: new RegExp(t) })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Escolher dia e hora/ }));
     fireEvent.change(screen.getByLabelText("Dia e hora da revelação"), { target: { value: "2027-01-15T10:00" } });
