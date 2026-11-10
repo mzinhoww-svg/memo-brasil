@@ -1,0 +1,57 @@
+/* Telas do convidado ligadas ao app (20b, 20d, 20e, 20f, 21–24). Só ajusta o que o desenho fixa em 390×844 para qualquer tela;
+   a 390×844 (/dev/revela) nada muda. Cores e fontes vêm de tokens.css. */
+
+/* a tela rola quando o conteúdo (erro, teclado, aviso) passa da altura */
+.scr--scroll .safe { overflow-y: auto; }
+.scr--scroll .safe > .grow { min-height: var(--space-4); }
+
+/* campo com erro */
+.rv-field--err { box-shadow: inset 0 0 0 2px var(--danger); }
+.rv-caption--err { color: var(--danger); font-weight: 600; }
+.rv-btn:disabled, .rv-btn[aria-busy="true"] { opacity: .6; }
+
+/* câmera: o visor ocupa o que sobra acima do corpo (276 px), em qualquer altura de tela */
+.camscr .vf:not(.vf--full) { height: calc(100% - 296px); }
+.vf > video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vf-msg { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-6); text-align: center; color: var(--ink-muted); }
+a.glass { text-decoration: none; }
+.glass[aria-pressed="false"] { opacity: .6; }
+.glass[aria-pressed="true"] { color: var(--carimbo); }
+.camscr[data-fase="iniciando"] .shutter, .camscr[data-fase="guardando"] .shutter { opacity: .55; }
+.body-band { position: absolute; left: 0; right: 0; bottom: 0; }
+.rv-notice:focus { outline: none; }
+.shutter:focus-visible, .filmstack:focus-visible, .glass:focus-visible, .rv-icon-btn:focus-visible { outline: 2px solid var(--revela); outline-offset: 3px; }
+.body-status { position: relative; margin: 8px 20px 0; text-align: center; font: 600 13px/18px var(--font-sans); color: var(--wrap-casamento-ink); opacity: .8; }
+.body--festa { background: var(--wrap-festa); }
+.body--aniversario { background: var(--wrap-aniversario); }
+.body--noite { background: var(--wrap-noite); }
+.body--festa .rv-icon-btn, .body--aniversario .rv-icon-btn, .body--noite .rv-icon-btn { color: var(--black-1); }
+
+/* aviso sobre a câmera (23 e 20d): cabe em telas baixas e aceita mais de duas ações */
+.camscr .notice-wrap .rv-notice { max-height: calc(100dvh - 260px); overflow-y: auto; }
+.rv-notice__actions--stack { flex-direction: column; }
+.rv-notice__actions--stack button { flex: none; }
+.rv-notice__actions--stack button + button { box-shadow: inset 0 1px 0 var(--line); }
+.rv-notice__body ol { margin: 0; padding-left: 20px; font: 400 14px/20px var(--font-sans); color: var(--ink-muted); }
+.rv-notice__body h4 { margin: var(--space-2) 0 0; font: 700 14px/20px var(--font-sans); }
+.rv-notice__body .rv-caption { margin: 0; }
+.rv-notice__body .rv-field-erro { margin: 0; }
+.rv-notice__actions button:focus-visible { outline: 2px solid var(--revela); outline-offset: -3px; }
+
+/* consentimento: a caixa do desenho é um <i>; o <input> real fica por cima, sem aparecer */
+.consent { position: relative; cursor: pointer; }
+.consent input[type="checkbox"] { position: absolute; left: 0; top: 0; width: 24px; height: 24px; margin: 0; opacity: 0; cursor: pointer; }
+.consent input[type="checkbox"]:focus-visible + .cbx { outline: 2px solid var(--revela); outline-offset: 2px; }
+.cbx:not(.on) { background: transparent; color: transparent; box-shadow: inset 0 0 0 2px var(--ink-muted); }
+.consent .link { color: var(--revela-text); }
+
+/* convite vencido / câmera lotada: ações e textos de apoio */
+.rv-body--center { text-align: center; }
+
+/* abertura (01): o vídeo cobre o quadro; com "reduzir movimento" fica só o quadro */
+@media (prefers-reduced-motion: reduce) { .bgvideo--play { display: none; } }
+a.rv-btn { text-decoration: none; }
+.rv-btn--paper:focus-visible, .rv-btn--line:focus-visible, .rv-btn--text:focus-visible, .scr a.link:focus-visible { outline: 2px solid var(--revela); outline-offset: 3px; }
+/* 00 · splash do app instalado: cobre a abertura por um instante e some */
+.rv-splash { position: fixed; inset: 0; z-index: 100; background: var(--bg); animation: rv-splash-out .4s ease 1s forwards; }
+@keyframes rv-splash-out { to { opacity: 0; visibility: hidden; } }

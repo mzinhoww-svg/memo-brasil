@@ -1,0 +1,112 @@
+"use client";
+/* Moldura da câmera do convidado (21, 22, 23 e fundo da 20d): mesma árvore e classes de Convidado-camera.html.
+   Não é uma tela: as telas Convidado-camera/-flash/-permissao/-consentimento a compõem. */
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+const CLOSE = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+);
+const BOLT = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z" /></svg>
+);
+const FLIP = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><path d="M9 13a3 3 0 0 1 5-2l1 1M15 13a3 3 0 0 1-5 2l-1-1" /></svg>
+);
+
+export interface CameraFrameProps {
+  /** Nome do evento no topo do visor. */
+  title?: string;
+  /** Embalagem da câmera (cor e textura do corpo). */
+  wrap?: "festa" | "casamento" | "aniversario" | "noite";
+  /** Poses restantes; `null` = rolo livre. */
+  left?: number | null;
+  /** O que aparece no visor (vídeo ao vivo no app); sem isso, a foto do desenho. */
+  viewfinder?: ReactNode;
+  /** Escurece o visor (aviso por cima). */
+  dim?: boolean;
+  /** Clarão do disparo (22). */
+  flash?: boolean;
+  closeHref?: string;
+  closeLabel?: string;
+  onClose?: () => void;
+  /** Flash ligado/desligado; sem valor = sem estado (desenho). */
+  flashOn?: boolean;
+  onFlash?: () => void;
+  onShoot?: () => void;
+  shootDisabled?: boolean;
+  rollLabel?: string;
+  onRoll?: () => void;
+  onFlip?: () => void;
+  flipDisabled?: boolean;
+  /** Carimbo de data sobre o visor (filme 35 mm). */
+  stamp?: string;
+  /** Faixa no pé da câmera com os dados do evento (nome, poses, data); sem isso, a do desenho. */
+  band?: string;
+  /** Mensagem no corpo da câmera (enviando, erro). */
+  status?: string;
+  statusRole?: "status" | "alert";
+  /** Aviso/folha por cima do visor (`notice-wrap`). */
+  overlay?: ReactNode;
+  /** Fase da câmera, para quem precisa ler o estado (testes, estilos). */
+  fase?: string;
+  /** Elementos sem aparência própria (campos de arquivo, contador para leitores de tela). */
+  children?: ReactNode;
+}
+
+export function CameraFrame({
+  title = "Ana & Leo", wrap = "casamento", left = 24, viewfinder, dim, flash, closeHref, closeLabel = "Fechar", onClose,
+  flashOn, onFlash, onShoot, shootDisabled, rollLabel = "Minhas fotos", onRoll, onFlip, flipDisabled, stamp, band, status, statusRole = "status", overlay, fase, children,
+}: CameraFrameProps = {}) {
+  return (
+    <div className="scr camscr" data-wrap={wrap} data-fase={fase}>
+      <div className="vf">
+        {viewfinder ?? <img src="/revela/ref/sc-pista.jpg" alt="Visor da câmera" />}
+        {flash && <div className="flashfx" />}
+        {dim && <div className="vfdim" />}
+        <div className="vf-top">
+          {closeHref ? (
+            <Link href={closeHref} className="glass" aria-label={closeLabel}>{CLOSE}</Link>
+          ) : (
+            <button type="button" className="glass" aria-label={closeLabel} onClick={onClose}>{CLOSE}</button>
+          )}
+          <div className="vf-title">{title}</div>
+          <button type="button" className="glass" aria-label="Flash" aria-pressed={flashOn} onClick={onFlash}>{BOLT}</button>
+        </div>
+        <div className="vf-corners">
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+        {stamp && <span className="rv-cam__date" aria-hidden="true">{stamp}</span>}
+      </div>
+      {overlay}
+      <div className={`body body--${wrap}`}>
+        <div className="body-shade" />
+        <div className="body-row">
+          <div className="rv-counter">
+            <b>{left === null ? "∞" : left}</b>
+            <span>poses restantes</span>
+          </div>
+          <button type="button" className="shutter" aria-label="Tirar foto" disabled={shootDisabled} onClick={onShoot}>
+            <i />
+          </button>
+          <div className="wheel" aria-hidden="true" />
+        </div>
+        <div className="body-foot">
+          <button type="button" className="filmstack" aria-label={rollLabel} onClick={onRoll}>
+            <i />
+            <i />
+          </button>
+          <span />
+          <button type="button" className="rv-icon-btn" style={{ background: "var(--k-00000022)", color: `var(--wrap-${wrap}-ink)` }} aria-label="Virar câmera" disabled={flipDisabled} onClick={onFlip}>{FLIP}</button>
+        </div>
+        {band && <div className="rv-cam__band body-band" aria-hidden="true">{band}</div>}
+        {status && <p className="body-status" role={statusRole}>{status}</p>}
+      </div>
+      <div className="grain" />
+      {children}
+    </div>
+  );
+}

@@ -1,109 +1,63 @@
-/* Gerado de design-system/revela/html/Convidado-consentimento.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function ConvidadoConsentimento() {
+"use client";
+/* Convidado-consentimento.html (20d): "Antes de fotografar", sobre o visor escurecido. As duas caixas são as duas
+   confirmações do app (Termos de Uso e Política de Privacidade), cada uma junto da frase do desenho. */
+import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { CameraFrame, type CameraFrameProps } from "./CameraFrame";
+
+export interface ConvidadoConsentimentoProps extends Omit<CameraFrameProps, "overlay" | "dim"> {
+  /** [Termos de Uso, Política de Privacidade] */
+  checked?: [boolean, boolean];
+  onCheck?: (index: 0 | 1, value: boolean) => void;
+  error?: string;
+  onLater?: () => void;
+  onAccept?: () => void;
+}
+
+const CHECK = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5 9-10" /></svg>
+);
+
+export function ConvidadoConsentimento({ checked = [true, true], onCheck, error, onLater, onAccept, left = 27, ...frame }: ConvidadoConsentimentoProps = {}) {
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => { panel.current?.focus({ preventScroll: true }); }, []);
+  const rows = [
+    <>Depois da revelação, minhas fotos aparecem no feed do evento, com meu nome. Li e aceito os Termos de Uso.</>,
+    <>Os anfitriões podem esconder ou apagar qualquer foto ou comentário. Li a Política de Privacidade.</>,
+  ];
   return (
-    <>
-    <div className="scr camscr">
-      <div className="vf">
-        <img src="/revela/ref/sc-pista.jpg" alt="Visor da câmera" style={{  }} />
-        <div className="vfdim" />
-        <div className="vf-top">
-          <button className="glass" aria-label="Fechar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
-          <div className="vf-title">
-            {"Ana & Leo"}
-          </div>
-          <button className="glass" aria-label="Flash">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M13 2L4 14h7l-1 8 9-12h-7z" />
-            </svg>
-          </button>
-        </div>
-        <div className="vf-corners">
-          <i />
-          <i />
-          <i />
-          <i />
-        </div>
-      </div>
-      <div className="notice-wrap" style={{ "top": "120px" }}>
-        <div className="rv-notice">
-          <div className="rv-notice__body">
-            <h3>
-              Antes de fotografar
-            </h3>
-            <label className="consent">
-              <i className="cbx on">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12l5 5 9-10" />
-                </svg>
-              </i>
-              <span>
-                Depois da revelação, minhas fotos aparecem no feed do evento, com meu nome.
-              </span>
-            </label>
-            <label className="consent">
-              <i className="cbx on">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12l5 5 9-10" />
-                </svg>
-              </i>
-              <span>
-                Os anfitriões podem esconder ou apagar qualquer foto ou comentário.
-              </span>
-            </label>
-            <p style={{ "fontSize": "13px" }}>
-              {"Leia a "}
-              <a href="#" className="link">
-                Privacidade
-              </a>
-              . Você pode apagar seus dados quando quiser.
-            </p>
-          </div>
-          <div className="rv-notice__actions">
-            <button>
-              Agora não
-            </button>
-            <button className="go">
-              Aceitar
-            </button>
+    <CameraFrame
+      left={left}
+      {...frame}
+      dim
+      overlay={
+        <div className="notice-wrap" style={{ top: "120px" }}>
+          <div className="rv-notice" ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="consent-titulo">
+            <div className="rv-notice__body">
+              <h3 id="consent-titulo">Antes de fotografar</h3>
+              {rows.map((text, i) => (
+                <label key={i} className="consent">
+                  <input type="checkbox" checked={checked[i]} onChange={(e) => onCheck?.(i as 0 | 1, e.target.checked)} />
+                  <i className={`cbx${checked[i] ? " on" : ""}`}>{CHECK}</i>
+                  <span>{text}</span>
+                </label>
+              ))}
+              <p style={{ fontSize: "13px" }}>
+                {"Leia os "}
+                <Link href="/termos" className="link" target="_blank" rel="noopener">Termos</Link>
+                {" e a "}
+                <Link href="/privacidade" className="link" target="_blank" rel="noopener">Privacidade</Link>
+                . Você pode apagar seus dados quando quiser.
+              </p>
+              {error && <p className="rv-field-erro" role="alert">{error}</p>}
+            </div>
+            <div className="rv-notice__actions">
+              <button type="button" onClick={onLater}>Agora não</button>
+              <button type="button" className="go" onClick={onAccept}>Aceitar</button>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="body body--casamento">
-        <div className="body-shade" />
-        <div className="body-row">
-          <div className="rv-counter">
-            <b>
-              27
-            </b>
-            <span>
-              poses restantes
-            </span>
-          </div>
-          <button className="shutter" aria-label="Tirar foto">
-            <i />
-          </button>
-          <div className="wheel" aria-hidden="true" />
-        </div>
-        <div className="body-foot">
-          <button className="filmstack" aria-label="Minhas fotos">
-            <i />
-            <i />
-          </button>
-          <span />
-          <button className="rv-icon-btn" style={{ "background": "var(--k-00000022)", "color": "var(--wrap-casamento-ink)" }} aria-label="Virar câmera">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
-              <path d="M9 13a3 3 0 0 1 5-2l1 1M15 13a3 3 0 0 1-5 2l-1-1" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div className="grain" />
-    </div>
-    </>
+      }
+    />
   );
 }

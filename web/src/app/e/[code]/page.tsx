@@ -3,7 +3,12 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Button, CameraStage, EventTheme, GuestShell, Icon, KnownPeople, PrintBack, ShotCounter } from "@/components/revela";
+import { Button, CameraStage, EventTheme, GuestShell, Icon, KnownPeople, ShotCounter } from "@/components/revela";
+import { ConvidadoConsentimento } from "@/revela/screens/ConvidadoConsentimento";
+import { ConvidadoEntrar } from "@/revela/screens/ConvidadoEntrar";
+import { ConvidadoInvalido } from "@/revela/screens/ConvidadoInvalido";
+import { ConvidadoLotado } from "@/revela/screens/ConvidadoLotado";
+import { wrapOf } from "@/domain/options";
 import { ConvidadoCarregando } from "@/revela/screens/ConvidadoCarregando";
 import { eventStatus } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
@@ -141,16 +146,7 @@ export default function Convite() {
   }
   // 20e: convite vencido ou trocado
   if (inactive || data.error === "forbidden") {
-    const missing = false;
-    return (
-      <GuestShell closeHref="/" action={<Button href="/entrar#codigo" variant="primario" block>Digitar outro código</Button>}>
-        <PrintBack stamp={missing ? undefined : "VENCIDO"} />
-        <div className="rv-guest__center">
-          <h1 className="titulo-pagina app-h1">{missing ? "Código não confere" : "Este convite não vale mais"}</h1>
-          <p className="corpo app-muted" style={{ margin: 0 }}>{missing ? copyFor(backendMode()).inviteInvalidBody : "O link expirou ou foi trocado pelo anfitrião. Peça o QR novo para quem organizou a festa."}</p>
-        </div>
-      </GuestShell>
-    );
+    return <main><ConvidadoInvalido closeHref="/" actionHref="/entrar#codigo" /></main>;
   }
   if (sessionFailed || waiting) {
     return (
@@ -179,85 +175,80 @@ export default function Convite() {
 
   const ended = (data.preview?.status ?? (data.event ? eventStatus(data.event, now()) : "ativo")) === "encerrado";
   const lotada = !isHost && !member && (full || data.preview?.full === true);
-  const print = { name: event.title, poses: event.shotsPerPerson, date: formatDate(event.startAt) };
-  // 20f (câmera lotou) e câmera fechada: mesmo layout, câmera apagada
+  // 20f (câmera lotou) e câmera fechada: mesma tela
   if (lotada || (ended && !isHost && !member)) {
     return (
       <EventTheme wrap={event.cameraStyle}>
-        <GuestShell closeHref="/" top={top} action={lotada ? <Button variant="secundario" block icon="agora" onClick={() => { setFull(false); void refreshData(); }}>Tentar de novo</Button> : <Button href="/" variant="secundario" block>Voltar ao início</Button>}>
-          <CameraStage wrap={event.cameraStyle} size={640} className="rv-camera--off rv-guest__cam--lg" print={print} />
-          <div className="rv-guest__center">
-            <h1 className="titulo-pagina app-h1">{lotada ? "A câmera lotou" : "Esta câmera já fechou"}</h1>
-            <p className="corpo app-muted" style={{ margin: 0 }}>
-              {lotada
-                ? `Os ${event.capacity ?? ""} lugares de ${event.title} já foram ocupados. Fale com o anfitrião, que pode abrir mais vagas.`.replace("Os  lugares", "Os lugares")
-                : MESSAGES.encerrado}
-            </p>
-          </div>
-        </GuestShell>
+        <main>
+          <ConvidadoLotado
+            title={event.title}
+            wrap={event.cameraStyle}
+            stamp={dateStamp ?? ""}
+            poses={event.shotsPerPerson}
+            closed={!lotada}
+            body={lotada ? `Os ${event.capacity ?? ""} lugares de ${event.title} já foram ocupados. Fale com o anfitrião, que pode abrir mais vagas.`.replace("Os  lugares", "Os lugares") : MESSAGES.encerrado}
+            closeHref="/"
+            onRetry={() => { setFull(false); void refreshData(); }}
+          />
+        </main>
       </EventTheme>
     );
   }
 
   const inside = isHost || member;
+  // 20d: Antes de fotografar (aceite dos Termos e da Política), sobre a câmera
+  if (askConsent && !inside) {
+    return (
+      <EventTheme wrap={event.cameraStyle}>
+        <main>
+          <ConvidadoConsentimento
+            title={event.title}
+            wrap={wrapOf(event.cameraStyle)}
+            left={event.shotsPerPerson}
+            checked={[acceptedTerms, ackedPrivacy]}
+            onCheck={(i, v) => { if (i === 0) setAcceptedTerms(v); else setAckedPrivacy(v); setConsentError(undefined); }}
+            error={consentError}
+            onLater={() => setAskConsent(false)}
+            onAccept={() => { if (!acceptedTerms || !ackedPrivacy) { setConsentError(CONSENT_REQUIRED); return; } setAskConsent(false); void enter(); }}
+          />
+        </main>
+      </EventTheme>
+    );
+  }
+
+  // 20b: Entrar no evento
   return (
     <EventTheme wrap={event.cameraStyle}>
-      <GuestShell top={top} action={inside ? (
-        <div className="app-stack-sm">
-          <Button href={`/e/${code}/postar`} variant="primario" block icon="camera">Abrir câmera</Button>
-          {isHost && <Button variant="secundario" href={`/painel/${data.event?.id}`} block>Abrir o painel</Button>}
-        </div>
-      ) : (
-        <Button type="submit" form="entrar-form" variant="primario" block disabled={busy}>{busy ? "Entrando…" : <>Entrar e fotografar <Icon name="seguir" decorative size={18} /></>}</Button>
-      )}>
-        <CameraStage wrap={event.cameraStyle} size={640} priority print={print} className="rv-guest__cam" />
-        <h1 className="rv-guest__title">{event.title}</h1>
-        {event.theme?.welcomeMessage && <p className="corpo app-muted" style={{ margin: 0, textAlign: "center" }} data-testid="mensagem-evento">{event.theme.welcomeMessage}</p>}
-        <div className="rv-quota">
-          <ShotCounter value={event.shotsPerPerson ?? "∞"} label={event.shotsPerPerson === null ? "poses livres" : "poses suas"} />
-          <p>Foi o que o anfitrião liberou para você. Ninguém vê as fotos antes da revelação.</p>
-        </div>
-        {inside ? (
-          <h2 className="corpo app-muted" style={{ margin: 0, textAlign: "center" }}>Você está dentro, {member?.name ?? user?.name}.</h2>
-        ) : (
-          <form id="entrar-form" className="app-stack-sm" noValidate onSubmit={(e) => { e.preventDefault(); void enter(); }}>
-            <label className="rv-inrow" data-invalid={error ? true : undefined}>
-              <Icon name="voce" decorative size={20} />
-              <span className="rv-sr-only">Seu nome</span>
-              <input value={name} onChange={(e) => { setName(e.target.value); setError(undefined); }} placeholder="Seu nome" autoComplete="given-name" maxLength={40} aria-invalid={error ? true : undefined} aria-describedby={error ? "erro-nome" : undefined} />
-            </label>
-            {error && <p id="erro-nome" className="rv-field-erro" role="alert">{error}</p>}
-            <label className="rv-inrow" data-invalid={emailError ? true : undefined}>
-              <Icon name="email" decorative size={20} />
-              <span className="rv-sr-only">E-mail (opcional)</span>
-              <input type="email" inputMode="email" value={email} onChange={(e) => { setEmail(e.target.value); setEmailError(undefined); }} placeholder="E-mail (opcional)" autoComplete="email" maxLength={254} aria-describedby="email-ajuda" />
-            </label>
-            <p id="email-ajuda" className="rv-field-ajuda">{emailError ?? "E-mail opcional. Só serve para avisar quando as fotos revelarem."}</p>
-            {consentError && !askConsent && <p className="rv-field-erro" role="alert">{consentError}</p>}
-          </form>
-        )}
-        {!user && canSwitchIdentity && <KnownPeople people={known} onPick={(id) => void switchTo(id)} />}
-        <BackendNotice localText="Versão local: tudo fica guardado neste aparelho. Fotos de outros aparelhos só aparecem quando o servidor entrar." />
-      </GuestShell>
-
-      {askConsent && (
-        <div className="rv-dialog" role="dialog" aria-modal="true" aria-labelledby="consent-titulo">
-          <div className="rv-dialog__panel">
-            <div className="rv-dialog__body">
-              <h2 id="consent-titulo">Antes de fotografar</h2>
-              <p>Depois da revelação, suas fotos aparecem no feed do evento, com seu nome. Os anfitriões podem esconder ou apagar qualquer foto ou comentário.</p>
-              <label className="rv-check"><input type="checkbox" checked={acceptedTerms} onChange={(e) => { setAcceptedTerms(e.target.checked); setConsentError(undefined); }} /><span>Li e aceito os <Link href="/termos" target="_blank" rel="noopener">Termos de Uso</Link>.</span></label>
-              <label className="rv-check"><input type="checkbox" checked={ackedPrivacy} onChange={(e) => { setAckedPrivacy(e.target.checked); setConsentError(undefined); }} /><span>Li a <Link href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</Link>.</span></label>
-              <small>Você pode apagar seus dados quando quiser.</small>
-              {consentError && <p className="rv-field-erro" role="alert">{consentError}</p>}
+      <main>
+        <ConvidadoEntrar
+          title={event.title}
+          wrap={event.cameraStyle}
+          stamp={dateStamp ?? ""}
+          printDate={formatDate(event.startAt)}
+          poses={event.shotsPerPerson}
+          welcome={event.theme?.welcomeMessage}
+          name={name}
+          email={email}
+          nameError={error}
+          emailError={emailError}
+          busy={busy}
+          inside={inside ? (member?.name ?? user?.name ?? "") : undefined}
+          cta={inside ? (
+            <div className="stack">
+              <Link href={`/e/${code}/postar`} className="rv-btn rv-btn--block rv-btn--primary"><Icon name="camera" decorative size={20} />Abrir câmera</Link>
+              {isHost && <Link href={`/painel/${data.event?.id}`} className="rv-btn rv-btn--block">Abrir o painel</Link>}
             </div>
-            <div className="rv-dialog__actions">
-              <button type="button" onClick={() => setAskConsent(false)}>Agora não</button>
-              <button type="button" className="go" onClick={() => { if (!acceptedTerms || !ackedPrivacy) { setConsentError(CONSENT_REQUIRED); return; } setAskConsent(false); void enter(); }}>Aceitar</button>
-            </div>
-          </div>
-        </div>
-      )}
+          ) : undefined}
+          extra={<>
+            {consentError && <p className="rv-field-erro" role="alert">{consentError}</p>}
+            {!user && canSwitchIdentity && <KnownPeople people={known} onPick={(id) => void switchTo(id)} />}
+            <BackendNotice localText="Versão local: tudo fica guardado neste aparelho. Fotos de outros aparelhos só aparecem quando o servidor entrar." />
+          </>}
+          onName={(v) => { setName(v); setError(undefined); }}
+          onEmail={(v) => { setEmail(v); setEmailError(undefined); }}
+          onSubmit={() => void enter()}
+        />
+      </main>
     </EventTheme>
   );
 }
