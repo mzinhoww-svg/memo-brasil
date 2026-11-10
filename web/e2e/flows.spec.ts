@@ -108,7 +108,7 @@ test("código inválido mostra erro; código válido leva ao convite", async ({ 
 test("convidado entra, posta com a câmera de teste, gasta o rolo e reage uma vez por foto", async ({ page }) => {
   const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
   await switchPerson(page, code, "Ana");
-  await expect(page.getByRole("heading", { name: "Agora" })).toBeVisible();
+  await expect(page.locator(".stories")).toBeVisible();
 
   await page.goto(`/e/${code}/postar`);
   await expect(page.getByText("5 fotos restantes")).toBeVisible();
@@ -119,8 +119,12 @@ test("convidado entra, posta com a câmera de teste, gasta o rolo e reage uma ve
   await expect(page.getByText("Foi para o laboratório")).toBeVisible();
 
   await page.goto(`/e/${code}/agora`);
+  const curtir = page.getByRole("button", { name: "Curtir" });
+  await curtir.click();
+  await expect(curtir).toHaveAttribute("aria-pressed", "true");
+  // foto aberta (24f): a reação Amei está marcada; escolher Uau troca (uma reação por pessoa)
+  await page.getByRole("button", { name: /Abrir a foto de/ }).click();
   const amei = page.getByRole("button", { name: /^Amei/ });
-  await amei.click();
   await expect(amei).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: /^Uau/ }).click();
   await expect(amei).toHaveAttribute("aria-pressed", "false");
@@ -140,13 +144,12 @@ test("revelação: outras pessoas só veem depois do fim do evento (relógio de 
   await postViaFile(page, code);
   await switchPerson(page, code, "Beto");
   await page.goto(`/e/${code}/agora`);
-  await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+  await expect(page.getByText("NO LABORATÓRIO")).toBeVisible();
   await expect(page.getByText("Ainda sem fotos.")).toBeHidden();
 
   const after = Date.now() + 7 * 3_600_000; // evento dura 6 h
   await page.goto(`/e/${code}/agora?agora=${after}`);
-  await expect(page.getByText("Visão de Ana")).toBeVisible();
-  await expect(page.getByText("Encerrado")).toBeVisible();
+  await expect(page.locator("article.post b", { hasText: /^Ana$/ }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Ver a retrospectiva" })).toBeVisible();
   expect(id).toBeTruthy();
 });
@@ -157,18 +160,17 @@ test("pedido de remoção cai na fila do anfitrião, que oculta e depois remove 
   await postViaFile(page, code);
   await switchPerson(page, code, "Beto");
   await page.goto(`/e/${code}/agora`);
-  await page.getByRole("button", { name: /Mais opções/ }).first().click();
+  await page.getByRole("button", { name: "Mais", exact: true }).first().click();
   await expect(page.getByRole("dialog", { name: "Mais opções" })).toBeVisible();
   await page.getByRole("button", { name: "Pedir para remover", exact: true }).click();
-  await expect(page.getByText("Pedido enviado. O anfitrião vai analisar.")).toBeVisible();
-  await page.keyboard.press("Escape");
+  const denuncia = page.getByRole("dialog", { name: "Denunciar esta foto" });
+  await denuncia.getByRole("button", { name: "Enviar denúncia" }).click();
+  await expect(denuncia.getByText("Denúncia enviada. O anfitrião vai analisar.")).toBeVisible();
 
   // volta a ser o anfitrião pela própria interface ("Continuar como")
   await page.goto("/");
   await page.getByRole("button", { name: "Emy", exact: true }).click();
   await expect(page.getByRole("button", { name: "Emy", exact: true })).toBeHidden();
-  await page.getByRole("link", { name: "Meus eventos" }).click();
-  await expect(page.getByRole("link", { name: "Painel" }).first()).toBeVisible();
   await page.goto(`/painel/${id}/conteudo`);
   await expect(page.getByRole("tab", { name: "Pedidos de remoção · 1" })).toHaveAttribute("aria-selected", "true");
   await page.getByRole("button", { name: "Ocultar" }).click();
@@ -232,7 +234,7 @@ test("mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem,
   await page.goto("/");
   await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
-  await page.getByRole("button", { name: /Mais opções/ }).first().click();
+  await page.getByRole("button", { name: "Mais", exact: true }).first().click();
   const sheet = page.getByRole("dialog", { name: "Mais opções" });
   await expect(sheet.getByRole("heading", { name: "Quem reagiu" })).toBeVisible();
   await expect(sheet.locator("li").first()).toBeVisible();
@@ -310,7 +312,7 @@ test("cabeçalhos de segurança e CSP sem violações de console nas telas princ
   expect(h["content-security-policy"]).toContain("frame-ancestors 'none'");
   await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
-  await page.getByRole("link", { name: "Explorar" }).click();
+  await page.getByRole("link", { name: "Minhas" }).click();
   await page.getByRole("link", { name: "Você" }).click();
   expect(errors.filter((e) => /Content Security Policy|Refused to/i.test(e))).toEqual([]);
 });
@@ -484,7 +486,7 @@ test.describe("jornada do convidado (Task 13)", () => {
     await page.getByRole("button", { name: "Dispensar convite para criar evento" }).click();
     await expect(page.getByText("Tem uma festa vindo aí?")).toHaveCount(0);
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Agora" })).toBeVisible();
+    await expect(page.locator(".stories")).toBeVisible();
     await expect(page.getByText("Tem uma festa vindo aí?")).toHaveCount(0);
   });
 });

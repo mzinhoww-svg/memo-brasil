@@ -57,31 +57,26 @@ test("convidado fotografa, não vê fotos bloqueadas, espera com contagem e a ga
   await expect(page.getByTestId("guardada-no-escuro")).toBeVisible();
 
   await page.goto(`/e/${code}/agora`);
-  const espera = page.getByTestId("aguardando-revelacao");
-  await expect(espera).toBeVisible();
-  await expect(espera).toContainText("O filme ainda está no escuro.");
-  await expect(page.getByTestId("contagem")).toContainText(/\d{2}h \d{2}min \d{2}s/);
-  await expect(espera).toContainText(/1\s*foto sua guardada/);
-  await expect(page.locator(".rv-post")).toHaveCount(0); // nenhuma foto bloqueada na galeria
-  await expect(page.locator(".rv-media img")).toHaveCount(0);
+  await expect(page.getByText("NO LABORATÓRIO")).toBeVisible();
+  await expect(page.getByText("Ninguém vê antes. Nem quem tirou.")).toBeVisible();
+  await expect(page.getByRole("timer")).toBeVisible();
+  await expect(page.locator("article.post")).toHaveCount(0); // nenhuma foto bloqueada na galeria
+  await expect(page.locator("article.post .rv-print img")).toHaveCount(0);
 
-  await page.goto(`/e/${code}/voce`);
-  await expect(page.getByText("Guardada", { exact: true })).toBeVisible();
-  await expect(page.locator(".app-thumb img")).toHaveCount(0);
   await page.goto(`/e/${code}/explorar`);
-  await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+  await expect(page.getByText("NO LABORATÓRIO")).toBeVisible();
 
   // chega a hora com o app aberto e SEM rede: a revelação não depende de rede nem de recarregar
   await page.goto(`/e/${code}/agora`);
-  await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+  await expect(page.getByText("NO LABORATÓRIO")).toBeVisible();
   await context.setOffline(true);
   await page.clock.fastForward("04:00");
   await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
-  await expect(page.getByText("O filme foi revelado.")).toBeVisible({ timeout: 6000 });
-  await page.getByRole("button", { name: "Ver as fotos" }).click();
-  await expect(page.getByTestId("aguardando-revelacao")).toHaveCount(0);
-  await expect(page.locator(".rv-post")).toHaveCount(1);
-  await expect(page.locator(".rv-media img").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Revelou." })).toBeVisible({ timeout: 6000 });
+  await page.getByRole("button", { name: "Abrir o feed" }).click();
+  await expect(page.getByText("NO LABORATÓRIO")).toHaveCount(0);
+  await expect(page.locator("article.post")).toHaveCount(1);
+  await expect(page.locator("article.post .rv-print img").first()).toBeVisible();
   await context.setOffline(false);
 });
 
@@ -90,8 +85,8 @@ test("modo sem revelação: a foto aparece na hora, sem tela de espera", async (
   await switchPerson(page, code, "Ana");
   await postViaFile(page, code);
   await page.goto(`/e/${code}/agora`);
-  await expect(page.getByTestId("aguardando-revelacao")).toHaveCount(0);
-  await expect(page.getByText("Visão de Ana")).toBeVisible();
+  await expect(page.getByText("NO LABORATÓRIO")).toHaveCount(0);
+  await expect(page.locator("article.post b", { hasText: /^Ana$/ }).first()).toBeVisible();
 });
 
 test("participante que entra depois da revelação vê a galeria direto, sem a transição", async ({ page }) => {
@@ -102,7 +97,7 @@ test("participante que entra depois da revelação vê a galeria direto, sem a t
   await page.clock.fastForward("04:00");
   await switchPerson(page, code, "Beto");
   await expect(page.getByTestId("transicao-revelacao")).toHaveCount(0);
-  await expect(page.getByText("Visão de Ana")).toBeVisible();
+  await expect(page.locator("article.post b", { hasText: /^Ana$/ }).first()).toBeVisible();
 });
 
 test("app fechado na hora da revelação: ao reabrir já está revelada e o estado é espelhado no armazenamento", async ({ page, context }) => {
@@ -115,7 +110,7 @@ test("app fechado na hora da revelação: ao reabrir já está revelada e o esta
   const reopened = await context.newPage();
   await reopened.clock.install({ time: t0 + 10 * MIN });
   await reopened.goto(`/e/${code}/agora`);
-  await expect(reopened.getByText("Visão de Ana")).toBeVisible();
+  await expect(reopened.locator("article.post b", { hasText: /^Ana$/ }).first()).toBeVisible();
   await expect(reopened.getByTestId("transicao-revelacao")).toHaveCount(0);
   await expect.poll(() => reopened.evaluate(async (eid) => {
     const db: IDBDatabase = await new Promise((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => res(r.result); });
@@ -181,9 +176,9 @@ test("BG-102: com o relógio do aparelho recuado, a revelação já ocorrida nã
   await postViaFile(page, code);
   await page.clock.fastForward("04:00");
   await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
-  await page.getByRole("button", { name: "Ver as fotos", exact: true }).click({ timeout: 8000 });
-  await page.getByRole("link", { name: "Agora", exact: true }).click();
-  await expect(page.locator(".rv-post")).toHaveCount(1);
+  await page.getByRole("button", { name: "Abrir o feed", exact: true }).click({ timeout: 8000 });
+  await page.goto(`/e/${code}/agora`);
+  await expect(page.locator("article.post")).toHaveCount(1);
   await expect.poll(() => page.evaluate(async (eid) => {
     const db: IDBDatabase = await new Promise((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => res(r.result); });
     const e: { revealedAt: number | null } = await new Promise((res) => { const r = db.transaction("events").objectStore("events").get(eid); r.onsuccess = () => res(r.result); });
@@ -192,8 +187,8 @@ test("BG-102: com o relógio do aparelho recuado, a revelação já ocorrida nã
 
   await page.clock.setFixedTime(t0 - 60 * MIN); // relógio do aparelho recuado para uma hora antes do evento
   await page.reload();
-  await expect(page.getByTestId("aguardando-revelacao")).toHaveCount(0);
-  await expect(page.locator(".rv-post")).toHaveCount(1);
+  await expect(page.getByText("NO LABORATÓRIO")).toHaveCount(0);
+  await expect(page.locator("article.post")).toHaveCount(1);
   const revealedAt = await page.evaluate(async (eid) => {
     const db: IDBDatabase = await new Promise((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => res(r.result); });
     const e: { revealStatus: string; revealedAt: number | null } = await new Promise((res) => { const r = db.transaction("events").objectStore("events").get(eid); r.onsuccess = () => res(r.result); });

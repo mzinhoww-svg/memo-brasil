@@ -60,3 +60,31 @@ test("24i abre pelo sino com a folha do e-mail; 24j mostra link inválido sem se
   await page.goto("/email/sair");
   await expect(page.getByRole("heading", { name: /Esse link não/ })).toBeVisible();
 });
+
+test("revelados do anfitrião: galeria (18), foto aberta (19) e álbum impresso (19b)", async ({ page }) => {
+  const { code, id } = await createViaWizard(page, { title: "Revelados Host", reveal: "desligada" });
+  await postViaFile(page, code);
+  await page.goto("/eventos/revelados");
+  await expect(page.getByRole("heading", { name: "Revelado." })).toBeVisible();
+  await expect(page.getByText(/Revelados Host · 1 foto/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Baixar tudo" })).toHaveAttribute("href", `/painel/${id}/downloads`);
+
+  // 19: foto aberta, destaque e mais opções
+  await page.locator(".table a.rv-print").first().click();
+  await page.waitForURL(new RegExp(`/eventos/revelados/${id}/[0-9a-f-]+$`));
+  await expect(page.getByText("1 de 1", { exact: true })).toBeVisible();
+  const star = page.getByRole("button", { name: "Destacar" });
+  await star.click();
+  await expect(star).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Mais" }).click();
+  const sheet = page.getByRole("dialog", { name: "Mais opções" });
+  await expect(sheet).toContainText("Quem reagiu");
+  await sheet.getByRole("button", { name: "Fechar" }).click();
+  await page.getByRole("link", { name: "Fechar" }).click();
+
+  // 19b: álbum impresso
+  await page.getByRole("link", { name: "Ver como álbum" }).click();
+  await expect(page.getByRole("heading", { name: /O álbum da festa/ })).toBeVisible();
+  await expect(page.getByText("1 foto escolhida por você")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Escolher as fotos" })).toHaveAttribute("href", `/painel/${id}/conteudo`);
+});
