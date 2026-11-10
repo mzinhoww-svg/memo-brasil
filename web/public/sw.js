@@ -8,11 +8,20 @@ const SHELL = ["/", "/entrar", "/criar", "/offline", "/manifest.webmanifest"];
 const STATIC = /^\/(_next\/static|fonts|brand|icons|pwa)\//;
 const MAX_PAGES = 40; // páginas visitadas guardadas (as mais antigas saem primeiro)
 
+/** /offline nunca é visitada online: sem os scripts dela no cache, a página offline cairia em "Algo deu errado". */
+async function warmOffline(cache) {
+  try {
+    const html = await (await cache.match("/offline"))?.text();
+    const urls = new Set(html?.match(/\/_next\/static\/[^"'\\\s<>]+\.(?:js|css)/g) ?? []);
+    await Promise.allSettled([...urls].map((u) => cache.add(u)));
+  } catch { /* o fallback segue sem os scripts; nada quebra */ }
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(VERSION)
       // uma URL com falha não impede a instalação das outras
-      .then((c) => Promise.allSettled(SHELL.map((u) => c.add(u))))
+      .then((c) => Promise.allSettled(SHELL.map((u) => c.add(u))).then(() => warmOffline(c)))
       .then(() => self.skipWaiting()),
   );
 });
