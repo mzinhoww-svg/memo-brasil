@@ -12,6 +12,7 @@ import { commentsText, firstName, initialOf, likesText, photoMoment, poseLabel, 
 import { useGuest } from "@/features/events/guest-context";
 import { CreateYourOwn } from "@/features/reveal/CreateYourOwn";
 import { MoreSheet } from "@/features/photos/components";
+import { photoReasonAt } from "@/features/moderation/report-reasons";
 import { react, reportPhoto } from "@/features/photos/service";
 import { downloadPhoto, reactorsOf } from "@/features/photos/share";
 import { stampDay } from "@/features/guest/format";
@@ -91,7 +92,7 @@ export function RevealedFeed() {
     if (!reportFor || reportFor.busy || reportFor.sent) return;
     setReportFor({ ...reportFor, busy: true, error: false });
     try {
-      await reportPhoto(repos, reportFor.id);
+      await reportPhoto(repos, reportFor.id, photoReasonAt(reportFor.reason));
       setReportFor((r) => r && { ...r, busy: false, sent: true });
       await refresh();
     } catch {

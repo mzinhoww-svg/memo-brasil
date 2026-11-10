@@ -9,10 +9,12 @@ import { useAdmin } from "@/features/admin/context";
 import { usePhotoUrls } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { updateSettings } from "@/features/events/service";
+import { formatReasonCounts, useReportReasons } from "@/features/moderation/report-reasons";
 import { plural } from "@/lib/plural";
 import { PainelModeracao, type ModTab, type ModcItem } from "@/revela/screens/PainelModeracao";
 import { useFlash } from "@/revela/painel-ui";
 
+const withReasons = (text: string, counts: Parameters<typeof formatReasonCounts>[0]) => { const r = formatReasonCounts(counts); return r ? `${text} · Motivos: ${r}` : text; };
 const firstName = (n: string) => n.trim().split(/\s+/)[0] || "Convidado sem nome";
 
 /** Moderação (17i): fotos denunciadas, comentários denunciados ou escondidos e pessoas bloqueadas. */
@@ -21,6 +23,7 @@ export default function Moderacao() {
   const { repos } = useApp();
   const { event, photos, participants, refresh } = useAdmin();
   const { comments, failed, reload } = useModerationComments(event.id);
+  const reasons = useReportReasons(event.id, comments.length + photos.length);
   const [tab, setTab] = useState<ModTab>("fotos");
   const [toast, flash] = useFlash();
   const live = useMemo(() => photos.filter((p) => p.status !== "removida"), [photos]);
@@ -45,14 +48,14 @@ export default function Moderacao() {
   if (tab === "fotos") {
     empty = "Nenhuma foto denunciada. Quando alguém denunciar, ela aparece aqui.";
     items = reported.map((p) => ({
-      id: p.id, img: urls[p.id], name: firstName(p.authorName), flag: `${p.reports} ${plural(p.reports, "denúncia", "denúncias")}`, text: p.caption ?? "Foto denunciada",
+      id: p.id, img: urls[p.id], name: firstName(p.authorName), flag: `${p.reports} ${plural(p.reports, "denúncia", "denúncias")}`, text: withReasons(p.caption ?? "Foto denunciada", reasons.photos[p.id]),
       actions: [{ label: "Manter", onClick: () => void photoAct(p.id, "mostrar") }, { label: "Esconder", danger: true, onClick: () => void photoAct(p.id, "ocultar") }],
     }));
   } else if (tab === "comentarios") {
     empty = failed ? "Não deu para carregar os comentários. Tente atualizar a página." : "Nenhum comentário denunciado ou escondido.";
     items = queue.map((c) => ({
       id: c.id, img: urls[c.photoId], name: c.authorName || "Convidado sem nome",
-      flag: c.hidden ? `escondido${c.hiddenBy === "denuncias" ? " por denúncias" : ""}` : `${c.reports} ${plural(c.reports, "denúncia", "denúncias")}`, text: c.body,
+      flag: c.hidden ? `escondido${c.hiddenBy === "denuncias" ? " por denúncias" : ""}` : `${c.reports} ${plural(c.reports, "denúncia", "denúncias")}`, text: withReasons(c.body, reasons.comments[c.id]),
       actions: c.hidden
         ? [{ label: "Mostrar", onClick: () => void commentAct(c.id, "mostrar") }, { label: "Remover", danger: true, onClick: () => void commentAct(c.id, "remover") }]
         : [{ label: "Manter", onClick: () => void commentAct(c.id, "mostrar") }, { label: "Esconder", danger: true, onClick: () => void commentAct(c.id, "esconder") }],

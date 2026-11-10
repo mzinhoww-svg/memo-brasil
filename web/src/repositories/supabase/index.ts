@@ -151,6 +151,7 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         try { return (await mine("*, event_themes(*)")).map(toEvent); }
         catch (e) { if (!isMissingThemeSchema((e as RepositoryError).cause)) throw e; return (await mine("*")).map(toEvent); }
       },
+      revealNow: async (eventId, reason) => void ok(await sb.rpc("reveal_now", { p_event: eventId, p_reason: reason ?? null })),
       get: async (id) => {
         const r = await readEvent("id", id);
         return r ? toEvent(r) : undefined;
@@ -201,7 +202,7 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       removeByEvent: async () => undefined, // cascata do banco (delete_event)
     },
     photos: {
-      report: async (photoId) => void ok(await sb.rpc("report_photo", { p_photo: photoId })),
+      report: async (photoId, reason) => void ok(await sb.rpc("report_photo", reason ? { p_photo: photoId, p_reason: reason } : { p_photo: photoId })),
       listByEvent: async (id) => sortNewestFirst((await selectAll("photos", (q) => q.select("*").eq("event_id", id).eq("upload_status", "pronta").order("created_at", { ascending: false }))).map(toPhoto)),
       count: async (id, f) => {
         let q = sb.from("photos").select("id", { count: "exact", head: true }).eq("event_id", id);

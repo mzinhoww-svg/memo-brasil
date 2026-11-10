@@ -96,8 +96,9 @@ export async function expirePending(repos: Repositories, eventId: string, now: n
   return stale.length;
 }
 
-export async function reportPhoto(repos: Repositories, photoId: string): Promise<Photo | undefined> {
-  if (repos.photos.report) { await repos.photos.report(photoId); return undefined; }
+/** `reason`: código do motivo (24g). Só o servidor guarda o motivo; o modo local conta a denúncia como antes. */
+export async function reportPhoto(repos: Repositories, photoId: string, reason?: string): Promise<Photo | undefined> {
+  if (repos.photos.report) { await repos.photos.report(photoId, reason); return undefined; }
   return withLock(`denuncia:${photoId}`, async () => {
     try {
       return await retryOnConflict(async () => {

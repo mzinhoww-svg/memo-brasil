@@ -111,6 +111,13 @@ it('reports through the server RPC without generic update and propagates failure
  await expect(reportPhoto(r,'photo')).rejects.toBeInstanceOf(RepositoryError);
 });
 
+it('sends the report reason as p_reason only when informed',async()=>{
+ const rpc=vi.fn().mockResolvedValue({data:null,error:null});
+ const r=createSupabaseRepositories({rpc,from:vi.fn()} as unknown as SupabaseClient);
+ await reportPhoto(r,'photo','improprio');
+ expect(rpc).toHaveBeenCalledExactlyOnceWith('report_photo',{p_photo:'photo',p_reason:'improprio'});
+});
+
 it('maps the dedicated blocked SQLSTATE without reusing financial codes',()=>{
  expect(toRepositoryError({code:'MM015'}).code).toBe('blocked');
  expect(toRepositoryError({code:'MM004'}).code).toBe('forbidden');

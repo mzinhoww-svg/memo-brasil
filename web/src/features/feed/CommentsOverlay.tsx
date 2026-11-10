@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { commentAgo, commentFailureText, toCommentError, COMMENT_MAX, type CommentsApi, type PhotoComment } from "@/features/comments/service";
 import { initialOf, firstName } from "@/features/feed/format";
+import { commentReasonAt } from "@/features/moderation/report-reasons";
 import { DENUNCIA_MOTIVOS_COMENTARIO, FeedDenunciar } from "@/revela/screens/FeedDenunciar";
 import { FeedComentarios } from "@/revela/screens/FeedComentarios";
 import type { FeedPostData } from "@/revela/screens/FeedEvento";
@@ -76,7 +77,7 @@ export function CommentsOverlay({ api, photoId, post, title, me, now, onClose, o
     if (!report || report.busy || report.sent) return;
     setReport({ ...report, busy: true, error: undefined });
     try {
-      await api.report(report.id);
+      await api.report(report.id, commentReasonAt(report.reason));
       setReport((r) => r && { ...r, busy: false, sent: true });
       await load();
       onChanged();

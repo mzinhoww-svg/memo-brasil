@@ -50,7 +50,7 @@ export interface CommentsApi {
   list(photoId: string): Promise<PhotoComment[]>;
   post(photoId: string, body: string): Promise<void>;
   toggleLike(commentId: string): Promise<{ liked: boolean; likes: number }>;
-  report(commentId: string): Promise<void>;
+  report(commentId: string, reason?: string): Promise<void>;
   remove(commentId: string): Promise<void>;
 }
 
@@ -82,7 +82,7 @@ export function createCloudComments(rpc: Rpc = (fn, args) => browserSupabase().r
       await call("post_comment", { p_photo: photoId, p_body: b });
     },
     toggleLike: async (commentId) => (await call("toggle_comment_like", { p_comment: commentId })) as { liked: boolean; likes: number },
-    report: async (commentId) => void (await call("report_comment", { p_comment: commentId })),
+    report: async (commentId, reason) => void (await call("report_comment", reason ? { p_comment: commentId, p_reason: reason } : { p_comment: commentId })),
     remove: async (commentId) => void (await call("delete_my_comment", { p_comment: commentId })),
   };
 }

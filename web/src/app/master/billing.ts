@@ -149,6 +149,7 @@ export function refundFailureText(code: string | undefined, provider: string | n
 export function adminErrorText(code: string | undefined, message: string): string {
   if (code === "MM011" || /reasonrequired/.test(message)) return `Escreva o motivo com ${REASON_MIN} a ${REASON_MAX} caracteres.`;
   if (code === "MM004" || /forbidden/.test(message)) return "Sem permissão para esta ação.";
+  if (code === "MM008" || /revealed/.test(message)) return "Este evento já foi revelado.";
   if (code === "MM005" || /invalid/.test(message)) return "Ação recusada pelo servidor: confira os dados e o estado atual.";
   return "Não foi possível concluir. Tente de novo.";
 }
