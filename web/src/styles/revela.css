@@ -348,7 +348,9 @@
 /* Filme 35mm na prévia ao vivo: mesmo tom da foto guardada (capture.ts) — quente, contraste, vinheta, brilho de flash e grão */
 .rv-cam__finder[data-film="filme35"] video { filter: sepia(.28) saturate(1.12) contrast(1.12) brightness(1.04); }
 .rv-cam__film { position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 45%, rgb(255 214 160 / .16) 0, transparent 55%), radial-gradient(ellipse at 50% 50%, transparent 45%, rgb(0 0 0 / .32) 100%); }
+  background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgb(0 0 0 / .28) 100%); }
+/* Prévia WebGL com a LUT do Filme 35mm (film-gl.ts): cobre o vídeo, sem pegar clique nem foco */
+.rv-cam__lut { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
 .rv-cam__film::after { content: ""; position: absolute; inset: 0; background: url("/revela/fx/grain.webp") 0 0 / 200px; opacity: .3; mix-blend-mode: overlay; }
 .rv-cam__bar { position: absolute; top: 0; left: 0; right: 0; z-index: 3; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: var(--space-2); padding: var(--space-4); text-align: center; }
 .rv-cam__bar .rv-icon-btn { background: color-mix(in srgb, var(--black-1) 45%, transparent); color: var(--ink); }
