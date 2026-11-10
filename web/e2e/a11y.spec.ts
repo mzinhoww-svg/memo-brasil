@@ -41,7 +41,7 @@ for (const width of [390, 1280]) {
       await page.evaluate(() => document.fonts.ready);
       const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       for (const v of r.violations) problems.push(`passo ${passo} [${v.impact}] ${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);
-      if (passo === 1) await page.getByLabel("Nome que os convidados vão ver").fill("Axe");
+      if (passo === 1) await page.getByLabel("Nome do evento").fill("Axe");
       if (passo === 3) await page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: /^36/ }).click();
       if (passo < 4) await page.getByRole("button", { name: "Continuar" }).click();
     }

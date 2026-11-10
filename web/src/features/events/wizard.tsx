@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Breadcrumbs, Button, CameraStage, Chip, Chips, Field, GoogleButton, Icon, OptionGroup, ToggleRow, WrapPicker } from "@/components/revela";
-import { CATEGORY_LABEL, DEFAULT_FILM, DEFAULT_WRAP, FILM_LABEL, WRAP_INFO, type EventCategory, type FilmLook, type Wrap } from "@/domain/options";
+import { Breadcrumbs, Button, GoogleButton } from "@/components/revela";
+import { DEFAULT_FILM, DEFAULT_WRAP, WRAP_INFO, type EventCategory, type FilmLook, type Wrap } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
 import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
 import { currentConsent, recordConsent } from "@/lib/consent";
@@ -11,6 +11,10 @@ import { createEvent } from "./service";
 import { REVEAL_ERROR_TEXT, resolveReveal } from "./reveal-input";
 import { buildRevealInput, type RevealChoice } from "./reveal-choice";
 import { WINDOW_ERROR_TEXT, REVEAL_BEFORE_END_TEXT, defaultWindow, longDay, noticeLine, resolveWindow, revealOptions, shortWhen, type WindowInput } from "./wizard-time";
+import { CameraEmbalagem } from "@/revela/screens/CameraEmbalagem";
+import { CameraNome } from "@/revela/screens/CameraNome";
+import { CameraFiltro } from "@/revela/screens/CameraFiltro";
+import { CameraPrivacidade } from "@/revela/screens/CameraPrivacidade";
 import { CameraData } from "@/revela/screens/CameraData";
 import { CameraPoses, type PoseChoice } from "@/revela/screens/CameraPoses";
 import { CameraRevelacao, type RevealChoiceView } from "@/revela/screens/CameraRevelacao";
@@ -27,18 +31,9 @@ import { defaultTimezone, zonedToEpoch, zoneLabel, type RevealErrors } from "@/d
 
 export { WIZARD_DEFAULTS };
 
-/** Os 8 passos de "Monte a câmera". Cada um tem título, apoio e o que mostra; o contador "n/8" é o visor da câmera. */
-const STEPS = [
-  { key: "embalagem", title: "Escolha a embalagem", hint: "É a cara da câmera: aparece no convite, no QR e na tela de cada convidado." },
-  { key: "nome", title: "Nome impresso", hint: "O que sai impresso na câmera e que todos os convidados vão ver." },
-  { key: "ate-quando", title: "Até quando vale?", hint: "Depois desse horário ninguém tira mais fotos." },
-  { key: "poses", title: "Quantas poses?", hint: "Cada convidado tem um filme. Quanto menos poses, mais cada uma vale." },
-  { key: "revelar", title: "Quando revelar?", hint: "As fotos ficam no escuro até a revelação. Aí aparecem para todos, juntas." },
-  { key: "filme", title: "Qual filme?", hint: "O filme é aplicado em todas as fotos." },
-  { key: "quem-ve", title: "Quem vê o quê", hint: "Você vê tudo e pode tirar qualquer foto antes da revelação." },
-  { key: "plano", title: "Escolha o plano", hint: "Pague uma vez por evento. Sem assinatura." },
-] as const;
-const LAST_STEP = STEPS.length - 1;
+/** Os 8 passos de "Monte a câmera": embalagem, nome, quando é a festa, poses, revelação, filme, quem vê, plano. */
+const STEP_COUNT = 8;
+const LAST_STEP = STEP_COUNT - 1;
 /** Opções de poses do desenho; a legenda de cada uma vem do catálogo (plano que a comporta). */
 const POSE_OPTIONS = [10, 24, 27, 36];
 type CreatedEvent = { eventId: string; title: string; paid: boolean; destination: AfterCreate; ready: boolean };
@@ -53,7 +48,9 @@ export function CreateWizard() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [ackedPrivacy, setAckedPrivacy] = useState(false);
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<EventCategory>("casamento");
+  // o tipo do evento sai da embalagem escolhida (o desenho não pergunta o tipo): casamento → casamento, as outras → festa
+  const category: EventCategory = wrap === "casamento" ? "casamento" : "festa";
+  const [downloadHigh, setDownloadHigh] = useState(true); // "Permitir baixar em alta": sem campo no evento (divergência no CHECKLIST)
   const [timezone] = useState(defaultTimezone);
   const [win, setWin] = useState<WindowInput>(() => defaultWindow(now(), defaultTimezone()));
   const [choice, setChoice] = useState<RevealChoice>("manha");
@@ -118,7 +115,6 @@ export function CreateWizard() {
   const windowNow = resolveWindow(win, now());
   // fim da festa (instante); sem janela válida, mantém um fim razoável só para os rótulos
   const endMs = () => (windowNow.ok ? windowNow.endMs : now() + 6 * 3_600_000);
-  const durationHours = () => (windowNow.ok ? windowNow.hoursFromNow : NaN);
   const [customDate, customTime] = revCustom.split("T");
   const revealInput = () => buildRevealInput(choice, endMs(), { date: customDate ?? "", time: customTime ?? "", timezone });
 
@@ -224,7 +220,6 @@ export function CreateWizard() {
   const wrapLabelUi = WRAP_INFO[wrap].label;
 
   if (!ready) return <p className="app-screen app-muted">Carregando…</p>;
-  const last = step === LAST_STEP;
 
   if (codeOutcome) {
     const { eventId, eventTitle, code, applied, error } = codeOutcome;
@@ -268,6 +263,18 @@ export function CreateWizard() {
   }
 
   const back = () => setStep((x) => Math.max(0, x - 1));
+  if (step === 0) return <CameraEmbalagem wrap={wrap} busy={busy} onPick={setWrap} onNext={next} onBack={() => router.push("/")} />;
+  if (step === 1) {
+    return (
+      <CameraNome
+        wrap={wrap} name={title} error={errors.title} busy={busy} keyboard={false}
+        suggestions={suggestEventNames(category, user?.name ?? "", now())}
+        onName={(v) => { setTitle(v); setErrors((x) => ({ ...x, title: undefined })); }}
+        onSuggest={(v) => { setTitle(v); setErrors((x) => ({ ...x, title: undefined })); }}
+        onBack={back} onNext={next}
+      />
+    );
+  }
   if (step === 2) {
     const w = windowNow.ok ? windowNow : undefined;
     return (
@@ -300,6 +307,8 @@ export function CreateWizard() {
       />
     );
   }
+  if (step === 5) return <CameraFiltro film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
+  if (step === 6) return <CameraPrivacidade feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;
   if (step === 7) {
     const revealShort = revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz).replace(" ", ", ") : "—";
     const cta = busy ? "Criando câmera…" : chosenPlan && !chosenPlan.isFree ? `Continuar · ${money(chosenPlan.priceCents)}` : "Criar câmera";
@@ -324,86 +333,4 @@ export function CreateWizard() {
       </>
     );
   }
-
-  const info = STEPS[step];
-  const printDate = (() => { const d = new Date(now() + durationHours() * 3_600_000); return Number.isFinite(d.getTime()) ? `${String(d.getDate()).padStart(2, "0")} · ${String(d.getMonth() + 1).padStart(2, "0")} · ${d.getFullYear()}` : undefined; })();
-  const print = { name: title.trim(), poses: desiredShots, date: printDate };
-  const ctaLabel = busy ? "Criando câmera…" : last ? (chosenPlan && !chosenPlan.isFree ? `Continuar · ${formatBRL(chosenPlan.priceCents)}` : "Criar câmera") : "Próximo";
-  return (
-    <div className="rv-wiz">
-      <header className="rv-wiz__head">
-        <div className="rv-wiz__top">
-          <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: "Montar câmera" }]} />
-          <span className="rv-stamp" aria-label={`Passo ${step + 1} de ${STEPS.length}`}>{step + 1}/{STEPS.length}</span>
-        </div>
-        <h1 className="titulo-tela app-h1" id="wiz-titulo">{info.title}</h1>
-        <p className="corpo app-muted" style={{ margin: 0 }}>{step === 3 && shotsPlan ? `Cada convidado tem um filme. No plano ${shotsPlan.name}, até ${shotsPlan.maxShots ?? "sem limite de"} por pessoa.` : info.hint}</p>
-        <div className="rvl-steps" role="progressbar" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={step + 1} aria-label={`Passo ${step + 1} de ${STEPS.length}: ${info.title}`}>
-          {STEPS.map((x, i) => <i key={x.key} className={i <= step ? "on" : undefined} />)}
-        </div>
-      </header>
-
-      <form className="rv-wiz__form" aria-busy={busy} aria-labelledby="wiz-titulo" noValidate onSubmit={(e) => { e.preventDefault(); if (last) void create(); else next(); }}>
-        <div className="rv-wiz__body app-stack">
-          {step === 0 && (
-            <>
-              <CameraStage wrap={wrap} size={640} priority print={print} />
-              <div className="app-stack-sm" style={{ textAlign: "center" }}>
-                <h2 className="titulo-card app-h1">{WRAP_INFO[wrap].label}</h2>
-                <p className="corpo-sm app-muted" style={{ margin: 0 }}>{WRAP_INFO[wrap].blurb}</p>
-              </div>
-              <WrapPicker value={wrap} onChange={setWrap} />
-            </>
-          )}
-          {step === 1 && (
-            <>
-              <CameraStage wrap={wrap} size={360} print={print} />
-              <Field label="Nome que os convidados vão ver" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: undefined })); }} maxLength={60} placeholder="Ex.: Ana & Leo" error={errors.title} />
-              <div className="app-stack-sm">
-                <span className="rv-group-label">Sugestões</span>
-                <Chips label="Sugestões de nome">
-                  {suggestEventNames(category, user?.name ?? "", now()).map((s) => (
-                    <Chip key={s} variant="filtro" pressed={title === s} onClick={() => { setTitle(s); setErrors((x) => ({ ...x, title: undefined })); }}>{s}</Chip>
-                  ))}
-                </Chips>
-              </div>
-              <OptionGroup<EventCategory> label="Tipo de evento" value={category} onChange={setCategory} options={(Object.keys(CATEGORY_LABEL) as EventCategory[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c] }))} />
-            </>
-          )}
-          {step === 5 && (
-            <>
-              <div className="rv-film" role="radiogroup" aria-label="Filme">
-                {(["natural", "filme35"] as const).map((f) => (
-                  <button key={f} type="button" role="radio" aria-checked={film === f} className={`rv-film__opt ${film === f ? "rv-film__opt--on" : ""}`} onClick={() => setFilm(f)}>
-                    <span className={`rv-film__frame rv-film__frame--${f}`}>
-                      {/* eslint-disable-next-line @next/next/no-img-element -- objeto 3D do kit (bolo), WebP responsivo */}
-                      <img src="/revela/3d/obj-cake.webp" alt="" width={240} height={240} loading="lazy" decoding="async" />
-                      {f === "filme35" && <span className="rv-tag" style={{ top: "auto", left: "auto", right: 8, bottom: 8 }}>&apos;27 03 14</span>}
-                    </span>
-                    <span className="rv-film__name">{FILM_LABEL[f]}</span>
-                  </button>
-                ))}
-              </div>
-              <p className="corpo-sm app-muted" style={{ margin: 0, textAlign: "center" }}>
-                {film === "filme35" ? "Filme 35mm: tons quentes, grão, carimbo de data e o brilho do flash." : "Natural: a foto como a câmera do celular viu, sem efeito."}
-              </p>
-            </>
-          )}
-          {step === 6 && (
-            <div className="rvl-group" style={{ maxWidth: "none" }}>
-              <ToggleRow icon="olho" label="Convidados veem o feed" hint="Curtem e comentam depois da revelação" checked={everyoneSeesAll} onChange={setEveryoneSeesAll} />
-              <p className="corpo-sm app-muted" style={{ margin: "var(--space-3) 0 0" }}>
-                {everyoneSeesAll ? "Depois da revelação, cada convidado vê as fotos de todos." : "Depois da revelação, cada convidado vê só as próprias fotos. Você continua vendo tudo."}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="rv-wiz__bar">
-          {step > 0 ? <button type="button" className="rv-icon-btn" aria-label="Voltar" disabled={busy} onClick={() => setStep(step - 1)}><Icon name="voltar" decorative /></button> : <Button href="/" variant="texto" small>Cancelar</Button>}
-          <Button type="submit" variant="primario" block disabled={busy}>{ctaLabel}</Button>
-        </div>
-      </form>
-    </div>
-  );
 }

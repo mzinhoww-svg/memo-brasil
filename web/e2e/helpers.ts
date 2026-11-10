@@ -73,7 +73,7 @@ export async function wizardToSummary(page: Page, opts: { title?: string; reveal
   await page.goto("/criar");
   await seedHost(page, opts.host ?? "Emy");
   await next(); // 1 embalagem (Festa)
-  await page.getByLabel("Nome que os convidados vão ver").fill(opts.title ?? "Emy e Igor");
+  await page.getByLabel("Nome do evento").fill(opts.title ?? "Emy e Igor");
   await next(); // 2 nome
   await next(); // 3 quando é a festa: hoje, próxima meia hora + 6 h
   await next(); // 4 poses: 10 (Grátis)

@@ -547,7 +547,7 @@ function PostarSession() {
   const live = phase === "camera" || phase === "guardando";
   return (
     <div className="rv-cam" data-wrap={event.cameraStyle} data-fase={phase}>
-      <div className="rv-cam__finder" aria-live="polite">
+      <div className="rv-cam__finder" aria-live="polite" data-film={event.filmLook ?? DEFAULT_FILM}>
         <video ref={video} playsInline muted aria-label="Câmera ao vivo" style={{ display: live ? "block" : "none", transform: facing === "user" ? "scaleX(-1)" : undefined }} />
         {phase === "iniciando" && <p className="rv-cam__msg">Abrindo a câmera…</p>}
         <div className="rv-cam__bar">
@@ -555,6 +555,7 @@ function PostarSession() {
           <span className="rv-cam__title">{event.title}</span>
           <button type="button" className="rv-icon-btn" aria-label="Flash" aria-pressed={flashOn} onClick={() => setFlashOn((f) => !f)}><Icon name="flash" decorative /></button>
         </div>
+        {live && (event.filmLook ?? DEFAULT_FILM) === "filme35" && <span className="rv-cam__film" aria-hidden="true" />}
         <span className="rv-cam__corners" aria-hidden="true" />
         {(event.filmLook ?? DEFAULT_FILM) === "filme35" && <span className="rv-cam__date" aria-hidden="true">{stampText(new Date(now))}</span>}
         {phase === "permissao" && (

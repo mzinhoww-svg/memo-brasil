@@ -91,7 +91,7 @@ test("Dia vazio é rejeitado e a janela padrão continua recuperável", async ({
   await page.goto("/criar");
   await seedHost(page, "Emy");
   await next(); // embalagem
-  await page.getByLabel("Nome que os convidados vão ver").fill("Data explícita");
+  await page.getByLabel("Nome do evento").fill("Data explícita");
   await next();
   await expect(page.getByRole("heading", { name: "Quando é a festa?" })).toBeVisible();
   const day = page.getByLabel("Dia", { exact: true });

@@ -209,7 +209,7 @@ test("J6 editor: abrir foto visível, desenhar/texto, concluir e baixar; foto bl
 test("J7 remover convidado e reentrar; AC-01 término < 30 min; corrida do último tiro em duas abas", async ({ page, context }) => {
   // AC-01
   await page.goto("/criar");
-  await page.getByLabel("Nome que os convidados vão ver").fill("Curto");
+  await page.getByLabel("Nome do evento").fill("Curto");
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Outra data" }).click();
   const soon = new Date(Date.now() + 10 * 60_000 - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 16);

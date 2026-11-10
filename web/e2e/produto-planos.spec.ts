@@ -88,7 +88,7 @@ test("assistente com plano pago: selo vem do catálogo, evento nasce Grátis 10/
   await setEnv("sandbox");
   const u = await user("w");
   const { ctx, page } = await open(browser, u, baseURL!, "/criar");
-  await page.getByLabel("Nome que os convidados vão ver").fill(`Wizard ${tag}`);
+  await page.getByLabel("Nome do evento").fill(`Wizard ${tag}`);
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: /^36/ }).click();
@@ -117,7 +117,7 @@ test("assistente com pagamentos desligados mostra só o Grátis e o cartão Fale
   try {
     const u = await user("w2");
     const { ctx, page } = await open(browser, u, baseURL!, "/criar");
-    await page.getByLabel("Nome que os convidados vão ver").fill(`Wizard2 ${tag}`);
+    await page.getByLabel("Nome do evento").fill(`Wizard2 ${tag}`);
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByRole("radio")).toHaveCount(1);
     await expect(page.getByRole("heading", { name: "Evento maior?" })).toBeVisible();
@@ -142,7 +142,7 @@ for (const [nome, reply, esperado] of [
     await page.route("**/rest/v1/rpc/redeem_code", (r) => { body = r.request().postDataJSON(); return r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(reply) }); });
     await page.goto("/c/mmt-7kq4-ab12");
     await page.waitForURL(/\/criar$/);
-    await page.getByLabel("Nome que os convidados vão ver").fill(`Código ${nome} ${tag}`);
+    await page.getByLabel("Nome do evento").fill(`Código ${nome} ${tag}`);
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByText("Código MMT-7KQ4-AB12 será aplicado ao criar.")).toBeVisible();
     await acceptTerms(page);

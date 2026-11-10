@@ -3,6 +3,7 @@ import type { PhotoData } from "@/repositories";
 
 /** Estilo da câmera aplicado nos pixels (RGBA). Funciona em todos os navegadores (sem ctx.filter). */
 export function applyStylePixels(px: Uint8ClampedArray, style: CameraStyle | FilmLook): void {
+  if (style === "filme35") return applyFilmTone(px);
   if (style === "original" || style === "natural" || style === "festa" || style === "casamento" || style === "aniversario" || style === "noite") return;
   for (let i = 0; i < px.length; i += 4) {
     const r = px[i], g = px[i + 1], b = px[i + 2];
@@ -17,6 +18,40 @@ export function applyStylePixels(px: Uint8ClampedArray, style: CameraStyle | Fil
       px[i + 1] = (mix(g) - 128) * 1.05 + 128 + 4;
       px[i + 2] = (mix(b) - 128) * 1.05 + 128 - 12;
       for (let k = 0; k < 3; k++) px[i + k] = px[i + k] * 0.94 + 10;
+    }
+  }
+}
+
+/** Tom do Filme 35mm: dessatura 25%, contraste mais firme, quente (vermelho +, azul −) e pretos levantados. */
+export const FILM_TONE = { desat: 0.25, contrast: 1.12, shift: [18, 5, -18] as const, lift: 10, gain: 0.94 };
+function applyFilmTone(px: Uint8ClampedArray): void {
+  const { desat, contrast, shift, lift, gain } = FILM_TONE;
+  for (let i = 0; i < px.length; i += 4) {
+    const gray = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+    for (let k = 0; k < 3; k++) {
+      const c = gray * desat + px[i + k] * (1 - desat);
+      px[i + k] = ((c - 128) * contrast + 128 + shift[k]) * gain + lift;
+    }
+  }
+}
+
+/** Filme 35mm sobre os pixels: brilho de flash no centro, vinheta nos cantos e grão de filme (determinístico por `seed`). */
+export const FILM_FX = { flash: 16, vignette: 0.3, grain: 11 };
+export function applyFilmEffects(px: Uint8ClampedArray, w: number, h: number, seed = 1): void {
+  const { flash, vignette, grain } = FILM_FX;
+  let s = (seed >>> 0) || 1;
+  const rnd = () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const cx = w / 2, cy = h * 0.45, rMax = Math.hypot(w / 2, h / 2);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const d = Math.min(1, Math.hypot(x - cx, y - cy) / rMax);
+      const glow = flash * Math.max(0, 1 - d * 1.6) ** 2; // hotspot do flash, quente
+      const dim = 1 - vignette * d ** 2.2;
+      const n = (rnd() - 0.5) * 2 * grain;
+      px[i] = (px[i] + glow * 1.1) * dim + n;
+      px[i + 1] = (px[i + 1] + glow) * dim + n;
+      px[i + 2] = (px[i + 2] + glow * 0.8) * dim + n;
     }
   }
 }
@@ -60,6 +95,7 @@ export async function renderPhoto(source: CanvasImageSource, width: number, heig
   if (style !== "original" && style !== "natural") {
     const img = ctx.getImageData(0, 0, w, h);
     applyStylePixels(img.data, style);
+    if (style === "filme35") applyFilmEffects(img.data, w, h, takenAt.getTime());
     ctx.putImageData(img, 0, 0);
   }
   if (style === "filme35") stampDate(ctx, w, h, takenAt);
