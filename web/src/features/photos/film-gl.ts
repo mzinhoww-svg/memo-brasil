@@ -68,7 +68,7 @@ export function startFilmPreview(video: HTMLVideoElement, canvas: HTMLCanvasElem
     return t;
   };
   const vidTex = tex(0);
-  const lutTex = tex(1);
+  tex(1);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, LUT_SIZE * LUT_SIZE, LUT_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, lutToStrip(getFilmLut()));
   gl.uniform1i(gl.getUniformLocation(prog, "vid"), 0);
   gl.uniform1i(gl.getUniformLocation(prog, "lut"), 1);
