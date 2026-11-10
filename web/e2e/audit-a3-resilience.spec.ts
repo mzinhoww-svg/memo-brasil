@@ -16,7 +16,7 @@ test("falha de escrita no IndexedDB ao criar evento", async ({ page }) => {
     };
   });
   await page.goto("/criar");
-  await page.getByLabel("Nome que os convidados vão ver").fill("Falha");
+  await page.getByLabel("Nome do evento").fill("Falha");
   for (let i = 0; i < 3; i++) {
     if (i === 1) await page.getByRole("button", { name: "Quando acabar" }).click();
     await page.getByRole("button", { name: "Continuar" }).click();

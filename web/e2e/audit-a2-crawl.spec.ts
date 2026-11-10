@@ -49,7 +49,7 @@ for (const vp of VPS) {
 
       // 2. wizard passo a passo
       await page.goto("/criar"); await snap("criar-1");
-      await page.getByLabel("Nome que os convidados vão ver").fill(LONG_TITLE);
+      await page.getByLabel("Nome do evento").fill(LONG_TITLE);
       for (let i = 2; i <= 4; i++) { await page.getByRole("button", { name: "Continuar" }).click(); await snap(`criar-${i}`); }
       await page.getByRole("button", { name: /Criar evento/ }).click();
       await page.waitForURL(/\/criar\/pronto\//);

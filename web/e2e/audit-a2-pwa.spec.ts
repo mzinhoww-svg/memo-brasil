@@ -217,7 +217,7 @@ test("IndexedDB indisponível", async ({ browser }) => {
       res.afterReloadUrl = page.url().replace(/^https?:\/\/[^/]+/, "");
       res.afterReloadText = (await page.locator("body").innerText()).slice(0, 300);
     }
-    await page.goto("/criar"); await page.getByLabel("Nome que os convidados vão ver").fill("Teste");
+    await page.goto("/criar"); await page.getByLabel("Nome do evento").fill("Teste");
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continuar" }).click();
     await page.getByRole("button", { name: /Criar evento/ }).click();
     await page.waitForTimeout(2500);

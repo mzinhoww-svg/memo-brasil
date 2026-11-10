@@ -1,66 +1,35 @@
-/* Gerado de design-system/revela/html/Camera-filtro.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function CameraFiltro() {
+"use client";
+/* Camera-filtro.html (passo 6): duas fotos reais lado a lado (natural × Filme 35mm); mesmo markup da referência, escolha por props. */
+import { FILM_LABEL, type FilmLook } from "@/domain/options";
+import { WizardSheet } from "../WizardSheet";
+
+const FILMS: { id: FilmLook; src: string; alt: string }[] = [
+  { id: "natural", src: "/revela/ref/sc-bolo-natural.jpg", alt: "Sem filme" },
+  { id: "filme35", src: "/revela/ref/sc-bolo.jpg", alt: "Com filme 35mm" },
+];
+const CAPTION: Record<FilmLook, string> = {
+  filme35: "Filme 35mm: tons quentes, grão, carimbo de data e o brilho do flash.",
+  natural: "Natural: a foto como a câmera do celular viu, sem efeito.",
+};
+
+export interface CameraFiltroProps {
+  film?: FilmLook; busy?: boolean;
+  onPick?: (f: FilmLook) => void; onBack?: () => void; onNext?: () => void;
+}
+
+export function CameraFiltro({ film = "filme35", busy, onPick, onBack, onNext }: CameraFiltroProps = {}) {
   return (
-    <>
-    <div className="scr sheet-scr">
-      <div className="sheet-full">
-        <div className="rv-sheet__grab" />
-        <div className="row between" style={{ "alignItems": "flex-start" }}>
-          <div>
-            <h1 className="rv-title">
-              Qual filme?
-            </h1>
-            <p className="rv-caption" style={{ "marginTop": "4px", "maxWidth": "290px" }}>
-              O filme é aplicado em todas as fotos. Dá para tirar depois.
-            </p>
+    <WizardSheet step={6} title="Qual filme?" caption="O filme é aplicado em todas as fotos. Dá para tirar depois." onBack={onBack} onNext={onNext} busy={busy}>
+      <div className="compare" role="radiogroup" aria-label="Filme">
+        {FILMS.map((f) => (
+          <div key={f.id} className={`cmp${film === f.id ? " on" : ""}`} role="radio" aria-checked={film === f.id} aria-label={FILM_LABEL[f.id]} tabIndex={0} style={{ cursor: "pointer" }}
+            onClick={() => onPick?.(f.id)} onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); onPick?.(f.id); } }}>
+            <img src={f.src} alt={f.alt} />
+            <span aria-hidden="true">{FILM_LABEL[f.id]}</span>
           </div>
-          <span className="rv-stamp" style={{ "fontSize": "12px", "marginTop": "6px" }}>
-            6/8
-          </span>
-        </div>
-        <div className="rv-steps">
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="on" />
-          <i className="" />
-          <i className="" />
-        </div>
-        <div className="sheet-body">
-          <div className="compare">
-            <div className="cmp">
-              <img src="/revela/ref/sc-bolo-natural.jpg" alt="Sem filme" style={{  }} />
-              <span>
-                Natural
-              </span>
-            </div>
-            <div className="cmp on">
-              <img src="/revela/ref/sc-bolo.jpg" alt="Com filme 35mm" style={{  }} />
-              <span>
-                Filme 35mm
-              </span>
-            </div>
-          </div>
-          <p className="rv-caption center">
-            Filme 35mm: tons quentes, grão, carimbo de data e o brilho do flash.
-          </p>
-        </div>
-        <div className="cta-bar">
-          <button className="rv-icon-btn" aria-label="Voltar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <button className="rv-btn rv-btn--primary">
-            Próximo
-          </button>
-        </div>
+        ))}
       </div>
-      <div className="home-ind" />
-      <div className="grain" />
-    </div>
-    </>
+      <p className="rv-caption center">{CAPTION[film]}</p>
+    </WizardSheet>
   );
 }

@@ -18,7 +18,7 @@ test("wizard valida nome do evento e término curto, com mensagens que dizem o q
   await page.goto("/criar");
   await page.getByRole("button", { name: "Continuar" }).click();
   await expect(page.getByText("Escolha o nome do evento. Todos os convidados vão ver.")).toBeVisible();
-  await page.getByLabel("Nome que os convidados vão ver").fill("Festa");
+  await page.getByLabel("Nome do evento").fill("Festa");
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Outra data" }).click();
   const soon = new Date(Date.now() + 10 * 60_000);
@@ -37,7 +37,7 @@ test("cria evento grátis em 4 passos e chega em 'Evento criado'", async ({ page
   await expect(page.getByLabel("Seu nome")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "Sugestões de nome" }).getByRole("button")).toHaveCount(3);
   await page.getByRole("group", { name: "Sugestões de nome" }).getByRole("button").first().click();
-  await expect(page.getByLabel("Nome que os convidados vão ver")).toHaveValue("Casamento de Emy");
+  await expect(page.getByLabel("Nome do evento")).toHaveValue("Casamento de Emy");
   await page.getByRole("button", { name: "Continuar" }).click();
 
   await expect(page.getByText("Passo 2 de 4")).toBeVisible();
@@ -80,14 +80,14 @@ test("nenhum texto 'demonstração' ou 'teria valor' no assistente", async ({ pa
     const t = (await page.locator("main, body").first().innerText()).toLowerCase();
     expect(t).not.toContain("demonstração");
     expect(t).not.toContain("teria valor");
-    if (i === 0) await page.getByLabel("Nome que os convidados vão ver").fill("Festa");
+    if (i === 0) await page.getByLabel("Nome do evento").fill("Festa");
     if (i < 3) await page.getByRole("button", { name: "Continuar" }).click();
   }
 });
 
 test("manhã seguinte revela no dia seguinte às 10h no fuso do evento", async ({ page }) => {
   await page.goto("/criar");
-  await page.getByLabel("Nome que os convidados vão ver").fill("Manhã");
+  await page.getByLabel("Nome do evento").fill("Manhã");
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("group", { name: "E quando as fotos aparecem?" }).getByRole("button", { name: "Na manhã seguinte (10h)" }).click();
   await expect(page.getByText(/às 10h00/)).toBeVisible();

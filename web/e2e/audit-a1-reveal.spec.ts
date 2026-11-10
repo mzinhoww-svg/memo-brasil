@@ -97,7 +97,7 @@ test("R3 validações: 31/02, hora, fuso, passado, +1 minuto (domínio) e UI", a
   const ui: Record<string, string> = {};
   for (const [k, time] of Object.entries({ "11:00 (=agora)": "11:00", "11:01 (=+60s)": "11:01" })) {
     await page.goto("/criar");
-    await page.getByLabel("Nome que os convidados vão ver").fill("Teste");
+    await page.getByLabel("Nome do evento").fill("Teste");
     await page.getByRole("button", { name: "Continuar" }).click();
     await page.getByRole("button", { name: "Escolher dia" }).click();
     await page.getByLabel("Data", { exact: true }).fill("2026-11-10");
@@ -109,7 +109,7 @@ test("R3 validações: 31/02, hora, fuso, passado, +1 minuto (domínio) e UI", a
   }
   // data vazia no modo data
   await page.goto("/criar");
-  await page.getByLabel("Nome que os convidados vão ver").fill("Teste");
+  await page.getByLabel("Nome do evento").fill("Teste");
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Escolher dia" }).click();
   await page.getByRole("button", { name: "Continuar" }).click();

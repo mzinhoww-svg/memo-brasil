@@ -46,7 +46,7 @@ test("organizador cria → convidado entra e posta → servidor revela (cron) �
   const octx = await ctxWith(browser, org.session);
   const op = await octx.newPage();
   await op.goto("/criar");
-  await op.getByLabel("Nome que os convidados vão ver").fill(`Homolog ${tag}`);
+  await op.getByLabel("Nome do evento").fill(`Homolog ${tag}`);
   await op.getByRole("button", { name: "Continuar" }).click();
   await op.getByRole("group", { name: "E quando as fotos aparecem?" }).getByRole("button", { name: "Quando acabar" }).click(); // término 6 h, revelação ao terminar
   await op.getByRole("button", { name: "Continuar" }).click();

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ signIn: vi.fn(), lookup: vi.fn(), save: vi.fn(), push: vi.fn(), destination: vi.fn(), openCheckout: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }), usePathname: () => "/criar" }));
@@ -9,7 +9,7 @@ vi.mock("@/features/billing/checkout-nav", () => ({ goToCheckout: mocks.openChec
 import { CreateWizard } from "./wizard";
 const next = () => fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
 /** Passo 1 (embalagem) → 2 (nome) → preenche → 3 (quando é a festa). */
-async function nameAndNext() { next(); fireEvent.change(screen.getByLabelText("Nome que os convidados vão ver"), { target: { value: "Festa preservada" } }); next(); }
+async function nameAndNext() { next(); fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Festa preservada" } }); next(); }
 /** Do passo 3 até o 8: festa, poses, revelar, filme, quem vê. */
 async function finalStep() { await nameAndNext(); for (let i = 0; i < 5; i++) next(); await screen.findByRole("radio", { name: /^Grátis/ }); }
 /** CTA do passo 8 → diálogo "Antes de criar" → aceites → Aceitar. */
