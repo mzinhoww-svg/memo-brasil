@@ -13,18 +13,20 @@ const CAPTION: Record<FilmLook, string> = {
 };
 
 export interface CameraFiltroProps {
+  /** Amostras mostradas; no app o Filme 35mm é a foto natural passada pela LUT real (`/revela/lut/amostra-bolo-filme35.jpg`). */
+  samples?: Partial<Record<FilmLook, string>>;
   film?: FilmLook; busy?: boolean;
   onPick?: (f: FilmLook) => void; onBack?: () => void; onNext?: () => void;
 }
 
-export function CameraFiltro({ film = "filme35", busy, onPick, onBack, onNext }: CameraFiltroProps = {}) {
+export function CameraFiltro({ samples, film = "filme35", busy, onPick, onBack, onNext }: CameraFiltroProps = {}) {
   return (
     <WizardSheet step={6} title="Qual filme?" caption="O filme é aplicado em todas as fotos. Dá para tirar depois." onBack={onBack} onNext={onNext} busy={busy}>
       <div className="compare" role="radiogroup" aria-label="Filme">
         {FILMS.map((f) => (
           <div key={f.id} className={`cmp${film === f.id ? " on" : ""}`} role="radio" aria-checked={film === f.id} aria-label={FILM_LABEL[f.id]} tabIndex={0} style={{ cursor: "pointer" }}
             onClick={() => onPick?.(f.id)} onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); onPick?.(f.id); } }}>
-            <img src={f.src} alt={f.alt} />
+            <img src={samples?.[f.id] ?? f.src} alt={f.alt} />
             <span aria-hidden="true">{FILM_LABEL[f.id]}</span>
           </div>
         ))}

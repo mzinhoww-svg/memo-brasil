@@ -45,7 +45,7 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", () => {
     expect(screen.getByRole("heading", { name: "Qual filme?" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Filme 35mm" })).toBeChecked();
     expect(screen.getByAltText("Sem filme")).toHaveAttribute("src", "/revela/ref/sc-bolo-natural.jpg");
-    expect(screen.getByAltText("Com filme 35mm")).toHaveAttribute("src", "/revela/ref/sc-bolo.jpg");
+    expect(screen.getByAltText("Com filme 35mm")).toHaveAttribute("src", "/revela/lut/amostra-bolo-filme35.jpg");
     fireEvent.click(screen.getByRole("radio", { name: "Natural" }));
     expect(screen.getByText(/^Natural: a foto como/)).toBeInTheDocument();
     next();

@@ -8,13 +8,15 @@ export const POSE_CHOICES_REF: PoseChoice[] = [
 ];
 
 export interface CameraPosesProps {
+  /** Posição no assistente (n/8); o desenho mostra 4. */
+  step?: number;
   value?: number; choices?: PoseChoice[]; roll?: boolean; rollLimit?: number; busy?: boolean;
   onPick?: (n: number) => void; onRoll?: (on: boolean) => void; onBack?: () => void; onNext?: () => void;
 }
 
-export function CameraPoses({ value = 27, choices = POSE_CHOICES_REF, roll = true, rollLimit = 10, busy, onPick, onRoll, onBack, onNext }: CameraPosesProps = {}) {
+export function CameraPoses({ step = 4, value = 27, choices = POSE_CHOICES_REF, roll = true, rollLimit = 10, busy, onPick, onRoll, onBack, onNext }: CameraPosesProps = {}) {
   return (
-    <WizardSheet step={4} title="Quantas poses?" caption="Cada convidado tem um filme. O plano certo é sugerido no fim." onBack={onBack} onNext={onNext} busy={busy}>
+    <WizardSheet step={step} title="Quantas poses?" caption="Cada convidado tem um filme. O plano certo é sugerido no fim." onBack={onBack} onNext={onNext} busy={busy}>
       <div className="posesviz">
         <div className="rv-counter" style={{ transform: "scale(1.35)" }}>
           <b>{value}</b>

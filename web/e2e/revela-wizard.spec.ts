@@ -37,15 +37,7 @@ test("assistente Revela: os 8 passos com as telas do desenho, e a câmera é cri
   await expect(page.getByText(/02:00 · \S+/)).toBeVisible();
   await next();
 
-  // 4 · Quantas poses?
-  await expect(page.getByRole("heading", { name: "Quantas poses?" })).toBeVisible();
-  await page.getByRole("button", { name: /^27/ }).click();
-  await expect(page.locator(".rv-counter b")).toHaveText("27");
-  await page.getByRole("button", { name: /^10/ }).click();
-  await expect(page.locator(".rv-counter b")).toHaveText("10");
-  await next();
-
-  // 5 · Quando revelar?
+  // 4 · Quando revelar? (logo depois de "Quando é a festa?")
   await expect(page.getByRole("heading", { name: "Quando revelar?" })).toBeVisible();
   for (const t of ["Quando a festa acabar", "No dia seguinte", "Um dia depois", "Escolher dia e hora"]) await expect(page.getByRole("button", { name: new RegExp(t) })).toBeVisible();
   await expect(page.getByText(/^Todo mundo recebe o aviso (no|na) .+, às 12:00\.$/)).toBeVisible();
@@ -56,11 +48,19 @@ test("assistente Revela: os 8 passos com as telas do desenho, e a câmera é cri
   await page.getByRole("button", { name: /No dia seguinte/ }).click();
   await next();
 
+  // 5 · Quantas poses? (depois de "quando é" e "quando revelar")
+  await expect(page.getByRole("heading", { name: "Quantas poses?" })).toBeVisible();
+  await page.getByRole("button", { name: /^27/ }).click();
+  await expect(page.locator(".rv-counter b")).toHaveText("27");
+  await page.getByRole("button", { name: /^10/ }).click();
+  await expect(page.locator(".rv-counter b")).toHaveText("10");
+  await next();
+
   // 6 · Qual filme? duas fotos reais lado a lado
   await expect(page.getByRole("heading", { name: "Qual filme?" })).toBeVisible();
   await expect(page.getByText("6/8")).toBeVisible();
   await expect(page.getByAltText("Sem filme")).toHaveAttribute("src", "/revela/ref/sc-bolo-natural.jpg");
-  await expect(page.getByAltText("Com filme 35mm")).toHaveAttribute("src", "/revela/ref/sc-bolo.jpg");
+  await expect(page.getByAltText("Com filme 35mm")).toHaveAttribute("src", "/revela/lut/amostra-bolo-filme35.jpg");
   await expect(page.getByRole("radio", { name: "Filme 35mm" })).toBeChecked();
   await page.getByRole("radio", { name: "Natural" }).click();
   await expect(page.getByText(/^Natural: a foto como a câmera do celular viu/)).toBeVisible();
