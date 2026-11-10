@@ -10,6 +10,8 @@ export interface PessoasProps {
   head?: string[];
   rows?: MRow[];
   exportHref?: string | null;
+  /** Botão de exportação real (cliente); tem precedência sobre `exportHref`. */
+  exportAction?: ReactNode;
   empty?: string;
   pager?: ReactNode;
 }
@@ -25,12 +27,12 @@ const REF_ROWS: MRow[] = [
 const REF_TABS = [{ label: "Organizadores 198", on: true }, { label: "Convidados 7.412" }, { label: "Equipe 3" }];
 
 export function MasterPessoasView({
-  caption = "Organizadores, convidados e contas da equipe", tabs = REF_TABS, cols = "1.3fr 1.6fr 1fr .6fr .8fr .7fr .2fr", head = ["Nome", "E-mail", "Entrou com", "Eventos", "Gasto total", "Desde", ""], rows = REF_ROWS, exportHref, empty, pager,
+  caption = "Organizadores, convidados e contas da equipe", tabs = REF_TABS, cols = "1.3fr 1.6fr 1fr .6fr .8fr .7fr .2fr", head = ["Nome", "E-mail", "Entrou com", "Eventos", "Gasto total", "Desde", ""], rows = REF_ROWS, exportHref, exportAction, empty, pager,
 }: PessoasProps = {}) {
   return (
     <>
       <MHead title="Pessoas" caption={caption}>
-        {exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar</BtnLink> : <button className="rv-btn rv-btn--sm"><Ico n="download" />Exportar</button>}
+        {exportAction ? exportAction : exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar</BtnLink> : <button className="rv-btn rv-btn--sm"><Ico n="download" />Exportar</button>}
       </MHead>
       <div style={{ marginBottom: "14px", width: "460px" }}>
         <Seg items={tabs} />

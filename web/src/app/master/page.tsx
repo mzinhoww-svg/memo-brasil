@@ -1,4 +1,5 @@
 import { MState } from "@/revela/master-kit";
+import { ExportButton } from "./ExportButton";
 import { MasterVisaoView, type PayRow } from "@/revela/screens/MasterVisao";
 import { brl, orderStatus } from "./billing";
 import { requireMaster, rpc } from "./data";
@@ -57,7 +58,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       ]}
       bars={bars} days={dias} periodHref={(d) => `/master?dias=${d}`}
       plans={[...sold.values()].map((p) => ({ name: p.name, count: p.count, pct: pct(p.count, top) }))}
-      payments={payments} allHref="/master/pagamentos" exportHref={null}
+      payments={payments} allHref="/master/pagamentos" exportAction={<ExportButton kind="visao" screen="visao" filters={{ dias }} />}
     />
   );
 }

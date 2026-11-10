@@ -14,6 +14,8 @@ export interface VisaoProps {
   allHref?: string;
   /** `null` esconde o botão (o app não exporta); `undefined` mantém o do desenho. */
   exportHref?: string | null;
+  /** Botão de exportação real (cliente); tem precedência sobre `exportHref`. */
+  exportAction?: React.ReactNode;
   /** Aviso quando algum dado não carregou. */
   notice?: React.ReactNode;
 }
@@ -35,7 +37,7 @@ export function MasterVisaoView({
   ],
   bars = REF_BARS, days = 30, periodHref, plans = [
     { name: "Grátis", count: 214, pct: 100 }, { name: "Festa", count: 38, pct: 18 }, { name: "Celebração", count: 22, pct: 10 }, { name: "Casamento", count: 31, pct: 14 }, { name: "Grande", count: 4, pct: 2 },
-  ], payments = REF_PAYMENTS, allHref, exportHref, notice,
+  ], payments = REF_PAYMENTS, allHref, exportHref, exportAction, notice,
 }: VisaoProps = {}) {
   const cols = "1fr 1.4fr 1fr 0.8fr 0.8fr 0.8fr";
   const rows: MRow[] = payments.map((p) => ({ key: p.key, cells: [p.when, p.event, p.plan, p.method, p.amount, <St key="s" tone={p.tone}>{p.status}</St>] }));
@@ -43,7 +45,7 @@ export function MasterVisaoView({
   return (
     <>
       <MHead title="Visão geral" caption={caption}>
-        {exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar</BtnLink> : <button className="rv-btn rv-btn--sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>Exportar</button>}
+        {exportAction ? exportAction : exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar</BtnLink> : <button className="rv-btn rv-btn--sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>Exportar</button>}
       </MHead>
       {notice}
       <Tiles items={tiles} />

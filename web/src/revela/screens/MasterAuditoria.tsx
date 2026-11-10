@@ -3,7 +3,9 @@ import type { ReactNode } from "react";
 import { BtnLink, Ico, MHead, MRow, MTable, MasterFrame } from "../master-kit";
 
 export interface AuditoriaRow { key: string; when: string; who: string; action: string; target: string; detail: string }
-export interface AuditoriaProps { caption?: string; rows?: AuditoriaRow[]; exportHref?: string | null; filter?: ReactNode; pager?: ReactNode; empty?: string }
+export interface AuditoriaProps { caption?: string; rows?: AuditoriaRow[]; exportHref?: string | null;
+  /** Botão de exportação real (cliente); tem precedência sobre `exportHref`. */
+  exportAction?: ReactNode; filter?: ReactNode; pager?: ReactNode; empty?: string }
 
 const REF_ROWS: AuditoriaRow[] = [
   { key: "1", when: "hoje 08:51", who: "Marcos (master)", action: "plan.price_changed", target: "Casamento", detail: "R$ 189,00 → R$ 199,00" },
@@ -14,12 +16,12 @@ const REF_ROWS: AuditoriaRow[] = [
   { key: "6", when: "ontem 17:40", who: "Júlia Alves", action: "participant.blocked", target: "Chá da Maria", detail: "1 convidado" },
 ];
 
-export function MasterAuditoriaView({ caption = "Toda ação sensível, só inserção", rows = REF_ROWS, exportHref, filter, pager, empty }: AuditoriaProps = {}) {
+export function MasterAuditoriaView({ caption = "Toda ação sensível, só inserção", rows = REF_ROWS, exportHref, exportAction, filter, pager, empty }: AuditoriaProps = {}) {
   const mrows: MRow[] = rows.map((r) => ({ key: r.key, cells: [r.when, r.who, r.action, r.target, r.detail] }));
   return (
     <>
       <MHead title="Auditoria" caption={caption}>
-        {exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar</BtnLink> : <button className="rv-btn rv-btn--sm"><Ico n="download" />Exportar</button>}
+        {exportAction ? exportAction : exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar</BtnLink> : <button className="rv-btn rv-btn--sm"><Ico n="download" />Exportar</button>}
       </MHead>
       {filter}
       <MTable cols="0.9fr 1.1fr 1.2fr 1fr 1.8fr" head={["Quando", "Quem", "Ação", "Alvo", "Detalhe"]} rows={mrows} empty={empty ?? "Nenhum registro."} />

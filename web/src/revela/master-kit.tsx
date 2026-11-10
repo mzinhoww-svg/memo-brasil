@@ -42,18 +42,23 @@ export function Ico({ n }: { n: IconName }) {
 
 export interface MasterUser { name: string; role: string }
 
+/** Item do menu que existe só no app (o desenho do Master não o traz): pedidos de impressão, logo depois de Pagamentos. */
+export type AppNavId = MasterNavId | "impressoes";
+const PRINT_NAV = { id: "impressoes" as const, label: "Impressões", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" /></svg> };
+
 /** Rotas reais de cada item do menu (as mesmas do console). */
-export const MASTER_HREF: Record<MasterNavId, string> = {
+export const MASTER_HREF: Record<AppNavId, string> = {
   visao: "/master", eventos: "/master/eventos", pessoas: "/master/pessoas", planos: "/master/planos", pagamentos: "/master/pagamentos", cortesias: "/master/codigos",
-  revelacoes: "/master/revelacoes", moderacao: "/master/moderacao", saude: "/master/saude", lgpd: "/master/lgpd", auditoria: "/master/auditoria", configuracoes: "/master/configuracoes",
+  impressoes: "/master/impressoes", revelacoes: "/master/revelacoes", moderacao: "/master/moderacao", saude: "/master/saude", lgpd: "/master/lgpd", auditoria: "/master/auditoria", configuracoes: "/master/configuracoes",
 };
 
 /** Menu lateral do Master. Sem `Link` para continuar sendo servidor puro; `<a href>` navega do mesmo jeito. */
-export function MasterAside({ current, links = false, user = { name: "Marcos", role: "Administrador" } }: { current?: MasterNavId; links?: boolean; user?: MasterUser }) {
+export function MasterAside({ current, links = false, user = { name: "Marcos", role: "Administrador" } }: { current?: AppNavId; links?: boolean; user?: MasterUser }) {
+  const items: { id: AppNavId; label: string; icon: ReactNode }[] = links ? MASTER_NAV.flatMap((m): { id: AppNavId; label: string; icon: ReactNode }[] => (m.id === "pagamentos" ? [m, PRINT_NAV] : [m])) : [...MASTER_NAV];
   return (
     <aside className="mside">
       {MASTER_LOGO}
-      {MASTER_NAV.map((m) => (
+      {items.map((m) => (
         <a key={m.id} className={m.id === current ? "mnav on" : "mnav"} href={links ? MASTER_HREF[m.id] : undefined} aria-current={m.id === current ? "page" : undefined}>
           {m.icon}
           <span>{m.label}</span>
@@ -92,7 +97,7 @@ export function MasterTop({ env = "production", q, links = false }: { env?: stri
 }
 
 /** Moldura de uma tela do Master. Nas telas do desenho (`/dev/revela`) traz o menu e a barra; no app, o layout monta a moldura uma vez. */
-export function MasterFrame({ current, children, links = false, user, env, q }: { current?: MasterNavId; children: ReactNode; links?: boolean; user?: MasterUser; env?: string; q?: string }) {
+export function MasterFrame({ current, children, links = false, user, env, q }: { current?: AppNavId; children: ReactNode; links?: boolean; user?: MasterUser; env?: string; q?: string }) {
   return (
     <div className="dsk">
       <MasterAside current={current} links={links} user={user} />

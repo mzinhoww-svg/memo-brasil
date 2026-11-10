@@ -1,4 +1,5 @@
 import { MState } from "@/revela/master-kit";
+import { ExportButton } from "../ExportButton";
 import { MasterPessoasView } from "@/revela/screens/MasterPessoas";
 import { brl } from "../billing";
 import { requireMaster, rpc } from "../data";
@@ -47,21 +48,22 @@ export default async function Pessoas({ searchParams }: { searchParams: Promise<
     </nav>
   ) : undefined;
 
+  const exp = <ExportButton kind="pessoas" screen={`pessoas-${aba}`} filters={{ aba, q: aba === "equipe" ? undefined : q }} />;
   if (aba === "convidados") {
     return (
-      <MasterPessoasView tabs={tabs} exportHref={null} pager={pager} cols="1.4fr 1.4fr .8fr 1fr .8fr" head={["Nome", "Evento", "Mesa", "Entrou", "Situação"]}
+      <MasterPessoasView tabs={tabs} exportAction={exp} pager={pager} cols="1.4fr 1.4fr .8fr 1fr .8fr" head={["Nome", "Evento", "Mesa", "Entrou", "Situação"]}
         rows={parts.state === "ok" ? parts.data.items.map((x, i) => ({ key: `${i}-${x.name}`, cells: [x.name, x.eventTitle, x.table ?? "—", relWhen(x.joinedAt), x.blocked ? "bloqueado" : x.isHost ? "organizador" : "ativo"] })) : []}
         caption="Quem entrou em cada evento. Sem telefone, e-mail nem fotos." />
     );
   }
   if (aba === "equipe") {
     return (
-      <MasterPessoasView tabs={tabs} exportHref={null} cols="1.6fr 1.2fr 1fr" head={["E-mail", "Papel", "Desde"]}
+      <MasterPessoasView tabs={tabs} exportAction={exp} cols="1.6fr 1.2fr 1fr" head={["E-mail", "Papel", "Desde"]}
         rows={team.map((u) => ({ key: u.userId, cells: [u.email ?? `${u.userId.slice(0, 8)}…`, u.platformRole ?? "—", monthYear(u.createdAt)] }))} caption="Contas com papel de operador da plataforma." empty="Nenhuma conta da equipe listada." />
     );
   }
   return (
-    <MasterPessoasView tabs={tabs} exportHref={null} pager={pager}
+    <MasterPessoasView tabs={tabs} exportAction={exp} pager={pager}
       rows={orgs.data.items.map((o) => ({
         key: o.userId,
         cells: [`${o.displayName ?? "—"}${o.deletionRequested ? " · exclusão pedida" : ""}`, o.email ?? "—", PROVIDER[byUser.get(o.userId)?.provider ?? ""] ?? "—", nf(o.eventsCount), brl(spend.get(o.userId) ?? 0), monthYear(o.firstEventAt)],

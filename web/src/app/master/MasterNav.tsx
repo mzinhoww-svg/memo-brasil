@@ -2,15 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { MasterFrame, type MasterUser } from "@/revela/master-kit";
-import type { MasterNavId } from "@/revela/master-icons";
+import { MasterFrame, type AppNavId, type MasterUser } from "@/revela/master-kit";
+
 
 /** Rota → item do menu. Rotas que não têm item próprio acendem o grupo a que pertencem. */
-export function currentOf(path: string): MasterNavId {
+export function currentOf(path: string): AppNavId {
   const seg = path.replace(/\/$/, "").split("/")[2] ?? "";
-  const map: Record<string, MasterNavId> = {
+  const map: Record<string, AppNavId> = {
     "": "visao", analytics: "visao", busca: "visao", eventos: "eventos", pessoas: "pessoas", usuarios: "pessoas", organizadores: "pessoas", participantes: "pessoas",
-    planos: "planos", pagamentos: "pagamentos", codigos: "cortesias", revelacoes: "revelacoes", moderacao: "moderacao", saude: "saude", storage: "saude",
+    planos: "planos", pagamentos: "pagamentos", impressoes: "impressoes", codigos: "cortesias", revelacoes: "revelacoes", moderacao: "moderacao", saude: "saude", storage: "saude",
     lgpd: "lgpd", auditoria: "auditoria", configuracoes: "configuracoes",
   };
   return map[seg] ?? "visao";
