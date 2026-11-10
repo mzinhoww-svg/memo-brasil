@@ -9,7 +9,8 @@ import { useAdmin } from "@/features/admin/context";
 import { revealStamp, shortWhen } from "@/features/admin/panel-format";
 import { usePhotoUrls } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
-import { formatReasonCounts, useReportReasons } from "@/features/moderation/report-reasons";
+import { formatReasonCounts } from "@/features/moderation/report-reasons";
+import { useReportReasons } from "@/features/moderation/use-report-reasons";
 import { REVEAL_NOW_MESSAGES, revealNow } from "@/features/events/reveal-now";
 import { AnfitriaoModerar } from "@/revela/screens/AnfitriaoModerar";
 
