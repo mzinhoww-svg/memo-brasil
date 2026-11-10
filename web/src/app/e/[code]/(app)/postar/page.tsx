@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Chip, Chips, Field, GuestShell, Icon, Progress, ShotCounter } from "@/components/revela";
+import { Button, Chip, Chips, EventTheme, Field, GuestShell, Progress } from "@/components/revela";
 import { useRollPickerOptional } from "@/features/photos/roll-picker";
-import { DEFAULT_FILM } from "@/domain/options";
+import { DEFAULT_FILM, wrapOf } from "@/domain/options";
+import { ConvidadoCamera } from "@/revela/screens/ConvidadoCamera";
+import { ConvidadoFim } from "@/revela/screens/ConvidadoFim";
+import { ConvidadoPermissao } from "@/revela/screens/ConvidadoPermissao";
 import { momentName } from "@/domain/moments";
 import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
 import { useApp } from "@/features/app/provider";
@@ -454,56 +456,31 @@ function PostarSession() {
   if (blocked) {
     const revealed = isRevealed(event, now);
     const ms = event.revealEnabled && event.revealAt ? Math.max(0, event.revealAt - now) : 0;
-    const hh = Math.floor(ms / 3_600_000), mm = Math.floor((ms % 3_600_000) / 60_000), ss = Math.floor((ms % 60_000) / 1000);
-    const p2 = (n: number) => String(n).padStart(2, "0");
+    const notify = typeof Notification !== "undefined" && Notification.permission === "granted";
+    const text = ended
+      ? (revealed ? "Não dá mais para fotografar. As fotos já estão no feed do evento." : "Não dá mais para fotografar. Suas fotos estão no laboratório até a revelação.")
+      : revealed ? `Suas ${used} fotos já estão no feed do evento.`
+      : notify ? undefined : `Suas ${used} fotos estão no laboratório. Quando todas forem reveladas, elas entram no feed do evento.`;
     return (
-      <GuestShell closeHref={close} action={revealed ? <Button href={close} block>Ver o feed</Button> : <Button variant="secundario" block disabled>Ver o feed quando abrir</Button>}>
-        <div className="rv-stack" aria-hidden="true"><span className="rvl-print rvl-print--back" /><span className="rvl-print rvl-print--back" /><span className="rvl-print rvl-print--back" /></div>
-        <div className="rv-guest__center">
-          {!ended && <ShotCounter value={0} label="poses restantes" />}
-          <h1 className="titulo-pagina app-h1">{ended ? "A câmera fechou" : "Seu filme acabou"}</h1>
-          <p className="corpo app-muted" style={{ margin: 0 }}>
-            {ended
-              ? (revealed ? "Não dá mais para fotografar. As fotos já estão no feed do evento." : "Não dá mais para fotografar. Suas fotos estão no laboratório até a revelação.")
-              : revealed ? `Suas ${used} fotos já estão no feed do evento.` : `Suas ${used} fotos estão no laboratório. Quando todas forem reveladas, elas entram no feed do evento.`}
-          </p>
-        </div>
-        {!revealed && ms > 0 && (
-          <div className="rv-timer" role="timer" aria-label={`Revela em ${hh} horas e ${mm} minutos`}>
-            <div><b>{p2(hh)}</b><span>horas</span></div>
-            <div><b>{p2(mm)}</b><span>min</span></div>
-            <div><b>{p2(ss)}</b><span>seg</span></div>
-          </div>
-        )}
-        <span data-testid="contador-rolo" className="rv-sr-only">{left ?? "ilimitado"}</span>
-      </GuestShell>
+      <EventTheme wrap={event.cameraStyle}>
+        <ConvidadoFim taken={used} ended={ended} revealed={revealed} remainingMs={ms} notify={notify} body={text} closeHref={close} feedHref={close}>
+          <span data-testid="contador-rolo" className="rv-sr-only">{left ?? "ilimitado"}</span>
+        </ConvidadoFim>
+      </EventTheme>
     );
   }
 
-  // galeria negada, sem câmera ao vivo: mesmas saídas de antes, no layout do convidado
+  // 23 · Acesso à câmera: negada, sem câmera ao vivo, ocupada ou interrompida (mesmos botões de antes, no aviso da tela)
   if (phase === "negada" || phase === "sem-camera" || phase === "camera-ocupada" || phase === "camera-interrompida") {
-    const negada = phase === "negada";
     return (
-      <GuestShell closeHref={close} action={<div className="app-stack-sm">
-        {negada ? <Button icon="imagem" block onClick={pickGallery}>Escolher da galeria</Button> : <><Button icon="camera" block onClick={() => cameraInput.current?.click()}>Abrir a câmera do aparelho</Button><Button variant="secundario" block onClick={pickGallery}>Escolher da galeria</Button></>}
-      </div>}>
-        <div className="rv-guest__center">
-          <Icon name={negada ? "imagem" : "camera"} decorative size={40} />
-          <h1 className="titulo-pagina app-h1" id="neg-h">{negada ? "Tudo bem, use a galeria" : phase === "camera-ocupada" ? "A câmera está ocupada" : phase === "camera-interrompida" ? "A câmera não iniciou desta vez" : "Sem câmera por aqui"}</h1>
-          <p className="corpo app-muted" style={{ margin: 0 }}>{negada ? "Escolha fotos que você tirou hoje na festa. Elas contam nas suas poses como as da câmera." : "Este aparelho ou navegador não abriu a câmera ao vivo. Use a câmera do aparelho ou escolha uma foto da galeria."}</p>
-        </div>
-        {negada && (
-          <div className="rvl-group" data-testid="ajuda-camera" style={{ padding: "var(--space-4)", maxWidth: "none" }}>
-            <h2 className="titulo-card app-h1">Quer usar a câmera?</h2>
-            <ol className="app-passos">{help.steps.map((t) => <li key={t}>{t}</li>)}</ol>
-            <span className="meta app-muted">Passos para {help.browser}.</span>
-            <Button variant="secundario" block onClick={allowCamera}>Tentar a câmera de novo</Button>
-          </div>
-        )}
-        {!negada && phase !== "sem-camera" && <Button variant="secundario" block onClick={allowCamera}>Tentar a câmera de novo</Button>}
-        {embedded && <p className="corpo-sm app-muted">Abriu pelo Instagram ou WhatsApp? Toque em ⋯ e escolha <strong>Abrir no navegador</strong>.</p>}
+      <ConvidadoPermissao
+        estado={phase === "negada" ? "negada" : phase === "sem-camera" ? "sem-camera" : phase === "camera-ocupada" ? "ocupada" : "interrompida"}
+        title={event.title} wrap={wrapOf(event.cameraStyle)} left={left} band={band} closeHref={close} closeLabel="Fechar câmera" fase={phase}
+        help={help} embedded={embedded}
+        onAllow={allowCamera} onGallery={pickGallery} onDeviceCamera={() => cameraInput.current?.click()}
+      >
         {inputs}
-      </GuestShell>
+      </ConvidadoPermissao>
     );
   }
 
@@ -543,47 +520,44 @@ function PostarSession() {
     );
   }
 
-  // 21 · Câmera, 22 · Disparo, 23 · Acesso à câmera
+  // 21 · Câmera, 22 · Disparo (clarão) e 23 · pedido de acesso (pré-permissão)
   const live = phase === "camera" || phase === "guardando";
-  return (
-    <div className="rv-cam" data-wrap={event.cameraStyle} data-fase={phase}>
-      <div className="rv-cam__finder" aria-live="polite">
+  const wrap = wrapOf(event.cameraStyle);
+  const frame = {
+    title: event.title, wrap, left, band, closeHref: close, closeLabel: "Fechar câmera", fase: phase,
+    viewfinder: (
+      <>
         <video ref={video} playsInline muted aria-label="Câmera ao vivo" style={{ display: live ? "block" : "none", transform: facing === "user" ? "scaleX(-1)" : undefined }} />
-        {phase === "iniciando" && <p className="rv-cam__msg">Abrindo a câmera…</p>}
-        <div className="rv-cam__bar">
-          <Link href={close} className="rv-icon-btn" aria-label="Fechar câmera"><Icon name="fechar" decorative /></Link>
-          <span className="rv-cam__title">{event.title}</span>
-          <button type="button" className="rv-icon-btn" aria-label="Flash" aria-pressed={flashOn} onClick={() => setFlashOn((f) => !f)}><Icon name="flash" decorative /></button>
-        </div>
-        <span className="rv-cam__corners" aria-hidden="true" />
-        {(event.filmLook ?? DEFAULT_FILM) === "filme35" && <span className="rv-cam__date" aria-hidden="true">{stampText(new Date(now))}</span>}
-        {phase === "permissao" && (
-          <div className="rv-dialog" role="dialog" aria-modal="true" aria-labelledby="perm-h">
-            <div className="rv-dialog__panel">
-              <div className="rv-dialog__body">
-                <h2 id="perm-h">Libere a câmera</h2>
-                <p>{left === null ? "As poses que o anfitrião liberou ficam guardadas até a revelação. Ninguém vê antes, nem você." : `As ${left} poses que o anfitrião liberou ficam guardadas até a revelação. Ninguém vê antes, nem você.`}</p>
-              </div>
-              <div className="rv-dialog__actions">
-                <button type="button" onClick={() => setPhase("negada")}>Agora não</button>
-                <button type="button" className="go" onClick={allowCamera}>Liberar</button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="rv-cam__body">
-        <ShotCounter value={left ?? "∞"} label="poses restantes" />
-        <button type="button" className="rv-shutter" aria-label="Tirar foto" disabled={phase !== "camera" || sending.current} onClick={() => void shoot()} />
-        <span className="rv-wheel" aria-hidden="true" />
-        <button type="button" className="rv-cam__thumb" aria-label="Enviar do rolo da câmera" onClick={pickGallery}><span className="rvl-print rvl-print--back" /></button>
-        <button type="button" className="rv-icon-btn" aria-label="Virar câmera" disabled={!live} onClick={() => setFacing(facing === "environment" ? "user" : "environment")}><Icon name="camera" decorative /></button>
-        {(phase === "guardando" || error) && <p className="rv-cam__status" role={error ? "alert" : "status"}>{error ?? "Mandando para o laboratório…"}</p>}
-        <span data-testid="contador-rolo" className="rv-sr-only">{left ?? "ilimitado"}</span>
-      </div>
-      <div className="rv-cam__band" aria-hidden="true">{band}</div>
-      <div className={`rv-flash ${flashing ? "rv-flash--on" : ""}`} aria-hidden="true" />
+        {phase === "iniciando" && <p className="vf-msg" aria-live="polite">Abrindo a câmera…</p>}
+      </>
+    ),
+    flashOn, onFlash: () => setFlashOn((f) => !f),
+    stamp: (event.filmLook ?? DEFAULT_FILM) === "filme35" ? stampText(new Date(now)) : undefined,
+  };
+  const counter = <span data-testid="contador-rolo" className="rv-sr-only">{left ?? "ilimitado"}</span>;
+  if (phase === "permissao") {
+    return (
+      <ConvidadoPermissao {...frame} estado="pedir" onLater={() => setPhase("negada")} onAllow={allowCamera}>
+        {counter}
+        {inputs}
+      </ConvidadoPermissao>
+    );
+  }
+  return (
+    <ConvidadoCamera
+      {...frame}
+      flash={flashing}
+      shootDisabled={phase !== "camera" || sending.current}
+      onShoot={() => void shoot()}
+      rollLabel="Enviar do rolo da câmera"
+      onRoll={pickGallery}
+      flipDisabled={!live}
+      onFlip={() => setFacing(facing === "environment" ? "user" : "environment")}
+      status={phase === "guardando" || error ? (error ?? "Mandando para o laboratório…") : undefined}
+      statusRole={error ? "alert" : "status"}
+    >
+      {counter}
       {inputs}
-    </div>
+    </ConvidadoCamera>
   );
 }
