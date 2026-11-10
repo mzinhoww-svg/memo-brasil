@@ -21,7 +21,7 @@ export function PhotoReactions({ photo, reactions, userId, onReact }: { photo: P
 }
 
 /** "Mais opções, incluindo pedir para remover". O pedido vai para a fila de moderação do anfitrião. */
-export function MoreSheet({ onReport, onClose, onDownload, editHref, reactors }: { onReport: () => Promise<void>; onClose: () => void; onDownload?: () => Promise<boolean>; editHref?: string; reactors?: { name: string; label: string }[] }) {
+export function MoreSheet({ onReport, onRequestReport, onClose, onDownload, editHref, reactors }: { onReport: () => Promise<void>; /** com ele, "Pedir para remover" abre a tela de denúncia (24g) em vez de enviar na hora */ onRequestReport?: () => void; onClose: () => void; onDownload?: () => Promise<boolean>; editHref?: string; reactors?: { name: string; label: string }[] }) {
   const [sent, setSent] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [reportError, setReportError] = useState(false);
@@ -42,6 +42,7 @@ export function MoreSheet({ onReport, onClose, onDownload, editHref, reactors }:
       <div className="app-stack-sm">
         {!sent && <Button variant="destrutivo" block disabled={reporting} onClick={async () => {
           if (reporting) return;
+          if (onRequestReport) { onRequestReport(); return; }
           setReporting(true); setReportError(false);
           try { await onReport(); setSent(true); }
           catch { setReportError(true); }

@@ -6,6 +6,8 @@ export interface PlannedNotification {
   at: number;
   title: string;
   body: string;
+  /** para onde o toque na notificação leva (o aviso de revelação abre 24b → 24c → feed) */
+  href?: string;
 }
 
 const MIN = 60_000;
@@ -25,7 +27,7 @@ export function notificationPlan(e: MemoEvent, now: number): PlannedNotification
   if (reveal !== null) {
     all.push(
       { kind: "revela-em-breve", at: reveal - 10 * MIN, title: e.title, body: "As fotos aparecem em 10 minutos." },
-      { kind: "revelou", at: reveal, title: e.title, body: "As fotos foram reveladas. Veja como ficou." },
+      { kind: "revelou", at: reveal, title: e.title, body: "As fotos foram reveladas. Veja como ficou.", href: `/e/${e.code}/agora?aviso=1` },
     );
   }
   return all.filter((n) => n.at > now).sort((a, b) => a.at - b.at);

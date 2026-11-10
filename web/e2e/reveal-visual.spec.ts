@@ -39,7 +39,7 @@ for (const vp of [{ n: "390", w: 390, h: 844 }, { n: "1440", w: 1440, h: 900 }])
       await switchPerson(page, code, "Ana");
       await postViaFile(page, code);
       await page.goto(`/e/${code}/agora`);
-      await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
+      await expect(page.getByText("NO LABORATÓRIO")).toBeVisible();
       await shot(page, `${key}-espera`);
       await axe(page, `espera ${key}`);
       const o = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: window.innerWidth }));
@@ -48,11 +48,11 @@ for (const vp of [{ n: "390", w: 390, h: 844 }, { n: "1440", w: 1440, h: 900 }])
       // revelação
       await page.clock.fastForward("04:00");
       await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
-      await expect(page.getByText("O filme foi revelado.")).toBeVisible({ timeout: 6000 });
+      await expect(page.getByRole("heading", { name: "Revelou." })).toBeVisible({ timeout: 6000 });
       await shot(page, `${key}-transicao`);
       await axe(page, `transição ${key}`);
-      await page.getByRole("button", { name: "Ver as fotos" }).click();
-      await expect(page.locator(".rv-post")).toHaveCount(1);
+      await page.getByRole("button", { name: "Abrir o feed" }).click();
+      await expect(page.locator("article.post")).toHaveCount(1);
       await page.waitForTimeout(0);
       await shot(page, `${key}-galeria`);
     });
@@ -67,7 +67,7 @@ test("modo sem revelação em 390px, temas dia e noite", async ({ page }) => {
     await switchPerson(page, code, "Ana");
     await postViaFile(page, code);
     await page.goto(`/e/${code}/agora`);
-    await expect(page.getByText("Visão de Ana")).toBeVisible();
+    await expect(page.locator("article.post b", { hasText: /^Ana$/ }).first()).toBeVisible();
     await shot(page, `390-${theme}-sem-revelacao`);
     await axe(page, `sem revelação ${theme}`);
   }

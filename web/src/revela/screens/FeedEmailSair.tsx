@@ -1,5 +1,21 @@
-/* Gerado de design-system/revela/html/Feed-email-sair.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function FeedEmailSair() {
+"use client";
+/* Feed-email-sair.html (24j): mesmo markup da referência; dados reais por props (padrão = desenho). */
+import Link from "next/link";
+
+export interface FeedEmailSairProps {
+  /** duas linhas do título */
+  heading?: [string, string];
+  message?: string;
+  /** "Abrir o feed" (ausente = botão sem destino) */
+  feedHref?: string;
+  feedLabel?: string;
+  /** "Voltar a receber" (ausente = o botão não aparece) */
+  onResubscribe?: () => void;
+  resubscribeLabel?: string;
+  busy?: boolean;
+}
+
+export function FeedEmailSair({ heading = ["Pronto, sem mais", "e-mails"], message = "bia.moraes@email.com não recebe mais avisos de Ana & Leo. As fotos continuam no feed.", feedHref, feedLabel = "Abrir o feed", onResubscribe, resubscribeLabel = "Voltar a receber", busy }: FeedEmailSairProps = {}) {
   return (
     <>
     <div className="scr">
@@ -22,21 +38,17 @@ export function FeedEmailSair() {
             </svg>
           </div>
           <h1 className="rv-title-lg" style={{ "marginTop": "18px" }}>
-            Pronto, sem mais
+            {heading[0]}
             <br />
-            e-mails
+            {heading[1]}
           </h1>
           <p className="rv-body muted" style={{ "margin": "12px 0 0", "maxWidth": "300px" }}>
-            {"bia.moraes@email.com não recebe mais avisos de Ana & Leo. As fotos continuam no feed."}
+            {message}
           </p>
         </div>
         <div className="stack" style={{ "alignSelf": "stretch" }}>
-          <button className="rv-btn rv-btn--block rv-btn--primary" style={{  }}>
-            Abrir o feed
-          </button>
-          <button className="rv-btn rv-btn--block" style={{  }}>
-            Voltar a receber
-          </button>
+          {feedHref ? <Link href={feedHref} className="rv-btn rv-btn--block rv-btn--primary">{feedLabel}</Link> : <button type="button" className="rv-btn rv-btn--block rv-btn--primary">Abrir o feed</button>}
+          {(onResubscribe || !feedHref) && <button type="button" className="rv-btn rv-btn--block" onClick={onResubscribe} disabled={busy}>{resubscribeLabel}</button>}
         </div>
       </div>
       <div className="home-ind" />

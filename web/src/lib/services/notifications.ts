@@ -26,6 +26,8 @@ export function createLocalScheduler(show: (n: PlannedNotification) => void = de
 
 function defaultShow(n: PlannedNotification) {
   if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-    new Notification(n.title, { body: n.body, icon: "/pwa/icon-192.png" });
+    const note = new Notification(n.title, { body: n.body, icon: "/pwa/icon-192.png" });
+    const href = n.href;
+    if (href) note.onclick = () => { window.focus(); window.location.assign(href); };
   }
 }
