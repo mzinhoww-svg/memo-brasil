@@ -10,18 +10,15 @@ export interface PainelConviteA5Props {
   footer?: string;
   /** Matriz do QR real; ausente = o QR do desenho. */
   qr?: boolean[][];
-  busy?: boolean;
-  error?: string;
   onBack?: () => void;
-  onPdf?: () => void;
-  onPrint?: () => void;
+  onDownload?: () => void;
 }
 
 export const CONVITE_A5_REF = {
   name: "Ana & Leo", date: "14 de março de 2027", steps: ["1 · Aponte a câmera", "2 · Escreva seu nome", "3 · 36 poses suas"] as [string, string, string], code: "TX5EVGS6", footer: "As fotos revelam domingo, 15 de março, ao meio-dia.",
 };
 
-export function PainelConviteA5({ name = CONVITE_A5_REF.name, date = CONVITE_A5_REF.date, steps = CONVITE_A5_REF.steps, code = CONVITE_A5_REF.code, footer = CONVITE_A5_REF.footer, qr, busy = false, error, onBack, onPdf, onPrint }: PainelConviteA5Props = {}) {
+export function PainelConviteA5({ name = CONVITE_A5_REF.name, date = CONVITE_A5_REF.date, steps = CONVITE_A5_REF.steps, code = CONVITE_A5_REF.code, footer = CONVITE_A5_REF.footer, qr, onBack, onDownload }: PainelConviteA5Props = {}) {
   return (
     <>
     <div className="scr">
@@ -79,19 +76,12 @@ export function PainelConviteA5({ name = CONVITE_A5_REF.name, date = CONVITE_A5_
             </div>
           </div>
         </div>
-        {error && <p className="rv-caption center" role="alert" style={{ "color": "var(--danger)", "marginTop": "10px" }}>{error}</p>}
         <div className="row" style={{ "gap": "8px", "marginTop": "16px" }}>
-          <button type="button" className="rv-btn rv-btn--block rv-btn--primary" style={{ "flex": "1" }} onClick={onPdf} disabled={busy}>
+          <button type="button" className="rv-btn rv-btn--block rv-btn--primary" style={{ "flex": "1" }} onClick={onDownload}>
             <svg {...svgProps}>
               <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
             </svg>
-            {busy ? "Gerando PDF…" : "Baixar PDF"}
-          </button>
-          <button type="button" className="rv-btn rv-btn--block" style={{ "flex": "1" }} onClick={onPrint}>
-            <svg {...svgProps}>
-              <path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" />
-            </svg>
-            Imprimir
+            Baixar QR code
           </button>
         </div>
       </div>

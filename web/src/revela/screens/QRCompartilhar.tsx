@@ -12,10 +12,10 @@ export interface QRCompartilharProps {
   onWhatsapp?: () => void;
   onStories?: () => void;
   onQr?: () => void;
-  onPrint?: () => void;
+  onDownload?: () => void;
 }
 
-export function QRCompartilhar({ cam = "/revela/ref/cam-casamento.webp", link = "revela.app/e/ana-leo", copied = false, onClose, onCopy, onWhatsapp, onStories, onQr, onPrint }: QRCompartilharProps = {}) {
+export function QRCompartilhar({ cam = "/revela/ref/cam-casamento.webp", link = "revela.app/e/ana-leo", copied = false, onClose, onCopy, onWhatsapp, onStories, onQr, onDownload }: QRCompartilharProps = {}) {
   return (
     <>
     <div className="scr sheet-scr">
@@ -70,12 +70,12 @@ export function QRCompartilhar({ cam = "/revela/ref/cam-casamento.webp", link = 
               QR na tela
             </span>
           </button>
-          <button type="button" onClick={onPrint}>
+          <button type="button" onClick={onDownload}>
             <svg {...svgProps}>
-              <path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" />
+              <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
             </svg>
             <span>
-              Imprimir
+              Baixar QR code
             </span>
           </button>
         </div>
