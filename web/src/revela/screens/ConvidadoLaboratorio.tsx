@@ -41,7 +41,7 @@ export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana
             NO LABORATÓRIO
           </p>
           <h2 className="rv-title" style={{ "textAlign": "center", "marginTop": "6px" }}>
-            418 fotos de 32 convidados
+            {`${photos} ${photos === 1 ? "foto" : "fotos"} de ${guests} ${guests === 1 ? "convidado" : "convidados"}`}
           </h2>
           <p className="rv-caption" style={{ "textAlign": "center", "marginTop": "4px" }}>
             Ninguém vê antes. Nem quem tirou.
