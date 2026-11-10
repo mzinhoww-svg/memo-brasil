@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
-import { acceptTerms, createViaWizard, seedHost, dateIn, denyCamera, openInviteAsGuest, postViaFile, switchPerson, weekdayOf } from "./helpers";
+import { acceptTerms, createViaWizard, enterAsGuest, seedHost, dateIn, denyCamera, openInviteAsGuest, postViaFile, switchPerson, weekdayOf } from "./helpers";
 
 const PNG = fs.readFileSync(path.resolve(__dirname, "../public/pwa/icon-192.png"));
 const TZ = "America/Cuiaba";
@@ -9,65 +9,78 @@ const TZ = "America/Cuiaba";
 test("anfitrião cria um evento pelo wizard e vê o convite com código e QR", async ({ page }) => {
   const { code } = await createViaWizard(page);
   expect(code).toMatch(/^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{8}$/);
-  await expect(page.getByAltText(/QR Code do convite/)).toBeVisible();
-  await expect(page.getByText("Evento criado.")).toBeVisible();
+  // 15 · "A câmera de ... está pronta": o QR agora fica numa tela própria, aberta por "Baixar QR code"
+  await expect(page.getByRole("heading", { level: 1, name: /A câmera de Emy e Igor\s*está pronta/ })).toBeVisible();
+  await expect(page.getByAltText("Câmera do evento pronta")).toBeVisible();
   await expect(page.getByRole("button", { name: "Compartilhar convite" })).toBeVisible();
+  await expect(page.getByLabel("Link do convite")).toHaveValue(new RegExp(`/e/${code}$`));
+  await page.getByRole("link", { name: "Baixar QR code" }).click();
+  await page.waitForURL(/\/painel\/[^/]+\/qr$/);
 });
 
 test("wizard valida nome do evento e término curto, com mensagens que dizem o que fazer", async ({ page }) => {
-  await page.goto("/criar");
-  await page.getByRole("button", { name: "Continuar" }).click();
-  await expect(page.getByText("Escolha o nome do evento. Todos os convidados vão ver.")).toBeVisible();
-  await page.getByLabel("Nome do evento").fill("Festa");
-  await page.getByRole("button", { name: "Continuar" }).click();
-  await page.getByRole("button", { name: "Outra data" }).click();
-  const soon = new Date(Date.now() + 10 * 60_000);
-  const local = new Date(soon.getTime() - soon.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-  await page.getByLabel("Escolha o horário").evaluate((el) => { (el as HTMLInputElement).removeAttribute("min"); });
-  await page.getByLabel("Escolha o horário").fill(local);
-  await page.getByRole("button", { name: "Continuar" }).click();
-  await expect(page.getByText("Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.")).toBeVisible();
-});
-
-test("cria evento grátis em 4 passos e chega em 'Evento criado'", async ({ page }) => {
+  const next = () => page.getByRole("button", { name: "Próximo" }).click();
   await page.goto("/criar");
   await seedHost(page, "Emy");
-  await expect(page.getByText("Passo 1 de 4")).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1, name: "Como se chama a festa?" })).toBeVisible();
-  await expect(page.getByLabel("Seu nome")).toHaveCount(0);
-  await expect(page.getByRole("group", { name: "Sugestões de nome" }).getByRole("button")).toHaveCount(3);
-  await page.getByRole("group", { name: "Sugestões de nome" }).getByRole("button").first().click();
-  await expect(page.getByLabel("Nome do evento")).toHaveValue("Casamento de Emy");
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await next(); // 1 embalagem
+  await next(); // 2 nome vazio: não avança
+  await expect(page.getByText("Escolha o nome do evento. Todos os convidados vão ver.")).toBeVisible();
+  await page.getByLabel("Nome do evento").fill("Festa");
+  await next();
+  await expect(page.getByRole("heading", { name: "Quando é a festa?" })).toBeVisible();
+  // término daqui a 10 minutos (horário do aparelho): curto demais
+  const soon = await page.evaluate(() => { const d = new Date(Date.now() + 10 * 60_000); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; });
+  await page.getByLabel("Começa").fill("00:00");
+  await page.getByLabel("Termina").fill(soon);
+  await next();
+  await expect(page.getByText("Escolha um horário no futuro, pelo menos 30 minutos a partir de agora.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Quando é a festa?" })).toBeVisible();
+});
 
-  await expect(page.getByText("Passo 2 de 4")).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1, name: "Quando a festa acaba?" })).toBeVisible();
-  const quando = page.getByRole("group", { name: "E quando as fotos aparecem?" });
-  await expect(quando.getByRole("button")).toHaveText(["Na hora", "Quando acabar", "Na manhã seguinte (10h)", "Escolher dia"]);
-  await expect(page.getByText(/^O filme de Casamento.* foi revelado\.$/)).toBeVisible();
-  await expect(page.getByText("Revelar na manhã seguinte deixa a noite para a pista.")).toBeVisible();
-  await page.getByRole("button", { name: "Continuar" }).click();
+test("cria evento grátis pelos 8 passos e chega em 'A câmera está pronta'", async ({ page }) => {
+  const next = () => page.getByRole("button", { name: "Próximo" }).click();
+  await page.goto("/criar");
+  await seedHost(page, "Emy");
+  await expect(page.getByText("1/8")).toBeVisible();
+  await expect(page.getByLabel("Seu nome")).toHaveCount(0); // o anfitrião vem da conta, não do assistente
+  await next();
 
-  await expect(page.getByText("Passo 3 de 4")).toBeVisible();
-  await expect(page.getByTestId("contador-previa")).toHaveText("10 FOTOS RESTANTES");
-  await page.getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: /^24/ }).click();
-  await expect(page.getByTestId("contador-previa")).toHaveText("24 FOTOS RESTANTES");
-  // o selo vem do catálogo (listPublicPlans): no modo local só existe o Grátis, então nenhuma opção ganha selo
-  await expect(page.getByTestId("selo-plano")).toHaveCount(0);
-  await expect(page.getByText(/galeria depois da festa/)).toHaveCount(0);
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await expect(page.getByRole("heading", { name: "Nome do evento" })).toBeVisible();
+  await expect(page.getByText("2/8")).toBeVisible();
+  const sugestoes = page.getByRole("group", { name: "Sugestões de nome" }).getByRole("button");
+  await expect(sugestoes.first()).toBeVisible();
+  await sugestoes.first().click();
+  await expect(page.getByLabel("Nome do evento")).not.toHaveValue("");
+  await next();
 
-  await expect(page.getByText("Passo 4 de 4")).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1, name: "Quantos convidados vão fotografar?" })).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Até 10 · Grátis/ })).toBeChecked();
+  await expect(page.getByRole("heading", { name: "Quando é a festa?" })).toBeVisible();
+  await next();
+
+  await expect(page.getByRole("heading", { name: "Quando revelar?" })).toBeVisible();
+  for (const t of ["Quando a festa acabar", "No dia seguinte", "Um dia depois", "Escolher dia e hora"]) await expect(page.getByRole("button", { name: new RegExp(t) })).toBeVisible();
+  await next();
+
+  await expect(page.getByRole("heading", { name: "Quantas poses?" })).toBeVisible();
+  await expect(page.locator(".rv-counter b")).toHaveText("10");
+  await page.getByRole("button", { name: /^24/ }).click();
+  await expect(page.locator(".rv-counter b")).toHaveText("24");
+  await next();
+
+  await expect(page.getByRole("heading", { name: "Qual filme?" })).toBeVisible();
+  await next();
+  await expect(page.getByRole("heading", { name: "Quem vê o quê" })).toBeVisible();
+  await next();
+
+  await expect(page.getByRole("heading", { name: "Escolha o plano" })).toBeVisible();
+  // no modo local só existe o Grátis
   await expect(page.getByRole("radio")).toHaveCount(1);
+  await expect(page.getByRole("radio", { name: /^Grátis/ })).toBeChecked();
   await expect(page.getByText(/paga com Pix ou cartão/)).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Criar evento" })).toBeVisible();
+  await page.getByRole("button", { name: "Criar câmera" }).click();
   await acceptTerms(page);
-  await page.getByRole("button", { name: "Criar evento" }).click();
   await page.waitForURL(/\/criar\/pronto\//);
-  await expect(page.getByText("Evento criado.")).toBeVisible();
-  // nasce no Grátis mesmo com 24 fotos escolhidas no passo Fotos
+  await expect(page.getByRole("heading", { level: 1, name: /está pronta/ })).toBeVisible();
+  // nasce no Grátis mesmo com 24 poses escolhidas no passo Poses
   const id = page.url().split("/").pop()!;
   await page.goto(`/painel/${id}/configuracoes`);
   await expect(page.getByRole("button", { name: /^Poses\b.*10 por pessoa/ })).toBeVisible();
@@ -75,34 +88,48 @@ test("cria evento grátis em 4 passos e chega em 'Evento criado'", async ({ page
 });
 
 test("nenhum texto 'demonstração' ou 'teria valor' no assistente", async ({ page }) => {
+  const next = () => page.getByRole("button", { name: "Próximo" }).click();
   await page.goto("/criar");
-  for (let i = 0; i < 4; i++) {
+  await seedHost(page, "Emy");
+  for (let i = 0; i < 8; i++) {
     const t = (await page.locator("main, body").first().innerText()).toLowerCase();
     expect(t).not.toContain("demonstração");
     expect(t).not.toContain("teria valor");
-    if (i === 0) await page.getByLabel("Nome do evento").fill("Festa");
-    if (i < 3) await page.getByRole("button", { name: "Continuar" }).click();
+    if (i === 1) await page.getByLabel("Nome do evento").fill("Festa");
+    if (i < 7) await next();
   }
+  await expect(page.getByRole("heading", { name: "Escolha o plano" })).toBeVisible();
 });
 
-test("manhã seguinte revela no dia seguinte às 10h no fuso do evento", async ({ page }) => {
+test("revelar no dia seguinte marca o aviso às 12h no fuso do evento", async ({ page }) => {
+  const next = () => page.getByRole("button", { name: "Próximo" }).click();
   await page.goto("/criar");
+  await seedHost(page, "Emy");
+  await next();
   await page.getByLabel("Nome do evento").fill("Manhã");
-  await page.getByRole("button", { name: "Continuar" }).click();
-  await page.getByRole("group", { name: "E quando as fotos aparecem?" }).getByRole("button", { name: "Na manhã seguinte (10h)" }).click();
-  await expect(page.getByText(/às 10h00/)).toBeVisible();
+  await next();
+  await next(); // 3 quando é a festa
+  await expect(page.getByRole("heading", { name: "Quando revelar?" })).toBeVisible();
+  await page.getByRole("button", { name: /No dia seguinte/ }).click();
+  await expect(page.getByText(/^Todo mundo recebe o aviso (no|na) .+, às 12:00\.$/)).toBeVisible();
 });
 
 test("código inválido mostra erro; código válido leva ao convite", async ({ page }) => {
+  const { code } = await createViaWizard(page);
   await page.goto("/entrar");
-  await page.getByLabel("Código da festa").fill("ABC");
-  await page.getByRole("button", { name: "Entrar na festa" }).click();
-  await expect(page.getByText("Código não confere. Confira no card da mesa.")).toBeVisible();
-  await expect(page.getByLabel("Código da festa")).toHaveAttribute("aria-invalid", "true");
-  await page.getByLabel("Código da festa").fill("NFVARBQX");
-  await page.getByRole("button", { name: "Entrar na festa" }).click();
-  await page.waitForURL(/\/e\/NFVARBQX$/);
-  await expect(page.getByRole("heading", { name: "Código não confere." })).toBeVisible(); // evento não existe neste aparelho
+  const field = page.getByLabel("Código do convite");
+  const submit = page.getByRole("button", { name: "Entrar no evento" });
+  await field.fill("ABC");
+  await expect(submit).toHaveAttribute("aria-disabled", "true"); // incompleto: não envia
+  await field.fill("NFVARBQX");
+  await submit.click();
+  await expect(page.getByText("Esse código não abre nenhuma festa. Confira as letras no convite.")).toBeVisible();
+  await expect(field).toHaveAttribute("aria-invalid", "true");
+  await page.getByRole("button", { name: "Tentar de novo" }).click();
+  await expect(field).toHaveValue("");
+  await field.fill(code);
+  await page.getByRole("button", { name: "Entrar no evento" }).click();
+  await page.waitForURL(new RegExp(`/e/${code}$`));
 });
 
 test("convidado entra, posta com a câmera de teste, gasta o rolo e reage uma vez por foto", async ({ page }) => {
@@ -111,12 +138,11 @@ test("convidado entra, posta com a câmera de teste, gasta o rolo e reage uma ve
   await expect(page.locator(".stories")).toBeVisible();
 
   await page.goto(`/e/${code}/postar`);
-  await expect(page.getByText("5 fotos restantes")).toBeVisible();
+  await expect(page.locator(".rv-counter b")).toHaveText("5");
   await expect(page.getByRole("button", { name: "Tirar foto" })).toBeVisible({ timeout: 15_000 });
   await page.getByRole("button", { name: "Tirar foto" }).click();
-  await expect(page.getByAltText("Prévia da sua foto")).toBeVisible();
-  await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
-  await expect(page.getByText("Foi para o laboratório")).toBeVisible();
+  // 22 · Disparo: a pose vai direto para o laboratório e o visor continua aberto, com uma pose a menos
+  await expect(page.locator(".rv-counter b")).toHaveText("4", { timeout: 20_000 });
 
   await page.goto(`/e/${code}/agora`);
   const curtir = page.getByRole("button", { name: "Curtir" });
@@ -133,9 +159,9 @@ test("convidado entra, posta com a câmera de teste, gasta o rolo e reage uma ve
   for (let i = 0; i < 4; i++) await postViaFile(page, code);
   await page.goto(`/e/${code}/postar`);
   await expect(page.getByRole("heading", { name: "Seu filme acabou" })).toBeVisible();
-  await expect(page.getByText("Você usou todas as suas fotos deste evento.")).toBeVisible();
+  await expect(page.getByText(/Suas 5 fotos (estão no laboratório|já estão no feed)/)).toBeVisible();
   await page.goto(`/e/${code}/voce`);
-  await expect(page.getByText("Restam 0 de 5")).toBeVisible();
+  await expect(page.getByText("5 de 5", { exact: true })).toBeVisible();
 });
 
 test("revelação: outras pessoas só veem depois do fim do evento (relógio de teste)", async ({ page }) => {
@@ -185,15 +211,18 @@ test("pedido de remoção cai na fila do anfitrião, que oculta e depois remove 
   await expect(page.getByText("Ainda sem fotos.")).toBeVisible();
 });
 
-test("tema Noite persiste ao recarregar e vale para o app inteiro", async ({ page }) => {
+test("o app é só Noite: tema escuro fixo, sem alternador, igual após recarregar e nas telas internas", async ({ page }) => {
+  // Revela 2.0 removeu o tema Dia e o botão "Mudar para o tema Noite" (ver docs/qa/E2E-RETIREMENTS.md)
   await page.goto("/");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dia");
-  await page.getByRole("button", { name: "Mudar para o tema Noite" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "noite");
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "noite");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByRole("button", { name: /Mudar para o tema/ })).toHaveCount(0);
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe("rgb(20, 18, 17)");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(bg);
+  await page.goto("/entrar");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(bg);
 });
 
 test("sem sinal: aviso na área do convidado e fotos continuam guardadas", async ({ page, context }) => {
@@ -220,7 +249,7 @@ test("evento: encerrar agora e excluir, com confirmação", async ({ page }) => 
   await del.click();
   await page.waitForURL("/eventos");
   await page.goto(`/e/${code}`);
-  await expect(page.getByRole("heading", { name: "Código não confere." })).toBeVisible();
+  await expect(page.getByText("Esse código não abre nenhuma festa. Confira as letras no convite.")).toBeVisible();
 });
 
 test("downloads: baixa o álbum em ZIP e a lista de convidados em CSV", async ({ page }) => {
@@ -239,7 +268,7 @@ test("downloads: baixa o álbum em ZIP e a lista de convidados em CSV", async ({
   expect(csv.suggestedFilename()).toMatch(/convidados\.csv$/);
 });
 
-test("mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem, desfazer) com download", async ({ page }) => {
+test("mais opções: quem reagiu, baixar foto e editor (filme, cortar, girar, data) com download", async ({ page }) => {
   await page.goto("/");
   await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
@@ -252,28 +281,23 @@ test("mais opções: quem reagiu, baixar foto e editor (desenho, texto, colagem,
 
   await sheet.getByRole("link", { name: "Editar foto" }).click();
   await page.waitForURL(/\/editar\//);
-  const canvas = page.getByRole("img", { name: "Foto em edição" });
-  await expect(canvas).toBeVisible();
-  const box = (await canvas.boundingBox())!;
-  const undo = page.getByRole("button", { name: "Desfazer" });
-  await expect(undo).toBeDisabled();
-  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5, { steps: 6 });
-  await page.mouse.up();
-  await expect(undo).toBeEnabled();
-  await page.getByRole("button", { name: "Texto", exact: true }).click();
-  await page.getByLabel("Texto", { exact: true }).fill("Quem viu, viu.");
-  await page.getByRole("button", { name: "Adicionar texto" }).click();
-  await expect(page.getByRole("button", { name: "Excluir texto" })).toBeEnabled();
-  await page.getByRole("button", { name: "Colagem" }).click();
-  await page.getByRole("button", { name: "2 lado a lado" }).click();
-  await expect(page.getByRole("button", { name: "2 lado a lado" })).toHaveAttribute("aria-pressed", "true");
-  await undo.click();
-  await expect(page.getByRole("button", { name: "2 lado a lado" })).toHaveAttribute("aria-pressed", "false");
-  await expect(page.getByRole("button", { name: "Refazer" })).toBeEnabled();
-  const [edited] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Concluir e baixar" }).click()]);
-  expect(edited.suggestedFilename()).toMatch(/^revela-editada-.*\.jpg$/);
+  // editor 25: filmes, cortar, girar, data e baixar (desenho, texto, colagem e desfazer saíram no Revela 2.0)
+  const foto = page.getByRole("img", { name: /^Foto de/ });
+  await expect(foto).toBeVisible();
+  const semFilme = page.getByRole("button", { name: "Sem filme" });
+  await semFilme.click();
+  await expect(semFilme).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Preto e branco" }).click();
+  await expect(semFilme).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("button", { name: "Preto e branco" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Girar" }).click();
+  await expect(foto).toHaveCSS("transform", /matrix\(0, 1, -1, 0/); // 90 graus
+  await page.getByRole("button", { name: "Cortar" }).click();
+  await page.getByRole("button", { name: "Data" }).click();
+  const [baixada] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar" }).click()]);
+  expect(baixada.suggestedFilename()).toMatch(/^revela-editada-.*\.jpg$/);
+  const [salva] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Salvar" }).click()]);
+  expect(salva.suggestedFilename()).toMatch(/^revela-editada-.*\.jpg$/);
   await page.waitForURL(/agora$/);
 });
 
@@ -283,8 +307,11 @@ test("avisos do evento: ativar pede permissão e confirma", async ({ page, conte
   await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
   await page.getByRole("link", { name: "Você" }).click();
-  await page.getByRole("button", { name: "Ativar avisos" }).click();
-  await expect(page.getByText("Avisos ligados neste aparelho.")).toBeVisible();
+  const aviso = page.getByRole("switch", { name: /Avisar quando revelar/ });
+  await expect(aviso).toHaveAttribute("aria-checked", "false");
+  await aviso.click();
+  await expect(aviso).toHaveAttribute("aria-checked", "true");
+  expect(await page.evaluate(() => Notification.permission)).toBe("granted");
 });
 
 
@@ -293,7 +320,7 @@ test("rota inexistente mostra 404 em português com saída", async ({ page }) =>
   expect(res?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "Essa página não existe." })).toBeVisible();
   await page.getByRole("link", { name: "Voltar ao início" }).click();
-  await expect(page.getByRole("heading", { name: "Seu evento pelo olhar de cada convidado." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Cada convidado\s*é uma câmera\./ })).toBeVisible();
 });
 
 test("anfitrião testa como convidado e volta ao painel por 'Continuar como'", async ({ page }) => {
@@ -306,7 +333,8 @@ test("anfitrião testa como convidado e volta ao painel por 'Continuar como'", a
   await page.getByRole("button", { name: "Emy", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Você está dentro, Emy." })).toBeVisible();
   await page.goto(`/painel/${id}`);
-  await expect(page.getByRole("heading", { name: /por todos os ângulos/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Volta ao painel" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Convidados/ })).toBeVisible();
 });
 
 test("cabeçalhos de segurança e CSP sem violações de console nas telas principais", async ({ page }) => {
@@ -328,27 +356,23 @@ test("cabeçalhos de segurança e CSP sem violações de console nas telas princ
 
 
 test.describe("jornada do convidado (Task 13)", () => {
-  test("convite mostra fotos, revelação e quem vê", async ({ page }) => {
-    const date = dateIn(TZ, 3);
-    const { code } = await createViaWizard(page, { reveal: { date, time: "10:00", tz: TZ }, shots: "10" });
+  test("convite mostra as poses do convidado e leva direto à câmera depois dos aceites", async ({ page }) => {
+    const { code } = await createViaWizard(page, { reveal: { date: dateIn(TZ, 3), time: "10:00", tz: TZ }, shots: "10" });
     await openInviteAsGuest(page, code);
-    await expect(page.getByText("Você tem 10 fotos.")).toBeVisible();
-    await expect(page.getByText("Escolha bem, como num filme.")).toBeVisible();
-    await expect(page.getByText(`Revela ${weekdayOf(date)}, 10h.`)).toBeVisible();
-    await expect(page.getByText("Até lá, só Emy pode ver.")).toBeVisible();
-    await expect(page.getByText("Quem vê:")).toBeVisible();
-    await expect(page.getByText("Emy e quem está na festa.")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Emy e Igor" })).toBeVisible();
+    await expect(page.getByText("poses suas")).toBeVisible();
+    await expect(page.locator("main b").filter({ hasText: /^10$/ })).toBeVisible();
+    await expect(page.getByText("Foi o que o anfitrião liberou para você. Ninguém vê as fotos antes da revelação.")).toBeVisible();
     // o convite nunca aceita sem as duas caixas; o CTA leva direto à câmera
-    await page.getByLabel("Como te chamam na festa?").fill("Ana");
-    await acceptTerms(page);
-    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+    await enterAsGuest(page, "Ana");
     await page.waitForURL(new RegExp(`/e/${code}/postar$`));
   });
 
-  test("convite com revelação desligada diz que as fotos aparecem na hora", async ({ page }) => {
+  test("convite de evento com 5 poses mostra 5 poses suas", async ({ page }) => {
     const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
     await openInviteAsGuest(page, code);
-    await expect(page.getByText("As fotos aparecem na hora.")).toBeVisible();
+    await expect(page.locator("main b").filter({ hasText: /^5$/ })).toBeVisible();
+    await expect(page.getByText("poses suas")).toBeVisible();
   });
 
   test("pré-permissão explica a câmera antes de pedir; negada, oferece galeria sem capture e posta foto", async ({ page }) => {
@@ -357,11 +381,10 @@ test.describe("jornada do convidado (Task 13)", () => {
     await denyCamera(page);
     await page.goto(`/e/${code}/postar`);
     await expect(page.getByRole("heading", { name: "Libere a câmera" })).toBeVisible();
-    await expect(page.getByText("Ela destrava suas 5 fotos")).toBeVisible();
-    await expect(page.getByText(/Cada foto vai para o álbum da festa e aparece para todos na hora\./)).toBeVisible();
+    await expect(page.getByText("As 5 poses que o anfitrião liberou ficam guardadas até a revelação. Ninguém vê antes, nem você.")).toBeVisible();
     await page.getByRole("button", { name: "Liberar" }).click();
 
-    await expect(page.getByText("Tudo bem, use a galeria")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Tudo bem, use a galeria" })).toBeVisible();
     await expect(page.getByTestId("ajuda-camera").getByRole("listitem")).toHaveCount(3);
     await expect(page.getByText("Permissões › Câmera › Permitir.")).toBeVisible(); // Chrome (o iPhone/Safari tem os próprios passos, cobertos em capture.test.ts)
     await expect(page.getByRole("button", { name: "Tentar a câmera de novo" })).toBeVisible();
@@ -375,14 +398,16 @@ test.describe("jornada do convidado (Task 13)", () => {
     await expect(page.getByText("Foi para o laboratório")).toBeVisible();
   });
 
-  test("pré-permissão: 'Prefiro escolher da galeria' vai direto para a galeria", async ({ page }) => {
+  test("pré-permissão: 'Agora não' leva à galeria, que abre o seletor de fotos", async ({ page }) => {
     const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
     await switchPerson(page, code, "Ana");
     await denyCamera(page);
     await page.goto(`/e/${code}/postar`);
+    await page.getByRole("button", { name: "Agora não" }).click(); // "Agora não" leva à tela da galeria
+    await expect(page.getByRole("heading", { name: "Tudo bem, use a galeria" })).toBeVisible();
     const chooser = page.waitForEvent("filechooser");
-    await page.getByRole("button", { name: "Prefiro escolher da galeria" }).click();
-    expect((await chooser).isMultiple()).toBe(false);
+    await page.getByRole("button", { name: "Escolher da galeria" }).click();
+    await chooser; // o seletor abre (o rolo da câmera aceita várias fotos)
   });
 
   test.describe("dentro do Instagram", () => {
@@ -402,15 +427,14 @@ test.describe("jornada do convidado (Task 13)", () => {
     const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
     await page.addInitScript(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { attach: 2 }; });
     await page.goto(`/e/${code}/postar`);
-    await expect(page.getByText("5 fotos restantes")).toBeVisible();
+    await expect(page.locator(".rv-counter b")).toHaveText("5");
     await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
     await page.getByRole("button", { name: "O sim", exact: true }).click();
     await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
 
     await expect(page.getByText("Sem sinal", { exact: true })).toBeVisible();
-    await expect(page.getByText("Não feche esta tela: sua foto vai assim que a internet voltar.")).toBeVisible();
+    await expect(page.getByText("Sua pose ainda não foi confirmada. Tente de novo com a mesma foto ou descarte.")).toBeVisible();
     await expect(page.getByText(/Tentativa 1 de 3 · próxima em \d+ s/)).toBeVisible();
-    await expect(page.getByText("5 fotos restantes")).toBeVisible(); // o contador só muda quando a foto chegar
     await expect(page.getByRole("button", { name: "Tentar agora" })).toBeVisible();
     await expect(page.getByText(/Verifique o espaço livre/)).toHaveCount(0);
 
@@ -421,7 +445,7 @@ test.describe("jornada do convidado (Task 13)", () => {
     }));
     expect(ready).toBe(1);
     await page.goto(`/e/${code}/voce`);
-    await expect(page.getByText("Restam 4 de 5")).toBeVisible();
+    await expect(page.getByText("1 de 5", { exact: true })).toBeVisible();
   });
 
   test("'Tentar agora' reenvia sem esperar a contagem", async ({ page }) => {
@@ -440,14 +464,12 @@ test.describe("jornada do convidado (Task 13)", () => {
     const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
     await openInviteAsGuest(page, code);
     await page.evaluate(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { join: "rate-limited" }; });
-    await page.getByLabel("Como te chamam na festa?").fill("Ana");
-    await acceptTerms(page);
-    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
-    await expect(page.getByRole("heading", { name: "Muita gente entrando agora." })).toBeVisible();
+    await enterAsGuest(page, "Ana");
+    await expect(page.getByRole("heading", { name: "Muita gente entrando agora" })).toBeVisible();
     await expect(page.getByText(/Tentamos de novo sozinhos em 30 segundos/)).toBeVisible();
-    await expect(page.getByText("Nova tentativa em", { exact: true })).toBeVisible();
-    await expect(page.getByTestId("nova-tentativa")).toHaveText(/^0:(30|29|28)$/);
-    await expect(page.getByText("Código não confere.")).toHaveCount(0);
+    await expect(page.getByRole("status")).toContainText("nova tentativa");
+    await expect(page.getByRole("timer")).toHaveText(/^0:\d\d$/);
+    await expect(page.getByText("Esse código não abre nenhuma festa.")).toHaveCount(0);
     await page.getByRole("button", { name: "Tentar agora" }).click();
     await page.waitForURL(new RegExp(`/e/${code}/postar$`));
   });
@@ -457,10 +479,8 @@ test.describe("jornada do convidado (Task 13)", () => {
     await page.clock.install();
     await openInviteAsGuest(page, code);
     await page.evaluate(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { join: "rate-limited" }; });
-    await page.getByLabel("Como te chamam na festa?").fill("Ana");
-    await acceptTerms(page);
-    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
-    await expect(page.getByRole("heading", { name: "Muita gente entrando agora." })).toBeVisible();
+    await enterAsGuest(page, "Ana");
+    await expect(page.getByRole("heading", { name: "Muita gente entrando agora" })).toBeVisible();
     await page.clock.fastForward(31_000);
     await page.waitForURL(new RegExp(`/e/${code}/postar$`));
   });
@@ -469,21 +489,24 @@ test.describe("jornada do convidado (Task 13)", () => {
     const { code } = await createViaWizard(page, { reveal: "desligada", shots: "5" });
     await openInviteAsGuest(page, code);
     await page.evaluate(() => { (window as unknown as { __mmFaults: unknown }).__mmFaults = { join: "forbidden" }; });
-    await page.getByLabel("Como te chamam na festa?").fill("Ana");
-    await acceptTerms(page);
-    await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
-    await expect(page.getByRole("heading", { name: "Este convite não está mais ativo." })).toBeVisible();
-    await expect(page.getByText("Fale com quem convidou você. Pode ser que a festa tenha um link novo.")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Tenho outro código" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Conhecer o Revela" })).toBeVisible();
+    await enterAsGuest(page, "Ana");
+    await expect(page.getByRole("heading", { name: /Este convite\s*não vale mais/ })).toBeVisible();
+    await expect(page.getByText("O link expirou ou foi trocado pelo anfitrião. Peça o QR novo para quem organizou a festa.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Digitar outro código" })).toBeVisible();
+    await expect(page.getByText("Esse código não abre nenhuma festa.")).toHaveCount(0);
   });
 
-  test("espera: título e 'a noite fica para a pista' quando a revelação é no dia seguinte", async ({ page }) => {
+  test("espera: 'no laboratório' com a contagem e o dia da revelação quando é no dia seguinte", async ({ page }) => {
     const date = dateIn(TZ, 1);
     const { code } = await createViaWizard(page, { reveal: { date, time: "10:00", tz: TZ }, shots: "5" });
     await switchPerson(page, code, "Ana");
-    await expect(page.getByRole("heading", { name: "O filme ainda está no escuro." })).toBeVisible();
-    await expect(page.getByText(`Revelamos ${weekdayOf(date)} às 10h. A noite fica para a pista.`)).toBeVisible();
+    await expect(page.getByText("NO LABORATÓRIO")).toBeVisible();
+    await expect(page.getByText("Ninguém vê antes. Nem quem tirou.")).toBeVisible();
+    await expect(page.getByRole("timer")).toBeVisible();
+    await expect(page.getByText(`Revela ${weekdayOf(date)}, 10:00`)).toBeVisible();
+    // números reais do evento (não os do desenho): ninguém postou ainda
+    await expect(page.getByRole("heading", { level: 2, name: /^\d+ fotos? de \d+ convidados?$/ })).not.toHaveText(/418/);
+    await expect(page.getByRole("heading", { level: 2, name: /^0 fotos de/ })).toBeVisible();
   });
 
   test("pós-revelação: convite para criar o próprio evento, dispensável e uma vez só", async ({ page }) => {
