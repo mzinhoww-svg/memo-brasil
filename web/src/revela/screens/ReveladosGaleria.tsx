@@ -58,7 +58,7 @@ export function ReveladosGaleria({ caption = "Ana & Leo · 418 fotos de 32 convi
               <>
                 <img src={p.src} alt={p.href ? "" : "Foto de convidado"} />
                 <div className="rv-print__cap">
-                  <span>{p.stampLeft}</span>
+                  <span>{p.stampLeft}</span>{" "}
                   <span>{p.stampRight}</span>
                 </div>
               </>

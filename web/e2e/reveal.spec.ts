@@ -175,7 +175,7 @@ test("BG-101: 'ao terminar' acompanha o fim ao estender e ao encerrar agora (pel
   await expect.poll(fim).not.toBe(antes);
   expect(await revela()).toBe(await fim()); // a revelação foi junto
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Encerrar agora" }).click();
+  await page.getByRole("button", { name: "Encerrar o filme agora" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Encerrar agora" }).click();
   await page.getByRole("button", { name: /^Revela\b/ }).click();
   await expect(cfg).toContainText("A revelação aconteceu em"); // revelou no encerramento, sem esperar horas
