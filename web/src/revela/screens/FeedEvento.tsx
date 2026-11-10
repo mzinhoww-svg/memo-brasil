@@ -66,7 +66,7 @@ export function FeedPost({ post, onOpen, onLike, onComments, onShare, onDownload
       <div
         className="rv-print"
         style={{ width: "350px", height: "392px", transform: "rotate(0deg)", zIndex: "1", ...(onOpen ? { cursor: "pointer" } : {}) }}
-        {...(onOpen ? { role: "button", tabIndex: 0, "aria-label": `Abrir a foto de ${p.author}`, onClick: () => onOpen(p.id), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(p.id); } } } : {})}
+        {...(onOpen ? { role: "button", tabIndex: 0, "aria-label": `Abrir a foto de ${p.author}. ${p.stampLeft} ${p.stampRight}`, onClick: () => onOpen(p.id), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(p.id); } } } : {})}
       >
         <img src={p.imageSrc} alt="Foto de convidado" />
         <div className="rv-print__cap">

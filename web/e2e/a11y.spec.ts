@@ -44,7 +44,7 @@ for (const width of [390, 1280]) {
       const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       for (const v of r.violations) problems.push(`passo ${passo} [${v.impact}] ${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);
       if (passo === 2) await page.getByLabel("Nome do evento").fill("Axe");
-      if (passo === 5) await page.getByRole("button", { name: /Quando a festa acabar/ }).click();
+      if (passo === 4) await page.getByRole("button", { name: /Quando a festa acabar/ }).click();
       if (passo < 8) await page.getByRole("button", { name: "Próximo" }).click();
     }
     expect(problems, problems.join("\n")).toEqual([]);
