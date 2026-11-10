@@ -50,7 +50,7 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", () => {
     expect(screen.getByText(/^Natural: a foto como/)).toBeInTheDocument();
     next();
     expect(screen.getByRole("heading", { name: "Quem vê o quê" })).toBeInTheDocument();
-    expect(screen.getByRole("switch", { name: "Permitir baixar em alta" })).toBeChecked();
+    expect(screen.queryByRole("switch", { name: "Permitir baixar em alta" })).toBeNull(); // sem campo no evento: a linha fica escondida no assistente
     fireEvent.click(screen.getByRole("switch", { name: "Convidados veem o feed" }));
     expect(screen.getByRole("switch", { name: "Convidados veem o feed" })).not.toBeChecked();
     next();

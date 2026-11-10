@@ -14,11 +14,13 @@ export interface CameraPrivacidadeProps {
   feed?: boolean;
   /** "Permitir baixar em alta": o evento não tem esse campo; vale só no assistente (divergência no CHECKLIST). */
   download?: boolean;
+  /** Sem campo no evento, o assistente real esconde a linha (o desenho a mostra). */
+  showDownload?: boolean;
   busy?: boolean;
   onFeed?: (v: boolean) => void; onDownload?: (v: boolean) => void; onBack?: () => void; onNext?: () => void;
 }
 
-export function CameraPrivacidade({ feed = true, download = true, busy, onFeed, onDownload, onBack, onNext }: CameraPrivacidadeProps = {}) {
+export function CameraPrivacidade({ feed = true, download = true, showDownload = true, busy, onFeed, onDownload, onBack, onNext }: CameraPrivacidadeProps = {}) {
   return (
     <WizardSheet step={7} title="Quem vê o quê" caption="Você vê tudo e pode tirar qualquer foto antes da revelação." onBack={onBack} onNext={onNext} busy={busy}>
       <div className="privviz">
@@ -44,13 +46,13 @@ export function CameraPrivacidade({ feed = true, download = true, busy, onFeed, 
           </div>
           <Toggle on={feed} label="Convidados veem o feed" onChange={onFeed} />
         </div>
-        <div className="rv-row">
+        {showDownload && <div className="rv-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
           </svg>
           <div className="rv-row__text">Permitir baixar em alta</div>
           <Toggle on={download} label="Permitir baixar em alta" onChange={onDownload} />
-        </div>
+        </div>}
       </div>
     </WizardSheet>
   );
