@@ -10,6 +10,8 @@ export interface EventosProps {
   /** Paginação já montada (links Anterior/Próxima). */
   pager?: React.ReactNode;
   exportHref?: string | null;
+  /** Botão de exportação real (cliente); tem precedência sobre `exportHref`. */
+  exportAction?: React.ReactNode;
 }
 
 const REF_ROWS: EventoRow[] = [
@@ -22,7 +24,7 @@ const REF_ROWS: EventoRow[] = [
 ];
 const REF_CHIPS = ["Todos", "Rolando", "Aguardando revelação", "Revelados", "Com denúncias", "Excluídos"].map((label, i) => ({ label, href: "#", on: i === 0 }));
 
-export function MasterEventosView({ caption = "263 eventos · 41 rolando agora", chips = REF_CHIPS, rows = REF_ROWS, pager, exportHref }: EventosProps = {}) {
+export function MasterEventosView({ caption = "263 eventos · 41 rolando agora", chips = REF_CHIPS, rows = REF_ROWS, pager, exportHref, exportAction }: EventosProps = {}) {
   const mrows: MRow[] = rows.map((r) => ({
     key: r.key,
     cells: [r.href ? <a key="t" href={r.href}>{r.title}</a> : r.title, r.host, r.category, r.plan, r.guests, r.photos, r.reveal, <St key="s" tone={r.tone}>{r.status}</St>],
@@ -30,7 +32,7 @@ export function MasterEventosView({ caption = "263 eventos · 41 rolando agora",
   return (
     <>
       <MHead title="Eventos" caption={caption}>
-        {exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar CSV</BtnLink> : <button className="rv-btn rv-btn--sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>Exportar CSV</button>}
+        {exportAction ? exportAction : exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar CSV</BtnLink> : <button className="rv-btn rv-btn--sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>Exportar CSV</button>}
       </MHead>
       <Chips items={chips} />
       <MTable cols="1.6fr 1.1fr 0.9fr 0.9fr 0.8fr 0.6fr 0.9fr 1fr" head={["Evento", "Organizador", "Categoria", "Plano", "Convidados", "Fotos", "Revela", "Situação"]} rows={mrows} empty="Nenhum evento neste filtro." />

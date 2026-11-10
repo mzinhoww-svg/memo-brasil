@@ -1,6 +1,7 @@
 "use client";
 /* Revelados-album.html (19b): mesmo markup da referência; dados reais por props (padrão = desenho). */
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 const svg = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
@@ -15,9 +16,13 @@ export interface ReveladosAlbumProps {
   lead?: string;
   closeHref?: string;
   chooseHref?: string;
+  /** Se vier, "Escolher as fotos" abre o pedido de impressão (botão) em vez de navegar. */
+  onChoose?: () => void;
+  /** Linha extra abaixo dos preços (ex.: pedidos já feitos). Ausente = tela do desenho. */
+  extra?: ReactNode;
 }
 
-export function ReveladosAlbum({ title = "Ana & Leo", date = "14 · 03 · 2027", covers = ["/revela/ref/sc-aliancas.jpg", "/revela/ref/sc-bolo.jpg"], lead = "60 fotos escolhidas por você, capa dura de linho, entregue em casa.", closeHref, chooseHref }: ReveladosAlbumProps = {}) {
+export function ReveladosAlbum({ title = "Ana & Leo", date = "14 · 03 · 2027", covers = ["/revela/ref/sc-aliancas.jpg", "/revela/ref/sc-bolo.jpg"], lead = "60 fotos escolhidas por você, capa dura de linho, entregue em casa.", closeHref, chooseHref, onChoose, extra }: ReveladosAlbumProps = {}) {
   return (
     <>
     <div className="scr">
@@ -72,8 +77,11 @@ export function ReveladosAlbum({ title = "Ana & Leo", date = "14 · 03 · 2027",
           </div>
         </div>
         <p className="rv-caption center" style={{ marginTop: "10px" }}>Preços de exemplo, a definir.</p>
+        {extra}
         <div className="grow" />
-        <Link href={chooseHref ?? "#"} className="rv-btn rv-btn--block rv-btn--primary">Escolher as fotos</Link>
+        {onChoose
+          ? <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={onChoose}>Escolher as fotos</button>
+          : <Link href={chooseHref ?? "#"} className="rv-btn rv-btn--block rv-btn--primary">Escolher as fotos</Link>}
       </div>
       <div className="home-ind" />
       <div className="grain" />

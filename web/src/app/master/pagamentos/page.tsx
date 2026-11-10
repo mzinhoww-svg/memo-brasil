@@ -1,4 +1,6 @@
 import { MNote, MState } from "@/revela/master-kit";
+import { ExportButton } from "../ExportButton";
+import { ReconcileButton } from "../ReconcileButton";
 import { MasterPagamentosView, type PagamentoRow } from "@/revela/screens/MasterPagamentos";
 import { brl, divergenceText } from "../billing";
 import { requireMaster, rpc } from "../data";
@@ -50,7 +52,7 @@ export default async function Pagamentos({ searchParams }: { searchParams: Promi
         { label: "Para estornar", value: nf(toRefund), note: toRefund ? "dinheiro recebido sem plano" : "nada a estornar" },
       ]}
       chips={FILTROS.map(([k, label]) => ({ label, href: k ? `/master/pagamentos?f=${k}` : "/master/pagamentos", on: k === filtro }))}
-      rows={rows} actions={<></>}
+      rows={rows} actions={<><ReconcileButton /><ExportButton kind="pagamentos" screen="pagamentos" filters={{ f: filtro }} /></>}
       alerts={div.state === "ok" && div.data.length > 0 ? (
         <div className="stack" style={{ marginBottom: "14px", gap: "8px" }} aria-label="Divergências">
           {div.data.map((d) => <MNote key={`${d.orderId}-${d.kind}`}><strong>{d.eventTitle ?? "Evento excluído"}:</strong> {divergenceText(d.kind)}{d.occurrences > 1 ? ` (${d.occurrences} vezes)` : ""}</MNote>)}

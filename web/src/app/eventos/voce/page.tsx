@@ -13,7 +13,7 @@ export default function VocePage() {
     <Voce
       name={name} initial={name.slice(0, 1).toUpperCase()} caption={`Sua conta de anfitrião · versão ${(process.env.NEXT_PUBLIC_BUILD_ID ?? "dev").slice(0, 7)}`}
       actions={{
-        "Álbuns impressos": () => router.push("/eventos/revelados"),
+        "Álbuns impressos": () => router.push("/eventos/pedidos"),
         "Avisos de revelação": () => router.push("/eventos"),
         "Como funciona a revelação": () => router.push("/ajuda"),
         "Falar com a gente": () => router.push("/ajuda"),

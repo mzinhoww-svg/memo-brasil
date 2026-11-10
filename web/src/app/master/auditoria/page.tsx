@@ -1,4 +1,5 @@
 import { MState } from "@/revela/master-kit";
+import { ExportButton } from "../ExportButton";
 import { MasterAuditoriaView, type AuditoriaRow } from "@/revela/screens/MasterAuditoria";
 import { requireMaster, rpc } from "../data";
 import { nf, relWhen } from "../format";
@@ -23,7 +24,7 @@ export default async function Auditoria({ searchParams }: { searchParams: Promis
   const last = Math.max(1, Math.ceil(r.data.total / POR));
   return (
     <MasterAuditoriaView
-      caption={`Toda ação sensível, só inserção${a ? ` · ações que começam com "${a}"` : ""}`} rows={rows} exportHref={null}
+      caption={`Toda ação sensível, só inserção${a ? ` · ações que começam com "${a}"` : ""}`} rows={rows} exportAction={<ExportButton kind="auditoria" screen="auditoria" filters={{ a }} />}
       filter={(
         <form method="get" role="search" className="row" style={{ gap: "8px", marginBottom: "14px" }}>
           <label className="rv-field" style={{ maxWidth: "340px" }}>
