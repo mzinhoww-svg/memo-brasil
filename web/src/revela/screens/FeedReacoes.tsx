@@ -26,11 +26,14 @@ export interface FeedReacoesProps {
   onReact?: (id: string) => void;
   onComment?: () => void;
   onDownload?: () => void;
+  /** false esconde "Baixar" (convidado sem permissão para esta foto) */
+  canDownload?: boolean;
+  downloadLabel?: string;
   onPrev?: () => void;
   onNext?: () => void;
 }
 
-export function FeedReacoes({ position = "12 de 418", imageSrc = "/revela/ref/sc-aliancas.jpg", stampLeft = "'27 03 14 · 22:41", stampRight = "por Leo", avatar = "L", author = "Leo", meta = "pose 19 de 27 · Primeira dança", reactions = REACOES_REF, onClose, onMore, onReact, onComment, onDownload, onPrev, onNext }: FeedReacoesProps = {}) {
+export function FeedReacoes({ position = "12 de 418", imageSrc = "/revela/ref/sc-aliancas.jpg", stampLeft = "'27 03 14 · 22:41", stampRight = "por Leo", avatar = "L", author = "Leo", meta = "pose 19 de 27 · Primeira dança", reactions = REACOES_REF, onClose, onMore, onReact, onComment, onDownload, canDownload = true, downloadLabel = "Baixar", onPrev, onNext }: FeedReacoesProps = {}) {
   return (
     <>
     <div className="scr">
@@ -88,11 +91,11 @@ export function FeedReacoes({ position = "12 de 418", imageSrc = "/revela/ref/sc
               <path d="M21 12a8 8 0 0 1-12 7l-5 1 1-4a8 8 0 1 1 16-4z" />
             </svg>
           </button>
-          <button type="button" className="rv-icon-btn" aria-label="Baixar" onClick={onDownload}>
+          {canDownload && <button type="button" className="rv-icon-btn" aria-label={downloadLabel} onClick={onDownload}>
             <svg {...svg}>
               <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
             </svg>
-          </button>
+          </button>}
         </div>
       </div>
       <div className="home-ind" />

@@ -116,6 +116,8 @@ export interface ParticipantRepository {
 export interface PhotoRepository {
   /** Denúncia dedicada; na nuvem chama report_photo, sem UPDATE genérico. */
   report?(photoId: string, reason?: string): Promise<void>;
+  /** Pergunta ao servidor (RPC `photo_download_allowed`) se esta pessoa pode baixar o original desta foto. Ausente nos adaptadores locais. */
+  downloadAllowed?(photoId: string): Promise<boolean>;
   listByEvent(eventId: string): Promise<Photo[]>;
   get(id: string): Promise<Photo | undefined>;
   count(eventId: string, filter?: PhotoCountFilter): Promise<number>;

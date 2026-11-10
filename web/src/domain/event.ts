@@ -35,6 +35,8 @@ export interface MemoEvent {
   capacity: Capacity;
   shotsPerPerson: Shots;
   everyoneSeesAll: boolean;
+  /** Convidados podem baixar o original das fotos de outras pessoas; ausente = permitido. O anfitrião e o autor sempre podem. */
+  guestDownloadHigh?: boolean;
   reactionsEnabled: boolean;
   palette: PaletteId;
   eventFont: EventFontId;

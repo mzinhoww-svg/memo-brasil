@@ -27,3 +27,17 @@ describe("updateSettings hostName", () => {
     expect((await repos.events.get(c.event.id))?.hostName).toBe("Emy e Igor");
   });
 });
+
+describe("guestDownloadHigh", () => {
+  it("nasce permitido, grava a escolha do assistente e o anfitrião altera nos ajustes", async () => {
+    const repos = createMemoryRepositories();
+    const a = await createEvent(repos, host, { ...input, reveal: { enabled: false } as never }, Date.now());
+    expect(a.ok && a.event.guestDownloadHigh).toBe(true);
+    const b = await createEvent(repos, host, { ...input, reveal: { enabled: false } as never, guestDownloadHigh: false }, Date.now());
+    expect(b.ok && b.event.guestDownloadHigh).toBe(false);
+    if (!a.ok) return;
+    const r = await updateSettings(repos, a.event.id, { guestDownloadHigh: false });
+    expect(r.ok && r.event.guestDownloadHigh).toBe(false);
+    expect((await repos.events.get(a.event.id))?.guestDownloadHigh).toBe(false);
+  });
+});

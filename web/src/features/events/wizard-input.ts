@@ -21,6 +21,8 @@ export interface WizardForm {
   filmLook?: FilmLook;
   /** Passo 7: se os convidados veem o feed de todos depois da revelação. */
   everyoneSeesAll?: boolean;
+  /** Passo 7: se os convidados podem baixar o original (em alta) das fotos dos outros. */
+  downloadHigh?: boolean;
 }
 
 export function buildCreateInput(f: WizardForm): EventInput {
@@ -35,5 +37,6 @@ export function buildCreateInput(f: WizardForm): EventInput {
     capacity: WIZARD_DEFAULTS.capacity,
     shotsPerPerson: WIZARD_DEFAULTS.shots,
     everyoneSeesAll: f.everyoneSeesAll ?? true,
+    guestDownloadHigh: f.downloadHigh ?? true,
   };
 }

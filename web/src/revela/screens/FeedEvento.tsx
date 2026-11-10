@@ -21,6 +21,10 @@ export interface FeedPostData {
   likesText: string;
   caption?: string;
   commentsText: string;
+  /** false esconde "Baixar" (convidado sem permissão para fotos de outros); ausente = mostra */
+  canDownload?: boolean;
+  /** nome do botão; padrão "Baixar" */
+  downloadLabel?: string;
 }
 export interface FeedPostHandlers {
   onOpen?: (id: string) => void;
@@ -91,11 +95,11 @@ export function FeedPost({ post, onOpen, onLike, onComments, onShare, onDownload
             <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
           </svg>
         </button>
-        <button type="button" aria-label="Baixar" style={{ marginLeft: "auto" }} onClick={onDownload && (() => onDownload(p.id))}>
+        {p.canDownload !== false && <button type="button" aria-label={p.downloadLabel ?? "Baixar"} style={{ marginLeft: "auto" }} onClick={onDownload && (() => onDownload(p.id))}>
           <svg {...svg}>
             <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
           </svg>
-        </button>
+        </button>}
       </div>
       <div className="post-c">
         <b>{p.likesText}</b>

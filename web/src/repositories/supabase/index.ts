@@ -57,7 +57,7 @@ const toEvent = (r: Row): MemoEvent => ({
   revealOffsetDays: r.reveal_offset_days as number, timezone: r.timezone as string, revealStatus: r.reveal_status as MemoEvent["revealStatus"],
   revealedAt: ms(r.revealed_at) ?? null, version: r.version as number, retentionPolicy: (r.retention_policy as string | null) ?? undefined,
   capacity: r.capacity as MemoEvent["capacity"], shotsPerPerson: r.shots_per_person as MemoEvent["shotsPerPerson"],
-  everyoneSeesAll: r.everyone_sees_all as boolean, reactionsEnabled: r.reactions_enabled as boolean,
+  everyoneSeesAll: r.everyone_sees_all as boolean, guestDownloadHigh: r.guest_download_high !== false, reactionsEnabled: r.reactions_enabled as boolean,
   palette: r.palette as MemoEvent["palette"], eventFont: r.event_font as MemoEvent["eventFont"], place: (r.place as string | null) ?? undefined,
   moments: (r.moments as string[]) ?? [], tables: r.tables as number,
   notice: (r.notice as MemoEvent["notice"] | null) ?? undefined, createdAt: ms(r.created_at)!,
@@ -69,7 +69,7 @@ const eventPatch = (e: MemoEvent): Row => ({
   title: e.title, category: e.category, host_name: e.hostName, start_at: iso(e.startAt), duration_hours: e.durationHours, ended_at: iso(e.endedAt),
   camera_style: e.cameraStyle, film_look: e.filmLook ?? "filme35", reveal_enabled: e.revealEnabled, reveal_at: iso(e.revealAt), reveal_anchor: e.revealAnchor,
   reveal_offset_days: e.revealOffsetDays, timezone: e.timezone, capacity: e.capacity, shots_per_person: e.shotsPerPerson,
-  everyone_sees_all: e.everyoneSeesAll, reactions_enabled: e.reactionsEnabled, palette: e.palette, event_font: e.eventFont,
+  everyone_sees_all: e.everyoneSeesAll, guest_download_high: e.guestDownloadHigh ?? true, reactions_enabled: e.reactionsEnabled, palette: e.palette, event_font: e.eventFont,
   place: e.place ?? null, moments: e.moments, tables: e.tables, notice: e.notice ?? null,
 });
 
@@ -202,6 +202,7 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       removeByEvent: async () => undefined, // cascata do banco (delete_event)
     },
     photos: {
+      downloadAllowed: async (photoId) => ok(await sb.rpc("photo_download_allowed", { p_photo: photoId })) === true,
       report: async (photoId, reason) => void ok(await sb.rpc("report_photo", reason ? { p_photo: photoId, p_reason: reason } : { p_photo: photoId })),
       listByEvent: async (id) => sortNewestFirst((await selectAll("photos", (q) => q.select("*").eq("event_id", id).eq("upload_status", "pronta").order("created_at", { ascending: false }))).map(toPhoto)),
       count: async (id, f) => {

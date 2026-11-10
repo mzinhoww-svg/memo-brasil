@@ -1,3 +1,4 @@
+import type { MemoEvent } from "@/domain/event";
 import { REACTION_LABEL, type Photo, type Reaction } from "@/domain/photo";
 import type { Participant, Repositories, User } from "@/repositories";
 
@@ -7,8 +8,19 @@ export function reactorsOf(photo: Photo, reactions: Reaction[], participants: Pa
   return reactions.filter((r) => r.photoId === photo.id).map((r) => ({ name: nameOf(r.authorId), label: REACTION_LABEL[r.kind] }));
 }
 
-/** Baixa a foto original guardada neste aparelho. */
+/** O anfitrião e o autor sempre baixam; os demais convidados só quando o anfitrião permitiu (events.guest_download_high). */
+export function canDownloadOriginal(event: Pick<MemoEvent, "guestDownloadHigh">, viewer: { host: boolean; userId: string }, photo: Pick<Photo, "authorId">): boolean {
+  return viewer.host || photo.authorId === viewer.userId || event.guestDownloadHigh !== false;
+}
+
+export const DOWNLOAD_DENIED_TEXT = "O anfitrião não permitiu baixar fotos de outras pessoas.";
+export class DownloadNotAllowedError extends Error {
+  constructor() { super("download-not-allowed"); this.name = "DownloadNotAllowedError"; }
+}
+
+/** Baixa o arquivo original guardado ("em alta"). Na nuvem o servidor decide antes (photo_download_allowed); recusado lança DownloadNotAllowedError. */
 export async function downloadPhoto(repos: Repositories, photo: Photo): Promise<boolean> {
+  if (repos.photos.downloadAllowed && !(await repos.photos.downloadAllowed(photo.id))) throw new DownloadNotAllowedError();
   const d = await repos.photos.getData(photo.id);
   if (!d) return false;
   const ext = d.type === "image/png" ? "png" : d.type === "image/svg+xml" ? "svg" : "jpg";

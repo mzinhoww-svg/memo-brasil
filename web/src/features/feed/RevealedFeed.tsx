@@ -14,7 +14,7 @@ import { CreateYourOwn } from "@/features/reveal/CreateYourOwn";
 import { MoreSheet } from "@/features/photos/components";
 import { photoReasonAt } from "@/features/moderation/report-reasons";
 import { react, reportPhoto } from "@/features/photos/service";
-import { downloadPhoto, reactorsOf } from "@/features/photos/share";
+import { canDownloadOriginal, DOWNLOAD_DENIED_TEXT, downloadPhoto, DownloadNotAllowedError, reactorsOf } from "@/features/photos/share";
 import { stampDay } from "@/features/guest/format";
 import { DENUNCIA_MOTIVOS_FOTO, FeedDenunciar } from "@/revela/screens/FeedDenunciar";
 import { FeedEvento, type FeedPostData, type FeedStory } from "@/revela/screens/FeedEvento";
@@ -67,7 +67,7 @@ export function RevealedFeed() {
   const toPost = useCallback((p: (typeof all)[number]): FeedPostData => ({
     id: p.id, avatar: initialOf(p.authorName), author: firstName(p.authorName), pose: poseLabel(p, all, event),
     imageSrc: urls[p.id] ?? BLANK, stampLeft: printStamp(photoMoment(p), event.timezone), stampRight: firstName(p.authorName),
-    liked: Boolean(mine(p.id)), likesText: likesText(likeCount(p.id)), caption: p.caption, commentsText: commentsText(counts[p.id] ?? 0),
+    canDownload: canDownloadOriginal(event, { host: viewer.host, userId: user.id }, p), downloadLabel: "Baixar em alta", liked: Boolean(mine(p.id)), likesText: likesText(likeCount(p.id)), caption: p.caption, commentsText: commentsText(counts[p.id] ?? 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [all, event, urls, reactions, counts, user.id]);
 
@@ -86,7 +86,11 @@ export function RevealedFeed() {
   }
   async function download(id: string) {
     const p = photos.find((x) => x.id === id);
-    setNote(p && (await downloadPhoto(repos, p).catch(() => false)) ? "Foto baixada." : "Não deu para baixar essa foto. Tente de novo.");
+    try {
+      setNote(p && (await downloadPhoto(repos, p)) ? "Foto baixada." : "Não deu para baixar essa foto. Tente de novo.");
+    } catch (e) {
+      setNote(e instanceof DownloadNotAllowedError ? DOWNLOAD_DENIED_TEXT : "Não deu para baixar essa foto. Tente de novo.");
+    }
   }
   async function sendPhotoReport() {
     if (!reportFor || reportFor.busy || reportFor.sent) return;
@@ -163,6 +167,7 @@ export function RevealedFeed() {
             reactions={reactionItems(openPhoto.id, reactions, user.id)}
             onClose={() => setOpenId(undefined)} onMore={() => setMoreFor(openPhoto.id)} onReact={(k) => void onReact(openPhoto.id, k as ReactionKind)}
             onComment={() => setCommentsFor(openPhoto.id)} onDownload={() => void download(openPhoto.id)}
+            canDownload={canDownloadOriginal(event, { host: viewer.host, userId: user.id }, openPhoto)} downloadLabel="Baixar em alta"
             onPrev={open > 0 ? () => setOpenId(shown[open - 1].id) : undefined} onNext={open < shown.length - 1 ? () => setOpenId(shown[open + 1].id) : undefined}
           />
           {note && <p className="rv-caption" role="status" style={{ position: "absolute", left: 0, right: 0, bottom: 4, textAlign: "center" }}>{note}</p>}
@@ -176,7 +181,7 @@ export function RevealedFeed() {
       {morePhoto && (
         <MoreSheet
           reactors={reactorsOf(morePhoto, reactions, participants, user, { id: event.hostId, name: event.hostName })}
-          editHref={`/e/${event.code}/editar/${morePhoto.id}`} onDownload={() => downloadPhoto(repos, morePhoto)}
+          editHref={`/e/${event.code}/editar/${morePhoto.id}`} onDownload={canDownloadOriginal(event, { host: viewer.host, userId: user.id }, morePhoto) ? () => downloadPhoto(repos, morePhoto) : undefined}
           onClose={() => setMoreFor(undefined)}
           onReport={async () => { await reportPhoto(repos, morePhoto.id); await refresh(); }}
           onRequestReport={() => { setMoreFor(undefined); setReportFor({ id: morePhoto.id, reason: 1, busy: false, sent: false, error: false }); }}

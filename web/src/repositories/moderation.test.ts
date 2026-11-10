@@ -118,6 +118,14 @@ it('sends the report reason as p_reason only when informed',async()=>{
  expect(rpc).toHaveBeenCalledExactlyOnceWith('report_photo',{p_photo:'photo',p_reason:'improprio'});
 });
 
+it('asks the server whether the original may be downloaded',async()=>{
+ const rpc=vi.fn().mockResolvedValueOnce({data:true,error:null}).mockResolvedValueOnce({data:false,error:null});
+ const r=createSupabaseRepositories({rpc,from:vi.fn()} as unknown as SupabaseClient);
+ expect(await r.photos.downloadAllowed!('photo')).toBe(true);
+ expect(await r.photos.downloadAllowed!('photo')).toBe(false);
+ expect(rpc).toHaveBeenCalledWith('photo_download_allowed',{p_photo:'photo'});
+});
+
 it('maps the dedicated blocked SQLSTATE without reusing financial codes',()=>{
  expect(toRepositoryError({code:'MM015'}).code).toBe('blocked');
  expect(toRepositoryError({code:'MM004'}).code).toBe('forbidden');
