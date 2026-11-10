@@ -31,7 +31,7 @@ export function ApoioTermos({ tab = "privacy", stamp = "ATUALIZADO EM 09 NOV 202
           <span style={{ "width": "44px" }} />
         </div>
         <div style={{ "marginTop": "14px" }}>
-          <div className="seg">
+          <div className="seg" role={onTab ? "tablist" : undefined} aria-label="Documento">
             <span className={tab === "terms" ? "on" : ""} {...seg("terms")}>
               Termos
             </span>
@@ -43,7 +43,7 @@ export function ApoioTermos({ tab = "privacy", stamp = "ATUALIZADO EM 09 NOV 202
         <p className="rv-stamp" style={{ "marginTop": "22px", "marginBottom": "12px", "fontSize": "12px" }}>
           {stamp}
         </p>
-        <div className="legal" style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+        <div className="legal" tabIndex={0} role="region" aria-label="Texto do documento" style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
           {note && <p role="note">{note}</p>}
           {sections.map((sec) => (
             <div key={sec.title}>

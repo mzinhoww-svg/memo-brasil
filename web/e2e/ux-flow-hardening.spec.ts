@@ -155,9 +155,9 @@ test("rascunho sobrevive à recarga e só retoma ou descarta por decisão explí
 test("rascunho protege Voltar e Avançar sem perder as entradas reais do histórico", async ({ page }) => {
   const { code } = await createViaWizard(page, { reveal: "desligada" });
   test.skip(!await page.evaluate(() => "navigation" in window), "A confirmação de travessia exige Navigation API; persistência é coberta separadamente.");
-  // Two real Next links leave /agora behind and /agora ahead of /postar.
-  await page.goto(`/e/${code}/agora`);
-  await page.getByRole("link", { name: /^Abrir câmera/ }).click();
+  // Dois links reais do Next deixam o convite para trás e /agora à frente de /postar.
+  await page.goto(`/e/${code}`);
+  await page.getByRole("link", { name: /Abrir câmera/ }).click();
   await expect(page.getByLabel("Escolher foto do aparelho")).toBeAttached();
   await page.getByRole("link", { name: "Fechar câmera", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/e/${code}/agora$`));
@@ -173,7 +173,7 @@ test("rascunho protege Voltar e Avançar sem perder as entradas reais do histór
   }, direction);
 
   for (const direction of ["forward", "back"] as const) {
-    const destination = "agora";
+    const destination = direction === "forward" ? "agora" : "";
     const rejected = page.waitForEvent("dialog", { timeout: 10_000 });
     const cancelTraversal = traverse(direction);
     const first = await rejected;
@@ -188,7 +188,7 @@ test("rascunho protege Voltar e Avançar sem perder as entradas reais do histór
     const acceptTraversal = traverse(direction);
     await (await accepted).accept();
     expect(await acceptTraversal).toBe("finished");
-    await expect(page).toHaveURL(new RegExp(`/e/${code}/${destination}$`));
+    await expect(page).toHaveURL(new RegExp(`/e/${code}${destination ? `/${destination}` : ""}$`));
     if (direction === "forward") {
       await page.goBack();
       await expect(page.getByRole("button", { name: "Retomar foto" })).toBeVisible();
@@ -199,14 +199,16 @@ test("rascunho protege Voltar e Avançar sem perder as entradas reais do histór
   expect(await localPhotos(page)).toEqual([]);
 });
 
-test("confirmação contém o foco também enquanto a gravação local está pendente", async ({ page }) => {
+test("confirmação contém o foco e remover momento só vale depois de salvar", async ({ page }) => {
   const { id } = await createViaWizard(page);
   await page.goto(`/painel/${id}/momentos`);
-  const trigger = page.getByRole("button", { name: "Remover O sim", exact: true });
-  await trigger.click();
+  // 17f: a linha do momento abre a folha de edição; "Remover momento" abre a confirmação
+  const row = page.getByRole("button", { name: /O sim/ }).first();
+  const openRemove = async () => { await row.click(); await page.getByRole("button", { name: "Remover momento", exact: true }).click(); };
+  await openRemove();
   const dialog = page.getByRole("dialog", { name: "Remover momento O sim?" });
   const cancel = dialog.getByRole("button", { name: "Cancelar", exact: true });
-  const confirm = dialog.getByRole("button", { name: "Remover", exact: true });
+  const confirm = dialog.getByRole("button", { name: "Remover momento", exact: true });
   await expect(cancel).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(confirm).toBeFocused();
@@ -214,50 +216,14 @@ test("confirmação contém o foco também enquanto a gravação local está pen
   await expect(cancel).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
-  await expect(trigger).toBeFocused();
-  await trigger.click();
+  await openRemove();
 
-  // Hold a genuine IndexedDB transaction so the real UI action stays pending.
-  // No app promise or repository method is replaced.
-  await page.evaluate((eventId) => new Promise<void>((resolve, reject) => {
-    const request = indexedDB.open("memoriesmt");
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => {
-      const db = request.result;
-      const tx = db.transaction("events", "readwrite");
-      const store = tx.objectStore("events");
-      let held = true;
-      (window as Window & { __releaseUxEventLock?: () => void }).__releaseUxEventLock = () => { held = false; };
-      const keepOpen = () => {
-        const get = store.get(eventId);
-        get.onsuccess = () => { if (held) keepOpen(); };
-      };
-      tx.oncomplete = () => db.close();
-      tx.onerror = () => { db.close(); reject(tx.error); };
-      keepOpen();
-      resolve();
-    };
-  }), id);
-  try {
-    await confirm.click();
-    await expect(confirm).toBeDisabled();
-    await expect(cancel).toBeDisabled();
-    await expect(dialog).toBeFocused();
-    await page.keyboard.press("Tab");
-    await expect(dialog).toBeFocused();
-    await page.keyboard.press("Shift+Tab");
-    await expect(dialog).toBeFocused();
-    await page.keyboard.press("Escape");
-    await page.mouse.click(1, 1);
-    await expect(dialog).toBeVisible();
-  } finally {
-    await page.evaluate(() => (window as Window & { __releaseUxEventLock?: () => void }).__releaseUxEventLock?.());
-  }
+  // 17f: remover só muda a lista na tela; a gravação acontece em "Salvar" (a trava durante a gravação vale para a folha de Salvar)
+  await confirm.click();
   await expect(dialog).toHaveCount(0);
-  await expect(trigger).toHaveCount(0);
+  await expect(row).toHaveCount(0);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Momentos", exact: true })).toBeVisible();
-  await expect(trigger).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /O sim/ })).toHaveCount(1); // não salvo: continua no evento
 });
 
 test("bloqueio persiste após recarregar e recusa a mesma identidade sem apagar suas fotos", async ({ page }) => {
@@ -275,11 +241,13 @@ test("bloqueio persiste após recarregar e recusa a mesma identidade sem apagar 
   await changeKnownPerson(page, code, "Emy");
   await expect(page.getByRole("heading", { name: "Você está dentro, Emy." })).toBeVisible();
   await page.goto(`/painel/${id}/convidados`);
-  await page.getByRole("button", { name: "Bloquear", exact: true }).click();
+  await page.getByRole("button", { name: /Ana/ }).first().click(); // 17b: a linha da pessoa abre a folha
   await page.getByRole("dialog", { name: "Bloquear Ana?" }).getByRole("button", { name: "Bloquear acesso", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Desbloquear", exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.reload();
-  await expect(page.getByRole("button", { name: "Desbloquear", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /Ana/ }).first().click();
+  await expect(page.getByRole("dialog", { name: "Desbloquear Ana?" })).toBeVisible();
+  await page.keyboard.press("Escape");
   const blocked = await localParticipant(page, id, photos[0].authorId);
   expect(blocked.name).toBe("Ana");
   expect(blocked.blockedAt).toEqual(expect.any(Number));
