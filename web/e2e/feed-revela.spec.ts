@@ -86,5 +86,5 @@ test("revelados do anfitrião: galeria (18), foto aberta (19) e álbum impresso 
   await page.getByRole("link", { name: "Ver como álbum" }).click();
   await expect(page.getByRole("heading", { name: /O álbum da festa/ })).toBeVisible();
   await expect(page.getByText("1 foto escolhida por você")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Escolher as fotos" })).toHaveAttribute("href", `/painel/${id}/conteudo`);
+  await expect(page.getByRole("button", { name: "Escolher as fotos" })).toBeVisible(); // abre o pedido de impressão (e2e/print-order.spec.ts)
 });
