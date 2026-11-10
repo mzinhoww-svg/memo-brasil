@@ -308,7 +308,7 @@ export function CreateWizard() {
   if (step === 4) {
     return <CameraPoses step={5} value={desiredShots} choices={poseChoices} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
   }
-  if (step === 5) return <CameraFiltro film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
+  if (step === 5) return <CameraFiltro samples={{ filme35: "/revela/lut/amostra-bolo-filme35.jpg" }} film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
   if (step === 6) return <CameraPrivacidade showDownload={false} feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;
   if (step === 7) {
     const revealShort = revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz).replace(" ", ", ") : "—";

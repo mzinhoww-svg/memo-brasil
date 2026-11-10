@@ -60,7 +60,7 @@ test("assistente Revela: os 8 passos com as telas do desenho, e a câmera é cri
   await expect(page.getByRole("heading", { name: "Qual filme?" })).toBeVisible();
   await expect(page.getByText("6/8")).toBeVisible();
   await expect(page.getByAltText("Sem filme")).toHaveAttribute("src", "/revela/ref/sc-bolo-natural.jpg");
-  await expect(page.getByAltText("Com filme 35mm")).toHaveAttribute("src", "/revela/ref/sc-bolo.jpg");
+  await expect(page.getByAltText("Com filme 35mm")).toHaveAttribute("src", "/revela/lut/amostra-bolo-filme35.jpg");
   await expect(page.getByRole("radio", { name: "Filme 35mm" })).toBeChecked();
   await page.getByRole("radio", { name: "Natural" }).click();
   await expect(page.getByText(/^Natural: a foto como a câmera do celular viu/)).toBeVisible();
