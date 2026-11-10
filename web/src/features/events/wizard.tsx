@@ -50,7 +50,7 @@ export function CreateWizard() {
   const [title, setTitle] = useState("");
   // o tipo do evento sai da embalagem escolhida (o desenho não pergunta o tipo): casamento → casamento, as outras → festa
   const category: EventCategory = wrap === "casamento" ? "casamento" : "festa";
-  const [downloadHigh, setDownloadHigh] = useState(true); // "Permitir baixar em alta": sem campo no evento (divergência no CHECKLIST)
+  const [downloadHigh, setDownloadHigh] = useState(true); // "Permitir baixar em alta": grava events.guest_download_high
   const [timezone] = useState(defaultTimezone);
   const [win, setWin] = useState<WindowInput>(() => defaultWindow(now(), defaultTimezone()));
   const [choice, setChoice] = useState<RevealChoice>("manha");
@@ -150,7 +150,7 @@ export function CreateWizard() {
       }
       const startNow = now();
       const hoursNow = (w.endMs - startNow) / 3_600_000;
-      const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, w.endMs, { date: customDate ?? "", time: customTime ?? "", timezone }), desiredShots, cameraStyle: wrap, filmLook: film, everyoneSeesAll });
+      const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, w.endMs, { date: customDate ?? "", time: customTime ?? "", timezone }), desiredShots, cameraStyle: wrap, filmLook: film, everyoneSeesAll, downloadHigh });
       const r = await createEvent(repos, me, input, startNow);
       if (!r.ok) {
         if (r.errors.reveal) {
@@ -309,7 +309,7 @@ export function CreateWizard() {
     return <CameraPoses step={5} value={desiredShots} choices={poseChoices} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
   }
   if (step === 5) return <CameraFiltro samples={{ filme35: "/revela/lut/amostra-bolo-filme35.jpg" }} film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
-  if (step === 6) return <CameraPrivacidade showDownload={false} feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;
+  if (step === 6) return <CameraPrivacidade showDownload feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;
   if (step === 7) {
     const revealShort = revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz).replace(" ", ", ") : "—";
     const cta = busy ? "Criando câmera…" : chosenPlan && !chosenPlan.isFree ? `Continuar · ${money(chosenPlan.priceCents)}` : "Criar câmera";

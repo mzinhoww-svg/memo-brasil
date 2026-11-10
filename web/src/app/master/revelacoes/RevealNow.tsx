@@ -7,7 +7,7 @@ import { browserSupabase } from "@/lib/supabase/client";
 import { adminErrorText, reasonError } from "../billing";
 import { ReasonField } from "../billing-actions";
 
-/** "Revelar agora" (M08): chama admin_reveal_now com motivo; o servidor revela uma vez só e registra na auditoria. */
+/** "Revelar agora" (M08): chama reveal_now (a mesma RPC do anfitrião) com motivo; o servidor revela uma vez só e registra na auditoria. */
 export function RevealNow({ event }: { event: { id: string; title: string } }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -20,7 +20,7 @@ export function RevealNow({ event }: { event: { id: string; title: string } }) {
     setTried(true);
     if (reasonError(reason)) return;
     setBusy(true); setError(null);
-    const { error: e } = await browserSupabase().rpc("admin_reveal_now", { p_event: event.id, p_reason: reason.trim() });
+    const { error: e } = await browserSupabase().rpc("reveal_now", { p_event: event.id, p_reason: reason.trim() });
     setBusy(false);
     if (e) { setError(adminErrorText(e.code, e.message)); return; }
     setReason(""); close(); router.refresh();

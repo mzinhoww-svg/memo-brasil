@@ -92,6 +92,8 @@ export interface EventRepository {
   counts(eventId: string, who: { userId: string | null; host: boolean }): Promise<PhotoCounts>;
   /** Entrada por código no servidor (RPC `join_event`). Ausente nos adaptadores locais, que validam no cliente. */
   join?(code: string, name: string, table?: string, token?: string): Promise<JoinResult>;
+  /** "Revelar agora" no servidor (RPC `reveal_now`, a mesma do Master). Ausente nos adaptadores locais, que aplicam a mesma regra no cliente. */
+  revealNow?(eventId: string, reason?: string): Promise<void>;
   list(): Promise<MemoEvent[]>;
   /** Só os eventos que a pessoa criou ou em que entrou (no servidor; a RLS do Master veria todos com `list`). */
   listMine?(userId: string): Promise<MemoEvent[]>;
@@ -113,7 +115,9 @@ export interface ParticipantRepository {
 }
 export interface PhotoRepository {
   /** Denúncia dedicada; na nuvem chama report_photo, sem UPDATE genérico. */
-  report?(photoId: string): Promise<void>;
+  report?(photoId: string, reason?: string): Promise<void>;
+  /** Pergunta ao servidor (RPC `photo_download_allowed`) se esta pessoa pode baixar o original desta foto. Ausente nos adaptadores locais. */
+  downloadAllowed?(photoId: string): Promise<boolean>;
   listByEvent(eventId: string): Promise<Photo[]>;
   get(id: string): Promise<Photo | undefined>;
   count(eventId: string, filter?: PhotoCountFilter): Promise<number>;

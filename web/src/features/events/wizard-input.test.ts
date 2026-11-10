@@ -19,6 +19,10 @@ describe("createEvent não envia capacity acima do grátis", () => {
     expect(saved[0].capacity).toBe(10);
     expect(saved[0].shotsPerPerson).toBe(10);
   });
+  it("baixar em alta: permitido por padrão e grava a escolha do passo 7", () => {
+    expect(buildCreateInput(form).guestDownloadHigh).toBe(true);
+    expect(buildCreateInput({ ...form, downloadHigh: false }).guestDownloadHigh).toBe(false);
+  });
   it("identidade vai com os padrões atuais (embalagem Festa, Filme 35mm, paleta, fonte)", () => {
     const i = buildCreateInput(form);
     expect(i).toMatchObject({ cameraStyle: "festa", filmLook: "filme35", palette: "salvia", eventFont: "birthstone", everyoneSeesAll: true });

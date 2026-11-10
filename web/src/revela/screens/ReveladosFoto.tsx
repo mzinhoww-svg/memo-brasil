@@ -20,12 +20,13 @@ export interface ReveladosFotoProps {
   onMore?: () => void;
   onStar?: () => void;
   onDownload?: () => void;
+  downloadLabel?: string;
   onShare?: () => void;
   onPrev?: () => void;
   onNext?: () => void;
 }
 
-export function ReveladosFoto({ position = "12 de 418", imageSrc = "/revela/ref/sc-aliancas.jpg", stampLeft = "'27 03 14 · 22:41", stampRight = "por Leo", avatar = "L", author = "Leo", meta = "pose 19 de 27", highlighted = false, closeHref, onMore, onStar, onDownload, onShare, onPrev, onNext }: ReveladosFotoProps = {}) {
+export function ReveladosFoto({ position = "12 de 418", imageSrc = "/revela/ref/sc-aliancas.jpg", stampLeft = "'27 03 14 · 22:41", stampRight = "por Leo", avatar = "L", author = "Leo", meta = "pose 19 de 27", highlighted = false, closeHref, onMore, onStar, onDownload, downloadLabel = "Baixar", onShare, onPrev, onNext }: ReveladosFotoProps = {}) {
   return (
     <>
     <div className="scr">
@@ -75,7 +76,7 @@ export function ReveladosFoto({ position = "12 de 418", imageSrc = "/revela/ref/
               <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2L3 9.6l6.2-.9z" />
             </svg>
           </button>
-          <button type="button" className="rv-icon-btn" aria-label="Baixar" onClick={onDownload}>
+          <button type="button" className="rv-icon-btn" aria-label={downloadLabel} onClick={onDownload}>
             <svg {...svg}>
               <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
             </svg>

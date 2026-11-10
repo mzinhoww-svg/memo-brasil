@@ -9,7 +9,8 @@ import { useAdmin } from "@/features/admin/context";
 import { revealStamp, shortWhen } from "@/features/admin/panel-format";
 import { usePhotoUrls } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
-import { revealNow } from "@/features/events/reveal-now";
+import { formatReasonCounts, useReportReasons } from "@/features/moderation/report-reasons";
+import { REVEAL_NOW_MESSAGES, revealNow } from "@/features/events/reveal-now";
 import { AnfitriaoModerar } from "@/revela/screens/AnfitriaoModerar";
 
 const PAGE = 60;
@@ -29,6 +30,7 @@ export default function Conteudo() {
   const list = useMemo(() => photos.filter((p) => p.status !== "removida").sort((a, b) => b.createdAt - a.createdAt), [photos]);
   const page = list.slice(0, shown);
   const urls = usePhotoUrls(page, "thumb");
+  const reasons = useReportReasons(event.id, photos.length);
   const current = picked ? list.find((p) => p.id === picked) : undefined;
 
   async function act(id: string, a: ModerationAction) {
@@ -60,6 +62,7 @@ export default function Conteudo() {
       {current && (
         <Sheet title={`Foto de ${current.authorName}`} onClose={() => setPicked(undefined)}>
           <div className="app-stack-sm">
+            {formatReasonCounts(reasons.photos[current.id]) && <p className="rv-caption">Denúncias: {formatReasonCounts(reasons.photos[current.id])}</p>}
             {current.status === "oculta"
               ? <Button block onClick={async () => { await act(current.id, "mostrar"); setPicked(undefined); }}>Devolver ao álbum</Button>
               : <Button block variant="secundario" onClick={async () => { await act(current.id, "ocultar"); setPicked(undefined); }}>Tirar do álbum</Button>}
@@ -70,11 +73,11 @@ export default function Conteudo() {
       )}
       {removing && <ConfirmSheet title="Excluir esta foto?" body="Os convidados deixam de vê-la e ela não volta." confirmLabel="Excluir foto" onCancel={() => setRemoving(undefined)} onConfirm={async () => { await act(removing, "remover"); setRemoving(undefined); }} />}
       {revealing && (
-        <ConfirmSheet title="Revelar agora?" body="Todos passam a ver as fotos em cerca de 1 minuto. Não dá para desfazer nem esconder de novo." confirmLabel="Revelar agora"
+        <ConfirmSheet title="Revelar agora?" body="Todos passam a ver as fotos agora. Não dá para desfazer nem esconder de novo." confirmLabel="Revelar agora"
           onCancel={() => setRevealing(false)}
           onConfirm={async () => {
             const r = await revealNow(repos, event, clock());
-            if (!r.ok) throw new Error(r.reason);
+            if (!r.ok) throw Object.assign(new Error(r.reason), { userMessage: REVEAL_NOW_MESSAGES[r.reason] });
             setMsg("Revelação antecipada.");
             setRevealing(false);
             await refresh();

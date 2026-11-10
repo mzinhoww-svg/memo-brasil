@@ -141,6 +141,7 @@ export default function Configuracoes() {
         <Sheet title="Mais ajustes" onClose={() => setPanel(undefined)}>
           <OptionGroup<Capacity> label="Convidados" value={event.capacity} onChange={(v) => void save({ capacity: v })} options={limitChoices<Capacity>(CAPACITY_OPTIONS, limitGuests, event.capacity, true).map((c) => ({ value: c, label: c === null ? "Ilimitado" : String(c) }))} />
           <OptionGroup<boolean> list label="Quem vê as fotos" value={event.everyoneSeesAll} onChange={(v) => void save({ everyoneSeesAll: v })} options={[{ value: true, label: "Todos veem todas as fotos" }, { value: false, label: "Cada um vê só as suas" }]} />
+          <OptionGroup<boolean> list label="Baixar em alta" value={event.guestDownloadHigh !== false} onChange={(v) => void save({ guestDownloadHigh: v })} options={[{ value: true, label: "Convidados podem baixar em alta" }, { value: false, label: "Só você baixa em alta" }]} />
           <Field label="Seu nome (aparece no convite)" value={hostName} maxLength={60} onChange={(e) => setHostName(e.target.value)} />
           <Button variant="secundario" block disabled={!hostName.trim() || hostName.trim() === event.hostName} onClick={() => void save({ hostName: hostName.trim() })}>Salvar seu nome</Button>
           <Button variant="secundario" block onClick={() => setPanel("codigo")}>Tenho um código de presente</Button>

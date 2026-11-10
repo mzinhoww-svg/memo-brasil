@@ -76,7 +76,7 @@ export function PhotoView({ id, photoId }: { id: string; photoId: string }) {
         stampLeft={printStamp(photoMoment(photo), event.timezone)} stampRight={`por ${firstName(photo.authorName)}`}
         avatar={initialOf(photo.authorName)} author={firstName(photo.authorName)} meta={poseLabel(photo, list, event)}
         highlighted={photo.highlighted} closeHref={base}
-        onMore={() => setMore(true)} onStar={() => void star()} onDownload={() => void download()} onShare={() => void share()}
+        onMore={() => setMore(true)} onStar={() => void star()} onDownload={() => void download()} downloadLabel="Baixar em alta" onShare={() => void share()}
         onPrev={i > 0 ? () => go(i - 1) : undefined} onNext={i < list.length - 1 ? () => go(i + 1) : undefined}
       />
       {note && <p className="rv-caption" role="status" style={{ position: "fixed", left: 0, right: 0, bottom: 4, textAlign: "center", zIndex: 5 }}>{note}</p>}

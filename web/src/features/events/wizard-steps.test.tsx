@@ -50,7 +50,9 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", () => {
     expect(screen.getByText(/^Natural: a foto como/)).toBeInTheDocument();
     next();
     expect(screen.getByRole("heading", { name: "Quem vê o quê" })).toBeInTheDocument();
-    expect(screen.queryByRole("switch", { name: "Permitir baixar em alta" })).toBeNull(); // sem campo no evento: a linha fica escondida no assistente
+    expect(screen.getByRole("switch", { name: "Permitir baixar em alta" })).toBeChecked(); // padrão: permitido
+    fireEvent.click(screen.getByRole("switch", { name: "Permitir baixar em alta" }));
+    expect(screen.getByRole("switch", { name: "Permitir baixar em alta" })).not.toBeChecked();
     fireEvent.click(screen.getByRole("switch", { name: "Convidados veem o feed" }));
     expect(screen.getByRole("switch", { name: "Convidados veem o feed" })).not.toBeChecked();
     next();
@@ -59,6 +61,6 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", () => {
     Array.from(dialog.querySelectorAll<HTMLInputElement>("input[type=checkbox]")).forEach((c) => fireEvent.click(c));
     fireEvent.click(screen.getByRole("button", { name: "Aceitar" }));
     await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledOnce());
-    expect(mocks.save.mock.calls[0][0]).toMatchObject({ title: "Ana & Leo", cameraStyle: "festa", filmLook: "natural", everyoneSeesAll: false });
+    expect(mocks.save.mock.calls[0][0]).toMatchObject({ title: "Ana & Leo", cameraStyle: "festa", filmLook: "natural", everyoneSeesAll: false, guestDownloadHigh: false });
   });
 });

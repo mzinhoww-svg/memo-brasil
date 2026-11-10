@@ -14,7 +14,7 @@ export function ConfirmSheet({ title, body, confirmLabel = "Remover", onCancel, 
       {body && <p className="app-p app-muted">{body}</p>}
       <div className="app-stack-sm">
         <Button variant="secundario" block disabled={busy} onClick={onCancel}>Cancelar</Button>
-        <Button variant="destrutivo" block disabled={busy} onClick={async () => { if (busy) return; setError(undefined); setBusy(true); try { await onConfirm(); } catch { setError("Não foi possível concluir. Tente de novo."); } finally { setBusy(false); } }}>{confirmLabel}</Button>
+        <Button variant="destrutivo" block disabled={busy} onClick={async () => { if (busy) return; setError(undefined); setBusy(true); try { await onConfirm(); } catch (e) { setError((e as { userMessage?: string }).userMessage ?? "Não foi possível concluir. Tente de novo."); } finally { setBusy(false); } }}>{confirmLabel}</Button>
       </div>
     </Sheet>
   );
