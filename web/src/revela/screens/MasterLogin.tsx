@@ -1,5 +1,13 @@
 /* Gerado de design-system/revela/html/Master-login.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function MasterLogin() {
+import type { ReactNode } from "react";
+
+export interface MasterLoginProps {
+  title?: string; caption?: string;
+  /** Substitui os campos do desenho (e-mail, senha e código) pela ação real de entrada; o Master entra com a conta Google do operador. */
+  action?: ReactNode;
+}
+
+export function MasterLogin({ title = "Entrar no painel", caption = "Acesso restrito. Toda ação fica registrada na auditoria.", action }: MasterLoginProps = {}) {
   return (
     <>
     <div className="dsk">
@@ -19,11 +27,13 @@ export function MasterLogin() {
             </span>
           </div>
           <h1 className="rv-title" style={{ "textAlign": "center", "margin": "26px 0 6px" }}>
-            Entrar no painel
+            {title}
           </h1>
           <p className="rv-caption" style={{ "textAlign": "center", "marginBottom": "22px" }}>
-            Acesso restrito. Toda ação fica registrada na auditoria.
+            {caption}
           </p>
+          {action ?? (
+            <>
           <label className="rv-field">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -66,6 +76,8 @@ export function MasterLogin() {
               Entrar
             </button>
           </div>
+            </>
+          )}
         </div>
       </div>
       <div className="grain" />

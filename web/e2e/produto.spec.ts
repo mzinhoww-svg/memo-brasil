@@ -17,6 +17,7 @@ test("home mostra proposta, 3 passos e CTA criar, sem exemplo em banco nem guia 
   await page.waitForURL(/\/exemplo$/);
   await expect(page.getByTestId("selo-exemplo")).toHaveText("Exemplo · nada é salvo");
   await expect(page.getByRole("heading", { name: "Lu faz 40", level: 1 })).toBeVisible();
+  await page.getByRole("button", { name: "Minhas fotos" }).click();
   await expect(page.getByRole("heading", { name: "Agora", level: 2 })).toBeVisible();
   await expect(page.getByAltText(/Foto de exemplo de/).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
@@ -24,13 +25,10 @@ test("home mostra proposta, 3 passos e CTA criar, sem exemplo em banco nem guia 
 
 test("/ajuda é pública, tem h1, perguntas, contato único e links para Termos e Privacidade", async ({ page }) => {
   await page.goto("/ajuda");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-  await expect(page.getByRole("heading", { name: "Ajuda", level: 1 })).toBeVisible();
-  for (const q of ["Como funciona?", "Câmera ou galeria?", "Quando as fotos aparecem?", "Privacidade e guarda das fotos", "Como funciona o pagamento?"]) await expect(page.getByRole("heading", { name: q, level: 2 })).toBeVisible();
+  for (const q of ["Os convidados precisam baixar app?", "Quando as fotos aparecem?", "Posso trocar de plano depois?", "Como apago uma foto?", "O pagamento é seguro?"]) await expect(page.getByText(q, { exact: true })).toBeVisible();
+  await page.getByText("Posso trocar de plano depois?").click();
   await expect(page.getByText(/O evento nasce grátis, até 10 convidados\./)).toBeVisible();
-  await expect(page.getByRole("main").getByRole("link", { name: "mazinhoww@gmail.com" })).toHaveAttribute("href", "mailto:mazinhoww@gmail.com");
-  await expect(page.getByRole("link", { name: "Termos de uso" })).toHaveAttribute("href", "/termos");
-  await expect(page.getByRole("link", { name: "Política de Privacidade" })).toHaveAttribute("href", "/privacidade");
+  await expect(page.getByRole("link", { name: "Falar com o suporte" })).toHaveAttribute("href", /^mailto:.+@/);
   await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
 });
 

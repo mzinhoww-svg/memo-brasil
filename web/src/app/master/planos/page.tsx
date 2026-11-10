@@ -1,38 +1,26 @@
+import { MState } from "@/revela/master-kit";
 import { requireMaster, rpc } from "../data";
-import { Badge, StateBox } from "../ui";
-import { envLabel, lastChange } from "../billing";
-import { PricesEditor } from "./PricesEditor";
+import { PricesEditor, type PlanImpact } from "./PricesEditor";
 import type { PlanRow } from "../prices";
 
 type Plan = PlanRow & { updatedAt: string; history: { at: string }[] };
+interface Order { planCode: string; status: string; amountCents: number }
 
-const day = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Cuiaba" }) : "—");
-
+/** M03: planos e preços editáveis na tabela, prévia do paywall e publicação com o código do autenticador (M04). */
 export default async function Planos() {
   const sb = await requireMaster();
-  const [plans, settings] = await Promise.all([
+  const [plans, settings, orders] = await Promise.all([
     rpc<Plan[]>(sb, "admin_list_plans"),
     rpc<{ payments_env: string }>(sb, "get_public_settings"),
+    rpc<Order[]>(sb, "admin_list_payments", { p_limit: 200 }),
   ]);
+  if (plans.state !== "ok") return <MState kind={plans.state === "denied" ? "denied" : "error"} text={plans.state === "error" ? `Não foi possível carregar: ${plans.message}` : undefined} />;
   const env = settings.state === "ok" ? settings.data.payments_env : "desligado";
-  const last = plans.state === "ok" ? lastChange(plans.data) : null;
-  return (
-    <>
-      <header className="adm-head">
-        <div>
-          <div className="adm-head-title">
-            <h1>Planos e preços</h1>
-            <Badge s={env === "production" ? "ok" : env === "sandbox" ? "aviso" : "info"}>Pagamentos: {envLabel(env)}</Badge>
-          </div>
-          <p>{last ? `Última alteração em ${day(last)}. ` : ""}Mudanças valem para pedidos novos; um pagamento já iniciado mantém o valor dele.</p>
-        </div>
-      </header>
-      {plans.state === "ok" ? (
-        <PricesEditor plans={plans.data.map(({ updatedAt: _u, ...p }) => { void _u; return p; })} env={env} />
-      ) : <StateBox load={plans} />}
-      <p className="adm-nota" style={{ marginTop: 16, fontSize: 14 }}>
-        Publicar grava em <code>plans</code> e registra <code>plan.price_changed</code> na auditoria. Direitos já concedidos e Pix abertos não mudam.
-      </p>
-    </>
-  );
+  const impact: PlanImpact = {};
+  for (const o of orders.state === "ok" ? orders.data : []) {
+    const i = (impact[o.planCode] ??= { paid: 0, open: 0 });
+    if (o.status === "pago") i.paid += 1;
+    else if (o.status === "pendente") i.open += 1;
+  }
+  return <PricesEditor plans={plans.data.map(({ updatedAt: _u, history: _h, ...p }) => { void _u; void _h; return p; })} env={env} impact={impact} />;
 }

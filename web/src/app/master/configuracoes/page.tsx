@@ -1,19 +1,40 @@
-import { requireMaster, when } from "../data";
-import { Badge, PageHead, StateBox, Table } from "../ui";
+import { MState } from "@/revela/master-kit";
+import { requireMaster, rpc } from "../data";
+import { relWhen } from "../format";
+import { ConfigForm, type ConfigInitial } from "./ConfigForm";
+import { CARD_FLAG, CHECKOUT_FLAG, PIX_KEY, SETTING_FIELDS } from "./config";
 
-interface S { key: string; value: unknown; updated_at: string }
-interface F { key: string; enabled: boolean; rollout: unknown; updated_at: string }
+interface Setting { key: string; value: unknown }
+interface Flag { key: string; enabled: boolean }
+interface Overview { readiness?: { paymentsEnv?: string; lastWebhookAt?: string | null } }
+
+const txt = (v: unknown): string => (v == null ? "" : typeof v === "string" ? v : String(v));
+
+/** M14 · Configurações. Ambiente e webhook só leitura (vêm do servidor); validade do Pix, cartão, checkout e parâmetros gravam via RPC com auditoria. */
 export default async function Configuracoes() {
   const sb = await requireMaster();
-  const [s, f] = await Promise.all([sb.from("platform_settings").select("key,value,updated_at").order("key"), sb.from("feature_flags").select("key,enabled,rollout,updated_at").order("key")]);
-  const fail = (e: { message: string } | null) => e ? ({ state: "error", message: e.message } as const) : null;
-  return (
-    <>
-      <PageHead titulo="Configurações" texto="Parâmetros e feature flags da plataforma. Leitura aqui; alterações passam pelas RPCs admin_set_* (somente master, com justificativa e auditoria)." />
-      <h2 style={{ fontSize: 18 }}>Parâmetros</h2>
-      {fail(s.error) ? <StateBox load={fail(s.error)!} /> : <Table vazio="Nenhum parâmetro definido." cols={[{ k: "k", h: "Chave" }, { k: "v", h: "Valor" }, { k: "u", h: "Atualizado" }]} rows={((s.data ?? []) as S[]).map((x) => ({ k: <code>{x.key}</code>, v: <code>{JSON.stringify(x.value)}</code>, u: when(x.updated_at) }))} />}
-      <h2 style={{ fontSize: 18, marginTop: 32 }}>Feature flags</h2>
-      {fail(f.error) ? <StateBox load={fail(f.error)!} /> : <Table vazio="Nenhuma flag definida." cols={[{ k: "k", h: "Flag" }, { k: "e", h: "Estado" }, { k: "r", h: "Rollout" }, { k: "u", h: "Atualizada" }]} rows={((f.data ?? []) as F[]).map((x) => ({ k: <code>{x.key}</code>, e: <Badge s={x.enabled ? "ok" : "info"}>{x.enabled ? "ligada" : "desligada"}</Badge>, r: <code>{JSON.stringify(x.rollout)}</code>, u: when(x.updated_at) }))} />}
-    </>
-  );
+  const [s, f, ov, pub] = await Promise.all([
+    sb.from("platform_settings").select("key,value"),
+    sb.from("feature_flags").select("key,enabled"),
+    rpc<Overview>(sb, "admin_overview", { p_days: 7 }),
+    rpc<{ payments_env: string }>(sb, "get_public_settings"),
+  ]);
+  if (s.error || f.error) return <MState kind="error" text={`Não foi possível carregar: ${(s.error ?? f.error)!.message}`} />;
+  const settings = new Map(((s.data ?? []) as Setting[]).map((x) => [x.key, x.value]));
+  const flags = new Map(((f.data ?? []) as Flag[]).map((x) => [x.key, x.enabled]));
+  const env = pub.state === "ok" && (pub.data.payments_env === "sandbox" || pub.data.payments_env === "production") ? pub.data.payments_env : "desligado";
+  const last = ov.state === "ok" ? ov.data.readiness?.lastWebhookAt ?? null : null;
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const initial: ConfigInitial = {
+    env,
+    pixMinutes: txt(settings.get(PIX_KEY) ?? "15"),
+    card: flags.get(CARD_FLAG) === true,
+    checkout: flags.get(CHECKOUT_FLAG) === true,
+    settings: Object.fromEntries(SETTING_FIELDS.map((x) => [x.key, txt(settings.get(x.key))])),
+    webhook: {
+      meta: `${base ? `${base}/functions/v1/payments-validapay-webhook` : "payments-validapay-webhook"} · ${last ? `último evento ${relWhen(last)}` : "nenhum evento recebido ainda"}`,
+      tone: last ? "ok" : "info", label: last ? "Ativo" : "Sem eventos",
+    },
+  };
+  return <ConfigForm initial={initial} />;
 }

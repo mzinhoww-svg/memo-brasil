@@ -1,17 +1,23 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MODULES } from "./modules";
+import type { ReactNode } from "react";
+import { MasterFrame, type MasterUser } from "@/revela/master-kit";
+import type { MasterNavId } from "@/revela/master-icons";
 
-export function MasterNav() {
-  const path = usePathname().replace(/\/$/, "");
-  return (
-    <nav className="adm-nav" aria-label="Módulos do console">
-      {MODULES.map((m) => {
-        const href = m.rota ? `/master/${m.rota}` : "/master";
-        return <Link key={href} href={href} aria-current={path === href ? "page" : undefined}>{m.rotulo}</Link>;
-      })}
-    </nav>
-  );
+/** Rota → item do menu. Rotas que não têm item próprio acendem o grupo a que pertencem. */
+export function currentOf(path: string): MasterNavId {
+  const seg = path.replace(/\/$/, "").split("/")[2] ?? "";
+  const map: Record<string, MasterNavId> = {
+    "": "visao", analytics: "visao", busca: "visao", eventos: "eventos", pessoas: "pessoas", usuarios: "pessoas", organizadores: "pessoas", participantes: "pessoas",
+    planos: "planos", pagamentos: "pagamentos", codigos: "cortesias", revelacoes: "revelacoes", moderacao: "moderacao", saude: "saude", storage: "saude",
+    lgpd: "lgpd", auditoria: "auditoria", configuracoes: "configuracoes",
+  };
+  return map[seg] ?? "visao";
+}
+
+/** Moldura do Master (menu lateral + barra de cima) em volta de cada página; o item atual vem da URL. */
+export function MasterShell({ user, env, children }: { user: MasterUser; env: string; children: ReactNode }) {
+  const path = usePathname() ?? "/master";
+  return <MasterFrame links current={currentOf(path)} user={user} env={env}>{children}</MasterFrame>;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertChargeOrder, resolveValidaPayEnvironment, ValidaPayClient, ValidaPayError, type ChargeInput } from "./validapay";
+import { assertChargeOrder, capPixExpiry, normalizePixExpiry, pixExpired, resolveValidaPayEnvironment, ValidaPayClient, ValidaPayError, type ChargeInput } from "./validapay";
 
 const buyer = { name: "Pessoa Teste", email: "test@example.test", documentNumber: "12345678901" };
 const input: ChargeInput = { orderId: "11111111-1111-4111-8111-111111111111", amountCents: 18900, method: "pix", customer: buyer };
@@ -198,5 +198,26 @@ describe("trusted deployment selector", () => {
   it("never falls back from invalid or production selector into enabled sandbox", () => {
     expect(resolve({ VALIDAPAY_ENVIRONMENT: "typo", VALIDAPAY_SANDBOX_ENABLED: "true" })).toBe(null);
     expect(resolve({ VALIDAPAY_ENVIRONMENT: "production", VALIDAPAY_SANDBOX_ENABLED: "true" })).toBe("production");
+  });
+});
+
+describe("expiração do Pix configurável (M14)", () => {
+  it("normaliza o valor: 5 a 1440 inteiros; qualquer outra coisa volta ao padrão de 15", () => {
+    expect(normalizePixExpiry(30)).toBe(30);
+    expect(normalizePixExpiry("45")).toBe(45);
+    for (const bad of [4, 1441, 7.5, "abc", null, undefined, -1]) expect(normalizePixExpiry(bad)).toBe(15);
+  });
+  it("vale o menor prazo entre o do provedor e o configurado", () => {
+    const created = "2026-11-09T12:00:00.000Z";
+    expect(capPixExpiry("2026-11-09T12:30:00.000Z", created, 15)).toBe("2026-11-09T12:15:00.000Z");
+    expect(capPixExpiry("2026-11-09T12:10:00.000Z", created, 15)).toBe("2026-11-09T12:10:00.000Z");
+    expect(capPixExpiry(undefined, created, 20)).toBe("2026-11-09T12:20:00.000Z");
+    expect(capPixExpiry("lixo", "lixo", 15)).toBeUndefined();
+  });
+  it("expirou quando passa criação + minutos", () => {
+    const created = "2026-11-09T12:00:00.000Z";
+    expect(pixExpired(created, 15, Date.parse("2026-11-09T12:14:59.000Z"))).toBe(false);
+    expect(pixExpired(created, 15, Date.parse("2026-11-09T12:15:00.000Z"))).toBe(true);
+    expect(pixExpired("lixo", 15, Date.now())).toBe(false);
   });
 });

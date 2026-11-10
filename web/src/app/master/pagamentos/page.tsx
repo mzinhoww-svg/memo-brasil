@@ -1,96 +1,61 @@
-import { num, requireMaster, rpc, when } from "../data";
-import { Badge, Metric, StateBox, Table } from "../ui";
-import { brl, canRefund, divergenceText, envLabel, orderStatus, paymentRef, providerLabel } from "../billing";
-import { CourtesyButton, RefundButton } from "../billing-actions";
+import { MNote, MState } from "@/revela/master-kit";
+import { MasterPagamentosView, type PagamentoRow } from "@/revela/screens/MasterPagamentos";
+import { brl, divergenceText } from "../billing";
+import { requireMaster, rpc } from "../data";
+import { methodLabel, nf, relWhen } from "../format";
+import { orderLabel } from "./status";
 
 interface Order {
-  orderId: string; createdAt: string; eventId: string | null; eventTitle: string | null; planCode: string; planName: string | null;
-  fromPlanCode: string | null; amountCents: number; status: string; provider: string; providerEnv: string; providerChargeId: string | null; providerPaymentId?: string | null; paymentMethod?: string | null;
-  needsRefund: boolean; refundRequestedAt: string | null;
+  orderId: string; createdAt: string; eventTitle: string | null; planCode: string; planName: string | null; amountCents: number; status: string;
+  paymentMethod?: string | null; needsRefund: boolean; refundRequestedAt: string | null;
 }
-interface Divergence { kind: string; orderId: string; eventTitle: string | null; status: string; detectedAt: string; occurrences: number; refundInProgress: boolean }
-interface Summary {
-  env: string; byStatus: Record<string, { count: number; amountCents: number }>; paid30d: { count: number; amountCents: number };
-  pendingOver1h: number; divergences: number;
-}
-interface EventsPage { items: { id: string; title: string; hostName: string | null }[] }
-interface Plan { code: string; name: string; isFree: boolean }
+interface Divergence { kind: string; orderId: string; eventTitle: string | null; occurrences: number }
+interface Summary { byStatus: Record<string, { count: number; amountCents: number }>; paid30d: { count: number; amountCents: number }; pendingOver1h: number }
 
-export default async function Pagamentos() {
+const FILTROS = [["", "Todos"], ["pix", "Pix"], ["cartao", "Cartão"], ["pendentes", "Pendentes"], ["recusados", "Recusados"], ["estornos", "Estornos"]] as const;
+const MATCH: Record<string, (o: Order) => boolean> = {
+  pix: (o) => o.paymentMethod === "pix",
+  cartao: (o) => o.paymentMethod === "card" || o.paymentMethod === "cartao",
+  pendentes: (o) => o.status === "pendente",
+  recusados: (o) => o.status === "falhou",
+  estornos: (o) => o.status === "estornado" || o.needsRefund || o.refundRequestedAt != null,
+};
+
+export default async function Pagamentos({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
   const sb = await requireMaster();
-  const [s, list, div, evs, plans] = await Promise.all([
+  const f = (await searchParams).f ?? "";
+  const filtro = MATCH[f] ? f : "";
+  const [s, list, div] = await Promise.all([
     rpc<Summary>(sb, "admin_payments_summary"),
     rpc<Order[]>(sb, "admin_list_payments", { p_limit: 200 }),
     rpc<Divergence[]>(sb, "admin_payment_divergences"),
-    rpc<EventsPage>(sb, "admin_list_events", { p_limit: 100, p_status: "ativo" }),
-    rpc<Plan[]>(sb, "admin_list_plans"),
   ]);
-  const env = s.state === "ok" ? s.data.env : "desligado";
-  const count = (st: string) => (s.state === "ok" ? s.data.byStatus[st]?.count ?? 0 : 0);
-  const events = evs.state === "ok" ? evs.data.items.map((e) => ({ id: e.id, label: `${e.title}${e.hostName ? ` · ${e.hostName}` : ""}` })) : [];
-  const paidPlans = plans.state === "ok" ? plans.data.filter((p) => !p.isFree).map((p) => ({ code: p.code, name: p.name })) : [];
-
+  if (list.state !== "ok") return <MState kind={list.state === "denied" ? "denied" : "error"} text={list.state === "error" ? `Não foi possível carregar: ${list.message}` : undefined} />;
+  const all = list.data;
+  const shown = filtro ? all.filter(MATCH[filtro]) : all;
+  const rows: PagamentoRow[] = shown.map((o) => {
+    const st = orderLabel(o);
+    return { key: o.orderId, when: relWhen(o.createdAt), order: `#${o.orderId.slice(0, 8).toUpperCase()}`, event: o.eventTitle ?? "Evento excluído", plan: o.planName ?? o.planCode, method: methodLabel(o.paymentMethod), amount: brl(o.amountCents), tone: st.tone, status: st.label, href: `/master/pagamentos/${o.orderId}` };
+  });
+  const sum = s.state === "ok" ? s.data : null;
+  const pend = sum?.byStatus.pendente;
+  const toRefund = all.filter((o) => o.needsRefund).length;
   return (
-    <>
-      <header className="adm-head">
-        <div>
-          <div className="adm-head-title">
-            <h1>Pagamentos</h1>
-            <Badge s={env === "production" ? "ok" : env === "sandbox" ? "aviso" : "info"}>{envLabel(env)}</Badge>
-          </div>
-          <p>Provedor ativo: Mercado Pago (Checkout Pro). Pedidos da AbacatePay são históricos e seguem válidos.</p>
+    <MasterPagamentosView
+      caption="Cobranças conciliadas com os pedidos do Revela. A conciliação com o provedor roda sozinha a cada poucos minutos."
+      tiles={[
+        { label: "Pago (30 dias)", value: brl(sum?.paid30d.amountCents ?? 0, { compact: true }), note: `${nf(sum?.paid30d.count ?? 0)} ${sum?.paid30d.count === 1 ? "pedido" : "pedidos"}` },
+        { label: "Pendentes", value: brl(pend?.amountCents ?? 0, { compact: true }), note: `${nf(pend?.count ?? 0)} aguardando${sum?.pendingOver1h ? ` · ${sum.pendingOver1h} há mais de 1 h` : ""}` },
+        { label: "Recusados", value: nf(sum?.byStatus.falhou?.count ?? 0), note: "não aprovados pelo banco" },
+        { label: "Para estornar", value: nf(toRefund), note: toRefund ? "dinheiro recebido sem plano" : "nada a estornar" },
+      ]}
+      chips={FILTROS.map(([k, label]) => ({ label, href: k ? `/master/pagamentos?f=${k}` : "/master/pagamentos", on: k === filtro }))}
+      rows={rows} actions={<></>}
+      alerts={div.state === "ok" && div.data.length > 0 ? (
+        <div className="stack" style={{ marginBottom: "14px", gap: "8px" }} aria-label="Divergências">
+          {div.data.map((d) => <MNote key={`${d.orderId}-${d.kind}`}><strong>{d.eventTitle ?? "Evento excluído"}:</strong> {divergenceText(d.kind)}{d.occurrences > 1 ? ` (${d.occurrences} vezes)` : ""}</MNote>)}
         </div>
-        <CourtesyButton events={events} plans={paidPlans} />
-      </header>
-
-      {s.state === "ok" ? (
-        <div className="adm-grid">
-          <Metric rotulo="Pagos (30 dias)" valor={brl(s.data.paid30d.amountCents, { compact: true })} nota={`${num(s.data.paid30d.count)} ${s.data.paid30d.count === 1 ? "pedido" : "pedidos"}`} />
-          <Metric rotulo="Pendentes" valor={num(count("pendente"))} nota={`${num(s.data.pendingOver1h)} com mais de 1 h`} />
-          <Metric rotulo="Expirados" valor={num(count("expirado"))} nota="nada cobrado" />
-          <Metric rotulo="Divergências" valor={num(s.data.divergences)} nota={s.data.divergences ? "precisa de ação" : "nada a revisar"} />
-        </div>
-      ) : <StateBox load={s} />}
-
-      {div.state === "ok" ? (
-        div.data.length > 0 && (
-          <ul className="adm-alerts" aria-label="Divergências">
-            {div.data.map((d) => (
-              <li key={`${d.orderId}-${d.kind}`} className="adm-alert" data-andamento={d.refundInProgress || undefined}>
-                <strong>{d.eventTitle ?? "Evento excluído"}:</strong> {divergenceText(d.kind)}
-                {d.occurrences > 1 ? ` (${d.occurrences} vezes)` : ""} {d.refundInProgress && <Badge s="aviso">reembolso em andamento</Badge>}{" "}
-                <span className="adm-nota">{when(d.detectedAt)}</span>
-              </li>
-            ))}
-          </ul>
-        )
-      ) : <StateBox load={div} />}
-
-      {list.state === "ok" ? (
-        <Table
-          vazio="Nenhum pedido ainda."
-          cols={[{ k: "d", h: "Data" }, { k: "e", h: "Evento" }, { k: "p", h: "Plano" }, { k: "v", h: "Valor", num: true }, { k: "s", h: "Status" },
-                 { k: "pr", h: "Provedor" }, { k: "c", h: "Pagamento" }, { k: "a", h: "Ações" }]}
-          rows={list.data.map((o) => {
-            const st = orderStatus(o);
-            return {
-              d: when(o.createdAt),
-              e: o.eventTitle ?? <span className="adm-nota">Evento excluído</span>,
-              p: o.planName ?? o.planCode,
-              v: <>{brl(o.amountCents)}{o.fromPlanCode && o.fromPlanCode !== "gratis" ? <span className="adm-nota"> (dif.)</span> : null}</>,
-              s: <>
-                <Badge s={st.tone}>{st.label}</Badge>
-                {o.needsRefund && <> <Badge s="erro">reembolsar</Badge></>}
-              </>,
-              pr: <>{providerLabel(o.provider)}<span className="adm-nota"> · {o.providerEnv}{o.providerEnv !== env ? " (diferente do atual)" : ""}</span></>,
-              c: <code title={`${providerLabel(o.provider)} · ${paymentRef(o) === "—" ? "sem pagamento" : paymentRef(o)}${o.paymentMethod ? ` · ${o.paymentMethod}` : ""}`}>{paymentRef(o)}</code>,
-              a: canRefund(o)
-                ? <RefundButton order={{ orderId: o.orderId, eventTitle: o.eventTitle, planName: o.planName, amountCents: o.amountCents, providerChargeId: o.providerChargeId, providerPaymentId: o.providerPaymentId, provider: o.provider, refundRequestedAt: o.refundRequestedAt }} />
-                : null,
-            };
-          })}
-        />
-      ) : <StateBox load={list} />}
-    </>
+      ) : undefined}
+    />
   );
 }
