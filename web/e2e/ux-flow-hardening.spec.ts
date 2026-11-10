@@ -102,7 +102,7 @@ test("Dia vazio é rejeitado e a janela padrão continua recuperável", async ({
   await expect(page.getByText("Escolha o dia e os horários da festa.")).toBeVisible();
   await day.fill(valid);
   await next();
-  await expect(page.getByRole("heading", { name: "Quantas poses?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Quando revelar?" })).toBeVisible();
   expect(await localPhotos(page)).toEqual([]);
 });
 

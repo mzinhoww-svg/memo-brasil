@@ -9,7 +9,7 @@ for (const width of [390, 1280]) {
     const problems: string[] = [];
     for (const route of ["/", "/precos", "/ajuda", `/painel/${id}`, `/painel/${id}/configuracoes`]) {
       await page.goto(route);
-      await page.locator("main").first().waitFor(); // o desenho Revela nem sempre abre em h1 (ex.: /ajuda usa título em texto)
+      await page.locator("h1, h2, main").first().waitFor(); // o desenho Revela nem sempre abre em h1 (ex.: /ajuda usa título em texto)
       await page.evaluate(() => document.fonts.ready);
       const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       for (const v of r.violations) problems.push(`${route} [${v.impact}] ${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);
@@ -74,7 +74,7 @@ for (const theme of ["dia", "noite"] as const) {
     const problems: string[] = [];
     for (const route of routes) {
       await page.goto(route);
-      await page.locator("main").first().waitFor();
+      await page.locator("h1, h2, main").first().waitFor();
       await page.evaluate(() => document.fonts.ready);
       const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       for (const v of r.violations.filter((v) => v.impact === "critical" || v.impact === "serious")) {
