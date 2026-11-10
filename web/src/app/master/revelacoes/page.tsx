@@ -1,7 +1,7 @@
 import { MState } from "@/revela/master-kit";
 import { MasterRevelacoesView, type RevelacaoRow } from "@/revela/screens/MasterRevelacoes";
 import { requireMaster, rpc } from "../data";
-import { nf, relWhen } from "../format";
+import { nf, nowMs, relWhen } from "../format";
 import { RevealNow } from "./RevealNow";
 
 interface Rev { id: string; title: string; revealAt: string | null; revealedAt: string | null; photos: number; emailOptIns: number; emailsSent: number; emailsFailed: number; emailsQueued: number }
@@ -11,7 +11,7 @@ export default async function Revelacoes() {
   const sb = await requireMaster();
   const r = await rpc<{ items: Rev[] }>(sb, "admin_reveals_board", { p_limit: 100 });
   if (r.state !== "ok") return <MState kind={r.state === "denied" ? "denied" : "error"} text={r.state === "error" ? `Não foi possível carregar: ${r.message}` : undefined} />;
-  const now = Date.now();
+  const now = nowMs();
   const rows: RevelacaoRow[] = r.data.items.map((e) => {
     const done = e.revealedAt != null;
     const late = !done && e.revealAt != null && Date.parse(e.revealAt) < now;

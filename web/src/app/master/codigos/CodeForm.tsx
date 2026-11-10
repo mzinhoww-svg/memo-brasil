@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Ico } from "@/revela/master-kit";
 import { browserSupabase } from "@/lib/supabase/client";
 import { adminErrorText } from "../billing";
+import { nowMs } from "../format";
 import { codeLink, defaultExpiry, expiryIso, noteError, NOTE_MAX, parseUses, USES_MAX } from "../codes";
 
 /** Copia e confirma no próprio botão por alguns segundos. */
@@ -31,11 +32,11 @@ export function CodeForm({ plans }: { plans: { code: string; name: string }[] })
 
   const maxUses = parseUses(uses);
   const expiresAt = expiryIso(expiry);
-  const errs = [note.trim() ? noteError(note) : tried ? noteError(note) : null, tried && maxUses == null ? `Usos: de 1 a ${USES_MAX}.` : null, tried && (!expiresAt || Date.parse(expiresAt) <= Date.now()) ? "Validade: escolha uma data a partir de hoje." : null].filter(Boolean) as string[];
+  const errs = [note.trim() ? noteError(note) : tried ? noteError(note) : null, tried && maxUses == null ? `Usos: de 1 a ${USES_MAX}.` : null, tried && (!expiresAt || Date.parse(expiresAt) <= nowMs()) ? "Validade: escolha uma data a partir de hoje." : null].filter(Boolean) as string[];
 
   async function submit() {
     setTried(true);
-    if (!plan || maxUses == null || !expiresAt || Date.parse(expiresAt) <= Date.now() || noteError(note)) return;
+    if (!plan || maxUses == null || !expiresAt || Date.parse(expiresAt) <= nowMs() || noteError(note)) return;
     setBusy(true); setError(null);
     const { data, error: e } = await browserSupabase().rpc("admin_create_code", { p_plan: plan, p_max_uses: maxUses, p_expires_at: expiresAt, p_note: note.trim() });
     setBusy(false);

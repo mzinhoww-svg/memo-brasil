@@ -44,3 +44,6 @@ export const CATEGORY: Record<string, string> = { casamento: "Casamento", aniver
 export const nf = (n: number | null | undefined): string => new Intl.NumberFormat("pt-BR").format(n ?? 0);
 
 export const pct =(n: number, max: number): number => (max > 0 ? Math.max(n > 0 ? 2 : 0, Math.round((n / max) * 100)) : 0);
+
+/** Relógio fora dos componentes (a regra de pureza do React não aceita Date.now() no render). */
+export const nowMs = (): number => Date.now();
