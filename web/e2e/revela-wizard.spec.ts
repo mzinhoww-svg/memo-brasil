@@ -70,6 +70,7 @@ test("assistente Revela: os 8 passos com as telas do desenho, e a câmera é cri
   await expect(page.getByRole("heading", { name: "Quem vê o quê" })).toBeVisible();
   await expect(page.getByText("7/8")).toBeVisible();
   await expect(page.getByRole("switch", { name: "Convidados veem o feed" })).toBeChecked();
+  // "Permitir baixar em alta" vale de verdade (events.guest_download_high): ligado por padrão no assistente
   await expect(page.getByRole("switch", { name: "Permitir baixar em alta" })).toBeChecked();
   await next();
 

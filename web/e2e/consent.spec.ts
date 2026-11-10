@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createViaWizard, wizardToSummary } from "./helpers";
+import { createViaWizard, openInviteAsGuest, wizardToSummary } from "./helpers";
 
 const ALERTA = /Aceite os Termos de Uso e confirme a leitura da Política de Privacidade/;
 
@@ -18,42 +18,45 @@ test("termos e privacidade são páginas públicas na versão 2026-10-22-v1, sem
   }
 });
 
-test("organizador: caixas nascem desmarcadas; uma sem a outra não cria; as duas criam", async ({ page }) => {
+test("organizador: diálogo 'Antes de criar' nasce com caixas desmarcadas; uma sem a outra não cria; as duas criam", async ({ page }) => {
   await wizardToSummary(page);
-  const termos = page.getByRole("checkbox", { name: /Li e aceito os Termos/ });
-  const politica = page.getByRole("checkbox", { name: /Li a Política/ });
+  await page.getByRole("button", { name: /Criar câmera/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Antes de criar" });
+  const termos = dialog.getByRole("checkbox", { name: /Li e aceito os Termos/ });
+  const politica = dialog.getByRole("checkbox", { name: /Li a Política/ });
+  const aceitar = dialog.getByRole("button", { name: "Aceitar" });
   await expect(termos).not.toBeChecked();
   await expect(politica).not.toBeChecked();
-  await page.getByRole("button", { name: /Criar evento/ }).click();
-  await expect(page.getByRole("alert").filter({ hasText: ALERTA })).toBeVisible();
+  await expect(aceitar).toBeDisabled(); // nenhuma confirmação: não cria
   await termos.check();
-  await page.getByRole("button", { name: /Criar evento/ }).click();
-  await expect(page.getByRole("alert").filter({ hasText: ALERTA })).toBeVisible(); // só os Termos: a ciência da Política é outra afirmação
+  await expect(aceitar).toBeDisabled(); // só os Termos: a ciência da Política é outra afirmação
   await termos.uncheck();
   await politica.check();
-  await page.getByRole("button", { name: /Criar evento/ }).click();
-  await expect(page.getByRole("alert").filter({ hasText: ALERTA })).toBeVisible(); // só a Política: não aceita os Termos
+  await expect(aceitar).toBeDisabled(); // só a Política: não aceita os Termos
   await expect(page).toHaveURL(/\/criar$/);
   await termos.check();
-  await page.getByRole("button", { name: /Criar evento/ }).click();
+  await expect(aceitar).toBeEnabled();
+  await aceitar.click();
   await page.waitForURL(/\/criar\/pronto\//);
 });
 
 test("convidado: sem as duas confirmações não entra na festa; com as duas entra", async ({ page }) => {
   const { code } = await createViaWizard(page, { reveal: "desligada" });
-  await page.goto(`/e/${code}/voce`);
-  await page.getByRole("button", { name: "Entrar como outra pessoa" }).click();
-  await page.waitForURL(new RegExp(`/e/${code}$`));
-  await page.getByLabel("Como te chamam na festa?").fill("Ana");
-  await expect(page.getByRole("checkbox", { name: /Li e aceito os Termos/ })).not.toBeChecked();
-  await expect(page.getByRole("checkbox", { name: /Li a Política/ })).not.toBeChecked();
-  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
-  await expect(page.getByRole("alert").filter({ hasText: ALERTA })).toBeVisible();
-  await page.getByRole("checkbox", { name: /Li e aceito os Termos/ }).check();
-  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
-  await expect(page.getByRole("alert").filter({ hasText: ALERTA })).toBeVisible();
+  await openInviteAsGuest(page, code);
+  await page.getByLabel("Seu nome").fill("Ana");
+  await page.getByRole("button", { name: /Entrar e fotografar/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Antes de fotografar" });
+  const termos = dialog.getByRole("checkbox", { name: /Li e aceito os Termos/ });
+  const politica = dialog.getByRole("checkbox", { name: /Li a Política/ });
+  await expect(termos).not.toBeChecked();
+  await expect(politica).not.toBeChecked();
+  await dialog.getByRole("button", { name: "Aceitar" }).click();
+  await expect(dialog.getByRole("alert").filter({ hasText: ALERTA })).toBeVisible();
+  await termos.check();
+  await dialog.getByRole("button", { name: "Aceitar" }).click();
+  await expect(dialog.getByRole("alert").filter({ hasText: ALERTA })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/e/${code}$`));
-  await page.getByRole("checkbox", { name: /Li a Política/ }).check();
-  await page.getByRole("button", { name: "Entrar e abrir a câmera" }).click();
+  await politica.check();
+  await dialog.getByRole("button", { name: "Aceitar" }).click();
   await page.waitForURL(/postar$/); // o convite leva direto à câmera
 });
