@@ -298,7 +298,7 @@ export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa",
       </>
     );
   }
-  if (order && ["falhou", "cancelado"].includes(order.status) && !submitting.current) {
+  if (order && ["falhou", "cancelado"].includes(order.status) && !busy) {
     const card = order.paymentMethod === "card";
     return <PagamentoFalhou title={card ? "O banco recusou" : "Não deu certo"} stamp={card ? "RECUSADO" : "NÃO PAGO"} message={card ? "O cartão não foi aprovado. Nada foi cobrado. Tente com Pix ou com outro cartão." : "O pagamento não foi concluído. Nada foi cobrado. Você pode tentar de novo."}
       primary="Pagar com Pix" secondary={card && cardEnabled ? "Usar outro cartão" : null} onClose={back}
