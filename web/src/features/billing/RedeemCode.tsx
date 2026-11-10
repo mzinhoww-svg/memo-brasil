@@ -85,7 +85,7 @@ export function CodeApplied({ plan, code, eventTitle, backHref, printHref }: { p
       <p className="app-p app-muted plano-nota">Cada código vale para um evento. Ele não vira dinheiro nem desconto em outro plano.</p>
       <div className="app-stack-sm plano-acoes">
         <Button href={backHref} block>Voltar ao painel</Button>
-        <Button href={printHref} variant="secundario" block>Imprimir os cards das mesas</Button>
+        <Button href={printHref} variant="secundario" block>Baixar QR code</Button>
       </div>
     </div>
   );

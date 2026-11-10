@@ -217,7 +217,7 @@ describe("CheckoutPending", () => {
     expect(screen.getByText("R$ 189,00 · Pix")).toBeInTheDocument();
     expect(screen.getByText("#7F3A-21C9")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Voltar ao painel" })).toHaveAttribute("href", "/painel/ev1");
-    expect(screen.getByRole("link", { name: "Imprimir os cards das mesas" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Baixar QR code" })).toBeInTheDocument();
     await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(api.orderStatus).toHaveBeenCalledTimes(1);
   });

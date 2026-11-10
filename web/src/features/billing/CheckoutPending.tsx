@@ -154,7 +154,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
         <p className="app-p app-muted plano-nota">Guarde este comprovante. Ele também fica em Painel › Plano.</p>
         <div className="app-stack-sm plano-acoes">
           <Button href={painel} block>Voltar ao painel</Button>
-          <Button href={`${painel}/qr`} variant="secundario" block>Imprimir os cards das mesas</Button>
+          <Button href={`${painel}/qr`} variant="secundario" block>Baixar QR code</Button>
           <Button variant="texto" block onClick={onChoosePlan}>Ver outros planos</Button>
         </div>
       </div>

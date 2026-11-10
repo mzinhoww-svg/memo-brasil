@@ -70,7 +70,7 @@ export function PainelConvites({ rows = CONVITES_REF, onBack, onNew, onRow, onPr
             <svg {...svgProps}>
               <path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" />
             </svg>
-            Imprimir cartões de mesa
+            Baixar QR code
           </button>
         </div>
       </div>

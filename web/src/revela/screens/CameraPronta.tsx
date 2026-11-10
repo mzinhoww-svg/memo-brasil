@@ -34,7 +34,7 @@ export function CameraPronta({ name = "Ana & Leo", cam = "/revela/ref/cam-casame
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" />
             </svg>
-            Imprimir QR das mesas
+            Baixar QR code
           </Link>
         </div>
       </div>
