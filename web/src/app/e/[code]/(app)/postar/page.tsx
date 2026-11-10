@@ -13,6 +13,7 @@ import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
 import { cameraFailure, photoAudienceCopy, cameraHelp, fileToImage, isEmbeddedBrowser, renderPhoto, stampText } from "@/features/photos/capture";
 import { clearPhotoDraft, loadPhotoDraft, savePhotoDraft, type PhotoDraft } from "@/features/photos/draft";
+import { FilmCanvas } from "@/features/photos/film-canvas";
 import { postPhoto, retryDelayMs } from "@/features/photos/service";
 import { useAlive } from "@/lib/use-alive";
 import type { PhotoData } from "@/repositories";
@@ -26,6 +27,8 @@ const REMEMBER_KEY = "mm-camera-liberada";
 const remembered = () => { try { return localStorage.getItem(REMEMBER_KEY) === "1"; } catch { return false; } };
 const remember = () => { try { localStorage.setItem(REMEMBER_KEY, "1"); } catch { /* sem armazenamento: pergunta de novo da próxima vez */ } };
 const DISCARD_NOTICE = "Descartar apaga apenas o rascunho neste aparelho. O envio pode ter sido confirmado; confira as fotos do evento.";
+/** Prévia sem WebGL: aproximação em CSS da LUT (a foto guardada sempre usa a LUT). */
+const FILM_CSS_FALLBACK = "sepia(.2) saturate(1.02) contrast(1.1) brightness(1.03)";
 const SUGGESTIONS = ["Alguém precisava registrar isso.", "Ninguém segurou a emoção.", "Quem viu, viu.", "Só daqui dá para ver."];
 
 /** Filme das fotos: eventos antigos com filtro vintage ou preto e branco continuam com o filtro escolhido na época. */
@@ -56,6 +59,7 @@ function PostarSession() {
   const [flashing, setFlashing] = useState(false);
   const quick = useRef(false); // disparo pelo obturador: a pose vai direto para o laboratório (sem prévia)
   const video = useRef<HTMLVideoElement>(null);
+  const [lutLive, setLutLive] = useState(false); // prévia WebGL com a LUT ativa; senão, filtro CSS aproximado
   const stream = useRef<MediaStream | null>(null);
   const galleryInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -522,18 +526,20 @@ function PostarSession() {
 
   // 21 · Câmera, 22 · Disparo (clarão) e 23 · pedido de acesso (pré-permissão)
   const live = phase === "camera" || phase === "guardando";
+  const isFilm = (event.filmLook ?? DEFAULT_FILM) === "filme35" && event.cameraStyle !== "vintage" && event.cameraStyle !== "preto-e-branco";
   const wrap = wrapOf(event.cameraStyle);
   const frame = {
     title: event.title, wrap, left, band, closeHref: close, closeLabel: "Fechar câmera", fase: phase,
     viewfinder: (
       <>
-        <video ref={video} playsInline muted aria-label="Câmera ao vivo" style={{ display: live ? "block" : "none", transform: facing === "user" ? "scaleX(-1)" : undefined, filter: (event.filmLook ?? DEFAULT_FILM) === "filme35" ? "sepia(.28) saturate(1.12) contrast(1.12) brightness(1.04)" : undefined }} />
-        {live && (event.filmLook ?? DEFAULT_FILM) === "filme35" && <span className="rv-cam__film" aria-hidden="true" />}
+        <video ref={video} playsInline muted aria-label="Câmera ao vivo" style={{ display: live ? "block" : "none", transform: facing === "user" ? "scaleX(-1)" : undefined, filter: isFilm && !lutLive ? FILM_CSS_FALLBACK : undefined, visibility: lutLive ? "hidden" : undefined }} />
+        {isFilm && <FilmCanvas video={video} active={live} mirror={facing === "user"} onReady={setLutLive} />}
+        {live && isFilm && <span className="rv-cam__film" aria-hidden="true" />}
         {phase === "iniciando" && <p className="vf-msg" aria-live="polite">Abrindo a câmera…</p>}
       </>
     ),
     flashOn, onFlash: () => setFlashOn((f) => !f),
-    stamp: (event.filmLook ?? DEFAULT_FILM) === "filme35" ? stampText(new Date(now)) : undefined,
+    stamp: isFilm ? stampText(new Date(now)) : undefined,
   };
   const counter = <span data-testid="contador-rolo" className="rv-sr-only">{left ?? "ilimitado"}</span>;
   if (phase === "permissao") {

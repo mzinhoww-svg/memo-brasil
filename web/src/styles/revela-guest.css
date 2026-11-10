@@ -13,6 +13,8 @@
 /* câmera: o visor ocupa o que sobra acima do corpo (276 px), em qualquer altura de tela */
 .camscr .vf:not(.vf--full) { height: calc(100% - 296px); }
 .vf > video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vf > .rv-cam__lut { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.vf > .rv-cam__film { z-index: 1; }
 .vf-msg { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-6); text-align: center; color: var(--ink-muted); }
 a.glass { text-decoration: none; }
 .glass[aria-pressed="false"] { opacity: .6; }

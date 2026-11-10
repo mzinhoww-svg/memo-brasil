@@ -11,6 +11,8 @@ export const REVEAL_CHOICES_REF: RevealChoiceView[] = [
 ];
 
 export interface CameraRevelacaoProps {
+  /** Posição no assistente (n/8); o desenho mostra 5. */
+  step?: number;
   /** Rótulos curtos da linha do tempo: "sáb 16:30", "dom 02:00", "dom 12:00". */
   startLabel?: string; endLabel?: string; revealLabel?: string;
   choices?: RevealChoiceView[]; value?: string;
@@ -22,11 +24,12 @@ export interface CameraRevelacaoProps {
 }
 
 export function CameraRevelacao({
+  step = 5,
   startLabel = "sáb 16:30", endLabel = "dom 02:00", revealLabel = "dom 12:00", choices = REVEAL_CHOICES_REF, value = "manha",
   notice = "Todo mundo recebe o aviso no domingo, 15 de março, às 12:00.", error, busy, custom = "", customMin, onPick, onCustom, onBack, onNext,
 }: CameraRevelacaoProps = {}) {
   return (
-    <WizardSheet step={5} title="Quando revelar?" caption="Depois que o filme fecha, as fotos ficam no laboratório. Ninguém vê até a revelação, nem quem tirou." onBack={onBack} onNext={onNext} busy={busy}>
+    <WizardSheet step={step} title="Quando revelar?" caption="Depois que o filme fecha, as fotos ficam no laboratório. Ninguém vê até a revelação, nem quem tirou." onBack={onBack} onNext={onNext} busy={busy}>
       <div className="tline">
         <div className="tl-p">
           <i />

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderPhoto, stampText } from "./capture";
+import { filmColor } from "./film-lut";
 
 /** Canvas mínimo em memória: o jsdom não desenha, então o teste guarda os pixels RGBA e os `fillText` para medir o resultado de `renderPhoto`. */
 type Source = { width: number; height: number; data: Uint8ClampedArray };
@@ -52,11 +53,25 @@ describe("o mesmo quadro em natural e em Filme 35mm (A2)", () => {
     expect(Array.from(px)).toEqual(Array.from(scene().data));
     expect(texts).toEqual([]);
   });
-  it("filme35 esquenta o matiz: vermelho acima do azul numa cena neutra", async () => {
+  it("filme35 esquenta os realces: vermelho acima do azul na faixa clara; as sombras ficam verde-azuladas", async () => {
     const nat = await shoot("natural"), film = await shoot("filme35");
-    const warmNat = mean(nat.px, 0) - mean(nat.px, 2), warmFilm = mean(film.px, 0) - mean(film.px, 2);
-    expect(warmNat).toBe(0);
-    expect(warmFilm).toBeGreaterThan(15);
+    expect(mean(nat.px, 0, 66, 92) - mean(nat.px, 2, 66, 92)).toBe(0);
+    expect(mean(film.px, 0, 66, 92) - mean(film.px, 2, 66, 92)).toBeGreaterThan(8);
+    expect(mean(film.px, 2, 4, 30)).toBeGreaterThan(mean(film.px, 0, 4, 30));
+  });
+  it("a foto guardada usa a LUT: a faixa lisa do meio bate com a LUT (mais grão e vinheta)", async () => {
+    const film = await shoot("filme35");
+    const [r, g, b] = filmColor(128 / 255, 128 / 255, 128 / 255);
+    const mid = (ch: number) => mean(film.px, ch, 40, 56);
+    expect(Math.abs(mid(0) - r * 255)).toBeLessThan(8);
+    expect(Math.abs(mid(1) - g * 255)).toBeLessThan(8);
+    expect(Math.abs(mid(2) - b * 255)).toBeLessThan(8);
+  });
+  it("diferença mensurável entre natural e filme35 (média absoluta por canal)", async () => {
+    const nat = await shoot("natural"), film = await shoot("filme35");
+    let s = 0;
+    for (let i = 0; i < nat.px.length; i += 4) for (let k = 0; k < 3; k++) s += Math.abs(nat.px[i + k] - film.px[i + k]);
+    expect(s / (nat.px.length / 4 * 3)).toBeGreaterThan(6);
   });
   it("filme35 muda o contraste entre as faixas escura e clara", async () => {
     const nat = await shoot("natural"), film = await shoot("filme35");
@@ -67,15 +82,17 @@ describe("o mesmo quadro em natural e em Filme 35mm (A2)", () => {
     expect(roughness(nat.px)).toBe(0);
     expect(roughness(film.px)).toBeGreaterThan(4);
   });
-  it("filme35 tem vinheta e brilho de flash: centro mais claro que os cantos", async () => {
+  it("filme35 tem vinheta: o canto fica mais escuro do que a LUT sozinha o deixaria", async () => {
     const film = await shoot("filme35");
-    const at = (x: number, y: number) => luma(film.px, (y * W + x) * 4);
-    const centre = (at(46, 30) + at(48, 32) + at(50, 34)) / 3; // faixa lisa (128) no meio
-    const nat = 128;
-    expect(centre).toBeGreaterThan(nat + 2);
-    const corner = mean(film.px, 0, 0, 6);
-    const natCorner = 70;
-    expect(corner).toBeLessThan(natCorner + 18 /* tom quente */ - 3);
+    const [r] = filmColor(70 / 255, 70 / 255, 70 / 255);
+    expect(mean(film.px, 0, 0, 4)).toBeLessThan(r * 255 - 3);
+  });
+  it("halation: o realce vaza luz avermelhada para a faixa vizinha mais escura", async () => {
+    const film = await shoot("filme35");
+    const lutOnly = filmColor(128 / 255, 128 / 255, 128 / 255);
+    // coluna 56..64 é a faixa média encostada na clara (x > 64): ganha brilho extra, mais em R que em B
+    const dR = mean(film.px, 0, 58, 64) - lutOnly[0] * 255, dB = mean(film.px, 2, 58, 64) - lutOnly[2] * 255;
+    expect(dR).toBeGreaterThan(dB);
   });
   it("filme35 grava o carimbo 'AA MM DD da hora da foto; natural não", async () => {
     const film = await shoot("filme35", new Date(2027, 2, 14, 21, 0));
