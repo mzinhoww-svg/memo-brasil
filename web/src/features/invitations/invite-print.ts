@@ -23,7 +23,6 @@ export interface PrintInvite {
   /** Cor do QR (≥ 7:1 sobre branco) e do destaque (≥ 4,5:1), da identidade do evento quando legível. */
   qrColor: string;
   accent: string;
-  fileName: string;
 }
 
 const INK = "#1C1917";
@@ -41,12 +40,6 @@ export function revealPhrase(at: number, tz: string): string {
 function accentFor(e: Pick<MemoEvent, "theme" | "palette">): string {
   const c = e.theme?.colors.profundo ?? PALETTES[e.palette]?.dia.profundo;
   return c && HEX.test(c) && contrastRatio(c, "#FFFFFF") >= 4.5 ? c.toUpperCase() : INK;
-}
-
-/** Nome de arquivo legível e seguro: "convite-ana-e-rui.pdf" (sem acento, espaço ou caractere de caminho). */
-export function inviteFileName(title: string): string {
-  const slug = title.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, " e ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60).replace(/-+$/, "");
-  return `convite-${slug || "evento"}.pdf`;
 }
 
 export function printInvite(e: MemoEvent, now: number, origin: string = siteOrigin()): PrintInvite {
@@ -73,6 +66,5 @@ export function printInvite(e: MemoEvent, now: number, origin: string = siteOrig
     qrText: inviteUrl(origin, e.code),
     qrColor: qrDarkColor(e.theme),
     accent: accentFor(e),
-    fileName: inviteFileName(e.title),
   };
 }

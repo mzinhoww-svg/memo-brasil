@@ -17,8 +17,7 @@ export interface QRConviteProps {
   onClose?: () => void;
   onRatio?: () => void;
   onModel?: (model: number) => void;
-  onPrint?: () => void;
-  onPdf?: () => void;
+  onDownload?: () => void;
 }
 
 export const QR_CONVITE_REF = {
@@ -26,7 +25,7 @@ export const QR_CONVITE_REF = {
   copy: "Aponte a câmera do celular para o código, pegue a câmera do casamento e fotografe a festa pelo seu olhar. Você tem 27 poses.",
 };
 
-export function QRConvite({ name = QR_CONVITE_REF.name, date = QR_CONVITE_REF.date, copy = QR_CONVITE_REF.copy, stamp = QR_CONVITE_REF.stamp, model = 2, models = 4, qr, square = false, onClose, onRatio, onModel, onPrint, onPdf }: QRConviteProps = {}) {
+export function QRConvite({ name = QR_CONVITE_REF.name, date = QR_CONVITE_REF.date, copy = QR_CONVITE_REF.copy, stamp = QR_CONVITE_REF.stamp, model = 2, models = 4, qr, square = false, onClose, onRatio, onModel, onDownload }: QRConviteProps = {}) {
   return (
     <>
     <div className="scr">
@@ -80,17 +79,11 @@ export function QRConvite({ name = QR_CONVITE_REF.name, date = QR_CONVITE_REF.da
           ))}
         </div>
         <div className="row" style={{ "gap": "8px", "marginTop": "18px" }}>
-          <button type="button" className="rv-btn rv-btn--block rv-btn--primary" style={{ "flex": "1" }} onClick={onPrint}>
-            <svg {...svgProps}>
-              <path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" />
-            </svg>
-            Imprimir
-          </button>
-          <button type="button" className="rv-btn rv-btn--block" style={{ "flex": "1" }} onClick={onPdf}>
+          <button type="button" className="rv-btn rv-btn--block rv-btn--primary" style={{ "flex": "1" }} onClick={onDownload}>
             <svg {...svgProps}>
               <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
             </svg>
-            Salvar PDF
+            Baixar QR code
           </button>
         </div>
       </div>

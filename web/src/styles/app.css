@@ -36,7 +36,7 @@
 @media (min-width: 900px) { .app-admin { grid-template-columns: 256px 1fr; } .app-admin-side { display: block; position: sticky; top: 0; height: 100dvh; } .app-admin-navm { display: none; } .app-admin-main { padding: var(--space-8) var(--space-9); max-width: 1100px; } }
 .app-card { background: var(--bg); border-radius: var(--radius-lg); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
 .app-qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, max-content)); gap: var(--space-4); }
-@media print { .no-print { display: none !important; } body { background: var(--paper); color: var(--on-paper); } .app-qr-grid { gap: 0; } .rv-card-mesa { break-inside: avoid; page-break-inside: avoid; } }
+@media print { .no-print { display: none !important; } body { background: var(--paper); color: var(--on-paper); } }
 .app-landing-hero { padding: var(--space-6) var(--space-4) 0; }
 .app-sheet-handle { height: 4px; width: 40px; border-radius: 2px; background: var(--line); align-self: center; }
 
@@ -184,23 +184,3 @@
 .app-topbar-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
 .app-card--borda { border: 1px solid var(--line); }
 
-/* Convite A5 (QR Code Studio): prévia em escala, folha sempre clara mesmo no tema Noite */
-.convite-a5-folha { width: 100%; max-width: 420px; }
-.convite-a5 { display: block; width: 100%; height: auto; aspect-ratio: 148 / 210; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-print); box-shadow: 0 1px 2px rgb(0 0 0 / 0.06); }
-.convite-mesas { margin-top: var(--space-6); }
-.print-only { display: none; }
-@page convite { size: 148mm 210mm; margin: 0; }
-@media print {
-  /* Imprimir convite: só a folha A5, sem controles, sem bordas de tela */
-  body[data-imprimir="convite"] .convite-mesas, body[data-imprimir="convite"] .rv-rodape { display: none !important; }
-  body[data-imprimir="convite"] .convite-a5-folha { page: convite; max-width: none; width: 148mm; height: 210mm; margin: 0; }
-  body[data-imprimir="convite"] .convite-a5 { width: 148mm; height: 210mm; border: 0; border-radius: 0; box-shadow: none; }
-  body[data-imprimir="convite"] .app-admin, body[data-imprimir="convite"] .app-admin-main { display: block; padding: 0; margin: 0; background: var(--paper); }
-  /* Imprimir mesas: o convite fica de fora */
-  body[data-imprimir="mesas"] .convite-a5-bloco, body[data-imprimir="mesas"] .rv-rodape { display: none !important; }
-  /* cards de mesa sempre claros no papel (o tema Noite gastava tinta) */
-  /* telas do painel (.scr): na impressão do convite e dos cards só a folha de papel (.print-only) aparece */
-  body[data-imprimir] .scr, body[data-imprimir] .rv-rodape { display: none !important; }
-  body[data-imprimir="convite"] .print-convite, body[data-imprimir="mesas"] .print-mesas { display: block !important; }
-  .rv-card-mesa { background: var(--paper) !important; color: var(--on-paper) !important; border-color: var(--line) !important; }
-}

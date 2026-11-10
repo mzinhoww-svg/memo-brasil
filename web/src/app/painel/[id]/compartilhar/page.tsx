@@ -4,23 +4,26 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Sheet } from "@/components/revela";
 import { useAdmin } from "@/features/admin/context";
-import { qrMatrix } from "@/features/invitations/invite-pdf";
+import { QrDownloadSheet } from "@/features/invitations/QrDownload";
+import { qrMatrix } from "@/features/invitations/qr-export";
 import { inviteUrl } from "@/features/invitations/links";
 import { copyText, shareInvite } from "@/features/invitations/share";
 import { siteOrigin } from "@/lib/site";
 import { QRCompartilhar } from "@/revela/screens/QRCompartilhar";
 import { QrSvg, useFlash } from "@/revela/painel-ui";
 
-/** Compartilhar (26): link do evento, WhatsApp, Stories, QR na tela e impressão. */
+/** Compartilhar (26): link do evento, WhatsApp, Stories, QR na tela e download do QR code. */
 export default function Compartilhar() {
   const router = useRouter();
   const { event } = useAdmin();
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [toast, flash] = useFlash();
   const origin = siteOrigin();
   const url = inviteUrl(origin, event.code);
   const modules = useMemo(() => qrMatrix(inviteUrl(siteOrigin(), event.code)), [event.code]);
+  const tables = useMemo(() => Array.from({ length: event.tables }, (_, i) => `Mesa ${String(i + 1).padStart(2, "0")}`), [event.tables]);
   const text = `Você foi convidado para "${event.title}" no Revela. Entre com o código ${event.code} ou pelo link: ${url}`;
 
   async function copy() {
@@ -43,9 +46,10 @@ export default function Compartilhar() {
         onWhatsapp={() => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")}
         onStories={() => void stories()}
         onQr={() => setShowQr(true)}
-        onPrint={() => router.push(`/painel/${event.id}/convite`)}
+        onDownload={() => setDownloading(true)}
       />
       {toast}
+      {downloading && <QrDownloadSheet title={event.title} code={event.code} origin={origin} tables={tables} onClose={() => setDownloading(false)} />}
       {showQr && (
         <Sheet title="QR do evento" onClose={() => setShowQr(false)}>
           <div style={{ display: "grid", placeItems: "center" }}><QrSvg size={256} modules={modules} /></div>
