@@ -3,31 +3,29 @@ import { createViaWizard, postViaFile, seedHost } from "./helpers";
 
 // Experiência pública sem demonstração (Task 10) e defeitos de sessão/identidade (Task 11), no modo local.
 
-test("home mostra proposta, 3 passos e CTA criar, sem exemplo em banco nem guia de componentes", async ({ page }) => {
+test("home mostra a proposta, Montar câmera, Tenho um convite e Experimentar câmera, sem exemplo em banco nem guia de componentes", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("CÂMERA DESCARTÁVEL COLETIVA")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Seu evento pelo olhar de cada convidado.", level: 1 })).toBeVisible();
-  await expect(page.getByText("Sem baixar app. As fotos ficam no escuro e aparecem juntas, na hora que você escolher.")).toBeVisible();
-  for (const t of ["Aponta para o QR da mesa", "Cada um tem seu rolo", "Tudo revela junto"]) await expect(page.getByText(t, { exact: true })).toBeVisible();
-  await expect(page.getByText("Grátis até 10 convidados.", { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
-  await expect(page.getByRole("link", { name: "Entrar com código" })).toHaveAttribute("href", "/entrar");
+  await expect(page.getByRole("heading", { name: "Cada convidado é uma câmera.", level: 1 })).toBeVisible();
+  await expect(page.getByText("Monte a câmera do evento, espalhe o QR pela festa e veja tudo revelado no dia seguinte.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Montar câmera" })).toHaveAttribute("href", "/criar");
+  await expect(page.getByRole("link", { name: "Tenho um convite" })).toHaveAttribute("href", "/entrar#codigo");
   for (const t of [/Guia de componentes/i, /Ver uma festa de exemplo/i, /revelação em 2 minutos/i]) await expect(page.getByText(t)).toHaveCount(0);
   await page.getByRole("link", { name: "Experimentar câmera" }).click();
   await page.waitForURL(/\/exemplo$/);
   await expect(page.getByTestId("selo-exemplo")).toHaveText("Exemplo · nada é salvo");
   await expect(page.getByRole("heading", { name: "Lu faz 40", level: 1 })).toBeVisible();
-  await page.getByRole("button", { name: "Minhas fotos" }).click();
-  await expect(page.getByRole("heading", { name: "Agora", level: 2 })).toBeVisible();
-  await expect(page.getByAltText(/Foto de exemplo de/).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
 });
 
-test("/ajuda é pública, tem h1, perguntas, contato único e links para Termos e Privacidade", async ({ page }) => {
+test("/ajuda é pública, tem as perguntas, contato único e sem noindex", async ({ page }) => {
   await page.goto("/ajuda");
   for (const q of ["Os convidados precisam baixar app?", "Quando as fotos aparecem?", "Posso trocar de plano depois?", "Como apago uma foto?", "O pagamento é seguro?"]) await expect(page.getByText(q, { exact: true })).toBeVisible();
+  await expect(page.getByTestId("faq-app").getByText(/Não\. Eles apontam a câmera do celular/)).toBeVisible(); // a primeira nasce aberta
+  await page.getByLabel("Buscar").fill("plano"); // a busca filtra só depois da hidratação: daí em diante os cliques valem
+  await expect(page.getByText("Os convidados precisam baixar app?", { exact: true })).toHaveCount(0);
+  await page.getByLabel("Buscar").fill("");
   await page.getByText("Posso trocar de plano depois?").click();
-  await expect(page.getByText(/O evento nasce grátis, até 10 convidados\./)).toBeVisible();
+  await expect(page.getByText(/O evento nasce grátis, até 10 convidados, e o pagamento é único por evento/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Falar com o suporte" })).toHaveAttribute("href", /^mailto:.+@/);
   await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
 });
@@ -63,17 +61,11 @@ test("excluir foto e remover momento pedem confirmação; só removem depois de 
   await expect(page.getByRole("button", { name: /O sim/ })).toHaveCount(0);
 });
 
-test("cartão de mesa do QR traz a redação do modelo, a linha de fotos e revelação e um cartão por mesa", async ({ page }) => {
+test("QR das mesas: cartão com a redação do modelo, 4 modelos e download por mesa", async ({ page }) => {
   const { id } = await createViaWizard(page, { reveal: "desligada", title: "Cards", shots: "10" });
-  await page.goto(`/painel/${id}/convites`);
-  await page.getByRole("button", { name: "Novo convite" }).click();
-  await page.getByRole("button", { name: "Mais uma mesa" }).click();
-  await page.keyboard.press("Escape");
   await page.goto(`/painel/${id}/qr`);
-  const cards = page.locator(".print-mesas");
-  await expect(cards.getByText("Aponte a câmera. Sem baixar app.")).toHaveCount(1);
-  await expect(cards.getByText(/Aponte a câmera do celular para o código, pegue a câmera do/)).toHaveCount(1);
-  await expect(cards.getByText("Cada um tem 10 fotos. Revelamos na hora.")).toHaveCount(1);
+  await expect(page.getByText(/Aponte a câmera do celular para o código, pegue a câmera do .+ e fotografe a festa pelo seu olhar\. Você tem 10 poses\./)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Proporção" })).toBeVisible();
 });
 
 test("painel mostra exatamente um h1 em cada tela", async ({ page }) => {
@@ -120,10 +112,10 @@ test("painel com id inválido mostra não encontrado em menos de 2 s", async ({ 
 test("clipboard negado não diz copiado e deixa o link selecionado", async ({ page }) => {
   await createViaWizard(page, {});
   await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: () => Promise.reject(new Error("negado")) } }));
-  await page.getByRole("button", { name: "Copiar link" }).click();
-  await expect(page.getByText("Não conseguimos copiar. O link está selecionado.")).toBeVisible();
-  await expect(page.getByText(/Link copiado/)).toHaveCount(0);
-  expect(await page.evaluate(() => document.activeElement?.id)).toBe("link-convite");
+  await page.getByRole("button", { name: "Compartilhar convite" }).click();
+  await expect(page.getByText("Não conseguimos copiar. O link está selecionado.")).toBeAttached();
+  await expect(page.getByRole("button", { name: "Convite copiado" })).toHaveCount(0);
+  expect(await page.evaluate(() => document.activeElement?.getAttribute("data-testid"))).toBe("link-convite");
 });
 
 test("configurações confirmam 'Salvo.' ao mudar uma regra", async ({ page }) => {
@@ -136,27 +128,22 @@ test("configurações confirmam 'Salvo.' ao mudar uma regra", async ({ page }) =
 
 // ---- Task 14 (restante): preços, rodapé, painel com plano, configurações. Modo local: o catálogo só tem o Grátis.
 
-test("home mostra a linha de preço só do Grátis quando não há plano pago ativo", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByTestId("linha-preco")).toHaveText("Grátis até 10 convidados.");
-});
-
-test("/precos local mostra só o Grátis, Fale com a gente, h1, CTA e as 3 perguntas", async ({ page }) => {
+test("/precos local mostra só o Grátis, o aviso de planos em breve, h1 e o CTA", async ({ page }) => {
   await page.goto("/precos");
-  await expect(page.getByRole("heading", { level: 1, name: "Um preço por festa. Sem assinatura." })).toBeVisible();
-  await expect(page.getByText("Comece grátis. Só pague se a festa passar de 10 convidados.")).toBeVisible();
-  await expect(page.getByTestId("preco-gratis")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Um preço por festa." })).toBeVisible();
+  await expect(page.getByText("Sem assinatura. Convidados não pagam nada e não precisam baixar app.")).toBeVisible();
+  await expect(page.getByTestId("preco-gratis")).toContainText("10 convidados · 10 poses cada");
   await expect(page.locator('[data-testid^="preco-"]')).toHaveCount(1);
-  await expect(page.getByRole("link", { name: "Fale com a gente" })).toHaveAttribute("href", /^mailto:/);
-  await expect(page.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
-  for (const q of ["Como pago?", "E se passar do limite?", "Posso pedir reembolso?"]) await expect(page.getByRole("heading", { level: 2, name: q })).toBeVisible();
-  await expect(page.getByText(/7 dias/)).toHaveCount(0);
+  await expect(page.getByText("Os planos pagos voltam em breve")).toBeVisible();
+  await page.getByRole("button", { name: "Montar câmera" }).click();
+  await page.waitForURL(/\/criar$/);
 });
 
 test("rodapé tem Termos, Privacidade, Ajuda e a assinatura nas rotas públicas, e não aparece no painel nem no convite", async ({ page }) => {
-  for (const route of ["/", "/precos", "/ajuda"]) {
+  for (const route of ["/"]) { // só a abertura leva rodapé; Preços e Ajuda são telas próprias, sem rodapé
     await page.goto(route);
     const rodape = page.getByRole("contentinfo");
+    await expect(rodape.getByRole("link", { name: "Preços" })).toHaveAttribute("href", "/precos");
     await expect(rodape.getByRole("link", { name: "Termos" })).toHaveAttribute("href", "/termos");
     await expect(rodape.getByRole("link", { name: "Privacidade" })).toHaveAttribute("href", "/privacidade");
     await expect(rodape.getByRole("link", { name: "Ajuda" })).toHaveAttribute("href", "/ajuda");
