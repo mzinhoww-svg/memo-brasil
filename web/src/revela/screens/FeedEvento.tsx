@@ -71,6 +71,7 @@ export function FeedPost({ post, onOpen, onLike, onComments, onShare, onDownload
         <img src={p.imageSrc} alt="Foto de convidado" />
         <div className="rv-print__cap">
           <span>{p.stampLeft}</span>
+          {" "}
           <span>{p.stampRight}</span>
         </div>
       </div>

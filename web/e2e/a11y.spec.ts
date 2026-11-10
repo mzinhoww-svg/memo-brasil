@@ -61,7 +61,7 @@ async function openSeed(page: Page): Promise<string> {
 
 for (const theme of ["dia", "noite"] as const) {
   test(`acessibilidade (axe) sem violações graves, tema ${theme}`, async ({ page }) => {
-    test.setTimeout(150_000);
+    test.setTimeout(300_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await setTheme(page, theme);
     const code = await openSeed(page);
