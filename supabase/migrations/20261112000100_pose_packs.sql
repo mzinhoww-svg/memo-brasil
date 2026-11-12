@@ -4,7 +4,8 @@
 -- base e max_shots = 36. Ele reaproveita todo o pipeline existente (cotação, pedido, webhook, direito por evento,
 -- effective_entitlement = maior limite, events_guard/photos_guard). Nada de cobrança, idempotência ou webhook muda.
 --   * Oculto: list_public_plans NÃO devolve variantes (pack_of is not null); o seletor de planos normal nunca as vê.
---   * Visível só por list_public_pose_packs() (authenticated), que o assistente e o painel usam para o interruptor.
+--   * Visível só por list_public_pose_packs() (authenticated), que o assistente e o painel usam para o interruptor
+--     (campo `available` = à venda agora).
 --   * Nasce DESLIGADO (sandbox_active/production_active = false): o dono liga em Master → Planos quando quiser.
 --   * Preço do pacote = preço da variante - preço do plano-base (padrão +R$ 19,90). Quem já tem o plano-base paga só a
 --     diferença (payments_quote_internal já cobra variante - preço do plano pago vigente); aqui só se acrescenta o crédito do
@@ -40,13 +41,17 @@ language sql stable security definer set search_path = '' as $$
      or (public.payments_env() = 'production' and p.production_active))
 $$;
 
--- Pacotes "Mais poses" à venda no ambiente de pagamento vigente (variante E plano-base ativos). Só logado: o assistente
--- só roda com sessão e o painel é do anfitrião; anon nunca recebe nada. extraCents = quanto o pacote custa sobre o base.
+-- Pacotes "Mais poses" conhecidos, com `available` = à venda no ambiente de pagamento vigente (variante E plano-base ativos).
+-- Devolve também os desligados (available = false) para o painel reconhecer o plano atual de quem JÁ comprou o pacote
+-- (effective_entitlement devolve o código da variante, que não está em list_public_plans). Só logado: o assistente só roda
+-- com sessão e o painel é do anfitrião; anon nunca recebe nada. extraCents = quanto o pacote custa sobre o base.
 create or replace function public.list_public_pose_packs() returns jsonb
 language sql stable security definer set search_path = '' as $$
   select coalesce(jsonb_agg(jsonb_build_object(
       'code', k.code, 'baseCode', b.code, 'name', k.name, 'maxGuests', k.max_guests, 'maxShots', k.max_shots,
-      'baseMaxShots', b.max_shots, 'priceCents', k.price_cents, 'extraCents', k.price_cents - b.price_cents)
+      'baseMaxShots', b.max_shots, 'priceCents', k.price_cents, 'extraCents', k.price_cents - b.price_cents,
+      'available', ((public.payments_env() = 'sandbox' and k.sandbox_active and b.sandbox_active)
+                 or (public.payments_env() = 'production' and k.production_active and b.production_active)))
       order by b.sort, k.code), '[]')
   from public.plans k
   join public.plans b on b.code = k.pack_of
@@ -54,8 +59,6 @@ language sql stable security definer set search_path = '' as $$
     and k.pack_of is not null and b.pack_of is null and not b.is_free
     and k.max_shots is not null and b.max_shots is not null and k.max_shots > b.max_shots
     and k.price_cents > b.price_cents
-    and ((public.payments_env() = 'sandbox' and k.sandbox_active and b.sandbox_active)
-      or (public.payments_env() = 'production' and k.production_active and b.production_active))
 $$;
 
 -- ---------------------------------------------------------------- Master: a lista traz packOf (edição de preços das variantes)

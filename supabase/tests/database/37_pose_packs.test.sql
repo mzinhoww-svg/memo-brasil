@@ -1,5 +1,5 @@
 -- pgTAP · pacote "Mais poses" (+12 poses por pessoa) como plano-variante oculto (plans.pack_of).
--- Cobre: estrutura e valores iniciais, catálogo público sem variantes, list_public_pose_packs (anon barrado, inativo some),
+-- Cobre: estrutura e valores iniciais, catálogo público sem variantes, list_public_pose_packs (anon barrado, available só se ativo),
 -- diferença de preço na cotação (grátis, plano pago, cortesia, legado), limite de poses imposto pelo servidor com e sem o pacote,
 -- pedido real até o direito, idempotência da migration e preservação de planos/pedidos/direitos, e o Master (packOf).
 begin;
@@ -80,7 +80,7 @@ update public.events set capacity = 50, shots_per_person = 24 where id in ('0000
 -- ===================================================== desligado: não aparece nem vende
 select is(public.payments_quote_internal('00000000-0000-4000-8000-0000000037e1', 'festa_36') ->> 'reason', 'plano_inativo', 'pacote desligado: plano_inativo na cotação');
 select tests.login('00000000-0000-4000-8000-0000000037a1');
-select is(public.list_public_pose_packs(), '[]'::jsonb, 'pacote desligado: list_public_pose_packs vazio');
+select is((select jsonb_agg(p -> 'available') from jsonb_array_elements(public.list_public_pose_packs()) p), '[false,false]'::jsonb, 'pacote desligado: list_public_pose_packs marca available=false (o painel ainda reconhece quem comprou)');
 select throws_ok($$select public.payments_open_order('00000000-0000-4000-8000-0000000037e1', 'festa_36', gen_random_uuid())$$, 'MM014', null, 'pacote desligado: não abre pedido');
 reset role;
 
@@ -95,23 +95,24 @@ select throws_ok($$select public.list_public_pose_packs()$$, '42501', null, 'ano
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000037a1');
 select ok(not exists (select 1 from jsonb_array_elements(public.list_public_plans()) p where p ->> 'code' like '%\_36'), 'logado: list_public_plans não traz pacote');
-select is((select jsonb_agg(p - 'name' - 'maxGuests' order by p ->> 'code') from jsonb_array_elements(public.list_public_pose_packs()) p),
+select is((select jsonb_agg(p - 'name' - 'maxGuests' - 'available' order by p ->> 'code') from jsonb_array_elements(public.list_public_pose_packs()) p),
   '[{"code":"celebracao_36","baseCode":"celebracao","maxShots":36,"baseMaxShots":24,"priceCents":10890,"extraCents":1990},
-    {"code":"festa_36","baseCode":"festa","maxShots":36,"baseMaxShots":24,"priceCents":7980,"extraCents":1990}]'::jsonb, 'logado: list_public_pose_packs traz os dois pacotes ativos com o extra');
+    {"code":"festa_36","baseCode":"festa","maxShots":36,"baseMaxShots":24,"priceCents":7980,"extraCents":1990}]'::jsonb, 'logado: list_public_pose_packs traz os dois pacotes com o extra');
+select is((select jsonb_agg(p -> 'available') from jsonb_array_elements(public.list_public_pose_packs()) p), '[true,true]'::jsonb, 'ligados: available=true');
 reset role;
 update public.plans set sandbox_active = false where code = 'celebracao_36';
 select tests.login('00000000-0000-4000-8000-0000000037a1');
-select is((select jsonb_agg(p ->> 'code') from jsonb_array_elements(public.list_public_pose_packs()) p), '["festa_36"]'::jsonb, 'pacote inativo some da lista');
+select is((select jsonb_agg(p ->> 'code' order by p ->> 'code') from jsonb_array_elements(public.list_public_pose_packs()) p where (p -> 'available')::boolean), '["festa_36"]'::jsonb, 'pacote inativo deixa de estar available');
 reset role;
 update public.plans set sandbox_active = true where code = 'celebracao_36';
 update public.plans set sandbox_active = false where code = 'celebracao';
 select tests.login('00000000-0000-4000-8000-0000000037a1');
-select is((select jsonb_agg(p ->> 'code') from jsonb_array_elements(public.list_public_pose_packs()) p), '["festa_36"]'::jsonb, 'plano-base inativo derruba o pacote da lista');
+select is((select jsonb_agg(p ->> 'code' order by p ->> 'code') from jsonb_array_elements(public.list_public_pose_packs()) p where (p -> 'available')::boolean), '["festa_36"]'::jsonb, 'plano-base inativo derruba o pacote (available=false)');
 reset role;
 update public.plans set sandbox_active = true where code = 'celebracao';
 select tests.set_env('production');
 select tests.login('00000000-0000-4000-8000-0000000037a1');
-select is(public.list_public_pose_packs(), '[]'::jsonb, 'ambiente production sem production_active: lista vazia');
+select is((select count(*)::int from jsonb_array_elements(public.list_public_pose_packs()) p where (p -> 'available')::boolean), 0, 'ambiente production sem production_active: nenhum available');
 reset role;
 select tests.set_env('sandbox');
 
