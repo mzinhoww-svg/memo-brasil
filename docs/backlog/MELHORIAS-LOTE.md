@@ -43,3 +43,13 @@ Status: coletando. Nada deste lote foi corrigido ainda.
   3. Teclado: setas esquerda/direita.
   4. Mesma ideia vale para o botão de proporção, que hoje é só um ícone sem rótulo ("Proporção"): mostrar qual está ativa (retrato × quadrado).
 - Conferir: o mesmo padrão de bolinhas em outras telas (convite A5, QR compartilhar).
+
+## 5. Painel > Plano sem layout mobile (/painel/[id]/plano)
+- Sintomas na captura (390 px):
+  1. A tela de plano é a tela inteira de celular (`PagamentoTrocarPlano`, classe `.scr`) colocada dentro do painel, que já tem abas, migalhas e título. Resultado: três cabeçalhos empilhados (abas, migalhas "Meus eventos › Nosso casamento › Plano", "Nosso casamento · Plano") e, dentro do bloco preto, mais um cabeçalho "Plano do evento" com seta de voltar.
+  2. O bloco preto fica "encaixotado": margens laterais, cor diferente do fundo da página e título repetido.
+  3. `.scr` tem `height: 100dvh` e `overflow: hidden` (`revela2.css:124`); dentro do painel, que já gasta ~500 px com cabeçalhos, o fim da tela é cortado: o botão de confirmar o plano e o aviso "Pix ou cartão, sem sair do app · ValidaPay" ficam fora de alcance e escondidos pela barra do navegador. Risco real: o anfitrião pode não conseguir concluir a compra no celular.
+  4. A seta de voltar do bloco não deve existir dentro do painel (a navegação já está nas abas).
+  5. Carrossel de planos: o card selecionado fica de fora/parcial na borda e a trilha só se move por seleção (mesmo problema do item 1).
+- Direção: renderizar o plano no painel como conteúdo de página (sem `.scr` de altura fixa e sem segundo cabeçalho), com rolagem normal da página, botão de confirmar visível (fixo no rodapé, com `safe-area`), carrossel nativo com encaixe e o texto de pagamento no fluxo, não no rodapé fixo.
+- Conferir: o mesmo padrão em outras telas do painel que encaixam telas de celular dentro do painel (Conteúdo, Convidados, Convites, QR, Downloads). Ligação direta com o item 3b: o painel precisa de um layout mobile único.
