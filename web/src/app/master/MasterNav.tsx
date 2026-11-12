@@ -10,7 +10,7 @@ export function currentOf(path: string): AppNavId {
   const seg = path.replace(/\/$/, "").split("/")[2] ?? "";
   const map: Record<string, AppNavId> = {
     "": "visao", analytics: "visao", busca: "visao", eventos: "eventos", pessoas: "pessoas", usuarios: "pessoas", organizadores: "pessoas", participantes: "pessoas",
-    planos: "planos", pagamentos: "pagamentos", impressoes: "impressoes", codigos: "cortesias", revelacoes: "revelacoes", moderacao: "moderacao", saude: "saude", storage: "saude",
+    planos: "planos", pagamentos: "pagamentos", impressoes: "pagamentos", codigos: "cortesias", revelacoes: "revelacoes", moderacao: "moderacao", saude: "saude", storage: "saude",
     lgpd: "lgpd", auditoria: "auditoria", configuracoes: "configuracoes",
   };
   return map[seg] ?? "visao";

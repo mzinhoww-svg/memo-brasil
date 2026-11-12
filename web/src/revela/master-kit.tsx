@@ -36,27 +36,27 @@ export const ICONS = {
   spark: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />,
 } as const;
 export type IconName = keyof typeof ICONS;
-export function Ico({ n }: { n: IconName }) {
-  return <svg {...SV}>{ICONS[n]}</svg>;
+export function Ico({ n, size }: { n: IconName; size?:number }) {
+  return <svg {...SV} style={size?{width:size,height:size}:undefined}>{ICONS[n]}</svg>;
 }
 
 export interface MasterUser { name: string; role: string }
 
-/** Item do menu que existe só no app (o desenho do Master não o traz): pedidos de impressão, logo depois de Pagamentos. */
-export type AppNavId = MasterNavId | "impressoes";
-const PRINT_NAV = { id: "impressoes" as const, label: "Impressões", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" /></svg> };
+/** Os doze itens do desenho; rotas auxiliares usam o grupo correspondente. */
+export type AppNavId = MasterNavId;
+
 
 /** Rotas reais de cada item do menu (as mesmas do console). */
 export const MASTER_HREF: Record<AppNavId, string> = {
   visao: "/master", eventos: "/master/eventos", pessoas: "/master/pessoas", planos: "/master/planos", pagamentos: "/master/pagamentos", cortesias: "/master/codigos",
-  impressoes: "/master/impressoes", revelacoes: "/master/revelacoes", moderacao: "/master/moderacao", saude: "/master/saude", lgpd: "/master/lgpd", auditoria: "/master/auditoria", configuracoes: "/master/configuracoes",
+  revelacoes: "/master/revelacoes", moderacao: "/master/moderacao", saude: "/master/saude", lgpd: "/master/lgpd", auditoria: "/master/auditoria", configuracoes: "/master/configuracoes",
 };
 
 /** Menu lateral do Master. Sem `Link` para continuar sendo servidor puro; `<a href>` navega do mesmo jeito. */
 export function MasterAside({ current, links = false, user = { name: "Marcos", role: "Administrador" } }: { current?: AppNavId; links?: boolean; user?: MasterUser }) {
-  const items: { id: AppNavId; label: string; icon: ReactNode }[] = links ? MASTER_NAV.flatMap((m): { id: AppNavId; label: string; icon: ReactNode }[] => (m.id === "pagamentos" ? [m, PRINT_NAV] : [m])) : [...MASTER_NAV];
+  const items = MASTER_NAV;
   return (
-    <aside className="mside">
+    <aside className="mside" role="navigation" aria-label="Módulos do console">
       {MASTER_LOGO}
       {items.map((m) => (
         <a key={m.id} className={m.id === current ? "mnav on" : "mnav"} href={links ? MASTER_HREF[m.id] : undefined} aria-current={m.id === current ? "page" : undefined}>
@@ -162,7 +162,7 @@ export function Chips({ items }: { items: { label: string; href: string; on?: bo
 export function Seg({ items }: { items: { label: string; href?: string; on?: boolean }[] }) {
   return (
     <div className="seg">
-      {items.map((s) => (s.href ? <a key={s.label} className={s.on ? "on" : ""} href={s.href}>{s.label}</a> : <span key={s.label} className={s.on ? "on" : ""}>{s.label}</span>))}
+      {items.map((s) => <span key={s.label} className={s.on ? "on" : ""}>{s.href?<a href={s.href} aria-current={s.on?"page":undefined}>{s.label}</a>:s.label}</span>)}
     </div>
   );
 }
@@ -177,7 +177,7 @@ export function MTable({ cols, head, rows, empty, style }: { cols: string; head:
       {rows.map((r) => (
         <div className={r.className ? `mtr ${r.className}` : "mtr"} key={r.key} style={{ ...g, ...r.style }}>{r.cells.map((c, i) => <span key={i}>{c}</span>)}</div>
       ))}
-      {!rows.length && <div className="mtr" style={{ gridTemplateColumns: "1fr" }}><span>{empty ?? "Nada por aqui ainda."}</span></div>}
+      {!rows.length && <MState kind="empty" text={empty ?? "Nada por aqui ainda."} />}
     </div>
   );
 }

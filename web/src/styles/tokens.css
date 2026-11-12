@@ -46,7 +46,7 @@
   --shadow-object:0 40px 60px #000000A6;
   --shadow-sheet:0 -16px 40px #00000099;
   --font-display:Gloock, Georgia, serif;
-  --font-sans:"Schibsted Grotesk", system-ui, -apple-system, sans-serif;
+  --font-sans:"Schibsted Grotesk Variable","Schibsted Grotesk", system-ui, -apple-system, sans-serif;
   --font-stamp:"Share Tech Mono", ui-monospace, monospace;
 
   --glow-revela: #ff4d1f40;
@@ -123,7 +123,7 @@
   --shadow-object:0 30px 50px #17120F40;
   --shadow-sheet:0 -12px 32px #17120F26;
   --font-display:Gloock, Georgia, serif;
-  --font-sans:"Schibsted Grotesk", system-ui, -apple-system, sans-serif;
+  --font-sans:"Schibsted Grotesk Variable","Schibsted Grotesk", system-ui, -apple-system, sans-serif;
   --font-stamp:"Share Tech Mono", ui-monospace, monospace;
 
   --glow-revela: #ff4d1f40;

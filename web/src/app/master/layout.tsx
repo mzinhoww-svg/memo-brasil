@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { masterAccess } from "@/lib/master/server";
-import "@/styles/admin.css";
 import { MasterLogin } from "@/revela/screens/MasterLogin";
 import { MasterLoginAction } from "./MasterLogin";
 import { MasterShell } from "./MasterNav";
@@ -13,7 +11,7 @@ export const dynamic = "force-dynamic"; // a autorização é resolvida no servi
 function Gate({ titulo, texto, acao }: { titulo: string; texto: string; acao?: React.ReactNode }) {
   return (
     <main id="conteudo-admin">
-      <MasterLogin title={titulo} caption={texto} action={<>{acao}<p className="rv-caption" style={{ textAlign: "center", marginTop: "18px" }}><Link className="app-link" href="/">Voltar ao início</Link></p></>} />
+      <MasterLogin title={titulo} caption={texto} action={acao} />
     </main>
   );
 }
@@ -21,7 +19,7 @@ function Gate({ titulo, texto, acao }: { titulo: string; texto: string; acao?: R
 export default async function MasterLayout({ children }: { children: React.ReactNode }) {
   const { access, sb } = await masterAccess();
   if (access === "local") return <Gate titulo="Console indisponível neste modo." texto="O console master só funciona com o servidor (Supabase) configurado; no modo local não há operadores nem dados de plataforma." />;
-  if (access === "anonymous") return <Gate titulo="Entrar no painel" texto="Acesso restrito a contas de operador. Toda ação fica registrada na auditoria." acao={<MasterLoginAction />} />;
+  if (access === "anonymous") return <Gate titulo="Entrar no painel" texto="Acesso restrito. Toda ação fica registrada na auditoria." acao={<MasterLoginAction />} />;
   if (access === "forbidden") return <Gate titulo="Sem permissão." texto="Esta conta não tem papel de operador da plataforma. O acesso não pode ser concedido por esta tela." />;
   const [{ data: auth }, settings] = await Promise.all([sb!.auth.getUser(), sb!.rpc("get_public_settings")]);
   const meta = (auth.user?.user_metadata ?? {}) as { full_name?: string; name?: string };

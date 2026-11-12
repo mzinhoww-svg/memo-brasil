@@ -1,0 +1,13 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, expect, it, vi } from 'vitest';
+import { MasterLoginAction } from './MasterLogin';
+const m=vi.hoisted(()=>({password:vi.fn(),factors:vi.fn(),challenge:vi.fn(),verify:vi.fn(),signOut:vi.fn(),refresh:vi.fn()}));
+vi.mock('next/navigation',()=>({useRouter:()=>({refresh:m.refresh})}));
+vi.mock('@/lib/supabase/client',()=>({browserSupabase:()=>({auth:{signInWithPassword:m.password,signOut:m.signOut,mfa:{listFactors:m.factors,challenge:m.challenge,verify:m.verify}}})}));
+beforeEach(()=>{vi.clearAllMocks();m.password.mockResolvedValue({error:null});m.factors.mockResolvedValue({data:{totp:[{id:'f',status:'verified'}]},error:null});m.challenge.mockResolvedValue({data:{id:'c'},error:null});m.verify.mockResolvedValue({error:null});m.signOut.mockResolvedValue({error:null});});
+function enter(code='123456'){render(<MasterLoginAction/>);fireEvent.change(screen.getByLabelText('E-mail'),{target:{value:'operador@test.local'}});fireEvent.change(screen.getByLabelText('Senha'),{target:{value:'senha-de-teste'}});fireEvent.change(screen.getByLabelText('Código do autenticador'),{target:{value:code}});fireEvent.click(screen.getByRole('button',{name:'Entrar'}));}
+it('não envia credenciais sem código completo',()=>{enter('123');expect(m.password).not.toHaveBeenCalled();expect(screen.getByText(/Preencha e-mail/)).toBeVisible();});
+it('valida senha e segundo fator antes de atualizar a sessão do console',async()=>{enter();await waitFor(()=>expect(m.refresh).toHaveBeenCalledOnce());expect(m.password).toHaveBeenCalledWith({email:'operador@test.local',password:'senha-de-teste'});expect(m.verify).toHaveBeenCalledWith({factorId:'f',challengeId:'c',code:'123456'});});
+it('falha de TOTP não afirma acesso e libera nova tentativa',async()=>{m.verify.mockResolvedValue({error:{message:'expired'}});enter();await screen.findByText('Código incorreto ou expirado.');expect(m.refresh).not.toHaveBeenCalled();expect(screen.getByRole('button',{name:'Entrar'})).toBeEnabled();});
+it('não inventa autenticação multifator para conta sem fator',async()=>{m.factors.mockResolvedValue({data:{totp:[]},error:null});enter();await screen.findByText(/Configure o autenticador/);expect(m.signOut).toHaveBeenCalledOnce();expect(m.refresh).not.toHaveBeenCalled();});
+it('falha de rede não deixa ação presa nem exibe resposta sensível',async()=>{m.password.mockRejectedValue(new Error('private'));enter();await screen.findByText('Não foi possível entrar agora. Tente novamente.');expect(screen.queryByText('private')).toBeNull();expect(screen.getByRole('button',{name:'Entrar'})).toBeEnabled();});
