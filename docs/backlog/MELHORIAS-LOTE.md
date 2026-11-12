@@ -64,3 +64,19 @@ Status: coletando. Nada deste lote foi corrigido ainda.
   5. Selo "REVELADA" no canto sem explicação.
 - Direção: usar o layout mobile do painel (item 3b/5): cabeçalho único do painel, título "Conteúdo" com contagem, grade com miniaturas maiores (2 colunas no celular), toque abre visualização grande com ações Remover/Devolver, filtros simples, estado vazio com ação, e rolagem normal da página.
 - Conferir se o "tudo preto" também aparece enquanto as fotos carregam (esqueleto `ScreenSkeleton variant="grade"`) ou se as miniaturas ficam pretas por falha na assinatura das URLs; pedir ao usuário o horário para cruzar com os logs, se for o segundo caso.
+
+## 7. Ajustes do evento: cada item leva a uma interface "web", feia e que não funciona (/painel/[id]/configuracoes)
+- Sintoma: na tela "Nosso casamento" (câmera, Trocar embalagem, Editar nome, Plano, Fecha, Revela, Filme, Poses, Feed), tocar em qualquer linha abre algo no estilo web, fora do padrão Revela mobile, e que não funciona direito.
+- Mapa do que cada toque faz hoje (`web/src/app/painel/[id]/configuracoes/page.tsx:74-95`):
+  - Trocar embalagem e Filme → navegam para `/painel/[id]/aparencia` (a tela web do item 3b: abas cortadas, migalhas, prévia gigante, conteúdo coberto pela barra do navegador).
+  - Plano → navega para `/painel/[id]/plano` (item 5: tela dentro de tela, botão de confirmar cortado).
+  - Editar nome, Fecha, Revela, Poses → abrem `Sheet` com componentes de formulário web (`Field`, `Chips`, `OptionGroup`, `RevealSettings`, classes `app-p`, `app-stack-sm`) em vez dos componentes da referência Revela.
+  - Feed com curtidas → alterna direto, sem confirmação visível (a captura mostra o botão com o círculo escuro sobre laranja, parecendo desalinhado/desativado).
+  - "…" (Mais) → outra folha.
+- Causa: a tela inicial foi redesenhada (Revela), mas os destinos continuaram sendo as telas e as folhas da interface antiga. Ao tocar, a pessoa "cai" de uma interface mobile numa de web, sem volta clara.
+- A investigar ao corrigir (para saber o que "não funciona"): se Salvar nome, mudar o fim, Revela e Poses salvam de fato e atualizam a tela de trás; se as folhas fecham e se o botão voltar do navegador volta aos ajustes; tamanho dos alvos de toque e teclado cobrindo campos.
+- Direção:
+  1. Redesenhar cada destino como folha ou tela Revela mobile (sheet de baixo, alvos de 44 px, `safe-area`), uma por vez: Embalagem/Filme (escolha de câmera e de filme com prévia pequena), Plano (item 5), Nome, Fecha, Revela, Poses.
+  2. Depois de salvar, voltar para os Ajustes com a linha já atualizada e um aviso curto.
+  3. Nenhuma linha deve levar a uma página com o cabeçalho do painel; o Plano e a Aparência passam a ser sub-telas dos Ajustes com o mesmo cabeçalho e seta de voltar.
+- Dependência: o layout mobile do painel (itens 3b, 5, 6).
