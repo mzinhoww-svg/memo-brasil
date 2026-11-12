@@ -22,11 +22,12 @@ insert into auth.users (id, email, is_anonymous) values
   ('00000000-0000-4000-8000-0000000032b1', 'guest32@test.local', false),
   ('00000000-0000-4000-8000-0000000032c1', 'master32@test.local', false),
   ('00000000-0000-4000-8000-0000000032c2', 'support32@test.local', false),
+  ('00000000-0000-4000-8000-0000000032c3', 'auditor32@test.local', false),
   ('00000000-0000-4000-8000-0000000032d1', 'stranger32@test.local', false);
 insert into public.profiles (id, display_name) values
   ('00000000-0000-4000-8000-0000000032a1', 'Maria "Mimi" D''Ávila'), ('00000000-0000-4000-8000-0000000032b1', 'Ana 32'),
-  ('00000000-0000-4000-8000-0000000032c1', 'M'), ('00000000-0000-4000-8000-0000000032c2', 'S'), ('00000000-0000-4000-8000-0000000032d1', 'X') on conflict do nothing;
-insert into public.platform_roles (user_id, role) values ('00000000-0000-4000-8000-0000000032c1', 'master'), ('00000000-0000-4000-8000-0000000032c2', 'support');
+  ('00000000-0000-4000-8000-0000000032c1', 'M'), ('00000000-0000-4000-8000-0000000032c2', 'S'), ('00000000-0000-4000-8000-0000000032c3', 'A'), ('00000000-0000-4000-8000-0000000032d1', 'X') on conflict do nothing;
+insert into public.platform_roles (user_id, role) values ('00000000-0000-4000-8000-0000000032c1', 'master'), ('00000000-0000-4000-8000-0000000032c2', 'support'), ('00000000-0000-4000-8000-0000000032c3', 'auditor');
 
 insert into public.events (id, title, category, host_id, host_name, duration_hours, capacity, shots_per_person, reveal_enabled) values
   ('00000000-0000-4000-8000-0000000032e1', E'Casório "Ção", 32' || E'\n' || 'linha 2', 'casamento', '00000000-0000-4000-8000-0000000032a1', 'Maria "Mimi" D''Ávila', 6, 20, 10, false),
@@ -46,8 +47,12 @@ insert into public.payment_orders (id, event_id, host_id, plan_code, amount_cent
 select tests.login('00000000-0000-4000-8000-0000000032d1');
 select throws_ok($$select tests.ex('eventos')$$, 'MM004', null, 'quem não é da equipe não exporta');
 reset role;
-select tests.login('00000000-0000-4000-8000-0000000032c2', 'support');
-select lives_ok($$select tests.ex('eventos')$$, 'suporte exporta eventos');
+select tests.login('00000000-0000-4000-8000-0000000032c2', 'support'), ('00000000-0000-4000-8000-0000000032c3', 'auditor');
+select throws_ok($$select tests.ex('eventos')$$, 'MM004', null, 'suporte não exporta (matriz da M32)');
+select throws_ok($$select tests.ex('auditoria')$$, 'MM004', null, 'nem a auditoria');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000032c3', 'auditor');
+select lives_ok($$select tests.ex('eventos')$$, 'auditor exporta eventos');
 select lives_ok($$select tests.ex('auditoria')$$, 'e auditoria');
 select throws_ok($$select tests.ex('pagamentos')$$, 'MM004', null, 'pagamentos só o Master');
 select throws_ok($$select tests.ex('impressoes')$$, 'MM004', null, 'impressões só o Master');
@@ -96,7 +101,7 @@ select is((select actor_id from public.audit_logs where action = 'export.csv' an
 select is((select detail -> 'filters' ->> 'q' from public.audit_logs where action = 'export.csv' and target_id = 'eventos' and detail -> 'filters' ? 'q' order by id desc limit 1), 'Casório', 'e os filtros usados');
 select ok(not exists (select 1 from public.audit_logs where action = 'export.csv' and detail::text ~ 'Maria|Mimi|segredo32'), 'a auditoria não guarda o conteúdo exportado');
 reset role;
-select is((select actor_role from public.audit_logs where action = 'export.csv' and target_id = 'auditoria' limit 1), 'support', 'exportação do suporte registra papel support');
+select is((select actor_role from public.audit_logs where action = 'export.csv' and target_id = 'auditoria' limit 1), 'auditor', 'exportação do auditor registra papel auditor');
 
 -- ===================================================================== limite de 50 mil linhas
 insert into public.audit_logs (action, target_type, target_id) select 'zz32.lote', 'lote', g::text from generate_series(1, 50005) g;

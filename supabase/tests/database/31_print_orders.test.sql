@@ -43,6 +43,9 @@ returns jsonb language sql as $$
 $$;
 grant execute on function tests.mk(uuid, uuid, uuid[], boolean, text, text, text, jsonb) to authenticated;
 
+-- o álbum impresso nasce desligado (chave printed_album): os pedidos abaixo supõem a chave ligada
+insert into public.feature_flags (key, enabled) values ('printed_album', true);
+
 -- ===================================================================== criar
 select tests.login('00000000-0000-4000-8000-0000000031a1');
 select is((tests.mk('00000000-0000-4000-8000-000000031a01', '00000000-0000-4000-8000-0000000031e1') ->> 'status'), 'solicitado', 'anfitrião cria o pedido: nasce solicitado');
