@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { retrospectiveOpen } from "@/domain/event";
 import { photosAvailableUntil } from "@/domain/retention";
-import { download, guestsCsv, zipAlbum } from "@/features/admin/export";
 import { guestRanking } from "@/features/admin/service";
 import { useAdmin } from "@/features/admin/context";
 import { formatDate } from "@/features/app/hooks";
@@ -33,6 +32,7 @@ export default function Downloads() {
     setError(undefined);
     setProgress({ done: 0, total: count });
     try {
+      const { download, zipAlbum } = await import("@/features/admin/export"); // JSZip só entra quando alguém baixa
       const r = await zipAlbum(repos, event, photos, (done, total) => setProgress({ done, total }));
       if (r.saved === 0) { setError(`Nenhuma foto pôde ser incluída; ${r.missing} ausentes. Tente de novo.`); return; }
       download(r.blob, r.filename);
@@ -48,6 +48,7 @@ export default function Downloads() {
     setError(undefined);
     setCsvBusy(true);
     try {
+      const { download, guestsCsv } = await import("@/features/admin/export");
       download(new Blob([guestsCsv(await guestRanking(repos, event))], { type: "text/csv;charset=utf-8" }), `revela-${event.code}-convidados.csv`);
     } catch {
       setError("Não foi possível preparar a lista. Tente de novo.");

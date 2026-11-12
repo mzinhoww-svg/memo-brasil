@@ -6,7 +6,6 @@ import { visiblePhotos } from "@/domain/photo";
 import { useApp } from "@/features/app/provider";
 import { usePhotoUrls } from "@/features/app/hooks";
 import { useGuest } from "@/features/events/guest-context";
-import { download } from "@/features/admin/export";
 import { stampDay, hhmm } from "@/features/guest/format";
 import { renderEdit, renderFilmPreview, type EditState } from "@/features/photos/edit";
 import { fileToImage } from "@/features/photos/capture";
@@ -54,6 +53,7 @@ export default function Editar() {
       if (!d) return setMsg("Não achamos os bytes desta foto neste aparelho.");
       const img = await fileToImage(new File([d.bytes], "foto", { type: d.type }));
       const blob = await renderEdit(img, s, stampBase);
+      const { download } = await import("@/features/admin/export"); // fora do bundle da página (arrasta o JSZip)
       download(blob, `revela-editada-${photo!.id.slice(0, 8)}.jpg`);
       setMsg(undefined);
     } catch { setMsg("Não deu para salvar. Tente de novo."); }

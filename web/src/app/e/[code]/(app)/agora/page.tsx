@@ -7,8 +7,11 @@ import { useNow } from "@/features/app/hooks";
 import { countdown, revealLine, stampDay } from "@/features/guest/format";
 import { ConvidadoLaboratorio } from "@/revela/screens/ConvidadoLaboratorio";
 import { RevealedFeed } from "@/features/feed/RevealedFeed";
-import { RevealIntro } from "@/features/reveal/RevealIntro";
+import dynamic from "next/dynamic";
 import { useGuest } from "@/features/events/guest-context";
+
+// 24b/24c só aparecem para quem chega pelo aviso (`?aviso=1`): fora do bundle do feed
+const RevealIntro = dynamic(() => import("@/features/reveal/RevealIntro").then((m) => m.RevealIntro));
 
 /** 23b · Feed antes da revelação: o convidado vê só a contagem, a espera e o botão da câmera. */
 function Laboratorio() {

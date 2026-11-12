@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppProvider } from "@/features/app/provider";
-import { SiteFooter, StorageBanner } from "@/components/revela";
+import { SiteFooter } from "@/components/revela/SiteFooter";
+import { StorageBanner } from "@/components/revela/StorageBanner";
 import { RegisterServiceWorker } from "@/lib/register-sw";
 
 export const metadata: Metadata = {

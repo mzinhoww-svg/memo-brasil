@@ -4,10 +4,13 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAdmin } from "@/features/admin/context";
 import { printInvite } from "@/features/invitations/invite-print";
-import { QrDownloadSheet } from "@/features/invitations/QrDownload";
+import dynamic from "next/dynamic";
 import { qrMatrix } from "@/features/invitations/qr-export";
 import { siteOrigin } from "@/lib/site";
 import { PainelConviteA5 } from "@/revela/screens/PainelConviteA5";
+
+// a folha de download (PDF/PNG do QR) só abre no toque: fora do bundle da página
+const QrDownloadSheet = dynamic(() => import("@/features/invitations/QrDownload").then((m) => m.QrDownloadSheet), { ssr: false });
 
 const longDate = (ts: number, tz: string) => new Intl.DateTimeFormat("pt-BR", { timeZone: tz, day: "numeric", month: "long", year: "numeric" }).format(new Date(ts));
 

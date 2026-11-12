@@ -4,13 +4,16 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Sheet } from "@/components/revela";
 import { useAdmin } from "@/features/admin/context";
-import { QrDownloadSheet } from "@/features/invitations/QrDownload";
+import dynamic from "next/dynamic";
 import { qrMatrix } from "@/features/invitations/qr-export";
 import { inviteUrl } from "@/features/invitations/links";
 import { copyText, shareInvite } from "@/features/invitations/share";
 import { siteOrigin } from "@/lib/site";
 import { QRCompartilhar } from "@/revela/screens/QRCompartilhar";
 import { QrSvg, useFlash } from "@/revela/painel-ui";
+
+// a folha de download (PDF/PNG do QR) só abre no toque: fora do bundle da página
+const QrDownloadSheet = dynamic(() => import("@/features/invitations/QrDownload").then((m) => m.QrDownloadSheet), { ssr: false });
 
 /** Compartilhar (26): link do evento, WhatsApp, Stories, QR na tela e download do QR code. */
 export default function Compartilhar() {

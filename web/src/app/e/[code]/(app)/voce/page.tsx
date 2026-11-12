@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { notificationPlan } from "@/domain/notifications";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
-import { download, zipAlbum } from "@/features/admin/export";
 import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
 import { ConvidadoVoce } from "@/revela/screens/ConvidadoVoce";
@@ -46,6 +45,7 @@ export default function Voce() {
   async function downloadMine() {
     const mine = photos.filter((p) => p.authorId === user.id);
     if (!mine.length) return setMsg(counts.mine ? "Suas fotos aparecem para baixar depois da revelação." : "Você ainda não tirou fotos.");
+    const { download, zipAlbum } = await import("@/features/admin/export"); // JSZip só entra quando alguém baixa
     const z = await zipAlbum(repos, event, mine);
     download(z.blob, z.filename);
   }

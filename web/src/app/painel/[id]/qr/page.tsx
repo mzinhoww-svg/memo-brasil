@@ -6,10 +6,13 @@ import type { MemoEvent } from "@/domain/event";
 import { useAdmin } from "@/features/admin/context";
 import { revealStamp } from "@/features/admin/panel-format";
 import { inviteUrl } from "@/features/invitations/links";
-import { QrDownloadSheet } from "@/features/invitations/QrDownload";
+import dynamic from "next/dynamic";
 import { qrMatrix } from "@/features/invitations/qr-export";
 import { siteOrigin } from "@/lib/site";
 import { QRConvite } from "@/revela/screens/QRConvite";
+
+// a folha de download (PDF/PNG do QR) só abre no toque: fora do bundle da página
+const QrDownloadSheet = dynamic(() => import("@/features/invitations/QrDownload").then((m) => m.QrDownloadSheet), { ssr: false });
 
 const CATEGORY_NOUN: Record<MemoEvent["category"], string> = { casamento: "casamento", festa: "festa", empresa: "evento", viagem: "viagem", outro: "evento" };
 const poses = (e: MemoEvent) => (e.shotsPerPerson === null ? "poses sem limite" : `${e.shotsPerPerson} poses`);
