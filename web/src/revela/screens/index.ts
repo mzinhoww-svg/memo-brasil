@@ -74,7 +74,6 @@ import { ApoioPrecos } from "./ApoioPrecos";
 import { ApoioTermos } from "./ApoioTermos";
 import { ApoioAjuda } from "./ApoioAjuda";
 import { MasterLogin } from "./MasterLogin";
-import { MasterVisao } from "./MasterVisao";
 import { MasterEventos } from "./MasterEventos";
 import { MasterPlanos } from "./MasterPlanos";
 import { MasterPlanoPublicar } from "./MasterPlanoPublicar";
@@ -258,7 +257,6 @@ export const COMPONENTS: Record<string, () => import("react").JSX.Element> = {
   "Apoio-termos": ApoioTermos,
   "Apoio-ajuda": ApoioAjuda,
   "Master-login": MasterLogin,
-  "Master-visao": MasterVisao,
   "Master-eventos": MasterEventos,
   "Master-planos": MasterPlanos,
   "Master-plano-publicar": MasterPlanoPublicar,

@@ -602,14 +602,6 @@ export const SCREENS: ScreenMeta[] = [
   "master": true
  },
  {
-  "id": "M01",
-  "title": "Visão geral",
-  "webp": "telas/14-master/M01-visao-geral.webp",
-  "html": "Master-visao",
-  "name": "MasterVisao",
-  "master": true
- },
- {
   "id": "M02",
   "title": "Eventos",
   "webp": "telas/14-master/M02-eventos.webp",
