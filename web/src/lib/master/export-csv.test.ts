@@ -62,6 +62,13 @@ describe("pedido ao servidor", () => {
     expect(await requestExport("eventos", { f: "rolando", q: "" })).toEqual({ csv: '"a"\r\n', rows: 0, truncated: false });
     expect(rpc).toHaveBeenCalledWith("admin_export_csv", { p_kind: "eventos", p_filters: { f: "rolando" } });
   });
+  it("equipe usa a versão que preserva busca e uma linha por conta sem alterar as outras exportações", async () => {
+    rpc.mockResolvedValue({ data: { csv: '"email","papel","desde"\r\n', rows: 0, truncated: false }, error: null });
+    await requestExport("pessoas", { aba: "equipe", q: "Ana" });
+    expect(rpc).toHaveBeenLastCalledWith("admin_export_csv", { p_kind: "pessoas", p_filters: { aba: "equipe", q: "Ana" }, p_design_version: 2 });
+    await requestExport("pessoas", { aba: "organizadores", q: "Ana" });
+    expect(rpc).toHaveBeenLastCalledWith("admin_export_csv", { p_kind: "pessoas", p_filters: { aba: "organizadores", q: "Ana" } });
+  });
   it("traduz erros do banco", async () => {
     rpc.mockResolvedValue({ data: null, error: { code: "MM004" } });
     await expect(requestExport("pagamentos", {})).rejects.toMatchObject({ code: "forbidden" });

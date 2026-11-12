@@ -45,7 +45,8 @@ export function exportErrorText(e: unknown): string {
 }
 
 export async function requestExport(kind: ExportKind, filters: ExportFilters): Promise<ExportResult> {
-  const r = await browserSupabase().rpc("admin_export_csv", { p_kind: kind, p_filters: cleanFilters(filters) });
+  const args = {p_kind:kind,p_filters:cleanFilters(filters),...(kind === "pessoas" && filters.aba === "equipe" ? {p_design_version:2} : {})};
+  const r = await browserSupabase().rpc("admin_export_csv", args);
   if (r.error) throw new ExportError(CODES[r.error.code ?? ""] ?? "unavailable");
   const d = r.data as { csv?: unknown; rows?: unknown; truncated?: unknown } | null;
   if (!d || typeof d.csv !== "string") throw new ExportError("unavailable");

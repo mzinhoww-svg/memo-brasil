@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Ico } from "@/revela/master-kit";
+import { Ico, MNote } from "@/revela/master-kit";
 import { exportCsv, exportErrorText, MAX_ROWS, type ExportFilters, type ExportKind } from "@/lib/master/export-csv";
 
 /** Botão "Exportar" do cabeçalho do Master (markup do desenho). Baixa o CSV dos mesmos filtros da tela; o servidor registra quem exportou. */
@@ -24,7 +24,7 @@ export function ExportButton({ kind, screen, filters = {}, label = "Exportar" }:
   return (
     <>
       <button type="button" className="rv-btn rv-btn--sm" onClick={() => void run()} disabled={busy} aria-busy={busy}><Ico n="download" />{label}</button>
-      {msg && <span className="rv-caption" role={msg.bad ? "alert" : "status"} style={{ alignSelf: "center" }}>{msg.text}</span>}
+      {msg && <div role={msg.bad ? "alert" : "status"}><MNote icon={msg.bad ? "warn" : "check"}>{msg.text}</MNote></div>}
     </>
   );
 }
