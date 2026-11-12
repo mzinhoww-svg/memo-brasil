@@ -13,8 +13,6 @@ export interface EditarProps {
   film?: FilmId;
   /** rotação já aplicada, em graus */
   rotate?: number;
-  /** CSS filter da pré-visualização do filme */
-  previewFilter?: string;
   onFilm?: (f: FilmId) => void;
   onClose?: () => void;
   onSave?: () => void;
@@ -24,7 +22,7 @@ export interface EditarProps {
   onDownload?: () => void;
 }
 
-export function ConvidadoEditar({ src = "/revela/ref/sc-brinde.jpg", alt = "Foto de convidado", capLeft = "'27 03 14 · 21:32", capRight = "por Bia", film = "filme400", rotate = 0, previewFilter, onFilm, onClose, onSave, onCrop, onRotate, onDate, onDownload }: EditarProps = {}) {
+export function ConvidadoEditar({ src = "/revela/ref/sc-brinde.jpg", alt = "Foto de convidado", capLeft = "'27 03 14 · 21:32", capRight = "por Bia", film = "filme400", rotate = 0, onFilm, onClose, onSave, onCrop, onRotate, onDate, onDownload }: EditarProps = {}) {
   return (
     <>
     <div className="scr">
@@ -44,7 +42,7 @@ export function ConvidadoEditar({ src = "/revela/ref/sc-brinde.jpg", alt = "Foto
         </div>
         <div className="grow" style={{ "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
           <div className="rv-print" style={{ "width": "320px", "height": "410px", "transform": "rotate(0deg)", "zIndex": "1" }}>
-            <img src={src} alt={alt} style={{ transform: rotate ? `rotate(${rotate}deg)` : undefined, filter: previewFilter }} />
+            <img src={src} alt={alt} style={{ transform: rotate ? `rotate(${rotate}deg)` : undefined }} />
             <div className="rv-print__cap">
               <span>{capLeft}</span>
               <span>{capRight}</span>

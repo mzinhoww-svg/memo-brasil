@@ -12,7 +12,6 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "gen:revela": "node scripts/gen-revela-assets.mjs",
-    "gen:lut": "node scripts/gen-film-lut.mjs",
     "test:integration": "vitest run --config vitest.integration.config.ts && node --test --test-force-exit integration/supabase.integration.test.mjs"
   },
   "dependencies": {

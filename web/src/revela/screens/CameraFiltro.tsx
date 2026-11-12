@@ -13,7 +13,7 @@ const CAPTION: Record<FilmLook, string> = {
 };
 
 export interface CameraFiltroProps {
-  /** Amostras mostradas; no app o Filme 35mm é a foto natural passada pela LUT real (`/revela/lut/amostra-bolo-filme35.jpg`). */
+  /** Amostras mostradas; as fotos do designer (`sc-bolo-natural.jpg` × `sc-bolo.jpg`, esta já com o Filme 35mm). */
   samples?: Partial<Record<FilmLook, string>>;
   film?: FilmLook; busy?: boolean;
   onPick?: (f: FilmLook) => void; onBack?: () => void; onNext?: () => void;
