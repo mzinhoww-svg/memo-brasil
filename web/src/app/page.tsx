@@ -96,7 +96,7 @@ export default function Home() {
       <Main
         account={host && user && cloud ? <AccountMenu /> : undefined}
         banner={<Suspense fallback={null}><LoginErrorBanner /></Suspense>}
-        actions={<>{actions}<Link href="/exemplo" className="rv-btn rv-btn--block rv-btn--text">Experimentar câmera</Link></>}
+        actions={actions}
         extra={<>
           {ready && canSwitchIdentity && <KnownPeople people={known.filter((k) => k.id !== user?.id)} onPick={(id) => void switchTo(id)} />}
           {(!persistent || storageError) && ready && (

@@ -9,7 +9,7 @@ for (const size of [{ width: 360, height: 740 }, { width: 1280, height: 800 }]) 
   test(`home ${size.width}px: ações com destino, sem listas de eventos, sem rolagem lateral, rodapé compacto`, async ({ page }) => {
     await page.setViewportSize(size);
     await page.goto("/");
-    await expect(page.getByRole("link", { name: "Experimentar câmera" })).toHaveAttribute("href", "/exemplo");
+    await expect(page.getByRole("link", { name: "Experimentar câmera" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
     await expect(page.getByRole("link", { name: "Entrar com código" })).toHaveAttribute("href", "/entrar");
     await expect(page.getByRole("heading", { name: /Seus eventos|Festas em que você entrou/ })).toHaveCount(0);
@@ -23,8 +23,7 @@ test("festa de exemplo: liga, desliga e sai sem enviar nada ao servidor", async 
   const writes: string[] = [];
   page.on("request", (r) => { if (r.method() !== "GET" && r.method() !== "HEAD" && !r.url().startsWith("data:")) writes.push(`${r.method()} ${new URL(r.url()).pathname}`); });
   await page.goto("/");
-  await page.getByRole("link", { name: "Experimentar câmera" }).click();
-  await page.waitForURL(/\/exemplo$/);
+  await page.goto("/exemplo");
   await page.getByRole("button", { name: "Ligar a câmera" }).click();
   await expect(page.getByLabel("Câmera ao vivo")).toBeVisible();
   await page.getByRole("button", { name: "Tirar foto de exemplo" }).click();

@@ -80,8 +80,8 @@ describe("home (UX-13, E6)", () => {
     render(<Home />);
     expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.queryByText(/Guia de componentes|revelação em 2 minutos/i)).toBeNull();
-    // a festa de exemplo em memória (S3) é um link visível para /exemplo, não um botão que grava dados
-    expect(screen.getByRole("link", { name: "Experimentar câmera" })).toHaveAttribute("href", "/exemplo");
+    // a abertura não oferece mais "Experimentar câmera": a festa de exemplo continua existindo em /exemplo, mas sem botão na home
+    expect(screen.queryByRole("link", { name: "Experimentar câmera" })).toBeNull();
   });
   it("home não lista eventos; com sessão de anfitrião oferece Minhas câmeras", async () => {
     app.canCreate = true;

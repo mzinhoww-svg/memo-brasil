@@ -13,8 +13,7 @@ const watchWrites = (page: Page) => {
 test("câmera da festa de exemplo: liga com permissão, fotografa e fecha ao sair sem gravar", async ({ page }) => {
   await page.goto("/");
   const writes = watchWrites(page);
-  await page.getByRole("link", { name: "Experimentar câmera" }).click();
-  await page.waitForURL(/\/exemplo$/);
+  await page.goto("/exemplo");
   // nada de câmera sem pedir: começa desligada, com a ação visível
   await expect(page.getByText("A câmera fica desligada até você pedir.")).toBeVisible();
   expect(await page.evaluate(() => document.querySelector("video")?.srcObject ?? null)).toBeNull();
@@ -83,25 +82,24 @@ for (const size of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { 
   test(`home ${size.width}px sem rolagem horizontal e com as ações visíveis`, async ({ page }) => {
     await page.setViewportSize(size);
     await page.goto("/");
-    for (const name of ["Experimentar câmera", "Montar câmera", "Tenho um convite"]) await expect(page.getByRole("link", { name })).toBeVisible();
+    for (const name of ["Montar câmera", "Tenho um convite"]) await expect(page.getByRole("link", { name })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Experimentar câmera" })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     // rodapé só com o próprio conteúdo, sem bloco vazio de tela cheia
     expect((await page.getByRole("contentinfo", { name: "Rodapé" }).boundingBox())!.height).toBeLessThan(260);
   });
 }
 
-test("home por teclado: Tab alcança as ações na ordem e Enter abre a festa de exemplo", async ({ page }) => {
+test("home por teclado: Tab alcança as ações na ordem; a festa de exemplo segue em /exemplo", async ({ page }) => {
   await page.goto("/");
   const reached: string[] = [];
-  for (let i = 0; i < 12 && reached.length < 3; i++) {
+  for (let i = 0; i < 12 && reached.length < 2; i++) {
     await page.keyboard.press("Tab");
     const name = await page.evaluate(() => (document.activeElement as HTMLElement | null)?.innerText?.trim() ?? "");
-    if (["Tenho um convite", "Montar câmera", "Experimentar câmera"].includes(name)) reached.push(name);
+    if (["Tenho um convite", "Montar câmera"].includes(name)) reached.push(name);
   }
-  expect(reached).toEqual(["Tenho um convite", "Montar câmera", "Experimentar câmera"]);
-  await page.getByRole("link", { name: "Experimentar câmera" }).focus();
-  await page.keyboard.press("Enter");
-  await page.waitForURL(/\/exemplo$/);
+  expect(reached).toEqual(["Tenho um convite", "Montar câmera"]);
+  await page.goto("/exemplo");
   await page.getByRole("link", { name: "Criar meu evento grátis" }).focus();
   await page.keyboard.press("Enter");
   await page.waitForURL(/\/criar/);
