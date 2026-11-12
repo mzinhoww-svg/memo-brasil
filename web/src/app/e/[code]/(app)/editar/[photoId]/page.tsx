@@ -9,6 +9,7 @@ import { useGuest } from "@/features/events/guest-context";
 import { stampDay, hhmm } from "@/features/guest/format";
 import { renderEdit, renderFilmPreview, type EditState } from "@/features/photos/edit";
 import { fileToImage } from "@/features/photos/capture";
+import { useSmartBack } from "@/lib/smart-back";
 import { ConvidadoEditar, type FilmId } from "@/revela/screens/ConvidadoEditar";
 
 /** 23e · Editar foto: filme, corte, giro e data numa cópia que vai para o celular; a original continua no feed. */
@@ -23,6 +24,7 @@ export default function Editar() {
   const [s, setS] = useState<EditState>({ film: "filme400", rotate: 0, square: false, date: true });
   const [msg, setMsg] = useState<string | undefined>();
   const back = `/e/${event.code}/agora`;
+  const goBack = useSmartBack(back);
   const [preview, setPreview] = useState<string | undefined>();
   const photoCreatedAt = photo?.createdAt;
   const filmNow = s.film;
@@ -61,8 +63,8 @@ export default function Editar() {
   return (
     <>
       <ConvidadoEditar src={preview ?? photoUrl ?? ""} alt={`Foto de ${photo.authorName}`} capLeft={capLeft} capRight={`por ${photo.authorName}`} film={s.film} rotate={s.rotate}
-        onFilm={(film: FilmId) => setS((x) => ({ ...x, film }))} onClose={() => router.push(back)}
-        onSave={() => void save().then(() => router.push(back))} onCrop={() => setS((x) => ({ ...x, square: !x.square }))} onRotate={() => setS((x) => ({ ...x, rotate: (x.rotate + 90) % 360 }))}
+        onFilm={(film: FilmId) => setS((x) => ({ ...x, film }))} onClose={goBack}
+        onSave={() => void save().then(goBack)} onCrop={() => setS((x) => ({ ...x, square: !x.square }))} onRotate={() => setS((x) => ({ ...x, rotate: (x.rotate + 90) % 360 }))}
         onDate={() => setS((x) => ({ ...x, date: !x.date }))} onDownload={() => void save()} />
       {msg && <p className="rv-field-erro rv-toast-in" role="alert" style={{ position: "fixed", left: 20, right: 20, bottom: 24, textAlign: "center", zIndex: 40 }}>{msg}</p>}
     </>

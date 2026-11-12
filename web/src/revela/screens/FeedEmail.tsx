@@ -20,17 +20,19 @@ export interface FeedEmailProps {
   body?: string;
   prints?: MailPrint[];
   backHref?: string;
+  /** voltar pelo histórico; `backHref` segue como destino real do link */
+  onBack?: () => void;
   openHref?: string;
   onOptOut?: () => void;
 }
 
-export function FeedEmail({ subject = "Revelou: as fotos de Ana & Leo", from = "Revela <avisos@revela.app> · dom 12:00", greeting = "Revelou, Bia.", body = "As 418 fotos do casamento estão no feed. 27 são suas. Curta, comente e baixe as que quiser.", prints = MAIL_REF_PRINTS, backHref, openHref, onOptOut }: FeedEmailProps = {}) {
+export function FeedEmail({ subject = "Revelou: as fotos de Ana & Leo", from = "Revela <avisos@revela.app> · dom 12:00", greeting = "Revelou, Bia.", body = "As 418 fotos do casamento estão no feed. 27 são suas. Curta, comente e baixe as que quiser.", prints = MAIL_REF_PRINTS, backHref, onBack, openHref, onOptOut }: FeedEmailProps = {}) {
   return (
     <>
     <div className="scr">
       <div className="safe" style={{ background: "var(--paper-back)", color: "var(--on-paper)" }}>
         <div className="row between">
-          <Link href={backHref ?? "#"} className="rv-icon-btn" style={{ background: "var(--k-00000012)", color: "var(--on-paper)" }} aria-label="Voltar">
+          <Link href={backHref ?? "#"} className="rv-icon-btn" style={{ background: "var(--k-00000012)", color: "var(--on-paper)" }} aria-label="Voltar" onClick={onBack && ((e) => { if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); onBack(); } })}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>

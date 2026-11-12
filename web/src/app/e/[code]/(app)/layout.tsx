@@ -18,6 +18,7 @@ import { expirePending } from "@/features/photos/service";
 import { RevealTransition } from "@/features/reveal/RevealTransition";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
+import { useNavTracker } from "@/lib/smart-back";
 
 /** Área do convidado: guarda de acesso, tema do evento e barra de navegação com "Postar daqui". */
 export default function GuestLayout({ children }: { children: ReactNode }) {
@@ -25,6 +26,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
   const code = normalizeShareCode(params.code ?? "") ?? "";
   const path = usePathname();
   const router = useRouter();
+  useNavTracker(code);
   const { ready, user, scheduler, now: clock, repos, authority, signOut, canSwitchIdentity } = useApp();
   const data = useEventData({ code });
   const { now, sync } = useClock();
