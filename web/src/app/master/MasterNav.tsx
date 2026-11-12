@@ -9,15 +9,15 @@ import { MasterFrame, type AppNavId, type MasterUser } from "@/revela/master-kit
 export function currentOf(path: string): AppNavId {
   const seg = path.replace(/\/$/, "").split("/")[2] ?? "";
   const map: Record<string, AppNavId> = {
-    "": "visao", analytics: "visao", busca: "visao", eventos: "eventos", pessoas: "pessoas", usuarios: "pessoas", organizadores: "pessoas", participantes: "pessoas",
-    planos: "planos", pagamentos: "pagamentos", impressoes: "impressoes", codigos: "cortesias", revelacoes: "revelacoes", moderacao: "moderacao", saude: "saude", storage: "saude",
+    "": "visao", busca: "visao", eventos: "eventos", pessoas: "pessoas",
+    planos: "planos", pagamentos: "pagamentos", impressoes: "impressoes", codigos: "cortesias", revelacoes: "revelacoes", moderacao: "moderacao", saude: "saude",
     lgpd: "lgpd", auditoria: "auditoria", configuracoes: "configuracoes",
   };
   return map[seg] ?? "visao";
 }
 
 /** Moldura do Master (menu lateral + barra de cima) em volta de cada página; o item atual vem da URL. */
-export function MasterShell({ user, env, children }: { user: MasterUser; env: string; children: ReactNode }) {
+export function MasterShell({ user, env, visible, children }: { user: MasterUser; env: string; visible: readonly AppNavId[]; children: ReactNode }) {
   const path = usePathname() ?? "/master";
-  return <MasterFrame links current={currentOf(path)} user={user} env={env}>{children}</MasterFrame>;
+  return <MasterFrame links current={currentOf(path)} user={user} env={env} visible={visible}>{children}</MasterFrame>;
 }

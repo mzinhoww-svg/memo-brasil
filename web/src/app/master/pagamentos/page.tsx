@@ -3,7 +3,7 @@ import { ExportButton } from "../ExportButton";
 import { ReconcileButton } from "../ReconcileButton";
 import { MasterPagamentosView, type PagamentoRow } from "@/revela/screens/MasterPagamentos";
 import { brl, divergenceText } from "../billing";
-import { requireMaster, rpc } from "../data";
+import { requireRole, rpc } from "../data";
 import { methodLabel, nf, relWhen } from "../format";
 import { orderLabel } from "./status";
 
@@ -24,7 +24,9 @@ const MATCH: Record<string, (o: Order) => boolean> = {
 };
 
 export default async function Pagamentos({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
-  const sb = await requireMaster();
+  const gate = await requireRole("pagamentos");
+  if ("denied" in gate) return gate.denied;
+  const { sb } = gate;
   const f = (await searchParams).f ?? "";
   const filtro = MATCH[f] ? f : "";
   const [s, list, div] = await Promise.all([

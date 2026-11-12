@@ -1,5 +1,5 @@
 import { MState } from "@/revela/master-kit";
-import { requireMaster, rpc } from "../data";
+import { requireRole, rpc } from "../data";
 import { relWhen } from "../format";
 import { ConfigForm, type ConfigInitial } from "./ConfigForm";
 import { CARD_FLAG, CHECKOUT_FLAG, PIX_KEY, SETTING_FIELDS } from "./config";
@@ -12,7 +12,9 @@ const txt = (v: unknown): string => (v == null ? "" : typeof v === "string" ? v 
 
 /** M14 · Configurações. Ambiente e webhook só leitura (vêm do servidor); validade do Pix, cartão, checkout e parâmetros gravam via RPC com auditoria. */
 export default async function Configuracoes() {
-  const sb = await requireMaster();
+  const gate = await requireRole("configuracoes");
+  if ("denied" in gate) return gate.denied;
+  const { sb } = gate;
   const [s, f, ov, pub] = await Promise.all([
     sb.from("platform_settings").select("key,value"),
     sb.from("feature_flags").select("key,enabled"),

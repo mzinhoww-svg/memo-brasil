@@ -30,7 +30,8 @@ export interface ReveladosGaleriaProps {
   prints?: GaleriaPrint[];
   backHref?: string;
   downloadHref?: string;
-  albumHref?: string;
+  /** Link do álbum impresso (19b); `null` esconde o botão (chave `printed_album` desligada). */
+  albumHref?: string | null;
   onFilter?: () => void;
   /** texto quando não há foto para mostrar */
   empty?: string;
@@ -77,7 +78,7 @@ export function ReveladosGaleria({ caption = "Ana & Leo · 418 fotos de 32 convi
           {empty && <p className="rv-caption" style={{ textAlign: "center", marginTop: "24px" }}>{empty}</p>}
         </div>
         <div className="row" style={{ gap: "8px", position: "relative", zIndex: "6" }}>
-          <Link href={albumHref ?? "#"} className="rv-btn rv-btn--block rv-btn--paper" style={{ flex: "1" }}>Ver como álbum</Link>
+          {albumHref !== null && <Link href={albumHref ?? "#"} className="rv-btn rv-btn--block rv-btn--paper" style={{ flex: "1" }}>Ver como álbum</Link>}
           <button type="button" className="rv-icon-btn" style={{ width: "56px", height: "56px" }} aria-label="Filtrar" onClick={onFilter}>
             <svg {...svg}>
               <circle cx="9" cy="8" r="3.5" />

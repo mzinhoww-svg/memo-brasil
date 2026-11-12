@@ -1,4 +1,7 @@
 /* Gerado de design-system/revela/html/Master-pagamentos--folha-conciliar-resultado.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
+"use client";
+import { ReconcileSheet } from "../master/ReconcileSheet";
+const noop = () => undefined;
 export function MasterPagamentosFolhaConciliarResultado() {
   return (
     <>
@@ -349,64 +352,7 @@ export function MasterPagamentosFolhaConciliarResultado() {
             </div>
           </div>
         </div>
-        <div className="mmodal">
-          <div className="mmodal-card" style={{ "width": "480px" }} role="dialog" aria-label="Conciliação concluída">
-            <h2 className="rv-title">
-              Conciliação concluída
-            </h2>
-            <p className="rv-caption" style={{ "marginTop": "6px" }}>
-              hoje 08:51 · levou 4 s
-            </p>
-            <div className="tiles">
-              <div className="tile">
-                <span>
-                  Conciliados
-                </span>
-                <b>
-                  12
-                </b>
-              </div>
-              <div className="tile">
-                <span>
-                  Falhas
-                </span>
-                <b>
-                  1
-                </b>
-              </div>
-              <div className="tile">
-                <span>
-                  Sem mudança
-                </span>
-                <b>
-                  58
-                </b>
-              </div>
-            </div>
-            <div className="rv-group" style={{ "marginTop": "14px" }}>
-              <div className="rv-row">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3l9.5 17h-19z" />
-                  <path d="M12 10v4M12 17v.01" />
-                </svg>
-                <div className="rv-row__text">
-                  #RV-2039 · Formatura Medicina
-                  <span className="rv-row__meta">
-                    A ValidaPay não respondeu a tempo. Tente de novo em 1 min.
-                  </span>
-                </div>
-              </div>
-            </div>
-            <p className="rv-caption" style={{ "marginTop": "12px" }}>
-              Próxima conciliação manual liberada em 00:57.
-            </p>
-            <div className="row" style={{ "gap": "8px", "marginTop": "20px" }}>
-              <button className="rv-btn rv-btn--block" style={{ "flex": "1" }}>
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
+        <ReconcileSheet state={{ step: "result", nextIn: 57, result: { confirmed: 12, failed: 1, unchanged: 58, at: "hoje 08:51", tookSeconds: 4, failures: [{ label: "#RV-2039 · Formatura Medicina", message: "A ValidaPay não respondeu a tempo. Tente de novo em 1 min." }] } }} onSubmitCode={noop} onClose={noop} inline />
       </main>
       <div className="grain" />
     </div>

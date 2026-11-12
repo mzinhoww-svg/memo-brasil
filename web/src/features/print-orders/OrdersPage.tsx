@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/revela";
 import { useApp } from "@/features/app/provider";
 import { HostTabs } from "@/revela/HostTabs";
+import { usePrintedAlbumEnabled } from "./flag";
 import { cancelPrintOrder, listMyPrintOrders, printErrorText } from "./api";
 import { orderSummary, PRODUCTS, STATUS_LABEL, type PrintOrder } from "./model";
 
@@ -13,6 +14,7 @@ const day = (t: number) => new Date(t).toLocaleDateString("pt-BR", { day: "numer
 /** Você · Álbuns impressos: pedidos de impressão do anfitrião (os dele e os de convidados do evento) com o status. */
 export function OrdersPage() {
   const { user, ready, now } = useApp();
+  const printed = usePrintedAlbumEnabled();
   const [orders, setOrders] = useState<PrintOrder[] | undefined>();
   const [failed, setFailed] = useState(false);
   const [msg, setMsg] = useState<string | undefined>();
@@ -32,6 +34,8 @@ export function OrdersPage() {
     try { await cancelPrintOrder(userId, o.id, now()); setMsg(undefined); await load(); } catch (e) { setMsg(printErrorText(e)); }
   }
 
+  // sem a chave `printed_album` a página não existe para o anfitrião
+  if (printed === false) return <div className="scr"><div className="safe"><h1 className="rv-title-lg">Não achamos esta página.</h1><p className="rv-body muted" style={{ margin: "10px 0 16px" }}>Ela não existe ou não está disponível.</p><Link className="app-link" href="/eventos">Voltar aos eventos</Link></div><HostTabs current="voce" /><div className="home-ind" /><div className="grain" /></div>;
   return (
     <div className="scr">
       <div className="safe" style={{ paddingBottom: "92px" }}>

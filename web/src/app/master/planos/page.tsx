@@ -1,5 +1,5 @@
 import { MState } from "@/revela/master-kit";
-import { requireMaster, rpc } from "../data";
+import { requireRole, rpc } from "../data";
 import { PricesEditor, type PlanImpact } from "./PricesEditor";
 import type { PlanRow } from "../prices";
 
@@ -8,7 +8,9 @@ interface Order { planCode: string; status: string; amountCents: number }
 
 /** M03: planos e preços editáveis na tabela, prévia do paywall e publicação com o código do autenticador (M04). */
 export default async function Planos() {
-  const sb = await requireMaster();
+  const gate = await requireRole("planos");
+  if ("denied" in gate) return gate.denied;
+  const { sb } = gate;
   const [plans, settings, orders] = await Promise.all([
     rpc<Plan[]>(sb, "admin_list_plans"),
     rpc<{ payments_env: string }>(sb, "get_public_settings"),

@@ -47,3 +47,11 @@ export const pct =(n: number, max: number): number => (max > 0 ? Math.max(n > 0 
 
 /** Relógio fora dos componentes (a regra de pureza do React não aceita Date.now() no render). */
 export const nowMs = (): number => Date.now();
+
+/** "dom, 15 mar 2027 12:00" no fuso de Cuiabá (hora prevista nas folhas do Master). */
+export function plannedWhen(iso: string | null | undefined): string {
+  if (!iso) return "Quando o evento terminar";
+  const p: Record<string, string> = {};
+  for (const x of new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Cuiaba", weekday: "short", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(iso))) p[x.type] = x.value.replace(/\.$/, "");
+  return `${p.weekday}, ${p.day} ${p.month} ${p.year} ${p.hour}:${p.minute}`;
+}

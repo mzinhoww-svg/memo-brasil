@@ -3,7 +3,7 @@ import { MasterCortesiasView, type CortesiaRow } from "@/revela/screens/MasterCo
 import { CourtesyButton } from "../billing-actions";
 import { RevokeCodeButton } from "../codes-actions";
 import { hintText, usesText } from "../codes";
-import { requireMaster, rpc } from "../data";
+import { requireRole, rpc } from "../data";
 import { fullDay } from "../format";
 import { CodeForm } from "./CodeForm";
 
@@ -20,7 +20,9 @@ const STATUS: Record<string, { label: string; tone: "ok" | "info" | "bad" }> = {
 
 /** M07 · Cortesias: códigos que liberam um plano sem pagamento (e a cortesia direta para um evento, que antes ficava em Pagamentos). */
 export default async function Codigos() {
-  const sb = await requireMaster();
+  const gate = await requireRole("cortesias");
+  if ("denied" in gate) return gate.denied;
+  const { sb } = gate;
   const [codes, plans, evs] = await Promise.all([
     rpc<Code[]>(sb, "admin_list_codes"), rpc<Plan[]>(sb, "admin_list_plans"), rpc<EventsPage>(sb, "admin_list_events", { p_limit: 100, p_status: "ativo" }),
   ]);

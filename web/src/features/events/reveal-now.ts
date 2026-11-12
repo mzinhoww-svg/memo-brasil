@@ -7,9 +7,10 @@ export type RevealNowResult = { ok: true; event?: MemoEvent } | { ok: false; rea
 
 /** Texto para a pessoa, por motivo de recusa. */
 export const REVEAL_NOW_MESSAGES: Record<Extract<RevealNowResult, { ok: false }>["reason"], string> = {
-  "sem-permissao": "Só o anfitrião do evento pode revelar agora.",
+  // as mesmas mensagens do servidor (folha única "Revelar agora", revela/master/RevealNowSheet)
+  "sem-permissao": "Sem permissão",
   "ja-revelado": "Este evento já foi revelado.",
-  indisponivel: "A revelação deste evento não está ligada ou o evento foi excluído.",
+  indisponivel: "Evento sem revelação ligada.",
   inexistente: "Não achamos este evento.",
   erro: "Não foi possível revelar agora. Tente de novo.",
 };
@@ -19,10 +20,10 @@ export const REVEAL_NOW_MESSAGES: Record<Extract<RevealNowResult, { ok: false }>
  * registra a auditoria e enfileira o e-mail uma vez só. Sem servidor (modo local) aplica a mesma regra pelo repositório: recusa evento já
  * revelado ou sem revelação ligada e grava `revealedAt` (o estado vira `revelada` e não volta).
  */
-export async function revealNow(repos: Repositories, event: MemoEvent, now: number): Promise<RevealNowResult> {
+export async function revealNow(repos: Repositories, event: MemoEvent, now: number, reason?: string): Promise<RevealNowResult> {
   if (repos.events.revealNow) {
     try {
-      await repos.events.revealNow(event.id);
+      await (reason === undefined ? repos.events.revealNow(event.id) : repos.events.revealNow(event.id, reason));
       return { ok: true, event: await repos.events.get(event.id) };
     } catch (e) {
       if (e instanceof RepositoryError) {

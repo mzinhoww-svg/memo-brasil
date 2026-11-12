@@ -6,9 +6,11 @@ export interface VoceProps {
   name?: string; initial?: string; caption?: string;
   /** Valor à direita de uma linha (ex.: telefone); ausente = chevron do desenho. */
   actions?: Record<string, () => void>;
+  /** Linhas que não aparecem (ex.: "Álbuns impressos" com a chave `printed_album` desligada). */
+  hide?: string[];
 }
 
-export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmeras · 61 poses tiradas", actions = {} }: VoceProps = {}) {
+export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmeras · 61 poses tiradas", actions = {}, hide = [] }: VoceProps = {}) {
   const act = (label: string) => (actions[label] ? { role: "button" as const, tabIndex: 0, style: { cursor: "pointer" }, onClick: actions[label], onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); actions[label](); } } } : {});
   return (
     <>
@@ -77,6 +79,7 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
           Extras
         </div>
         <div className="rv-group">
+          {!hide.includes("Álbuns impressos") && (
           <div className="rv-row" {...act("Álbuns impressos")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 4h10a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z" />
@@ -91,6 +94,7 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
               </svg>
             </span>
           </div>
+          )}
           <div className="rv-row" {...act("Ícone do app")}>
             <span style={{ "display": "inline-flex" }}>
               <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">

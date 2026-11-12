@@ -7,6 +7,7 @@ import { pickGallery } from "./pick";
 import { ReveladosAlbum } from "@/revela/screens/ReveladosAlbum";
 import { useApp } from "@/features/app/provider";
 import { listMyPrintOrders } from "@/features/print-orders/api";
+import { usePrintedAlbumEnabled } from "@/features/print-orders/flag";
 import { PrintOrderSheet } from "@/features/print-orders/PrintOrderSheet";
 import type { PrintOrder } from "@/features/print-orders/model";
 import { GoHome, HostNote, LoadingNote } from "./use-revealed";
@@ -26,6 +27,7 @@ export function AlbumView({ id }: { id: string }) {
   const picks = useMemo(() => pickGallery(ready, reactions, { n: 2 }), [ready, reactions]);
   const urls = usePhotoUrls(picks);
   const { user } = useApp();
+  const printed = usePrintedAlbumEnabled();
   const [choosing, setChoosing] = useState(false);
   const [orders, setOrders] = useState<PrintOrder[]>([]);
   const userId = user?.id;
@@ -37,8 +39,9 @@ export function AlbumView({ id }: { id: string }) {
   }, [userId, id]);
   const choices = useMemo(() => pickGallery(ready, reactions, { n: 120 }), [ready, reactions]);
   const choiceUrls = usePhotoUrls(choosing ? choices : [], "thumb");
-  if (data.loading) return <LoadingNote />;
-  if (!event || data.access !== "organizador") return <HostNote title="Não achamos este álbum." text="Ele não existe ou não é de um evento seu." action={<GoHome />} />;
+  if (data.loading || printed === undefined) return <LoadingNote />;
+  // sem a chave `printed_album` o pedido de impressão não existe para o anfitrião
+  if (!event || data.access !== "organizador" || !printed) return <HostNote title="Não achamos este álbum." text="Ele não existe ou não é de um evento seu." action={<GoHome />} />;
   const chosen = ready.filter((p) => p.highlighted).length || Math.min(60, ready.length);
   const covers = picks.map((p) => urls[p.id]).filter(Boolean);
   const open = orders.filter((o) => o.status !== "cancelado").length;

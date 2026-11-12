@@ -1,6 +1,6 @@
 import { Chips, MHead, MState, MTable, St, Tiles, type MRow } from "@/revela/master-kit";
 import { ExportButton } from "../ExportButton";
-import { requireMaster, rpc } from "../data";
+import { requirePrintedAlbum, rpc } from "../data";
 import { nf, relWhen } from "../format";
 import { PrintOrderActions } from "./PrintOrderActions";
 import { FILTERS, isStatus, STATUS_LABEL, STATUS_TONE, type PrintStatus } from "./status";
@@ -17,7 +17,9 @@ const PRODUCT = { album: "Álbum", caixa: "Caixa 30 fotos" } as const;
 
 /** Pedidos de impressão (sem cobrança): o Master acompanha, muda o status e anota. Só o Master vê contato e endereço. */
 export default async function Impressoes({ searchParams }: { searchParams: Promise<{ f?: string; q?: string; p?: string }> }) {
-  const sb = await requireMaster();
+  const gate = await requirePrintedAlbum();
+  if ("denied" in gate) return gate.denied;
+  const { sb } = gate;
   const sp = await searchParams;
   const filtro = isStatus(sp.f) ? sp.f : "";
   const q = sp.q?.slice(0, 80) || "";

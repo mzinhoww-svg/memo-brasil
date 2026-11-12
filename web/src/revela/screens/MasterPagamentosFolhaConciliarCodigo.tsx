@@ -1,4 +1,7 @@
 /* Gerado de design-system/revela/html/Master-pagamentos--folha-conciliar-codigo.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
+"use client";
+import { ReconcileSheet } from "../master/ReconcileSheet";
+const noop = () => undefined;
 export function MasterPagamentosFolhaConciliarCodigo() {
   return (
     <>
@@ -349,47 +352,7 @@ export function MasterPagamentosFolhaConciliarCodigo() {
             </div>
           </div>
         </div>
-        <div className="mmodal">
-          <div className="mmodal-card" style={{ "width": "480px" }} role="dialog" aria-label="Conciliar agora">
-            <h2 className="rv-title">
-              Conciliar agora
-            </h2>
-            <p className="rv-caption" style={{ "marginTop": "6px" }}>
-              Consulta na ValidaPay as cobranças abertas e acerta os pedidos. Esta sessão ainda não confirmou o segundo fator.
-            </p>
-            <p className="rv-caption" style={{ "margin": "18px 0 8px" }}>
-              Código do app autenticador
-            </p>
-            <div className="otp">
-              <span className="">
-                3
-              </span>
-              <span className="">
-                0
-              </span>
-              <span className="">
-                5
-              </span>
-              <span className="on">
-                {" "}
-              </span>
-              <span className="">
-                {" "}
-              </span>
-              <span className="">
-                {" "}
-              </span>
-            </div>
-            <div className="row" style={{ "gap": "8px", "marginTop": "20px" }}>
-              <button className="rv-btn rv-btn--block" style={{ "flex": "1" }}>
-                Cancelar
-              </button>
-              <button className="rv-btn rv-btn--block rv-btn--primary" style={{ "flex": "1" }}>
-                Conciliar
-              </button>
-            </div>
-          </div>
-        </div>
+        <ReconcileSheet state={{ step: "code" }} initialCode="305" onSubmitCode={noop} onClose={noop} inline />
       </main>
       <div className="grain" />
     </div>

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Button, Sheet } from "@/components/revela";
 import { useEventData, usePhotoUrls } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
+import { usePrintedAlbumEnabled } from "@/features/print-orders/flag";
 import { firstName, photoMoment, printDate } from "@/features/feed/format";
 import { ReveladosGaleria } from "@/revela/screens/ReveladosGaleria";
 import { GoHome, HostNote, LoadingNote, useRevealedEvents } from "./use-revealed";
@@ -22,6 +23,7 @@ export function Gallery({ id }: { id: string }) {
   const { now } = useApp();
   const data = useEventData({ id });
   const { events } = useRevealedEvents();
+  const printed = usePrintedAlbumEnabled();
   const [filtering, setFiltering] = useState(false);
   const [author, setAuthor] = useState<string | undefined>();
   const { event, photos, participants, reactions } = data;
@@ -45,7 +47,7 @@ export function Gallery({ id }: { id: string }) {
       <ReveladosGaleria
         caption={galleryCaption(event.title, author ? visible.filter((p) => p.authorId === author).length : visible.length, participants.length, whenLabel(at, now(), event.timezone))}
         prints={picks.map((p) => ({ src: urls[p.id] ?? "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==", stampLeft: printDate(photoMoment(p), event.timezone), stampRight: firstName(p.authorName), href: `/eventos/revelados/${event.id}/${p.id}` }))}
-        backHref="/eventos" downloadHref={`/painel/${event.id}/downloads`} albumHref={`/eventos/revelados/${event.id}/album`}
+        backHref="/eventos" downloadHref={`/painel/${event.id}/downloads`} albumHref={printed ? `/eventos/revelados/${event.id}/album` : null}
         onFilter={() => setFiltering(true)} empty={picks.length === 0 ? "Ainda não há fotos aqui." : undefined}
       />
       {filtering && (

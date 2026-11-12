@@ -33,6 +33,7 @@ export const ICONS = {
   plus: <path d="M12 5v14M5 12h14" />,
   edit: <path d="M4 20h4L19 9l-4-4L4 16z" />,
   server: <><rect x="3" y="4" width="18" height="7" rx="2" /><rect x="3" y="13" width="18" height="7" rx="2" /><path d="M7 7.5h.01M7 16.5h.01" /></>,
+  user: <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></>,
   spark: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />,
 } as const;
 export type IconName = keyof typeof ICONS;
@@ -42,9 +43,8 @@ export function Ico({ n }: { n: IconName }) {
 
 export interface MasterUser { name: string; role: string }
 
-/** Item do menu que existe só no app (o desenho do Master não o traz): pedidos de impressão, logo depois de Pagamentos. */
-export type AppNavId = MasterNavId | "impressoes";
-const PRINT_NAV = { id: "impressoes" as const, label: "Impressões", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" /></svg> };
+/** Itens do menu (os 13 do desenho, na ordem do HTML: Impressões entre Moderação e Storage e saúde). */
+export type AppNavId = MasterNavId;
 
 /** Rotas reais de cada item do menu (as mesmas do console). */
 export const MASTER_HREF: Record<AppNavId, string> = {
@@ -52,9 +52,10 @@ export const MASTER_HREF: Record<AppNavId, string> = {
   impressoes: "/master/impressoes", revelacoes: "/master/revelacoes", moderacao: "/master/moderacao", saude: "/master/saude", lgpd: "/master/lgpd", auditoria: "/master/auditoria", configuracoes: "/master/configuracoes",
 };
 
-/** Menu lateral do Master. Sem `Link` para continuar sendo servidor puro; `<a href>` navega do mesmo jeito. */
-export function MasterAside({ current, links = false, user = { name: "Marcos", role: "Administrador" } }: { current?: AppNavId; links?: boolean; user?: MasterUser }) {
-  const items: { id: AppNavId; label: string; icon: ReactNode }[] = links ? MASTER_NAV.flatMap((m): { id: AppNavId; label: string; icon: ReactNode }[] => (m.id === "pagamentos" ? [m, PRINT_NAV] : [m])) : [...MASTER_NAV];
+/** Menu lateral do Master. Sem `Link` para continuar sendo servidor puro; `<a href>` navega do mesmo jeito.
+ *  `visible` (só no app) restringe os itens: o layout tira o que o papel não abre e "Impressões" quando a chave `printed_album` está desligada. */
+export function MasterAside({ current, links = false, user = { name: "Marcos", role: "Administrador · master" }, visible }: { current?: AppNavId; links?: boolean; user?: MasterUser; visible?: readonly AppNavId[] }) {
+  const items = visible ? MASTER_NAV.filter((m) => visible.includes(m.id)) : [...MASTER_NAV];
   return (
     <aside className="mside">
       {MASTER_LOGO}
@@ -97,10 +98,10 @@ export function MasterTop({ env = "production", q, links = false }: { env?: stri
 }
 
 /** Moldura de uma tela do Master. Nas telas do desenho (`/dev/revela`) traz o menu e a barra; no app, o layout monta a moldura uma vez. */
-export function MasterFrame({ current, children, links = false, user, env, q }: { current?: AppNavId; children: ReactNode; links?: boolean; user?: MasterUser; env?: string; q?: string }) {
+export function MasterFrame({ current, children, links = false, user, env, q, visible }: { current?: AppNavId; children: ReactNode; links?: boolean; user?: MasterUser; env?: string; q?: string; visible?: readonly AppNavId[] }) {
   return (
     <div className="dsk">
-      <MasterAside current={current} links={links} user={user} />
+      <MasterAside current={current} links={links} user={user} visible={visible} />
       <main className="mmain" style={links ? { overflowY: "auto" } : undefined}>
         <MasterTop env={env} q={q} links={links} />
         {children}

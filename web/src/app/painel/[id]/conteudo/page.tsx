@@ -11,10 +11,13 @@ import { usePhotoUrls } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { formatReasonCounts } from "@/features/moderation/report-reasons";
 import { useReportReasons } from "@/features/moderation/use-report-reasons";
-import { REVEAL_NOW_MESSAGES, revealNow } from "@/features/events/reveal-now";
+import { revealNow, type RevealNowResult } from "@/features/events/reveal-now";
+import { RevealNowSheet, type RevealFailure } from "@/revela/master/RevealNowSheet";
 import { AnfitriaoModerar } from "@/revela/screens/AnfitriaoModerar";
 
 const PAGE = 60;
+/** Recusa do repositório → recusa da folha única (as mensagens são as do servidor). */
+const HOST_FAILURE: Record<Extract<RevealNowResult, { ok: false }>["reason"], RevealFailure> = { "sem-permissao": "forbidden", "ja-revelado": "revealed", indisponivel: "invalid", inexistente: "forbidden", erro: "unknown" };
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /** Revisar antes de revelar (17c): só o anfitrião vê as fotos; tocar numa foto a tira (ou devolve) e "Revelar agora" antecipa a revelação. */
@@ -74,15 +77,15 @@ export default function Conteudo() {
       )}
       {removing && <ConfirmSheet title="Excluir esta foto?" body="Os convidados deixam de vê-la e ela não volta." confirmLabel="Excluir foto" onCancel={() => setRemoving(undefined)} onConfirm={async () => { await act(removing, "remover"); setRemoving(undefined); }} />}
       {revealing && (
-        <ConfirmSheet title="Revelar agora?" body="Todos passam a ver as fotos agora. Não dá para desfazer nem esconder de novo." confirmLabel="Revelar agora"
-          onCancel={() => setRevealing(false)}
-          onConfirm={async () => {
-            const r = await revealNow(repos, event, clock());
-            if (!r.ok) throw Object.assign(new Error(r.reason), { userMessage: REVEAL_NOW_MESSAGES[r.reason] });
-            setMsg("Revelação antecipada.");
-            setRevealing(false);
-            await refresh();
-          }} />
+        <RevealNowSheet
+          eventId={event.id} eventTitle={event.title}
+          plannedAt={event.revealAt !== null ? `${shortWhen(event.revealAt, event.timezone)}` : "Quando o evento terminar"}
+          send={async (_id, reason) => {
+            const r = await revealNow(repos, event, clock(), reason);
+            return r.ok ? { ok: true } : { ok: false, failure: HOST_FAILURE[r.reason] };
+          }}
+          onDone={() => { setMsg("Revelação antecipada."); void refresh(); }}
+          onClose={() => setRevealing(false)} />
       )}
     </>
   );

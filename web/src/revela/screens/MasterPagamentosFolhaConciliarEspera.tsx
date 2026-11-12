@@ -1,4 +1,7 @@
 /* Gerado de design-system/revela/html/Master-pagamentos--folha-conciliar-espera.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
+"use client";
+import { ReconcileSheet } from "../master/ReconcileSheet";
+const noop = () => undefined;
 export function MasterPagamentosFolhaConciliarEspera() {
   return (
     <>
@@ -349,42 +352,7 @@ export function MasterPagamentosFolhaConciliarEspera() {
             </div>
           </div>
         </div>
-        <div className="mmodal">
-          <div className="mmodal-card" style={{ "width": "480px" }} role="dialog" aria-label="Aguarde um pouco">
-            <h2 className="rv-title">
-              Aguarde um pouco
-            </h2>
-            <p className="rv-caption" style={{ "marginTop": "6px" }}>
-              A conciliação manual só pode rodar uma vez por minuto.
-            </p>
-            <div className="countdown" style={{ "marginTop": "18px" }}>
-              <div>
-                <b>
-                  00
-                </b>
-                <span>
-                  min
-                </span>
-              </div>
-              <div>
-                <b>
-                  42
-                </b>
-                <span>
-                  seg
-                </span>
-              </div>
-            </div>
-            <p className="rv-caption" style={{ "marginTop": "12px" }}>
-              Última: hoje 08:51, por marcos@revela.app. A conciliação automática continua rodando.
-            </p>
-            <div className="row" style={{ "gap": "8px", "marginTop": "20px" }}>
-              <button className="rv-btn rv-btn--block" style={{ "flex": "1" }}>
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
+        <ReconcileSheet state={{ step: "wait", remaining: 42, last: "hoje 08:51, por marcos@revela.app" }} onSubmitCode={noop} onClose={noop} inline />
       </main>
       <div className="grain" />
     </div>

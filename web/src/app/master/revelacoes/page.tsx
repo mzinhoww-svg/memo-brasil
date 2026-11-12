@@ -1,7 +1,7 @@
 import { MState } from "@/revela/master-kit";
 import { MasterRevelacoesView, type RevelacaoRow } from "@/revela/screens/MasterRevelacoes";
 import { requireMaster, rpc } from "../data";
-import { nf, nowMs, relWhen } from "../format";
+import { nf, nowMs, plannedWhen, relWhen } from "../format";
 import { RevealNow } from "./RevealNow";
 
 interface Rev { id: string; title: string; revealAt: string | null; revealedAt: string | null; photos: number; emailOptIns: number; emailsSent: number; emailsFailed: number; emailsQueued: number }
@@ -21,7 +21,7 @@ export default async function Revelacoes() {
     return {
       key: e.id, when: relWhen(done ? e.revealedAt : e.revealAt), event: e.title, photos: nf(e.photos),
       phone: "—", email, tone: done ? "ok" : late ? "bad" : "wait", status: done ? "Revelado" : late ? "Atrasada" : "Na fila",
-      action: done ? undefined : <RevealNow event={{ id: e.id, title: e.title }} />,
+      action: done ? undefined : <RevealNow event={{ id: e.id, title: e.title, plannedAt: plannedWhen(e.revealAt), notices: `${nf(e.emailOptIns)} ${e.emailOptIns === 1 ? "e-mail" : "e-mails"}, de uma vez` }} />,
     };
   });
   return <MasterRevelacoesView rows={rows} note="Quem não instalou o app recebe o aviso por e-mail, se deixou o endereço ao entrar. O e-mail sai pela Brevo; o aviso no celular ainda não está ativo." />;

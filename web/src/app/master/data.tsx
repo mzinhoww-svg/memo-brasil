@@ -5,12 +5,15 @@ import { masterAccess } from "@/lib/master/server";
 export type Load<T> = { state: "ok"; data: T } | { state: "denied" } | { state: "error"; message: string };
 type Sb = NonNullable<Awaited<ReturnType<typeof masterAccess>>["sb"]>;
 
-/** Cada página reconfirma o acesso no servidor (layouts não rodam de novo em navegação suave). */
+/** Cada página reconfirma o acesso no servidor (layouts não rodam de novo em navegação suave). Vale para qualquer papel de plataforma;
+ *  áreas restritas usam `requireRole` (abaixo) e o banco continua sendo a palavra final (MM004). */
 export async function requireMaster(): Promise<Sb> {
   const { access, sb } = await masterAccess();
   if (access !== "ok" || !sb) notFound();
   return sb;
 }
+
+export { requireRole, requirePrintedAlbum } from "./gate";
 
 /** Chama uma RPC administrativa; a autorização final é do banco (`is_platform_staff()`), aqui só se traduz o erro. */
 export async function rpc<T>(sb: Sb, name: string, args?: Record<string, unknown>): Promise<Load<T>> {

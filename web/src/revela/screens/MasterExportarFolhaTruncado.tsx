@@ -1,4 +1,7 @@
 /* Gerado de design-system/revela/html/Master-exportar--folha-truncado.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
+"use client";
+import { ExportSheet } from "../master/ExportSheet";
+const noop = () => undefined;
 export function MasterExportarFolhaTruncado() {
   return (
     <>
@@ -349,81 +352,7 @@ export function MasterExportarFolhaTruncado() {
             </div>
           </div>
         </div>
-        <div className="mmodal">
-          <div className="mmodal-card" style={{ "width": "480px" }} role="dialog" aria-label="Exportar">
-            <h2 className="rv-title">
-              Exportar
-            </h2>
-            <p className="rv-caption" style={{ "marginTop": "6px" }}>
-              O arquivo sai com os filtros que estão aplicados na tela.
-            </p>
-            <div className="kv">
-              <div>
-                <span>
-                  Tela
-                </span>
-                <b>
-                  Pagamentos
-                </b>
-              </div>
-              <div>
-                <span>
-                  Período
-                </span>
-                <b>
-                  01 nov 2026 a 11 nov 2026
-                </b>
-              </div>
-              <div>
-                <span>
-                  Filtros
-                </span>
-                <b>
-                  Método: Pix · Situação: todas
-                </b>
-              </div>
-              <div>
-                <span>
-                  Formato
-                </span>
-                <b>
-                  CSV (UTF-8, separador ;)
-                </b>
-              </div>
-              <div>
-                <span>
-                  Linhas estimadas
-                </span>
-                <b>
-                  63.900
-                </b>
-              </div>
-            </div>
-            <p className="errline">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3l9.5 17h-19z" />
-                <path d="M12 10v4M12 17v.01" />
-              </svg>
-              Passa de 50 mil linhas. O arquivo virá truncado nas primeiras 50.000. Reduza o período para exportar tudo.
-            </p>
-            <div className="mnote" style={{ "margin": "16px 0 0" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2" />
-              </svg>
-              <span>
-                A exportação fica registrada na auditoria: quem, quando, tela e filtros.
-              </span>
-            </div>
-            <div className="row" style={{ "gap": "8px", "marginTop": "20px" }}>
-              <button className="rv-btn rv-btn--block" style={{ "flex": "1" }}>
-                Cancelar
-              </button>
-              <button className="rv-btn rv-btn--block rv-btn--primary" style={{ "flex": "1" }}>
-                Exportar 50.000 linhas
-              </button>
-            </div>
-          </div>
-        </div>
+        <ExportSheet kind="pagamentos" filters={{}} screen="pagamentos" screenLabel="Pagamentos" period="01 nov 2026 a 11 nov 2026" filtersText="Método: Pix · Situação: todas" rowsEstimate={63900} format="CSV (UTF-8, separador ;)" onClose={noop} inline />
       </main>
       <div className="grain" />
     </div>

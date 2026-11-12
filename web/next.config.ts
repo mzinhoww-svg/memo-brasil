@@ -45,6 +45,16 @@ const nextConfig: NextConfig = {
     // Versão do service worker = deploy; cache antigo é descartado ao ativar.
     NEXT_PUBLIC_BUILD_ID: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ?? String(Date.now()),
   },
+  // Páginas antigas do Master absorvidas pelas telas novas (M15–M32). Permanentes (308); o código antigo sai quando as ondas seguintes substituírem as telas.
+  async redirects() {
+    return [
+      { source: "/master/usuarios", destination: "/master/pessoas?aba=contas", permanent: true },
+      { source: "/master/organizadores", destination: "/master/pessoas?aba=organizadores", permanent: true },
+      { source: "/master/participantes", destination: "/master/pessoas?aba=convidados", permanent: true },
+      { source: "/master/storage", destination: "/master/saude", permanent: true },
+      { source: "/master/analytics", destination: "/master", permanent: true },
+    ];
+  },
   async headers() {
     const security = [
       { key: "X-Content-Type-Options", value: "nosniff" },

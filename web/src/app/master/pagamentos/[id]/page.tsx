@@ -3,7 +3,7 @@ import { BtnLink, MState } from "@/revela/master-kit";
 import { MasterPagamentoDetalheView, type TimelineItem } from "@/revela/screens/MasterPagamentoDetalhe";
 import { brl, canRefund, chargeHint, divergenceText, envLabel, providerLabel } from "../../billing";
 import { RefundButton } from "../../billing-actions";
-import { requireMaster, rpc } from "../../data";
+import { requireRole, rpc } from "../../data";
 import { methodLabel, relWhen } from "../../format";
 
 interface Order {
@@ -17,7 +17,9 @@ interface Divergence { kind: string; orderId: string }
 export default async function PagamentoDetalhe({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const sb = await requireMaster();
+  const gate = await requireRole("pagamentos");
+  if ("denied" in gate) return gate.denied;
+  const { sb } = gate;
   const [list, div] = await Promise.all([rpc<Order[]>(sb, "admin_list_payments", { p_limit: 500 }), rpc<Divergence[]>(sb, "admin_payment_divergences")]);
   if (list.state !== "ok") return <MState kind={list.state === "denied" ? "denied" : "error"} />;
   const o = list.data.find((x) => x.orderId === id);

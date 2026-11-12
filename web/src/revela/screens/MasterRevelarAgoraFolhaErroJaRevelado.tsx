@@ -1,4 +1,7 @@
 /* Gerado de design-system/revela/html/Master-revelar-agora--folha-erro-ja-revelado.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
+"use client";
+import { RevealNowSheet } from "../master/RevealNowSheet";
+const noop = () => undefined;
 export function MasterRevelarAgoraFolhaErroJaRevelado() {
   return (
     <>
@@ -261,79 +264,7 @@ export function MasterRevelarAgoraFolhaErroJaRevelado() {
             </div>
           </div>
         </div>
-        <div className="mmodal">
-          <div className="mmodal-card" style={{ "width": "520px" }} role="dialog" aria-label="Revelar agora">
-            <h2 className="rv-title">
-              Revelar agora
-            </h2>
-            <p className="rv-caption" style={{ "marginTop": "6px" }}>
-              A mesma folha é usada pelo anfitrião, no painel do evento.
-            </p>
-            <div className="kv">
-              <div>
-                <span>
-                  Evento
-                </span>
-                <b>
-                  {"Ana & Leo"}
-                </b>
-              </div>
-              <div>
-                <span>
-                  Hora prevista
-                </span>
-                <b>
-                  dom, 15 mar 2027 12:00
-                </b>
-              </div>
-              <div>
-                <span>
-                  Avisos que serão enviados
-                </span>
-                <b>
-                  21 e-mails, de uma vez
-                </b>
-              </div>
-            </div>
-            <div className="mnote" style={{ "margin": "14px 0 0" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
-              </svg>
-              <span>
-                Revelar antes tira a graça: os convidados estão esperando a hora combinada. Não dá para desfazer.
-              </span>
-            </div>
-            <p className="rv-caption" style={{ "margin": "16px 0 8px" }}>
-              Motivo
-            </p>
-            <label className="rv-field rv-field--focus area" style={{ "height": "92px" }}>
-              <textarea aria-label="Motivo" defaultValue={"Anfitriã pediu por chamado #482: precisa das fotos para o telão do almoço de domingo."} />
-            </label>
-            <div className="row between" style={{ "marginTop": "6px" }}>
-              <span className="rv-caption">
-                Fica registrado na auditoria com o seu nome.
-              </span>
-              <span className="rv-caption">
-                85/500 · mínimo 10
-              </span>
-            </div>
-            <p className="errline">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3l9.5 17h-19z" />
-                <path d="M12 10v4M12 17v.01" />
-              </svg>
-              Este evento já foi revelado.
-            </p>
-            <div className="row" style={{ "gap": "8px", "marginTop": "20px" }}>
-              <button className="rv-btn rv-btn--block" style={{ "flex": "1" }}>
-                Manter a hora
-              </button>
-              <button className="rv-btn rv-btn--block rv-btn--line" style={{ "flex": "1", "color": "var(--danger)" }}>
-                Revelar mesmo assim
-              </button>
-            </div>
-          </div>
-        </div>
+        <RevealNowSheet eventId="e1" eventTitle="Ana &amp; Leo" plannedAt="dom, 15 mar 2027 12:00" notices="21 e-mails, de uma vez" initialReason={`Anfitriã pediu por chamado ${"#"}482: precisa das fotos para o telão do almoço de domingo.`} initialFailure="revealed" onClose={noop} inline />
       </main>
       <div className="grain" />
     </div>

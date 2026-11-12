@@ -1,7 +1,7 @@
 import { MState } from "@/revela/master-kit";
 import { ExportButton } from "../ExportButton";
 import { MasterAuditoriaView, type AuditoriaRow } from "@/revela/screens/MasterAuditoria";
-import { requireMaster, rpc } from "../data";
+import { requireRole, rpc } from "../data";
 import { nf, relWhen } from "../format";
 
 interface A { id: number; at: string; actorId: string | null; actorRole: string | null; action: string; targetType: string | null; targetId: string | null; reason: string | null }
@@ -10,7 +10,9 @@ const WHO: Record<string, string> = { master: "master", support: "suporte", orga
 
 /** M13 · Auditoria: registro só de inserção. Filtro por prefixo da ação (`?a=plan.`), 50 por página. */
 export default async function Auditoria({ searchParams }: { searchParams: Promise<{ a?: string; p?: string }> }) {
-  const sb = await requireMaster();
+  const gate = await requireRole("auditoria");
+  if ("denied" in gate) return gate.denied;
+  const { sb } = gate;
   const sp = await searchParams;
   const p = Math.max(1, Number(sp.p) || 1);
   const a = sp.a?.slice(0, 60) || "";
