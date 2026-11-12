@@ -259,9 +259,6 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 .tc-rule { height: 1px; background: var(--k-17120f26); margin: 18px 0 14px; }
 .tc-copy { font: 400 13px/19px var(--font-sans); color: var(--k-3d342e); margin: 0; }
 .tc-foot { display: flex; align-items: center; gap: 8px; margin-top: 18px; }
-.dots { display: flex; gap: 6px; justify-content: center; margin-top: 18px; }
-.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--surface-3); }
-.dots i.on { background: var(--ink); }
 .linkbox { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 60px; padding: 0 8px 0 16px; border-radius: var(--radius-md); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); font: 500 15px/1 var(--font-sans); }
 .sharegrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
 .sharegrid button { height: 84px; border-radius: var(--radius-md); border: 0; background: var(--surface-2); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font: 500 12px/1 var(--font-sans); }

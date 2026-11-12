@@ -1,6 +1,7 @@
 "use client";
-/* Gerado de design-system/revela/html/Pagamento-trocar-plano.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-import { PLANS_REF, planShift, type PlanView } from "./CameraPublicar";
+/* Origem: design-system/revela/html/Pagamento-trocar-plano.html (scripts/html-to-tsx.mjs não roda em nenhum script npm nem no CI; este arquivo é editado à mão). Seletor de planos = PlanCards. */
+import { PlanCards } from "../PlanCards";
+import { PLANS_REF, type PlanView } from "./CameraPublicar";
 
 export interface Gauge { label: string; text: string; pct: number; warn?: boolean }
 export interface PagamentoTrocarPlanoProps {
@@ -12,7 +13,6 @@ export function PagamentoTrocarPlano({
   current = "Festa · R$ 29", gauges = [{ label: "Convidados", text: "28 de 30", pct: 93, warn: true }, { label: "Poses por pessoa", text: "24 de 24", pct: 100 }],
   warning = 'Faltam 2 lugares. Quem chegar depois vê "câmera lotada".', plans = PLANS_REF, selected = "celebracao", payNote = "Pix ou cartão, sem sair do app", cta = "Trocar para Celebração · R$ 89", busy, error, onSelect, onBack, onConfirm,
 }: PagamentoTrocarPlanoProps = {}) {
-  const idx = Math.max(0, plans.findIndex((p) => p.code === selected));
   return (
     <>
     <div className="scr">
@@ -55,18 +55,7 @@ export function PagamentoTrocarPlano({
         <h2 className="rv-group-h">
           Aumentar para
         </h2>
-        <div className="planscroll">
-          <div className="rv-plans rv-plans--scroll" role="radiogroup" aria-label="Plano do evento" style={{ transform: `translateX(-${planShift(idx, plans.length)}px)` }}>
-            {plans.map((p) => (
-              <div key={p.code} role="radio" aria-checked={p.code === selected} tabIndex={0} aria-label={`${p.tier}, ${p.price}`} className={`rv-plan${p.code === selected ? " rv-plan--on" : ""}${p.gold ? " rv-plan--gold" : ""}`} onClick={() => onSelect?.(p.code)} style={{ cursor: "pointer" }}
-                onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); onSelect?.(p.code); } }}>
-                <span className="rv-plan__tier">{p.tier}</span>
-                <span className="rv-plan__price">{p.price}</span>
-                <span className="rv-plan__note">{p.lines[0]}<br />{p.lines[1]}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <PlanCards plans={plans} selected={selected} onSelect={onSelect} />
         <div className="grow" />
         <div className="paynote">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
