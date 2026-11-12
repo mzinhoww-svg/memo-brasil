@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { filmOptions, renderPhoto, stampText } from "./capture";
+import { filmOptions, GRAIN_SEEDS, renderPhoto, stampText } from "./capture";
 
 /** Canvas mínimo em memória: o jsdom não desenha, então guardamos os pixels RGBA e os `fillText` para medir o resultado de `renderPhoto` (que usa `renderFilm`). */
 type Source = { width: number; height: number; data: Uint8ClampedArray };
@@ -45,9 +45,10 @@ beforeEach(() => { vi.restoreAllMocks(); });
 afterEach(() => { vi.restoreAllMocks(); });
 
 describe("renderPhoto → renderFilm", () => {
-  it("mapeia o estilo para o look: filme35/vintage → filme35 com carimbo; pb → pb sem carimbo; natural/original → natural sem carimbo; seed = ms do disparo", () => {
+  it("mapeia o estilo para o look: filme35/vintage → filme35 com carimbo; pb → pb sem carimbo; natural/original → natural sem carimbo; grão = ladrilho fixo deslocado pelo ms do disparo", () => {
     const t = new Date(2027, 2, 14, 21, 0);
-    expect(filmOptions("filme35", t)).toMatchObject({ look: "filme35", seed: t.getTime(), stamp: "'27 03 14" });
+    expect(filmOptions("filme35", t)).toMatchObject({ look: "filme35", grainOffset: t.getTime(), stamp: "'27 03 14" });
+    expect(GRAIN_SEEDS).toContain(filmOptions("filme35", t).seed);
     expect(filmOptions("vintage", t)).toMatchObject({ look: "filme35", stamp: "'27 03 14" });
     expect(filmOptions("preto-e-branco", t).look).toBe("pb");
     expect(filmOptions("preto-e-branco", t).stamp).toBeUndefined();

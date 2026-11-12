@@ -1,10 +1,17 @@
 /// <reference lib="webworker" />
 /** Worker do Filme 35mm: recebe o quadro já reduzido (ImageBitmap), roda `renderFilm` num OffscreenCanvas e devolve o JPEG. */
 import { renderFilm, type RenderOptions } from "./film-canvas";
+import { warmFilm, type FilmLook } from "./film35";
 
 type Job = { id: number; bitmap: ImageBitmap; w: number; h: number; opts: RenderOptions; quality: number };
+/** Pré-aquecimento ao abrir a câmera: decodifica o LUT e gera os ladrilhos de grão antes do primeiro disparo. */
+type Warm = { warm: FilmLook; seeds: number[] };
 
-self.onmessage = async (e: MessageEvent<Job>) => {
+self.onmessage = async (e: MessageEvent<Job | Warm>) => {
+  if ("warm" in e.data) {
+    try { warmFilm(e.data.warm, e.data.seeds); } catch { /* aquecer é opcional */ }
+    return;
+  }
   const { id, bitmap, w, h, opts, quality } = e.data;
   try {
     const canvas = new OffscreenCanvas(w, h);

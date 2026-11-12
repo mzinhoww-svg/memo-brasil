@@ -75,3 +75,20 @@ describe("Filme 35mm · pipeline", () => {
     expect(Math.sqrt(s / t.length)).toBeCloseTo(1, 3);
   });
 });
+
+describe("Filme 35mm · grão estável", () => {
+  const flat = () => new Uint8ClampedArray(64 * 64 * 4).fill(128);
+  it("o deslocamento muda o desenho do grão sem gerar outro ladrilho", () => {
+    const a = flat(), b = flat();
+    applyFilm(a, 64, 64, { seed: 7, grainOffset: 0, halation: 0, vignette: 0 });
+    applyFilm(b, 64, 64, { seed: 7, grainOffset: 1_800_000_123_457, halation: 0, vignette: 0 });
+    expect(Buffer.from(a).equals(Buffer.from(b))).toBe(false);
+    expect(grainTile(7)).toBe(grainTile(7));
+  });
+  it("sem deslocamento, o resultado é o mesmo de antes (deslocamento 0)", () => {
+    const a = flat(), b = flat();
+    applyFilm(a, 64, 64, { seed: 3 });
+    applyFilm(b, 64, 64, { seed: 3, grainOffset: 0 });
+    expect(Buffer.from(a).equals(Buffer.from(b))).toBe(true);
+  });
+});

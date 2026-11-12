@@ -45,7 +45,7 @@ export function renderFilm(canvas: HTMLCanvasElement | OffscreenCanvas, source: 
   if (opts.look !== "natural") {
     const img = ctx.getImageData(0, 0, w, h);
     const look: FilmLook = opts.look ?? "filme35";
-    applyFilm(img.data, w, h, { seed: opts.seed, halation: opts.halation, vignette: opts.vignette, grain: opts.grain, look });
+    applyFilm(img.data, w, h, { seed: opts.seed, grainOffset: opts.grainOffset, halation: opts.halation, vignette: opts.vignette, grain: opts.grain, look });
     ctx.putImageData(img, 0, 0);
   }
   if (opts.stamp) drawStamp(ctx, w, h, opts.stamp);

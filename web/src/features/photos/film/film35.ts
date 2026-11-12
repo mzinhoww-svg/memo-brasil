@@ -11,6 +11,8 @@ export type FilmOptions = {
   look?: FilmLook;
   /** Muda o desenho do grão. Use um número por foto (ex.: o horário do disparo). */
   seed?: number;
+  /** Desloca o ladrilho de grão (ex.: o horário do disparo): muda o desenho sem gerar outro ladrilho. */
+  grainOffset?: number;
   /** Brilho vermelho em volta das luzes fortes. 0 desliga. */
   halation?: number;
   /** Escurecimento dos cantos. 0 desliga. */
@@ -137,6 +139,8 @@ export function applyFilm(px: Uint8ClampedArray, w: number, h: number, opts: Fil
   const tile = grain > 0 ? grainTile(opts.seed ?? 1) : null;
   const cs = Math.max(1, Math.round(Math.max(w, h) / 1100));
   const hw = w / 2, hh = h / 2;
+  const off = Math.abs(Math.floor(opts.grainOffset ?? 0));
+  const ox = off % 256, oy = Math.floor(off / 256) % 256;
 
   for (let y = 0; y < h; y++) {
     // linha do mapa de halação (bilinear)
@@ -145,7 +149,7 @@ export function applyFilm(px: Uint8ClampedArray, w: number, h: number, opts: Fil
       const ys = Math.min(hal.sh - 1, Math.max(0, (y + 0.5) / hal.f - 0.5));
       y0 = Math.floor(ys); y1 = Math.min(y0 + 1, hal.sh - 1); fy = ys - y0;
     }
-    const gy = Math.floor(y / cs);
+    const gy = Math.floor(y / cs) + oy;
     const dy = (y + 0.5 - hh) / hh;
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
@@ -182,7 +186,7 @@ export function applyFilm(px: Uint8ClampedArray, w: number, h: number, opts: Fil
       }
 
       if (tile) {
-        const gx = Math.floor(x / cs);
+        const gx = Math.floor(x / cs) + ox;
         const n1 = tile[(gy & 255) * TILE + (gx & 255)];
         const n2 = tile[((gy + 31) & 255) * TILE + ((gx + 97) & 255)];
         const Y = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255;
@@ -196,6 +200,12 @@ export function applyFilm(px: Uint8ClampedArray, w: number, h: number, opts: Fil
       px[i] = r; px[i + 1] = g; px[i + 2] = b;
     }
   }
+}
+
+/** Pré-aquece o filme: decodifica o LUT e gera os ladrilhos de grão de `seeds` (para o primeiro disparo não pagar isso). */
+export function warmFilm(look: FilmLook, seeds: readonly number[] = []): void {
+  lut(look);
+  for (const s of seeds) grainTile(s);
 }
 
 /** Só a cor de um pixel (sem halação, vinheta e grão). Útil para testes e amostras de cor. */
