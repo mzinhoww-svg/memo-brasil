@@ -33,3 +33,13 @@ Status: coletando. Nada deste lote foi corrigido ainda.
 - Causa provável: o painel usa o layout de web (`web/src/styles/app.css`, `.studio-grid`, `.studio-previa`) em vez do padrão mobile Revela; a prévia só vira coluna lateral e fixa a partir de 1024 px.
 - Direção: revisar o painel `/painel/[id]/*` em 390 px: abas com rolagem e sombra de borda, prévia menor (ou recolhível), título único, espaço inferior com safe area, migalhas compactas.
 - Pendente: a lista completa de telas com quebra (você vai mandar mais capturas); varrer todas as rotas do painel em 390 px antes de corrigir.
+
+## 4. QR para as mesas: não dá para trocar de modelo (/painel/[id]/qr)
+- Sintoma: aparece "Modelo 2 de 4" e quatro bolinhas, mas não há como ir para os outros modelos. Arrastar o cartão não faz nada e tocar nas bolinhas não acerta.
+- Causa provável: `web/src/revela/screens/QRConvite.tsx` troca o modelo só pelo clique nas bolinhas (`onModel`, ligado em `painel/[id]/qr/page.tsx`). As bolinhas medem 6 px com 6 px de espaço (`revela2.css:262-264`), muito abaixo dos 44 px de área de toque recomendados, e o cartão não tem gesto de deslizar nem setas.
+- Direção:
+  1. Deslizar o cartão para os lados troca o modelo (arrastar com `pointer events` ou `scroll-snap` horizontal com os 4 cartões lado a lado).
+  2. Aumentar a área de toque das bolinhas (mantendo o visual pequeno) e adicionar setas anterior/próximo.
+  3. Teclado: setas esquerda/direita.
+  4. Mesma ideia vale para o botão de proporção, que hoje é só um ícone sem rótulo ("Proporção"): mostrar qual está ativa (retrato × quadrado).
+- Conferir: o mesmo padrão de bolinhas em outras telas (convite A5, QR compartilhar).
