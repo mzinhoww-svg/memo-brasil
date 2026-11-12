@@ -11,6 +11,7 @@ const refName = () => `sb-${new globalThis.URL(URL).hostname.split(".")[0]}-auth
 
 /** Injeta a sessão no formato do @supabase/ssr (cookie base64url, em pedaços de 3180) para o servidor Next reconhecer. */
 async function login(ctx: BrowserContext, s: Session, base: string) {
+  await ctx.route("**/*", route => ["localhost", "127.0.0.1"].includes(new globalThis.URL(route.request().url()).hostname) ? route.continue() : route.abort());
   const v = "base64-" + Buffer.from(JSON.stringify(s)).toString("base64url");
   const parts = v.match(/.{1,3180}/g)!;
   const host = new globalThis.URL(base).hostname;
@@ -25,20 +26,29 @@ async function user(kind: "master" | "master-sem-linha" | "organizador") {
   return { id: u.data.user!.id, session: s.data.session!, client: c };
 }
 const cleanup: (() => Promise<unknown>)[] = [];
+test.beforeEach(async ({ context }) => {
+  // Homologação local não depende de analytics, fontes ou serviços externos.
+  await context.route("**/*", route => {
+    const hostname = new globalThis.URL(route.request().url()).hostname;
+    return ["localhost", "127.0.0.1"].includes(hostname) ? route.continue() : route.abort();
+  });
+});
 test.afterAll(async () => { for (const f of cleanup.reverse()) await f().catch(() => undefined); });
 
 test.describe("console master: autorização no servidor", () => {
-  test("master com claim e papel ativo vê os 15 módulos e as páginas carregam", async ({ browser, baseURL }) => {
+  test("master com claim e papel ativo vê os 12 itens e as páginas carregam", async ({ browser, baseURL }) => {
     const m = await user("master");
     cleanup.push(async () => { await admin.from("platform_roles").update({ revoked_at: new Date().toISOString() }).eq("user_id", m.id); });
     const ctx = await browser.newContext(); await login(ctx, m.session, baseURL!);
     const page = await ctx.newPage();
-    await page.goto("/master");
+    await page.goto("/master", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Visão geral" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Módulos do console" }).getByRole("link")).toHaveCount(15);
+    await expect(page.getByRole("navigation", { name: "Módulos do console" }).getByRole("link")).toHaveCount(12);
     for (const rota of ["eventos", "usuarios", "organizadores", "participantes", "storage", "revelacoes", "auditoria", "pagamentos", "planos", "codigos", "configuracoes", "analytics", "lgpd", "saude"]) {
-      const r = await page.goto(`/master/${rota}`);
+      const r = await page.goto(`/master/${rota}`, { waitUntil: "domcontentloaded" });
       expect(r?.status(), rota).toBe(200);
+      const destination: Record<string, string> = { usuarios: "/master/pessoas?aba=equipe", organizadores: "/master/pessoas?aba=organizadores", participantes: "/master/pessoas?aba=convidados", storage: "/master/saude", analytics: "/master" };
+      if (destination[rota]) await page.waitForURL(url => url.pathname + url.search === destination[rota], { waitUntil: "domcontentloaded" });
       await expect(page.locator("h1").first(), rota).toBeVisible();
       await expect(page.getByText("Sem permissão para ver estes dados."), rota).toHaveCount(0);
       await expect(page.getByText(/Não foi possível carregar/), rota).toHaveCount(0);
@@ -49,14 +59,14 @@ test.describe("console master: autorização no servidor", () => {
   test("organizador comum e claim sem papel ativo são negados; sem sessão e convidado pedem login", async ({ browser, baseURL }) => {
     const org = await user("organizador"), semLinha = await user("master-sem-linha");
     const guestClient = mk(); const g = await guestClient.auth.signInAnonymously();
-    for (const [who, session, esperado] of [["organizador", org.session, "Sem permissão."], ["claim sem linha", semLinha.session, "Sem permissão."], ["convidado", g.data.session!, "Entre com sua conta de operador."], ["sem sessão", null, "Entre com sua conta de operador."]] as const) {
+    for (const [who, session, esperado] of [["organizador", org.session, "Sem permissão."], ["claim sem linha", semLinha.session, "Sem permissão."], ["convidado", g.data.session!, "Entrar no painel"], ["sem sessão", null, "Entrar no painel"]] as const) {
       const ctx = await browser.newContext(); if (session) await login(ctx, session, baseURL!);
       const page = await ctx.newPage();
       for (const rota of ["/master", "/master/eventos", "/master/auditoria"]) {
-        await page.goto(rota);
+        await page.goto(rota, { waitUntil: "domcontentloaded" });
         await expect(page.getByRole("heading", { name: esperado }), `${who} ${rota}`).toBeVisible();
         await expect(page.getByRole("navigation", { name: "Módulos do console" }), `${who} ${rota}`).toHaveCount(0);
-        await expect(page.locator(".adm-table"), `${who} ${rota}`).toHaveCount(0);
+        await expect(page.locator(".mtable"), `${who} ${rota}`).toHaveCount(0);
       }
       await ctx.close();
     }
