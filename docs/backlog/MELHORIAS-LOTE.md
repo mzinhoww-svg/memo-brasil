@@ -80,3 +80,12 @@ Status: coletando. Nada deste lote foi corrigido ainda.
   2. Depois de salvar, voltar para os Ajustes com a linha já atualizada e um aviso curto.
   3. Nenhuma linha deve levar a uma página com o cabeçalho do painel; o Plano e a Aparência passam a ser sub-telas dos Ajustes com o mesmo cabeçalho e seta de voltar.
 - Dependência: o layout mobile do painel (itens 3b, 5, 6).
+
+## 8. Voltar da Retrospectiva cai no Feed (/e/[code]/retrospectiva → /e/[code]/agora)
+- Sintoma: na Retrospectiva, a seta de voltar leva ao Feed, e o Feed aparece com defeitos visíveis: o card da primeira foto não ocupa a largura (sobra espaço à direita) e a linha de ações do post (curtir, comentar, compartilhar, baixar, "1 curtida", "Ver o comentário") fica por baixo da barra de abas, quase ilegível.
+- Causas prováveis:
+  1. A seta da Retrospectiva tem destino fixo `/e/[code]/agora` (`retrospectiva/page.tsx`, `backHref`), não o histórico. Quem veio de outro lugar (Minhas, Você, link direto, notificação) sempre cai no Feed, e o Feed reabre no topo, perdendo a posição de rolagem em que a pessoa estava.
+  2. No Feed, a lista rola dentro da tela de altura fixa (`FeedEvento` com `scroll`), mas o fim do conteúdo não reserva a altura da barra de abas (`.tabs` é `position: absolute` no fundo, ~84 px com safe area, `revela2.css:136`), então o primeiro post termina atrás dela.
+  3. O card da foto parece ter largura fixa (moldura "polaroid") em vez de acompanhar a coluna; no iPhone fica desalinhado à esquerda.
+- A confirmar com você: o esperado é voltar para a tela de onde veio? Ou o problema é só o visual do Feed ao chegar? (Os dois estão no plano.)
+- Direção: (a) voltar com o histórico (`router.back()`), com o Feed como padrão só quando não houver histórico; (b) guardar e restaurar a rolagem do Feed ao voltar; (c) dar à lista do Feed `padding-bottom` igual à altura da barra de abas + safe area; (d) card da foto com largura 100% da coluna; (e) mesma verificação nas telas Minhas e Você, que usam a mesma barra.
