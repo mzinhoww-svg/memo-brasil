@@ -1,0 +1,78 @@
+{
+  "localOnly": true,
+  "mutations": [
+    "CSV audit entry only"
+  ],
+  "results": [
+    {
+      "name": "periodo7dias",
+      "status": "pass",
+      "detail": {
+        "url": "/master?dias=7"
+      }
+    },
+    {
+      "name": "filtroEventosRevelados",
+      "status": "pass",
+      "detail": {
+        "rows": 2
+      }
+    },
+    {
+      "name": "abasPessoas",
+      "status": "pass",
+      "detail": {
+        "teamRows": 3
+      }
+    },
+    {
+      "name": "csvEquipe",
+      "status": "pass",
+      "detail": {
+        "filename": "revela-pessoas-equipe-20261112-0841.csv",
+        "dataRows": 3
+      }
+    },
+    {
+      "name": "redirecionamentosLegados",
+      "status": "pass",
+      "detail": {
+        "routes": 5,
+        "preserved": [
+          "q",
+          "p"
+        ]
+      }
+    },
+    {
+      "name": "rascunhoPrecoDescartar",
+      "status": "pass",
+      "detail": {
+        "published": false
+      }
+    },
+    {
+      "name": "publicacaoMotivoCancelar",
+      "status": "pass",
+      "detail": {
+        "published": false,
+        "totpSubmitted": false
+      }
+    },
+    {
+      "name": "folhasMotivoCancelar",
+      "status": "pass",
+      "detail": {
+        "sheets": 7,
+        "submitted": false
+      }
+    },
+    {
+      "name": "nenhumaAcaoSensivelEnviada",
+      "status": "pass",
+      "detail": {
+        "blockedAttempts": 0
+      }
+    }
+  ]
+}

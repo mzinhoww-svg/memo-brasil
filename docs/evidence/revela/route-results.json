@@ -1,0 +1,257 @@
+[
+  {
+    "id": "M00",
+    "route": "/master",
+    "status": 200,
+    "title": "Entrar no painel",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:20:15.428Z",
+    "authenticated": false,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M01",
+    "route": "/master",
+    "status": 200,
+    "title": "Visão geral",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:20:27.834Z",
+    "authenticated": true,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M02",
+    "route": "/master/eventos",
+    "status": 200,
+    "title": "Eventos",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:29:52.069Z",
+    "authenticated": true,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M03",
+    "route": "/master/planos",
+    "status": 200,
+    "title": "Planos e preços",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:20:53.636Z",
+    "authenticated": true,
+    "scenario": "casamento-highlighted-local-draft"
+  },
+  {
+    "id": "M04",
+    "route": "/master/planos",
+    "status": 200,
+    "title": "Planos e preços",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:27:09.416Z",
+    "authenticated": true,
+    "scenario": "casamento-highlighted-local-draft"
+  },
+  {
+    "id": "M05",
+    "route": "/master/pagamentos",
+    "status": 200,
+    "title": "Pagamentos",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:30:00.093Z",
+    "authenticated": true,
+    "scenario": "healthy-payments"
+  },
+  {
+    "id": "M06",
+    "route": "/master/pagamentos/696fba78-4b7f-a246-5e94-bd846bd87574",
+    "status": 200,
+    "title": "Pedido #696FBA78",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:30:07.909Z",
+    "authenticated": true,
+    "scenario": "duplicate-needs-refund"
+  },
+  {
+    "id": "M07",
+    "route": "/master/codigos",
+    "status": 200,
+    "title": "Cortesias",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:30:25.208Z",
+    "authenticated": true,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M08",
+    "route": "/master/revelacoes",
+    "status": 200,
+    "title": "Revelações",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:30:35.785Z",
+    "authenticated": true,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M09",
+    "route": "/master/moderacao",
+    "status": 200,
+    "title": "Moderação",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:30:49.011Z",
+    "authenticated": true,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M10",
+    "route": "/master/pessoas",
+    "status": 200,
+    "title": "Pessoas",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:22:29.998Z",
+    "authenticated": true,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M11",
+    "route": "/master/saude",
+    "status": 200,
+    "title": "Storage e saúde",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:22:37.098Z",
+    "authenticated": true,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M12",
+    "route": "/master/lgpd",
+    "status": 200,
+    "title": "LGPD",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:31:04.233Z",
+    "authenticated": true,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M13",
+    "route": "/master/auditoria",
+    "status": 200,
+    "title": "Auditoria",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:31:12.730Z",
+    "authenticated": true,
+    "scenario": "seeded-local"
+  },
+  {
+    "id": "M14",
+    "route": "/master/configuracoes",
+    "status": 200,
+    "title": "Configurações",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "composite": {
+      "width": 2880,
+      "height": 900
+    },
+    "capturedAt": "2026-11-12T12:26:27.654020+00:00",
+    "authenticated": true,
+    "scenario": "platform-config-local-unsaved-draft"
+  }
+]

@@ -1,0 +1,152 @@
+[
+  {
+    "id": "M00",
+    "title": "Login",
+    "webp": "telas/14-master/M00-login.webp",
+    "html": "Master-login",
+    "name": "MasterLogin",
+    "master": true,
+    "pct": 0.039891975308641976,
+    "status": 200
+  },
+  {
+    "id": "M01",
+    "title": "Visão geral",
+    "webp": "telas/14-master/M01-visao-geral.webp",
+    "html": "Master-visao",
+    "name": "MasterVisao",
+    "master": true,
+    "pct": 0.30246913580246915,
+    "status": 200
+  },
+  {
+    "id": "M02",
+    "title": "Eventos",
+    "webp": "telas/14-master/M02-eventos.webp",
+    "html": "Master-eventos",
+    "name": "MasterEventos",
+    "master": true,
+    "pct": 0.41165123456790126,
+    "status": 200
+  },
+  {
+    "id": "M03",
+    "title": "Planos e preços",
+    "webp": "telas/14-master/M03-planos-e-precos.webp",
+    "html": "Master-planos",
+    "name": "MasterPlanos",
+    "master": true,
+    "pct": 0.32862654320987655,
+    "status": 200
+  },
+  {
+    "id": "M04",
+    "title": "Confirmar novo preço",
+    "webp": "telas/14-master/M04-confirmar-novo-preco.webp",
+    "html": "Master-plano-publicar",
+    "name": "MasterPlanoPublicar",
+    "master": true,
+    "pct": 0.19837962962962963,
+    "status": 200
+  },
+  {
+    "id": "M05",
+    "title": "Pagamentos",
+    "webp": "telas/14-master/M05-pagamentos.webp",
+    "html": "Master-pagamentos",
+    "name": "MasterPagamentos",
+    "master": true,
+    "pct": 0.37060185185185185,
+    "status": 200
+  },
+  {
+    "id": "M06",
+    "title": "Detalhe do pagamento",
+    "webp": "telas/14-master/M06-detalhe-do-pagamento.webp",
+    "html": "Master-pagamento-detalhe",
+    "name": "MasterPagamentoDetalhe",
+    "master": true,
+    "pct": 0.1912037037037037,
+    "status": 200
+  },
+  {
+    "id": "M07",
+    "title": "Cortesias",
+    "webp": "telas/14-master/M07-cortesias.webp",
+    "html": "Master-cortesias",
+    "name": "MasterCortesias",
+    "master": true,
+    "pct": 0.2297067901234568,
+    "status": 200
+  },
+  {
+    "id": "M08",
+    "title": "Revelações",
+    "webp": "telas/14-master/M08-revelacoes.webp",
+    "html": "Master-revelacoes",
+    "name": "MasterRevelacoes",
+    "master": true,
+    "pct": 0.2891975308641975,
+    "status": 200
+  },
+  {
+    "id": "M09",
+    "title": "Moderação",
+    "webp": "telas/14-master/M09-moderacao.webp",
+    "html": "Master-moderacao",
+    "name": "MasterModeracao",
+    "master": true,
+    "pct": 0.15763888888888888,
+    "status": 200
+  },
+  {
+    "id": "M10",
+    "title": "Pessoas",
+    "webp": "telas/14-master/M10-pessoas.webp",
+    "html": "Master-pessoas",
+    "name": "MasterPessoas",
+    "master": true,
+    "pct": 0.29714506172839505,
+    "status": 200
+  },
+  {
+    "id": "M11",
+    "title": "Storage e saúde",
+    "webp": "telas/14-master/M11-storage-e-saude.webp",
+    "html": "Master-saude",
+    "name": "MasterSaude",
+    "master": true,
+    "pct": 0.20532407407407408,
+    "status": 200
+  },
+  {
+    "id": "M12",
+    "title": "LGPD",
+    "webp": "telas/14-master/M12-lgpd.webp",
+    "html": "Master-lgpd",
+    "name": "MasterLgpd",
+    "master": true,
+    "pct": 0.2367283950617284,
+    "status": 200
+  },
+  {
+    "id": "M13",
+    "title": "Auditoria",
+    "webp": "telas/14-master/M13-auditoria.webp",
+    "html": "Master-auditoria",
+    "name": "MasterAuditoria",
+    "master": true,
+    "pct": 0.34814814814814815,
+    "status": 200
+  },
+  {
+    "id": "M14",
+    "title": "Configurações",
+    "webp": "telas/14-master/M14-configuracoes.webp",
+    "html": "Master-config",
+    "name": "MasterConfig",
+    "master": true,
+    "pct": 0.21604938271604937,
+    "status": 200
+  }
+]

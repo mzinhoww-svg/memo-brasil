@@ -1,0 +1,6864 @@
+[
+  {
+    "id": "M00",
+    "title": "Login",
+    "webp": "telas/14-master/M00-login.webp",
+    "html": "Master-login",
+    "name": "MasterLogin",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title",
+        "text": "Entrar no painel",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Acesso restrito. Toda ação fica registrada na auditoria.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "marcos@revela.app",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "••••••••••••",
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Código do app autenticador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "4",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "8",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "2",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "1",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--block rv-btn--primary",
+        "text": "Entrar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M01",
+    "title": "Visão geral",
+    "webp": "telas/14-master/M01-visao-geral.webp",
+    "html": "Master-visao",
+    "name": "MasterVisao",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Novembro de 2026 · atualizado às 08:42",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Exportar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Receita do mês",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "R$ 12.430",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "",
+        "text": "+18% sobre outubro",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos ativos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "41",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "",
+        "text": "6 revelam hoje",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Fotos hoje",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "8.912",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "",
+        "text": "pico às 22:40",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pedidos pendentes",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "3",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "",
+        "text": "Pix aguardando",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Receita por dia",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "7 dias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "on",
+        "text": "30 dias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "5",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "10",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "15",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "20",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "25",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "30",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Vendas por plano",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Grátis",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "214",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "38",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Celebração",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "22",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "31",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Grande",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "4",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Últimos pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "a",
+        "class": "link",
+        "text": "Ver todos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Quando",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Evento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Plano",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Método",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Valor",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Situação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 08:42",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ana & Leo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pix",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 189,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Pago",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 08:10",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "30 anos do Rafa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cartão",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 29,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--bad",
+        "text": "Recusado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "ontem 21:55",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Formatura Medicina",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Grande",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pix",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 349,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--wait",
+        "text": "Pendente",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M02",
+    "title": "Eventos",
+    "webp": "telas/14-master/M02-eventos.webp",
+    "html": "Master-eventos",
+    "name": "MasterEventos",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "263 eventos · 41 rolando agora",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Exportar CSV",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip on",
+        "text": "Todos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Rolando",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Aguardando revelação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Revelados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Com denúncias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Excluídos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Evento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Organizador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Categoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Plano",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Convidados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Fotos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revela",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Situação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ana & Leo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ana Ribeiro",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "32 / 250",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "418",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "dom 12:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Rolando",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "30 anos do Rafa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Rafael Lima",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Aniversário",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "28 / 30",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "210",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "seg 10:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--wait",
+        "text": "Quase cheio",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Formatura Medicina UFMT",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Comissão 2026",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Formatura",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Grande",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "412 / 500",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "5.920",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "revelado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--info",
+        "text": "Revelado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Happy hour time Produto",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Lu Prado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Corporativo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Grátis",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "9 / 10",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "86",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "revelado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--info",
+        "text": "Revelado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Chá da Maria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Júlia Alves",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Outro",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Celebração",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "41 / 100",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "377",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "amanhã 18:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--bad",
+        "text": "2 denúncias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Bodas de prata",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Sônia Prado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "0 / 250",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "0",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "sáb 23:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--wait",
+        "text": "Pagamento pendente",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M03",
+    "title": "Planos e preços",
+    "webp": "telas/14-master/M03-planos-e-precos.webp",
+    "html": "Master-planos",
+    "name": "MasterPlanos",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Altere o valor direto na tabela. A prévia mostra o paywall como o anfitrião vai ver.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Histórico de preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Plano",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Preço",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Convidados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Poses",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Sandbox",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Paywall",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Grátis",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "rv-caption",
+        "text": "gratis",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "i",
+        "class": "",
+        "text": "R$",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "0,00",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "10",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "10",
+        "type": null
+      },
+      {
+        "tag": "a",
+        "class": "link",
+        "text": "Destacar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "rv-caption",
+        "text": "festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "i",
+        "class": "",
+        "text": "R$",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "29,00",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "30",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "24",
+        "type": null
+      },
+      {
+        "tag": "a",
+        "class": "link",
+        "text": "Destacar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Celebração",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "rv-caption",
+        "text": "celebracao",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "i",
+        "class": "",
+        "text": "R$",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "89,00",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "100",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "24",
+        "type": null
+      },
+      {
+        "tag": "a",
+        "class": "link",
+        "text": "Destacar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "rv-caption",
+        "text": "casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "i",
+        "class": "",
+        "text": "R$",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "199,00",
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "was",
+        "text": "era R$ 189,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "250",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "36",
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--info",
+        "text": "Destaque",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Grande",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "rv-caption",
+        "text": "grande",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "i",
+        "class": "",
+        "text": "R$",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "349,00",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "500",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "livre",
+        "type": null
+      },
+      {
+        "tag": "a",
+        "class": "link",
+        "text": "Destacar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Preço novo vale só para compras novas. Quem já pagou mantém o plano e os limites que comprou. Pedido Pix aberto mantém o valor cotado.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--text",
+        "text": "Novo plano",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Prévia no celular",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h3",
+        "class": "rv-title",
+        "text": "Escolha o plano",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Pague uma vez por evento.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Grátis",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "Grátis",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "10 convidados10 poses cada",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "R$ 29",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "30 convidados24 poses cada",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Celebração",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "R$ 89",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "100 convidados24 poses cada",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "R$ 199",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "250 convidados36 poses cada",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Grande",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "R$ 349",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "500 convidadosposes livres",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pix ou cartão",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "ValidaPay",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-btn rv-btn--primary rv-btn--block",
+        "text": "Continuar · R$ 199",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "1 alteração não publicada",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "Casamento: R$ 189,00 → R$ 199,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Descartar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm rv-btn--primary",
+        "text": "Publicar preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M04",
+    "title": "Confirmar novo preço",
+    "webp": "telas/14-master/M04-confirmar-novo-preco.webp",
+    "html": "Master-plano-publicar",
+    "name": "MasterPlanoPublicar",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Altere o valor direto na tabela. A prévia mostra o paywall como o anfitrião vai ver.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h3",
+        "class": "rv-title",
+        "text": "Escolha o plano",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Pague uma vez por evento.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Grátis",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "Grátis",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "10 convidados10 poses cada",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "R$ 29",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "30 convidados24 poses cada",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Celebração",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "R$ 89",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "100 convidados24 poses cada",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "R$ 199",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "250 convidados36 poses cada",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__tier",
+        "text": "Grande",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__price",
+        "text": "R$ 349",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-plan__note",
+        "text": "500 convidadosposes livres",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pix ou cartão",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "ValidaPay",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-btn rv-btn--primary rv-btn--block",
+        "text": "Continuar · R$ 199",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Publicar novo preço?",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Entra no paywall e no checkout ValidaPay assim que você confirmar.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "was",
+        "text": "R$ 189,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "Novo preço",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "R$ 199,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "div",
+        "class": "rv-row__text",
+        "text": "31 eventos já pagos continuam iguais",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "div",
+        "class": "rv-row__text",
+        "text": "2 Pix abertos mantêm R$ 189,00 até expirar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "div",
+        "class": "rv-row__text",
+        "text": "Fica registrado na auditoria com seu nome",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Código do app autenticador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "7",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "1",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "9",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--block",
+        "text": "Cancelar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--block rv-btn--primary",
+        "text": "Publicar R$ 199",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M05",
+    "title": "Pagamentos",
+    "webp": "telas/14-master/M05-pagamentos.webp",
+    "html": "Master-pagamentos",
+    "name": "MasterPagamentos",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Cobranças da ValidaPay, conciliadas com os pedidos do Revela",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Conciliar agora",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Exportar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pago no mês",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "R$ 12.430",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "",
+        "text": "71 pedidos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pendentes",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "R$ 727",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "",
+        "text": "3 Pix aguardando",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Recusados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "9",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "",
+        "text": "cartão sem confirmação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Para estornar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "1",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "small",
+        "class": "",
+        "text": "pago em duplicidade",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip on",
+        "text": "Todos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Pix",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Cartão",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Pendentes",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Recusados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Estornos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Quando",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pedido",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Evento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Plano",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Método",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Valor",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Situação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 08:42",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "#RV-2041",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ana & Leo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pix",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 189,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Pago",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 08:10",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "#RV-2040",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "30 anos do Rafa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cartão •4417",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 29,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--bad",
+        "text": "Recusado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "ontem 21:55",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "#RV-2039",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Formatura Medicina",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Grande",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pix",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 349,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--wait",
+        "text": "Pendente",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "ontem 19:20",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "#RV-2038",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Chá da Maria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Celebração",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cartão •0091",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 89,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Pago",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "ontem 18:02",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "#RV-2037",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Bodas de prata",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pix",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 189,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--bad",
+        "text": "Estornar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "07 nov 15:41",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "#RV-2036",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Aniversário Theo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pix",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 29,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--info",
+        "text": "Estornado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M06",
+    "title": "Detalhe do pagamento",
+    "webp": "telas/14-master/M06-detalhe-do-pagamento.webp",
+    "html": "Master-pagamento-detalhe",
+    "name": "MasterPagamentoDetalhe",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Pedido #RV-2037",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Bodas de prata · Sônia Prado · Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Voltar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Linha do tempo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Pedido criado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "ontem 17:58 · R$ 189,00 cotado no banco",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Cobrança Pix criada na ValidaPay",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "ontem 17:58 · cha_8f2…a91 · expira em 15 min",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Webhook payment.success recebido",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "ontem 18:02 · assinatura válida",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Plano Casamento liberado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "ontem 18:02 · 250 convidados, 36 poses",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Segundo Pix pago para o mesmo pedido",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "ontem 18:05 · cha_1c0…77e",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Dados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Valor",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Método",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Ambiente",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Cobrança ValidaPay",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "externalTxid",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pago duas vezes. O plano já está liberado pela primeira cobrança. Estorne a segunda.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm rv-btn--primary",
+        "text": "Estornar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Consultar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M07",
+    "title": "Cortesias",
+    "webp": "telas/14-master/M07-cortesias.webp",
+    "html": "Master-cortesias",
+    "name": "MasterCortesias",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Códigos que liberam um plano sem pagamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Código",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Plano",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Usos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Validade",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Situação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "NOIVOS-VJ26",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "3 de 10",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "31 dez 2026",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Ativo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "PARCEIRO-CBA",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Celebração",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "12 de 50",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "30 jun 2027",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Ativo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "INFLU-BIA",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Grande",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "1 de 1",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "—",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--info",
+        "text": "Esgotado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "TESTE-INTERNO",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Festa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "0 de 5",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "05 nov 2026",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--bad",
+        "text": "Vencido",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Novo código",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "BUFFET-JARDIM",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "Casamento · 250 convidados",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "20 usos",
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": null,
+        "value": "31/03/2027",
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--block rv-btn--primary",
+        "text": "Criar código",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M08",
+    "title": "Revelações",
+    "webp": "telas/14-master/M08-revelacoes.webp",
+    "html": "Master-revelacoes",
+    "name": "MasterRevelacoes",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Fila do relógio do servidor. Cada evento revela uma vez só.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revela",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Evento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Fotos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Avisos no celular",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Avisos por e-mail",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Situação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 12:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ana & Leo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "418",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "29 inscritos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "21 e-mails",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--wait",
+        "text": "Na fila",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Revelar agora",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 10:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Formatura Medicina UFMT",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "5.920",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "388 enviados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "301 enviados · 4 falharam",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Revelado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Reenviar falhas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 09:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Happy hour time Produto",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "86",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "9 enviados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "6 enviados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Revelado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "amanhã 18:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Chá da Maria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "377",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "35 inscritos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "30 e-mails",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--wait",
+        "text": "Na fila",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Revelar agora",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "seg 10:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "30 anos do Rafa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "210",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "22 inscritos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "18 e-mails",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--wait",
+        "text": "Na fila",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Revelar agora",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Quem não instalou o app recebe o aviso por e-mail, se deixou o endereço ao entrar. O e-mail sai pela Brevo.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M09",
+    "title": "Moderação",
+    "webp": "telas/14-master/M09-moderacao.webp",
+    "html": "Master-moderacao",
+    "name": "MasterModeracao",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Denúncias de todos os eventos que os anfitriões ainda não resolveram",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip on",
+        "text": "Fotos 4",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Comentários 7",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "chip",
+        "text": "Participantes bloqueados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Chá da Maria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "3 denúncias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "Não quero aparecer nesta foto",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Manter",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Esconder",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Chá da Maria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "2 denúncias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "Foto constrangedora",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Manter",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Esconder",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "30 anos do Rafa",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "1 denúncias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "Outro motivo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Manter",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Esconder",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Formatura Medicina",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "4 denúncias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-caption",
+        "text": "Conteúdo impróprio",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Manter",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Esconder",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M10",
+    "title": "Pessoas",
+    "webp": "telas/14-master/M10-pessoas.webp",
+    "html": "Master-pessoas",
+    "name": "MasterPessoas",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Organizadores, convidados e contas da equipe",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Exportar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "on",
+        "text": "Organizadores 198",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Convidados 7.412",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Equipe 3",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Nome",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "E-mail",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Entrou com",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Gasto total",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Desde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ana Ribeiro",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "ana.ribeiro@email.com",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Google",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "1",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 189,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "nov 2026",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Comissão Medicina 2026",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "formatura.med@email.com",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Google",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "1",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 349,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "out 2026",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Rafael Lima",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "rafa.lima@email.com",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Link por e-mail",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "2",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 29,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "out 2026",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Júlia Alves",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "julia.alves@email.com",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Google",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "3",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 207,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "set 2026",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Lu Prado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "lu.prado@email.com",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Google",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "4",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 0,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "set 2026",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M11",
+    "title": "Storage e saúde",
+    "webp": "telas/14-master/M11-storage-e-saude.webp",
+    "html": "Master-saude",
+    "name": "MasterSaude",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Situação dos serviços agora",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Serviços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "latência 38 ms",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Normal",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "upload médio 1,8 s",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Normal",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "último evento há 4 min",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Normal",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "próxima às 12:00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Normal",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "4 falhas na última hora",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--wait",
+        "text": "Atenção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Armazenamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Fotos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "412 de 1000",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "412 GB de 1 TB · 97 mil fotos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Fila de exclusão",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "3 de 100",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "3 eventos aguardando limpeza do storage",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M12",
+    "title": "LGPD",
+    "webp": "telas/14-master/M12-lgpd.webp",
+    "html": "Master-lgpd",
+    "name": "MasterLgpd",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Pedidos de exclusão e prazos de retenção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pedido",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Quem",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Tipo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Prazo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Situação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "08 nov",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "rafa.lima@email.com",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Excluir conta",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "8 dez",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--wait",
+        "text": "Em andamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "06 nov",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Convidado de Ana & Leo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Apagar meus dados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "6 dez",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Concluído",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "02 nov",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "julia.alves@email.com",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Exportar dados",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "2 dez",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Concluído",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Retenção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Fotos depois da revelação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Evento que nunca revelou",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Hash de IP nos logs",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Backups",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M13",
+    "title": "Auditoria",
+    "webp": "telas/14-master/M13-auditoria.webp",
+    "html": "Master-auditoria",
+    "name": "MasterAuditoria",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Toda ação sensível, só inserção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm",
+        "text": "Exportar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Quando",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Quem",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Alvo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Detalhe",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 08:51",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Marcos (master)",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "plan.price_changed",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "R$ 189,00 → R$ 199,00",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 08:42",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "sistema",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "entitlement.granted",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ana & Leo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento via Pix #RV-2041",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 08:30",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ana Ribeiro",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "photo.hidden",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Ana & Leo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "foto 3f1… · 3 denúncias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "hoje 07:12",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Marcos (master)",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "courtesy.created",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "BUFFET-JARDIM",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Casamento · 20 usos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "ontem 18:05",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "sistema",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "payment.needs_refund",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "#RV-2037",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "segunda cobrança paga",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "ontem 17:40",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Júlia Alves",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "participant.blocked",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Chá da Maria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "1 convidado",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  },
+  {
+    "id": "M14",
+    "title": "Configurações",
+    "webp": "telas/14-master/M14-configuracoes.webp",
+    "html": "Master-config",
+    "name": "MasterConfig",
+    "master": true,
+    "items": [
+      {
+        "tag": "span",
+        "class": "mtag",
+        "text": "master",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Visão geral",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Eventos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pessoas",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Planos e preços",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Pagamentos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Cortesias",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Revelações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Moderação",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Storage e saúde",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "LGPD",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Auditoria",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "avatar avatar--sm",
+        "text": "M",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "b",
+        "class": "",
+        "text": "Marcos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Administrador",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "input",
+        "class": "",
+        "text": "",
+        "placeholder": "Buscar evento, pessoa ou pagamento",
+        "value": "",
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "envb",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h1",
+        "class": "rv-title-lg",
+        "text": "Configurações",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Pagamento, avisos e recursos da plataforma",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "button",
+        "class": "rv-btn rv-btn--sm rv-btn--primary",
+        "text": "Salvar",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "ValidaPay",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "p",
+        "class": "rv-caption",
+        "text": "Ambiente",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "",
+        "text": "Sandbox",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "on",
+        "text": "Produção",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "QR e copia e cola · expira em 15 min",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Só com confirmação do banco (3DS). Sua conta ainda não liberou.",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "assinatura HMAC válida · último às 08:42",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "em",
+        "class": "st st--ok",
+        "text": "Ativo",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "div",
+        "class": "rv-row__text",
+        "text": "Checkout ligado para anfitriões",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "h2",
+        "class": "rv-title",
+        "text": "Plataforma",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Teto de fotos por evento",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Tamanho máximo da foto",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "span",
+        "class": "rv-row__meta",
+        "text": "Remetente dos avisos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "div",
+        "class": "rv-row__text",
+        "text": "Comentários nas fotos",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      },
+      {
+        "tag": "div",
+        "class": "rv-row__text",
+        "text": "Aviso de revelação por e-mail",
+        "placeholder": null,
+        "value": null,
+        "type": null
+      }
+    ]
+  }
+]
