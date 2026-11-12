@@ -14,11 +14,9 @@ import { normalizeShareCode } from "@/domain/share-code";
 import { notificationPlan } from "@/domain/notifications";
 import { computeRevealStatus } from "@/domain/reveal";
 import { expirePending } from "@/features/photos/service";
-import dynamic from "next/dynamic";
+import { RevealTransition } from "@/features/reveal/RevealTransition";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
-
-const RevealTransition = dynamic(() => import("@/features/reveal/RevealTransition").then((m) => m.RevealTransition), { ssr: false }); // só na hora da revelação
 
 /** Área do convidado: guarda de acesso, tema do evento e barra de navegação com "Postar daqui". */
 export default function GuestLayout({ children }: { children: ReactNode }) {
