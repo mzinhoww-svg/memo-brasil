@@ -712,5 +712,757 @@ export const SCREENS: ScreenMeta[] = [
   "html": "Master-config",
   "name": "MasterConfig",
   "master": true
+ },
+ {
+  "id": "M15",
+  "title": "Pessoas: contas",
+  "webp": "master/png/Master-pessoas-contas.png",
+  "html": "Master-pessoas-contas",
+  "name": "MasterPessoasContas",
+  "master": true
+ },
+ {
+  "id": "M15-v",
+  "title": "Pessoas: contas (vazio)",
+  "webp": "master/png/Master-pessoas-contas--vazio.png",
+  "html": "Master-pessoas-contas--vazio",
+  "name": "MasterPessoasContasVazio",
+  "master": true
+ },
+ {
+  "id": "M15-e",
+  "title": "Pessoas: contas (erro)",
+  "webp": "master/png/Master-pessoas-contas--erro.png",
+  "html": "Master-pessoas-contas--erro",
+  "name": "MasterPessoasContasErro",
+  "master": true
+ },
+ {
+  "id": "M15-p",
+  "title": "Pessoas: contas (sem permissão)",
+  "webp": "master/png/Master-pessoas-contas--sem-permissao.png",
+  "html": "Master-pessoas-contas--sem-permissao",
+  "name": "MasterPessoasContasSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M15-c",
+  "title": "Pessoas: contas (carregando)",
+  "webp": "master/png/Master-pessoas-contas--carregando.png",
+  "html": "Master-pessoas-contas--carregando",
+  "name": "MasterPessoasContasCarregando",
+  "master": true
+ },
+ {
+  "id": "M16",
+  "title": "Pessoas: organizadores",
+  "webp": "master/png/Master-pessoas-organizadores.png",
+  "html": "Master-pessoas-organizadores",
+  "name": "MasterPessoasOrganizadores",
+  "master": true
+ },
+ {
+  "id": "M16-v",
+  "title": "Pessoas: organizadores (vazio)",
+  "webp": "master/png/Master-pessoas-organizadores--vazio.png",
+  "html": "Master-pessoas-organizadores--vazio",
+  "name": "MasterPessoasOrganizadoresVazio",
+  "master": true
+ },
+ {
+  "id": "M16-e",
+  "title": "Pessoas: organizadores (erro)",
+  "webp": "master/png/Master-pessoas-organizadores--erro.png",
+  "html": "Master-pessoas-organizadores--erro",
+  "name": "MasterPessoasOrganizadoresErro",
+  "master": true
+ },
+ {
+  "id": "M16-p",
+  "title": "Pessoas: organizadores (sem permissão)",
+  "webp": "master/png/Master-pessoas-organizadores--sem-permissao.png",
+  "html": "Master-pessoas-organizadores--sem-permissao",
+  "name": "MasterPessoasOrganizadoresSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M16-c",
+  "title": "Pessoas: organizadores (carregando)",
+  "webp": "master/png/Master-pessoas-organizadores--carregando.png",
+  "html": "Master-pessoas-organizadores--carregando",
+  "name": "MasterPessoasOrganizadoresCarregando",
+  "master": true
+ },
+ {
+  "id": "M17",
+  "title": "Pessoas: convidados",
+  "webp": "master/png/Master-pessoas-convidados.png",
+  "html": "Master-pessoas-convidados",
+  "name": "MasterPessoasConvidados",
+  "master": true
+ },
+ {
+  "id": "M17-v",
+  "title": "Pessoas: convidados (vazio)",
+  "webp": "master/png/Master-pessoas-convidados--vazio.png",
+  "html": "Master-pessoas-convidados--vazio",
+  "name": "MasterPessoasConvidadosVazio",
+  "master": true
+ },
+ {
+  "id": "M17-e",
+  "title": "Pessoas: convidados (erro)",
+  "webp": "master/png/Master-pessoas-convidados--erro.png",
+  "html": "Master-pessoas-convidados--erro",
+  "name": "MasterPessoasConvidadosErro",
+  "master": true
+ },
+ {
+  "id": "M17-p",
+  "title": "Pessoas: convidados (sem permissão)",
+  "webp": "master/png/Master-pessoas-convidados--sem-permissao.png",
+  "html": "Master-pessoas-convidados--sem-permissao",
+  "name": "MasterPessoasConvidadosSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M17-c",
+  "title": "Pessoas: convidados (carregando)",
+  "webp": "master/png/Master-pessoas-convidados--carregando.png",
+  "html": "Master-pessoas-convidados--carregando",
+  "name": "MasterPessoasConvidadosCarregando",
+  "master": true
+ },
+ {
+  "id": "M18",
+  "title": "Pessoas: convites",
+  "webp": "master/png/Master-pessoas-convites.png",
+  "html": "Master-pessoas-convites",
+  "name": "MasterPessoasConvites",
+  "master": true
+ },
+ {
+  "id": "M18-v",
+  "title": "Pessoas: convites (vazio)",
+  "webp": "master/png/Master-pessoas-convites--vazio.png",
+  "html": "Master-pessoas-convites--vazio",
+  "name": "MasterPessoasConvitesVazio",
+  "master": true
+ },
+ {
+  "id": "M18-e",
+  "title": "Pessoas: convites (erro)",
+  "webp": "master/png/Master-pessoas-convites--erro.png",
+  "html": "Master-pessoas-convites--erro",
+  "name": "MasterPessoasConvitesErro",
+  "master": true
+ },
+ {
+  "id": "M18-p",
+  "title": "Pessoas: convites (sem permissão)",
+  "webp": "master/png/Master-pessoas-convites--sem-permissao.png",
+  "html": "Master-pessoas-convites--sem-permissao",
+  "name": "MasterPessoasConvitesSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M18-c",
+  "title": "Pessoas: convites (carregando)",
+  "webp": "master/png/Master-pessoas-convites--carregando.png",
+  "html": "Master-pessoas-convites--carregando",
+  "name": "MasterPessoasConvitesCarregando",
+  "master": true
+ },
+ {
+  "id": "M19",
+  "title": "Pessoas: equipe",
+  "webp": "master/png/Master-pessoas-equipe.png",
+  "html": "Master-pessoas-equipe",
+  "name": "MasterPessoasEquipe",
+  "master": true
+ },
+ {
+  "id": "M19-v",
+  "title": "Pessoas: equipe (vazio)",
+  "webp": "master/png/Master-pessoas-equipe--vazio.png",
+  "html": "Master-pessoas-equipe--vazio",
+  "name": "MasterPessoasEquipeVazio",
+  "master": true
+ },
+ {
+  "id": "M19-e",
+  "title": "Pessoas: equipe (erro)",
+  "webp": "master/png/Master-pessoas-equipe--erro.png",
+  "html": "Master-pessoas-equipe--erro",
+  "name": "MasterPessoasEquipeErro",
+  "master": true
+ },
+ {
+  "id": "M19-p",
+  "title": "Pessoas: equipe (sem permissão)",
+  "webp": "master/png/Master-pessoas-equipe--sem-permissao.png",
+  "html": "Master-pessoas-equipe--sem-permissao",
+  "name": "MasterPessoasEquipeSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M19-c",
+  "title": "Pessoas: equipe (carregando)",
+  "webp": "master/png/Master-pessoas-equipe--carregando.png",
+  "html": "Master-pessoas-equipe--carregando",
+  "name": "MasterPessoasEquipeCarregando",
+  "master": true
+ },
+ {
+  "id": "M19-f1",
+  "title": "Equipe: conceder papel",
+  "webp": "master/png/Master-pessoas-equipe--folha-conceder.png",
+  "html": "Master-pessoas-equipe--folha-conceder",
+  "name": "MasterPessoasEquipeFolhaConceder",
+  "master": true
+ },
+ {
+  "id": "M19-f2",
+  "title": "Equipe: revogar papel",
+  "webp": "master/png/Master-pessoas-equipe--folha-revogar.png",
+  "html": "Master-pessoas-equipe--folha-revogar",
+  "name": "MasterPessoasEquipeFolhaRevogar",
+  "master": true
+ },
+ {
+  "id": "M20",
+  "title": "Visão geral: atividade por dia",
+  "webp": "master/png/Master-visao-atividade.png",
+  "html": "Master-visao-atividade",
+  "name": "MasterVisaoAtividade",
+  "master": true
+ },
+ {
+  "id": "M20-v",
+  "title": "Visão geral: atividade por dia (vazio)",
+  "webp": "master/png/Master-visao-atividade--vazio.png",
+  "html": "Master-visao-atividade--vazio",
+  "name": "MasterVisaoAtividadeVazio",
+  "master": true
+ },
+ {
+  "id": "M20-e",
+  "title": "Visão geral: atividade por dia (erro)",
+  "webp": "master/png/Master-visao-atividade--erro.png",
+  "html": "Master-visao-atividade--erro",
+  "name": "MasterVisaoAtividadeErro",
+  "master": true
+ },
+ {
+  "id": "M20-p",
+  "title": "Visão geral: atividade por dia (sem permissão)",
+  "webp": "master/png/Master-visao-atividade--sem-permissao.png",
+  "html": "Master-visao-atividade--sem-permissao",
+  "name": "MasterVisaoAtividadeSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M20-c",
+  "title": "Visão geral: atividade por dia (carregando)",
+  "webp": "master/png/Master-visao-atividade--carregando.png",
+  "html": "Master-visao-atividade--carregando",
+  "name": "MasterVisaoAtividadeCarregando",
+  "master": true
+ },
+ {
+  "id": "M20-t",
+  "title": "Visão geral: atividade por dia (tabela)",
+  "webp": "master/png/Master-visao-atividade--tabela.png",
+  "html": "Master-visao-atividade--tabela",
+  "name": "MasterVisaoAtividadeTabela",
+  "master": true
+ },
+ {
+  "id": "M21",
+  "title": "Evento: detalhe",
+  "webp": "master/png/Master-evento-detalhe.png",
+  "html": "Master-evento-detalhe",
+  "name": "MasterEventoDetalhe",
+  "master": true
+ },
+ {
+  "id": "M21-v",
+  "title": "Evento: detalhe (vazio)",
+  "webp": "master/png/Master-evento-detalhe--vazio.png",
+  "html": "Master-evento-detalhe--vazio",
+  "name": "MasterEventoDetalheVazio",
+  "master": true
+ },
+ {
+  "id": "M21-e",
+  "title": "Evento: detalhe (erro)",
+  "webp": "master/png/Master-evento-detalhe--erro.png",
+  "html": "Master-evento-detalhe--erro",
+  "name": "MasterEventoDetalheErro",
+  "master": true
+ },
+ {
+  "id": "M21-p",
+  "title": "Evento: detalhe (sem permissão)",
+  "webp": "master/png/Master-evento-detalhe--sem-permissao.png",
+  "html": "Master-evento-detalhe--sem-permissao",
+  "name": "MasterEventoDetalheSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M21-c",
+  "title": "Evento: detalhe (carregando)",
+  "webp": "master/png/Master-evento-detalhe--carregando.png",
+  "html": "Master-evento-detalhe--carregando",
+  "name": "MasterEventoDetalheCarregando",
+  "master": true
+ },
+ {
+  "id": "M21-f1",
+  "title": "Evento: marcar como teste",
+  "webp": "master/png/Master-evento-detalhe--folha-teste.png",
+  "html": "Master-evento-detalhe--folha-teste",
+  "name": "MasterEventoDetalheFolhaTeste",
+  "master": true
+ },
+ {
+  "id": "M21-f1r",
+  "title": "Evento: marcar como teste (recusado)",
+  "webp": "master/png/Master-evento-detalhe--folha-teste-recusa.png",
+  "html": "Master-evento-detalhe--folha-teste-recusa",
+  "name": "MasterEventoDetalheFolhaTesteRecusa",
+  "master": true
+ },
+ {
+  "id": "M21-f2",
+  "title": "Evento: excluir evento de teste",
+  "webp": "master/png/Master-evento-detalhe--folha-excluir-teste.png",
+  "html": "Master-evento-detalhe--folha-excluir-teste",
+  "name": "MasterEventoDetalheFolhaExcluirTeste",
+  "master": true
+ },
+ {
+  "id": "M22",
+  "title": "Eventos de teste",
+  "webp": "master/png/Master-eventos-teste.png",
+  "html": "Master-eventos-teste",
+  "name": "MasterEventosTeste",
+  "master": true
+ },
+ {
+  "id": "M22-v",
+  "title": "Eventos de teste (vazio)",
+  "webp": "master/png/Master-eventos-teste--vazio.png",
+  "html": "Master-eventos-teste--vazio",
+  "name": "MasterEventosTesteVazio",
+  "master": true
+ },
+ {
+  "id": "M22-e",
+  "title": "Eventos de teste (erro)",
+  "webp": "master/png/Master-eventos-teste--erro.png",
+  "html": "Master-eventos-teste--erro",
+  "name": "MasterEventosTesteErro",
+  "master": true
+ },
+ {
+  "id": "M22-p",
+  "title": "Eventos de teste (sem permissão)",
+  "webp": "master/png/Master-eventos-teste--sem-permissao.png",
+  "html": "Master-eventos-teste--sem-permissao",
+  "name": "MasterEventosTesteSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M22-c",
+  "title": "Eventos de teste (carregando)",
+  "webp": "master/png/Master-eventos-teste--carregando.png",
+  "html": "Master-eventos-teste--carregando",
+  "name": "MasterEventosTesteCarregando",
+  "master": true
+ },
+ {
+  "id": "M22-f1",
+  "title": "Eventos de teste: excluir em lote",
+  "webp": "master/png/Master-eventos-teste--folha-excluir-lote.png",
+  "html": "Master-eventos-teste--folha-excluir-lote",
+  "name": "MasterEventosTesteFolhaExcluirLote",
+  "master": true
+ },
+ {
+  "id": "M22-f2",
+  "title": "Eventos de teste: lote recusado",
+  "webp": "master/png/Master-eventos-teste--folha-recusa.png",
+  "html": "Master-eventos-teste--folha-recusa",
+  "name": "MasterEventosTesteFolhaRecusa",
+  "master": true
+ },
+ {
+  "id": "M23",
+  "title": "Pagamentos: conciliar agora (código)",
+  "webp": "master/png/Master-pagamentos--folha-conciliar-codigo.png",
+  "html": "Master-pagamentos--folha-conciliar-codigo",
+  "name": "MasterPagamentosFolhaConciliarCodigo",
+  "master": true
+ },
+ {
+  "id": "M23-r",
+  "title": "Pagamentos: conciliar agora (resultado)",
+  "webp": "master/png/Master-pagamentos--folha-conciliar-resultado.png",
+  "html": "Master-pagamentos--folha-conciliar-resultado",
+  "name": "MasterPagamentosFolhaConciliarResultado",
+  "master": true
+ },
+ {
+  "id": "M23-w",
+  "title": "Pagamentos: conciliar agora (aguarde)",
+  "webp": "master/png/Master-pagamentos--folha-conciliar-espera.png",
+  "html": "Master-pagamentos--folha-conciliar-espera",
+  "name": "MasterPagamentosFolhaConciliarEspera",
+  "master": true
+ },
+ {
+  "id": "M24",
+  "title": "Exportar (folha padrão)",
+  "webp": "master/png/Master-exportar--folha.png",
+  "html": "Master-exportar--folha",
+  "name": "MasterExportarFolha",
+  "master": true
+ },
+ {
+  "id": "M24-t",
+  "title": "Exportar (truncado em 50 mil linhas)",
+  "webp": "master/png/Master-exportar--folha-truncado.png",
+  "html": "Master-exportar--folha-truncado",
+  "name": "MasterExportarFolhaTruncado",
+  "master": true
+ },
+ {
+  "id": "M25",
+  "title": "Revelar agora (folha única)",
+  "webp": "master/png/Master-revelar-agora--folha.png",
+  "html": "Master-revelar-agora--folha",
+  "name": "MasterRevelarAgoraFolha",
+  "master": true
+ },
+ {
+  "id": "M25-a",
+  "title": "Revelar agora (erro: Este evento já foi revelado.)",
+  "webp": "master/png/Master-revelar-agora--folha-erro-ja-revelado.png",
+  "html": "Master-revelar-agora--folha-erro-ja-revelado",
+  "name": "MasterRevelarAgoraFolhaErroJaRevelado",
+  "master": true
+ },
+ {
+  "id": "M25-b",
+  "title": "Revelar agora (erro: Evento sem revelação ligada.)",
+  "webp": "master/png/Master-revelar-agora--folha-erro-sem-revelacao.png",
+  "html": "Master-revelar-agora--folha-erro-sem-revelacao",
+  "name": "MasterRevelarAgoraFolhaErroSemRevelacao",
+  "master": true
+ },
+ {
+  "id": "M25-c",
+  "title": "Revelar agora (erro: Sem permissão)",
+  "webp": "master/png/Master-revelar-agora--folha-erro-sem-permissao.png",
+  "html": "Master-revelar-agora--folha-erro-sem-permissao",
+  "name": "MasterRevelarAgoraFolhaErroSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M26",
+  "title": "Moderação: fotos com motivos",
+  "webp": "master/png/Master-moderacao-motivos.png",
+  "html": "Master-moderacao-motivos",
+  "name": "MasterModeracaoMotivos",
+  "master": true
+ },
+ {
+  "id": "M26-v",
+  "title": "Moderação: fotos com motivos (vazio)",
+  "webp": "master/png/Master-moderacao-motivos--vazio.png",
+  "html": "Master-moderacao-motivos--vazio",
+  "name": "MasterModeracaoMotivosVazio",
+  "master": true
+ },
+ {
+  "id": "M26-e",
+  "title": "Moderação: fotos com motivos (erro)",
+  "webp": "master/png/Master-moderacao-motivos--erro.png",
+  "html": "Master-moderacao-motivos--erro",
+  "name": "MasterModeracaoMotivosErro",
+  "master": true
+ },
+ {
+  "id": "M26-p",
+  "title": "Moderação: fotos com motivos (sem permissão)",
+  "webp": "master/png/Master-moderacao-motivos--sem-permissao.png",
+  "html": "Master-moderacao-motivos--sem-permissao",
+  "name": "MasterModeracaoMotivosSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M26-c",
+  "title": "Moderação: fotos com motivos (carregando)",
+  "webp": "master/png/Master-moderacao-motivos--carregando.png",
+  "html": "Master-moderacao-motivos--carregando",
+  "name": "MasterModeracaoMotivosCarregando",
+  "master": true
+ },
+ {
+  "id": "M26-b",
+  "title": "Moderação: comentários com motivos",
+  "webp": "master/png/Master-moderacao-motivos--comentarios.png",
+  "html": "Master-moderacao-motivos--comentarios",
+  "name": "MasterModeracaoMotivosComentarios",
+  "master": true
+ },
+ {
+  "id": "M26-f1",
+  "title": "Moderação: esconder foto",
+  "webp": "master/png/Master-moderacao-motivos--folha-esconder.png",
+  "html": "Master-moderacao-motivos--folha-esconder",
+  "name": "MasterModeracaoMotivosFolhaEsconder",
+  "master": true
+ },
+ {
+  "id": "M27",
+  "title": "Storage e saúde (completa)",
+  "webp": "master/png/Master-saude-completa.png",
+  "html": "Master-saude-completa",
+  "name": "MasterSaudeCompleta",
+  "master": true
+ },
+ {
+  "id": "M27-v",
+  "title": "Storage e saúde (completa) (vazio)",
+  "webp": "master/png/Master-saude-completa--vazio.png",
+  "html": "Master-saude-completa--vazio",
+  "name": "MasterSaudeCompletaVazio",
+  "master": true
+ },
+ {
+  "id": "M27-e",
+  "title": "Storage e saúde (completa) (erro)",
+  "webp": "master/png/Master-saude-completa--erro.png",
+  "html": "Master-saude-completa--erro",
+  "name": "MasterSaudeCompletaErro",
+  "master": true
+ },
+ {
+  "id": "M27-p",
+  "title": "Storage e saúde (completa) (sem permissão)",
+  "webp": "master/png/Master-saude-completa--sem-permissao.png",
+  "html": "Master-saude-completa--sem-permissao",
+  "name": "MasterSaudeCompletaSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M27-c",
+  "title": "Storage e saúde (completa) (carregando)",
+  "webp": "master/png/Master-saude-completa--carregando.png",
+  "html": "Master-saude-completa--carregando",
+  "name": "MasterSaudeCompletaCarregando",
+  "master": true
+ },
+ {
+  "id": "M28",
+  "title": "Auditoria (filtros)",
+  "webp": "master/png/Master-auditoria-filtros.png",
+  "html": "Master-auditoria-filtros",
+  "name": "MasterAuditoriaFiltros",
+  "master": true
+ },
+ {
+  "id": "M28-v",
+  "title": "Auditoria (filtros) (vazio)",
+  "webp": "master/png/Master-auditoria-filtros--vazio.png",
+  "html": "Master-auditoria-filtros--vazio",
+  "name": "MasterAuditoriaFiltrosVazio",
+  "master": true
+ },
+ {
+  "id": "M28-e",
+  "title": "Auditoria (filtros) (erro)",
+  "webp": "master/png/Master-auditoria-filtros--erro.png",
+  "html": "Master-auditoria-filtros--erro",
+  "name": "MasterAuditoriaFiltrosErro",
+  "master": true
+ },
+ {
+  "id": "M28-p",
+  "title": "Auditoria (filtros) (sem permissão)",
+  "webp": "master/png/Master-auditoria-filtros--sem-permissao.png",
+  "html": "Master-auditoria-filtros--sem-permissao",
+  "name": "MasterAuditoriaFiltrosSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M28-c",
+  "title": "Auditoria (filtros) (carregando)",
+  "webp": "master/png/Master-auditoria-filtros--carregando.png",
+  "html": "Master-auditoria-filtros--carregando",
+  "name": "MasterAuditoriaFiltrosCarregando",
+  "master": true
+ },
+ {
+  "id": "M29",
+  "title": "Impressões: pedidos",
+  "webp": "master/png/Master-impressoes.png",
+  "html": "Master-impressoes",
+  "name": "MasterImpressoes",
+  "master": true
+ },
+ {
+  "id": "M29-v",
+  "title": "Impressões: pedidos (vazio)",
+  "webp": "master/png/Master-impressoes--vazio.png",
+  "html": "Master-impressoes--vazio",
+  "name": "MasterImpressoesVazio",
+  "master": true
+ },
+ {
+  "id": "M29-e",
+  "title": "Impressões: pedidos (erro)",
+  "webp": "master/png/Master-impressoes--erro.png",
+  "html": "Master-impressoes--erro",
+  "name": "MasterImpressoesErro",
+  "master": true
+ },
+ {
+  "id": "M29-p",
+  "title": "Impressões: pedidos (sem permissão)",
+  "webp": "master/png/Master-impressoes--sem-permissao.png",
+  "html": "Master-impressoes--sem-permissao",
+  "name": "MasterImpressoesSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M29-c",
+  "title": "Impressões: pedidos (carregando)",
+  "webp": "master/png/Master-impressoes--carregando.png",
+  "html": "Master-impressoes--carregando",
+  "name": "MasterImpressoesCarregando",
+  "master": true
+ },
+ {
+  "id": "M30",
+  "title": "Impressão: detalhe do pedido",
+  "webp": "master/png/Master-impressao-detalhe.png",
+  "html": "Master-impressao-detalhe",
+  "name": "MasterImpressaoDetalhe",
+  "master": true
+ },
+ {
+  "id": "M30-v",
+  "title": "Impressão: detalhe do pedido (vazio)",
+  "webp": "master/png/Master-impressao-detalhe--vazio.png",
+  "html": "Master-impressao-detalhe--vazio",
+  "name": "MasterImpressaoDetalheVazio",
+  "master": true
+ },
+ {
+  "id": "M30-e",
+  "title": "Impressão: detalhe do pedido (erro)",
+  "webp": "master/png/Master-impressao-detalhe--erro.png",
+  "html": "Master-impressao-detalhe--erro",
+  "name": "MasterImpressaoDetalheErro",
+  "master": true
+ },
+ {
+  "id": "M30-p",
+  "title": "Impressão: detalhe do pedido (sem permissão)",
+  "webp": "master/png/Master-impressao-detalhe--sem-permissao.png",
+  "html": "Master-impressao-detalhe--sem-permissao",
+  "name": "MasterImpressaoDetalheSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M30-c",
+  "title": "Impressão: detalhe do pedido (carregando)",
+  "webp": "master/png/Master-impressao-detalhe--carregando.png",
+  "html": "Master-impressao-detalhe--carregando",
+  "name": "MasterImpressaoDetalheCarregando",
+  "master": true
+ },
+ {
+  "id": "M30-f1",
+  "title": "Impressão: avançar status",
+  "webp": "master/png/Master-impressao-detalhe--folha-avancar.png",
+  "html": "Master-impressao-detalhe--folha-avancar",
+  "name": "MasterImpressaoDetalheFolhaAvancar",
+  "master": true
+ },
+ {
+  "id": "M30-f2",
+  "title": "Impressão: cancelar pedido",
+  "webp": "master/png/Master-impressao-detalhe--folha-cancelar.png",
+  "html": "Master-impressao-detalhe--folha-cancelar",
+  "name": "MasterImpressaoDetalheFolhaCancelar",
+  "master": true
+ },
+ {
+  "id": "M31",
+  "title": "Configurações (revisada)",
+  "webp": "master/png/Master-config-revisada.png",
+  "html": "Master-config-revisada",
+  "name": "MasterConfigRevisada",
+  "master": true
+ },
+ {
+  "id": "M31-v",
+  "title": "Configurações (revisada) (vazio)",
+  "webp": "master/png/Master-config-revisada--vazio.png",
+  "html": "Master-config-revisada--vazio",
+  "name": "MasterConfigRevisadaVazio",
+  "master": true
+ },
+ {
+  "id": "M31-e",
+  "title": "Configurações (revisada) (erro)",
+  "webp": "master/png/Master-config-revisada--erro.png",
+  "html": "Master-config-revisada--erro",
+  "name": "MasterConfigRevisadaErro",
+  "master": true
+ },
+ {
+  "id": "M31-p",
+  "title": "Configurações (revisada) (sem permissão)",
+  "webp": "master/png/Master-config-revisada--sem-permissao.png",
+  "html": "Master-config-revisada--sem-permissao",
+  "name": "MasterConfigRevisadaSemPermissao",
+  "master": true
+ },
+ {
+  "id": "M31-c",
+  "title": "Configurações (revisada) (carregando)",
+  "webp": "master/png/Master-config-revisada--carregando.png",
+  "html": "Master-config-revisada--carregando",
+  "name": "MasterConfigRevisadaCarregando",
+  "master": true
+ },
+ {
+  "id": "M31-f1",
+  "title": "Configurações: alterar valor",
+  "webp": "master/png/Master-config-revisada--folha-alterar.png",
+  "html": "Master-config-revisada--folha-alterar",
+  "name": "MasterConfigRevisadaFolhaAlterar",
+  "master": true
+ },
+ {
+  "id": "M31-f2",
+  "title": "Configurações: desligar checkout",
+  "webp": "master/png/Master-config-revisada--folha-chave.png",
+  "html": "Master-config-revisada--folha-chave",
+  "name": "MasterConfigRevisadaFolhaChave",
+  "master": true
+ },
+ {
+  "id": "M32",
+  "title": "Sem acesso (papéis)",
+  "webp": "master/png/Master-sem-acesso.png",
+  "html": "Master-sem-acesso",
+  "name": "MasterSemAcesso",
+  "master": true
  }
 ];

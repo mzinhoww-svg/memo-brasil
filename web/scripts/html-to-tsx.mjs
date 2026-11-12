@@ -82,7 +82,7 @@ function walk(node, indent) {
   return `${pad}<${tag}${attrs(node)}>\n${kids.join("\n")}\n${pad}</${tag}>`;
 }
 
-const pascal = (f) => f.replace(/\.html$/, "").split("-").map((s) => s[0].toUpperCase() + s.slice(1)).join("");
+const pascal = (f) => f.replace(/\.html$/, "").split("-").filter(Boolean).map((s) => s[0].toUpperCase() + s.slice(1)).join("");
 mkdirSync(OUT, { recursive: true });
 const files = readdirSync(SRC).filter((f) => f.endsWith(".html") && f !== "index.html" && (!only.length || only.includes(f.replace(/\.html$/, ""))));
 const index = [];
