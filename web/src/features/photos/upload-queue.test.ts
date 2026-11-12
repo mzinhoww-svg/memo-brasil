@@ -4,7 +4,7 @@ import { createMemoryRepositories, RepositoryError, type Repositories, type User
 import { createEvent, type EventInput } from "../events/service";
 import { loadQueuedUploads, removeQueuedUpload } from "./draft";
 import { postPhoto } from "./service";
-import { backoffMs, blocksShooting, optimisticUsed, queueStatus, UploadQueue, type QueueEntry, type ShotJob } from "./upload-queue";
+import { backoffMs, blocksShooting, queueStatus, rollBase, usedFrom, UploadQueue, type QueueEntry, type ShotJob } from "./upload-queue";
 
 const now = 1_800_000_000_000;
 const user: User = { id: "fila-ana", name: "Ana", createdAt: 1 };
@@ -123,7 +123,7 @@ describe("fila de envio da câmera", () => {
     q.enqueue(j);
     await settle(q, (s) => s[0]?.status === "falhou");
     expect(j.frame.close).toHaveBeenCalled();
-    expect(optimisticUsed(0, q.getSnapshot().filter((e) => e.status !== "falhou"), null)).toBe(0);
+    expect(usedFrom(0, rollBase(null, 0, q.getSnapshot()))).toBe(0);
     expect(queueStatus(q.getSnapshot())?.alert).toBe(true);
   });
 
@@ -142,14 +142,27 @@ describe("fila de envio da câmera", () => {
 
 describe("contador otimista e textos da fila", () => {
   const e = (id: string, over: Partial<QueueEntry> = {}): QueueEntry => ({ photoId: id, eventId: "ev", userId: "u", createdAt: 1, status: "pendente", failures: 0, reserved: false, ...over });
-  it("left = real − pendentes, sem contar duas vezes o que o servidor já reservou", () => {
-    expect(optimisticUsed(2, [], null)).toBe(2);
-    expect(optimisticUsed(2, [e("a"), e("b")], null)).toBe(4);
-    // a base congelou com 2; depois o contador real passou a incluir a reservada: não muda o resultado
-    const base = { mine: 2, reserved: [] };
-    expect(optimisticUsed(3, [e("a", { reserved: true, status: "enviada" }), e("b")], base)).toBe(4);
+  it("left = real − pendentes, sem contar duas vezes nem voltar quando cada item sai da fila", () => {
+    const step = (prev: ReturnType<typeof rollBase>, real: number, list: QueueEntry[]) => { const b = rollBase(prev, real, list); return { b, used: usedFrom(real, b) }; };
+    expect(step(null, 2, []).used).toBe(2);
+    // dois disparos: 2 + 2
+    let s1 = step(null, 2, [e("a"), e("b")]);
+    expect(s1.used).toBe(4);
+    // "a" reservada e o contador real já a inclui (3): não conta duas vezes
+    s1 = step(s1.b, 3, [e("a", { reserved: true, status: "enviada" }), e("b", { reserved: true })]);
+    expect(s1.used).toBe(4);
+    // "a" sai da fila depois do refresh: continua contada (não volta)
+    s1 = step(s1.b, 4, [e("b", { reserved: true, status: "enviada" })]);
+    expect(s1.used).toBe(4);
+    // fila vazia: vale a contagem real
+    s1 = step(s1.b, 4, []);
+    expect(s1.b).toBeNull();
+    expect(s1.used).toBe(4);
+    // recusada deixa de contar
+    const r = step(null, 1, [e("x"), e("y")]);
+    expect(step(r.b, 1, [e("x"), e("y", { status: "recusada" })]).used).toBe(2);
     // item retomado que já estava reservado quando a base congelou já está na contagem real
-    expect(optimisticUsed(3, [e("a", { reserved: true })], null)).toBe(3);
+    expect(step(null, 3, [e("a", { reserved: true })]).used).toBe(3);
   });
   it("Mandando N fotos…", () => {
     expect(queueStatus([])).toBeUndefined();

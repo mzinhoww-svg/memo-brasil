@@ -143,6 +143,8 @@ test("convidado entra, posta com a câmera de teste, gasta o rolo e reage uma ve
   await page.getByRole("button", { name: "Tirar foto" }).click();
   // 22 · Disparo: a pose vai direto para o laboratório e o visor continua aberto, com uma pose a menos
   await expect(page.locator(".rv-counter b")).toHaveText("4", { timeout: 20_000 });
+  // o envio segue em segundo plano (fila): espera a fila esvaziar antes de sair da página
+  await expect(page.getByTestId("contador-rolo")).toHaveAttribute("data-fila", "0", { timeout: 20_000 });
 
   await page.goto(`/e/${code}/agora`);
   const curtir = page.getByRole("button", { name: "Curtir" });

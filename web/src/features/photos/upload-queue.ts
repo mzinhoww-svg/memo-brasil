@@ -266,12 +266,24 @@ export function queueStatus(entries: QueueEntry[]): { text: string; alert: boole
 /** Recusas que fecham a câmera para novos disparos neste evento. */
 export const blocksShooting = (entries: QueueEntry[]): boolean => entries.some((e) => e.status === "recusada" && (e.reason === "bloqueado" || e.reason === "acesso" || e.reason === "nao-encontrado"));
 
+/** Base do contador otimista: contagem real congelada quando a fila começou a ter itens e os disparos contados desde então. */
+export interface RollBase { mine: number; reserved: string[]; counted: string[] }
+
 /**
- * Poses usadas para o contador otimista. `base` é a contagem real congelada quando a fila começou a ter itens
- * (e quais deles já estavam reservados no servidor, portanto já contados nela). Sem fila, vale a contagem real.
+ * Atualiza a base do contador otimista. `mine` congela a contagem real quando a fila passa a ter itens; `reserved` são os que
+ * o servidor já tinha reservado nesse momento (portanto já estão em `mine`); `counted` são os disparos contados desde então,
+ * e um item que sai da fila depois de confirmado continua contado. Recusados saem da conta. Fila vazia: sem base.
  */
-export function optimisticUsed(realUsed: number, active: QueueEntry[], base: { mine: number; reserved: string[] } | null): number {
-  if (!active.length) return realUsed;
-  const b = base ?? { mine: realUsed, reserved: active.filter((e) => e.reserved).map((e) => e.photoId) };
-  return b.mine + active.filter((e) => !b.reserved.includes(e.photoId)).length;
+export function rollBase(prev: RollBase | null, realUsed: number, entries: QueueEntry[]): RollBase | null {
+  const active = entries.filter(countsTowardRoll);
+  if (!active.length) return null;
+  const base = prev ?? { mine: realUsed, reserved: active.filter((e) => e.reserved).map((e) => e.photoId), counted: [] };
+  const refused = new Set(entries.filter((e) => !countsTowardRoll(e)).map((e) => e.photoId));
+  const counted = base.counted.filter((id) => !refused.has(id));
+  for (const e of active) if (!base.reserved.includes(e.photoId) && !counted.includes(e.photoId)) counted.push(e.photoId);
+  const same = counted.length === base.counted.length && counted.every((id, i) => id === base.counted[i]);
+  return same ? base : { ...base, counted };
 }
+
+/** Poses usadas que o contador mostra (left = real − pendentes). */
+export const usedFrom = (realUsed: number, base: RollBase | null): number => (base ? base.mine + base.counted.length : realUsed);

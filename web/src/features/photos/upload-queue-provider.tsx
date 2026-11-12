@@ -2,7 +2,7 @@
 /* Liga a fila de envio (upload-queue.ts) à sessão: montado no layout do convidado, fora da tela da câmera. */
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useApp } from "@/features/app/provider";
-import { countsTowardRoll, optimisticUsed, uploadQueue, type LastShot, type QueueEntry, type UploadQueue } from "./upload-queue";
+import { rollBase, uploadQueue, usedFrom, type LastShot, type QueueEntry, type RollBase, type UploadQueue } from "./upload-queue";
 
 /**
  * Retoma a fila ao abrir o app e quando a internet volta; `onConfirmed` (o refresh do evento) roda a cada foto confirmada.
@@ -46,9 +46,8 @@ export function useUploadQueue(eventId: string, userId: string, queue: UploadQue
  * Quando a fila esvazia (depois do refresh da última confirmação), volta a valer só a contagem real. O odômetro não volta.
  */
 export function useQueuedUsed(realUsed: number, entries: QueueEntry[]): number {
-  const active = entries.filter(countsTowardRoll);
-  const [base, setBase] = useState<{ mine: number; reserved: string[] } | null>(null);
-  if (active.length > 0 && !base) setBase({ mine: realUsed, reserved: active.filter((e) => e.reserved).map((e) => e.photoId) });
-  if (active.length === 0 && base) setBase(null);
-  return optimisticUsed(realUsed, active, active.length > 0 ? base : null);
+  const [base, setBase] = useState<RollBase | null>(null);
+  const next = rollBase(base, realUsed, entries);
+  if (next !== base) setBase(next);
+  return usedFrom(realUsed, next);
 }
