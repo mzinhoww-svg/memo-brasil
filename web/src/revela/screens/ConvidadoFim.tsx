@@ -2,6 +2,7 @@
 /* Convidado-fim.html (24): o filme acabou. Serve também para "A câmera fechou" (festa encerrada) e, depois da revelação, leva ao feed. */
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Odo } from "../Odo";
 
 export interface ConvidadoFimProps {
   /** Fotos que a pessoa tirou (texto "Suas 27 fotos …"). */
@@ -23,7 +24,6 @@ export interface ConvidadoFimProps {
   children?: ReactNode;
 }
 
-const p2 = (n: number) => String(n).padStart(2, "0");
 
 export function ConvidadoFim({ taken = 27, ended, revealed, remainingMs = 13 * 3_600_000 + 42 * 60_000 + 8_000, notify = true, body, closeHref, feedHref, onClose, children }: ConvidadoFimProps = {}) {
   const ms = Math.max(0, remainingMs ?? 0);
@@ -50,9 +50,7 @@ export function ConvidadoFim({ taken = 27, ended, revealed, remainingMs = 13 * 3
         </div>
         {!ended && (
           <div className="rv-counter" style={{ "margin": "6px 0 18px" }}>
-            <b>
-              00
-            </b>
+            <Odo value={0} padText />
             <span>
               poses restantes
             </span>
@@ -68,25 +66,19 @@ export function ConvidadoFim({ taken = 27, ended, revealed, remainingMs = 13 * 3
         {!revealed && ms > 0 && (
           <div className="countdown" role="timer" aria-label={`Revela em ${hh} horas e ${mm} minutos`}>
             <div>
-              <b>
-                {p2(hh)}
-              </b>
+              <Odo value={hh} padText />
               <span>
                 horas
               </span>
             </div>
             <div>
-              <b>
-                {p2(mm)}
-              </b>
+              <Odo value={mm} padText />
               <span>
                 min
               </span>
             </div>
             <div>
-              <b>
-                {p2(ss)}
-              </b>
+              <Odo value={ss} padText />
               <span>
                 seg
               </span>

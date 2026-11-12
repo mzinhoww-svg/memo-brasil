@@ -1,6 +1,9 @@
 "use client";
 /* Revelados-galeria.html (18): mesmo markup da referência; dados reais por props (padrão = desenho). */
 import Link from "next/link";
+import { useRef } from "react";
+import { dealPrints } from "@/lib/motion/revela-motion";
+import { useMomentOnce } from "@/lib/motion/use-moments";
 import { HostTabs } from "../HostTabs";
 
 export interface GaleriaPrint { src: string; stampLeft: string; stampRight: string; href?: string }
@@ -12,11 +15,11 @@ export const GALERIA_REF_PRINTS: GaleriaPrint[] = [
   { src: "/revela/ref/sc-camera.jpg", stampLeft: "'27 03 14", stampRight: "Lu" },
 ];
 const SLOTS = [
-  { left: "0px", top: "0px", width: "146px", height: "184px", transform: "rotate(-6deg)", zIndex: "1" },
-  { left: "176px", top: "10px", width: "146px", height: "184px", transform: "rotate(5deg)", zIndex: "2" },
-  { left: "14px", top: "190px", width: "146px", height: "184px", transform: "rotate(3deg)", zIndex: "3" },
-  { left: "186px", top: "206px", width: "146px", height: "184px", transform: "rotate(-4deg)", zIndex: "4" },
-  { left: "112px", top: "318px", width: "120px", height: "150px", transform: "rotate(9deg)", zIndex: "5" },
+  { left: "0px", top: "0px", width: "146px", height: "184px", transform: "rotate(-6deg)", "--rv-rot": "-6deg", zIndex: "1" },
+  { left: "176px", top: "10px", width: "146px", height: "184px", transform: "rotate(5deg)", "--rv-rot": "5deg", zIndex: "2" },
+  { left: "14px", top: "190px", width: "146px", height: "184px", transform: "rotate(3deg)", "--rv-rot": "3deg", zIndex: "3" },
+  { left: "186px", top: "206px", width: "146px", height: "184px", transform: "rotate(-4deg)", "--rv-rot": "-4deg", zIndex: "4" },
+  { left: "112px", top: "318px", width: "120px", height: "150px", transform: "rotate(9deg)", "--rv-rot": "9deg", zIndex: "5" },
 ] as const;
 
 const svg = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -34,6 +37,9 @@ export interface ReveladosGaleriaProps {
 }
 
 export function ReveladosGaleria({ caption = "Ana & Leo · 418 fotos de 32 convidados · hoje, 12:00", prints = GALERIA_REF_PRINTS, backHref, downloadHref, albumHref, onFilter, empty }: ReveladosGaleriaProps = {}) {
+  const table = useRef<HTMLDivElement>(null);
+  // as fotos caem na mesa uma vez, quando a galeria abre com fotos
+  useMomentOnce(prints.length > 0, () => { void dealPrints(table.current?.querySelectorAll<HTMLElement>(".rv-print") ?? []); });
   return (
     <>
     <div className="scr">
@@ -52,7 +58,7 @@ export function ReveladosGaleria({ caption = "Ana & Leo · 418 fotos de 32 convi
         </div>
         <h1 className="rv-display" style={{ fontSize: "44px", lineHeight: "46px", marginTop: "14px" }}>Revelado.</h1>
         <p className="rv-caption" style={{ marginTop: "6px" }}>{caption}</p>
-        <div className="table">
+        <div ref={table} className="table">
           {prints.slice(0, 5).map((p, i) => {
             const body = (
               <>
@@ -63,7 +69,7 @@ export function ReveladosGaleria({ caption = "Ana & Leo · 418 fotos de 32 convi
                 </div>
               </>
             );
-            const style = { position: "absolute" as const, ...SLOTS[i] };
+            const style = { position: "absolute" as const, ...SLOTS[i] } as React.CSSProperties;
             return p.href
               ? <Link key={i} href={p.href} className="rv-print" style={style} aria-label={`${p.stampLeft} ${p.stampRight} · Abrir a foto de ${p.stampRight}`}>{body}</Link>
               : <div key={i} className="rv-print" style={style}>{body}</div>;

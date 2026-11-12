@@ -9,6 +9,7 @@
 @import "../styles/revela2.css";
 @import "../styles/revela-guest.css";
 @import "../styles/revela-motion-apply.css";
+@import "../styles/revela-moments.css";
 
 /* Revela: tokens expostos ao Tailwind v4 (modo inline; tokens.css continua a fonte de verdade). */
 @theme inline {

@@ -5,6 +5,9 @@ import { Button, Chip, Chips, EventTheme, Field, GuestShell, Progress } from "@/
 import { useRollPickerOptional } from "@/features/photos/roll-picker";
 import { DEFAULT_FILM, wrapOf } from "@/domain/options";
 import { ConvidadoCamera } from "@/revela/screens/ConvidadoCamera";
+import type { CameraFx } from "@/revela/screens/CameraFrame";
+import { odometer, reduced, shoot as kitShoot } from "@/lib/motion/revela-motion";
+import { flyPose } from "@/lib/motion/use-moments";
 import { ConvidadoFim } from "@/revela/screens/ConvidadoFim";
 import { ConvidadoPermissao } from "@/revela/screens/ConvidadoPermissao";
 import { momentName } from "@/domain/moments";
@@ -53,7 +56,7 @@ function PostarSession() {
   const [secsLeft, setSecsLeft] = useState(0);
   const [frozenLeft, setFrozenLeft] = useState<number | null | undefined>(); // o contador só muda quando a foto chegar
   const [flashOn, setFlashOn] = useState(true);
-  const [flashing, setFlashing] = useState(false);
+  const fx = useRef<CameraFx | null>(null); // peças da câmera que o disparo do kit anima
   const quick = useRef(false); // disparo pelo obturador: a pose vai direto para o laboratório (sem prévia)
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
@@ -200,16 +203,22 @@ function PostarSession() {
     const v = video.current;
     if (!v || !v.videoWidth || sending.current) return;
     setError(undefined);
-    if (flashOn) { setFlashing(true); setTimeout(() => setFlashing(false), 140); }
+    const parts = fx.current;
+    if (parts) void kitShoot({ flash: flashOn ? parts.flash : document.createElement("div"), shutter: parts.shutter, button: parts.button, wheel: parts.wheel, counter: parts.counter ?? undefined, remaining: left === null ? undefined : Math.max(0, left - 1) });
+    // o processamento da foto roda depois do clarão, fora do toque
+    if (!reduced()) await new Promise((r) => setTimeout(r, 120));
     try {
       const data = await renderPhoto(v, v.videoWidth, v.videoHeight, lookOf(event) as "natural" | "filme35" | "vintage" | "preto-e-branco", facing === "user");
       if (!alive.current) return;
       quick.current = true;
       picked.current = true;
       setShot({ data, url: URL.createObjectURL(new Blob([data.bytes], { type: data.type })) });
+      const ghost = URL.createObjectURL(new Blob([data.bytes], { type: data.type }));
+      void flyPose(ghost, parts?.viewfinder ?? null, parts?.roll ?? null).finally(() => URL.revokeObjectURL(ghost));
       await send(false, data);
     } catch {
       quick.current = false;
+      if (parts?.counter && left !== null) odometer(parts.counter, left);
       setError("Não foi possível tirar a foto. Tente de novo.");
     }
   }
@@ -548,7 +557,7 @@ function PostarSession() {
   return (
     <ConvidadoCamera
       {...frame}
-      flash={flashing}
+      fx={fx}
       shootDisabled={phase !== "camera" || sending.current}
       onShoot={() => void shoot()}
       rollLabel="Enviar do rolo da câmera"

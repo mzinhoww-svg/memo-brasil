@@ -2,6 +2,7 @@
 /* Gerado de design-system/revela/html/Convidado-minhas.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 import Link from "next/link";
 import { GuestTabs } from "../GuestTabs";
+import { Odo } from "../Odo";
 
 export interface MinhasProps {
   code?: string;
@@ -25,7 +26,7 @@ export function ConvidadoMinhas({ code, left = 18, total = 27, taken = DEFAULT_T
             Minhas poses
           </h1>
           <div className="rv-counter">
-            <b>{left === null ? "∞" : String(left).padStart(2, "0")}</b>
+            <Odo value={left} padText />
             <span>
               restantes
             </span>

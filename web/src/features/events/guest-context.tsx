@@ -23,6 +23,8 @@ export interface GuestCtx {
   revealStatus: RevealStatus;
   /** true depois que a revelação aconteceu com a pessoa dentro do app: as fotos "se revelam" com animação */
   developed: boolean;
+  /** a tela "Revelou." está aberta por cima do feed */
+  celebrating?: boolean;
 }
 const Ctx = createContext<GuestCtx | null>(null);
 export const GuestProvider = ({ value, children }: { value: GuestCtx; children: ReactNode }) => <Ctx.Provider value={value}>{children}</Ctx.Provider>;

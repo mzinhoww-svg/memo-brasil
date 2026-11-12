@@ -34,7 +34,7 @@ export function RevealIntro({ stage, onOpen }: { stage: "aviso" | "revelou"; onO
   }
   return (
     <FeedRevelou
-      stamp={`${stampDay(at, event.timezone)} · ${hhmm(at, event.timezone)}`} text={revealText(event.title, counts.total, counts.mine, "prontas")} onOpen={onOpen}
+      stamp={`${stampDay(at, event.timezone)} · ${hhmm(at, event.timezone)}`} text={revealText(event.title, counts.total, counts.mine, "prontas")} expected={picks.length} onOpen={onOpen}
       prints={picks.filter((p) => urls[p.id]).map((p) => ({ src: urls[p.id], stampLeft: printDate(photoMoment(p), event.timezone), stampRight: p.authorId === user.id ? "você" : firstName(p.authorName) }))}
     />
   );
