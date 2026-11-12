@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const api = vi.hoisted(() => ({ config: vi.fn(), recover: vi.fn(), call: vi.fn(), quote: vi.fn(), refund: vi.fn(), card: vi.fn(), invoke: vi.fn() }));
 vi.mock("./validapay-client", async (importOriginal) => ({ ...await importOriginal<typeof import("./validapay-client")>(), sandboxConfig: api.config, recoverSandbox: api.recover, sandboxCall: api.call, sandboxRefund: api.refund }));
 vi.mock("./validapay-card", () => ({ prepareCard: api.card }));
-vi.mock("./api", () => ({ formatBRL: (n: number) => `R$ ${n / 100}`, quote: api.quote, listPublicPlans: async () => [{ code: "festa", name: "Festa", isFree: false, maxGuests: 30, maxShots: 24, priceCents: 2900, features: [] }] }));
+vi.mock("./api", () => ({ formatBRL: (n: number) => `R$ ${n / 100}`, quote: api.quote, listPosePacks: async () => [], listPublicPlans: async () => [{ code: "festa", name: "Festa", isFree: false, maxGuests: 30, maxShots: 24, priceCents: 2900, features: [] }] }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/lib/supabase/client", () => ({ browserSupabase: () => ({ functions: { invoke: api.invoke }, auth: { getUser: async () => ({ data: { user: { email: "test@example.test" } } }) } }) }));
 import { ValidaPayCheckout } from "./ValidaPayCheckout";

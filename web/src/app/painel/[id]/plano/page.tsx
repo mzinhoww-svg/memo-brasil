@@ -1,12 +1,12 @@
 "use client";
 
 import { redirect, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Skeleton } from "@/components/revela";
 import { ScreenH1 } from "@/revela/painel-ui";
 import { useAdmin } from "@/features/admin/context";
 import {
-  BillingError, BillingUnavailableError, ProviderUnavailableError, formatBRL, getPublicSettings, listPublicPlans, openOrder, startCheckout,
+  BillingError, BillingUnavailableError, ProviderUnavailableError, formatBRL, getPublicSettings, listPosePacks, listPublicPlans, openOrder, startCheckout,
 } from "@/features/billing/api";
 import { currentPlanCode } from "@/features/billing/entitlement";
 import { PLAN_TEXT, checkoutErrorMessage, clearIdempotencyKey, idempotencyKeyFor, parseReturn, reconcileCheckout, type ReturnHint } from "@/features/billing/flow";
@@ -15,7 +15,8 @@ import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CheckoutPending, ProviderDown } from "@/features/billing/CheckoutPending";
 import { PlanPicker } from "@/features/billing/PlanPicker";
 import { CodeApplied } from "@/features/billing/RedeemCode";
-import type { OrderView, PublicPlan, PublicSettings } from "@/features/billing/types";
+import { basePlanCode, lookupPlans, packByCode } from "@/features/billing/pose-packs";
+import type { OrderView, PosePack, PublicPlan, PublicSettings } from "@/features/billing/types";
 
 const NO_SETTINGS: PublicSettings = { supportEmail: null, supportPhone: null, companyLegalName: null, companyCnpj: null, paymentsEnv: "desligado", capacityGracePct: 10 };
 
@@ -34,6 +35,7 @@ function PlanoCorpo() {
   const initialPlan = useSearchParams()?.get("plano") ?? null;
   const eventId = event.id;
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
+  const [packs, setPacks] = useState<PosePack[]>([]);
   const [settings, setSettings] = useState<PublicSettings>(NO_SETTINGS);
   const [current, setCurrent] = useState("gratis");
   const [order, setOrder] = useState<OrderView | null>(null);
@@ -59,18 +61,21 @@ function PlanoCorpo() {
 
   const load = useCallback(async () => {
     try {
-      const [p, s, c, o] = await Promise.all([
+      const [p, s, c, o, k] = await Promise.all([
         listPublicPlans(), getPublicSettings(), currentPlanCode(eventId),
         openOrder(eventId).catch((e) => { if (e instanceof BillingUnavailableError) return null; throw e; }),
+        listPosePacks(),
       ]);
-      setPlans(p); setSettings(s); setCurrent(c); setOrder(o); setLoadError(false);
+      setPlans(p); setPacks(k); setSettings(s); setCurrent(c); setOrder(o); setLoadError(false);
     } catch {
       setLoadError(true);
     }
   }, [eventId]);
   useEffect(() => { const t = setTimeout(() => void load(), 0); return () => clearTimeout(t); }, [load]);
 
-  const planName = useCallback((code: string) => plans?.find((p) => p.code === code)?.name ?? code, [plans]);
+  // buscas por código incluem as variantes "Mais poses" (ocultas do seletor)
+  const lookup = useMemo(() => lookupPlans(plans ?? [], packs), [plans, packs]);
+  const planName = useCallback((code: string) => lookup.find((p) => p.code === code)?.name ?? code, [lookup]);
 
   const onOrder = useCallback((o: OrderView) => {
     setOrder(o);
@@ -120,15 +125,15 @@ function PlanoCorpo() {
   const painel = `/painel/${eventId}`;
   let body;
   if (applied) {
-    body = <CodeApplied plan={plans.find((p) => p.code === applied.planCode)} code={applied.code} eventTitle={event.title} backHref={painel} printHref={`${painel}/qr`} />;
+    body = <CodeApplied plan={lookup.find((p) => p.code === applied.planCode)} code={applied.code} eventTitle={event.title} backHref={painel} printHref={`${painel}/qr`} />;
   } else if (down) {
-    const p = plans.find((x) => x.code === down.planCode);
+    const p = lookup.find((x) => x.code === down.planCode);
     body = <ProviderDown planName={p?.name} amountLabel={p ? formatBRL(p.priceCents) : undefined} busy={busy} onRetry={() => void pay(down.planCode)} />;
   } else if (order) {
-    body = <CheckoutPending order={order} plans={plans} warning={warning} eventId={eventId} returnHint={returnHint} busy={busy} onOrder={onOrder} onChoosePlan={toPicker} onNewCheckout={() => void pay(order.planCode, true)} />;
+    body = <CheckoutPending order={order} plans={lookup} warning={warning} eventId={eventId} returnHint={returnHint} busy={busy} onOrder={onOrder} onChoosePlan={toPicker} onNewCheckout={() => void pay(order.planCode, true)} />;
   } else {
     body = (
-      <PlanPicker eventId={eventId} plans={plans} currentCode={current} settings={settings} busy={busy} error={error} initialPlan={initialPlan} usage={{ guests: participants?.length ?? 0, shots: event.shotsPerPerson ?? null }} onPay={(c) => void pay(c)}
+      <PlanPicker eventId={eventId} plans={plans} currentCode={basePlanCode(packs, current)} packs={packs} hasPack={!!packByCode(packs, current)} settings={settings} busy={busy} error={error} initialPlan={initialPlan} usage={{ guests: participants?.length ?? 0, shots: event.shotsPerPerson ?? null }} onPay={(c) => void pay(c)}
         onRedeemed={(r) => { setApplied({ planCode: r.planCode ?? "", code: r.code }); void currentPlanCode(eventId).then(setCurrent); void refresh(); }} />
     );
   }

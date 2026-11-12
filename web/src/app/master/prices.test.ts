@@ -44,4 +44,14 @@ describe("prices", () => {
     expect(slugify("Super Festa 2027!")).toBe("super_festa_2027");
     expect(slugify("Pé de Valsa")).toBe("pe_de_valsa");
   });
+  it("pacote Mais poses: nunca em destaque, sempre acima do preço do plano-base, e entra no payload de preços como os demais", () => {
+    const pack: PlanRow = { code: "festa_36", name: "Festa + Mais poses", maxGuests: 30, maxShots: 36, priceCents: 4890, sandboxActive: true, productionActive: false, highlighted: false, isFree: false, sort: 1, packOf: "festa" };
+    const withPack = [...base, pack];
+    expect(draftErrors(withPack)).toEqual({});
+    expect(draftErrors(withPack.map((p) => (p.code === "festa_36" ? { ...p, priceCents: 2900 } : p))).festa_36).toMatch(/precisa custar mais que Festa/);
+    expect(draftErrors(withPack.map((p) => (p.code === "festa_36" ? { ...p, highlighted: true } : p))).festa_36).toMatch(/destaque/);
+    // editar o preço do pacote publica só ele, pelo mesmo admin_publish_plans
+    const edited = withPack.map((p) => (p.code === "festa_36" ? { ...p, priceCents: 5290 } : p));
+    expect(toChanges(withPack, edited)).toEqual([expect.objectContaining({ code: "festa_36", priceCents: 5290, maxShots: 36 })]);
+  });
 });

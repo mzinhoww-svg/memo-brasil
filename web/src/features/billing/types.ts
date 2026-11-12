@@ -14,6 +14,26 @@ export type PublicPlan = {
   highlighted?: boolean;
 };
 
+/**
+ * Pacote "Mais poses" (+12 poses por pessoa): plano-variante oculto do catálogo (`plans.pack_of`). Vem de `list_public_pose_packs`,
+ * nunca de `list_public_plans`. `available` = à venda agora; os desligados só servem para reconhecer quem já comprou.
+ */
+export type PosePack = {
+  /** Código da variante (ex.: `festa_36`): é o que se cota, paga e aparece no direito do evento. */
+  code: string;
+  /** Plano-base (ex.: `festa`). */
+  baseCode: string;
+  name: string;
+  maxGuests: number | null;
+  maxShots: number;
+  baseMaxShots: number;
+  /** Preço TOTAL da variante (base + pacote), em centavos. */
+  priceCents: number;
+  /** Quanto o pacote custa sobre o plano-base, em centavos. */
+  extraCents: number;
+  available: boolean;
+};
+
 export type OrderStatus = "criado" | "pendente" | "pago" | "expirado" | "cancelado" | "falhou" | "estornado" | "em_disputa" | "perdido";
 
 export type PaymentProvider = "mercadopago" | "abacatepay" | "validapay";

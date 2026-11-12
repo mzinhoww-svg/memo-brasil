@@ -13,6 +13,8 @@ export interface PlanRow {
   isFree: boolean;
   sort: number;
   isNew?: boolean;
+  /** Pacote "Mais poses": plano-variante oculto do seletor; aponta o plano-base (o preço é o TOTAL base + pacote). */
+  packOf?: string | null;
 }
 
 export const CODE_RE = /^[a-z][a-z0-9_]{1,31}$/;
@@ -50,6 +52,12 @@ export function draftErrors(draft: PlanRow[]): Record<string, string> {
     else if (!p.isFree && (p.priceCents < MIN_PRICE_CENTS || p.priceCents > MAX_PRICE_CENTS)) errors[p.code] = "Preço entre R$ 1,00 e R$ 100.000,00.";
     else if (p.maxGuests != null && (p.maxGuests < 1 || p.maxGuests > 1000)) errors[p.code] = "Convidados: de 1 a 1.000 (vazio = sem limite).";
     else if (p.maxShots != null && (p.maxShots < 1 || p.maxShots > 1000)) errors[p.code] = "Poses: de 1 a 1.000 (vazio = sem limite).";
+    else if (p.packOf) {
+      // pacote "Mais poses": nunca em destaque (não aparece no seletor) e sempre acima do preço do plano-base
+      const base = draft.find((b) => b.code === p.packOf);
+      if (p.highlighted) errors[p.code] = "Pacote Mais poses não pode ficar em destaque.";
+      else if (base && p.priceCents <= base.priceCents) errors[p.code] = `O pacote precisa custar mais que ${base.name} (${brl(base.priceCents)}).`;
+    }
   }
   if (draft.filter((p) => p.highlighted).length > 1) errors["_destaque"] = "Só um plano pode ficar em destaque.";
   return errors;

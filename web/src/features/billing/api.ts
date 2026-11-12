@@ -3,6 +3,8 @@
  *
  * Funções públicas:
  * - `listPublicPlans(): Promise<PublicPlan[]>` — RPC `list_public_plans` (anon ou logado). Modo local: só o Grátis.
+ * - `listPosePacks(): Promise<PosePack[]>` — RPC `list_public_pose_packs` (só logado): pacotes "Mais poses" (planos-variante ocultos).
+ *   Falha ou modo local: lista vazia (o pacote simplesmente não aparece). `available` = à venda agora.
  * - `getPublicSettings(): Promise<PublicSettings>` — RPC `get_public_settings`. Modo local: tudo nulo, `paymentsEnv: "desligado"`.
  * - `quote(eventId, planCode): Promise<Quote>` — RPC `payments_quote` (só o anfitrião). `reason` diz por que não é cobrável.
  * - `startCheckout(eventId, planCode, idempotencyKey): Promise<OrderView>` — Edge Function `payments-checkout`; devolve
@@ -31,9 +33,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
-import type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
+import { devToolsEnabled } from "@/lib/dev-tools";
+import type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PosePack, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
 
-export type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
+export type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PosePack, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
 
 export class BillingError extends Error {
   constructor(readonly code: string, readonly status?: number, message?: string) {
@@ -63,6 +66,14 @@ export class ProviderUnavailableError extends BillingError {
 
 /** Plano grátis do modo local (sem servidor): mesmos limites aprovados do plano Grátis. */
 const LOCAL_FREE_PLAN: PublicPlan = { code: "gratis", name: "Grátis", maxGuests: 10, maxShots: 10, priceCents: 0, isFree: true, features: [] };
+
+declare global {
+  interface Window {
+    /** Só em build de homologação (NEXT_PUBLIC_MM_DEV_TOOLS=1): catálogo de exemplo para o E2E local, que só tem o Grátis. */
+    __MM_DEV_CATALOG__?: { plans: PublicPlan[]; packs: PosePack[] };
+  }
+}
+const devCatalog = () => (devToolsEnabled() && typeof window !== "undefined" ? window.__MM_DEV_CATALOG__ : undefined);
 
 function client(): SupabaseClient {
   if (backendMode() !== "supabase") throw new BillingUnavailableError();
@@ -164,7 +175,7 @@ async function invoke(fn: string, body: Json): Promise<Json> {
 
 // ---------------------------------------------------------------- API
 export async function listPublicPlans(): Promise<PublicPlan[]> {
-  if (backendMode() !== "supabase") return [{ ...LOCAL_FREE_PLAN }];
+  if (backendMode() !== "supabase") return devCatalog()?.plans ?? [{ ...LOCAL_FREE_PLAN }];
   const data = await rpc<Json[] | null>("list_public_plans");
   return (data ?? []).map((p) => ({
     code: String(p.code),
@@ -176,6 +187,24 @@ export async function listPublicPlans(): Promise<PublicPlan[]> {
     features: Array.isArray(p.features) ? p.features.filter((f): f is string => typeof f === "string") : [],
     highlighted: p.highlighted === true,
   }));
+}
+
+/** Pacotes "Mais poses". Qualquer falha esconde o pacote em vez de quebrar a tela de plano. */
+export async function listPosePacks(): Promise<PosePack[]> {
+  if (backendMode() !== "supabase") return devCatalog()?.packs ?? [];
+  let data: Json[] | null;
+  try { data = await rpc<Json[] | null>("list_public_pose_packs"); } catch { return []; }
+  const out: PosePack[] = [];
+  for (const p of data ?? []) {
+    const maxShots = numOrNull(p.maxShots);
+    const baseMaxShots = numOrNull(p.baseMaxShots);
+    if (maxShots === null || baseMaxShots === null) continue;
+    out.push({
+      code: String(p.code), baseCode: String(p.baseCode), name: String(p.name), maxGuests: numOrNull(p.maxGuests), maxShots, baseMaxShots,
+      priceCents: Number(p.priceCents), extraCents: Number(p.extraCents), available: p.available === true,
+    });
+  }
+  return out;
 }
 
 export async function getPublicSettings(): Promise<PublicSettings> {

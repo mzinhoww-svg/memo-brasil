@@ -1,6 +1,7 @@
 "use client";
 /* Camera-publicar.html (passo 8): mesmo markup e classes da referência; planos do catálogo por props (padrão = desenho). */
 import { Cam3D } from "@/components/revela/Cam3D";
+import { PackSwitch, type PackSwitchProps } from "../PackSwitch";
 import { PlanCards } from "../PlanCards";
 import { WizardSheet } from "../WizardSheet";
 
@@ -16,12 +17,14 @@ export const PLANS_REF: PlanView[] = [
 export interface CameraPublicarProps {
   image?: string; wrapLabel?: string; posesLabel?: string; revealLabel?: string;
   plans?: PlanView[]; selected?: string; payNote?: string; next?: string; busy?: boolean; error?: string;
+  /** Interruptor "Mais poses" sob os cartões (só nos planos que têm pacote). */
+  pack?: PackSwitchProps;
   onSelect?: (code: string) => void; onBack?: () => void; onNext?: () => void;
 }
 
 export function CameraPublicar({
   image = "/revela/ref/cam-casamento.webp", wrapLabel = "Casamento", posesLabel = "27 por pessoa", revealLabel = "dom, 12:00",
-  plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, onSelect, onBack, onNext,
+  plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, pack, onSelect, onBack, onNext,
 }: CameraPublicarProps = {}) {
   return (
     <WizardSheet step={8} title="Escolha o plano" caption="Pague uma vez por evento. Sem assinatura." onBack={onBack} onNext={onNext} next={next} busy={busy}>
@@ -34,6 +37,7 @@ export function CameraPublicar({
         <div><span className="rv-caption">Revela</span><b>{revealLabel}</b></div>
       </div>
       <PlanCards plans={plans} selected={selected} onSelect={onSelect} />
+      {pack && <PackSwitch {...pack} />}
       {error && <p className="rv-caption center" role="alert" style={{ color: "var(--danger)" }}>{error}</p>}
       <div className="paynote">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

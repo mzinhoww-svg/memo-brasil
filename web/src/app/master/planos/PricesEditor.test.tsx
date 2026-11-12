@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PlanRow } from "../prices";
-import { PricesEditor } from "./PricesEditor";
+import { PricesEditor, previewOf } from "./PricesEditor";
 
 const rpc = vi.hoisted(() => vi.fn(async () => ({ error: null })));
 const mfa = vi.hoisted(() => ({
@@ -96,5 +96,20 @@ describe("PricesEditor (M03/M04)", () => {
     fireEvent.click(within(sheet).getByRole("button", { name: "Publicar R$ 39" }));
     expect(await within(sheet).findByText(/Código incorreto/)).toBeTruthy();
     expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("pacote Mais poses na tela de preços", () => {
+  const pack: PlanRow = { code: "festa_36", name: "Festa + Mais poses", maxGuests: 30, maxShots: 36, priceCents: 4890, sandboxActive: true, productionActive: true, highlighted: false, isFree: false, sort: 1, packOf: "festa" };
+  it("a prévia do paywall não traz a variante (ela é oculta do seletor)", () => {
+    expect(previewOf([...plans, pack], "sandbox").plans.map((p) => p.code)).toEqual(["gratis", "festa", "casamento"]);
+  });
+  it("a variante aparece na tabela com o quanto custa sobre o plano-base e o preço é editável", () => {
+    render(<PricesEditor plans={[...plans, pack]} env="sandbox" />);
+    expect(screen.getByText(/Festa \+ Mais poses \(\+R\$\s19,90 sobre Festa\)/)).toBeTruthy();
+    const price = screen.getByLabelText(/^Preço Festa \+ Mais poses/) as HTMLInputElement;
+    fireEvent.change(price, { target: { value: "52,90" } });
+    fireEvent.blur(price);
+    expect(screen.getByText(/\+R\$\s23,90 sobre Festa/)).toBeTruthy();
   });
 });

@@ -132,7 +132,7 @@ reset role;
 select tests.login('00000000-0000-4000-8000-0000000009c1', 'master');
 select lives_ok($$select public.admin_set_plan('festa', 2900, false, false, 'Festa fora do catálogo por enquanto')$$, 'Master desativa a Festa');
 select throws_ok($$select public.admin_set_plan('gratis', 0, false, true, 'motivo longo o bastante')$$, 'MM005', null, 'ativação do grátis não muda');
-select is((select count(*)::int from public.admin_list_plans()), 5, 'admin_list_plans devolve todos os planos');
+select is((select count(*)::int from public.admin_list_plans()), 7, 'admin_list_plans devolve todos os planos (5 + 2 pacotes Mais poses)');
 select is((select (p ->> 'sandboxActive')::boolean from public.admin_list_plans() p where p ->> 'code' = 'festa'), false,
   'admin_list_plans devolve plano inativo');
 select is((select jsonb_array_length(p -> 'history') from public.admin_list_plans() p where p ->> 'code' = 'casamento'), 1,

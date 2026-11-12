@@ -40,7 +40,7 @@ insert into public.events (id, title, category, host_id, host_name, duration_hou
 
 -- ===================================================== seed de planos e configurações
 select results_eq(
-  $$select code, max_guests, max_shots, price_cents, sandbox_active, production_active from public.plans order by sort$$,
+  $$select code, max_guests, max_shots, price_cents, sandbox_active, production_active from public.plans where pack_of is null order by sort$$,
   $$values ('gratis', 10, 10, 0, true, true),
            ('festa', 30, 24, 2900, true, true),
            ('celebracao', 100, 24, 8900, true, true),

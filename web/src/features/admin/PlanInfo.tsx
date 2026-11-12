@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/revela";
-import { formatBRL, getPublicSettings, listPublicPlans, openOrder } from "@/features/billing/api";
+import { formatBRL, getPublicSettings, listPosePacks, listPublicPlans, openOrder } from "@/features/billing/api";
+import { basePlanCode, packByCode, planWithPack } from "@/features/billing/pose-packs";
 import { currentPlanCode } from "@/features/billing/entitlement";
 import type { OrderView, PublicPlan, PublicSettings } from "@/features/billing/types";
 
@@ -16,13 +17,16 @@ export function usePlanInfo(eventId: string, version?: unknown): PlanInfo {
   useEffect(() => {
     let alive = true;
     void (async () => {
-      const [plans, settings, code, order] = await Promise.all([
+      const [plans, settings, code, order, packs] = await Promise.all([
         listPublicPlans().catch(() => [] as PublicPlan[]),
         getPublicSettings().catch(() => null),
         currentPlanCode(eventId),
         openOrder(eventId).catch(() => null),
+        listPosePacks().catch(() => []),
       ]);
-      if (alive) setInfo({ plans, settings, current: plans.find((p) => p.code === code) ?? plans.find((p) => p.isFree) ?? null, order, loaded: true });
+      // o direito pode ser a variante "Mais poses": mostra o plano-base com as poses do pacote
+      const base = plans.find((p) => p.code === basePlanCode(packs, code)) ?? plans.find((p) => p.isFree) ?? null;
+      if (alive) setInfo({ plans, settings, current: base ? planWithPack(base, packByCode(packs, code)) : null, order, loaded: true });
     })();
     return () => { alive = false; };
   }, [eventId, version]);

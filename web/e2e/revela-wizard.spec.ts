@@ -50,8 +50,9 @@ test("assistente Revela: os 8 passos com as telas do desenho, e a câmera é cri
 
   // 5 · Quantas poses? (depois de "quando é" e "quando revelar")
   await expect(page.getByRole("heading", { name: "Quantas poses?" })).toBeVisible();
-  await page.getByRole("button", { name: /^27/ }).click();
-  await expect(page.locator(".rv-counter b")).toHaveText("27");
+  await expect(page.getByRole("button", { name: /^27/ })).toHaveCount(0); // a opção de 27 saiu (salto de preço por 3 poses)
+  await page.getByRole("button", { name: /^36/ }).click();
+  await expect(page.locator(".rv-counter b")).toHaveText("36");
   await page.getByRole("button", { name: /^10/ }).click();
   await expect(page.locator(".rv-counter b")).toHaveText("10");
   await next();
