@@ -1,14 +1,7 @@
 /* Painel do anfitrião no celular: as telas Revela (.scr) têm 100dvh fixos e cortam o que passa disso.
    Dentro do painel a página rola normalmente, com respiro para a área segura do iPhone. As folhas (.sheet-scr) rolam por dentro. */
-.painel-scope .scr:not(.sheet-scr),
-.app-admin-main .scr:not(.sheet-scr) { height: auto; min-height: 100dvh; overflow: visible; }
-.painel-scope .scr:not(.sheet-scr) .safe,
-.app-admin-main .scr:not(.sheet-scr) .safe { min-height: 100dvh; overflow: visible; padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
-.painel-scope .scr:not(.sheet-scr) .safe > .grow,
-.app-admin-main .scr:not(.sheet-scr) .safe > .grow { flex: 1 0 var(--space-4); min-height: var(--space-4); }
-/* o botão principal da tela de plano fica sempre à vista, acima da área segura */
-.app-admin-main .scr:not(.sheet-scr) .safe > .rv-btn--primary:last-child { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 3; }
-.painel-scope .sheet-full,
-.app-admin-main .sheet-full { overflow-y: auto; overscroll-behavior: contain; padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
-.painel-scope .sheet-full > *,
-.app-admin-main .sheet-full > * { flex-shrink: 0; }
+.painel-scope .scr:not(.sheet-scr){ height: auto; min-height: 100dvh; overflow: visible; }
+.painel-scope .scr:not(.sheet-scr) .safe{ min-height: 100dvh; overflow: visible; padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
+.painel-scope .scr:not(.sheet-scr) .safe > .grow{ flex: 1 0 var(--space-4); min-height: var(--space-4); }
+.painel-scope .sheet-full{ overflow-y: auto; overscroll-behavior: contain; padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
+.painel-scope .sheet-full > *{ flex-shrink: 0; }

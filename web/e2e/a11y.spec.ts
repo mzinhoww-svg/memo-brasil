@@ -23,7 +23,7 @@ for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     const { id } = await createViaWizard(page, { title: "Axe plano" });
     await page.goto(`/painel/${id}/plano`);
-    await page.getByRole("heading", { level: 1, name: "De que tamanho é a festa?" }).waitFor();
+    await page.getByRole("heading", { name: "De que tamanho é a festa?" }).waitFor();
     await page.evaluate(() => document.fonts.ready);
     const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
     const problems = r.violations.map((v) => `[${v.impact}] ${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);

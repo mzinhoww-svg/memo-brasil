@@ -5,6 +5,7 @@ import { Button, Field, Sheet } from "@/components/revela";
 import { normalizeCode, redeemCode, type RedeemResult } from "./api";
 import { joinGuests } from "./flow";
 import type { PublicPlan } from "./types";
+import { ScreenH1 } from "@/revela/painel-ui";
 
 export const REDEEM_TEXT = {
   invalido: "Esse código não existe, expirou ou já foi usado. Confira as letras e tente de novo.",
@@ -75,7 +76,7 @@ export function CodeApplied({ plan, code, eventTitle, backHref, printHref }: { p
     <div className="plano-estado" data-testid="codigo-aplicado">
       <span className="plano-selo" aria-hidden="true">✓</span>
       <p className="plano-eyebrow">Código aplicado</p>
-      <h1 className="titulo-tela app-h1" aria-live="polite">{name ? `Plano ${name} liberado.` : "Plano liberado."}</h1>
+      <ScreenH1 className="titulo-tela app-h1" aria-live="polite">{name ? `Plano ${name} liberado.` : "Plano liberado."}</ScreenH1>
       {plan && <p className="app-p app-muted">{joinGuests(plan.maxGuests, plan.maxShots).replace(/\.$/, "")}, sem pagar nada. Presente de Revela.</p>}
       <dl className="plano-recibo">
         <div><dt>Código</dt><dd>{code}</dd></div>

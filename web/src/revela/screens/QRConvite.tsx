@@ -2,7 +2,7 @@
 /* QR-convite.html (25): markup da referência; um cartão por modelo num carrossel de rolagem nativa; dados reais por props (padrão = desenho). */
 import { useState } from "react";
 import { Carousel } from "../Carousel";
-import { BackButton, QrSvg, ScreenFoot, svgProps } from "../painel-ui";
+import { BackButton, PainelFoot, QrSvg, ScreenFoot, svgProps, useEmbedded } from "../painel-ui";
 
 export interface QRConviteProps {
   name?: string;
@@ -59,7 +59,7 @@ function TableCard({ name, date, copy, stamp, qr, square, withQr }: TableCardPro
         <span style={{ "font": "400 14px/1 var(--font-display)" }}>
           revela
         </span>
-        <span className="rv-stamp" style={{ "marginLeft": "auto", "color": "var(--carimbo)", "textShadow": "none", "fontSize": "12px" }}>
+        <span className="rv-stamp" style={{ "marginLeft": "auto", "color": "var(--carimbo-on-paper)", "textShadow": "none", "fontSize": "12px" }}>
           {stamp}
         </span>
       </div>
@@ -73,6 +73,16 @@ export function QRConvite({ name = QR_CONVITE_REF.name, date = QR_CONVITE_REF.da
   const [seen, setSeen] = useState(model);
   if (model !== seen) { setSeen(model); setShown(model); }
   const pick = (i: number) => { setShown(i + 1); onModel?.(i + 1); };
+  // no quadro do painel a seta e o título são do quadro, e o botão principal fica no rodapé fixo
+  const embedded = useEmbedded();
+  const download = (
+    <button type="button" className="rv-btn rv-btn--block rv-btn--primary" style={{ "flex": "1" }} onClick={() => onDownload?.(shown)}>
+      <svg {...svgProps}>
+        <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+      </svg>
+      Baixar QR code
+    </button>
+  );
 
   return (
     <>
@@ -99,14 +109,7 @@ export function QRConvite({ name = QR_CONVITE_REF.name, date = QR_CONVITE_REF.da
             ))}
           </Carousel>
         </div>
-        <div className="row" style={{ "gap": "8px", "marginTop": "18px" }}>
-          <button type="button" className="rv-btn rv-btn--block rv-btn--primary" style={{ "flex": "1" }} onClick={() => onDownload?.(shown)}>
-            <svg {...svgProps}>
-              <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
-            </svg>
-            Baixar QR code
-          </button>
-        </div>
+        {embedded ? <PainelFoot>{download}</PainelFoot> : <div className="row" style={{ "gap": "8px", "marginTop": "18px" }}>{download}</div>}
       </div>
       <ScreenFoot />
     </div>

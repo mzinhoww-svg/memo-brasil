@@ -164,12 +164,12 @@ test("rodapé tem Termos, Privacidade, Ajuda e a assinatura nas rotas públicas,
 test("painel mostra os atalhos do resumo com o plano e os links certos", async ({ page }) => {
   const { id } = await createViaWizard(page, { title: "Painel plano" });
   await page.goto(`/painel/${id}`);
-  const plano = page.getByRole("link", { name: /^Plano/ });
+  const plano = page.locator(".pgrid").getByRole("link", { name: /^Plano/ });
   await expect(plano).toContainText("Grátis");
   await expect(plano).toHaveAttribute("href", `/painel/${id}/plano`);
-  await expect(page.getByRole("link", { name: /^Convites e mesas/ })).toHaveAttribute("href", `/painel/${id}/convites`);
-  await expect(page.getByRole("link", { name: /^Moderação/ })).toHaveAttribute("href", `/painel/${id}/moderacao`);
-  await expect(page.getByRole("link", { name: /^Downloads/ })).toHaveAttribute("href", `/painel/${id}/downloads`);
+  await expect(page.locator(".pgrid").getByRole("link", { name: /^Convites e mesas/ })).toHaveAttribute("href", `/painel/${id}/convites`);
+  await expect(page.locator(".pgrid").getByRole("link", { name: /^Moderação/ })).toHaveAttribute("href", `/painel/${id}/moderacao`);
+  await expect(page.locator(".pgrid").getByRole("link", { name: /^Downloads/ })).toHaveAttribute("href", `/painel/${id}/downloads`);
 });
 
 test("configurações não oferece capacidade nem fotos acima do plano e leva a 'Aumentar plano'", async ({ page }) => {

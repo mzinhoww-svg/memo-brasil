@@ -36,9 +36,8 @@ describe("AnfitriaoModerar (Conteúdo)", () => {
   it("a tela não é um quadro de altura fixa: o contêiner rola com a página (CSS)", () => {
     const { container } = render(<AnfitriaoModerar items={many(61)} />);
     expect(container.querySelector(".scr.cont")).not.toBeNull();
-    // no painel, .scr perde height/overflow fixos: dentro do quadro e no escopo antigo
+    // no painel, .scr perde height/overflow fixos dentro do quadro
     expect(read("painel-frame.css")).toMatch(/\.pf \.scr, \.pf \.scr\.sheet-scr \{[^}]*height: auto;[^}]*overflow: visible/);
-    expect(read("painel-scope.css")).toMatch(/\.painel-scope \.scr:not\(\.sheet-scr\),[\s\S]*?\{ height: auto; min-height: 100dvh; overflow: visible; \}/);
     expect(container.querySelectorAll(".cont-tile")).toHaveLength(61);
   });
 

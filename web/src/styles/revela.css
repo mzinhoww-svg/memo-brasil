@@ -2,7 +2,7 @@
 .rv-logo--noite { display: none; }
 .rv-logo { height: 28px; width: auto; display: block; }
 
-:where(.rv-btn, .rv-chip, .rv-opt, .rv-step-btn, .rvl-tab, .rv-nav-item, .rv-tabbar-item, .rv-icon-btn, .rv-field-input, .rv-event-switch, .rv-link, .rvl-wrap):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+:where(.rv-btn, .rv-chip, .rv-opt, .rv-step-btn, .rvl-tab, .rv-tabbar-item, .rv-icon-btn, .rv-field-input, .rv-link, .rvl-wrap):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* Escala tipográfica (Gloock nos títulos, Schibsted Grotesk na interface, Share Tech Mono no carimbo) */
 .display-xl { font: 400 52px/52px var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
@@ -146,16 +146,6 @@
 .rv-tabbar-item[aria-current="page"] svg { color: var(--revela); }
 .rv-tabbar-item svg { width: 24px; height: 24px; }
 
-/* AdminNav */
-.rv-admin-nav { display: flex; flex-direction: column; gap: var(--space-5); width: 256px; min-height: 100%; padding: var(--space-6) var(--space-4); box-sizing: border-box; background: var(--surface-1); box-shadow: inset -1px 0 0 var(--line); }
-.rv-admin-logo { padding: 0 var(--space-2); }
-.rv-admin-logo img { height: 24px; }
-.rv-event-switch { font: inherit; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: var(--size-campo); padding: 0 12px; border: 0; border-radius: var(--radius-md); background: var(--surface-2); color: var(--ink); text-decoration: none; box-shadow: inset 0 0 0 1px var(--line); }
-.rv-event-switch strong { font: 700 15px/20px var(--font-sans); }
-.rv-event-switch span { font: 400 12px/16px var(--font-sans); color: var(--ink-muted); }
-.rv-nav-list { display: flex; flex-direction: column; gap: 2px; }
-.rv-nav-item { display: flex; align-items: center; justify-content: space-between; height: var(--size-alvo); padding: 0 12px; border-radius: var(--radius-md); color: var(--ink-muted); text-decoration: none; font: 500 15px/20px var(--font-sans); }
-.rv-nav-item[aria-current="page"] { background: var(--surface-2); color: var(--ink); font-weight: 700; }
 
 /* Tabs */
 .rv-tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); padding-bottom: 12px; box-shadow: inset 0 -1px 0 var(--line); }

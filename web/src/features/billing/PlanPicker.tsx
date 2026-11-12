@@ -10,7 +10,8 @@ import { RedeemCode, type RedeemCodeProps } from "./RedeemCode";
 import { validapayCheckoutEnabled } from "./checkout-provider";
 import { TrustBlock } from "./TrustBlock";
 import type { PublicPlan, PublicSettings, Quote } from "./types";
-import { PagamentoTrocarPlano, type Gauge } from "@/revela/screens/PagamentoTrocarPlano";
+import { PlanoConteudo, type Gauge } from "@/revela/screens/PlanoConteudo";
+import { PainelFoot, ScreenH1 } from "@/revela/painel-ui";
 import type { PlanView } from "@/revela/screens/CameraPublicar";
 
 const RECOMMENDED = "casamento";
@@ -37,7 +38,11 @@ const planView = (p: PublicPlan, last: boolean, n: number): PlanView => ({
   gold: !p.isFree && last && n > 2,
 });
 
-/** B1 (escolha) e B7 (pagamentos desligados). Preços e valor a pagar vêm do servidor. */
+/**
+ * B1 (escolha) e B7 (pagamentos desligados). Preços e valor a pagar vêm do servidor.
+ * Roda dentro do quadro do painel: o título é da rota, o botão de pagar vai para o rodapé fixo (`PainelFoot`) e o texto de
+ * pagamento e os avisos ficam no fluxo, acima dele.
+ */
 export function PlanPicker({ eventId, plans, currentCode, settings, busy, error, onPay, onRedeemed, initialPlan, usage }: Props) {
   const native = validapayCheckoutEnabled();
   const rank = planRank(plans, currentCode);
@@ -64,7 +69,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
     const talk = mail("Plano maior para o meu evento");
     return (
       <div className="plano-escolha" data-testid="pagamentos-desligados">
-        <h1 className="titulo-tela app-h1">{PLAN_TEXT.titulo}</h1>
+        <ScreenH1 className="titulo-tela app-h1">{PLAN_TEXT.titulo}</ScreenH1>
         <div className="plano-lista" role="radiogroup" aria-label="Planos">
           {plans.map((p) => <PlanCard key={p.code} plan={p} name="plano" selected={false} badge={p.code === currentCode ? "Seu plano" : undefined} onSelect={() => undefined} />)}
         </div>
@@ -89,18 +94,23 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
     const left = usage && current?.maxGuests != null ? Math.max(0, current.maxGuests - usage.guests) : null;
     const nowPay = cur && cur !== "erro" && cur.payable ? cur.amountCents : plan?.priceCents;
     const blockedText = cur && cur !== "erro" && !cur.payable ? (QUOTE_BLOCK[cur.reason] ?? "Este plano não pode ser comprado agora.") : null;
+    const confirm = () => { if (plan && !blockedText) onPay(chosen); };
     return (
-      <PagamentoTrocarPlano
-        current={current ? `${current.name} · ${current.isFree ? "Grátis" : money(current.priceCents)}` : "Grátis"}
-        gauges={gauges}
-        warning={left !== null && left <= 5 ? `Faltam ${left} lugares. Quem chegar depois vê "câmera lotada".` : null}
-        plans={plans.map((p, i) => planView(p, i === plans.length - 1, plans.length))}
-        selected={chosen} busy={busy} error={blockedText ?? error ?? undefined}
-        cta={busy ? "Abrindo pagamento…" : plan && nowPay !== undefined ? `${rank >= 0 && current && !current.isFree ? "Trocar" : "Escolher"} para ${plan.name} · ${money(nowPay)}` : "Escolha um plano"}
-        onSelect={(code) => { const i = plans.findIndex((p) => p.code === code); if (i > rank) setSelected(code); }}
-        onBack={() => { if (typeof window !== "undefined") window.history.back(); }}
-        onConfirm={() => { if (plan && !blockedText) onPay(chosen); }}
-      />
+      <div className="plano-nat">
+        <PlanoConteudo
+          current={current ? `${current.name} · ${current.isFree ? "Grátis" : money(current.priceCents)}` : "Grátis"}
+          gauges={gauges}
+          warning={left !== null && left <= 5 ? `Faltam ${left} lugares. Quem chegar depois vê "câmera lotada".` : null}
+          plans={plans.map((p, i) => planView(p, i === plans.length - 1, plans.length))}
+          selected={chosen} error={blockedText ?? error ?? undefined}
+          onSelect={(code) => { const i = plans.findIndex((p) => p.code === code); if (i > rank) setSelected(code); }}
+        />
+        <PainelFoot>
+          <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={confirm} disabled={busy || !plan || !!blockedText} aria-busy={busy || undefined}>
+            {busy ? "Abrindo pagamento…" : plan && nowPay !== undefined ? `${rank >= 0 && current && !current.isFree ? "Trocar" : "Escolher"} para ${plan.name} · ${money(nowPay)}` : "Escolha um plano"}
+          </button>
+        </PainelFoot>
+      </div>
     );
   }
   const blocked = cur && cur !== "erro" && !cur.payable ? (QUOTE_BLOCK[cur.reason] ?? "Este plano não pode ser comprado agora.") : null;
@@ -111,8 +121,8 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
 
   return (
     <div className="plano-escolha">
-      <h1 className="titulo-tela app-h1">{PLAN_TEXT.titulo}</h1>
-      <p className="app-p app-muted">{native ? "Pagamento único por evento. Pix ou cartão aqui no Revela. Sem assinatura." : PLAN_TEXT.sub}</p>
+      <ScreenH1 className="titulo-tela app-h1">{PLAN_TEXT.titulo}</ScreenH1>
+      <p className="app-p app-muted">{PLAN_TEXT.sub}</p>
       <div className="plano-colunas">
         <div className="app-stack">
           <div className="plano-lista" role="radiogroup" aria-label="Planos">
@@ -140,12 +150,12 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
               <div><dt>Como paga</dt><dd>Pagamento único por evento, sem assinatura</dd></div>
             </dl>
           )}
-          <div className="plano-pagar">
+          <p className="app-p app-muted plano-nota">Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado.</p>
+          <PainelFoot>
             <Button variant="cta" block disabled={busy || !plan || !!blocked} aria-busy={busy} onClick={() => onPay(chosen)}>
-              {busy ? (native ? "Abrindo pagamento…" : "Abrindo o Mercado Pago…") : pay !== undefined ? <>{native ? "Continuar para pagamento" : "Pagar com Mercado Pago"} · <span className="nowrap">{formatBRL(pay)}</span></> : (native ? "Continuar para pagamento" : "Pagar com Mercado Pago")}
+              {busy ? "Abrindo o Mercado Pago…" : pay !== undefined ? <>Pagar com Mercado Pago · <span className="nowrap">{formatBRL(pay)}</span></> : "Pagar com Mercado Pago"}
             </Button>
-          </div>
-          <p className="app-p app-muted plano-nota">{native ? "Você paga aqui no Revela, com Pix ou cartão. O plano libera assim que o pagamento for confirmado." : "Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado."}</p>
+          </PainelFoot>
         </div>
       </div>
     </div>

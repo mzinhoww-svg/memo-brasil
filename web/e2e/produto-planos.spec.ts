@@ -221,8 +221,8 @@ test("painel (nuvem): cartão Plano e aviso 'Lotação chegando' com a folga do 
   const { ctx, page } = await open(browser, u, baseURL!, `/painel/${id}`);
   void limit;
   await expect(page.getByText("8 de 10", { exact: true }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /^Plano/ })).toContainText("Lotação chegando");
-  await expect(page.getByRole("link", { name: /^Plano/ })).toHaveAttribute("href", `/painel/${id}/plano`);
+  await expect(page.locator(".pgrid").getByRole("link", { name: /^Plano/ })).toContainText("Lotação chegando");
+  await expect(page.locator(".pgrid").getByRole("link", { name: /^Plano/ })).toHaveAttribute("href", `/painel/${id}/plano`);
   await ctx.close();
 });
 

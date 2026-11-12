@@ -64,25 +64,67 @@ describe("PainelShell: rotas migradas para o PainelFrame", () => {
     expect(m.push).toHaveBeenCalledWith(parent);
   });
 
-  it("rotas não migradas (visão geral, QR) mantêm o comportamento anterior: sem quadro", () => {
-    for (const p of ["/painel/e1", "/painel/e1/qr"]) {
-      m.path = p;
-      const { container, unmount } = render(<PainelShell><p>x</p></PainelShell>);
-      expect(container.querySelector(".pf")).toBeNull();
-      expect(container.querySelector(".painel-scope")).not.toBeNull();
-      unmount();
-    }
+  it("Plano e QR estão no quadro, com a seta na rota pai (Ajustes, Plano, Convites)", () => {
+    expect(FRAME_ROUTES.plano).toEqual({ title: "Plano", parent: "configuracoes" });
+    expect(FRAME_ROUTES["checkout-validapay"]).toBeUndefined();
+    expect(FRAME_ROUTES.qr).toEqual({ title: "QR para as mesas", parent: "convites" });
   });
 
-  it("Plano mantém o menu lateral e as migalhas até migrar", () => {
-    m.path = "/painel/e1/plano";
+  it.each([
+    ["plano", "/painel/e1/configuracoes"], ["qr", "/painel/e1/convites"],
+  ])("/%s: quadro sem menu lateral nem migalhas, e a seta leva a %s", (slug, parent) => {
+    m.path = `/painel/e1/${slug}`;
     const { container } = render(<PainelShell><p>x</p></PainelShell>);
+    expect(container.querySelector(".pf")).not.toBeNull();
+    expect(container.querySelector(".app-admin, .painel-scope")).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "Trilha de navegação" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(m.push).toHaveBeenCalledWith(parent);
+  });
+
+  it("o pagamento é tela cheia: sem quadro, abas nem migalhas, só o escopo do painel", () => {
+    m.path = "/painel/e1/checkout-validapay";
+    const { container } = render(<PainelShell><p>pagamento</p></PainelShell>);
     expect(container.querySelector(".pf")).toBeNull();
-    expect(screen.getByRole("navigation", { name: "Trilha de navegação" })).toBeInTheDocument();
+    expect(container.querySelector(".painel-scope")).not.toBeNull();
+    expect(screen.queryByRole("navigation")).toBeNull();
+    expect(screen.getByText("pagamento")).toBeInTheDocument();
+  });
+
+  it("visão geral: no quadro, h1 único com o nome do evento, aba Geral atual e seta para Meus eventos", () => {
+    m.path = "/painel/e1";
+    const { container } = render(<PainelShell><p>corpo</p></PainelShell>);
+    expect(container.querySelector(".pf")).not.toBeNull();
+    expect(container.querySelector(".painel-scope")).toBeNull();
+    const h1 = screen.getAllByRole("heading", { level: 1 });
+    expect(h1).toHaveLength(1);
+    expect(h1[0].textContent).toBe("Nosso casamento");
+    const tabs = within(screen.getByRole("navigation", { name: "Seções do painel" })).getAllByRole("link");
+    expect(tabs).toHaveLength(SECTIONS.length);
+    expect(tabs.filter((a) => a.getAttribute("aria-current") === "page").map((a) => a.getAttribute("href"))).toEqual(["/painel/e1"]);
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(m.push).toHaveBeenCalledWith("/eventos");
+  });
+
+  it("rota desconhecida do painel também abre no quadro, com a seta no painel inicial", () => {
+    m.path = "/painel/e1/inexistente";
+    const { container } = render(<PainelShell><p>x</p></PainelShell>);
+    expect(container.querySelector(".pf")).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(m.push).toHaveBeenCalledWith("/painel/e1");
   });
 });
 
 describe("PainelShell: estados do shell no quadro", () => {
+  it("carregando a visão geral: quadro com abas e esqueleto, sem tela solta", () => {
+    m.path = "/painel/e1";
+    m.data = { ...loaded, loading: true };
+    const { container } = render(<PainelShell><p>x</p></PainelShell>);
+    expect(container.querySelector(".pf")).not.toBeNull();
+    expect(screen.getByRole("navigation", { name: "Seções do painel" })).toBeInTheDocument();
+    expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
+  });
+
   it("carregando: o quadro da rota migrada com esqueleto do corpo", () => {
     m.path = "/painel/e1/conteudo";
     m.data = { ...loaded, loading: true };

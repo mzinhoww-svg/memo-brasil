@@ -40,7 +40,6 @@ export default function QrMesas() {
 
   return (
     <>
-      <h1 className="rv-sr-only">QR para as mesas</h1>
       <QRConvite
         name={event.title} date={longDate(event.startAt, event.timezone)} copy={copies[model - 1]} copies={copies} stamp={revealStamp(event, now)}
         model={model} models={MODELS.length} qr={qr} square={square}

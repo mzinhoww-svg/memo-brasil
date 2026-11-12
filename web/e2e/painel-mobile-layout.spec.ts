@@ -3,10 +3,10 @@ import { createViaWizard, postViaFile } from "./helpers";
 
 /** Varredura mobile do painel: cada rota rola até o fim, sem rolagem horizontal e com o último elemento à vista. */
 const ROTAS = ["", "/conteudo", "/convidados", "/convites", "/convite", "/moderacao", "/downloads", "/momentos", "/aviso", "/compartilhar", "/qr", "/plano", "/aparencia", "/configuracoes", "/excluir"];
-/** Rotas já no PainelFrame (quadro mobile único): 1 h1, abas, rolagem normal da página. */
-const MIGRADAS = ["/conteudo", "/convidados", "/convites", "/convite", "/moderacao", "/downloads", "/momentos", "/aviso", "/compartilhar", "/aparencia", "/configuracoes", "/excluir"];
+/** Todas as rotas do painel estão no PainelFrame (quadro mobile único): 1 h1, abas, rolagem normal da página. */
+const MIGRADAS = ROTAS;
 /** Rotas que têm aba própria (a atual leva aria-current e precisa estar à vista). */
-const COM_ABA = ["/conteudo", "/convidados", "/momentos", "/aparencia", "/configuracoes", "/downloads"];
+const COM_ABA = ["", "/conteudo", "/convidados", "/momentos", "/qr", "/plano", "/aparencia", "/configuracoes", "/downloads"];
 
 async function ultimoItemAVista(page: Page, rota: string) {
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
@@ -97,3 +97,49 @@ test("seta de voltar leva ao pai: Aparência volta aos Ajustes, Ajustes volta ao
   await page.getByRole("button", { name: "Voltar" }).click();
   await page.waitForURL(new RegExp(`/painel/${id}$`));
 });
+
+for (const vp of [{ width: 390, height: 844 }, { width: 360, height: 640 }]) {
+  test(`plano, QR e visão geral no quadro em ${vp.width}×${vp.height}`, async ({ page }) => {
+    test.setTimeout(240_000);
+    await page.setViewportSize(vp);
+    const { id } = await createViaWizard(page, { title: "Casamento Ana e Leo", reveal: "desligada" });
+    const base = `/painel/${id}`;
+    const abas = page.getByRole("navigation", { name: "Seções do painel" });
+
+    // visão geral: abas, o nome do evento é o único h1, Ajustes no cabeçalho, atalhos à vista e seta para Meus eventos
+    await page.goto(base);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Casamento Ana e Leo");
+    await expect(abas.locator('[aria-current="page"]')).toHaveText("Geral");
+    await expect(page.locator(".pf-action").getByRole("link", { name: "Ajustes" })).toBeVisible();
+    await expect(page.locator(".pgrid").getByRole("link", { name: /^Plano/ })).toBeVisible();
+    await expect(page.locator(".tiles")).toBeVisible();
+    const ajustes = await page.locator(".pf-action .rv-icon-btn").boundingBox();
+    expect(ajustes!.width).toBeGreaterThanOrEqual(44);
+    expect(ajustes!.height).toBeGreaterThanOrEqual(44);
+    await page.getByRole("button", { name: "Voltar" }).click();
+    await page.waitForURL(/\/eventos$/);
+
+    // QR para as mesas: título do quadro, seta para Convites, modelos, proporção e o botão principal no rodapé fixo, à vista sem rolar
+    await page.goto(`${base}/qr`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("QR para as mesas");
+    await expect(abas.locator('[aria-current="page"]')).toHaveText("QR");
+    await expect(page.getByRole("group", { name: "Modelos do cartão de mesa" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Fechar" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Voltar" })).toHaveCount(1);
+    const baixar = page.locator(".pf-foot").getByRole("button", { name: "Baixar QR code" });
+    await expect(baixar).toBeInViewport({ ratio: 1 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
+    await page.getByRole("button", { name: "Voltar" }).click();
+    await page.waitForURL(/\/convites$/);
+
+    // Plano (modo local: pagamentos desligados): título do quadro e seta para os Ajustes
+    await page.goto(`${base}/plano`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Plano");
+    await expect(abas.locator('[aria-current="page"]')).toHaveText("Plano");
+    await expect(page.getByRole("heading", { level: 2, name: "De que tamanho é a festa?" })).toBeVisible();
+    await page.getByRole("button", { name: "Voltar" }).click();
+    await page.waitForURL(/\/configuracoes$/);
+  });
+}
