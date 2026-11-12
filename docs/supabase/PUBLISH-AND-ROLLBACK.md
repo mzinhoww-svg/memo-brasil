@@ -102,3 +102,11 @@ Não mudar Root Directory/framework do projeto antes da promoção: o legado em 
 - **Limite da Vercel:** 100 deployments/dia; cada push em `feat/**` gera um preview. Evite pushes em sequência antes de publicar.
 - **Documentos:** roteiro `docs/qa/ROTEIRO-TESTE.md`, catálogo `docs/qa/E2E-CATALOG.md`, retirados `docs/qa/E2E-RETIREMENTS.md`, Master antigo `docs/handoff/MASTER-PAGINAS-ANTIGAS.md`.
 - **Pendente:** teste em celular real (câmera, filtro WebGL, QR no iPhone), pagamento ponta a ponta, specs de nuvem, redesenho das 5 páginas antigas do Master, fechar o download em alta no Storage, pedido de impressão na tela "Você" do convidado, atualizar `audit-*`, `master-studio` e `session` ao menu novo.
+
+## 13. Revela 2.0 · console Master completo M15–M32 publicado (2026-11-12)
+- **Produção:** `https://fotosdocasamento.online` → `dpl_3nYtL3ieAqUnkPxinoEpEpu1KE3E` (SHA `218b2431c`, `feat/revela-redesign`). Candidato `target=production` sem tráfego (`autoAssignCustomDomains=false`), validado pela API (READY, 0 suspeitos no log, sem flags de teste em Production), promovido e flag restaurada. Smoke: rotas públicas 200, `/dev/*` 404, `/master/analytics` e `/master/usuarios` redirecionam (308), `/master/*` sem sessão mostra só a entrada do operador.
+- **Rollback (app):** promover `dpl_5yPWCk9eY3CVy44JrsLUYXmucb33` (`9cf32656a`).
+- **Banco (`asyaegeodyttttaubvxh`, 54 migrations):** `20261111000100` (flag `printed_album`, desligada), `…200` e `…210` (Pessoas e exportação), `…300` (Visão geral/Eventos), `…400` (Moderação/Saúde/Auditoria), `…500` (Impressões), `…510` (Configurações). Rollback das funções substituídas: `supabase/ops/rollback_revela_20261111_console.sql` (as funções novas podem ficar).
+- **Funções:** `payments-reconcile-now` v2 e `payments-validapay-reconcile` v10 (devolvem `unchanged` e `failures[]`).
+- **Impressões:** menu e rotas só existem com a chave `printed_album` ligada em Configurações (hoje desligada).
+- **Pendente:** teste visual do console com Supabase real e papéis reais (master/support/auditor), specs de nuvem, celular real, pagamento ponta a ponta.
