@@ -38,7 +38,7 @@ export const REF_PREVIEW: PreviewPlan[] = [
 function Toggle({ on, label, onClick, disabled }: { on: boolean; label: string; onClick?: () => void; disabled?: boolean }) {
   const cls = `rv-toggle${on ? " rv-toggle--on" : ""}`;
   if (!onClick) return <i className={cls} />;
-  return <button type="button" role="switch" aria-checked={on} aria-label={label} className={cls} disabled={disabled} onClick={onClick} style={{ border: 0, padding: 0, cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : undefined }} />;
+  return <button type="button" role="switch" aria-checked={on} aria-label={label} className={cls} disabled={disabled} onClick={onClick} style={{ border: 0, padding: 0, cursor: disabled ? "default" : "pointer", opacity: disabled ? 1 : undefined }} />;
 }
 
 /** Prévia do paywall no celular (a mesma do app do anfitrião), com os valores ainda não publicados. */
@@ -88,13 +88,14 @@ export interface PlanosViewProps extends PlanosHandlers {
   historyHref?: string;
   /** Modal M04, por cima da tela. */
   modal?: ReactNode;
+  confirming?: boolean;
 }
 
 const COLS = "1.2fr 1fr .8fr .8fr .7fr .7fr .9fr .3fr";
 
 export function MasterPlanosView({
   caption = "Altere o valor direto na tabela. A prévia mostra o paywall como o anfitrião vai ver.", rows = REF_ROWS, preview = REF_PREVIEW, previewCta, previewShift, payNote, provider, historyHref,
-  dirty = { title: "1 alteração não publicada", summary: "Casamento: R$ 189,00 → R$ 199,00" }, errors = [], modal,
+  dirty = { title: "1 alteração não publicada", summary: "Casamento: R$ 189,00 → R$ 199,00" }, errors = [], modal, confirming,
   onPrice, onGuests, onShots, onToggle, onHighlight, onName, onAdd,
 }: PlanosViewProps = {}) {
   const live = Boolean(onPrice);
@@ -106,8 +107,8 @@ export function MasterPlanosView({
       <MHead title="Planos e preços" caption={caption}>
         {historyHref ? <BtnLink href={historyHref} icon="history">Histórico de preços</BtnLink> : <button className="rv-btn rv-btn--sm"><Ico n="history" />Histórico de preços</button>}
       </MHead>
-      <div className="mgrid-plans">
-        <section className="mcard" style={{ padding: "0", overflow: "hidden" }}>
+      <div className="mgrid-plans" style={confirming?{opacity:".3"}:undefined}>
+        {confirming?<section className="mcard" style={{height:"520px"}}/>:<section className="mcard" style={{ padding: "0", overflow: "hidden" }}>
           <div className="mtable" style={{ margin: "0" }}>
             <div className="mtr mth" style={{ gridTemplateColumns: COLS }}>
               <span>Plano</span><span>Preço</span><span>Convidados</span><span>Poses</span><span>Sandbox</span><span>Produção</span><span>Paywall</span><span />
@@ -130,7 +131,7 @@ export function MasterPlanosView({
                 <span><Toggle on={r.sandbox} label={`Sandbox de ${r.name}`} disabled={r.free} onClick={onToggle ? () => onToggle(r.code, "sandbox") : undefined} /></span>
                 <span><Toggle on={r.production} label={`Produção de ${r.name}`} disabled={r.free} onClick={onToggle ? () => onToggle(r.code, "production") : undefined} /></span>
                 <span>
-                  {r.highlighted ? <St tone="info">Destaque</St> : r.free ? null : (
+                  {r.highlighted ? <St tone="info">Destaque</St> : (
                     <a className="link" role={onHighlight ? "button" : undefined} tabIndex={onHighlight ? 0 : undefined} style={onHighlight ? { cursor: "pointer" } : undefined} aria-label={`Destacar ${r.name}`}
                       onClick={onHighlight ? () => onHighlight(r.code) : undefined} onKeyDown={onHighlight ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onHighlight(r.code); } } : undefined}>Destacar</a>
                   )}
@@ -142,13 +143,13 @@ export function MasterPlanosView({
           {errors.map((e) => <p key={e} className="rv-caption" role="alert" style={{ color: "var(--danger)", margin: "10px 16px 0" }}>{e}</p>)}
           <MNote icon="shield">Preço novo vale só para compras novas. Quem já pagou mantém o plano e os limites que comprou. Pedido Pix aberto mantém o valor cotado.</MNote>
           <button className="rv-btn rv-btn--text" style={{ margin: "4px 16px 14px" }} onClick={onAdd} type="button"><Ico n="plus" /> Novo plano</button>
-        </section>
+        </section>}
         <aside>
-          <p className="rv-caption" style={{ marginBottom: "10px" }}>Prévia no celular</p>
+          {!confirming&&<p className="rv-caption" style={{ marginBottom: "10px" }}>Prévia no celular</p>}
           <PhonePreview plans={preview} cta={previewCta} payNote={payNote} provider={provider} shift={previewShift} />
         </aside>
       </div>
-      {dirty && (
+      {dirty && !confirming && (
         <div className="mpublish">
           <span>
             <Ico n="edit" />

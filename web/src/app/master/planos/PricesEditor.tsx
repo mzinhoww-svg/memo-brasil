@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button, Sheet } from "@/components/revela";
+import { ReasonField } from "../billing-actions";
 import { browserSupabase } from "@/lib/supabase/client";
 import { MasterPlanosView, type PlanoRow, type PreviewPlan } from "@/revela/screens/MasterPlanos";
 import { PublicarModal, type PublicarDiff } from "@/revela/screens/MasterPlanoPublicar";
@@ -36,6 +38,7 @@ export function previewOf(plans: PlanRow[], env: Env): { plans: PreviewPlan[]; c
 function ConfirmModal({ original, draft, impact, onClose, onDone }: { original: PlanRow[]; draft: PlanRow[]; impact: PlanImpact; onClose: () => void; onDone: () => void }) {
   const diffs = useMemo(() => diffPlans(original, draft), [original, draft]);
   const [reason, setReason] = useState("");
+  const [reasonConfirmed, setReasonConfirmed] = useState(false);
   const [code, setCode] = useState("");
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -50,6 +53,7 @@ function ConfirmModal({ original, draft, impact, onClose, onDone }: { original: 
   const priced = diffs.filter((d) => d.changes.some((c) => c.field === "priceCents"));
   const paid = priced.reduce((n, d) => n + (impact[d.code]?.paid ?? 0), 0);
   const open = priced.reduce((n, d) => n + (impact[d.code]?.open ?? 0), 0);
+  const quote=priced.length===1?original.find(p=>p.code===priced[0].code)?.priceCents:undefined;
   const single = diffs.length === 1 && diffs[0].changes.length === 1 && diffs[0].changes[0].field === "priceCents" ? diffs[0].changes[0].to as number : null;
 
   async function verifyTotp(): Promise<boolean> {
@@ -88,15 +92,20 @@ function ConfirmModal({ original, draft, impact, onClose, onDone }: { original: 
     } finally { setBusy(false); }
   }
 
+  if (!reasonConfirmed) return <Sheet title="Publicar novo preço?" onClose={onClose}>
+    <ReasonField label="Motivo (obrigatório, 10 a 500 caracteres)" value={reason} onChange={setReason} error={rErr}/>
+    <Button onClick={()=>{setTried(true);if(!reasonError(reason)){setTried(false);setReasonConfirmed(true);}}}>Continuar</Button>
+    <Button variant="texto" onClick={onClose}>Cancelar</Button>
+  </Sheet>;
+
   return (
     <PublicarModal
       title={diffs.length === 1 ? "Publicar novo preço?" : "Publicar novos preços?"}
       diffs={shown}
       rows={[
-        ...(priced.length ? [{ icon: "tag" as const, text: `${paid} ${paid === 1 ? "evento já pago continua igual" : "eventos já pagos continuam iguais"}` }, { icon: "clock" as const, text: `${open} ${open === 1 ? "Pix aberto mantém" : "Pix abertos mantêm"} o valor cotado até expirar` }] : [{ icon: "tag" as const, text: IMPACT_TEXT }]),
-        { icon: "shield", text: "Fica registrado na auditoria com seu nome" },
+        ...(priced.length ? [{ icon: "check" as const, text: `${paid} ${paid === 1 ? "evento já pago continua igual" : "eventos já pagos continuam iguais"}` }, { icon: "pix" as const, text: `${open} ${open === 1 ? "Pix aberto mantém" : "Pix abertos mantêm"} ${quote===undefined?"o valor cotado":brl(quote)} até expirar` }] : [{ icon: "check" as const, text: IMPACT_TEXT }]),
+        { icon: "history", text: "Fica registrado na auditoria com seu nome" },
       ]}
-      reason={{ value: reason, error: rErr, onChange: setReason }}
       code={code} onCode={(v) => { setCode(v); if (error === "Digite os 6 números do aplicativo autenticador.") setError(null); }}
       extra={enroll && needEnroll ? (
         <div className="mnote" style={{ margin: "14px 0 0" }}>
@@ -152,6 +161,7 @@ export function PricesEditor({ plans, env, impact = {} }: { plans: PlanRow[]; en
         const name = `Novo plano ${n}`;
         setDraft((d) => [...d, { code: slugify(name), name, maxGuests: 50, maxShots: 24, priceCents: 5900, sandboxActive: true, productionActive: false, highlighted: false, isFree: false, sort: Math.max(...d.map((p) => p.sort)) + 1, isNew: true }]);
       }}
+      confirming={open}
       modal={open ? <ConfirmModal original={plans} draft={draft} impact={impact} onClose={() => setOpen(false)} onDone={() => { setOpen(false); router.refresh(); }} /> : undefined}
     />
   );

@@ -19,9 +19,9 @@ export interface PublicarModalProps {
 }
 
 const REF_ROWS: { icon: IconName; text: string }[] = [
-  { icon: "tag", text: "31 eventos já pagos continuam iguais" },
-  { icon: "clock", text: "2 Pix abertos mantêm R$ 189,00 até expirar" },
-  { icon: "shield", text: "Fica registrado na auditoria com seu nome" },
+  { icon: "check", text: "31 eventos já pagos continuam iguais" },
+  { icon: "pix", text: "2 Pix abertos mantêm R$ 189,00 até expirar" },
+  { icon: "history", text: "Fica registrado na auditoria com seu nome" },
 ];
 
 export function PublicarModal({
@@ -31,7 +31,7 @@ export function PublicarModal({
   const digits = code.padEnd(6, " ").slice(0, 6).split("");
   const next = Math.min(code.length, 5);
   return (
-    <div className="mmodal" role="dialog" aria-modal="true" aria-label={title} style={onPublish ? { position: "fixed" } : undefined}>
+    <div className="mmodal" role="dialog" aria-modal="true" aria-label={title} style={onPublish ? { position: "fixed", left: "248px" } : undefined}>
       <div className="mmodal-card">
         <h2 className="rv-title">{title}</h2>
         <p className="rv-caption" style={{ marginTop: "6px" }}>{caption}</p>
