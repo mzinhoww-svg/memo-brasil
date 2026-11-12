@@ -1,0 +1,17 @@
+begin;
+select no_plan();
+insert into auth.users(id,aud,role,email,is_anonymous) values('40000000-0000-4000-8000-000000000001','authenticated','authenticated','retentionmaster@test.local',false);
+insert into public.platform_roles(user_id,role) values('40000000-0000-4000-8000-000000000001','master');
+select set_config('request.jwt.claims','{"sub":"40000000-0000-4000-8000-000000000001","role":"authenticated","app_metadata":{"role":"master"}}',true);
+set local role authenticated;
+select is(public.admin_master_retention()->>'policy','2026-10-22-v1','política vigente, sem fingir os valores do desenho');
+select is((public.admin_master_retention()->>'photosAfterEndDays')::int,90,'mantém retenção vigente');
+select is(public.admin_master_retention()->'backupDays','null'::jsonb,'não inventa prazo do provedor');
+reset role;
+select set_config('request.jwt.claims','{}',true);
+set local role authenticated;
+select throws_ok($$select public.admin_master_retention()$$,'MM004','forbidden','sem papel recusado');
+reset role;
+select ok(not has_function_privilege('anon','public.admin_master_retention()','execute'),'anon sem acesso');
+select * from finish();
+rollback;
