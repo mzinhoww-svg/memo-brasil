@@ -53,3 +53,14 @@ Status: coletando. Nada deste lote foi corrigido ainda.
   5. Carrossel de planos: o card selecionado fica de fora/parcial na borda e a trilha só se move por seleção (mesmo problema do item 1).
 - Direção: renderizar o plano no painel como conteúdo de página (sem `.scr` de altura fixa e sem segundo cabeçalho), com rolagem normal da página, botão de confirmar visível (fixo no rodapé, com `safe-area`), carrossel nativo com encaixe e o texto de pagamento no fluxo, não no rodapé fixo.
 - Conferir: o mesmo padrão em outras telas do painel que encaixam telas de celular dentro do painel (Conteúdo, Convidados, Convites, QR, Downloads). Ligação direta com o item 3b: o painel precisa de um layout mobile único.
+
+## 6. Painel > Conteúdo aparece "tudo preto" (/painel/[id]/conteudo)
+- Sintoma (captura): ao abrir Conteúdo, a tela é um fundo preto com título "Só você vê isto", duas fotos pequenas e o resto da tela vazio. Sem abas, sem migalhas, sem nada que diga onde se está ou como seguir.
+- Causas prováveis (`web/src/app/painel/[id]/conteudo/page.tsx` + `web/src/revela/screens/AnfitriaoModerar.tsx`):
+  1. Mesmo defeito do item 5: a página renderiza a tela de celular inteira (`.scr`: `height: 100dvh`, `overflow: hidden`, fundo próprio) dentro do painel. O cabeçalho do painel (abas e migalhas) fica rolado para fora e a área vira um bloco preto sem navegação; só resta a seta de voltar da própria tela.
+  2. Grade de 3 colunas (`.modgrid`) com 2 fotos fica meio vazia; as fotos são miniaturas pequenas e a legenda é só o primeiro nome do autor ("Agencia"), sem data/hora, sem total ("2 fotos") e sem filtros (removidas, denunciadas, por pessoa).
+  3. A instrução "Tire o que não deve aparecer" não diz como: não há dica de "toque na foto para remover" nem estado de seleção; tocar abre uma folha sem prévia grande da foto.
+  4. Se não há fotos, o estado vazio é uma linha de texto cinza no meio do preto, sem ilustração nem ação (ex.: compartilhar o QR).
+  5. Selo "REVELADA" no canto sem explicação.
+- Direção: usar o layout mobile do painel (item 3b/5): cabeçalho único do painel, título "Conteúdo" com contagem, grade com miniaturas maiores (2 colunas no celular), toque abre visualização grande com ações Remover/Devolver, filtros simples, estado vazio com ação, e rolagem normal da página.
+- Conferir se o "tudo preto" também aparece enquanto as fotos carregam (esqueleto `ScreenSkeleton variant="grade"`) ou se as miniaturas ficam pretas por falha na assinatura das URLs; pedir ao usuário o horário para cruzar com os logs, se for o segundo caso.
