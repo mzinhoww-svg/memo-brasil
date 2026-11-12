@@ -1,48 +1,46 @@
-import { MState } from "@/revela/master-kit";
-import { ExportButton } from "../ExportButton";
-import { MasterAuditoriaView, type AuditoriaRow } from "@/revela/screens/MasterAuditoria";
+import { AUDIT_CATEGORIES, PER_PAGE, auditCategory, auditHref, auditRow, pageList, rangeText, type AuditItem } from "@/lib/master/audit";
+import { MasterAuditoriaFiltrosEstado, MasterAuditoriaFiltrosView, AuditFilters } from "@/revela/screens/MasterAuditoriaFiltros";
+import { ExportSheetButton } from "../ExportSheetButton";
 import { requireRole, rpc } from "../data";
-import { nf, relWhen } from "../format";
+import { nowMs } from "../format";
+import { AuditEventFilter } from "./AuditEventFilter";
 
-interface A { id: number; at: string; actorId: string | null; actorRole: string | null; action: string; targetType: string | null; targetId: string | null; reason: string | null }
-const POR = 50;
-const WHO: Record<string, string> = { master: "master", support: "suporte", organizador: "organizador", convidado: "convidado", system: "sistema", sistema: "sistema" };
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** M13 · Auditoria: registro só de inserção. Filtro por prefixo da ação (`?a=plan.`), 50 por página. */
-export default async function Auditoria({ searchParams }: { searchParams: Promise<{ a?: string; p?: string }> }) {
+/** M28 · Auditoria com filtros: por categoria (participante, consentimento, revelação, admin, pagamento) e por evento, 25 por página.
+ *  Só master e auditor abrem (support recebe a tela de acesso limitado). O e-mail do autor chega mascarado do servidor quando quem lê é o auditor. */
+export default async function Auditoria({ searchParams }: { searchParams: Promise<{ cat?: string; evento?: string; p?: string }> }) {
   const gate = await requireRole("auditoria");
   if ("denied" in gate) return gate.denied;
   const { sb } = gate;
   const sp = await searchParams;
-  const p = Math.max(1, Number(sp.p) || 1);
-  const a = sp.a?.slice(0, 60) || "";
-  const r = await rpc<{ total: number; items: A[] }>(sb, "admin_list_audit", { p_limit: POR, p_offset: (p - 1) * POR, p_action: a || null });
-  if (r.state !== "ok") return <MState kind={r.state === "denied" ? "denied" : "error"} text={r.state === "error" ? `Não foi possível carregar: ${r.message}` : undefined} />;
-  const href = (n: number) => `/master/auditoria?${new URLSearchParams({ ...(a ? { a } : {}), p: String(n) })}`;
-  const rows: AuditoriaRow[] = r.data.items.map((x) => ({
-    key: String(x.id), when: relWhen(x.at), who: x.actorRole ? WHO[x.actorRole] ?? x.actorRole : x.actorId ? `conta ${x.actorId.slice(0, 8)}…` : "sistema",
-    action: x.action, target: x.targetType ? `${x.targetType}:${(x.targetId ?? "").slice(0, 8)}` : "—", detail: x.reason ?? "—",
-  }));
-  const last = Math.max(1, Math.ceil(r.data.total / POR));
+  const cat = auditCategory(sp.cat);
+  const evento = sp.evento && UUID.test(sp.evento) ? sp.evento : null;
+  const page = Math.max(1, Math.floor(Number(sp.p)) || 1);
+  const [r, ev] = await Promise.all([
+    rpc<{ total: number; items: AuditItem[] }>(sb, "admin_list_audit_v2", { p_limit: PER_PAGE, p_offset: (page - 1) * PER_PAGE, p_category: cat === "todas" ? null : cat, p_event: evento }),
+    rpc<{ id: string; title: string }[]>(sb, "admin_audit_events", { p_limit: 200 }),
+  ]);
+  if (r.state !== "ok") return <MasterAuditoriaFiltrosEstado variant={r.state === "denied" ? "denied" : "error"} exportAction={null} />;
+  const events = ev.state === "ok" ? ev.data : [];
+  const eventTitle = events.find((e) => e.id === evento)?.title;
+  const catLabel = AUDIT_CATEGORIES.find((c) => c.id === cat)?.label ?? "Todas";
+  const exportAction = (
+    <ExportSheetButton custom="auditoria" screen="auditoria" screenLabel="Auditoria" period="Todo o histórico" rowsEstimate={r.data.total}
+      filters={{ categoria: cat, evento }} filtersText={`Categoria: ${catLabel} · Evento: ${eventTitle ?? "todos"}`} />
+  );
+  const catHref = (c: typeof cat) => auditHref({ cat: c, evento: evento ?? undefined });
+  const eventField = <AuditEventFilter events={events} selected={evento} cat={cat} />;
+  if (r.data.items.length === 0 && r.data.total === 0) {
+    return <MasterAuditoriaFiltrosEstado variant="empty" exportAction={exportAction} filters={<AuditFilters cat={cat} catHref={catHref} eventField={eventField} />} />;
+  }
+  const last = Math.max(1, Math.ceil(r.data.total / PER_PAGE));
+  const now = new Date(nowMs());
   return (
-    <MasterAuditoriaView
-      caption={`Toda ação sensível, só inserção${a ? ` · ações que começam com "${a}"` : ""}`} rows={rows} exportAction={<ExportButton kind="auditoria" screen="auditoria" filters={{ a }} />}
-      filter={(
-        <form method="get" role="search" className="row" style={{ gap: "8px", marginBottom: "14px" }}>
-          <label className="rv-field" style={{ maxWidth: "340px" }}>
-            <input name="a" defaultValue={a} placeholder="Ação começa com… (ex.: plan.)" aria-label="Prefixo da ação" maxLength={60} />
-          </label>
-          <button className="rv-btn rv-btn--sm" type="submit">Filtrar</button>
-          {a && <a className="rv-btn rv-btn--sm" href="/master/auditoria">Limpar</a>}
-        </form>
-      )}
-      pager={last > 1 ? (
-        <nav aria-label="Paginação" className="row" style={{ gap: "12px", marginTop: "16px", alignItems: "center" }}>
-          {p > 1 && <a className="link" href={href(p - 1)}>← Anterior</a>}
-          <span className="rv-caption">Página {p} de {last} · {nf(r.data.total)} registros</span>
-          {p < last && <a className="link" href={href(p + 1)}>Próxima →</a>}
-        </nav>
-      ) : undefined}
+    <MasterAuditoriaFiltrosView
+      exportAction={exportAction} cat={cat} catHref={catHref} eventField={eventField} rows={r.data.items.map((x) => auditRow(x, now))}
+      pager={{ range: rangeText(page, r.data.total), pages: pageList(page, last), page, flow: true, hrefOf: (n) => auditHref({ cat, evento: evento ?? undefined, p: n }),
+        prevHref: page > 1 ? auditHref({ cat, evento: evento ?? undefined, p: page - 1 }) : null, nextHref: page < last ? auditHref({ cat, evento: evento ?? undefined, p: page + 1 }) : null }}
     />
   );
 }

@@ -666,14 +666,6 @@ export const SCREENS: ScreenMeta[] = [
   "master": true
  },
  {
-  "id": "M09",
-  "title": "Moderação",
-  "webp": "telas/14-master/M09-moderacao.webp",
-  "html": "Master-moderacao",
-  "name": "MasterModeracao",
-  "master": true
- },
- {
   "id": "M10",
   "title": "Pessoas",
   "webp": "telas/14-master/M10-pessoas.webp",
@@ -682,27 +674,11 @@ export const SCREENS: ScreenMeta[] = [
   "master": true
  },
  {
-  "id": "M11",
-  "title": "Storage e saúde",
-  "webp": "telas/14-master/M11-storage-e-saude.webp",
-  "html": "Master-saude",
-  "name": "MasterSaude",
-  "master": true
- },
- {
   "id": "M12",
   "title": "LGPD",
   "webp": "telas/14-master/M12-lgpd.webp",
   "html": "Master-lgpd",
   "name": "MasterLgpd",
-  "master": true
- },
- {
-  "id": "M13",
-  "title": "Auditoria",
-  "webp": "telas/14-master/M13-auditoria.webp",
-  "html": "Master-auditoria",
-  "name": "MasterAuditoria",
   "master": true
  },
  {
