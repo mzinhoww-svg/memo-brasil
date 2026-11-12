@@ -1,385 +1,98 @@
-/* Gerado de design-system/revela/html/Master-auditoria-filtros.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
-export function MasterAuditoriaFiltros() {
+/* Master-auditoria-filtros.html (M28) e variantes: markup e classes da referência via master-kit; dados por props (padrão = desenho).
+   Filtros por categoria (participante, consentimento, revelação, admin, pagamento) e por evento; linha com data, ator, ação, alvo e resumo do motivo. */
+import type { ReactNode } from "react";
+import { MasterStatePage } from "../master/MasterState";
+import { Ico, MHead, MTable, MasterFrame } from "../master-kit";
+import { AUDIT_CATEGORIES, type AuditCategory, type AuditRowText } from "@/lib/master/audit";
+
+export const AUDIT_CAPTION = "Toda ação sensível, só inserção";
+export const AUDIT_EMPTY = { title: "Nenhum registro neste filtro", text: "Troque a categoria ou o evento." };
+export const AUDIT_ALL_EVENTS = "Todos os eventos";
+
+const REF_ROWS: AuditRowText[] = [
+  { key: "1", when: "hoje 08:51", who: "marcos@revela.app", action: "Preço de plano alterado", target: "Casamento", reason: "Reajuste aprovado para a temporada 2027" },
+  { key: "2", when: "hoje 08:51", who: "marcos@revela.app", action: "Conciliação manual", target: "Pagamentos", reason: "—" },
+  { key: "3", when: "hoje 07:12", who: "marcos@revela.app", action: "Cortesia criada", target: "BUFFET-JARDIM", reason: "Parceria com o buffet Jardim" },
+  { key: "4", when: "ontem 18:20", who: "marcos@revela.app", action: "Estorno pedido", target: "#RV-2037", reason: "Pix pago em duplicidade" },
+  { key: "5", when: "10 set 14:22", who: "marcos@revela.app", action: "Papel concedido", target: "suporte@revela.app", reason: "Entrada no time de atendimento" },
+  { key: "6", when: "08 nov 16:40", who: "marcos@revela.app", action: "Exportação", target: "Pagamentos · 74 linhas", reason: "—" },
+  { key: "7", when: "05 nov 11:02", who: "marcos@revela.app", action: "Evento marcado como teste", target: "Teste checkout Pix", reason: "Homologação do checkout" },
+];
+const REF_EXPORT = <button className="rv-btn rv-btn--sm"><Ico n="download" />Exportar</button>;
+const REF_FIELD = (
+  <label className="mfield" style={{ maxWidth: "260px", width: "260px" }}>
+    <i>Evento</i><input defaultValue={AUDIT_ALL_EVENTS} aria-label="Filtrar por evento" /><Ico n="chevron" />
+  </label>
+);
+
+export interface PagerProps {
+  range: string;
+  /** Páginas da barra (números e reticências), a atual em `page`. */
+  pages: (number | "…")[];
+  page: number;
+  prevHref?: string | null;
+  nextHref?: string | null;
+  hrefOf?: (n: number) => string;
+  /** No app a barra acompanha a tabela; no desenho ela fica fixa no rodapé da tela. */
+  flow?: boolean;
+}
+const Chevron = ({ d }: { d: string }) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
+export function AuditPager({ range, pages, page, prevHref, nextHref, hrefOf, flow }: PagerProps) {
+  const arrow = (d: string, href: string | null | undefined, label: string) => (href ? <a href={href} aria-label={label} style={{ color: "inherit" }}><Chevron d={d} /></a> : <Chevron d={d} />);
+  return (
+    <div className="mpager" style={flow ? { position: "static", marginTop: "16px" } : undefined}>
+      <span>{range}</span>
+      <div>
+        {arrow("M15 18l-6-6 6-6", prevHref, "Página anterior")}
+        {pages.map((n, i) => (n === "…" ? <span key={`g${i}`}>…</span> : n === page ? <b key={n}>{n}</b> : hrefOf ? <a key={n} href={hrefOf(n)} style={{ color: "inherit" }}>{n}</a> : <span key={n}>{n}</span>))}
+        {arrow("M9 6l6 6-6 6", nextHref, "Próxima página")}
+      </div>
+    </div>
+  );
+}
+const REF_PAGER: PagerProps = { range: "1–25 de 1.932 · 25 por página", pages: [1, 2, 3, "…", 78], page: 1 };
+
+export interface AuditoriaFiltrosProps {
+  caption?: string;
+  exportAction?: ReactNode;
+  cat?: AuditCategory;
+  /** Link de cada categoria (sem links, as categorias são só texto, como no desenho). */
+  catHref?: (c: AuditCategory) => string;
+  eventField?: ReactNode;
+  rows?: AuditRowText[];
+  pager?: PagerProps | null;
+}
+
+/** Chips de categoria + filtro de evento. */
+export function AuditFilters({ cat = "admin", catHref, eventField = REF_FIELD }: Pick<AuditoriaFiltrosProps, "cat" | "catHref" | "eventField">) {
+  return (
+    <div className="row between" style={{ marginBottom: "14px" }}>
+      <div className="row" style={{ gap: "8px", margin: 0 }}>
+        {AUDIT_CATEGORIES.map((c) => (catHref
+          ? <a key={c.id} className={c.id === cat ? "chip on" : "chip"} href={catHref(c.id)}>{c.label}</a>
+          : <span key={c.id} className={c.id === cat ? "chip on" : "chip"}>{c.label}</span>))}
+      </div>
+      <div className="row" style={{ gap: "8px" }}>{eventField}</div>
+    </div>
+  );
+}
+
+export function MasterAuditoriaFiltrosView({ caption = AUDIT_CAPTION, exportAction = REF_EXPORT, cat = "admin", catHref, eventField, rows = REF_ROWS, pager = REF_PAGER }: AuditoriaFiltrosProps = {}) {
   return (
     <>
-    <div className="dsk">
-      <aside className="mside">
-        <div className="row" style={{ "gap": "10px", "padding": "4px 10px 22px" }}>
-          <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
-            <rect width="64" height="64" rx="16" fill="var(--surface-1)" />
-            <path d="M14 34.5a18 18 0 0 0 36 0z" fill="var(--revela)" />
-            <path d="M15 29.5a17 17 0 0 1 34 0z" fill="none" stroke="var(--ink)" strokeWidth="2.4" strokeLinejoin="round" />
-          </svg>
-          <svg width="70" height="20" viewBox="6 187 2802 804" role="img" aria-label="revela">
-            <path fill="var(--ink)" d="M6 975V965H7Q43 965 65.0 943.0Q87 921 87 885V557Q87 519 71.5 498.0Q56 477 6 477V467H105Q158 467 185.0 456.5Q212 446 223 429H228L229 593Q242 563 262.5 530.0Q283 497 314.5 474.5Q346 452 390 452Q405 452 422.0 455.0Q439 458 458 466L419 583Q383 563 356.5 555.0Q330 547 310 547Q276 547 259.5 568.0Q243 589 231 618V885Q231 921 253.0 943.0Q275 965 311 965H312V975Z M712.0 987Q643.0 987 589.5 953.0Q536.0 919 506.0 858.5Q476.0 798 476.0 720Q476.0 640 509.0 580.0Q542.0 520 599.5 486.5Q657.0 453 730.0 453Q791.0 453 838.5 477.0Q886.0 501 914.5 544.5Q943.0 588 947.0 645L948.0 660H612.0V665Q612.0 771 659.0 834.5Q706.0 898 785.0 898Q833.0 898 876.5 874.5Q920.0 851 947.0 811L956.0 814Q939.0 865 903.0 904.0Q867.0 943 818.0 965.0Q769.0 987 712.0 987ZM613.0 645H816.0Q816.0 566 790.5 517.0Q765.0 468 719.0 468Q675.0 468 646.0 516.0Q617.0 564 613.0 645Z M1199.0 991 1000.0 531Q990.0 508 973.5 493.0Q957.0 478 928.0 477V467H1208.0V477Q1173.0 481 1162.5 508.0Q1152.0 535 1169.0 576L1272.0 817L1374.0 582Q1384.0 559 1384.0 537Q1384.0 512 1369.0 496.0Q1354.0 480 1327.0 477V467H1485.0V477Q1459.0 483 1435.0 507.0Q1411.0 531 1392.0 573L1208.0 991Z M1704.0 987Q1635.0 987 1581.5 953.0Q1528.0 919 1498.0 858.5Q1468.0 798 1468.0 720Q1468.0 640 1501.0 580.0Q1534.0 520 1591.5 486.5Q1649.0 453 1722.0 453Q1783.0 453 1830.5 477.0Q1878.0 501 1906.5 544.5Q1935.0 588 1939.0 645L1940.0 660H1604.0V665Q1604.0 771 1651.0 834.5Q1698.0 898 1777.0 898Q1825.0 898 1868.5 874.5Q1912.0 851 1939.0 811L1948.0 814Q1931.0 865 1895.0 904.0Q1859.0 943 1810.0 965.0Q1761.0 987 1704.0 987ZM1605.0 645H1808.0Q1808.0 566 1782.5 517.0Q1757.0 468 1711.0 468Q1667.0 468 1638.0 516.0Q1609.0 564 1605.0 645Z M1962.0 975V965Q1998.0 965 2020.5 943.5Q2043.0 922 2043.0 885V315Q2043.0 279 2020.5 257.0Q1998.0 235 1962.0 235V225H2064.0Q2115.0 225 2142.0 214Q2167.0 203 2177.0 187H2187.0V885Q2187.0 922 2209.5 943.5Q2232.0 965 2268.0 965V975Z M2407.0 989Q2346.0 989 2309.0 956.0Q2272.0 923 2272.0 869Q2272.0 846 2280.0 825.5Q2288.0 805 2310.0 785Q2333.0 765 2373.0 743.5Q2413.0 722 2479.0 698L2572.0 664V589Q2572.0 532 2554.0 498.5Q2536.0 465 2504.0 465Q2466.0 466 2439.5 515.0Q2413.0 564 2404.0 651L2296.0 589Q2313.0 548 2348.0 517.0Q2383.0 486 2428.5 469.0Q2474.0 452 2524.0 452Q2609.0 452 2662.5 499.5Q2716.0 547 2716.0 629V870Q2716.0 928 2755.0 928Q2778.0 928 2800.0 903L2808.0 910Q2782.0 945 2745.0 967.0Q2708.0 989 2673.0 989Q2635.0 989 2607.5 963.0Q2580.0 937 2573.0 894Q2524.0 944 2487.5 966.5Q2451.0 989 2407.0 989ZM2482.0 927Q2504.0 927 2524.5 916.0Q2545.0 905 2571.0 880L2572.0 677L2532.0 692Q2481.0 711 2454.0 730.5Q2427.0 750 2416.5 774.0Q2406.0 798 2406.0 829Q2406.0 872 2427.5 899.5Q2449.0 927 2482.0 927Z" />
-          </svg>
-          <span className="mtag">
-            master
-          </span>
-        </div>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />
-          </svg>
-          <span>
-            Visão geral
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z" />
-          </svg>
-          <span>
-            Eventos
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="9" cy="8" r="3.5" />
-            <path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5" />
-            <path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.6c2.4.6 4 2.4 4 5.4" />
-          </svg>
-          <span>
-            Pessoas
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" />
-            <circle cx="7.5" cy="7.5" r="1.3" />
-          </svg>
-          <span>
-            Planos e preços
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2" />
-          </svg>
-          <span>
-            Pagamentos
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2L3 9.6l6.2-.9z" />
-          </svg>
-          <span>
-            Cortesias
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
-          </svg>
-          <span>
-            Revelações
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
-          </svg>
-          <span>
-            Moderação
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z" />
-          </svg>
-          <span>
-            Impressões
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="7" rx="2" />
-            <rect x="3" y="13" width="18" height="7" rx="2" />
-            <path d="M7 7.5h.01M7 16.5h.01" />
-          </svg>
-          <span>
-            Storage e saúde
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
-          </svg>
-          <span>
-            LGPD
-          </span>
-        </a>
-        <a className="mnav on">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2" />
-          </svg>
-          <span>
-            Auditoria
-          </span>
-        </a>
-        <a className="mnav">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
-          </svg>
-          <span>
-            Configurações
-          </span>
-        </a>
-        <div className="grow" />
-        <div className="muser">
-          <span className="avatar avatar--sm">
-            M
-          </span>
-          <div>
-            <b>
-              Marcos
-            </b>
-            <span>
-              Administrador · master
-            </span>
-          </div>
-        </div>
-      </aside>
-      <main className="mmain">
-        <div className="mtop">
-          <label className="msearch">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="7" />
-              <path d="M20 20l-4-4" />
-            </svg>
-            <input defaultValue="" placeholder="Buscar evento, pessoa ou pagamento" aria-label="Buscar" />
-          </label>
-          <span className="envb">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="11" width="14" height="10" rx="2" />
-              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-            </svg>
-            Produção
-          </span>
-        </div>
-        <div className="mhead">
-          <div>
-            <h1 className="rv-title-lg">
-              Auditoria
-            </h1>
-            <p className="rv-caption" style={{ "marginTop": "6px" }}>
-              Toda ação sensível, só inserção
-            </p>
-          </div>
-          <div className="row" style={{ "gap": "8px" }}>
-            <button className="rv-btn rv-btn--sm">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
-              </svg>
-              Exportar
-            </button>
-          </div>
-        </div>
-        <div className="row between" style={{ "marginBottom": "14px" }}>
-          <div className="row" style={{ "gap": "8px", "margin": "0" }}>
-            <span className="chip">
-              Todas
-            </span>
-            <span className="chip">
-              Participante
-            </span>
-            <span className="chip">
-              Consentimento
-            </span>
-            <span className="chip">
-              Revelação
-            </span>
-            <span className="chip on">
-              Admin
-            </span>
-            <span className="chip">
-              Pagamento
-            </span>
-          </div>
-          <div className="row" style={{ "gap": "8px" }}>
-            <label className="mfield" style={{ "maxWidth": "260px", "width": "260px" }}>
-              <i>
-                Evento
-              </i>
-              <input defaultValue="Todos os eventos" aria-label="Filtrar por evento" />
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </label>
-          </div>
-        </div>
-        <div className="mtable">
-          <div className="mtr mth" style={{ "gridTemplateColumns": ".8fr 1.2fr 1.3fr 1.2fr 2fr" }}>
-            <span>
-              Quando
-            </span>
-            <span>
-              Ator
-            </span>
-            <span>
-              Ação
-            </span>
-            <span>
-              Alvo
-            </span>
-            <span>
-              Motivo
-            </span>
-          </div>
-          <div className="mtr" style={{ "gridTemplateColumns": ".8fr 1.2fr 1.3fr 1.2fr 2fr" }}>
-            <span>
-              hoje 08:51
-            </span>
-            <span>
-              marcos@revela.app
-            </span>
-            <span>
-              Preço de plano alterado
-            </span>
-            <span>
-              Casamento
-            </span>
-            <span>
-              Reajuste aprovado para a temporada 2027
-            </span>
-          </div>
-          <div className="mtr" style={{ "gridTemplateColumns": ".8fr 1.2fr 1.3fr 1.2fr 2fr" }}>
-            <span>
-              hoje 08:51
-            </span>
-            <span>
-              marcos@revela.app
-            </span>
-            <span>
-              Conciliação manual
-            </span>
-            <span>
-              Pagamentos
-            </span>
-            <span>
-              —
-            </span>
-          </div>
-          <div className="mtr" style={{ "gridTemplateColumns": ".8fr 1.2fr 1.3fr 1.2fr 2fr" }}>
-            <span>
-              hoje 07:12
-            </span>
-            <span>
-              marcos@revela.app
-            </span>
-            <span>
-              Cortesia criada
-            </span>
-            <span>
-              BUFFET-JARDIM
-            </span>
-            <span>
-              Parceria com o buffet Jardim
-            </span>
-          </div>
-          <div className="mtr" style={{ "gridTemplateColumns": ".8fr 1.2fr 1.3fr 1.2fr 2fr" }}>
-            <span>
-              ontem 18:20
-            </span>
-            <span>
-              marcos@revela.app
-            </span>
-            <span>
-              Estorno pedido
-            </span>
-            <span>
-              #RV-2037
-            </span>
-            <span>
-              Pix pago em duplicidade
-            </span>
-          </div>
-          <div className="mtr" style={{ "gridTemplateColumns": ".8fr 1.2fr 1.3fr 1.2fr 2fr" }}>
-            <span>
-              10 set 14:22
-            </span>
-            <span>
-              marcos@revela.app
-            </span>
-            <span>
-              Papel concedido
-            </span>
-            <span>
-              suporte@revela.app
-            </span>
-            <span>
-              Entrada no time de atendimento
-            </span>
-          </div>
-          <div className="mtr" style={{ "gridTemplateColumns": ".8fr 1.2fr 1.3fr 1.2fr 2fr" }}>
-            <span>
-              08 nov 16:40
-            </span>
-            <span>
-              marcos@revela.app
-            </span>
-            <span>
-              Exportação
-            </span>
-            <span>
-              Pagamentos · 74 linhas
-            </span>
-            <span>
-              —
-            </span>
-          </div>
-          <div className="mtr" style={{ "gridTemplateColumns": ".8fr 1.2fr 1.3fr 1.2fr 2fr" }}>
-            <span>
-              05 nov 11:02
-            </span>
-            <span>
-              marcos@revela.app
-            </span>
-            <span>
-              Evento marcado como teste
-            </span>
-            <span>
-              Teste checkout Pix
-            </span>
-            <span>
-              Homologação do checkout
-            </span>
-          </div>
-        </div>
-        <div className="mpager">
-          <span>
-            1–25 de 1.932 · 25 por página
-          </span>
-          <div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-            <b>
-              1
-            </b>
-            <span>
-              2
-            </span>
-            <span>
-              3
-            </span>
-            <span>
-              …
-            </span>
-            <span>
-              78
-            </span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 6l6 6-6 6" />
-            </svg>
-          </div>
-        </div>
-      </main>
-      <div className="grain" />
-    </div>
+      <MHead title="Auditoria" caption={caption}>{exportAction}</MHead>
+      <AuditFilters cat={cat} catHref={catHref} eventField={eventField} />
+      <MTable cols=".8fr 1.2fr 1.3fr 1.2fr 2fr" head={["Quando", "Ator", "Ação", "Alvo", "Motivo"]} rows={rows.map((r) => ({ key: r.key, cells: [r.when, r.who, r.action, r.target, r.reason] }))} />
+      {pager && <AuditPager {...pager} />}
     </>
   );
+}
+
+export function MasterAuditoriaFiltros(props: AuditoriaFiltrosProps = {}) {
+  return <MasterFrame current="auditoria"><MasterAuditoriaFiltrosView {...props} /></MasterFrame>;
+}
+
+/** Estado de página inteira (M28.v, .e, .p, .c). No app o vazio mantém os filtros (`filters`) para a pessoa trocar a categoria ou o evento. */
+export function MasterAuditoriaFiltrosEstado({ variant, exportAction = REF_EXPORT, filters }: { variant: "empty" | "error" | "denied" | "loading"; exportAction?: ReactNode; filters?: ReactNode }) {
+  return <MasterStatePage area="Auditoria" variant={variant} caption={variant === "empty" ? AUDIT_CAPTION : undefined} actions={exportAction} tabs={variant === "empty" ? filters : undefined} cols={5} rows={8} {...(variant === "empty" ? AUDIT_EMPTY : {})} />;
 }

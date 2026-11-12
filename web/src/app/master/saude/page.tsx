@@ -1,53 +1,49 @@
 import { healthAlerts, type Health } from "@/lib/master/health-alerts";
-import { MNote, MState } from "@/revela/master-kit";
-import { MasterSaudeView, type ServicoRow } from "@/revela/screens/MasterSaude";
-import { bytes, num, requireMaster, rpc } from "../data";
+import { gaugeRows, growthBars, growthTotal, jobRows, type HistoryJob, type StorageData } from "@/lib/master/health";
+import { MNote } from "@/revela/master-kit";
+import { MasterSaudeCompletaEstado, MasterSaudeCompletaView, type ServiceChip } from "@/revela/screens/MasterSaudeCompleta";
+import { requireRole, rpc } from "../data";
 import { nowMs, relWhen } from "../format";
 
-type H = Health & { lgpd: { pendingDeletions: number } };
-interface M { storage: { photosBytes: number; photosObjects: number }; photos: { total: number } }
+type H = Health & { generatedAt?: string; lgpd: { pendingDeletions: number } };
 interface Ov { upcomingReveals: { revealAt: string | null }[]; readiness?: { paymentsEnv?: string; lastWebhookAt?: string | null } }
 interface Rev { items: { emailsFailed: number }[] }
+const hm = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { timeZone: "America/Cuiaba", hour: "2-digit", minute: "2-digit" });
 
-const ago = (iso: string) => {
-  const min = Math.max(0, Math.round((nowMs() - Date.parse(iso)) / 60_000));
-  return min < 60 ? `há ${min} min` : min < 2880 ? `há ${Math.round(min / 60)} h` : `há ${Math.round(min / 1440)} dias`;
-};
-
-/** M11 · Storage e saúde: serviços e armazenamento medidos no banco. Cota de storage só aparece se o Master definir `storage_quota_bytes`. */
+/** M27 · Storage e saúde (somente leitura): serviços, armazenamento e crescimento por dia, jobs agendados com as últimas 8 execuções.
+ *  Abre para master, support e auditor (as RPCs aceitam a equipe). Cota de fotos só aparece se o master definir `storage_quota_bytes`. */
 export default async function Saude() {
-  const sb = await requireMaster();
+  const gate = await requireRole("saude");
+  if ("denied" in gate) return gate.denied;
+  const { sb } = gate;
   const t0 = nowMs();
-  const [h, m, ov, rev, quota] = await Promise.all([
-    rpc<H>(sb, "admin_health"), rpc<M>(sb, "admin_dashboard_metrics"), rpc<Ov>(sb, "admin_overview", { p_days: 7 }), rpc<Rev>(sb, "admin_reveals_board", { p_limit: 200 }),
-    sb.from("platform_settings").select("value").eq("key", "storage_quota_bytes").maybeSingle(),
+  const [h, hist, st, ov, rev] = await Promise.all([
+    rpc<H>(sb, "admin_health"), rpc<{ cronAvailable: boolean; jobs: HistoryJob[] }>(sb, "admin_health_history", { p_limit: 8 }), rpc<StorageData>(sb, "admin_storage_breakdown"),
+    rpc<Ov>(sb, "admin_overview", { p_days: 7 }), rpc<Rev>(sb, "admin_reveals_board", { p_limit: 200 }),
   ]);
   const latency = nowMs() - t0;
-  if (h.state !== "ok") return <MState kind={h.state === "denied" ? "denied" : "error"} text={h.state === "error" ? `Não foi possível carregar: ${h.message}` : undefined} />;
-  const hh = h.data;
+  if (h.state !== "ok" || hist.state !== "ok" || st.state !== "ok") {
+    const denied = [h, hist, st].some((r) => r.state === "denied");
+    return <MasterSaudeCompletaEstado variant={denied ? "denied" : "error"} />;
+  }
+  const hh = h.data, s = st.data;
+  const caption = `Situação dos serviços agora · atualizado às ${hm(s.generatedAt ?? hh.generatedAt ?? new Date(nowMs()).toISOString())}`;
+  const nothingYet = hh.cronAvailable && hist.data.jobs.every((j) => j.runs.length === 0) && s.totalBytes === 0;
+  if (nothingYet) return <MasterSaudeCompletaEstado variant="empty" caption={caption} />;
   const failedMail = rev.state === "ok" ? rev.data.items.reduce((n, e) => n + e.emailsFailed, 0) : 0;
   const lastHook = ov.state === "ok" ? ov.data.readiness?.lastWebhookAt ?? null : null;
   const env = ov.state === "ok" ? ov.data.readiness?.paymentsEnv ?? "desligado" : "desligado";
-  const next = ov.state === "ok" ? ov.data.upcomingReveals.find((r) => r.revealAt)?.revealAt ?? null : null;
-  const badJobs = hh.jobs.filter((j) => !j.active || (j.lastRun && j.lastRun.status !== "succeeded")).length;
-  const services: ServicoRow[] = [
-    { key: "db", icon: "server", title: "Banco de dados", meta: `latência ${latency} ms`, tone: "ok", label: "Normal" },
-    { key: "storage", icon: "photo", title: "Storage de fotos", meta: hh.uploads.stalled || hh.uploads.failed ? `${num(hh.uploads.stalled)} presas · ${num(hh.uploads.failed)} com falha` : "uploads em dia", tone: hh.uploads.stalled ? "wait" : "ok", label: hh.uploads.stalled ? "Atenção" : "Normal" },
-    { key: "webhook", icon: "coin", title: "Webhook ValidaPay", meta: env === "desligado" ? "pagamentos desligados" : lastHook ? `último evento ${ago(lastHook)}` : "nenhum evento recebido ainda", tone: env === "desligado" || !lastHook ? "info" : "ok", label: env === "desligado" ? "Desligado" : lastHook ? "Normal" : "Sem eventos" },
-    { key: "reveal", icon: "spark", title: "Fila de revelação", meta: hh.reveals.overdue ? `${hh.reveals.overdue} atrasada(s) · maior atraso ${Math.round(hh.reveals.maxDelaySeconds / 60)} min` : next ? `próxima ${relWhen(next)}` : "nada na fila", tone: hh.reveals.overdue ? "bad" : "ok", label: hh.reveals.overdue ? "Atrasada" : "Normal" },
-    { key: "email", icon: "mail", title: "E-mail (Brevo)", meta: failedMail ? `${num(failedMail)} aviso(s) com falha` : "sem falhas", tone: failedMail ? "wait" : "ok", label: failedMail ? "Atenção" : "Normal" },
-    { key: "jobs", icon: "clock", title: "Tarefas agendadas", meta: hh.cronAvailable ? `${hh.jobs.length} tarefas${badJobs ? ` · ${badJobs} com problema` : ""}` : "pg_cron indisponível", tone: !hh.cronAvailable ? "bad" : badJobs ? "wait" : "ok", label: !hh.cronAvailable ? "Parado" : badJobs ? "Atenção" : "Normal" },
-  ];
-  const used = m.state === "ok" ? m.data.storage.photosBytes : 0;
-  const q = Number(quota.data?.value ?? 0);
-  const gauges = [
-    { label: "Fotos", value: q > 0 ? `${bytes(used)} de ${bytes(q)}` : bytes(used), pct: q > 0 ? (used / q) * 100 : 0, caption: `${m.state === "ok" ? num(m.data.storage.photosObjects) : "—"} arquivos · ${m.state === "ok" ? num(m.data.photos.total) : "—"} fotos prontas${q > 0 ? "" : " · sem cota definida"}` },
-    { label: "Fila de exclusão", value: `${num(hh.purgeQueue.size)} ${hh.purgeQueue.size === 1 ? "item" : "itens"}`, pct: Math.min(100, hh.purgeQueue.size), caption: hh.purgeQueue.size ? `${hh.purgeQueue.size} ${hh.purgeQueue.size === 1 ? "arquivo aguardando" : "arquivos aguardando"} limpeza do storage` : "nada aguardando limpeza" },
+  const chips: ServiceChip[] = [
+    { key: "db", label: "Banco", tone: latency > 2000 ? "wait" : "ok", status: latency > 2000 ? "Lento" : "Normal" },
+    { key: "storage", label: "Storage", tone: hh.uploads.stalled ? "wait" : "ok", status: hh.uploads.stalled ? "Atenção" : "Normal" },
+    { key: "webhook", label: "Webhook ValidaPay", tone: env === "desligado" || !lastHook ? "info" : "ok", status: env === "desligado" ? "Desligado" : lastHook ? "Normal" : "Sem eventos" },
+    { key: "reveal", label: "Fila de revelação", tone: hh.reveals.overdue ? "bad" : "ok", status: hh.reveals.overdue ? "Atrasada" : "Normal" },
+    { key: "email", label: "E-mail", tone: failedMail ? "wait" : "ok", status: failedMail ? "Atenção" : "Normal" },
   ];
   const alerts = healthAlerts(hh);
   return (
-    <MasterSaudeView
-      services={services} gauges={gauges}
+    <MasterSaudeCompletaView
+      caption={caption} chips={chips} gauges={gaugeRows(s)} bars={growthBars(s.growth)} growth={growthTotal(s.growth)} jobs={jobRows(hist.data.jobs, (iso) => relWhen(iso), 8)}
       alerts={alerts.length ? <div className="stack" style={{ gap: "8px", marginBottom: "14px" }}>{alerts.map((a) => <div key={a.id} data-testid="alerta-saude"><MNote>{a.text}</MNote></div>)}</div> : undefined}
     />
   );

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import Revelacoes from '@/app/master/revelacoes/page';
 const m = vi.hoisted(() => ({rpc:vi.fn()}));
-vi.mock('@/app/master/data', () => ({requireMaster:async () => ({}), rpc:m.rpc, num:String, when:(v:string) => v ?? '—'}));
+vi.mock('@/app/master/data', () => ({requireMaster:async () => ({}), requireRole:async () => ({sb:{}, role:'master'}), rpc:m.rpc, num:String, when:(v:string) => v ?? '—'}));
 vi.mock('@/app/master/revelacoes/RevealNow', () => ({RevealNow:() => null}));
 beforeEach(() => {
  m.rpc.mockReset().mockImplementation(async (_sb, name, args) => {

@@ -4,7 +4,7 @@ import type { Tone } from "@/revela/master-kit";
 const TZ = "America/Cuiaba";
 const dayKey = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: TZ });
 const hm = (d: Date) => d.toLocaleTimeString("pt-BR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
-const dm = (d: Date) => d.toLocaleDateString("pt-BR", { timeZone: TZ, day: "2-digit", month: "short" }).replace(".", "");
+const dm = (d: Date) => d.toLocaleDateString("pt-BR", { timeZone: TZ, day: "2-digit", month: "short" }).replace(".", "").replace(" de ", " ");
 
 /** "hoje 08:42", "ontem 21:55", "amanhã 18:00", "07 nov 15:41". */
 export function relWhen(iso: string | null | undefined, now: Date = new Date()): string {

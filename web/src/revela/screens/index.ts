@@ -81,10 +81,7 @@ import { MasterPagamentos } from "./MasterPagamentos";
 import { MasterPagamentoDetalhe } from "./MasterPagamentoDetalhe";
 import { MasterCortesias } from "./MasterCortesias";
 import { MasterRevelacoes } from "./MasterRevelacoes";
-import { MasterModeracao } from "./MasterModeracao";
-import { MasterSaude } from "./MasterSaude";
 import { MasterLgpd } from "./MasterLgpd";
-import { MasterAuditoria } from "./MasterAuditoria";
 import { MasterConfig } from "./MasterConfig";
 import { MasterPessoasContas } from "./MasterPessoasContas";
 import { MasterPessoasContasVazio } from "./MasterPessoasContasVazio";
@@ -263,10 +260,7 @@ export const COMPONENTS: Record<string, () => import("react").JSX.Element> = {
   "Master-pagamento-detalhe": MasterPagamentoDetalhe,
   "Master-cortesias": MasterCortesias,
   "Master-revelacoes": MasterRevelacoes,
-  "Master-moderacao": MasterModeracao,
-  "Master-saude": MasterSaude,
   "Master-lgpd": MasterLgpd,
-  "Master-auditoria": MasterAuditoria,
   "Master-config": MasterConfig,
   "Master-pessoas-contas": MasterPessoasContas,
   "Master-pessoas-contas--vazio": MasterPessoasContasVazio,
