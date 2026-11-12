@@ -58,10 +58,10 @@ insert into public.account_deletion_requests (user_id) values ('00000000-0000-40
 -- 505 pedidos pagos de R$ 1,00 (passa do limite de 500 da soma antiga) e um pendente que não entra no gasto
 insert into public.payment_orders (id, event_id, host_id, plan_code, amount_cents, status, provider, provider_env, payment_method, idempotency_key)
   select gen_random_uuid(), '00000000-0000-4000-8000-0000000034e1', '00000000-0000-4000-8000-0000000034b1', p.code, 100, 'pago', 'validapay', 'sandbox', 'pix', gen_random_uuid()
-    from public.plans p, generate_series(1, 505) where not p.is_free and p.sort = (select min(sort) from public.plans where not is_free);
+    from public.plans p, generate_series(1, 505) where not p.is_free and p.pack_of is null and p.sort = (select min(sort) from public.plans where not is_free);
 insert into public.payment_orders (id, event_id, host_id, plan_code, amount_cents, status, provider, provider_env, payment_method, idempotency_key)
   select gen_random_uuid(), '00000000-0000-4000-8000-0000000034e1', '00000000-0000-4000-8000-0000000034b1', code, 7000, 'pendente', 'validapay', 'sandbox', 'pix', gen_random_uuid()
-    from public.plans where not is_free order by sort limit 1;
+    from public.plans where not is_free and pack_of is null order by sort limit 1;
 
 -- ===================================================================== permissão: leitura (master, support e auditor leem; sem papel não)
 select tests.login('00000000-0000-4000-8000-0000000034a1', 'master');
