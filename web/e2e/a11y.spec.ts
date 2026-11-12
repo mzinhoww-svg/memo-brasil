@@ -74,6 +74,7 @@ for (const theme of ["dia", "noite"] as const) {
     const problems: string[] = [];
     for (const route of routes) {
       await page.goto(route);
+      if (route.endsWith("/explorar")) await page.waitForURL((u) => !u.pathname.endsWith("/explorar")); // rota de redirecionamento: audita o destino
       await page.locator("h1, h2, main").first().waitFor();
       await page.evaluate(() => document.fonts.ready);
       const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
