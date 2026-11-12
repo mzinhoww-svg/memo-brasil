@@ -118,3 +118,10 @@ Não mudar Root Directory/framework do projeto antes da promoção: o legado em 
 - **Rollback (app):** promover `dpl_7XC1FoHqUtjetz7ELY92eTbb16Q6` (`ca3979b`), depois `dpl_3nYtL3ieAqUnkPxinoEpEpu1KE3E`.
 - **Evidências:** `docs/evidence/perf/` (`DADOS.md`, `ROTAS.md`, `camera-disparos.webm`, `skeletons/`).
 - **Pendente:** teste em celular real (disparos seguidos com 4G fraco), geração da miniatura `.thumb` no envio, Supabase JS carregado sob demanda, migrar o banco para sa-east-1.
+
+## 15. Publicação do lote de melhorias (painel mobile, anfitrião, carrosséis, retrospectiva, pacote de poses)
+- **Produção:** `https://fotosdocasamento.online` → `dpl_GNdnV1zyXHL4i8GmoGW8Tv5C9Q8a` (SHA `cf8d4f8`, `feat/revela-redesign`, fast-forward da `main`). Ondas 1 a 3 do `docs/backlog/PLANO-CORRECAO.md` mais as demandas posteriores (termos lembrados, checkout focado e com limite de tempo, marca maior e menu da conta, sem "Experimentar câmera").
+- **Migration:** `20261112000100_pose_packs.sql` aplicada em produção antes do código (aditiva; as variantes `festa_36` e `celebracao_36` nascem desligadas). Reversão: `supabase/ops/rollback_pose_packs.sql`. **Ligar o pacote** só em Master → Planos, depois de uma compra de teste em sandbox.
+- **Cota de deploys:** o plano gratuito da Vercel limita deploys criados por API a 100 por 24 h (`api-deployments-free-per-day`), contados junto com cada push (um preview por branch). Cada push em cada branch gasta uma unidade: empurre para uma branch só durante o trabalho.
+- **Caminho que contorna a cota sem perder o procedimento:** `autoAssignCustomDomains=false` → push (fast-forward) na `main`, que cria o deployment `target=production` pela integração do GitHub, sem tráfego → validar pela API (READY, 0 erros no log, sem `NEXT_PUBLIC_MM_DEV_TOOLS`/`TEST_CLOCK` em Production) → `POST /v10/projects/{id}/promote/{deploymentId}` → `autoAssignCustomDomains=true` → smoke (rotas públicas 200, `/dev/*` 404).
+- **Variável de build do checkout:** `NEXT_PUBLIC_VALIDAPAY_CHECKOUT=1` está em Preview e Production (ramo nativo). Rode os e2e de plano com a mesma variável.
