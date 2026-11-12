@@ -47,7 +47,7 @@ interface AppState {
   /** Pode criar evento: local sempre; na nuvem só organizador com conta (não anônimo). */
   canCreate: boolean;
   /** Organizador entra com Google (só na nuvem). `next` é um caminho do próprio site. */
-  signInWithGoogle: (next?: string) => Promise<void>;
+  signInWithGoogle: (next?: string, opts?: { chooseAccount?: boolean }) => Promise<void>;
   /** Organizador recebe um link de acesso por e-mail (Supabase Auth, OTP). Devolve `null` se enviou, ou o motivo da falha. */
   signInWithEmail: (email: string, next?: string) => Promise<string | null>;
   /** Na nuvem, abre a sessão anônima do convidado (necessária até para ver a prévia do convite, com limite de tentativas por pessoa). */
@@ -159,10 +159,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [mode, repos, user]);
 
   const signInWithGoogle = useCallback(
-    async (next = "/criar") => {
+    async (next = "/criar", opts?: { chooseAccount?: boolean }) => {
       if (mode !== "supabase") return;
       const safe = next.startsWith("/") && !next.startsWith("//") ? next : "/";
-      await browserSupabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safe)}` } });
+      // `select_account`: o Google mostra a lista de contas em vez de entrar direto na última usada (trocar de conta)
+      await browserSupabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safe)}`, ...(opts?.chooseAccount ? { queryParams: { prompt: "select_account" } } : {}) } });
     },
     [mode],
   );

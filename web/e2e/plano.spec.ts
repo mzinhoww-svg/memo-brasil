@@ -27,7 +27,7 @@ test("rota nova sem sessão/evento: não trava e não mostra cobrança", async (
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.goto("/painel/11111111-1111-4111-8111-111111111111/plano");
-  await expect(page.getByRole("heading", { level: 1, name: "Não achamos este evento." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Não achamos este evento." })).toBeVisible();
   await expect(page.getByText("De que tamanho é a festa?")).toHaveCount(0);
   await ctx.close();
 });

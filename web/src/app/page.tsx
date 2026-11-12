@@ -10,6 +10,7 @@ import { useApp } from "@/features/app/provider";
 import { BackendNotice } from "@/features/app/backend-notice";
 import { safeNextPath } from "@/features/auth/safe-next";
 import { emailLoginEnabled } from "@/features/auth/email-login";
+import { AccountMenu } from "@/features/auth/AccountMenu";
 
 /** Retorno do OAuth com falha (`/?erro=login`, vindo de auth/callback): aviso dispensável no topo. */
 function LoginErrorBanner() {
@@ -93,6 +94,7 @@ export default function Home() {
   return (
     <main>
       <Main
+        account={host && user && cloud ? <AccountMenu /> : undefined}
         banner={<Suspense fallback={null}><LoginErrorBanner /></Suspense>}
         actions={<>{actions}<Link href="/exemplo" className="rv-btn rv-btn--block rv-btn--text">Experimentar câmera</Link></>}
         extra={<>
