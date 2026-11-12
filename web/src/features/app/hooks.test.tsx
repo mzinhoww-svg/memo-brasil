@@ -6,7 +6,7 @@ vi.mock("@/features/access/read", () => ({ readEventScoped: (...a: unknown[]) =>
 vi.mock("./provider", () => ({ useApp: () => app }));
 const app = { repos: {}, ready: true, user: { id: "u1" } as { id: string }, now: () => 1 };
 
-import { patchEventData, useEventData } from "./hooks";
+import { patchEventData, useCachedQuery, useEventData } from "./hooks";
 import { clearAppData, markAppDataStale } from "./data-cache";
 
 const result = { access: "membro", event: { id: "e1" }, participants: [], photos: [], reactions: [], counts: { mine: 0, total: 0 } };
@@ -102,5 +102,32 @@ describe("useEventData", () => {
     act(() => patchEventData(app.repos, "e1", (v) => ({ ...v, reactions: [{ eventId: "e1", photoId: "p1", authorId: "u1", kind: "amei" }] })));
     expect(r.current.reactions).toHaveLength(1);
     expect(readEventScoped).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("useCachedQuery", () => {
+  beforeEach(() => { vi.useFakeTimers(); clearAppData(app.repos); });
+  afterEach(() => vi.useRealTimers());
+  it("volta para a tela e mostra na hora; relê só quando velho ou invalidado; falha sem dados vira failed", async () => {
+    const fetcher = vi.fn(async () => ["festa"]);
+    const a = renderHook(() => useCachedQuery("meus", "u1", fetcher));
+    expect(a.result.current.data).toBeUndefined();
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(a.result.current.data).toEqual(["festa"]);
+    a.unmount();
+    const b = renderHook(() => useCachedQuery("meus", "u1", fetcher));
+    expect(b.result.current.data).toEqual(["festa"]);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    b.unmount();
+    markAppDataStale(app.repos);
+    renderHook(() => useCachedQuery("meus", "u1", fetcher));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    const bad = renderHook(() => useCachedQuery("outro", "u1", async () => { throw new Error("x"); }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(bad.result.current.failed).toBe(true);
+    const none = renderHook(() => useCachedQuery("nada", undefined, fetcher));
+    expect(none.result.current).toMatchObject({ data: undefined, failed: false });
   });
 });

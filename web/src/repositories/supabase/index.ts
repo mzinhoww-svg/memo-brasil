@@ -171,11 +171,23 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       },
       listMine: async (userId) => {
         if (!UUID_RE.test(userId)) return [];
-        // eventos em que entrou + os que criou: o Master não recebe a base inteira só para filtrar no navegador
-        const ids = (await selectAll("participants", (q) => q.select("event_id").eq("user_id", userId))).map((r) => String(r.event_id)).filter((id) => UUID_RE.test(id));
-        const mine = (sel: string) => selectAll("events", (q) => { const b = q.select(sel); return (ids.length ? b.or(`host_id.eq.${userId},id.in.(${ids.join(",")})`) : b.eq("host_id", userId)).order("created_at", { ascending: false }); });
-        try { return (await mine("*, event_themes(*)")).map(toEvent); }
-        catch (e) { if (!isMissingThemeSchema((e as RepositoryError).cause)) throw e; return (await mine("*")).map(toEvent); }
+        // as duas consultas saem juntas (antes: participações e depois eventos, em série): os eventos que criou e, pela
+        // participação (embed participants -> events, com a mesma RLS de events), os eventos em que entrou.
+        // O Master não recebe a base inteira só para filtrar no navegador.
+        const run = (sel: string) => Promise.all([
+          selectAll("events", (q) => q.select(sel).eq("host_id", userId).order("created_at", { ascending: false })),
+          selectAll("participants", (q) => q.select(`event_id, events(${sel})`).eq("user_id", userId)),
+        ]);
+        let hosted: Row[], joined: Row[];
+        try { [hosted, joined] = await run("*, event_themes(*)"); }
+        catch (e) { if (!isMissingThemeSchema((e as RepositoryError).cause)) throw e; [hosted, joined] = await run("*"); }
+        const byId = new Map<string, Row>();
+        for (const r of hosted) byId.set(String(r.id), r);
+        for (const p of joined) {
+          const e = (Array.isArray(p.events) ? p.events[0] : p.events) as Row | null | undefined; // evento apagado/oculto pela RLS: nulo
+          if (e && !byId.has(String(e.id))) byId.set(String(e.id), e);
+        }
+        return [...byId.values()].map(toEvent).sort((a, b) => b.createdAt - a.createdAt);
       },
       revealNow: async (eventId, reason) => void ok(await sb.rpc("reveal_now", { p_event: eventId, p_reason: reason ?? null })),
       get: async (id) => {

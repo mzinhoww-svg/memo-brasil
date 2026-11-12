@@ -152,6 +152,38 @@ const NONE: never[] = [];
 const ZERO = { mine: 0, total: 0 };
 
 /**
+ * Leitura com cache de módulo (stale-while-revalidate) para telas fora do evento (ex.: Meus eventos). Mostra na hora o que
+ * já foi lido para `key` e atualiza por baixo quando a entrada é velha (`freshMs`) ou foi invalidada por uma escrita.
+ * `key` indefinida = ainda não dá para ler (sem pessoa). A chave deve levar o id da pessoa.
+ */
+export function useCachedQuery<T>(name: string, key: string | undefined, fetcher: () => Promise<T>, freshMs = EVENT_FRESH_MS): { data: T | undefined; failed: boolean; refresh: () => Promise<void> } {
+  const { repos } = useApp();
+  const store = storeFor<T>(repos, name);
+  const fetchRef = useRef(fetcher);
+  useEffect(() => { fetchRef.current = fetcher; });
+  const subscribe = useCallback((cb: () => void) => (key ? store.subscribe(key, cb) : () => undefined), [store, key]);
+  const entry = useSyncExternalStore(subscribe, () => (key ? store.get(key) : undefined), () => undefined);
+  const [failedKey, setFailedKey] = useState<string | undefined>();
+  const load = useCallback(async (force: boolean) => {
+    if (!key) return;
+    try {
+      await store.revalidate(key, () => fetchRef.current(), { force });
+      setFailedKey(undefined);
+    } catch {
+      if (!store.get(key)) setFailedKey(key); // com dados na tela, a falha não derruba nada
+    }
+  }, [store, key]);
+  useEffect(() => {
+    if (!key) return;
+    const e = store.get(key);
+    if (e && !e.stale && Date.now() - e.at < freshMs) return;
+    void Promise.resolve().then(() => load(false));
+  }, [store, key, load, freshMs]);
+  const refresh = useCallback(() => load(true), [load]);
+  return { data: entry?.value, failed: !!key && failedKey === key && !entry, refresh };
+}
+
+/**
  * URLs para exibir as fotos (miniatura nas grades, inteira nas telas cheias). Lê do cache de módulo (`photo-urls`): a
  * mesma foto tem a mesma URL em todas as telas, as que faltam saem num único lote e as assinadas renovam antes de vencer.
  * URLs locais (object URL) continuam com dono: liberadas ao sair, como antes.

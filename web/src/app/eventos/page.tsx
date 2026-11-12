@@ -1,46 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 import { Button, GoogleButton, LiveIndicator, Logo, Skeleton } from "@/components/revela";
 import { endAt, eventStatus, type MemoEvent } from "@/domain/event";
 import { hhmm } from "@/features/guest/format";
 import { AnfitriaoInicio } from "@/revela/screens/AnfitriaoInicio";
-import { formatDate } from "@/features/app/hooks";
+import { formatDate, useCachedQuery } from "@/features/app/hooks";
 import { loadMyEvents, type MyEvents } from "@/features/app/my-events";
 import { useApp } from "@/features/app/provider";
 
 /** Meus eventos: gestão separada da apresentação pública. Só os eventos da própria conta (criados ou em que entrou). */
 export default function MeusEventos() {
   const { repos, ready, user, now, backend, canCreate, signInWithGoogle } = useApp();
-  const [data, setData] = useState<MyEvents | undefined>();
-  const [failed, setFailed] = useState(false);
-
-  const load = useCallback(async () => {
-    if (!user) return;
-    setFailed(false);
-    try {
-      setData(await loadMyEvents(repos, user.id, now()));
-    } catch {
-      setFailed(true);
-    }
-  }, [repos, user, now]);
-
-  useEffect(() => {
-    if (!ready) return;
-    const t = setTimeout(() => void load(), 0);
-    return () => clearTimeout(t);
-  }, [ready, load]);
+  // cache de módulo: voltar do painel para cá mostra na hora o que já foi lido e atualiza por baixo
+  const mine = useCachedQuery<MyEvents>("meus-eventos", ready && user ? user.id : undefined, () => loadMyEvents(repos, user!.id, now()));
+  const data = mine.data;
+  const failed = mine.failed;
+  const load = mine.refresh;
 
   const organizer = backend === "local" || canCreate;
-  const [counts, setCounts] = useState<{ guests: number; photos: number } | undefined>();
   const hero = data ? (data.active[0] ?? data.ended[0]) : undefined;
-  useEffect(() => {
-    if (!hero) return;
-    let live = true;
-    void Promise.all([repos.participants.count(hero.id), repos.photos.count(hero.id)]).then(([guests, photos]) => { if (live) setCounts({ guests, photos }); }, () => undefined);
-    return () => { live = false; };
-  }, [repos, hero]);
+  const counts = useCachedQuery<{ guests: number; photos: number }>(
+    "contagens-evento", user && hero ? `${user.id}|${hero.id}` : undefined,
+    async () => { const [guests, photos] = await Promise.all([repos.participants.count(hero!.id), repos.photos.count(hero!.id)]); return { guests, photos }; },
+  ).data;
   const nowMs = now();
   const revealText = (e: MemoEvent) => {
     if (e.revealedAt || (e.revealEnabled && e.revealAt && e.revealAt <= nowMs) || !e.revealEnabled) return "Revelada";

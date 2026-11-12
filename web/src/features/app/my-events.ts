@@ -15,13 +15,21 @@ export interface MyEvents {
  * no servidor, `listMine` filtra por `host_id`/participação em vez de baixar tudo o que a RLS permite ver.
  */
 export async function loadMyEvents(repos: Repositories, userId: string, now: number): Promise<MyEvents> {
-  const all = repos.events.listMine ? await repos.events.listMine(userId) : await repos.events.list();
+  let all: MemoEvent[];
+  let joined: MemoEvent[];
+  if (repos.events.listMine) {
+    // o servidor já devolve só os eventos criados ou em que a pessoa entrou: não há por que conferir participação de novo
+    all = await repos.events.listMine(userId);
+    joined = all.filter((e) => e.hostId !== userId);
+  } else {
+    all = await repos.events.list();
+    const others = all.filter((e) => e.hostId !== userId);
+    joined = (await Promise.all(others.map(async (e) => ((await repos.participants.get(e.id, userId)) ? e : undefined)))).filter(Boolean) as MemoEvent[];
+  }
   const hosted = all.filter((e) => e.hostId === userId).sort((a, b) => b.createdAt - a.createdAt);
-  const others = all.filter((e) => e.hostId !== userId);
-  const member = await Promise.all(others.map(async (e) => ((await repos.participants.get(e.id, userId)) ? e : undefined)));
   return {
     active: hosted.filter((e) => eventStatus(e, now) === "ativo"),
     ended: hosted.filter((e) => eventStatus(e, now) !== "ativo"),
-    joined: (member.filter(Boolean) as MemoEvent[]).sort((a, b) => b.createdAt - a.createdAt),
+    joined: joined.sort((a, b) => b.createdAt - a.createdAt),
   };
 }
