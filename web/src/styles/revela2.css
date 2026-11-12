@@ -335,10 +335,6 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 .row > svg { width: 22px; height: 22px; flex: none; }
 
 /* ===== Paywall com planos reais ===== */
-.planscroll { margin: 0 -20px; padding: 2px 20px; overflow: hidden; width: calc(100% + 40px); }
-.rv-plans--scroll { display: flex; gap: 8px; width: max-content; }
-.rv-plans--scroll .rv-plan { width: 112px; flex: none; }
-.rv-plans--scroll .rv-plan__price { font-size: 24px; }
 .paynote { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 12px 0 2px; font: 500 12px/16px var(--font-sans); color: var(--ink-muted); }
 .paynote svg { width: 14px; height: 14px; flex: none; }
 .paynote svg + span + svg { margin-left: 10px; }
@@ -384,7 +380,7 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 .tile { padding: 12px; border-radius: var(--radius-md); background: var(--surface-2); display: flex; flex-direction: column; gap: 2px; }
 .tile span { font: 500 12px/16px var(--font-sans); color: var(--ink-muted); }
 .tile b { font: 400 26px/30px var(--font-display); }
-.tile small { font: 400 11px/14px var(--font-sans); color: var(--ink-faint); }
+.tile small { font: 400 11px/14px var(--font-sans); color: var(--ink-muted); }
 .seg { display: flex; padding: 4px; border-radius: var(--radius-md); background: var(--surface-2); }
 .seg span { flex: 1; text-align: center; height: 38px; line-height: 38px; border-radius: 9px; font: 600 14px/38px var(--font-sans); color: var(--ink-muted); }
 .seg span.on { background: var(--surface-3); color: var(--ink); box-shadow: 0 1px 2px var(--k-00000088); }
@@ -536,8 +532,10 @@ b.was { font: 400 26px/30px var(--font-display); margin: 0; }
 .mpublish b { font: 600 15px/1 var(--font-sans); }
 .phonepv { width: 300px; height: 470px; border-radius: 36px; padding: 10px; background: var(--black-1); box-shadow: 0 0 0 1px var(--k-ffffff1a), 0 30px 60px var(--k-000000cc); }
 .phonepv-in { height: 100%; border-radius: 28px; background: var(--surface-1); padding: 12px 16px 16px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
-.phonepv .planscroll { margin: 0 -16px; padding: 2px 16px; }
-.phonepv .rv-plans--scroll .rv-plan { width: 96px; padding: 12px 10px; }
+/* prévia do paywall (Master > Planos): janela fixa com a trilha deslocada até o plano em foco; a escolha real usa PlanCards (rolagem nativa) */
+.phonepv-janela { margin: 0 -16px; padding: 2px 16px; overflow: hidden; width: calc(100% + 32px); }
+.phonepv-trilha { display: flex; gap: 8px; width: max-content; }
+.phonepv-trilha .rv-plan { width: 96px; padding: 12px 10px; flex: none; }
 .phonepv .rv-plan__price { font-size: 20px; }
 .phonepv .paynote { margin: 12px 0; }
 .mmodal { position: absolute; inset: 0; background: var(--k-000000a6); display: flex; align-items: center; justify-content: center; z-index: 5; }

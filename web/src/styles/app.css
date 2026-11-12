@@ -28,12 +28,6 @@
 .app-camera-msg { padding: var(--space-6); text-align: center; color: var(--bg); }
 .app-dialog { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; background: color-mix(in srgb, var(--ink) 55%, transparent); }
 .app-dialog-panel { max-height: 92dvh; overflow-y: auto; width: 100%; max-width: 480px; background: var(--bg); border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: var(--space-6) var(--space-4) calc(var(--space-8) + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: var(--space-4); }
-.app-admin { display: grid; grid-template-columns: 1fr; min-height: 100dvh; background: var(--surface-2); }
-.app-admin-side { display: none; }
-.app-admin-main { padding: var(--space-6) var(--space-4); display: flex; flex-direction: column; gap: var(--space-6); min-width: 0; }
-.app-admin-navm { display: flex; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-2); }
-.app-admin-navm a { text-decoration: none; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; }
-@media (min-width: 900px) { .app-admin { grid-template-columns: 256px 1fr; } .app-admin-side { display: block; position: sticky; top: 0; height: 100dvh; } .app-admin-navm { display: none; } .app-admin-main { padding: var(--space-8) var(--space-9); max-width: 1100px; } }
 .app-card { background: var(--bg); border-radius: var(--radius-lg); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
 .app-qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, max-content)); gap: var(--space-4); }
 @media print { .no-print { display: none !important; } body { background: var(--paper); color: var(--on-paper); } }
@@ -71,12 +65,8 @@
 /* UXA-114: links soltos com alvo de toque de 44px */
 .app-link { display: inline-flex; align-items: center; min-height: var(--size-alvo); padding: 0 var(--space-2); }
 /* UXA-105: painel centralizado e formulários que usam a largura (343px só no mobile) */
-@media (min-width: 900px) { .app-admin-main { margin-inline: auto; width: 100%; box-sizing: border-box; } }
 .app-form-col { max-width: 343px; }
 @media (min-width: 768px) { .app-form-col { max-width: 560px; } }
-/* UXA-107: abas do painel com indicação de rolagem e encaixe */
-.app-admin-navm { scroll-snap-type: x proximity; -webkit-mask-image: linear-gradient(to right, var(--black-1) calc(100% - 28px), transparent); mask-image: linear-gradient(to right, var(--black-1) calc(100% - 28px), transparent); padding-right: 28px; }
-.app-admin-navm a { scroll-snap-align: start; }
 /* UXA-101/103: "Evento criado" usa a largura em desktop; QR centralizado; URL em campo com Copiar */
 @media (min-width: 900px) { .app-col--pronto { max-width: 960px; } .pronto-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); align-items: start; } }
 .pronto-qr { align-self: center; border-radius: var(--radius-md); width: min(100%, 240px); height: auto; }
@@ -107,7 +97,6 @@
 .plano-eyebrow { margin: 0; font-size: 13px; font-weight: 700;   color: var(--ink-muted); }
 .plano-escolha, .plano-estado { display: flex; flex-direction: column; gap: var(--space-4); max-width: 520px; }
 .plano-colunas { display: flex; flex-direction: column; gap: var(--space-6); }
-@media (min-width: 900px) { .plano-escolha { max-width: none; } .plano-colunas { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: var(--space-8); } .plano-resumo { position: sticky; top: var(--space-4); } }
 .plano-lista { display: flex; flex-direction: column; gap: var(--space-2); border: 0; padding: 0; margin: 0; }
 .plano-card { position: relative; display: flex; align-items: center; gap: var(--space-3); min-height: var(--size-alvo); padding: var(--space-3) var(--space-4); border: 1.5px solid var(--line); border-radius: var(--radius-lg); background: var(--bg); cursor: pointer; }
 .plano-card[data-selected] { border-width: 2px; border-color: var(--ink); background: var(--surface-2); }
@@ -139,12 +128,6 @@
 .plano-resumo-pedido > div:last-child { border-bottom: 0; }
 .plano-resumo-pedido dt { font-size: 14px; color: var(--ink-muted); flex: none; }
 .plano-resumo-pedido dd { margin: 0; font-weight: 700; font-size: 16px; text-align: right; overflow-wrap: anywhere; }
-/* Celular: o botão de pagar fica sempre à mão (não some atrás da lista) e respeita a barra do aparelho (viewport-fit=cover). */
-@media (max-width: 899px) {
-  .plano-colunas { gap: var(--space-4); }
-  .plano-resumo { display: contents; } /* o botão passa a grudar na coluna inteira, não só no bloco do resumo */
-  .plano-pagar { position: sticky; bottom: 0; z-index: 5; background: var(--bg); padding-block: var(--space-3) max(var(--space-3), env(safe-area-inset-bottom)); box-shadow: 0 -10px 14px -12px rgba(0, 0, 0, 0.28); }
-}
 .plano-nota { font-size: 14px; text-align: center; }
 .plano-espera { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); background: var(--surface-2); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); flex-wrap: wrap; }
 .plano-aguardando { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-size: 14px; font-weight: 700; letter-spacing: 0.05em;  color: var(--carimbo); }

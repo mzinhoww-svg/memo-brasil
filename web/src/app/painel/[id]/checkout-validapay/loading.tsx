@@ -1,6 +1,6 @@
-import { Skeleton } from "@/components/revela/Skeleton";
+import { ScreenSkeleton } from "@/components/revela/ScreenSkeleton";
 
-/** Esqueleto enquanto a seção chega (estas seções usam a casca antiga do painel, com menu lateral). */
+/** Esqueleto do pagamento (tela cheia, sem abas). */
 export default function Loading() {
-  return <Skeleton label="Abrindo o painel…" />;
+  return <ScreenSkeleton variant="lista" label="Abrindo pagamento…" />;
 }

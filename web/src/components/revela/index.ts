@@ -1,4 +1,3 @@
-export { AdminNav, type AdminNavItem } from "./AdminNav";
 export { Breadcrumbs, type Crumb } from "./Breadcrumbs";
 export { Button, type ButtonVariant } from "./Button";
 export { Chip, Chips } from "./Chip";

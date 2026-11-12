@@ -26,7 +26,7 @@ const ACTIVE = /Plano .* ativo\./;
 test("Pagar cria o pedido e abre o Checkout Pro no checkoutUrl esperado (navegação de página inteira)", async ({ browser, baseURL }) => {
   const { ctx, page, sim, goto } = await openPlano(browser, owner, eventId, baseURL!);
   await goto();
-  await expect(page.getByRole("heading", { level: 1, name: "De que tamanho é a festa?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "De que tamanho é a festa?" })).toBeVisible();
   await expect(page.getByText("Pagamento único por evento, no Mercado Pago. Cartão ou Pix, conforme disponível. Sem assinatura.")).toBeVisible();
   await expect(page.getByRole("radio", { name: /Casamento/ })).toBeChecked();
   await page.getByRole("button", PAY).click();
@@ -141,7 +141,7 @@ test("retorno ?retorno=sucesso com pedido ainda pendente: confirma sem liberar n
 test("retorno ?retorno=sucesso SEM nenhum pedido pago no servidor não mostra plano ativo", async ({ browser, baseURL }) => {
   const { ctx, page, goto } = await openPlano(browser, owner, eventId, baseURL!, "?retorno=sucesso&status=approved&payment_id=1");
   await goto();
-  await expect(page.getByRole("heading", { level: 1, name: "De que tamanho é a festa?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "De que tamanho é a festa?" })).toBeVisible();
   await expect(page.getByText(ACTIVE)).toHaveCount(0);
   await expect.poll(() => new URL(page.url()).search).toBe("");
   await ctx.close();

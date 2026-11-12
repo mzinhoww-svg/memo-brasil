@@ -354,7 +354,7 @@ test("anfitrião testa como convidado e volta ao painel por 'Continuar como'", a
   await expect(page.getByRole("heading", { name: "Você está dentro, Emy." })).toBeVisible();
   await page.goto(`/painel/${id}`);
   await expect(page.getByRole("heading", { level: 1, name: "Volta ao painel" })).toBeVisible();
-  await expect(page.getByRole("link", { name: /^Convidados/ })).toBeVisible();
+  await expect(page.locator(".pgrid").getByRole("link", { name: /^Convidados/ })).toBeVisible();
 });
 
 test("cabeçalhos de segurança e CSP sem violações de console nas telas principais", async ({ page }) => {

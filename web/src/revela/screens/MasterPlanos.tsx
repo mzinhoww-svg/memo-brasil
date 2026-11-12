@@ -49,8 +49,8 @@ export function PhonePreview({ plans = REF_PREVIEW, cta = "Continuar · R$ 199",
         <div className="rv-sheet__grab" />
         <h3 className="rv-title" style={{ fontSize: "18px" }}>Escolha o plano</h3>
         <p className="rv-caption" style={{ margin: "2px 0 12px" }}>Pague uma vez por evento.</p>
-        <div className="planscroll">
-          <div className="rv-plans rv-plans--scroll" style={{ transform: `translateX(-${shift}px)` }}>
+        <div className="phonepv-janela">
+          <div className="rv-plans phonepv-trilha" style={{ transform: `translateX(-${shift}px)` }}>
             {plans.map((p) => (
               <div key={p.code} className={`rv-plan${p.on ? " rv-plan--on" : ""}${p.gold ? " rv-plan--gold" : ""}`}>
                 <span className="rv-plan__tier">{p.tier}</span>

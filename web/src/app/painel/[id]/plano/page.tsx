@@ -3,6 +3,7 @@
 import { redirect, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/revela";
+import { ScreenH1 } from "@/revela/painel-ui";
 import { useAdmin } from "@/features/admin/context";
 import {
   BillingError, BillingUnavailableError, ProviderUnavailableError, formatBRL, getPublicSettings, listPublicPlans, openOrder, startCheckout,
@@ -25,10 +26,10 @@ type Down = { planCode: string };
  * o pedido é restaurado do servidor. `?retorno=` e os parâmetros do provedor são só dica de texto e saem da URL na leitura.
  */
 export default function PlanoPage() {
-  return <Suspense fallback={<Skeleton label="Abrindo o plano…" />}><PlanoConteudo /></Suspense>;
+  return <Suspense fallback={<div className="pf-pad"><Skeleton label="Abrindo o plano…" /></div>}><PlanoCorpo /></Suspense>;
 }
 
-function PlanoConteudo() {
+function PlanoCorpo() {
   const { event, refresh, participants } = useAdmin();
   const initialPlan = useSearchParams()?.get("plano") ?? null;
   const eventId = event.id;
@@ -108,13 +109,13 @@ function PlanoConteudo() {
 
   if (loadError) {
     return (
-      <div className="plano-estado"><h1 className="titulo-tela app-h1">Não deu para abrir o plano.</h1>
+      <div className="plano-estado pf-pad"><ScreenH1 className="titulo-tela app-h1">Não deu para abrir o plano.</ScreenH1>
         <p className="app-p app-muted">Confira a conexão e tente de novo.</p>
         <button type="button" className="rv-btn rv-btn--primario rv-btn--bloco" onClick={() => void load()}><span>Tentar de novo</span></button>
       </div>
     );
   }
-  if (!plans) return <Skeleton label="Abrindo o plano…" />;
+  if (!plans) return <div className="pf-pad"><Skeleton label="Abrindo o plano…" /></div>;
 
   const painel = `/painel/${eventId}`;
   let body;
@@ -132,8 +133,7 @@ function PlanoConteudo() {
     );
   }
   return (
-    <div className="plano-pagina">
-      <p className="plano-eyebrow">{event.title} · Plano</p>
+    <div className="plano-pagina pf-pad">
       {body}
     </div>
   );

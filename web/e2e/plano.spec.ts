@@ -5,9 +5,11 @@ import { createViaWizard } from "./helpers";
 test("modo local: /painel/[id]/plano mostra B7 (Evento maior?) e o atalho Plano no resumo", async ({ page }) => {
   const { id } = await createViaWizard(page, { title: "Plano local" });
   await page.goto(`/painel/${id}`);
-  await page.getByRole("link", { name: /^Plano/ }).click();
+  await page.locator(".pgrid").getByRole("link", { name: /^Plano/ }).click();
   await expect(page).toHaveURL(new RegExp(`/painel/${id}/plano$`));
-  await expect(page.getByRole("heading", { level: 1, name: "De que tamanho é a festa?" })).toBeVisible();
+  // no quadro do painel o h1 é "Plano"; a pergunta da escolha é o título da seção (h2)
+  await expect(page.getByRole("heading", { level: 1, name: "Plano" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "De que tamanho é a festa?" })).toBeVisible();
   await expect(page.getByText("Seu plano")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Evento maior?" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Tenho um código" })).toBeVisible();
@@ -27,7 +29,7 @@ test("rota nova sem sessão/evento: não trava e não mostra cobrança", async (
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.goto("/painel/11111111-1111-4111-8111-111111111111/plano");
-  await expect(page.getByRole("heading", { level: 1, name: "Não achamos este evento." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Não achamos este evento." })).toBeVisible();
   await expect(page.getByText("De que tamanho é a festa?")).toHaveCount(0);
   await ctx.close();
 });

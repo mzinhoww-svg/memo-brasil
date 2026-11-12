@@ -403,6 +403,12 @@ describe("página /painel/[id]/plano", () => {
     await settle();
     expect(window.location.search).toBe("?plano=casamento");
   });
+  it("o quadro do painel já tem título e nome do evento: a página não repete o eyebrow 'evento · Plano'", async () => {
+    render(<PlanoPage />);
+    await screen.findByRole("heading", { name: "De que tamanho é a festa?" });
+    expect(screen.queryByText("Ana & Rui · Plano")).toBeNull();
+    expect(screen.queryByText(/ · Plano$/)).toBeNull();
+  });
   it("código aplicado mostra B9", async () => {
     api.redeemCode.mockResolvedValue({ applied: true, planCode: "casamento", reason: "ok" });
     render(<PlanoPage />);

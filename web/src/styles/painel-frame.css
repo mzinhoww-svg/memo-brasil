@@ -96,3 +96,10 @@ html:has(.pf) { scroll-padding-top: calc(var(--pf-top, 112px) + var(--space-3));
 .pf .linkbox { min-width: 0; }
 .pf .linkbox > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pf .linkbox .rv-btn { flex: none; }
+
+/* Plano: o miolo do PlanoConteudo (sem .scr) em coluna; o botão vai para o rodapé fixo do quadro */
+.plano-nat { display: flex; flex-direction: column; }
+.plano-nat .hero-ev { margin-top: 0 !important; }
+.plano-nat > .grow { flex: 0 0 var(--space-2); min-height: 0; }
+.plano-nat .plano-erro-nativo { margin: var(--space-2) 0 0; }
+.plano-pagina.pf-pad .plano-escolha, .plano-pagina.pf-pad .plano-estado { max-width: none; }

@@ -11,6 +11,21 @@ export class ValidaPayEnvironmentConflictError extends Error {
   constructor() { super("Existe um pedido em outro ambiente de pagamento. Não crie outro pagamento; consulte o suporte para regularizar o pedido."); this.name = "ValidaPayEnvironmentConflictError"; }
 }
 
+/** Tempo máximo de cada chamada do carregamento do pagamento (config, recuperar pedido, conta, cotação). */
+export const LOAD_TIMEOUT_MS = 12_000;
+
+export class ValidaPayTimeoutError extends Error {
+  constructor() { super("A conexão com o pagamento demorou demais. Confira a internet e tente de novo; nada foi cobrado."); this.name = "ValidaPayTimeoutError"; }
+}
+
+/** Rejeita com `ValidaPayTimeoutError` se a chamada passar de `ms`. Não cancela a chamada (só deixa de esperar por ela). */
+export function withTimeout<T>(work: PromiseLike<T>, ms: number = LOAD_TIMEOUT_MS): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new ValidaPayTimeoutError()), ms);
+    work.then((v) => { clearTimeout(timer); resolve(v); }, (e) => { clearTimeout(timer); reject(e); });
+  });
+}
+
 export function validateReceiptEnvironment(receipt: SandboxReceipt, environment: ValidaPayEnvironment): SandboxReceipt {
   if (!receipt || receipt.environment !== environment) throw new ValidaPayEnvironmentConflictError();
   return receipt;

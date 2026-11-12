@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import {
-  AdminNav, Breadcrumbs, Button, GoogleButton, Chip, CountBadge, DataList, Field, Icon, Logo, Notice, OptionGroup, PostCard, Progress, Stepper, TabBar, Tabs,
+  Breadcrumbs, Button, GoogleButton, Chip, CountBadge, DataList, Field, Icon, Logo, Notice, OptionGroup, PostCard, Progress, Stepper, TabBar, Tabs,
 } from ".";
 
 vi.mock("next/link", () => ({ default: ({ href, children, ...p }: { href: string; children: React.ReactNode }) => <a href={href} {...p}>{children}</a> }));
@@ -82,17 +82,12 @@ describe("Tabs", () => {
   });
 });
 
-describe("TabBar e AdminNav", () => {
+describe("TabBar", () => {
   it("marca a aba atual com aria-current e mantém o CTA acima", () => {
     render(<TabBar cta={{ href: "/postar", label: "Postar daqui" }} items={[{ href: "/a", label: "Agora", icon: "agora", current: true }, { href: "/e", label: "Explorar", icon: "explorar" }, { href: "/v", label: "Você", icon: "voce" }]} />);
     expect(screen.getByRole("link", { name: "Agora" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Postar daqui" })).toHaveClass("rv-btn--cta");
     expect(within(screen.getByRole("navigation", { name: "Navegação principal" })).getAllByRole("link")).toHaveLength(3);
-  });
-  it("AdminNav mostra contador só quando há pendência", () => {
-    render(<AdminNav eventName="Emy e Igor" eventState="ao vivo" switchHref="/" items={[{ href: "#c", label: "Conteúdo", current: true, count: 3 }, { href: "#v", label: "Visão geral", count: 0 }]} />);
-    expect(screen.getByLabelText("3 pendentes")).toBeInTheDocument();
-    expect(screen.queryByLabelText("0 pendentes")).toBeNull();
   });
 });
 

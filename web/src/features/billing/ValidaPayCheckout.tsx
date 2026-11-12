@@ -15,7 +15,9 @@ import { useRouter } from "next/navigation";
 import { browserSupabase } from "@/lib/supabase/client";
 import { formatBRL, quote } from "./api";
 import { prepareCard } from "./validapay-card";
-import { ValidaPayOpenOrderError, ValidaPayEnvironmentConflictError, validateReceiptEnvironment, recoverSandbox, sandboxCall, sandboxConfig, sandboxRefund, type SandboxConfig, type SandboxReceipt } from "./validapay-client";
+import { LOAD_TIMEOUT_MS, ValidaPayTimeoutError, withTimeout, ValidaPayOpenOrderError, ValidaPayEnvironmentConflictError, validateReceiptEnvironment, recoverSandbox, sandboxCall, sandboxConfig, sandboxRefund, type SandboxConfig, type SandboxReceipt } from "./validapay-client";
+
+const SLOW_AFTER_MS = Math.min(8_000, LOAD_TIMEOUT_MS);
 
 /** Native checkout. The Edge Function and database authorize payment operations. */
 export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa", wrap = "festa" }: { eventId: string; planCode: string; eventTitle?: string; wrap?: string }) {
@@ -36,6 +38,7 @@ export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa",
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [loadVersion, setLoadVersion] = useState(0);
+  const [slow, setSlow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -46,20 +49,21 @@ export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa",
 
   const fail = useCallback((cause: unknown, fallback: string) => {
     if (cause instanceof ValidaPayEnvironmentConflictError) { setConfig(null); setError(cause.message); }
+    else if (cause instanceof ValidaPayTimeoutError) setError(cause.message);
     else setError(cause instanceof ValidaPayOpenOrderError ? cause.message : fallback);
   }, []);
 
   useEffect(() => {
     let stopped = false;
     async function load() {
-      setLoading(true); setLoadFailed(false); setError(null);
+      setLoading(true); setLoadFailed(false); setError(null); setSlow(false);
       try {
-        const cfg = await sandboxConfig();
+        const cfg = await withTimeout(sandboxConfig());
         if (stopped) return;
         if (cfg.environment !== "sandbox" && cfg.environment !== "production") throw new Error("invalid_environment");
         setConfig(cfg);
         if (!cfg.enabled) return;
-        const [previous, user] = await Promise.all([recoverSandbox(eventId), browserSupabase().auth.getUser()]);
+        const [previous, user] = await Promise.all([withTimeout(recoverSandbox(eventId)), withTimeout(browserSupabase().auth.getUser())]);
         if (stopped) return;
         if (previous) validateReceiptEnvironment(previous, cfg.environment);
         const restore = previous && (previous.planCode === planCode || ["pendente", "criado"].includes(previous.status)) ? previous : null;
@@ -68,7 +72,7 @@ export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa",
         setAccountName(String(meta?.full_name ?? meta?.name ?? user.data.user?.email?.split("@")[0] ?? "").trim());
         setMethod(restore?.paymentMethod === "card" ? "card" : "pix");
         if (!restore || !["pago", "pendente", "criado"].includes(restore.status)) {
-          const quoted = await quote(eventId, planCode);
+          const quoted = await withTimeout(quote(eventId, planCode));
           if (!stopped) {
             if (!quoted.payable) {
               const messages = { ja_incluido: "Este plano já está incluído no seu evento.", evento_encerrado: "O evento foi encerrado e não permite novas compras.", plano_inativo: "Este plano não está disponível para compra.", valor_minimo: "O valor disponível não permite esta compra.", ok: "Este plano não está disponível para compra." };
@@ -83,6 +87,13 @@ export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa",
     void load();
     return () => { stopped = true; };
   }, [eventId, planCode, fail, loadVersion]);
+
+  // carregando há mais de ~8 s: avisa e oferece saída dentro do mesmo layout (cada chamada ainda vence em 12 s)
+  useEffect(() => {
+    if (!loading) return;
+    const t = setTimeout(() => setSlow(true), SLOW_AFTER_MS);
+    return () => clearTimeout(t);
+  }, [loading, loadVersion]);
 
   useEffect(() => { let on = true; void listPublicPlans().then((p) => { if (on) setPlans(p); }, () => undefined); return () => { on = false; }; }, []);
   useEffect(() => { const t = setInterval(() => setTick(Date.now()), 1000); return () => clearInterval(t); }, []);
@@ -236,9 +247,22 @@ export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa",
     finally { submitting.current = false; setBusy(false); }
   };
 
+  if (loading && slow) {
+    return (
+      <div className="scr">
+        <div className="safe">
+          <Skeleton label="Abrindo pagamento…" />
+          <h2 className="rv-title-lg" style={{ marginTop: "var(--space-5)" }}>Está demorando mais que o normal</h2>
+          <p className="rv-body muted" role="status" style={{ margin: "8px 0 var(--space-5)" }}>A conexão com o pagamento está lenta. Você pode esperar mais um pouco ou tentar de novo; nada foi cobrado.</p>
+          <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={() => setLoadVersion((version) => version + 1)}>Tentar de novo</button>
+          <button type="button" className="rv-btn rv-btn--text rv-btn--block" onClick={back}>Voltar aos planos</button>
+        </div>
+      </div>
+    );
+  }
   if (loading) return <Skeleton label="Abrindo pagamento…" />;
   if (loadFailed) return <PagamentoFalhou title="Checkout indisponível" stamp="INDISPONÍVEL" message={error ?? "Não foi possível abrir o checkout."} primary="Tentar novamente" secondary="Voltar aos planos" onPrimary={() => setLoadVersion((version) => version + 1)} onSecondary={back} onClose={back} />;
-  if (!config?.enabled) return <PagamentoFalhou title="Checkout indisponível" stamp="INDISPONÍVEL" message={error ?? "Esta forma de pagamento ainda não está disponível."} primary="Voltar aos planos" secondary={null} onPrimary={back} onClose={back} />;
+  if (!config?.enabled) return <PagamentoFalhou title="Checkout indisponível" stamp="INDISPONÍVEL" message={error ?? "Esta forma de pagamento ainda não está disponível."} primary="Tentar de novo" secondary="Voltar aos planos" onPrimary={() => setLoadVersion((version) => version + 1)} onSecondary={back} onClose={back} />;
   if (order?.status === "estornado") return <PagamentoFalhou title="Pagamento estornado" stamp="ESTORNADO" message="A devolução foi confirmada e o benefício deste pagamento foi revogado." primary="Ir para o painel" secondary={null} onPrimary={() => router.push(`/painel/${eventId}`)} onClose={() => router.push(`/painel/${eventId}`)} />;
   if (order?.status === "pago") {
     const active = order.entitlementActive;

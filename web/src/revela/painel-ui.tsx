@@ -1,6 +1,6 @@
 "use client";
 /* Peças repetidas das telas do painel (17…26): o mesmo markup/classes da referência, escrito uma vez. */
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ComponentPropsWithRef, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { reduced } from "@/lib/motion/revela-motion";
 
@@ -43,6 +43,12 @@ export function ScreenHeader({ onBack, title, action, size = 18, backLabel, clos
       {action ?? <span style={{ width: "44px" }} />}
     </div>
   );
+}
+
+/** Título da tela: `h1` sozinho; dentro do quadro, que já tem o `h1` único da rota, vira `h2` com a mesma aparência. */
+export function ScreenH1({ children, ...rest }: ComponentPropsWithRef<"h1">) {
+  const embedded = useEmbedded();
+  return embedded ? <h2 {...rest}>{children}</h2> : <h1 {...rest}>{children}</h1>;
 }
 
 export function BackButton({ onBack, label = "Voltar", close = false }: { onBack?: () => void; label?: string; close?: boolean }) {

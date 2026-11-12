@@ -1,15 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
-import { AdminNav, Breadcrumbs, Button, CountBadge, EventTheme, GoogleButton, Icon, PainelFrame, ScreenSkeleton, Skeleton, type PainelTab } from "@/components/revela";
+import { Button, GoogleButton, Icon, PainelFrame, ScreenSkeleton, type PainelTab } from "@/components/revela";
 import { PainelBodySkeleton } from "@/components/revela/PainelBodySkeleton";
-import { eventStatus } from "@/domain/event";
 import { LOCAL_ACTOR, can } from "@/domain/roles";
 import { computeRevealStatus } from "@/domain/reveal";
 import { moderationQueue } from "@/domain/photo";
-import { formatDate, isUuid, useClock, useEventData } from "@/features/app/hooks";
+import { isUuid, useClock, useEventData } from "@/features/app/hooks";
 import { copyFor } from "@/features/app/copy";
 import { useApp } from "@/features/app/provider";
 import { AdminProvider } from "@/features/admin/context";
@@ -28,10 +26,12 @@ export const SECTIONS = [
 
 /**
  * Rotas já migradas para o `PainelFrame` (quadro mobile único): título único da tela e rota pai da seta de voltar.
- * "" é o painel inicial. As sub-telas dos Ajustes (Aparência, Excluir) voltam aos Ajustes; o convite A5, aos convites.
- * Plano, QR e a visão geral ainda não migraram e mantêm o comportamento anterior.
+ * "" é o painel inicial (`ROOT_ROUTE`). As sub-telas dos Ajustes (Plano, Aparência, Excluir) voltam aos Ajustes; o convite A5 e o QR, aos
+ * convites. Toda rota do painel abre no quadro, menos o pagamento (`FULLSCREEN`).
  */
 export const FRAME_ROUTES: Record<string, { title: string; parent: string }> = {
+  plano: { title: "Plano", parent: "configuracoes" },
+  qr: { title: "QR para as mesas", parent: "convites" },
   conteudo: { title: "Conteúdo", parent: "" },
   aparencia: { title: "Aparência", parent: "configuracoes" },
   configuracoes: { title: "Ajustes", parent: "" },
@@ -46,15 +46,20 @@ export const FRAME_ROUTES: Record<string, { title: string; parent: string }> = {
   convite: { title: "Convite A5", parent: "convites" },
 };
 
-/** Seções que ainda não têm tela do desenho: mantêm o cabeçalho e a navegação do painel. */
-const LEGACY = /^\/painel\/[^/]+\/(plano|checkout-validapay)(\/|$)/;
+/** Visão geral (`/painel/[id]`): o título é o nome do evento (vem dos dados); a seta volta a Meus eventos. */
+const ROOT_PARENT = "/eventos";
+/** Rota sem entrada em `FRAME_ROUTES` (não existe hoje): abre no quadro, com a seta no painel inicial. */
+const FALLBACK_ROUTE = { title: "Painel do evento", parent: "" };
+/** Pagamento: fluxo de tela cheia (resumo, Pix, cartão, 3-D Secure, aprovado), sem abas nem migalhas; só rolagem normal e área segura. */
+const FULLSCREEN = /^\/painel\/[^/]+\/checkout-validapay(\/|$)/;
 const SLUG = /^\/painel\/[^/]+\/([^/]+)/;
 
 /** Abas do quadro: rótulos curtos; a atual leva `aria-current`. */
 function frameTabs(base: string, path: string, pending?: number): PainelTab[] {
+  const at = path;
   return SECTIONS.map((s) => {
     const href = s.slug ? `${base}/${s.slug}` : base;
-    return { href, label: s.short, current: s.slug ? path === href || path.startsWith(`${href}/`) : path === base, count: s.slug === "conteudo" ? pending : undefined };
+    return { href, label: s.short, current: s.slug ? at === href || at.startsWith(`${href}/`) : at === base, count: s.slug === "conteudo" ? pending : undefined };
   });
 }
 
@@ -80,16 +85,16 @@ export function PainelShell({ children }: { children: ReactNode }) {
   const pending = useMemo(() => moderationQueue(data.photos).length, [data.photos]);
 
   const slug = SLUG.exec(path)?.[1];
-  const route = slug ? FRAME_ROUTES[slug] : undefined;
   const base = `/painel/${id}`;
+  const route = slug ? (FRAME_ROUTES[slug] ?? FALLBACK_ROUTE) : { title: "Painel do evento", parent: ROOT_PARENT };
+  const backHref = route.parent.startsWith("/") ? route.parent : route.parent ? `${base}/${route.parent}` : base;
   // erros, falta de permissão e "não achamos" também ficam no quadro (só o cabeçalho, sem abas)
   const status = (children: ReactNode) => <PainelFrame title="Painel do evento" backHref="/eventos" backLabel="Voltar">{children}</PainelFrame>;
 
   if (!ready || data.loading) {
-    // as seções antigas (Plano, checkout) mantêm o menu lateral; as migradas abrem no quadro, as demais no quadro da tela
-    if (LEGACY.test(path)) return <main className="app-admin"><div className="app-admin-main"><Skeleton label="Abrindo o painel…" /></div></main>;
-    if (route) return <PainelFrame title={route.title} backHref={route.parent ? `${base}/${route.parent}` : base} tabs={frameTabs(base, path)}><PainelBodySkeleton variant={slug === "conteudo" ? "grade" : "lista"} /></PainelFrame>;
-    return <main><ScreenSkeleton variant={path === base ? "painel" : "lista"} label="Abrindo o painel…" /></main>;
+    if (FULLSCREEN.test(path)) return <main className="painel-scope"><ScreenSkeleton variant="lista" label="Abrindo pagamento…" /></main>;
+    // toda rota abre no quadro (cabeçalho e abas já na tela) com o esqueleto do corpo
+    return <PainelFrame title={route.title} backHref={backHref} tabs={frameTabs(base, path)}><PainelBodySkeleton variant={slug === "conteudo" ? "grade" : "lista"} /></PainelFrame>;
   }
   if (data.error) return status(<div className="app-screen">
     <h2 className="titulo-tela app-h1">{data.error === "forbidden" || data.error === "unauthorized" ? "Não foi possível confirmar seu acesso." : "Não deu para carregar o evento."}</h2>
@@ -127,34 +132,7 @@ export function PainelShell({ children }: { children: ReactNode }) {
 
   const event = data.event;
   const ctx = { event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh };
-  if (route) return <AdminProvider value={ctx}><PainelFrame title={route.title} eventName={event.title} backHref={route.parent ? `${base}/${route.parent}` : base} tabs={frameTabs(base, path, pending)}>{children}</PainelFrame></AdminProvider>;
-  // Plano, o checkout, o QR e a visão geral ainda não migraram: Plano e checkout mantêm o menu lateral, os outros o quadro da tela.
-  if (!LEGACY.test(path)) return <AdminProvider value={ctx}><div className="painel-scope">{children}</div></AdminProvider>;
-  const state = `${formatDate(event.startAt)} · ${eventStatus(event, now) === "ativo" ? "ao vivo" : "encerrado"}`;
-  const items = SECTIONS.map((s) => {
-    const href = s.slug ? `${base}/${s.slug}` : base;
-    return { href, label: s.label, current: s.slug ? path.startsWith(href) : path === base, count: s.slug === "conteudo" ? pending : undefined };
-  });
-
-  const section = items.find((i) => i.current);
-  const crumbs = [{ label: "Meus eventos", href: "/eventos" }, section && section.href !== base ? { label: event.title, href: base } : { label: event.title }, ...(section && section.href !== base ? [{ label: section.label }] : [])];
-  return (
-    <AdminProvider value={ctx}>
-      <EventTheme wrap={event.cameraStyle} className="app-admin app-fluid">
-        <div className="app-admin-side no-print"><AdminNav eventName={event.title} eventState={state} switchHref="/eventos" items={items} /></div>
-        <main className="app-admin-main">
-          <nav className="app-admin-navm no-print" aria-label="Administração do evento">
-            {items.map((i) => (
-              <Link key={i.href} href={i.href} className="rvl-tab" aria-current={i.current ? "page" : undefined} style={i.current ? { background: "var(--revela)", color: "var(--on-revela)", fontWeight: 700 } : undefined}>
-                {i.label}
-                {i.count ? <CountBadge count={i.count} /> : null}
-              </Link>
-            ))}
-          </nav>
-          <Breadcrumbs className="no-print" items={crumbs} />
-          {children}
-        </main>
-      </EventTheme>
-    </AdminProvider>
-  );
+  if (FULLSCREEN.test(path)) return <AdminProvider value={ctx}><div className="painel-scope">{children}</div></AdminProvider>;
+  const title = slug ? route.title : event.title; // a visão geral leva o nome do evento no lugar do título
+  return <AdminProvider value={ctx}><PainelFrame title={title} eventName={slug ? event.title : undefined} backHref={backHref} tabs={frameTabs(base, path, pending)}>{children}</PainelFrame></AdminProvider>;
 }
