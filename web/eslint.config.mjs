@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   // Telas portadas da referência: imagens estáticas já em WebP/JPG nos tamanhos do desenho.
+  // Kit de animações do designer: copiado sem alteração (não se edita o algoritmo nem o estilo do código).
+  { files: ["src/lib/motion/revela-motion.ts", "src/features/photos/film/film35*.ts", "src/features/photos/film/film-canvas.ts"], rules: { "prefer-const": "off" } },
   { files: ["src/revela/screens/**"], rules: { "@next/next/no-img-element": "off" } },
 ]);
 
