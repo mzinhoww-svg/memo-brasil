@@ -271,6 +271,10 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         const r = await sb.storage.from(BUCKET).upload(pathOf(id), new Blob([data.bytes], { type: data.type }), { contentType: data.type, upsert: false });
         if (r.error && !/already exists|Duplicate/i.test(r.error.message)) throw toRepositoryError(r.error); // nova tentativa depois de a resposta se perder: os bytes já estão lá
       },
+      attachThumb: async (id, data) => {
+        const r = await sb.storage.from(BUCKET).upload(`${pathOf(id)}.thumb`, new Blob([data.bytes], { type: data.type }), { contentType: data.type, upsert: false });
+        if (r.error && !/already exists|Duplicate/i.test(r.error.message)) throw toRepositoryError(r.error);
+      },
       finalize: async (id) => {
         ok(await sb.rpc("finalize_photo", { p_id: id }));
         const p = begun.get(id);

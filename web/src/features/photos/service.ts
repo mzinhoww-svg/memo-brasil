@@ -4,6 +4,7 @@ import { RepositoryError, StorageUnavailableError, retryOnConflict, type PhotoDa
 import { withLock } from "@/lib/lock";
 import { takeFault } from "@/lib/test-faults";
 import { backendMode } from "@/lib/supabase/env";
+import { makeThumb } from "./thumb";
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
@@ -26,6 +27,8 @@ export interface PostOptions {
   serverEnforcesRoll?: boolean;
   /** Chamada quando a reserva (`begin`) foi aceita: a foto já conta no rolo do servidor. */
   onReserved?: () => void;
+  /** Gerador da miniatura (injetável em teste). Padrão: `makeThumb` no aparelho. */
+  thumb?: (data: PhotoData) => Promise<PhotoData | undefined>;
 }
 
 /** Tentativas automáticas depois de uma falha de rede: 2 s, 5 s e 15 s. Depois disso, só manual ("Tentar agora"). */
@@ -60,7 +63,12 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
     await repos.photos.begin(photo);
     opts.onReserved?.();
     if (takeFault("attach")) throw new RepositoryError("unavailable", "falha de rede simulada");
+    // a miniatura (`.thumb`) é feita enquanto a original sobe e vai antes do `finalize` (o Storage só aceita com a foto
+    // `enviando`). É um extra: falhar ao gerar ou enviar não impede a publicação, e quem exibe cai na original.
+    const thumb = repos.photos.attachThumb ? (opts.thumb ?? makeThumb)(data).catch(() => undefined) : undefined;
     await repos.photos.attach(photo.id, data);
+    const t = await thumb;
+    if (t) await repos.photos.attachThumb!(photo.id, t).catch(() => undefined);
     const published = await repos.photos.finalize(photo.id);
     return { ok: true, photo: published };
   } catch (e) {

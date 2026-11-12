@@ -139,6 +139,11 @@ export interface PhotoRepository {
   begin(photo: Photo): Promise<Photo>;
   /** Fase 2: grava os bytes. Foto inexistente é `not-found`. */
   attach(id: string, data: PhotoData): Promise<void>;
+  /**
+   * Miniatura opcional (`${caminho}.thumb`), gravada entre `attach` e `finalize` (o Storage só aceita enquanto a foto está
+   * `enviando`). Só o servidor implementa: os repositórios locais exibem a original. Idempotente (reenvio não sobrescreve).
+   */
+  attachThumb?(id: string, data: PhotoData): Promise<void>;
   /** Fase 3: publica (`pronta`). Sem bytes é `invalid`. */
   finalize(id: string): Promise<Photo>;
   /** Envios que não terminaram (para retomar ou limpar). */
