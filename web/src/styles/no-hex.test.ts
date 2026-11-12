@@ -11,6 +11,9 @@ const ALLOW: Record<string, string> = {
   "app/layout.tsx": "themeColor do viewport precisa ser literal (espelha --bg)",
   "components/revela/GoogleButton.tsx": "logotipo do Google: cores de marca de terceiro",
   "features/invitations": "convite A5 e QR são impressos em papel: valores literais exigidos pelo PDF (pdf-lib) e pelo QR",
+  "features/photos/film": "kit Filme 35mm do Revela (zip do designer): cor do carimbo de data e LUT embutida, copiados sem alteração",
+  "lib/motion": "kit de animações do Revela (zip do designer): cores do confete, copiado sem alteração",
+  "styles/revela-motion.css": "kit de animações do Revela (zip do designer): cores do confete e do carimbo, copiado sem alteração",
   "lib/event-theme": "dados legados de paleta por evento (não usados pela UI do Revela)",
   "lib/event-theme.ts": "dados legados de paleta por evento (não usados pela UI do Revela)",
 };
