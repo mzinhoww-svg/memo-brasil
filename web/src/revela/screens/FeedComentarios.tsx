@@ -37,6 +37,7 @@ export interface FeedComentariosProps {
   onChange?: (v: string) => void;
   onSend?: () => void;
   sending?: boolean;
+  disabled?: boolean;
   /** mensagem de erro/estado da folha (ex.: "As fotos ainda não foram rereveladas") */
   message?: string;
   onClose?: () => void;
@@ -46,7 +47,7 @@ export interface FeedComentariosProps {
   onDelete?: (id: string) => void;
 }
 
-export function FeedComentarios({ title = "Ana & Leo", post = FEED_REF_POSTS[0], count = 14, comments = COMMENTS_REF, meAvatar = "B", placeholder = "Comente como Bia", value, onChange, onSend, sending, message, onClose, onLike, onReply, onReport, onDelete }: FeedComentariosProps = {}) {
+export function FeedComentarios({ title = "Ana & Leo", post = FEED_REF_POSTS[0], count = 14, comments = COMMENTS_REF, meAvatar = "B", placeholder = "Comente como Bia", value, onChange, onSend, sending, disabled, message, onClose, onLike, onReply, onReport, onDelete }: FeedComentariosProps = {}) {
   const act = (fn?: () => void) => fn && { role: "button" as const, tabIndex: 0, style: { cursor: "pointer" }, onClick: fn, onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); } } };
   return (
     <>
@@ -91,9 +92,9 @@ export function FeedComentarios({ title = "Ana & Leo", post = FEED_REF_POSTS[0],
         <form className="cmt-in" onSubmit={(e) => { e.preventDefault(); onSend?.(); }}>
           <span className="avatar avatar--sm">{meAvatar}</span>
           <label className="rv-field rv-field--focus" style={{ flex: "1", height: "48px" }}>
-            {onChange ? <input value={value ?? ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label="Comentário" maxLength={280} autoComplete="off" /> : <input defaultValue={placeholder} aria-label="Comentário" />}
+            {onChange ? <input disabled={disabled} value={value ?? ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label="Comentário" maxLength={280} autoComplete="off" /> : <input defaultValue={placeholder} aria-label="Comentário" />}
           </label>
-          <button type="submit" className="rv-icon-btn" style={{ background: "var(--revela)", color: "var(--on-revela)" }} aria-label="Enviar" disabled={Boolean(onChange) && (sending || !(value ?? "").trim())}>
+          <button type="submit" className="rv-icon-btn" style={{ background: "var(--revela)", color: "var(--on-revela)" }} aria-label="Enviar" disabled={disabled || Boolean(onChange) && (sending || !(value ?? "").trim())}>
             <svg {...svg}>
               <path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" />
             </svg>

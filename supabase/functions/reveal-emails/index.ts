@@ -1,5 +1,6 @@
 import { processBatch, type RevealEmailRow } from "../_shared/reveal-email.ts";
 import { responder, sameToken, serviceClient } from "../_shared/payments-runtime.ts";
+import { deliveryConfig } from "../_shared/revela-delivery-config.ts";
 
 // Chamada por pg_cron/agendador com Authorization: Bearer REVEAL_EMAILS_TOKEN.
 // REVEAL_EMAIL_MODE=console (padrão) só registra no console; =brevo envia de verdade (exige BREVO_API_KEY).
@@ -11,12 +12,17 @@ Deno.serve(async (req) => {
   if (!expected || !sameToken(expected, provided)) return json({ error: "unauthorized" }, 401);
   const mode = Deno.env.get("REVEAL_EMAIL_MODE") === "brevo" ? "brevo" : "console";
   const admin = serviceClient();
+  const settings=await admin.rpc("reveal_email_delivery_config");
+  if(settings.error)return json({error:"indisponivel"},503);
+  const config=deliveryConfig(settings.data,Deno.env.get("REVEAL_EMAIL_SENDER"));
+  if(!config.enabled)return json({mode,paused:true,sent:0,failed:0,skipped:0});
+  if(mode==="brevo"&&!config.senderEmail)return json({error:"remetente_nao_configurado"},503);
   const claimed = await admin.rpc("claim_reveal_emails", { p_limit: 50 });
   if (claimed.error) return json({ error: "indisponivel" }, 503);
   const result = await processBatch((claimed.data ?? []) as RevealEmailRow[], {
     mode,
     apiKey: Deno.env.get("BREVO_API_KEY") ?? undefined,
-    senderEmail: Deno.env.get("REVEAL_EMAIL_SENDER") ?? "avisos@revela.app",
+    senderEmail: config.senderEmail??"",
     senderName: "Revela",
     appUrl: Deno.env.get("APP_URL") ?? "https://newmemocuiaba.vercel.app",
   }, {

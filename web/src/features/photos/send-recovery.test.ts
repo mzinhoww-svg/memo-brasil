@@ -41,7 +41,7 @@ describe("recusas do envio", () => {
     expect(await postPhoto(r, created.event, user, data, { moment: "Agora" }, now)).toEqual({ ok: false, reason: "bloqueado" });
     expect(attached).toBe(stage === "finalize" ? 1 : 0);
   });
-  it.each([["forbidden", "acesso"], ["not-found", "nao-encontrado"]] as const)("distingue %s de falha de rede", async (code, reason) => {
+  it.each([["forbidden", "acesso"], ["not-found", "nao-encontrado"], ["event-photo-limit","limite-evento"], ["invalid","arquivo"]] as const)("distingue %s de falha de rede", async (code, reason) => {
     const base = createMemoryRepositories();
     const created = await createEvent(base, user, input, now);
     if (!created.ok) throw new Error("fixture");

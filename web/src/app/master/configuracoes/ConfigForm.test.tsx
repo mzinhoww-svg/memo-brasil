@@ -1,0 +1,32 @@
+import {fireEvent,render,screen,waitFor,within} from "@testing-library/react";
+import {beforeEach,expect,it,vi} from "vitest";
+import {ConfigForm,type ConfigInitial} from "./ConfigForm";
+const m=vi.hoisted(()=>({rpc:vi.fn(),refresh:vi.fn()}));
+vi.mock("next/navigation",()=>({useRouter:()=>({refresh:m.refresh})}));
+vi.mock("@/lib/supabase/client",()=>({browserSupabase:()=>({rpc:m.rpc})}));
+const initial:ConfigInitial={env:"sandbox",pixMinutes:"15",card:false,checkout:true,settings:{},webhook:{meta:"nenhum evento recebido ainda",tone:"info",label:"Sem eventos"},platform:{maxPhotosPerEvent:null,maxPhotoBytes:8388608,senderEmail:null,commentsEnabled:true,revealEmailsEnabled:true}};
+beforeEach(()=>{m.rpc.mockReset();m.rpc.mockResolvedValue({error:null});m.refresh.mockClear();});
+it("mostra as três linhas e os dois interruptores do desenho com dados reais sem campos extras",()=>{
+ render(<ConfigForm initial={initial}/>);
+ expect(screen.getByText("Sem teto global")).toBeVisible();expect(screen.getByText("8 MB")).toBeVisible();
+ expect(screen.getByText("Não definido no banco")).toBeVisible();
+ expect(screen.getByRole("switch",{name:"Comentários nas fotos"})).toBeChecked();
+ expect(screen.getByRole("switch",{name:"Aviso de revelação por e-mail"})).toBeChecked();
+ expect(screen.queryByText("CNPJ")).toBeNull();expect(screen.queryByText("E-mail de suporte")).toBeNull();
+});
+it("edita no Sheet, valida o limite e só grava após motivo obrigatório",async()=>{
+ render(<ConfigForm initial={initial}/>);
+ fireEvent.click(screen.getByRole("button",{name:/Tamanho máximo da foto/}));
+ const edit=screen.getByRole("dialog",{name:"Tamanho máximo da foto"});
+ fireEvent.change(within(edit).getByRole("textbox"),{target:{value:"9"}});fireEvent.click(within(edit).getByRole("button",{name:"Continuar"}));
+ expect(within(edit).getByRole("alert")).toHaveTextContent("até 8 MB");expect(m.rpc).not.toHaveBeenCalled();
+ fireEvent.change(within(edit).getByRole("textbox"),{target:{value:"4"}});fireEvent.click(within(edit).getByRole("button",{name:"Continuar"}));
+ fireEvent.click(screen.getByRole("switch",{name:"Comentários nas fotos"}));
+ fireEvent.click(screen.getByRole("button",{name:"Salvar"}));
+ const confirmation=screen.getByRole("dialog",{name:"Salvar configurações"});
+ fireEvent.click(within(confirmation).getByRole("button",{name:"Salvar configurações"}));expect(m.rpc).not.toHaveBeenCalled();
+ fireEvent.change(within(confirmation).getByLabelText(/Motivo/),{target:{value:"Ajustar recursos por solicitação da equipe"}});
+ fireEvent.click(within(confirmation).getByRole("button",{name:"Salvar configurações"}));
+ await waitFor(()=>expect(m.rpc).toHaveBeenCalledWith("admin_set_master_config",{p_changes:{maxPhotoBytes:4194304,commentsEnabled:false},p_reason:"Ajustar recursos por solicitação da equipe"}));
+ await waitFor(()=>expect(m.refresh).toHaveBeenCalledOnce());
+});

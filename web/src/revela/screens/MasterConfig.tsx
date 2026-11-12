@@ -5,12 +5,12 @@ import type { ReactNode } from "react";
 import { Ico, MCard, MHead, MasterFrame, St, type IconName, type Tone } from "../master-kit";
 
 export interface ConfigToggle { on: boolean; onToggle?: () => void; label: string }
-export interface ConfigField { icon?: IconName; label: string; value: string; placeholder?: string; onChange?: (v: string) => void; readOnly?: boolean; hint?: string }
+export interface ConfigField { icon?: IconName; label: string; value: string; placeholder?: string; onChange?: (v: string) => void; onOpen?: () => void; readOnly?: boolean; hint?: string }
 export interface ConfigProps {
   caption?: string;
   /** Ambiente do ValidaPay (só leitura: vem do servidor). */
   env?: "sandbox" | "production" | "desligado";
-  pix?: { minutes: string; onChange?: (v: string) => void; error?: string | null };
+  pix?: { minutes: string; onChange?: (v: string) => void; onOpen?: () => void; error?: string | null };
   card?: ConfigToggle & { meta?: string };
   webhook?: { meta: string; tone: Tone; label: string };
   checkout?: ConfigToggle;
@@ -39,7 +39,7 @@ export function MasterConfigView({
   caption = "Pagamento, avisos e recursos da plataforma", env = "production", pix = { minutes: "15" }, card = { on: false, label: "Cartão de crédito", meta: "Só com confirmação do banco (3DS). Sua conta ainda não liberou." },
   webhook = { meta: "assinatura HMAC válida · último às 08:42", tone: "ok", label: "Ativo" }, checkout = { on: true, label: "Checkout ligado para anfitriões" }, platform = REF_PLATFORM, platformToggles = REF_TOGGLES, save, modal,
 }: ConfigProps = {}) {
-  const live = Boolean(pix.onChange);
+  const live = Boolean(pix.onChange || pix.onOpen);
   return (
     <>
       <MHead title="Configurações" caption={caption}>
@@ -56,14 +56,14 @@ export function MasterConfigView({
             </div>
           </div>
           <div className="rv-group" style={{ marginTop: "16px" }}>
-            <div className="rv-row">
+            <div className="rv-row" role={pix.onOpen ? "button" : undefined} tabIndex={pix.onOpen ? 0 : undefined} onClick={pix.onOpen} onKeyDown={e=>{if(pix.onOpen&&(e.key==="Enter"||e.key===" ")){e.preventDefault();pix.onOpen();}}}>
               <Ico n="pix" />
               <div className="rv-row__text">
                 Pix
-                <span className="rv-row__meta">{live ? "QR e copia e cola · validade em minutos" : `QR e copia e cola · expira em ${pix.minutes} min`}</span>
+                <span className="rv-row__meta">{`QR e copia e cola · expira em ${pix.minutes} min`}</span>
                 {pix.error && <span className="rv-row__meta" role="alert" style={{ color: "var(--danger)" }}>{pix.error}</span>}
               </div>
-              {live ? (
+              {pix.onChange ? (
                 <label className="mfield" style={{ maxWidth: "96px" }}><input inputMode="numeric" aria-label="Validade do Pix em minutos" value={pix.minutes} onChange={(e) => pix.onChange?.(e.target.value.replace(/\D/g, "").slice(0, 4))} /><i>min</i></label>
               ) : <span className="rv-toggle rv-toggle--on" />}
             </div>
@@ -76,7 +76,7 @@ export function MasterConfigView({
               <Toggle t={card} />
             </div>
             <div className="rv-row">
-              <Ico n="check" />
+              <Ico n="coin" />
               <div className="rv-row__text">
                 Webhook
                 <span className="rv-row__meta" style={{ overflowWrap: "anywhere" }}>{webhook.meta}</span>
@@ -94,7 +94,7 @@ export function MasterConfigView({
           <h2 className="rv-title" style={{ fontSize: "18px" }}>Plataforma</h2>
           <div className="rv-group" style={{ marginTop: "14px" }}>
             {platform.map((f) => (
-              <div className="rv-row" key={f.label}>
+              <div className="rv-row" key={f.label} role={f.onOpen ? "button" : undefined} tabIndex={f.onOpen ? 0 : undefined} onClick={f.onOpen} onKeyDown={e=>{if(f.onOpen&&(e.key==="Enter"||e.key===" ")){e.preventDefault();f.onOpen();}}} style={f.onOpen?{cursor:"pointer"}:undefined}>
                 <Ico n={f.icon ?? "photo"} />
                 <div className="rv-row__text">
                   <span className="rv-row__meta">{f.label}</span>
@@ -103,7 +103,7 @@ export function MasterConfigView({
                   ) : f.value}
                   {f.hint && <span className="rv-row__meta">{f.hint}</span>}
                 </div>
-                {!live && <span className="rv-row__end"><Ico n="chevron" /></span>}
+                {(!live || f.onOpen) && <span className="rv-row__end"><Ico n="chevron" /></span>}
               </div>
             ))}
             {platformToggles.map((t) => (

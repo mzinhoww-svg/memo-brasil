@@ -6,7 +6,7 @@ import { takeFault } from "@/lib/test-faults";
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
-export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" | "rede" | "falha" | "bloqueado" | "acesso" | "nao-encontrado" };
+export type PostOutcome = { ok: true; photo: Photo } | { ok: false; reason: Exclude<PostResult, { ok: true }>["reason"] | "arquivo" | "armazenamento" | "rede" | "falha" | "bloqueado" | "acesso" | "nao-encontrado" | "limite-evento" };
 
 export async function usedShots(repos: Repositories, eventId: string, userId: string): Promise<number> {
   return (await repos.events.counts(eventId, { userId, host: false })).mine;
@@ -58,6 +58,8 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
     // o servidor tem a palavra final sobre rolo e encerramento (AC-07): a recusa vira a mesma razão da interface
     if (e instanceof RepositoryError && e.code === "shot-limit") return { ok: false, reason: "rolo" };
     if (e instanceof RepositoryError && e.code === "event-ended") return { ok: false, reason: "encerrado" };
+    if (e instanceof RepositoryError && e.code === "event-photo-limit") return { ok: false, reason: "limite-evento" };
+    if (e instanceof RepositoryError && e.code === "invalid") return { ok: false, reason: "arquivo" };
     if (e instanceof RepositoryError) {
       // `blocked` é compartilhado com o contrato MM015 da moderação.
       const code: string = e.code;

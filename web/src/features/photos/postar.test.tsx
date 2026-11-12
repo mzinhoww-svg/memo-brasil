@@ -32,10 +32,21 @@ beforeEach(async () => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 async function choose() {
   await screen.findByText("Sem câmera por aqui");
-  fireEvent.change(screen.getByLabelText("Escolher foto do aparelho"), { target: { files: [new File(["x"], "f.jpg", { type: "image/jpeg" })] } });
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText("Escolher foto do aparelho"), { target: { files: [new File(["x"], "f.jpg", { type: "image/jpeg" })] } });
+  });
   await screen.findByAltText("Prévia da sua foto");
 }
 describe("envio resiliente na tela", () => {
+  it("teto global vira recusa persistida sem repetir upload automaticamente e preserva a identidade",async()=>{
+    const begin=vi.spyOn(repos.photos,"begin").mockRejectedValue(new RepositoryError("event-photo-limit","photoeventlimit"));
+    const attach=vi.spyOn(repos.photos,"attach");
+    render(<Postar/>);await choose();
+    fireEvent.click(screen.getByRole("button",{name:"Mandar para o laboratório"}));
+    await screen.findByText("Este evento atingiu o teto de fotos da plataforma. Fale com o organizador.");
+    expect(begin).toHaveBeenCalledOnce();expect(attach).not.toHaveBeenCalled();
+    await waitFor(async()=>{const d=(await loadPhotoDraft(fixture.event.id,fixture.user.id,now)).draft;expect(d?.photoId).toBeTruthy();expect(d?.denial).toContain("teto de fotos");});
+  });
   it("retoma explicitamente após remount com bytes, legenda e mesma reserva; limpa ao enviar", async () => {
     const photoId = crypto.randomUUID();
     await savePhotoDraft({ eventId: fixture.event.id, userId: fixture.user.id, createdAt: now, photoId, data, caption: "Continuar aqui", moment: "Agora", attempted: true, failures: 1 });

@@ -23,11 +23,13 @@ export function CommentsOverlay({ api, photoId, post, title, me, now, onClose, o
   const [list, setList] = useState<PhotoComment[] | undefined>();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [enabled,setEnabled]=useState(!api.enabled);
   const [message, setMessage] = useState<string | undefined>();
   const [report, setReport] = useState<{ id: string; sent: boolean; busy: boolean; reason: number; error?: string } | undefined>();
 
   const load = useCallback(async () => {
     try {
+      if(api.enabled){const on=await api.enabled();setEnabled(on);if(!on)setMessage(commentFailureText("disabled"));}
       setList(await api.list(photoId));
     } catch (e) {
       setList([]);
@@ -40,7 +42,7 @@ export function CommentsOverlay({ api, photoId, post, title, me, now, onClose, o
   }, [load]);
 
   async function send() {
-    if (sending || !text.trim()) return;
+    if (sending || !enabled || !text.trim()) return;
     setSending(true);
     setMessage(undefined);
     try {
@@ -104,7 +106,7 @@ export function CommentsOverlay({ api, photoId, post, title, me, now, onClose, o
       <FeedComentarios
         title={title} post={post} count={list?.length ?? 0} meAvatar={initialOf(me)} placeholder={`Comente como ${firstName(me)}`}
         comments={(list ?? []).map((c) => ({ id: c.id, avatar: initialOf(c.authorName), name: firstName(c.authorName), ago: commentAgo(c.createdAt, now), text: c.body, likes: c.likes, liked: c.likedByMe, mine: c.mine }))}
-        value={text} onChange={setText} onSend={() => void send()} sending={sending} message={message ?? (text.length > COMMENT_MAX ? commentFailureText("invalid") : undefined)}
+        value={text} onChange={setText} onSend={() => void send()} sending={sending} disabled={!enabled} message={message ?? (text.length > COMMENT_MAX ? commentFailureText("invalid") : undefined)}
         onClose={onClose} onLike={(id) => void like(id)}
         onReply={(id) => { const c = list?.find((x) => x.id === id); if (c) setText((t) => (t.startsWith(`@${firstName(c.authorName)} `) ? t : `@${firstName(c.authorName)} ${t}`)); }}
         onReport={(id) => setReport({ id, sent: false, busy: false, reason: 0 })} onDelete={(id) => void remove(id)}

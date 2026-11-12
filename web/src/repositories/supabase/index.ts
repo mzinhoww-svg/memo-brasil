@@ -20,6 +20,7 @@ const ms = (v: unknown): number | undefined => (typeof v === "string" ? Date.par
 const iso = (v: number | null | undefined): string | null => (v === null || v === undefined ? null : new Date(v).toISOString());
 
 const PG_CODES: Record<string, RepositoryErrorCode> = {
+  MM020:"event-photo-limit",
   MM001: "shot-limit", MM002: "event-ended", MM003: "capacity-full", MM004: "forbidden", MM005: "invalid", MM006: "rate-limited",
   MM007: "invalid-invite", MM008: "reveal-locked", MM009: "reopen-forbidden", MM015: "blocked", MM012: "not-entitled", "42501": "forbidden", "23505": "conflict", PGRST116: "not-found",
 };

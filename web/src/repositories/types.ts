@@ -31,7 +31,7 @@ export interface PhotoData {
 export type RepositoryErrorCode =
   | "conflict" | "not-found" | "unavailable" | "invalid"
   /** Recusas do servidor (trigger/RLS): o rolo da pessoa acabou, o evento terminou, a lotação fechou. */
-  | "shot-limit" | "event-ended" | "capacity-full"
+  | "shot-limit" | "event-ended" | "capacity-full" | "event-photo-limit"
   /** Recusas de política do servidor (RLS/trigger/RPC). */
   | "forbidden" | "reveal-locked" | "rate-limited" | "invalid-invite" | "reopen-forbidden"
   /** Limite de convidados/fotos acima do plano efetivo do evento (MM012): o servidor recusa até haver direito. */

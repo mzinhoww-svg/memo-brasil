@@ -16,14 +16,14 @@ export interface PhotoComment {
 export const COMMENT_MAX = 280;
 
 /** Códigos do servidor: MM016 segundo fator · MM017 antes da revelação · MM018 sem consentimento · MM004 acesso · MM005 texto inválido · MM006 frequência. */
-export type CommentFailure = "stepup" | "notrevealed" | "consentrequired" | "forbidden" | "invalid" | "rate-limited" | "unavailable";
+export type CommentFailure = "stepup" | "notrevealed" | "consentrequired" | "forbidden" | "invalid" | "rate-limited" | "unavailable" | "disabled";
 export class CommentError extends Error {
   constructor(readonly code: CommentFailure, message?: string) {
     super(message ?? code);
   }
 }
 
-const PG: Record<string, CommentFailure> = { MM016: "stepup", MM017: "notrevealed", MM018: "consentrequired", MM004: "forbidden", MM005: "invalid", MM006: "rate-limited", "42501": "forbidden" };
+const PG: Record<string, CommentFailure> = { MM019:"disabled", MM016: "stepup", MM017: "notrevealed", MM018: "consentrequired", MM004: "forbidden", MM005: "invalid", MM006: "rate-limited", "42501": "forbidden" };
 
 export function toCommentError(err: unknown): CommentError {
   if (err instanceof CommentError) return err;
@@ -34,6 +34,7 @@ export function toCommentError(err: unknown): CommentError {
 /** Texto para a pessoa, por falha. */
 export function commentFailureText(code: CommentFailure): string {
   switch (code) {
+    case "disabled": return "Os comentários estão desativados pela plataforma.";
     case "notrevealed": return "Os comentários abrem quando as fotos forem reveladas.";
     case "stepup": return "Confirme sua identidade em duas etapas para continuar.";
     case "consentrequired": return "Precisamos do seu consentimento para continuar.";
@@ -45,6 +46,7 @@ export function commentFailureText(code: CommentFailure): string {
 }
 
 export interface CommentsApi {
+  enabled?(): Promise<boolean>;
   /** foto → quantidade de comentários visíveis */
   counts(eventId: string): Promise<Record<string, number>>;
   list(photoId: string): Promise<PhotoComment[]>;
@@ -68,6 +70,7 @@ export function createCloudComments(rpc: Rpc = (fn, args) => browserSupabase().r
     }
   };
   return {
+    enabled: async()=>((await call("get_revela_features",{})) as {commentsEnabled?:boolean}|null)?.commentsEnabled!==false,
     counts: async (eventId) => ((await call("comment_counts", { p_event: eventId })) as Record<string, number>) ?? {},
     list: async (photoId) => {
       const rows = ((await call("list_photo_comments", { p_photo: photoId })) as Array<Record<string, unknown>>) ?? [];

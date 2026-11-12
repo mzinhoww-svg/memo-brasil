@@ -286,7 +286,7 @@ function PostarSession() {
         setRetry(delay === null ? "esgotado" : { n: failures.current, at: Date.now() + delay });
         return;
       }
-      const denied = r.reason === "bloqueado" || r.reason === "acesso" || r.reason === "nao-encontrado";
+      const denied = r.reason === "bloqueado" || r.reason === "acesso" || r.reason === "nao-encontrado" || r.reason === "limite-evento";
       // Mesmo erros não classificados como rede podem ter resposta perdida.
       // Só sucesso ou descarte local encerram esta identidade.
       setFrozenLeft(undefined);
@@ -294,6 +294,7 @@ function PostarSession() {
       const message =
         r.reason === "rolo" ? "Você usou todas as suas fotos deste evento."
         : r.reason === "encerrado" ? "O evento terminou. Não dá mais para postar."
+        : r.reason === "limite-evento" ? "Este evento atingiu o teto de fotos da plataforma. Fale com o organizador."
         : r.reason === "arquivo" ? "Essa foto não pode ser postada. Tire outra."
         : r.reason === "bloqueado" ? "Seu acesso para postar foi bloqueado pelo organizador."
         : r.reason === "acesso" ? "Você não tem acesso para postar neste evento."

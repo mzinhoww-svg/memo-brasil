@@ -6,6 +6,7 @@ describe("erros dos comentários", () => {
     expect(toCommentError({ code: "MM016" }).code).toBe("stepup");
     expect(toCommentError({ code: "MM017" }).code).toBe("notrevealed");
     expect(toCommentError({ code: "MM018" }).code).toBe("consentrequired");
+    expect(toCommentError({ code: "MM019" }).code).toBe("disabled");
     expect(toCommentError({ code: "MM004" }).code).toBe("forbidden");
     expect(toCommentError({ code: "MM005" }).code).toBe("invalid");
     expect(toCommentError({ code: "MM006" }).code).toBe("rate-limited");
@@ -19,6 +20,12 @@ describe("erros dos comentários", () => {
 });
 
 describe("comentários na nuvem (RPCs)", () => {
+  it("consulta a chave efetiva e informa pausa sem tratar como falha de rede",async()=>{
+    const rpc=vi.fn(async()=>({data:{commentsEnabled:false},error:null}));
+    expect(await createCloudComments(rpc).enabled?.()).toBe(false);
+    expect(rpc).toHaveBeenCalledWith("get_revela_features",{});
+    expect(commentFailureText("disabled")).toContain("desativados");
+  });
   it("publica com o texto aparado e devolve o erro tipado do servidor", async () => {
     const rpc = vi.fn(async (fn: string, args?: Record<string, unknown>) => (fn === "post_comment" && args?.p_body === "oi" ? { data: { id: "1" }, error: null } : { data: null, error: { code: "MM017", message: "notrevealed" } }));
     const api = createCloudComments(rpc);
