@@ -151,7 +151,7 @@ test("administrador master: rota é só um ponto de integração, sem login e se
     await page.goto(url);
     await expect(page.getByRole("heading", { name: "Console indisponível neste modo." })).toBeVisible(); // modo local: sem operadores
     await expect(page.locator("input")).toHaveCount(0);
-    await expect(page.getByRole("navigation", { name: "Módulos do console" })).toHaveCount(0); // parâmetro de URL não abre nada
+    await expect(page.locator("aside.mside")).toHaveCount(0); // parâmetro de URL não abre nada
   }
   // outro usuário não administra o evento de alguém
   const { id, code } = await createViaWizard(page, { title: "Alheio", reveal: "desligada" });

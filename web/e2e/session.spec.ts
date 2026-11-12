@@ -78,7 +78,7 @@ test.describe("sessão: renovação e expiração no servidor", () => {
     const page = await ctx.newPage();
     await page.goto("/master");
     await expect(page.getByRole("heading", { name: "Visão geral" })).toHaveCount(0);
-    await expect(page.getByRole("navigation", { name: "Módulos do console" })).toHaveCount(0);
+    await expect(page.locator("aside.mside")).toHaveCount(0);
     await ctx.close();
   });
 });

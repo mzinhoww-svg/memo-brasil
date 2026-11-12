@@ -28,15 +28,15 @@ const cleanup: (() => Promise<unknown>)[] = [];
 test.afterAll(async () => { for (const f of cleanup.reverse()) await f().catch(() => undefined); });
 
 test.describe("console master: autorização no servidor", () => {
-  test("master com claim e papel ativo vê os 15 módulos e as páginas carregam", async ({ browser, baseURL }) => {
+  test("master com claim e papel ativo vê os 12 módulos (Impressões só com a chave) e as páginas carregam", async ({ browser, baseURL }) => {
     const m = await user("master");
     cleanup.push(async () => { await admin.from("platform_roles").update({ revoked_at: new Date().toISOString() }).eq("user_id", m.id); });
     const ctx = await browser.newContext(); await login(ctx, m.session, baseURL!);
     const page = await ctx.newPage();
     await page.goto("/master");
     await expect(page.getByRole("heading", { name: "Visão geral" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Módulos do console" }).getByRole("link")).toHaveCount(15);
-    for (const rota of ["eventos", "pessoas", "storage", "revelacoes", "auditoria", "pagamentos", "planos", "codigos", "configuracoes", "analytics", "lgpd", "saude"]) {
+    await expect(page.locator("aside.mside a.mnav")).toHaveCount(12);
+    for (const rota of ["eventos", "pessoas", "revelacoes", "moderacao", "auditoria", "pagamentos", "planos", "codigos", "configuracoes", "lgpd", "saude"]) {
       const r = await page.goto(`/master/${rota}`);
       expect(r?.status(), rota).toBe(200);
       await expect(page.locator("h1").first(), rota).toBeVisible();
@@ -55,8 +55,8 @@ test.describe("console master: autorização no servidor", () => {
       for (const rota of ["/master", "/master/eventos", "/master/auditoria"]) {
         await page.goto(rota);
         await expect(page.getByRole("heading", { name: esperado }), `${who} ${rota}`).toBeVisible();
-        await expect(page.getByRole("navigation", { name: "Módulos do console" }), `${who} ${rota}`).toHaveCount(0);
-        await expect(page.locator(".adm-table"), `${who} ${rota}`).toHaveCount(0);
+        await expect(page.locator("aside.mside"), `${who} ${rota}`).toHaveCount(0);
+        await expect(page.locator(".mtable, .mtr"), `${who} ${rota}`).toHaveCount(0);
       }
       await ctx.close();
     }
