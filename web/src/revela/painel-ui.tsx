@@ -1,11 +1,53 @@
 "use client";
 /* Peças repetidas das telas do painel (17…26): o mesmo markup/classes da referência, escrito uma vez. */
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { reduced } from "@/lib/motion/revela-motion";
 
 export const svgProps = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
+/**
+ * Telas do painel dentro do `PainelFrame`: o quadro já tem a seta de voltar, o título e a ação do cabeçalho.
+ * Embutida, a tela não repete cabeçalho (`BackButton` some, `ScreenHeader` só entrega a ação ao quadro).
+ */
+export const PainelEmbedContext = createContext(false);
+export const useEmbedded = () => useContext(PainelEmbedContext);
+
+/** Pontos de encaixe do quadro: o fim da tela (rodapé fixo) e a ação à direita do cabeçalho. */
+export interface PainelSlots { foot: HTMLElement | null; action: HTMLElement | null }
+export const PainelSlotsContext = createContext<PainelSlots>({ foot: null, action: null });
+
+function Slot({ el, children }: { el: HTMLElement | null; children: ReactNode }) {
+  const embedded = useEmbedded();
+  if (!embedded) return <>{children}</>;
+  // dentro do quadro, espera o ponto de encaixe existir (um quadro depois) em vez de montar duas vezes
+  return el ? createPortal(children, el) : null;
+}
+/** Conteúdo fixo no pé da tela (ex.: "Revelar agora", "Salvar"). Fora do quadro, fica no fluxo. */
+export function PainelFoot({ children }: { children: ReactNode }) {
+  return <Slot el={useContext(PainelSlotsContext).foot}>{children}</Slot>;
+}
+/** Ação à direita do título (ex.: "+"). Fora do quadro, fica onde o desenho a coloca. */
+export function PainelHeadAction({ children }: { children: ReactNode }) {
+  return <Slot el={useContext(PainelSlotsContext).action}>{children}</Slot>;
+}
+
+/** Cabeçalho do desenho (seta, título, ação). Embutido no quadro, só a ação sobe para o cabeçalho dele. */
+export function ScreenHeader({ onBack, title, action, size = 18, backLabel, close = false }: { onBack?: () => void; title?: ReactNode; action?: ReactNode; size?: number; backLabel?: string; close?: boolean }) {
+  const embedded = useEmbedded();
+  if (embedded) return action ? <PainelHeadAction>{action}</PainelHeadAction> : null;
+  return (
+    <div className="row between">
+      <BackButton onBack={onBack} label={backLabel} close={close} />
+      {title !== undefined && <h1 className="rv-title" style={{ fontSize: `${size}px` }}>{title}</h1>}
+      {action ?? <span style={{ width: "44px" }} />}
+    </div>
+  );
+}
+
 export function BackButton({ onBack, label = "Voltar", close = false }: { onBack?: () => void; label?: string; close?: boolean }) {
+  const embedded = useEmbedded();
+  if (embedded) return null;
   return (
     <button type="button" className="rv-icon-btn rv-press" aria-label={label} onClick={onBack}>
       <svg {...svgProps}>{close ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M15 18l-6-6 6-6" />}</svg>

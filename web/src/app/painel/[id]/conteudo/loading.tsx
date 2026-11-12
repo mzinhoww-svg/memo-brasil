@@ -1,6 +1,6 @@
-import { ScreenSkeleton } from "@/components/revela/ScreenSkeleton";
+import { PainelBodySkeleton } from "@/components/revela/PainelBodySkeleton";
 
-/** Esqueleto enquanto a rota chega (mesmo quadro da tela final). */
+/** Esqueleto do corpo enquanto a rota chega (cabeçalho e abas do quadro já estão na tela). */
 export default function Loading() {
-  return <ScreenSkeleton variant="grade" label="Abrindo a moderação…" />;
+  return <PainelBodySkeleton variant="grade" label="Abrindo o conteúdo…" />;
 }

@@ -1,0 +1,13 @@
+/* Folhas (Sheet/ConfirmSheet) para o celular: alvos de 44 px, ações fixas no pé, rolagem por dentro, teclado virtual. */
+/* acompanha a área visível (visualViewport) quando o teclado abre; sem ele, ocupa a tela toda */
+.app-dialog { top: var(--sheet-top, 0px); bottom: auto; height: var(--sheet-vh, 100dvh); }
+.app-dialog-panel { max-height: 92%; overscroll-behavior: contain; scroll-padding-bottom: var(--space-8); }
+/* alvos de toque de 44 px dentro das folhas */
+.app-dialog-panel :is(button, select, textarea, input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"])) { min-height: 44px; }
+.app-dialog-panel [role="radio"], .app-dialog-panel [role="switch"], .app-dialog-panel [role="button"] { min-height: 44px; }
+/* ações sempre à vista: o pé gruda no fim da rolagem e respeita a área segura */
+.app-dialog-panel[data-footer] { padding-bottom: 0; }
+.app-dialog-foot { position: sticky; bottom: 0; z-index: 1; margin: 0 calc(-1 * var(--space-4)); padding: var(--space-3) var(--space-4) max(var(--space-4), env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
+/* linha de resultado dentro da folha (Salvo., erro): fica logo acima das ações */
+.app-dialog-status { margin: 0; font: 600 14px/20px var(--font-sans); color: var(--success); }
+.app-dialog-status[data-tone="erro"] { color: var(--danger); }

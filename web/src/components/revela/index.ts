@@ -34,6 +34,7 @@ export { EventTheme } from "./EventTheme";
 export { CameraStage } from "./CameraStage";
 export { WrapPicker } from "./WrapPicker";
 export { Print } from "./Print";
+export { PainelFrame, type PainelTab, type PainelFrameProps } from "./PainelFrame";
 export { ShotCounter } from "./ShotCounter";
 export { ToggleRow } from "./Toggle";
 export { Abertura } from "./Abertura";

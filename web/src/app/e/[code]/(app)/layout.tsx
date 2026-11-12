@@ -95,6 +95,12 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     return () => clearTimeout(id);
   }, [evCode, router]);
 
+  // 20h: o código não abre nenhuma festa. O redirecionamento sai do efeito, nunca do render.
+  const absent = ready && !data.loading && !data.error && data.access !== "convite" && !data.event;
+  useEffect(() => {
+    if (absent) router.replace(`/entrar?erro=${encodeURIComponent(code)}`);
+  }, [absent, code, router]);
+
   const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, counts: data.counts, refresh, revealStatus: status, developed, celebrating: celebrate } : null), [data, user, participant, isHost, now, refresh, status, developed, celebrate]);
 
   if (!ready || data.loading) return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
@@ -105,10 +111,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     {(data.error === "forbidden" || data.error === "unauthorized") && <Button href={`/e/${code}`} variant="texto">Voltar ao convite</Button>}
   </div></main>;
   if (data.access === "convite") return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
-  if (!data.event) {
-    router.replace(`/entrar?erro=${encodeURIComponent(code)}`); // 20h: o código não abre nenhuma festa
-    return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
-  }
+  if (!data.event) return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
   if (!ctx) return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
 
   const base = `/e/${code}`;

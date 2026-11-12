@@ -1,6 +1,6 @@
 "use client";
 /* Painel-moderacao.html (17i): mesmo markup da referência; dados reais por props (padrão = desenho). */
-import { BackButton, RowAction, ScreenFoot } from "../painel-ui";
+import { ScreenHeader, RowAction, ScreenFoot } from "../painel-ui";
 
 export type ModTab = "fotos" | "comentarios" | "bloqueados";
 export interface ModcItem {
@@ -41,13 +41,7 @@ export function PainelModeracao({ tab = MODERACAO_REF.tab, counts = MODERACAO_RE
     <>
     <div className="scr">
       <div className="safe">
-        <div className="row between">
-          <BackButton onBack={onBack} />
-          <h1 className="rv-title" style={{ "fontSize": "18px" }}>
-            Moderação
-          </h1>
-          <span style={{ "width": "44px" }} />
-        </div>
+        <ScreenHeader onBack={onBack} title="Moderação" />
         <div style={{ "marginTop": "14px" }}>
           <div className="seg">
             {TABS.map((t) => (

@@ -18,6 +18,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  interactiveWidget: "resizes-content", // o teclado virtual encolhe a página (folhas e formulários não ficam por baixo dele)
   themeColor: "#0E0C0B",
   colorScheme: "dark",
 };

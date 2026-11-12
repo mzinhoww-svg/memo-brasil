@@ -12,6 +12,8 @@
 @import "../styles/revela-moments.css";
 @import "../styles/painel-scope.css";
 @import "../styles/carousel.css";
+@import "../styles/painel-frame.css";
+@import "../styles/sheet-revela.css";
 
 /* Revela: tokens expostos ao Tailwind v4 (modo inline; tokens.css continua a fonte de verdade). */
 @theme inline {

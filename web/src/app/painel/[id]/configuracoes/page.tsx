@@ -35,6 +35,8 @@ export default function Configuracoes() {
   const [planVersion, setPlanVersion] = useState(0);
   const info = usePlanInfo(event.id, `${event.version}-${planVersion}`);
   const [confirm, setConfirm] = useState<"encerrar" | number | undefined>();
+  // resultado do último salvamento, mostrado dentro da folha aberta (o aviso curto na tela também aparece, acima das folhas)
+  const [note, setNote] = useState<{ text: string; tone: "ok" | "erro" } | undefined>();
   const [toast, flash] = useFlash();
   const ended = eventStatus(event, now) === "encerrado";
   const photoCount = photos.filter((p) => p.status !== "removida").length;
@@ -45,13 +47,23 @@ export default function Configuracoes() {
   const limitShots = info.current ? info.current.maxShots : event.shotsPerPerson;
 
   const save = async (patch: Parameters<typeof updateSettings>[2]) => {
+    const say = (text: string, tone: "ok" | "erro") => { flash(text); setNote({ text, tone }); };
     try {
       const r = await updateSettings(repos, event.id, patch);
-      flash(r.ok ? "Salvo." : r.reason === "capacidade-menor-que-convidados" ? "Esse evento já tem mais convidados do que essa capacidade. Escolha um número maior." : "Não foi possível salvar. Tente de novo.");
+      say(r.ok ? "Salvo." : r.reason === "capacidade-menor-que-convidados" ? "Esse evento já tem mais convidados do que essa capacidade. Escolha um número maior." : "Não foi possível salvar. Tente de novo.", r.ok ? "ok" : "erro");
       await refresh();
       return r.ok;
-    } catch { flash("Não foi possível salvar. Tente de novo."); return false; }
+    } catch { say("Não foi possível salvar. Tente de novo.", "erro"); return false; }
   };
+  /** Abre uma folha com os campos locais ressincronizados com o evento (o que foi digitado e não salvo não volta). */
+  const openPanel = (p: Exclude<Panel, undefined>) => {
+    setTitle(event.title);
+    setHostName(event.hostName);
+    setNote(undefined);
+    setPanel(p);
+  };
+  const status = note && <p className="app-dialog-status" role="status" data-tone={note.tone}>{note.text}</p>;
+  const done = <Button variant="secundario" block onClick={() => setPanel(undefined)}>Pronto</Button>;
   const onCodeApplied: RedeemCodeProps["onApplied"] = async (r) => {
     setPanel(undefined);
     const name = info.plans.find((p) => p.code === r.planCode)?.name;
@@ -82,28 +94,28 @@ export default function Configuracoes() {
         feedOn={event.reactionsEnabled}
         canEnd={!ended}
         onClose={() => router.push(`/painel/${event.id}`)}
-        onMore={() => setPanel("mais")}
+        onMore={() => openPanel("mais")}
         onWrap={() => router.push(`/painel/${event.id}/aparencia`)}
-        onName={() => { setTitle(event.title); setPanel("nome"); }}
+        onName={() => openPanel("nome")}
         onPlan={() => router.push(`/painel/${event.id}/plano`)}
-        onCloses={() => setPanel("fim")}
-        onReveals={() => setPanel("revela")}
+        onCloses={() => openPanel("fim")}
+        onReveals={() => openPanel("revela")}
         onFilm={() => router.push(`/painel/${event.id}/aparencia`)}
-        onPoses={() => setPanel("poses")}
+        onPoses={() => openPanel("poses")}
         onFeed={() => void save({ reactionsEnabled: !event.reactionsEnabled })}
         onEnd={() => setConfirm("encerrar")}
       />
       {toast}
 
       {panel === "nome" && (
-        <Sheet title="Editar nome" onClose={() => setPanel(undefined)}>
-          <Field label="Nome do evento" value={title} maxLength={60} onChange={(e) => setTitle(e.target.value)} />
-          <Button block disabled={!title.trim() || title.trim() === event.title} onClick={async () => { if (await save({ title: title.trim() })) setPanel(undefined); }}>Salvar nome</Button>
+        <Sheet title="Editar nome" history onClose={() => setPanel(undefined)}
+          footer={<div className="app-stack-sm">{status}<Button block disabled={!title.trim() || title.trim() === event.title} onClick={async () => { if (await save({ title: title.trim() })) setPanel(undefined); }}>Salvar nome</Button></div>}>
+          <Field label="Nome do evento" value={title} maxLength={60} onChange={(e) => { setNote(undefined); setTitle(e.target.value); }} />
         </Sheet>
       )}
 
       {panel === "fim" && (
-        <Sheet title="Fim do evento" onClose={() => setPanel(undefined)}>
+        <Sheet title="Fim do evento" history onClose={() => setPanel(undefined)}>
           <p className="app-p">{ended ? "Terminou" : "Termina"} em {formatDate(endAt(event))} · {formatTime(endAt(event))}.</p>
           {locked ? <p className="app-p app-muted">Este álbum já terminou e tem fotos. Não dá para reabrir.</p> : (
             <div className="app-stack-sm">
@@ -120,13 +132,13 @@ export default function Configuracoes() {
       )}
 
       {panel === "revela" && (
-        <Sheet title="Quando revelar" onClose={() => setPanel(undefined)}>
+        <Sheet title="Quando revelar" history onClose={() => setPanel(undefined)}>
           <RevealSettings event={event} now={now} photoCount={photoCount} onSaved={refresh} />
         </Sheet>
       )}
 
       {panel === "poses" && (
-        <Sheet title="Poses por pessoa" onClose={() => setPanel(undefined)}>
+        <Sheet title="Poses por pessoa" history onClose={() => setPanel(undefined)} footer={<div className="app-stack-sm">{status}{done}</div>}>
           <OptionGroup<Shots> label="Fotos por pessoa" value={event.shotsPerPerson} onChange={(v) => void save({ shotsPerPerson: v })} options={limitChoices<Shots>(SHOTS_OPTIONS, limitShots, event.shotsPerPerson).map((s) => ({ value: s, label: s === null ? "Ilimitadas" : String(s) }))} />
           {info.loaded && info.current && (
             <p className="app-p app-muted" data-testid="limite-plano">
@@ -138,13 +150,13 @@ export default function Configuracoes() {
       )}
 
       {panel === "mais" && (
-        <Sheet title="Mais ajustes" onClose={() => setPanel(undefined)}>
+        <Sheet title="Mais ajustes" history onClose={() => setPanel(undefined)} footer={<div className="app-stack-sm">{status}{done}</div>}>
           <OptionGroup<Capacity> label="Convidados" value={event.capacity} onChange={(v) => void save({ capacity: v })} options={limitChoices<Capacity>(CAPACITY_OPTIONS, limitGuests, event.capacity, true).map((c) => ({ value: c, label: c === null ? "Ilimitado" : String(c) }))} />
           <OptionGroup<boolean> list label="Quem vê as fotos" value={event.everyoneSeesAll} onChange={(v) => void save({ everyoneSeesAll: v })} options={[{ value: true, label: "Todos veem todas as fotos" }, { value: false, label: "Cada um vê só as suas" }]} />
           <OptionGroup<boolean> list label="Baixar em alta" value={event.guestDownloadHigh !== false} onChange={(v) => void save({ guestDownloadHigh: v })} options={[{ value: true, label: "Convidados podem baixar em alta" }, { value: false, label: "Só você baixa em alta" }]} />
-          <Field label="Seu nome (aparece no convite)" value={hostName} maxLength={60} onChange={(e) => setHostName(e.target.value)} />
+          <Field label="Seu nome (aparece no convite)" value={hostName} maxLength={60} onChange={(e) => { setNote(undefined); setHostName(e.target.value); }} />
           <Button variant="secundario" block disabled={!hostName.trim() || hostName.trim() === event.hostName} onClick={() => void save({ hostName: hostName.trim() })}>Salvar seu nome</Button>
-          <Button variant="secundario" block onClick={() => setPanel("codigo")}>Tenho um código de presente</Button>
+          <Button variant="secundario" block onClick={() => openPanel("codigo")}>Tenho um código de presente</Button>
           <Button variant="destrutivo" block onClick={() => router.push(`/painel/${event.id}/excluir`)}>Excluir evento</Button>
         </Sheet>
       )}
@@ -152,7 +164,7 @@ export default function Configuracoes() {
       {panel === "codigo" && <RedeemCodeSheet eventId={event.id} onApplied={(r) => void onCodeApplied(r)} onClose={() => setPanel(undefined)} />}
 
       {confirm !== undefined && (
-        <ConfirmSheet title={confirm === "encerrar" ? "Encerrar agora?" : "Mudar o fim do evento?"}
+        <ConfirmSheet history title={confirm === "encerrar" ? "Encerrar agora?" : "Mudar o fim do evento?"}
           body={`${confirm === "encerrar" ? "Ninguém posta mais. " : "O fim muda para " + formatDate(clock() + confirm * 3_600_000) + " · " + formatTime(clock() + confirm * 3_600_000) + ". "}${endConsequence(event, confirm === "encerrar" ? clock() : clock() + confirm * 3_600_000, clock())}`}
           confirmLabel={confirm === "encerrar" ? "Encerrar agora" : "Confirmar novo fim"}
           onCancel={() => setConfirm(undefined)} onConfirm={async () => {

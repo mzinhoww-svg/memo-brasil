@@ -1,0 +1,98 @@
+/* Quadro mobile único do painel (PainelFrame): cabeçalho e abas fixos, corpo com área segura, rodapé opcional.
+   Mobile-first em qualquer largura: coluna de 480 px centralizada. Só tokens (tokens.css), Dia e Noite. */
+.pf { width: 100%; max-width: 480px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); font-family: var(--font-sans); }
+@media (min-width: 768px) { body:has(.pf) { background: var(--surface-2); } .pf { box-shadow: 0 0 0 1px var(--line); } }
+
+/* cabeçalho + abas: um bloco fixo no topo, abaixo da área segura do iPhone */
+.pf-top { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-top: env(safe-area-inset-top); border-bottom: 1px solid var(--line); }
+.pf-head { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2); min-height: 56px; }
+.pf-heading { flex: 1; min-width: 0; }
+.pf-title { margin: 0; font: 400 20px/24px var(--font-display); color: var(--ink); overflow-wrap: anywhere; }
+.pf-sub { margin: 0; font: 400 12px/16px var(--font-sans); color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-action { display: flex; align-items: center; gap: var(--space-2); flex: none; }
+.pf-action:empty { display: none; }
+
+/* abas com rolagem: encaixe, sombra só do lado que ainda tem abas escondidas */
+.pf-tabs-wrap { position: relative; }
+.pf-tabs { --pf-fade-start: 0px; --pf-fade-end: 0px; display: flex; gap: var(--space-2); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; padding: 0 var(--space-4) var(--space-2);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, var(--black-1) var(--pf-fade-start), var(--black-1) calc(100% - var(--pf-fade-end)), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, var(--black-1) var(--pf-fade-start), var(--black-1) calc(100% - var(--pf-fade-end)), transparent 100%); }
+.pf-tabs::-webkit-scrollbar { display: none; }
+.pf-tabs[data-start="true"] { --pf-fade-start: 28px; }
+.pf-tabs[data-end="true"] { --pf-fade-end: 28px; }
+.pf-tab { flex: none; scroll-snap-align: center; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: var(--radius-pill); font: 600 14px/20px var(--font-sans); color: var(--ink-muted); text-decoration: none; background: var(--surface-2); }
+.pf-tab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.pf-tab[aria-current="page"] { background: var(--revela); color: var(--on-revela); font-weight: 700; }
+
+/* corpo: respiro para a barra do navegador e a área segura do iPhone */
+.pf-body { flex: 1; min-width: 0; padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom)); }
+/* com rodapé fixo, o rodapé já cuida da área segura */
+.pf:has(.pf-foot > *) .pf-body { padding-bottom: var(--space-4); }
+
+/* rodapé fixo opcional (ex.: Revelar agora, Salvar): preso embaixo, acima da área segura */
+.pf-foot { position: sticky; bottom: 0; z-index: 9; display: flex; flex-direction: column; gap: var(--space-2); background: var(--bg); border-top: 1px solid var(--line); padding: var(--space-3) var(--space-4) max(12px, env(safe-area-inset-bottom)); }
+.pf-foot:empty { display: none; }
+html:has(.pf) { scroll-padding-top: calc(var(--pf-top, 112px) + var(--space-3)); scroll-padding-bottom: calc(var(--pf-foot, 0px) + var(--space-3)); }
+
+/* telas Revela (.scr) dentro do quadro: sem altura fixa, sem fundo próprio e sem cabeçalho duplicado */
+.pf .scr, .pf .scr.sheet-scr { height: auto; min-height: 0; max-width: none; overflow: visible; background: transparent; }
+.pf .scr .safe { padding: var(--space-4) var(--space-5) 0; min-height: 0; flex: none; }
+.pf .scr .safe > .grow { flex: 1 0 var(--space-4); min-height: var(--space-4); }
+.pf .scr .home-ind, .pf .scr .grain { display: none; }
+.pf .sheet-full { position: static; inset: auto; height: auto !important; padding: var(--space-4) var(--space-5) 0; background: transparent; border-radius: 0; box-shadow: none; overflow: visible; }
+.pf .sheet-full > * { flex-shrink: 0; }
+.pf .sheet-full .rv-sheet__grab { display: none; }
+.pf .sheet-full > .grow { flex: 1 0 var(--space-4); min-height: var(--space-4); }
+.pf-pad { padding: var(--space-4) var(--space-5) 0; }
+
+/* Conteúdo: contagem, filtros e grade de fotos (2 colunas no celular, 3 a partir de 480 px) */
+.cont-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.cont-count { margin: 0; font: 700 18px/24px var(--font-sans); color: var(--ink); }
+.cont-status { margin: 0; font: 600 13px/18px var(--font-sans); color: var(--carimbo); }
+.cont-intro { margin-top: var(--space-1); }
+.cont-filters { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4); }
+.cont-grid { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+@media (min-width: 480px) { .cont-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.cont-tile { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.cont-media { position: relative; display: block; width: 100%; aspect-ratio: 3 / 4; padding: 0; border: 0; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-2); color: var(--ink); cursor: pointer; }
+.cont-media:disabled { cursor: default; }
+.cont-media:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.cont-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cont-skel { position: absolute; inset: 0; border-radius: 0; }
+.cont-tile.off .cont-media img { opacity: .3; filter: grayscale(1); }
+.cont-flags { position: absolute; left: var(--space-2); bottom: var(--space-2); display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.cont-flag { font: 700 11px/16px var(--font-sans); padding: 2px 8px; border-radius: var(--radius-pill); background: var(--surface-1); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.cont-flag--off { color: var(--danger); box-shadow: inset 0 0 0 1px var(--danger); }
+.cont-flag--rep { color: var(--carimbo); box-shadow: inset 0 0 0 1px var(--carimbo); }
+.cont-fail { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2); text-align: center; padding: var(--space-3); font: 500 13px/18px var(--font-sans); color: var(--ink-muted); cursor: default; }
+.cont-fail .rv-btn { min-height: 44px; }
+.cont-cap { margin: 0; font: 400 13px/18px var(--font-sans); color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cont-cap b { color: var(--ink); font-weight: 600; }
+.cont-more { align-self: center; margin-top: var(--space-3); min-height: 44px; }
+.cont-nomatch { margin-top: var(--space-5); }
+.cont-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); margin-top: var(--space-8); padding: 0 var(--space-4); }
+.cont-empty-ico { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--surface-2); color: var(--ink-muted); }
+.cont-empty-ico svg { width: 28px; height: 28px; }
+.cont-tile-skel { display: block; width: 100%; aspect-ratio: 3 / 4; border-radius: var(--radius-md); }
+/* visualização grande da foto, na folha */
+.cont-viewer { display: flex; flex-direction: column; gap: var(--space-3); }
+.cont-viewer-media { position: relative; width: 100%; max-height: 52dvh; aspect-ratio: 3 / 4; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-2); margin: 0 auto; }
+.cont-viewer-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* Aparência: prévia recolhível (sem sticky), formulário em coluna única */
+.studio { display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-4) var(--space-5) 0; }
+.studio-prev-wrap { gap: var(--space-2); }
+.studio-prev-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: left; }
+.studio-prev-toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.studio-prev-chev { width: 10px; height: 10px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform 160ms linear; margin-right: var(--space-2); }
+.studio-prev-chev[data-open="true"] { transform: rotate(-135deg); }
+.studio-previa[hidden] { display: none; }
+.studio-cartao-corpo { gap: var(--space-2); padding: var(--space-4); }
+.studio-stage { width: 160px; max-width: 100%; margin: 0 auto; }
+.studio-previa .studio-qr { display: none; }
+.studio-acoes { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* Compartilhar: o link longo se corta com reticências em vez de empurrar o botão Copiar para fora da tela */
+.pf .linkbox { min-width: 0; }
+.pf .linkbox > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf .linkbox .rv-btn { flex: none; }

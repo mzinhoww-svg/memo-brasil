@@ -1,7 +1,7 @@
 "use client";
 /* Painel-downloads.html (17h): mesmo markup da referência; dados reais por props (padrão = desenho). */
 import Link from "next/link";
-import { BackButton, ScreenFoot, svgProps } from "../painel-ui";
+import { ScreenHeader, ScreenFoot, svgProps } from "../painel-ui";
 
 export interface PainelDownloadsProps {
   zip?: { desc: string; /** 0–100 enquanto prepara; ausente = pronto para baixar */ pct?: number; progressText?: string; disabled?: boolean };
@@ -28,13 +28,7 @@ export function PainelDownloads({ zip = DOWNLOADS_REF.zip, csv = DOWNLOADS_REF.c
     <>
     <div className="scr">
       <div className="safe">
-        <div className="row between">
-          <BackButton onBack={onBack} />
-          <h1 className="rv-title" style={{ "fontSize": "18px" }}>
-            Downloads
-          </h1>
-          <span style={{ "width": "44px" }} />
-        </div>
+        <ScreenHeader onBack={onBack} title="Downloads" />
         <div className="dl">
           <div className="dl-ico">
             <svg {...svgProps}>

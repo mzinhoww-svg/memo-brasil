@@ -1,6 +1,6 @@
 "use client";
 /* Painel-aviso.html (17g): mesmo markup da referência; dados reais por props (padrão = desenho). */
-import { BackButton, Chevron, RowAction, ScreenFoot, svgProps } from "../painel-ui";
+import { ScreenHeader, Chevron, RowAction, ScreenFoot, svgProps } from "../painel-ui";
 
 export interface PainelAvisoProps {
   text?: string;
@@ -39,13 +39,7 @@ export function PainelAviso({ text = AVISO_REF.text, max = AVISO_REF.max, mode =
     <>
     <div className="scr">
       <div className="safe">
-        <div className="row between">
-          <BackButton onBack={onBack} />
-          <h1 className="rv-title" style={{ "fontSize": "18px" }}>
-            Novo aviso
-          </h1>
-          <span style={{ "width": "44px" }} />
-        </div>
+        <ScreenHeader onBack={onBack} title="Novo aviso" />
         {current && (
           <p className="rv-caption" style={{ "marginTop": "14px" }}>
             {current}{" "}

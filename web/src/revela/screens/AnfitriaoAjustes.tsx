@@ -1,6 +1,6 @@
 "use client";
 /* Anfitriao-ajustes.html (17): mesmo markup da referência; dados reais por props (padrão = desenho). */
-import { BackButton, Chevron, RowAction, ScreenFoot, svgProps } from "../painel-ui";
+import { Chevron, RowAction, ScreenFoot, ScreenHeader, svgProps } from "../painel-ui";
 
 export interface AjustesProps {
   name?: string;
@@ -36,11 +36,7 @@ export function AnfitriaoAjustes({ name = AJUSTES_REF.name, cam = AJUSTES_REF.ca
     <>
     <div className="scr sheet-scr">
       <div className="sheet-full" style={{ "paddingTop": "16px", "overflowY": "auto" }}>
-        <div className="row between">
-          <BackButton onBack={onClose} label="Fechar" close />
-          <h1 className="rv-title">
-            {name}
-          </h1>
+        <ScreenHeader onBack={onClose} backLabel="Fechar" close title={name} action={(
           <button type="button" className="rv-icon-btn" aria-label="Mais" onClick={onMore}>
             <svg {...svgProps}>
               <circle cx="5" cy="12" r="1.2" />
@@ -48,7 +44,7 @@ export function AnfitriaoAjustes({ name = AJUSTES_REF.name, cam = AJUSTES_REF.ca
               <circle cx="19" cy="12" r="1.2" />
             </svg>
           </button>
-        </div>
+        )} />
         <div className="row" style={{ "gap": "12px", "margin": "14px 0 6px" }}>
           <img src={cam} alt="" style={{ "width": "150px" }} />
           <div className="stack" style={{ "flex": "1", "gap": "8px" }}>
@@ -131,7 +127,7 @@ export function AnfitriaoAjustes({ name = AJUSTES_REF.name, cam = AJUSTES_REF.ca
             </div>
             <Chevron />
           </RowAction>
-          <RowAction onClick={onFeed} role="switch" checked={feedOn}>
+          <RowAction onClick={onFeed} role="switch" checked={feedOn} label="Feed com curtidas e comentários">
             <svg {...svgProps}>
               <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
               <circle cx="12" cy="12" r="3" />
@@ -139,7 +135,8 @@ export function AnfitriaoAjustes({ name = AJUSTES_REF.name, cam = AJUSTES_REF.ca
             <div className="rv-row__text">
               Feed com curtidas e comentários
             </div>
-            <span className={feedOn ? "rv-toggle rv-toggle--on" : "rv-toggle"} />
+            <span className="rv-caption" aria-hidden="true">{feedOn ? "Ligado" : "Desligado"}</span>
+            <span aria-hidden="true" className={feedOn ? "rv-toggle rv-toggle--on" : "rv-toggle"} />
           </RowAction>
         </div>
         <div className="grow" />

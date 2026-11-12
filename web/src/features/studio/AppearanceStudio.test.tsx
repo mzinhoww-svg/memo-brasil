@@ -2,9 +2,11 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MemoEvent } from "@/domain/event";
+import { PainelFrame } from "@/components/revela/PainelFrame";
 import { AppearanceStudio } from "./AppearanceStudio";
 
-afterEach(cleanup);
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+afterEach(() => { cleanup(); window.localStorage.clear(); });
 const ev = { id: "e1", title: "Ana e Leo", code: "ABCD1234", palette: "salvia", eventFont: "birthstone", cameraStyle: "festa" } as MemoEvent;
 const props = () => ({ event: ev, locked: false, onSave: vi.fn(async () => undefined), onSaveLook: vi.fn(async () => undefined) });
 
@@ -39,5 +41,46 @@ describe("AppearanceStudio (Revela)", () => {
     expect(screen.getByText(/não pode mais mudar/)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Salvar aparência" }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByRole("radio", { name: "Noite" }).matches(":disabled")).toBe(true);
+  });
+
+  it("sozinha tem um único título; dentro do quadro do painel o título é só o do quadro", () => {
+    const { unmount } = render(<AppearanceStudio {...props()} />);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.queryByRole("group", { name: "Aparência da câmera" })).toBeNull(); // sem a legenda repetida
+    unmount();
+    render(<PainelFrame title="Aparência" backHref="/painel/e1/configuracoes"><AppearanceStudio {...props()} /></PainelFrame>);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Aparência");
+  });
+
+  it("a prévia é recolhível (aria-expanded), pequena e lembrada neste aparelho", () => {
+    const { container, unmount } = render(<AppearanceStudio {...props()} />);
+    const toggle = screen.getByRole("button", { name: "Prévia da câmera" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(container.querySelector(".studio-stage")).not.toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(container.querySelector("#ap-previa")?.hasAttribute("hidden")).toBe(true);
+    unmount();
+    render(<AppearanceStudio {...props()} />);
+    expect(screen.getByRole("button", { name: "Prévia da câmera" }).getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("Salvar aparência fica no rodapé fixo do quadro e continua acessível", async () => {
+    const p = props();
+    const { container } = render(<PainelFrame title="Aparência" backHref="/x"><AppearanceStudio {...p} /></PainelFrame>);
+    const save = await screen.findByRole("button", { name: "Salvar aparência" });
+    expect(container.querySelector(".pf-foot")?.contains(save)).toBe(true);
+    fireEvent.click(save);
+    await waitFor(() => expect(p.onSave).toHaveBeenCalled());
+    expect(await screen.findByTestId("studio-msg")).toHaveTextContent("Aparência salva.");
+  });
+
+  it("o texto do filme acompanha a opção marcada", () => {
+    render(<AppearanceStudio {...props()} />);
+    expect(screen.getByTestId("filme-info").textContent).toMatch(/^Filme 35mm: tons quentes/);
+    fireEvent.click(screen.getByRole("button", { name: "Natural" }));
+    expect(screen.getByTestId("filme-info").textContent).toMatch(/^Natural: as cores/);
+    expect(screen.getByTestId("filme-info").textContent).not.toMatch(/35mm/);
   });
 });
