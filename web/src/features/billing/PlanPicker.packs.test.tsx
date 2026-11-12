@@ -30,7 +30,7 @@ beforeEach(() => {
   api.quote.mockImplementation(async (_e: string, code: string) => quotes[code] ?? Q(code, 0, { payable: false, reason: "ja_incluido" }));
 });
 
-describe.each([[true, "ramo nativo (ValidaPay)"], [false, "ramo Mercado Pago"]] as const)("cartão Mais poses no painel: %s", (native) => {
+describe.each([["ramo nativo (ValidaPay)", true], ["ramo Mercado Pago", false]] as const)("cartão Mais poses no painel: %s", (_nome, native) => {
   beforeEach(() => { flag.native = native; });
 
   it("Festa sem pacote: mostra o cartão com a cotação do servidor e paga a variante", async () => {

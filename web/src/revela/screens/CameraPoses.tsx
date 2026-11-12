@@ -31,9 +31,9 @@ export function CameraPoses({ step = 4, value = 36, choices = POSE_CHOICES_REF, 
       </div>
       <div className="rv-choices" role="group" aria-label="Poses por pessoa">
         {choices.map((c) => (
-          <button key={c.n ?? "livre"} type="button" className={`rv-choice rv-choice--num${c.n === value ? " rv-choice--on" : ""}`} aria-pressed={c.n === value}
-            aria-label={`${c.n ?? "Livre"} · ${c.caption}`} onClick={() => onPick?.(c.n)}>
-            {c.n ?? "Livre"}
+          <button key={c.n ?? "livre"} type="button" className={`rv-choice rv-choice--num${c.n === value ? " rv-choice--on" : ""}`} aria-pressed={c.n === value} onClick={() => onPick?.(c.n)}>
+            {c.n ?? "Livre"}{" "}
+            <span className="sr-only">·</span>{" "}
             <small>{c.caption}</small>
           </button>
         ))}

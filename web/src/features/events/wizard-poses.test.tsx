@@ -29,7 +29,7 @@ describe("passo Poses: opções e custo do catálogo real", () => {
     render(<CreateWizard />); await toPoses();
     const group = screen.getByRole("group", { name: "Poses por pessoa" });
     await waitFor(() => expect(within(group).getAllByRole("button")).toHaveLength(4));
-    expect(within(group).getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["10 · Grátis", "24 · a partir de R$ 59,90", "36 · a partir de R$ 189", "Livre · a partir de R$ 349"]);
+    for (const nome of ["10 · Grátis", "24 · a partir de R$ 59,90", "36 · a partir de R$ 189", "Livre · a partir de R$ 349"]) expect(within(group).getByRole("button", { name: nome })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^27/ })).toBeNull();
     expect(screen.queryByText(/exige/)).toBeNull();
   });

@@ -15,7 +15,7 @@ export interface PackSwitchProps {
 export function PackSwitch({ price, meta, on, locked, onToggle }: PackSwitchProps) {
   const flip = () => { if (!locked) onToggle?.(!on); };
   return (
-    <div className="rv-group" data-testid="mais-poses-opcao">
+    <div className="rv-group" data-testid="mais-poses-opcao" style={{ flexShrink: 0 }}>
       <div className="rv-row">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <rect x="3" y="4" width="18" height="16" rx="2" />
