@@ -5,6 +5,8 @@ export interface User {
   id: string;
   name: string;
   createdAt: number;
+  /** Só na nuvem: sessão anônima (convidado sem conta). Serve à interface; quem autoriza é o servidor (JWT/RLS). */
+  anonymous?: boolean;
 }
 export interface Participant {
   eventId: string;

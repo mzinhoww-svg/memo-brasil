@@ -316,21 +316,29 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       removeByEvent: async () => undefined,
     },
     users: {
+      /**
+       * Identidade para a INTERFACE: `getSession()` lê a sessão guardada no aparelho (sem ida à rede enquanto o token vale;
+       * se venceu, o SDK renova). Não é verificação de segurança e nada depende dela para autorizar: toda consulta, RPC e
+       * URL assinada leva o JWT, que o servidor valida (RLS com `auth.uid()` e `is_anonymous()` no JWT). Uma sessão
+       * adulterada no aparelho só mudaria o que a tela tenta mostrar; o servidor recusa o resto.
+       */
       current: async () => {
-        const { data } = await sb.auth.getUser();
-        if (!data.user) return undefined;
-        const prof = ok(await sb.from("profiles").select("display_name, created_at").eq("id", data.user.id).maybeSingle()) as Row | null;
-        return { id: data.user.id, name: (prof?.display_name as string) ?? "", createdAt: ms(prof?.created_at) ?? Date.parse(data.user.created_at) } as User;
+        const { data } = await sb.auth.getSession();
+        const user = data.session?.user;
+        if (!user) return undefined;
+        const prof = ok(await sb.from("profiles").select("display_name, created_at").eq("id", user.id).maybeSingle()) as Row | null;
+        return { id: user.id, name: (prof?.display_name as string) ?? "", createdAt: ms(prof?.created_at) ?? Date.parse(user.created_at), anonymous: user.is_anonymous === true } as User;
       },
       // a identidade é a da sessão (auth.uid()): sem sessão, entra como convidado anônimo; só o nome de exibição é gravado
+      // (a sessão local basta para saber o id: o UPDATE é filtrado pela RLS com o JWT, então não grava em perfil alheio)
       save: async (u) => {
-        let { data } = await sb.auth.getUser();
-        if (!data.user) {
+        let id = (await sb.auth.getSession()).data.session?.user.id;
+        if (!id) {
           const r = await sb.auth.signInAnonymously();
           if (r.error) throw toRepositoryError(r.error);
-          data = { user: r.data.user! };
+          id = r.data.user!.id;
         }
-        ok(await sb.from("profiles").update({ display_name: u.name }).eq("id", data.user!.id));
+        ok(await sb.from("profiles").update({ display_name: u.name }).eq("id", id));
       },
       clear: async () => void (await sb.auth.signOut()),
       known: async () => [],

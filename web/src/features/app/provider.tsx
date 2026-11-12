@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { now as clockNow } from "@/lib/clock";
 import { createServerClock, type ServerClock } from "@/lib/server-clock";
 import { localRevealAuthority, type RevealAuthority } from "@/features/authority";
@@ -12,6 +12,15 @@ import { createSupabaseRepositories } from "@/repositories/supabase";
 import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
 import { serverRevealAuthority } from "@/features/authority";
+import { clearAppData, markAppDataStale } from "./data-cache";
+import { loadIdentity } from "./identity";
+import { withWriteHook } from "./invalidate";
+
+/** Repositórios que marcam o cache de dados como velho depois de cada escrita (postar, curtir, mudar o evento...). */
+function cached(r: Repositories): Repositories {
+  const wrapped: Repositories = withWriteHook(r, () => markAppDataStale(wrapped));
+  return wrapped;
+}
 
 interface AppState {
   repos: Repositories;
@@ -52,7 +61,10 @@ const Ctx = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const mode = useMemo(() => backendMode(), []);
-  const local = useMemo(() => (mode === "supabase" ? { repos: createSupabaseRepositories(browserSupabase()), persistent: true } : createLocalRepositories()), [mode]);
+  const local = useMemo(() => {
+    const base = mode === "supabase" ? { repos: createSupabaseRepositories(browserSupabase()), persistent: true } : createLocalRepositories();
+    return { ...base, repos: cached(base.repos) };
+  }, [mode]);
   const [canCreate, setCanCreate] = useState(mode === "local");
   const [repos, setRepos] = useState<Repositories>(local.repos);
   const [persistent, setPersistent] = useState(local.persistent);
@@ -67,20 +79,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let alive = true;
     (async () => {
       try {
-        const [u, k] = await Promise.all([local.repos.users.current(), local.repos.users.known()]);
+        // pessoa atual + identidades do aparelho + "pode criar", numa leitura só (ver `loadIdentity`: só decide a interface)
+        const id = await loadIdentity(local.repos, mode);
         if (alive) {
-          setUser(u);
-          setKnown(k);
-        }
-        if (mode === "supabase") {
-          const { data } = await browserSupabase().auth.getUser();
-          if (alive) setCanCreate(Boolean(data.user && !data.user.is_anonymous));
+          setUser(id.user);
+          setKnown(id.known);
+          setCanCreate(id.canCreate);
         }
         if (local.persistent && "storage" in navigator && navigator.storage.persist) void navigator.storage.persist();
       } catch (e) {
         if (!(e instanceof StorageUnavailableError)) throw e;
         if (alive) {
-          setRepos(createMemoryRepositories());
+          setRepos(cached(createMemoryRepositories()));
           setPersistent(false);
           setStorageError(true);
         }
@@ -92,6 +102,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       alive = false;
     };
   }, [local, mode]);
+
+  // logout / troca de pessoa: o cache de dados da pessoa anterior sai da memória (as chaves já levam o id, isto é limpeza)
+  const lastUser = useRef<string | undefined | null>(null);
+  const userId = user?.id;
+  useEffect(() => {
+    if (!ready) return;
+    if (lastUser.current !== null && lastUser.current !== userId) clearAppData(repos);
+    lastUser.current = userId;
+  }, [ready, userId, repos]);
 
   const signIn = useCallback(
     async (name: string) => {
