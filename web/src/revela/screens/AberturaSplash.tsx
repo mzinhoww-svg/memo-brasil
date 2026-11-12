@@ -3,8 +3,6 @@ export function AberturaSplash() {
   return (
     <>
     <div className="scr">
-      <img src="/revela/ref/obj-confetti.webp" alt="" style={{ "position": "absolute", "left": "-120px", "top": "-230px", "width": "630px", "opacity": ".5" }} />
-      <img src="/revela/ref/obj-confetti.webp" alt="" style={{ "position": "absolute", "left": "-90px", "bottom": "-260px", "width": "600px", "opacity": ".4", "transform": "rotate(160deg)" }} />
       <div className="safe" style={{ "alignItems": "center", "justifyContent": "center", "textAlign": "center" }}>
         <div className="row" style={{ "gap": "14px" }}>
           <svg width="56" height="56" viewBox="0 0 64 64" aria-hidden="true">
