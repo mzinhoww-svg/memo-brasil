@@ -26,7 +26,7 @@ export function Tabs({ base, label, tabs, value, onChange }: { base: string; lab
   return (
     <div ref={ref} className="rv-tabs" role="tablist" aria-label={label} onKeyDown={onKey}>
       {tabs.map((t) => (
-        <button key={t.id} id={tabId(base, t.id)} type="button" role="tab" className="rvl-tab" aria-selected={t.id === value} aria-controls={panelId(base, t.id)} tabIndex={t.id === value ? 0 : -1} onClick={() => onChange(t.id)}>
+        <button key={t.id} id={tabId(base, t.id)} type="button" role="tab" className="rvl-tab rv-press" aria-selected={t.id === value} aria-controls={panelId(base, t.id)} tabIndex={t.id === value ? 0 : -1} onClick={() => onChange(t.id)}>
           {t.label}
           {t.count ? <> · {t.count.toLocaleString("pt-BR")}</> : null}
         </button>

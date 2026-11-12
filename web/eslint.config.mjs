@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
   // Kit de animações do designer: copiado sem alteração (não se edita o algoritmo nem o estilo do código).
   { files: ["src/lib/motion/revela-motion.ts", "src/features/photos/film/film35*.ts", "src/features/photos/film/film-canvas.ts"], rules: { "prefer-const": "off" } },
   { files: ["src/revela/screens/**"], rules: { "@next/next/no-img-element": "off" } },
+  // Kit de movimento do designer, copiado sem alteração: não se reescreve para agradar o lint.
+  { files: ["src/lib/motion/revela-motion.ts"], rules: { "prefer-const": "off" } },
 ]);
 
 export default eslintConfig;

@@ -1,12 +1,13 @@
 "use client";
 /* Peças repetidas das telas do painel (17…26): o mesmo markup/classes da referência, escrito uma vez. */
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { reduced } from "@/lib/motion/revela-motion";
 
 export const svgProps = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
 export function BackButton({ onBack, label = "Voltar", close = false }: { onBack?: () => void; label?: string; close?: boolean }) {
   return (
-    <button type="button" className="rv-icon-btn" aria-label={label} onClick={onBack}>
+    <button type="button" className="rv-icon-btn rv-press" aria-label={label} onClick={onBack}>
       <svg {...svgProps}>{close ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M15 18l-6-6 6-6" />}</svg>
     </button>
   );
@@ -40,15 +41,23 @@ export function RowAction({ className = "rv-row", onClick, children, label, role
 /** Aviso curto sobre a tela (copiado, salvo, falhou). `flash(texto)` mostra por 3 s; o nó vai em qualquer lugar da tela. */
 export function useFlash(): [ReactNode, (text: string) => void] {
   const [text, setText] = useState<string | undefined>();
+  const [leaving, setLeaving] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const flash = useCallback((t: string) => {
     setText(t);
+    setLeaving(false);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setText(undefined), 3000);
+    // 3 s no ar; depois `rv-toast-out` (200 ms) e o nó sai
+    timer.current = setTimeout(() => {
+      setLeaving(true);
+      timer.current = setTimeout(() => setText(undefined), reduced() ? 0 : 200);
+    }, 3000);
   }, []);
   useEffect(() => () => clearTimeout(timer.current), []);
   const node = text ? (
-    <div role="status" style={{ position: "fixed", left: "50%", bottom: 28, transform: "translateX(-50%)", zIndex: 30, maxWidth: 340, padding: "12px 18px", borderRadius: "var(--radius-md)", background: "var(--surface-3)", color: "var(--ink)", font: "500 14px/20px var(--font-sans)", boxShadow: "var(--shadow-sheet)", textAlign: "center" }}>{text}</div>
+    <div style={{ position: "fixed", left: 0, right: 0, bottom: 28, zIndex: 30, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
+      <div role="status" className={leaving ? "rv-toast-out" : "rv-toast-in"} style={{ maxWidth: 340, padding: "12px 18px", borderRadius: "var(--radius-md)", background: "var(--surface-3)", color: "var(--ink)", font: "500 14px/20px var(--font-sans)", boxShadow: "var(--shadow-sheet)", textAlign: "center" }}>{text}</div>
+    </div>
   ) : null;
   return [node, flash];
 }

@@ -1,6 +1,7 @@
 "use client";
 /* Master-plano-publicar.html (M04): modal "Publicar novo preço?" com o código do autenticador (TOTP). Markup e classes da referência. */
 import type { ReactNode } from "react";
+import { useOpen } from "@/lib/motion/use-motion";
 import { Ico, MHead, MasterFrame, type IconName } from "../master-kit";
 import { PhonePreview } from "./MasterPlanos";
 
@@ -28,11 +29,12 @@ export function PublicarModal({
   title = "Publicar novo preço?", caption = "Entra no paywall e no checkout ValidaPay assim que você confirmar.", diffs = [{ label: "Casamento", from: "R$ 189,00", to: "R$ 199,00" }],
   rows = REF_ROWS, reason, code = "719", onCode, extra, error, busy, cta = "Publicar R$ 199", onCancel, onPublish,
 }: PublicarModalProps = {}) {
+  const open = useOpen();
   const digits = code.padEnd(6, " ").slice(0, 6).split("");
   const next = Math.min(code.length, 5);
   return (
-    <div className="mmodal" role="dialog" aria-modal="true" aria-label={title} style={onPublish ? { position: "fixed" } : undefined}>
-      <div className="mmodal-card">
+    <div className="mmodal rv-backdrop" data-open={open} role="dialog" aria-modal="true" aria-label={title} style={onPublish ? { position: "fixed" } : undefined}>
+      <div className="mmodal-card rv-sheet-motion" data-open={open}>
         <h2 className="rv-title">{title}</h2>
         <p className="rv-caption" style={{ marginTop: "6px" }}>{caption}</p>
         {diffs.map((d) => (

@@ -46,7 +46,7 @@ export function PainelResumo({ name = PAINEL_RESUMO_REF.name, live = PAINEL_RESU
           </Link>
         </div>
         <div className="row between" style={{ "marginTop": "16px" }}>
-          {live ? <span className="live"><i />Rolando agora</span> : <span className="rv-caption">Encerrado</span>}
+          {live ? <span className="live"><i className="rv-live-dot" />Rolando agora</span> : <span className="rv-caption">Encerrado</span>}
           <span className="rv-stamp" style={{ "fontSize": "12px" }}>
             {stamp}
           </span>

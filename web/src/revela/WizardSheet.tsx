@@ -1,6 +1,7 @@
 "use client";
 /* Casca comum dos passos do assistente "Montar a câmera" (Camera-*.html): grab, título + n/8, barra de passos, corpo e barra de ação. Mesmo markup da referência. */
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useWizardDirection } from "./wizard-motion";
 
 const BACK = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -11,6 +12,13 @@ const BACK = (
 export function WizardSheet({ step, title, caption, children, next = "Próximo", onBack, onNext, busy }: {
   step: number; title: string; caption: string; children: ReactNode; next?: string; onBack?: () => void; onNext?: () => void; busy?: boolean;
 }) {
+  const dir = useWizardDirection();
+  // o traço do passo atual enche depois de montar (transição do kit); os anteriores já entram cheios
+  const [filled, setFilled] = useState(step - 1);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setFilled(step));
+    return () => cancelAnimationFrame(id);
+  }, [step]);
   return (
     <>
     <div className="scr sheet-scr">
@@ -24,12 +32,12 @@ export function WizardSheet({ step, title, caption, children, next = "Próximo",
           <span className="rv-stamp" style={{ fontSize: "12px", marginTop: "6px" }} aria-label={`Passo ${step} de 8`}>{step}/8</span>
         </div>
         <div className="rv-steps">
-          {Array.from({ length: 8 }, (_, i) => <i key={i} className={i < step ? "on" : ""} />)}
+          {Array.from({ length: 8 }, (_, i) => <i key={i} className={`rv-seg${i < step ? " on" : ""}`} data-on={i < filled} />)}
         </div>
-        <div className="sheet-body">{children}</div>
+        <div className={`sheet-body ${dir ? "rv-step" : "rv-rise"}`} data-dir={dir}>{children}</div>
         <div className="cta-bar">
-          <button type="button" className="rv-icon-btn" aria-label="Voltar" onClick={onBack} disabled={busy}>{BACK}</button>
-          <button type="button" className="rv-btn rv-btn--primary" onClick={onNext} disabled={busy} aria-busy={busy}>{next}</button>
+          <button type="button" className="rv-icon-btn rv-press" aria-label="Voltar" onClick={onBack} disabled={busy}>{BACK}</button>
+          <button type="button" className="rv-btn rv-btn--primary rv-press" onClick={onNext} disabled={busy} aria-busy={busy}>{next}</button>
         </div>
       </div>
       <div className="home-ind" />

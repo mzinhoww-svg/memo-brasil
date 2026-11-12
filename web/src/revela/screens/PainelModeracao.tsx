@@ -93,7 +93,7 @@ export function PainelModeracao({ tab = MODERACAO_REF.tab, counts = MODERACAO_RE
         <h2 className="rv-group-h">
           Comentários
         </h2>
-        <div className="rv-group">
+        <div className="rv-group rv-rise">
           {toggles.map((t) => (
             <RowAction key={t.label} onClick={t.onClick} role="switch" checked={t.on}>
               <div className="rv-row__text">

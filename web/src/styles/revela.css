@@ -193,10 +193,8 @@
 
 /* Skeleton */
 .rv-skeleton-wrap { display: flex; flex-direction: column; gap: var(--space-4); width: 100%; max-width: 480px; }
-.rv-skeleton { display: block; height: 72px; border-radius: var(--radius-lg); background: var(--surface-2); animation: rv-pulso 1.4s ease-in-out infinite; }
+.rv-skeleton { display: block; height: 72px; border-radius: var(--radius-lg); }
 .rv-skeleton--titulo { height: 36px; width: 55%; }
-@keyframes rv-pulso { 50% { opacity: 0.5; } }
-@media (prefers-reduced-motion: reduce) { .rv-skeleton { animation: none; } }
 
 /* ---- Componentes novos do Revela ---- */
 /* CameraStage: render 3D sobre palco escuro */
@@ -240,20 +238,9 @@
 .rvl-plan--on .rvl-plan__tier { color: var(--revela-text); }
 .rvl-plan--gold .rvl-plan__tier { color: var(--champanhe); }
 
-/* Flash do disparo: 120 ms, opacidade 0 → .9 → 0 */
-.rv-flash { position: fixed; inset: 0; z-index: 90; background: var(--flash); opacity: 0; pointer-events: none; }
-.rv-flash--on { animation: rv-flash 120ms cubic-bezier(.16, 1, .3, 1) both; }
-@keyframes rv-flash { 0% { opacity: 0; } 30% { opacity: .9; } 100% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .rv-flash--on { animation: none; } }
-
 /* Grão de filme sobre fundos escuros (decorativo, sem custo de rede extra) */
 .rv-grain { position: relative; isolation: isolate; }
 .rv-grain::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: url("/revela/fx/grain.webp"); background-size: 256px; opacity: .07; mix-blend-mode: screen; }
-
-/* Confete: só em momentos de festa (abertura e evento publicado) */
-.rv-confetti { position: absolute; inset: 0; pointer-events: none; background: url("/revela/3d/obj-confetti.webp") center top / 360px auto repeat-y; opacity: .85; animation: rv-confetti-cai 6s linear infinite; }
-@keyframes rv-confetti-cai { from { background-position-y: -360px; } to { background-position-y: 0; } }
-@media (prefers-reduced-motion: reduce) { .rv-confetti { animation: none; } }
 
 /* Abertura: vídeo de fundo + conteúdo ancorado embaixo */
 .rv-abertura { position: relative; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; isolation: isolate; background: var(--bg); }

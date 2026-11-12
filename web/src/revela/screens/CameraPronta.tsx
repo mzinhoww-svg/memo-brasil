@@ -1,5 +1,6 @@
 /* Gerado de design-system/revela/html/Camera-pronta.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 import Link from "next/link";
+import { Cam3D } from "@/components/revela/Cam3D";
 
 export interface CameraProntaProps { name?: string; cam?: string; shareLabel?: string; printHref?: string; onShare?: () => void }
 
@@ -11,7 +12,7 @@ export function CameraPronta({ name = "Ana & Leo", cam = "/revela/ref/cam-casame
       <div className="safe" style={{ "textAlign": "center", "alignItems": "center", "position": "relative" }}>
         <div className="grow" style={{ "display": "flex", "alignItems": "center", "justifyContent": "center", "margin": "0 -30px" }}>
           <div className="rv-stagebox" style={{  }}>
-            <img src={cam} alt="Câmera do evento pronta" style={{ "width": "380px" }} />
+            <Cam3D src={cam} alt="Câmera do evento pronta" width={380} />
           </div>
         </div>
         <h1 className="rv-title-lg">

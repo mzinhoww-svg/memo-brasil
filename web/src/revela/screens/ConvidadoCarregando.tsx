@@ -20,10 +20,10 @@ export function ConvidadoCarregando({ name = "Ana & Leo", wrap = "casamento" }: 
           Abrindo a câmera
           {name ? <><br />{"de " + name}</> : null}
         </h1>
-        <div className="dotsload" style={{ "margin": "22px 0 60px" }}>
-          <i />
-          <i />
-          <i />
+        <div className="dotsload rv-dots" style={{ "margin": "22px 0 60px" }}>
+          <i style={{ "--i": 0 } as React.CSSProperties} />
+          <i style={{ "--i": 1 } as React.CSSProperties} />
+          <i style={{ "--i": 2 } as React.CSSProperties} />
         </div>
       </div>
       <div className="home-ind" />

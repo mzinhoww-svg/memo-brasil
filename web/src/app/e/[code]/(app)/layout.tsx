@@ -6,6 +6,7 @@ import { EventTheme, Button, Icon } from "@/components/revela";
 import { ConvidadoCarregando } from "@/revela/screens/ConvidadoCarregando";
 import { useApp } from "@/features/app/provider";
 import { useClock, useEventData, useOnline } from "@/features/app/hooks";
+import { usePresence } from "@/lib/motion/use-motion";
 import { GuestProvider } from "@/features/events/guest-context";
 import { devToolsEnabled } from "@/lib/dev-tools";
 import { RollPickerProvider } from "@/features/photos/roll-picker";
@@ -32,6 +33,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     sync();
   }, [reload, sync]);
   const online = useOnline();
+  const offline = usePresence(!online);
   const participant = data.participants.find((p) => p.userId === user?.id);
   const isHost = Boolean(data.event && user && data.event.hostId === user.id);
 
@@ -120,8 +122,8 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     <GuestProvider value={ctx}>
       <EventTheme wrap={data.event.cameraStyle}>
         {celebrate && <RevealTransition title={data.event.title} onClose={() => setCelebrate(false)} />}
-        {!online && (
-          <div className="app-banner" role="status" style={{ position: "fixed", top: "var(--space-4)", left: "var(--space-4)", right: "var(--space-4)", zIndex: 80 }}>
+        {offline.mounted && (
+          <div className={`app-banner ${offline.leaving ? "rv-toast-out" : "rv-toast-in"}`} role="status" style={{ position: "fixed", top: "var(--space-4)", left: "var(--space-4)", right: "var(--space-4)", zIndex: 80 }}>
             <Icon name="sem-sinal" label="Sem sinal" />
             <span>Sem sinal agora. {data.counts.mine === 1 ? "Sua foto está guardada." : `Suas ${data.counts.mine} fotos estão guardadas.`}</span>
           </div>

@@ -53,7 +53,7 @@ export function AnfitriaoConvidados({ summary = CONVIDADOS_REF.summary, pct = CO
         <div className="rv-group-h">
           Fotografando agora
         </div>
-        <div className="rv-group">
+        <div className="rv-group rv-rise">
           {guests.map((g) => (
             <RowAction key={g.id} onClick={onGuest ? () => onGuest(g.id) : undefined}>
               <span className="avatar avatar--sm">
@@ -79,7 +79,7 @@ export function AnfitriaoConvidados({ summary = CONVIDADOS_REF.summary, pct = CO
             <div className="rv-group-h">
               Ainda não entraram
             </div>
-            <div className="rv-group">
+            <div className="rv-group rv-rise">
               <RowAction onClick={onRemind}>
                 <svg {...svgProps}>
                   <circle cx="9" cy="8" r="3.5" />

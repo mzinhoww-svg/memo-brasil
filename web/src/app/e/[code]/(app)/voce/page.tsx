@@ -68,7 +68,7 @@ export default function Voce() {
     <>
       <ConvidadoVoce code={event.code} name={user.name} sub={sub} used={counts.mine} total={total} notify={notify} email={email ?? "Adicionar e-mail"}
         onNotify={() => void toggleNotify()} onEmail={() => void editEmail()} onDownload={() => void downloadMine()} onLeave={() => void leave()} onDelete={() => void wipe()} />
-      {msg && <p className="rv-field-erro" role="status" style={{ position: "fixed", left: 20, right: 20, bottom: 84, textAlign: "center", zIndex: 40 }} onClick={() => setMsg(undefined)}>{msg}</p>}
+      {msg && <p className="rv-field-erro rv-toast-in" role="status" style={{ position: "fixed", left: 20, right: 20, bottom: 84, textAlign: "center", zIndex: 40 }} onClick={() => setMsg(undefined)}>{msg}</p>}
       <span className="rv-sr-only" data-now={now} />
     </>
   );

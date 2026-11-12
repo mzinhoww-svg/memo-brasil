@@ -2,6 +2,7 @@
 /* Convidado-permissao.html (23): aviso "Libere a câmera" sobre o visor escurecido. Os outros estados da câmera
    (negada, sem câmera, ocupada, interrompida) usam o mesmo aviso, com os mesmos botões de antes. */
 import { useEffect, useRef, type ReactNode } from "react";
+import { useOpen } from "@/lib/motion/use-motion";
 import { CameraFrame, type CameraFrameProps } from "./CameraFrame";
 
 export type PermissaoEstado = "pedir" | "negada" | "sem-camera" | "ocupada" | "interrompida";
@@ -28,6 +29,7 @@ const TITLE: Record<PermissaoEstado, string> = {
 
 export function ConvidadoPermissao({ estado = "pedir", left = 27, help, embedded, onLater, onAllow, onGallery, onDeviceCamera, ...frame }: ConvidadoPermissaoProps = {}) {
   const panel = useRef<HTMLDivElement>(null);
+  const open = useOpen();
   useEffect(() => { panel.current?.focus({ preventScroll: true }); }, [estado]);
   const pedir = estado === "pedir";
   const body: ReactNode = pedir
@@ -42,7 +44,7 @@ export function ConvidadoPermissao({ estado = "pedir", left = 27, help, embedded
       dim
       overlay={
         <div className="notice-wrap">
-          <div className="rv-notice" ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="perm-h">
+          <div className="rv-notice rv-sheet-motion" data-open={open} ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="perm-h">
             <div className="rv-notice__body">
               <h3 id="perm-h">{TITLE[estado]}</h3>
               <p>{body}</p>

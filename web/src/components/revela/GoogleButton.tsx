@@ -17,7 +17,7 @@ type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "childr
 /** Botão de entrada com Google, no padrão visual da marca (fundo neutro, borda fina, G colorido); acompanha o tema dia/noite. */
 export function GoogleButton({ block, label = "Entrar com o Google", ...rest }: Props) {
   return (
-    <button type="button" {...rest} className={`rv-google${block ? " rv-google--bloco" : ""}`}>
+    <button type="button" {...rest} className={`rv-google rv-press${block ? " rv-google--bloco" : ""}`}>
       <GoogleG />
       <span>{label}</span>
     </button>

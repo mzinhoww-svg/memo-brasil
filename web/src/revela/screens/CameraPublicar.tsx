@@ -1,5 +1,6 @@
 "use client";
 /* Camera-publicar.html (passo 8): mesmo markup e classes da referência; planos do catálogo por props (padrão = desenho). */
+import { Cam3D } from "@/components/revela/Cam3D";
 import { WizardSheet } from "../WizardSheet";
 
 export interface PlanView { code: string; tier: string; price: string; lines: [string, string]; gold?: boolean }
@@ -32,8 +33,7 @@ export function CameraPublicar({
   return (
     <WizardSheet step={8} title="Escolha o plano" caption="Pague uma vez por evento. Sem assinatura." onBack={onBack} onNext={onNext} next={next} busy={busy}>
       <div className="rv-stagebox" style={{ marginTop: "-6px" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- render 3D do kit, WebP responsivo */}
-        <img src={image} alt="Câmera do evento" style={{ width: "260px" }} />
+        <Cam3D src={image} alt="Câmera do evento" width={260} />
       </div>
       <div className="summary">
         <div><span className="rv-caption">Embalagem</span><b>{wrapLabel}</b></div>

@@ -9,9 +9,9 @@ export function Stepper({ label, value, min = 1, max = 99, onChange, decrementLa
     <div className="rvl-group" role="group" aria-labelledby={id}>
       <span id={id} className="rv-group-label">{label}</span>
       <div className="rv-stepper">
-        <button type="button" className="rv-step-btn" aria-label={decrementLabel} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}>−</button>
+        <button type="button" className="rv-step-btn rv-press" aria-label={decrementLabel} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}>−</button>
         <span className="rv-stepper-valor" aria-live="polite">{format(value)}</span>
-        <button type="button" className="rv-step-btn" aria-label={incrementLabel} disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}>+</button>
+        <button type="button" className="rv-step-btn rv-press" aria-label={incrementLabel} disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}>+</button>
       </div>
     </div>
   );

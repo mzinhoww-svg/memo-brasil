@@ -3,7 +3,7 @@ import Link from "next/link";
 /** Barra de abas do convidado (Feed / Minhas / Você): `nav.tabs` de Convidado-laboratorio.html, com links reais. */
 export function GuestTabs({ code, current }: { code?: string; current: "feed" | "minhas" | "voce" }) {
   const href = (p: string) => (code ? `/e/${code}/${p}` : "#");
-  const tab = (id: "feed" | "minhas" | "voce") => `rv-tab${current === id ? " rv-tab--on" : ""}`;
+  const tab = (id: "feed" | "minhas" | "voce") => `rv-tab rv-press${current === id ? " rv-tab--on" : ""}`;
   return (
     <nav className="tabs">
       <div className="rv-tabbar">

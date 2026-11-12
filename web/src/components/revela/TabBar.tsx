@@ -16,7 +16,7 @@ export function TabBar({ items, cta, label = "Navegação principal" }: { items:
       {cta && <Button variant="cta" href={cta.href} icon="camera" block>{cta.label}</Button>}
       <nav className={items.length === 4 ? "rv-tabbar-nav rv-tabbar-nav--4" : "rv-tabbar-nav"} aria-label={label}>
         {items.map((i) => (
-          <Link key={i.href} className="rv-tabbar-item" href={i.href} aria-current={i.current ? "page" : undefined}>
+          <Link key={i.href} className="rv-tabbar-item rv-press" href={i.href} aria-current={i.current ? "page" : undefined}>
             <Icon name={i.icon} decorative size={22} strokeWidth={i.current ? 2.2 : 2} />
             <span>{i.label}</span>
           </Link>
