@@ -13,6 +13,7 @@ export interface ModeracaoProps {
   comments?: ModComentario[];
   blocked?: ModBloqueado[];
   note?: ReactNode;
+  pager?: ReactNode;
 }
 
 const act = (
@@ -31,7 +32,7 @@ const REF_PHOTOS: ModFoto[] = [
 const REF_TABS = [{ label: "Fotos 4", on: true }, { label: "Comentários 7" }, { label: "Participantes bloqueados" }];
 
 export function MasterModeracaoView({
-  tab = "fotos", tabs = REF_TABS, caption = "Denúncias de todos os eventos que os anfitriões ainda não resolveram", photos = REF_PHOTOS, comments = [], blocked = [], note,
+  tab = "fotos", tabs = REF_TABS, caption = "Denúncias de todos os eventos que os anfitriões ainda não resolveram", photos = REF_PHOTOS, comments = [], blocked = [], note, pager,
 }: ModeracaoProps = {}) {
   return (
     <>
@@ -45,7 +46,7 @@ export function MasterModeracaoView({
           {photos.map((p) => (
             <div className="mmod" key={p.key}>
               {/* eslint-disable-next-line @next/next/no-img-element -- cena do kit na tela do desenho; o app não exibe fotos privadas */}
-              {p.image ? <img src={p.image} alt="" /> : <div role="img" aria-label="Foto privada: o console não exibe imagens" style={{ height: "250px", display: "grid", placeItems: "center", background: "var(--surface-2)", color: "var(--ink-faint)" }}><Ico n="lock" /></div>}
+              {p.image ? <img src={p.image} alt="" /> : <div role="img" aria-label="Foto privada: o console não exibe imagens" style={{ height: "250px", display: "grid", placeItems: "center", background: "var(--surface-2)", color: "var(--ink-faint)" }}><Ico n="lock" size={20}/></div>}
               <div className="mmod-b">
                 <div className="row between"><b>{p.event}</b><span className="rv-caption" style={{ color: "var(--danger)" }}>{p.reports}</span></div>
                 <span className="rv-caption">{p.reason}</span>
@@ -75,6 +76,7 @@ export function MasterModeracaoView({
       {tab === "bloqueados" && (
         <MTable cols="1.4fr 1.4fr 1fr" head={["Evento", "Participante", "Bloqueado em"]} rows={blocked.map((b) => ({ key: b.key, cells: [b.event, b.name, b.when] }))} empty="Nenhum participante bloqueado." />
       )}
+      {pager}
     </>
   );
 }

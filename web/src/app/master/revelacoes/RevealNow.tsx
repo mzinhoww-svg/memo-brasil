@@ -30,7 +30,7 @@ export function RevealNow({ event }: { event: { id: string; title: string } }) {
       <button type="button" className="rv-btn rv-btn--sm" onClick={() => setOpen(true)} aria-label={`Revelar agora: ${event.title}`}>Revelar agora</button>
       {open && (
         <Sheet title="Revelar agora" onClose={close}>
-          <p className="adm-nota adm-sheet-nota">{event.title}. As fotos ficam visíveis para quem tem acesso ao evento, agora, e não dá para desfazer.</p>
+          <p className="rv-caption">{event.title}. As fotos ficam visíveis para quem tem acesso ao evento, agora, e não dá para desfazer.</p>
           <ReasonField label="Motivo (obrigatório, 10 a 500 caracteres)" value={reason} onChange={setReason} error={tried ? reasonError(reason) : null} />
           {error && <p className="rv-field-erro" role="alert">{error}</p>}
           <Button block onClick={() => void submit()} disabled={busy}>{busy ? "Revelando…" : "Revelar agora"}</Button>

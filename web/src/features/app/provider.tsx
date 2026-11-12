@@ -60,7 +60,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [known, setKnown] = useState<User[]>([]);
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState(false);
-  const scheduler = useMemo(() => createLocalScheduler(), []);
+  const scheduler = useMemo(() => createLocalScheduler(undefined,mode==="supabase"?{
+    enroll:async(eventId)=>{await browserSupabase().rpc("record_reveal_native_notice",{p_event:eventId,p_shown:false});},
+    shown:async(eventId)=>{await browserSupabase().rpc("record_reveal_native_notice",{p_event:eventId,p_shown:true});},
+  }:undefined), [mode]);
   const clock = useMemo(() => createServerClock({ read: clockNow }), []);
 
   useEffect(() => {

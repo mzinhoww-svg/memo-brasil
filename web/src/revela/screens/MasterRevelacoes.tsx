@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Ico, MHead, MNote, MRow, MTable, MasterFrame, St, type Tone } from "../master-kit";
 
 export interface RevelacaoRow { key: string; when: string; event: string; photos: string; phone: string; email: string; tone: Tone; status: string; action?: ReactNode }
-export interface RevelacoesProps { caption?: string; rows?: RevelacaoRow[]; note?: ReactNode; empty?: string }
+export interface RevelacoesProps { caption?: string; rows?: RevelacaoRow[]; note?: ReactNode; empty?: string; pager?: ReactNode }
 
 const resend = <button className="rv-btn rv-btn--sm"><Ico n="refresh" />Reenviar falhas</button>;
 const now = <button className="rv-btn rv-btn--sm">Revelar agora</button>;
@@ -17,13 +17,14 @@ const REF_ROWS: RevelacaoRow[] = [
 
 export function MasterRevelacoesView({
   caption = "Fila do relógio do servidor. Cada evento revela uma vez só.", rows = REF_ROWS,
-  note = "Quem não instalou o app recebe o aviso por e-mail, se deixou o endereço ao entrar. O e-mail sai pela Brevo.", empty,
+  note = "Quem não instalou o app recebe o aviso por e-mail, se deixou o endereço ao entrar. O e-mail sai pela Brevo.", empty, pager,
 }: RevelacoesProps = {}) {
   const mrows: MRow[] = rows.map((r) => ({ key: r.key, cells: [r.when, r.event, r.photos, r.phone, r.email, <St key="s" tone={r.tone}>{r.status}</St>, r.action] }));
   return (
     <>
       <MHead title="Revelações" caption={caption} />
       <MTable cols="0.9fr 1.5fr .6fr 1fr 1.3fr .8fr 1fr" head={["Revela", "Evento", "Fotos", "Avisos no celular", "Avisos por e-mail", "Situação", ""]} rows={mrows} empty={empty ?? "Nenhuma revelação na fila."} />
+      {pager}
       <MNote icon="bell" style={{ marginTop: "16px" }}>{note}</MNote>
     </>
   );
