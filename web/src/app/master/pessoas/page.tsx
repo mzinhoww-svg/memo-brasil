@@ -1,73 +1,76 @@
-import { MState } from "@/revela/master-kit";
-import { ExportButton } from "../ExportButton";
-import { MasterPessoasView } from "@/revela/screens/MasterPessoas";
-import { brl } from "../billing";
-import { requireMaster, rpc } from "../data";
-import { monthYear, nf, relWhen } from "../format";
+import { requireRole, rpc, type Load } from "../data";
+import { pageNumber } from "../pagination";
+import { MasterPessoasContasView } from "@/revela/screens/MasterPessoasContas";
+import { MasterPessoasConvidadosView } from "@/revela/screens/MasterPessoasConvidados";
+import { MasterPessoasConvitesView } from "@/revela/screens/MasterPessoasConvites";
+import { MasterPessoasOrganizadoresView } from "@/revela/screens/MasterPessoasOrganizadores";
+import { PessoasStatePage, pessoasHref, type ChipItem, type PessoasQuery, type TabCounts } from "@/revela/screens/MasterPessoasKit";
+import {
+  PER_PAGE, USER_KIND, contaRows, guestRows, inviteRows, organizerRows, parseAba, teamRows, validFilter, type GuestItem, type InviteItem, type OrganizerItem, type PessoasAba, type TeamItem, type UserItem,
+} from "@/lib/master/people";
+import { EquipeClient } from "./EquipeClient";
+import { PessoasExport } from "./PessoasExport";
 
-interface Org { userId: string; displayName: string | null; email: string | null; eventsCount: number; firstEventAt: string | null; deletionRequested: boolean }
-interface Users { total: number; items: { userId: string; isAnonymous: boolean; provider: string; email: string | null; createdAt: string; platformRole: string | null }[] }
-interface Parts { total: number; items: { eventTitle: string; name: string; table: string | null; joinedAt: string; blocked: boolean; isHost: boolean }[] }
-interface Order { hostId: string | null; status: string; amountCents: number }
+interface Page<T> { total: number; items: T[] }
+interface Counts { accounts: number; organizers: number; guests: number; invites: number; team: number }
 
-const PROVIDER: Record<string, string> = { google: "Google", email: "Link por e-mail", anonymous: "Convidado" };
-const POR = 25;
-
-/** M10 · Pessoas: organizadores, convidados e equipe. Mesmos dados e limites das telas antigas (e-mail mascarado para quem não é master). */
-export default async function Pessoas({ searchParams }: { searchParams: Promise<{ aba?: string; q?: string; p?: string }> }) {
-  const sb = await requireMaster();
+/** Pessoas (M15 a M19): contas, organizadores, convidados, convites e equipe. Cada aba lê a sua RPC (o servidor mascara o e-mail por papel) e mostra
+ *  os quatro estados do desenho. Equipe é só do master (a RPC nega o resto com MM004 e a aba mostra "sem permissão"). */
+export default async function Pessoas({ searchParams }: { searchParams: Promise<{ aba?: string; q?: string; p?: string; f?: string }> }) {
+  const gate = await requireRole("pessoas");
+  if ("denied" in gate) return gate.denied;
+  const { sb, role } = gate;
   const sp = await searchParams;
-  const aba = sp.aba === "convidados" || sp.aba === "equipe" ? sp.aba : "organizadores";
-  const p = Math.max(1, Number(sp.p) || 1);
-  const q = sp.q?.slice(0, 80) || null;
-  const [orgs, parts, users, orders] = await Promise.all([
-    rpc<{ total: number; items: Org[] }>(sb, "admin_list_organizers", { p_limit: aba === "organizadores" ? POR : 1, p_offset: aba === "organizadores" ? (p - 1) * POR : 0, p_search: aba === "organizadores" ? q : null }),
-    rpc<Parts>(sb, "admin_search_participants", { p_limit: aba === "convidados" ? POR : 1, p_offset: aba === "convidados" ? (p - 1) * POR : 0, p_search: aba === "convidados" ? q : null }),
-    rpc<Users>(sb, "admin_list_users_v2", { p_limit: 200, p_kind: null }),
-    rpc<Order[]>(sb, "admin_list_payments", { p_limit: 500 }),
-  ]);
-  if (orgs.state !== "ok") return <MState kind={orgs.state === "denied" ? "denied" : "error"} text={orgs.state === "error" ? `Não foi possível carregar: ${orgs.message}` : undefined} />;
-  const people = users.state === "ok" ? users.data.items : [];
-  const byUser = new Map(people.map((u) => [u.userId, u]));
-  const team = people.filter((u) => u.platformRole);
-  const spend = new Map<string, number>();
-  for (const o of orders.state === "ok" ? orders.data : []) if (o.hostId && o.status === "pago") spend.set(o.hostId, (spend.get(o.hostId) ?? 0) + o.amountCents);
-  const href = (a: string, page = 1) => `/master/pessoas?${new URLSearchParams({ aba: a, ...(q ? { q } : {}), ...(page > 1 ? { p: String(page) } : {}) })}`;
-  const tabs = [
-    { label: `Organizadores ${nf(orgs.data.total)}`, href: href("organizadores"), on: aba === "organizadores" },
-    { label: `Convidados ${nf(parts.state === "ok" ? parts.data.total : 0)}`, href: href("convidados"), on: aba === "convidados" },
-    { label: `Equipe ${nf(team.length)}`, href: href("equipe"), on: aba === "equipe" },
-  ];
-  const total = aba === "organizadores" ? orgs.data.total : aba === "convidados" && parts.state === "ok" ? parts.data.total : 0;
-  const last = Math.max(1, Math.ceil(total / POR));
-  const pager = aba !== "equipe" && last > 1 ? (
-    <nav aria-label="Paginação" className="row" style={{ gap: "12px", marginTop: "16px", alignItems: "center" }}>
-      {p > 1 && <a className="link" href={href(aba, p - 1)}>← Anterior</a>}
-      <span className="rv-caption">Página {p} de {last} · {nf(total)} registros</span>
-      {p < last && <a className="link" href={href(aba, p + 1)}>Próxima →</a>}
-    </nav>
-  ) : undefined;
+  const aba = parseAba(sp.aba);
+  const page = pageNumber(sp.p);
+  const q = sp.q?.trim().slice(0, 80) || undefined;
+  const f = validFilter(aba, sp.f);
+  const query: PessoasQuery = { f, q };
+  const range = { p_limit: PER_PAGE, p_offset: (page - 1) * PER_PAGE };
 
-  const exp = <ExportButton kind="pessoas" screen={`pessoas-${aba}`} filters={{ aba, q: aba === "equipe" ? undefined : q }} />;
-  if (aba === "convidados") {
-    return (
-      <MasterPessoasView tabs={tabs} exportAction={exp} pager={pager} cols="1.4fr 1.4fr .8fr 1fr .8fr" head={["Nome", "Evento", "Mesa", "Entrou", "Situação"]}
-        rows={parts.state === "ok" ? parts.data.items.map((x, i) => ({ key: `${i}-${x.name}`, cells: [x.name, x.eventTitle, x.table ?? "—", relWhen(x.joinedAt), x.blocked ? "bloqueado" : x.isHost ? "organizador" : "ativo"] })) : []}
-        caption="Quem entrou em cada evento. Sem telefone, e-mail nem fotos." />
-    );
+  const countsReq = rpc<Counts>(sb, "admin_people_counts");
+  const listReq: Promise<Load<unknown>> =
+    aba === "contas" ? rpc<Page<UserItem> & { summary: Record<string, number> }>(sb, "admin_list_users_v2", { ...range, p_kind: f ? USER_KIND[f] : null, p_search: q ?? null })
+    : aba === "organizadores" ? rpc<Page<OrganizerItem> & { summary: { deletionPending: number } }>(sb, "admin_list_organizers", { ...range, p_search: q ?? null })
+    : aba === "convidados" ? rpc<Page<GuestItem> & { summary: Record<string, number> }>(sb, "admin_search_participants_v2", { ...range, p_search: q ?? null, p_situation: f ?? null })
+    : aba === "convites" ? rpc<Page<InviteItem> & { summary: Record<string, number> }>(sb, "admin_search_invites_v2", { ...range, p_search: q ?? null, p_state: f ?? null })
+    : rpc<{ items: TeamItem[] }>(sb, "admin_list_team");
+  const [c, list] = await Promise.all([countsReq, listReq]);
+  const counts: TabCounts | undefined = c.state === "ok"
+    ? { contas: c.data.accounts, organizadores: c.data.organizers, convidados: c.data.guests, convites: c.data.invites, equipe: c.data.team }
+    : undefined;
+
+  // Exportar: só master e auditor (a RPC nega o support); a aba Equipe não exporta
+  const canExport = (role === "master" || role === "auditor") && aba !== "equipe";
+  const exportFor = (rows: number) => (canExport ? <PessoasExport aba={aba} f={f} q={q} rows={rows} /> : null);
+
+  if (list.state !== "ok") {
+    const variant = list.state === "denied" ? "denied" : "error";
+    return <PessoasStatePage aba={aba} variant={variant} counts={counts} live exportAction={aba === "equipe" ? null : exportFor(0)} />;
   }
+  const data = list.data as Page<unknown> & { summary?: Record<string, number> };
+
   if (aba === "equipe") {
-    return (
-      <MasterPessoasView tabs={tabs} exportAction={exp} cols="1.6fr 1.2fr 1fr" head={["E-mail", "Papel", "Desde"]}
-        rows={team.map((u) => ({ key: u.userId, cells: [u.email ?? `${u.userId.slice(0, 8)}…`, u.platformRole ?? "—", monthYear(u.createdAt)] }))} caption="Contas com papel de operador da plataforma." empty="Nenhuma conta da equipe listada." />
-    );
+    return <EquipeClient rows={teamRows((list.data as { items: TeamItem[] }).items)} counts={counts} />;
   }
-  return (
-    <MasterPessoasView tabs={tabs} exportAction={exp} pager={pager}
-      rows={orgs.data.items.map((o) => ({
-        key: o.userId,
-        cells: [`${o.displayName ?? "—"}${o.deletionRequested ? " · exclusão pedida" : ""}`, o.email ?? "—", PROVIDER[byUser.get(o.userId)?.provider ?? ""] ?? "—", nf(o.eventsCount), brl(spend.get(o.userId) ?? 0), monthYear(o.firstEventAt)],
-      }))}
-      empty="Nenhum organizador ainda." />
-  );
+  if (!data.items.length) return <PessoasStatePage aba={aba} variant="empty" counts={counts} live exportAction={exportFor(data.total)} />;
+
+  const chip = (label: string, n: number, key: string | undefined): ChipItem => ({ label, n, on: f === key, href: pessoasHref(aba as PessoasAba, { f: key, q }) });
+  const common = { counts, query, page, total: data.total, live: true, exportAction: exportFor(data.total) };
+  const s = data.summary ?? {};
+
+  if (aba === "contas") {
+    return <MasterPessoasContasView {...common} rows={contaRows(data.items as UserItem[])}
+      chips={[chip("Todas", counts?.contas ?? 0, undefined), chip("Equipe", s.team ?? 0, "equipe"), chip("Google", s.google ?? 0, "google"), chip("E-mail", s.email ?? 0, "email"), chip("Convidados", s.anon ?? 0, "convidados")]}
+      orphans={!f || f === "convidados" ? (s.orphanAnon ?? 0) : null} />;
+  }
+  if (aba === "organizadores") {
+    return <MasterPessoasOrganizadoresView {...common} rows={organizerRows(data.items as OrganizerItem[])} deletionPending={s.deletionPending ?? 0} />;
+  }
+  if (aba === "convidados") {
+    return <MasterPessoasConvidadosView {...common} rows={guestRows(data.items as GuestItem[])}
+      chips={[chip("Todos", s.total ?? 0, undefined), chip("Ativos", s.ativos ?? 0, "ativos"), chip("Bloqueados", s.bloqueados ?? 0, "bloqueados"), chip("Organizadores", s.organizadores ?? 0, "organizadores")]} />;
+  }
+  return <MasterPessoasConvitesView {...common} rows={inviteRows(data.items as InviteItem[])}
+    chips={[chip("Todos", s.total ?? 0, undefined), chip("Ativos", s.ativos ?? 0, "ativos"), chip("Expirados", s.expirados ?? 0, "expirados"), chip("Esgotados", s.esgotados ?? 0, "esgotados"), chip("Revogados", s.revogados ?? 0, "revogados")]} />;
 }

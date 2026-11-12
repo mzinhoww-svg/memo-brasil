@@ -48,3 +48,18 @@ A tela M32 do app mostra a matriz real (`ROLE_MATRIX` em `roles.ts`); a do desen
 - Páginas antigas (`usuarios`, `organizadores`, `participantes`, `storage`, `analytics`) estão redirecionadas (308) mas o código delas e o de `ui.tsx`, `.adm-*`, `modules.ts` e `admin.css` seguem no repositório.
 - O destino `/master/pessoas?aba=contas` (e `convites`) só funciona quando a onda de Pessoas criar essas abas; hoje a página trata `aba` desconhecida como o padrão.
 - E2E `master-studio.spec.ts`, `session.spec.ts` e `reveal.spec.ts` continuam esperando o menu de 12 links e `.adm-table` (já estavam desatualizados); reescrever contra o menu novo (13 itens, 12 sem a chave).
+
+## 5. Pessoas (M15 a M19): decisões da onda
+
+- **Gasto total (M16)**: só o master recebe o valor (soma agregada no servidor, sem o limite de 500 pedidos). Para support e auditor o servidor devolve nulo e a coluna mostra "—", porque Pagamentos é área só do master (matriz da M32).
+- **Equipe (M19) só do master**: a aba aparece para todos (como no desenho, com a contagem), mas `admin_list_team` nega support e auditor (MM004) e a aba mostra o estado "sem permissão" (M19.p). Conceder e revogar: só master, motivo de 10 a 500 conferido no servidor (antes só o mínimo).
+- **Exportar** (contas, organizadores, convidados, convites): só master e auditor, como na matriz; o botão some para support. A exportação continua no tipo `pessoas` com as abas `contas` e `convites` acrescentadas; as colunas seguem as da tela (a coluna "mesa" de convidados saiu porque a tela nova não a tem).
+- **Texto das folhas**: o desenho só traz a descrição do papel support; as de master e auditor seguem o mesmo estilo ("master: acesso total…", "auditor: consulta, exporta e lê a auditoria…").
+- **Estado vazio sem filtros**: como no desenho, o estado vazio substitui busca e chips; clicar na aba limpa busca e filtro.
+- **Equipe "vazia"**: aparece quando só há uma pessoa com papel (a própria), conforme "Ninguém da equipe além de você".
+- **Linha de órfãos (M15)**: "N convidados órfãos…" aparece em "Todas" e "Convidados" quando N > 0.
+- **Carregando** é o `loading.tsx` da rota; sem as contagens das abas (ainda desconhecidas), mostra só os nomes.
+- **Paginação**: `.mpager` é absoluto no desenho; na rota real fica no fluxo (`position: static`) porque a lista tem 25 linhas.
+- **CSS**: acrescentadas `.seg a`, `.mcard .seg a` e `.mtr > span > a > svg` (as abas e a seta da linha são links; mesmo visual das regras de `span`).
+- **Organizador → Eventos**: a seta abre `/master/eventos?organizador=<id>`; o filtro `organizador` precisa ser tratado pela onda de Eventos.
+- **admin_export_csv**: substituída (mesma assinatura) com o ramo `pessoas` delegando a `admin_export_people`; quem mexer nessa função em outra migration deve manter essa chamada.

@@ -674,14 +674,6 @@ export const SCREENS: ScreenMeta[] = [
   "master": true
  },
  {
-  "id": "M10",
-  "title": "Pessoas",
-  "webp": "telas/14-master/M10-pessoas.webp",
-  "html": "Master-pessoas",
-  "name": "MasterPessoas",
-  "master": true
- },
- {
   "id": "M11",
   "title": "Storage e saúde",
   "webp": "telas/14-master/M11-storage-e-saude.webp",

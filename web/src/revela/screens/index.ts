@@ -83,7 +83,6 @@ import { MasterPagamentoDetalhe } from "./MasterPagamentoDetalhe";
 import { MasterCortesias } from "./MasterCortesias";
 import { MasterRevelacoes } from "./MasterRevelacoes";
 import { MasterModeracao } from "./MasterModeracao";
-import { MasterPessoas } from "./MasterPessoas";
 import { MasterSaude } from "./MasterSaude";
 import { MasterLgpd } from "./MasterLgpd";
 import { MasterAuditoria } from "./MasterAuditoria";
@@ -267,7 +266,6 @@ export const COMPONENTS: Record<string, () => import("react").JSX.Element> = {
   "Master-cortesias": MasterCortesias,
   "Master-revelacoes": MasterRevelacoes,
   "Master-moderacao": MasterModeracao,
-  "Master-pessoas": MasterPessoas,
   "Master-saude": MasterSaude,
   "Master-lgpd": MasterLgpd,
   "Master-auditoria": MasterAuditoria,
