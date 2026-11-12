@@ -89,3 +89,11 @@ Status: coletando. Nada deste lote foi corrigido ainda.
   3. O card da foto parece ter largura fixa (moldura "polaroid") em vez de acompanhar a coluna; no iPhone fica desalinhado à esquerda.
 - A confirmar com você: o esperado é voltar para a tela de onde veio? Ou o problema é só o visual do Feed ao chegar? (Os dois estão no plano.)
 - Direção: (a) voltar com o histórico (`router.back()`), com o Feed como padrão só quando não houver histórico; (b) guardar e restaurar a rolagem do Feed ao voltar; (c) dar à lista do Feed `padding-bottom` igual à altura da barra de abas + safe area; (d) card da foto com largura 100% da coluna; (e) mesma verificação nas telas Minhas e Você, que usam a mesma barra.
+
+## 9. Anfitrião preso na interface do convidado (reforça o item 3a)
+- Confirmado em uso: depois de entrar no evento (inclusive ao voltar da Retrospectiva), o anfitrião fica preso nas abas Feed / Minhas / Você, sem acesso ao painel nem a "Meus eventos".
+- Escopo definido para a correção, junto com 3a e 8:
+  1. Quando `isHost`, a barra de abas do convidado ganha uma quarta aba "Painel" (ou, na falta de espaço, um atalho fixo no topo do Feed e na tela Você) que leva a `/painel/[id]`.
+  2. A tela Você do anfitrião mostra "Voltar ao painel" e "Meus eventos" como primeiras linhas.
+  3. O Feed do anfitrião mostra uma faixa discreta "Você está vendo como convidado · Voltar ao painel".
+  4. Testar o ciclo completo no celular: Meus eventos → evento → Feed → Retrospectiva → voltar → painel.
