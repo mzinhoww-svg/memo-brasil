@@ -2,7 +2,7 @@ import Link from "next/link";
 
 /** Barra de abas do anfitrião (Câmeras / Revelados / Você): `nav.tabs` de Anfitriao-inicio.html, com links reais. */
 export function HostTabs({ current }: { current: "cameras" | "revelados" | "voce" }) {
-  const tab = (id: string) => `rv-tab${current === id ? " rv-tab--on" : ""}`;
+  const tab = (id: string) => `rv-tab rv-press${current === id ? " rv-tab--on" : ""}`;
   const svg = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
     <nav className="tabs">

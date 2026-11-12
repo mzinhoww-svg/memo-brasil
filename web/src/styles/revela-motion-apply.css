@@ -1,0 +1,41 @@
+/* Revela · Movimento aplicado ao app
+   revela-motion.css é do designer e não se edita. Aqui entram só os seletores que
+   dão aos botões do app o MESMO toque de `.rv-press` (transition + :active), e os
+   ajustes de encaixe das classes do kit nos componentes. Nada de animação nova. */
+
+/* ---------- toque: mesmo conjunto de propriedades de .rv-press ---------- */
+.rv-btn, .rv-icon-btn, .rv-tab, .rv-chip, .rv-step-btn, .rv-tabbar-item, .rv-wrap, .rvl-tab, .rv-google {
+  transition: transform var(--rv-t-tap) var(--rv-ease-out), filter var(--rv-t-tap);
+  -webkit-tap-highlight-color: transparent;
+}
+.rv-btn:active, .rv-icon-btn:active, .rv-tab:active, .rv-chip:active, .rv-step-btn:active, .rv-tabbar-item:active, .rv-wrap:active, .rvl-tab:active, .rv-google:active {
+  transform: scale(.96);
+  filter: brightness(.92);
+}
+.rv-btn:disabled:active, .rv-btn[aria-disabled="true"]:active, .rv-icon-btn:disabled:active, .rv-step-btn:disabled:active {
+  transform: none;
+  filter: none;
+}
+
+/* ---------- folha e fundo ---------- */
+.app-dialog.rv-backdrop { background: color-mix(in srgb, var(--ink) 55%, transparent); }
+.app-dialog-panel.rv-sheet-motion { will-change: transform; }
+
+/* ---------- progresso do assistente: o traço enche pelo ::after do kit ---------- */
+.rv-steps i.rv-seg { background: var(--surface-3); }
+.rv-steps i.rv-seg.on { background: var(--surface-3); }
+
+/* ---------- câmera 3D ---------- */
+.rv-cam3d { display: block; }
+.rv-cam3d img { display: block; max-width: 100%; height: auto; }
+
+/* ---------- esperas ---------- */
+.rv-live-dot { position: relative; }
+.live i { position: relative; }
+
+/* ---------- movimento reduzido: o toque só muda o brilho, nada escala ou desliza ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .rv-press, .rv-btn, .rv-icon-btn, .rv-tab, .rv-chip, .rv-step-btn, .rv-tabbar-item, .rv-wrap, .rvl-tab, .rv-google { transition: filter var(--rv-t-tap); }
+  .rv-press:active, .rv-btn:active, .rv-icon-btn:active, .rv-tab:active, .rv-chip:active, .rv-step-btn:active, .rv-tabbar-item:active, .rv-wrap:active, .rvl-tab:active, .rv-google:active { transform: none; }
+  .rv-toast-out { animation: none; opacity: 0; }
+}

@@ -34,7 +34,7 @@ export function ConvidadoMinhas({ code, left = 18, total = 27, taken = DEFAULT_T
         <p className="rv-caption" style={{ "marginTop": "6px" }}>
           {total === null ? `${taken.length} tiradas` : `${taken.length} de ${total} tiradas`}. Elas viram foto na revelação.
         </p>
-        <div className="rollgrid">
+        <div className="rollgrid rv-rise" style={{ "--i": 1 } as React.CSSProperties}>
           {taken.map((t, i) => (
             <div key={i} className="rv-print rv-print--back">
               <div className="rv-print__cap">

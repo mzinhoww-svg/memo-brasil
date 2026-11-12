@@ -3,6 +3,7 @@
    confirmações do app (Termos de Uso e Política de Privacidade), cada uma junto da frase do desenho. */
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { useOpen } from "@/lib/motion/use-motion";
 import { CameraFrame, type CameraFrameProps } from "./CameraFrame";
 
 export interface ConvidadoConsentimentoProps extends Omit<CameraFrameProps, "overlay" | "dim"> {
@@ -20,6 +21,7 @@ const CHECK = (
 
 export function ConvidadoConsentimento({ checked = [true, true], onCheck, error, onLater, onAccept, left = 27, ...frame }: ConvidadoConsentimentoProps = {}) {
   const panel = useRef<HTMLDivElement>(null);
+  const open = useOpen();
   useEffect(() => { panel.current?.focus({ preventScroll: true }); }, []);
   const rows = [
     <>Depois da revelação, minhas fotos aparecem no feed do evento, com meu nome. Li e aceito os Termos de Uso.</>,
@@ -32,7 +34,7 @@ export function ConvidadoConsentimento({ checked = [true, true], onCheck, error,
       dim
       overlay={
         <div className="notice-wrap" style={{ top: "120px" }}>
-          <div className="rv-notice" ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="consent-titulo">
+          <div className="rv-notice rv-sheet-motion" data-open={open} ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="consent-titulo">
             <div className="rv-notice__body">
               <h3 id="consent-titulo">Antes de fotografar</h3>
               {rows.map((text, i) => (

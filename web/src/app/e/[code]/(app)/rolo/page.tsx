@@ -64,7 +64,7 @@ export default function Rolo() {
   return (
     <>
       <ConvidadoPostar perPerson={event.shotsPerPerson} cap={cap} items={items} busy={busy} onToggle={toggle} onSend={() => void send()} onClose={() => { picker.clear(); router.push(`${base}/minhas`); }} />
-      {error && <p className="rv-field-erro" role="alert" style={{ position: "fixed", left: 20, right: 20, bottom: 84, textAlign: "center", zIndex: 40 }}>{error}</p>}
+      {error && <p className="rv-field-erro rv-toast-in" role="alert" style={{ position: "fixed", left: 20, right: 20, bottom: 84, textAlign: "center", zIndex: 40 }}>{error}</p>}
     </>
   );
 }

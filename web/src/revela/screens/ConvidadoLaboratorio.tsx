@@ -29,7 +29,7 @@ export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana
             <div className="rv-stamp" style={{ "fontSize": "12px" }}>{stamp}</div>
             <h1 className="rv-display" style={{ "fontSize": "34px", "lineHeight": "36px", "marginTop": "4px" }}>{title}</h1>
           </div>
-          {live ? <span className="live"><i />Rolando</span> : <span className="rv-caption">Encerrada</span>}
+          {live ? <span className="live"><i className="rv-live-dot" />Rolando</span> : <span className="rv-caption">Encerrada</span>}
         </div>
         <div className="lab">
           <div className="stackviz" style={{ "width": "300px", "height": "230px", "margin": "0 auto" }}>

@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
   ]),
   // Telas portadas da referência: imagens estáticas já em WebP/JPG nos tamanhos do desenho.
   { files: ["src/revela/screens/**"], rules: { "@next/next/no-img-element": "off" } },
+  // Kit de movimento do designer, copiado sem alteração: não se reescreve para agradar o lint.
+  { files: ["src/lib/motion/revela-motion.ts"], rules: { "prefer-const": "off" } },
 ]);
 
 export default eslintConfig;

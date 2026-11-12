@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ signIn: vi.fn(), lookup: vi.fn(), save: vi.fn(), push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }), usePathname: () => "/criar" }));
@@ -8,8 +8,8 @@ import { CreateWizard } from "./wizard";
 const next = () => fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
 beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); mocks.signIn.mockResolvedValue({ id: "u", name: "Ana" }); mocks.lookup.mockResolvedValue(null); mocks.save.mockImplementation(async (e) => e); });
 
-describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", () => {
-  it("1 · embalagem: amostras do desenho; escolher troca a câmera, o nome e o texto", () => {
+describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", async () => {
+  it("1 · embalagem: amostras do desenho; escolher troca a câmera, o nome e o texto", async () => {
     render(<CreateWizard />);
     expect(screen.getByRole("heading", { name: "Escolha a embalagem" })).toBeInTheDocument();
     expect(screen.getByText("1/8")).toBeInTheDocument();
@@ -17,7 +17,8 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", () => {
     fireEvent.click(screen.getByRole("radio", { name: "Casamento" }));
     expect(screen.getByRole("radio", { name: "Casamento" })).toBeChecked();
     expect(screen.getByText("Marfim com faixa dourada. O nome do casal sai impresso.")).toBeInTheDocument();
-    expect(screen.getByAltText("Câmera com embalagem Casamento")).toHaveAttribute("src", "/revela/ref/cam-casamento.webp");
+    // a imagem gira (flipWrap) e só então assume o novo arquivo
+    await waitFor(() => expect(screen.getByAltText("Câmera com embalagem Casamento")).toHaveAttribute("src", "/revela/ref/cam-casamento.webp"));
   });
   it("2 · nome: prévia da embalagem, chips preenchem o campo real, sem teclado desenhado e nome vazio não avança", () => {
     render(<CreateWizard />);

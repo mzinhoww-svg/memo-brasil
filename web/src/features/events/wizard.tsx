@@ -11,6 +11,8 @@ import { createEvent } from "./service";
 import { REVEAL_ERROR_TEXT, resolveReveal } from "./reveal-input";
 import { buildRevealInput, type RevealChoice } from "./reveal-choice";
 import { WINDOW_ERROR_TEXT, REVEAL_BEFORE_END_TEXT, defaultWindow, longDay, noticeLine, resolveWindow, revealOptions, shortWhen, type WindowInput } from "./wizard-time";
+import { useOpen } from "@/lib/motion/use-motion";
+import { WizardDirection } from "@/revela/wizard-motion";
 import { CameraEmbalagem } from "@/revela/screens/CameraEmbalagem";
 import { CameraNome } from "@/revela/screens/CameraNome";
 import { CameraFiltro } from "@/revela/screens/CameraFiltro";
@@ -38,10 +40,28 @@ const LAST_STEP = STEP_COUNT - 1;
 const POSE_OPTIONS = [10, 24, 27, 36];
 type CreatedEvent = { eventId: string; title: string; paid: boolean; destination: AfterCreate; ready: boolean };
 
+/** "Antes de criar": folha centrada com o fundo e a entrada do kit. */
+function ConsentDialog({ terms, privacy, onTerms, onPrivacy, onAccept, onCancel }: { terms: boolean; privacy: boolean; onTerms: (v: boolean) => void; onPrivacy: (v: boolean) => void; onAccept: () => void; onCancel: () => void }) {
+  const open = useOpen();
+  return (
+    <div className="rv-dialog rv-backdrop" data-open={open} role="dialog" aria-modal="true" aria-labelledby="consent-h">
+      <div className="rv-dialog__panel rv-sheet-motion" data-open={open}>
+        <div className="rv-dialog__body">
+          <h2 id="consent-h">Antes de criar</h2>
+          <ConsentChecks terms={terms} privacy={privacy} onTerms={onTerms} onPrivacy={onPrivacy} />
+          <Button block disabled={!terms || !privacy} onClick={onAccept}>Aceitar</Button>
+          <Button variant="texto" block onClick={onCancel}>Cancelar</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CreateWizard() {
   const router = useRouter();
   const { repos, user, signIn, now, ready, backend, canCreate, signInWithGoogle } = useApp();
   const [step, setStep] = useState(0);
+  const [dir, setDir] = useState<"next" | "back">();
   const [wrap, setWrap] = useState<Wrap>(DEFAULT_WRAP);
   const [film, setFilm] = useState<FilmLook>(DEFAULT_FILM);
   const [everyoneSeesAll, setEveryoneSeesAll] = useState(true);
@@ -129,7 +149,7 @@ export function CreateWizard() {
       if (r.enabled && r.at < endMs()) return setErrors({ ...e, reveal: REVEAL_BEFORE_END_TEXT });
     }
     setErrors(e);
-    if (Object.keys(e).length === 0) setStep((x) => Math.min(LAST_STEP, x + 1));
+    if (Object.keys(e).length === 0) { setDir("next"); setStep((x) => Math.min(LAST_STEP, x + 1)); }
   }
 
   async function create() {
@@ -262,76 +282,72 @@ export function CreateWizard() {
     );
   }
 
-  const back = () => setStep((x) => Math.max(0, x - 1));
-  if (step === 0) return <CameraEmbalagem wrap={wrap} busy={busy} onPick={setWrap} onNext={next} onBack={() => router.push("/")} />;
-  if (step === 1) {
-    return (
-      <CameraNome
-        wrap={wrap} name={title} error={errors.title} busy={busy} keyboard={false}
-        suggestions={suggestEventNames(category, user?.name ?? "", now())}
-        onName={(v) => { setTitle(v); setErrors((x) => ({ ...x, title: undefined })); }}
-        onSuggest={(v) => { setTitle(v); setErrors((x) => ({ ...x, title: undefined })); }}
-        onBack={back} onNext={next}
-      />
-    );
-  }
-  if (step === 2) {
-    const w = windowNow.ok ? windowNow : undefined;
-    return (
-      <CameraData
-        date={win.date} start={win.start} end={win.end} cityLabel={cityLabel} busy={busy} error={errors.termino}
-        dayLabel={Number.isFinite(zonedToEpoch(win.date, win.start, tz)) ? longDay(zonedToEpoch(win.date, win.start, tz), tz, true) : "Escolha o dia"}
-        endLabel={w ? `${win.end} · ${longDay(w.endMs, tz)}` : win.end}
-        minDate={defaultWindow(now(), tz).date}
-        onDate={(v) => { setWin((x) => ({ ...x, date: v })); setErrors((x) => ({ ...x, termino: undefined })); }}
-        onStart={(v) => { setWin((x) => ({ ...x, start: v })); setErrors((x) => ({ ...x, termino: undefined })); }}
-        onEnd={(v) => { setWin((x) => ({ ...x, end: v })); setErrors((x) => ({ ...x, termino: undefined })); }}
-        onBack={back} onNext={next}
-      />
-    );
-  }
-  if (step === 3) {
-    const rErr = errors.reveal ?? (revealErrors?.data ? REVEAL_ERROR_TEXT[revealErrors.data] : undefined);
-    return (
-      <CameraRevelacao
-        step={4}
-        startLabel={shortWhen(windowNow.ok ? windowNow.startMs : now(), tz)} endLabel={shortWhen(endMs(), tz)}
-        revealLabel={revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz) : "—"}
-        choices={revealChoiceViews} value={choice} error={rErr} busy={busy} custom={revCustom} customMin={`${defaultWindow(now(), tz).date}T00:00`}
-        notice={revealAtMs !== undefined && Number.isFinite(revealAtMs) ? `Todo mundo recebe o aviso ${/^(sábado|domingo)/.test(longDay(revealAtMs, tz)) ? "no" : "na"} ${noticeLine(revealAtMs, tz)}.` : "Escolha o dia e a hora da revelação."}
-        onPick={(id) => { setChoice(id as RevealChoice); setRevealErrors(undefined); setErrors((x) => ({ ...x, reveal: undefined })); }}
-        onCustom={(v) => { setRevCustom(v); setRevealErrors(undefined); setErrors((x) => ({ ...x, reveal: undefined })); }}
-        onBack={back} onNext={next}
-      />
-    );
-  }
-  if (step === 4) {
-    return <CameraPoses step={5} value={desiredShots} choices={poseChoices} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
-  }
-  if (step === 5) return <CameraFiltro samples={{ filme35: "/revela/lut/amostra-bolo-filme35.jpg" }} film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
-  if (step === 6) return <CameraPrivacidade showDownload feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;
-  if (step === 7) {
-    const revealShort = revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz).replace(" ", ", ") : "—";
-    const cta = busy ? "Criando câmera…" : chosenPlan && !chosenPlan.isFree ? `Continuar · ${money(chosenPlan.priceCents)}` : "Criar câmera";
-    return (
-      <>
-        <CameraPublicar
-          image={`/revela/3d/cam-${wrap}-640.webp`} wrapLabel={wrapLabelUi} posesLabel={`${desiredShots} por pessoa`} revealLabel={revealShort}
-          plans={planViews.length ? planViews : undefined} selected={chosenPlan?.code ?? "gratis"} next={cta} busy={busy} error={errors.create}
-          onSelect={(c) => { setPlanCode(c); setPlanTouched(true); }} onBack={back}
-          onNext={() => { if (acceptedTerms && ackedPrivacy) void create(); else setConsentOpen(true); }}
+  const back = () => { setDir("back"); setStep((x) => Math.max(0, x - 1)); };
+  const renderStep = () => {
+    if (step === 0) return <CameraEmbalagem wrap={wrap} busy={busy} onPick={setWrap} onNext={next} onBack={() => router.push("/")} />;
+    if (step === 1) {
+      return (
+        <CameraNome
+          wrap={wrap} name={title} error={errors.title} busy={busy} keyboard={false}
+          suggestions={suggestEventNames(category, user?.name ?? "", now())}
+          onName={(v) => { setTitle(v); setErrors((x) => ({ ...x, title: undefined })); }}
+          onSuggest={(v) => { setTitle(v); setErrors((x) => ({ ...x, title: undefined })); }}
+          onBack={back} onNext={next}
         />
-        {consentOpen && (
-          <div className="rv-dialog-scrim" style={{ position: "fixed", inset: 0, zIndex: 20, display: "grid", placeItems: "center", background: "var(--scrim, rgb(0 0 0 / .6))", padding: 20 }}>
-            <div className="rv-dialog" role="dialog" aria-modal="true" aria-labelledby="consent-h">
-              <h2 id="consent-h" className="rv-title">Antes de criar</h2>
-              <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={setAcceptedTerms} onPrivacy={setAckedPrivacy} />
-              <Button block disabled={!acceptedTerms || !ackedPrivacy} onClick={() => { setConsentOpen(false); void create(); }}>Aceitar</Button>
-              <Button variant="texto" block onClick={() => setConsentOpen(false)}>Cancelar</Button>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
+      );
+    }
+    if (step === 2) {
+      const w = windowNow.ok ? windowNow : undefined;
+      return (
+        <CameraData
+          date={win.date} start={win.start} end={win.end} cityLabel={cityLabel} busy={busy} error={errors.termino}
+          dayLabel={Number.isFinite(zonedToEpoch(win.date, win.start, tz)) ? longDay(zonedToEpoch(win.date, win.start, tz), tz, true) : "Escolha o dia"}
+          endLabel={w ? `${win.end} · ${longDay(w.endMs, tz)}` : win.end}
+          minDate={defaultWindow(now(), tz).date}
+          onDate={(v) => { setWin((x) => ({ ...x, date: v })); setErrors((x) => ({ ...x, termino: undefined })); }}
+          onStart={(v) => { setWin((x) => ({ ...x, start: v })); setErrors((x) => ({ ...x, termino: undefined })); }}
+          onEnd={(v) => { setWin((x) => ({ ...x, end: v })); setErrors((x) => ({ ...x, termino: undefined })); }}
+          onBack={back} onNext={next}
+        />
+      );
+    }
+    if (step === 3) {
+      const rErr = errors.reveal ?? (revealErrors?.data ? REVEAL_ERROR_TEXT[revealErrors.data] : undefined);
+      return (
+        <CameraRevelacao
+          step={4}
+          startLabel={shortWhen(windowNow.ok ? windowNow.startMs : now(), tz)} endLabel={shortWhen(endMs(), tz)}
+          revealLabel={revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz) : "—"}
+          choices={revealChoiceViews} value={choice} error={rErr} busy={busy} custom={revCustom} customMin={`${defaultWindow(now(), tz).date}T00:00`}
+          notice={revealAtMs !== undefined && Number.isFinite(revealAtMs) ? `Todo mundo recebe o aviso ${/^(sábado|domingo)/.test(longDay(revealAtMs, tz)) ? "no" : "na"} ${noticeLine(revealAtMs, tz)}.` : "Escolha o dia e a hora da revelação."}
+          onPick={(id) => { setChoice(id as RevealChoice); setRevealErrors(undefined); setErrors((x) => ({ ...x, reveal: undefined })); }}
+          onCustom={(v) => { setRevCustom(v); setRevealErrors(undefined); setErrors((x) => ({ ...x, reveal: undefined })); }}
+          onBack={back} onNext={next}
+        />
+      );
+    }
+    if (step === 4) {
+      return <CameraPoses step={5} value={desiredShots} choices={poseChoices} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
+    }
+    if (step === 5) return <CameraFiltro samples={{ filme35: "/revela/lut/amostra-bolo-filme35.jpg" }} film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
+    if (step === 6) return <CameraPrivacidade showDownload feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;
+    if (step === 7) {
+      const revealShort = revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz).replace(" ", ", ") : "—";
+      const cta = busy ? "Criando câmera…" : chosenPlan && !chosenPlan.isFree ? `Continuar · ${money(chosenPlan.priceCents)}` : "Criar câmera";
+      return (
+        <>
+          <CameraPublicar
+            image={`/revela/3d/cam-${wrap}-640.webp`} wrapLabel={wrapLabelUi} posesLabel={`${desiredShots} por pessoa`} revealLabel={revealShort}
+            plans={planViews.length ? planViews : undefined} selected={chosenPlan?.code ?? "gratis"} next={cta} busy={busy} error={errors.create}
+            onSelect={(c) => { setPlanCode(c); setPlanTouched(true); }} onBack={back}
+            onNext={() => { if (acceptedTerms && ackedPrivacy) void create(); else setConsentOpen(true); }}
+          />
+          {consentOpen && (
+            <ConsentDialog terms={acceptedTerms} privacy={ackedPrivacy} onTerms={setAcceptedTerms} onPrivacy={setAckedPrivacy} onAccept={() => { setConsentOpen(false); void create(); }} onCancel={() => setConsentOpen(false)} />
+          )}
+        </>
+      );
+    }
+  };
+  return <WizardDirection.Provider value={dir}>{renderStep()}</WizardDirection.Provider>;
 }

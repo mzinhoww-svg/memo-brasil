@@ -125,8 +125,8 @@ export function MHead({ title, caption, children }: { title: string; caption?: s
 export function Tiles({ items }: { items: { label: string; value: string; note?: string }[] }) {
   return (
     <div className="mtiles">
-      {items.map((t) => (
-        <div className="tile" key={t.label}>
+      {items.map((t, i) => (
+        <div className="tile rv-rise" key={t.label} style={{ "--i": Math.min(i, 8) } as CSSProperties}>
           <span>{t.label}</span>
           <b>{t.value}</b>
           <small>{t.note}</small>
@@ -215,8 +215,8 @@ export function Gauge({ label, value, pct }: { label: string; value: string; pct
   );
 }
 
-export function MCard({ children, style }: { children: ReactNode; style?: CSSProperties }) {
-  return <section className="mcard" style={style}>{children}</section>;
+export function MCard({ children, style, index = 0 }: { children: ReactNode; style?: CSSProperties; index?: number }) {
+  return <section className="mcard rv-rise" style={{ "--i": Math.min(index, 8), ...style } as CSSProperties}>{children}</section>;
 }
 
 /** Estado de erro, sem permissão ou vazio dentro da moldura do Master. */

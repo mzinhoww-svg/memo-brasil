@@ -12,7 +12,7 @@ type AsLink = Common & { href: string; onClick?: () => void };
 /** No kit, "pequeno" é um modificador de tamanho: `variant="pequeno"` = primário de 44px; `small` serve a secundário e destrutivo. */
 function classes(variant: ButtonVariant, small: boolean | undefined, block?: boolean, extra?: string) {
   const base = variant === "cta-xl" ? "rv-btn--cta rv-btn--cta-xl" : variant === "pequeno" ? "rv-btn--primario rv-btn--pequeno" : `rv-btn--${variant}`;
-  return cx("rv-btn", base, small && variant !== "pequeno" && "rv-btn--pequeno", block && "rv-btn--bloco", extra);
+  return cx("rv-btn", "rv-press", base, small && variant !== "pequeno" && "rv-btn--pequeno", block && "rv-btn--bloco", extra);
 }
 
 /** `<button>` para ações; passe `href` para navegação (`<a>`). Verbo de ação no rótulo, sem exclamação. */

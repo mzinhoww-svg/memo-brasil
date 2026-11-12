@@ -33,7 +33,7 @@ export function AnfitriaoInicio({ hero = HOST_HOME_REF.hero, shelf = HOST_HOME_R
         {hero && (
           <div className="hero-ev">
             <div className="row between">
-              {hero.live ? <span className="live"><i />Rolando agora</span> : <span className="rv-caption">Encerrada</span>}
+              {hero.live ? <span className="live"><i className="rv-live-dot" />Rolando agora</span> : <span className="rv-caption">Encerrada</span>}
               <span className="rv-stamp" style={{ fontSize: "12px" }}>{hero.stamp}</span>
             </div>
             <div style={{ margin: "4px -24px -10px" }}>
@@ -73,8 +73,8 @@ export function AnfitriaoInicio({ hero = HOST_HOME_REF.hero, shelf = HOST_HOME_R
           <span className="rv-group-h" style={{ margin: "0" }}>Na prateleira</span>
         </div>
         <div className="shelf">
-          {shelf.map((it) => (
-            <Link key={it.id} href={it.href ?? "#"} className="shelf-item">
+          {shelf.map((it, i) => (
+            <Link key={it.id} href={it.href ?? "#"} className="shelf-item rv-rise" style={{ "--i": Math.min(i, 8) } as React.CSSProperties}>
               {/* eslint-disable-next-line @next/next/no-img-element -- render 3D do kit */}
               <img src={it.cam} alt={`Câmera ${it.name}`} style={{ width: "150px" }} />
               <b>{it.name}</b>

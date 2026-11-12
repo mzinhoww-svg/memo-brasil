@@ -44,7 +44,7 @@ export default function Editar() {
         previewFilter={FILM_CSS[s.film]} onFilm={(film: FilmId) => setS((x) => ({ ...x, film }))} onClose={() => router.push(back)}
         onSave={() => void save().then(() => router.push(back))} onCrop={() => setS((x) => ({ ...x, square: !x.square }))} onRotate={() => setS((x) => ({ ...x, rotate: (x.rotate + 90) % 360 }))}
         onDate={() => setS((x) => ({ ...x, date: !x.date }))} onDownload={() => void save()} />
-      {msg && <p className="rv-field-erro" role="alert" style={{ position: "fixed", left: 20, right: 20, bottom: 24, textAlign: "center", zIndex: 40 }}>{msg}</p>}
+      {msg && <p className="rv-field-erro rv-toast-in" role="alert" style={{ position: "fixed", left: 20, right: 20, bottom: 24, textAlign: "center", zIndex: 40 }}>{msg}</p>}
     </>
   );
 }
