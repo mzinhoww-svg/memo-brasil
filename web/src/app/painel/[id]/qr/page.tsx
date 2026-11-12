@@ -35,14 +35,14 @@ export default function QrMesas() {
   const [square, setSquare] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const labels = useMemo(() => (event.tables > 0 ? Array.from({ length: event.tables }, (_, i) => `Mesa ${String(i + 1).padStart(2, "0")}`) : []), [event.tables]);
-  const copy = MODELS[model - 1](event);
+  const copies = useMemo(() => MODELS.map((m) => m(event)), [event]);
   const qr = useMemo(() => qrMatrix(inviteUrl(siteOrigin(), event.code)), [event.code]);
 
   return (
     <>
       <h1 className="rv-sr-only">QR para as mesas</h1>
       <QRConvite
-        name={event.title} date={longDate(event.startAt, event.timezone)} copy={copy} stamp={revealStamp(event, now)}
+        name={event.title} date={longDate(event.startAt, event.timezone)} copy={copies[model - 1]} copies={copies} stamp={revealStamp(event, now)}
         model={model} models={MODELS.length} qr={qr} square={square}
         onClose={() => router.push(`/painel/${event.id}/convites`)}
         onRatio={() => setSquare((v) => !v)} onModel={setModel} onDownload={() => setDownloading(true)}

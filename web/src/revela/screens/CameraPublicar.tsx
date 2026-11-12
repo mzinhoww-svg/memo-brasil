@@ -1,6 +1,7 @@
 "use client";
 /* Camera-publicar.html (passo 8): mesmo markup e classes da referência; planos do catálogo por props (padrão = desenho). */
 import { Cam3D } from "@/components/revela/Cam3D";
+import { PlanCards } from "../PlanCards";
 import { WizardSheet } from "../WizardSheet";
 
 export interface PlanView { code: string; tier: string; price: string; lines: [string, string]; gold?: boolean }
@@ -12,13 +13,6 @@ export const PLANS_REF: PlanView[] = [
   { code: "grande", tier: "Grande", price: "R$ 349", lines: ["500 convidados", "poses livres"], gold: true },
 ];
 
-const PLAN_W = 112, GAP = 8, VIEW = 350;
-/** Deslocamento da faixa para o plano marcado ficar à vista (no desenho, o 4º plano pede 150 px). */
-export function planShift(index: number, count: number): number {
-  const total = count * PLAN_W + (count - 1) * GAP;
-  return Math.max(0, Math.min(index * (PLAN_W + GAP) - 210, total - VIEW));
-}
-
 export interface CameraPublicarProps {
   image?: string; wrapLabel?: string; posesLabel?: string; revealLabel?: string;
   plans?: PlanView[]; selected?: string; payNote?: string; next?: string; busy?: boolean; error?: string;
@@ -29,7 +23,6 @@ export function CameraPublicar({
   image = "/revela/ref/cam-casamento.webp", wrapLabel = "Casamento", posesLabel = "27 por pessoa", revealLabel = "dom, 12:00",
   plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, onSelect, onBack, onNext,
 }: CameraPublicarProps = {}) {
-  const idx = Math.max(0, plans.findIndex((p) => p.code === selected));
   return (
     <WizardSheet step={8} title="Escolha o plano" caption="Pague uma vez por evento. Sem assinatura." onBack={onBack} onNext={onNext} next={next} busy={busy}>
       <div className="rv-stagebox" style={{ marginTop: "-6px" }}>
@@ -40,18 +33,7 @@ export function CameraPublicar({
         <div><span className="rv-caption">Poses</span><b>{posesLabel}</b></div>
         <div><span className="rv-caption">Revela</span><b>{revealLabel}</b></div>
       </div>
-      <div className="planscroll">
-        <div className="rv-plans rv-plans--scroll" role="radiogroup" aria-label="Plano do evento" style={{ transform: `translateX(-${planShift(idx, plans.length)}px)` }}>
-          {plans.map((p) => (
-            <div key={p.code} role="radio" aria-checked={p.code === selected} tabIndex={0} aria-label={`${p.tier}, ${p.price}`} className={`rv-plan${p.code === selected ? " rv-plan--on" : ""}${p.gold ? " rv-plan--gold" : ""}`} onClick={() => onSelect?.(p.code)} style={{ cursor: "pointer" }}
-              onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); onSelect?.(p.code); } }}>
-              <span className="rv-plan__tier">{p.tier}</span>
-              <span className="rv-plan__price">{p.price}</span>
-              <span className="rv-plan__note">{p.lines[0]}<br />{p.lines[1]}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <PlanCards plans={plans} selected={selected} onSelect={onSelect} />
       {error && <p className="rv-caption center" role="alert" style={{ color: "var(--danger)" }}>{error}</p>}
       <div className="paynote">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

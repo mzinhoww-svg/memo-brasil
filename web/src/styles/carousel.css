@@ -1,0 +1,38 @@
+/* Carrossel (src/revela/Carousel.tsx): rolagem nativa com encaixe. Os filhos diretos de .cx-track são os slides. */
+.cx { position: relative; width: 100%; min-width: 0; }
+.cx-track {
+  --cx-bleed: 20px; /* gutter lateral: a borda da tela fica livre para o gesto de voltar do iOS */
+  display: flex; gap: 12px; align-items: stretch;
+  margin-inline: calc(-1 * var(--cx-bleed)); padding: 16px var(--cx-bleed);
+  overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-padding-inline: var(--cx-bleed);
+  scrollbar-width: none; -webkit-overflow-scrolling: touch; position: relative;
+}
+.cx-track::-webkit-scrollbar { display: none; }
+.cx-track:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; border-radius: var(--radius-md); }
+.cx-track > * { flex: none; scroll-snap-align: center; scroll-snap-stop: always; }
+.cx-track--free > * { scroll-snap-stop: normal; }
+/* slide de largura cheia com o conteúdo centrado (cartões do QR) */
+.cx-slide { flex: 0 0 100%; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.cx-controls { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; }
+.cx-arrow:disabled { opacity: .35; cursor: default; }
+.cx-dots { display: flex; justify-content: center; }
+.cx-dot { width: 44px; height: 44px; padding: 0; border: 0; background: none; display: grid; place-items: center; cursor: pointer; border-radius: 50%; }
+.cx-dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--surface-3); transition: background .15s, transform .15s; }
+.cx-dot[aria-current="true"]::before { background: var(--ink); transform: scale(1.25); }
+.cx-dot:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
+@media (prefers-reduced-motion: reduce) { .cx-dot::before { transition: none; } }
+
+/* seletor de planos (src/revela/PlanCards.tsx) */
+.cx--plans .cx-track { gap: 8px; padding-block: 2px; }
+.cx--plans .cx-track > .rv-plan { width: 112px; cursor: pointer; }
+.cx--plans .rv-plan__price { font-size: 24px; }
+.cx--plans .rv-plan:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* setas dos planos: só com mouse (no toque o gesto basta), sobrepostas ao trilho para não ocupar altura no assistente */
+.cx--plans .cx-controls { display: none; position: absolute; inset: 0; margin: 0; padding-inline: 2px; justify-content: space-between; pointer-events: none; }
+.cx--plans .cx-arrow { pointer-events: auto; border-radius: 50%; box-shadow: 0 2px 8px var(--k-00000080); }
+@media (hover: hover) and (pointer: fine) { .cx--plans .cx-controls { display: flex; } }
+
+/* cartões de mesa do QR (src/revela/screens/QRConvite.tsx) */
+.cx-slide .tablecard { width: min(330px, 100%); }
+.cx-ratio { width: auto; min-width: 44px; padding: 0 var(--space-3); gap: 6px; font: 600 13px/1 var(--font-sans); }
