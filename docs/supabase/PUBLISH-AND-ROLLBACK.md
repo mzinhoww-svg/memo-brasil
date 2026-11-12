@@ -110,3 +110,11 @@ Não mudar Root Directory/framework do projeto antes da promoção: o legado em 
 - **Funções:** `payments-reconcile-now` v2 e `payments-validapay-reconcile` v10 (devolvem `unchanged` e `failures[]`).
 - **Impressões:** menu e rotas só existem com a chave `printed_album` ligada em Configurações (hoje desligada).
 - **Pendente:** teste visual do console com Supabase real e papéis reais (master/support/auditor), specs de nuvem, celular real, pagamento ponta a ponta.
+
+## 14. Velocidade: câmera, dados e rotas (2026-11-12)
+- **Produção:** `dpl_FRWGixB7JG6FWKVuYXM929WvD1Yk` (SHA `5468ba9f9`, `feat/revela-redesign`). Candidato sem tráfego, validado pela API (READY, 0 suspeitos no log, sem flags de teste), promovido e flag restaurada. Só app: nenhuma migration e nenhuma função.
+- **O que mudou:** câmera libera o disparo na hora (fila de envio persistente no aparelho, com retomada), prévia pequena da última foto no canto da câmera, contador otimista, timeout de rede (15 s; 60 s no Storage), correção do visor preto e do aviso falso de pose; URLs de foto assinadas em lote (1 h) com cache entre telas, leitura do evento em paralelo, sessão local no provider, cache stale-while-revalidate e curtida otimista; rotas `/e/[code]`, `/painel/[id]`, `/c/[code]` e revelados pré-renderizadas (●, cache da borda), `loading.tsx` e skeletons, prefetch real das abas; funções em `pdx1` (ao lado do Supabase em us-west-2).
+- **Smoke no domínio:** rotas do convidado e do painel com 200 e `x-vercel-cache: HIT`; `/master` em `pdx1`; `/dev/*` 404.
+- **Rollback (app):** promover `dpl_7XC1FoHqUtjetz7ELY92eTbb16Q6` (`ca3979b`), depois `dpl_3nYtL3ieAqUnkPxinoEpEpu1KE3E`.
+- **Evidências:** `docs/evidence/perf/` (`DADOS.md`, `ROTAS.md`, `camera-disparos.webm`, `skeletons/`).
+- **Pendente:** teste em celular real (disparos seguidos com 4G fraco), geração da miniatura `.thumb` no envio, Supabase JS carregado sob demanda, migrar o banco para sa-east-1.
