@@ -95,6 +95,7 @@ export default function Home() {
     <main>
       <Main
         account={host && user && cloud ? <AccountMenu /> : undefined}
+        hideLegal={Boolean(host && user && cloud)}
         banner={<Suspense fallback={null}><LoginErrorBanner /></Suspense>}
         actions={actions}
         extra={<>

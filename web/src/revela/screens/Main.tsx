@@ -16,6 +16,8 @@ export interface MainProps {
   extra?: ReactNode;
   /** Menu da conta (anfitrião com sessão): vai no canto, ao lado do convite compacto. */
   account?: ReactNode;
+  /** Quem já está logado já aceitou: some a frase "Ao continuar, você aceita…" (os links seguem no rodapé do site). */
+  hideLegal?: boolean;
   /** Links dos Termos e da Privacidade. */
   termsHref?: string;
   privacyHref?: string;
@@ -42,7 +44,7 @@ const DEFAULT_ACTIONS = (
   </>
 );
 
-export function Main({ inviteHref = "/entrar#codigo", account, banner, actions = DEFAULT_ACTIONS, extra, termsHref = "/termos", privacyHref = "/privacidade" }: MainProps = {}) {
+export function Main({ inviteHref = "/entrar#codigo", account, hideLegal = false, banner, actions = DEFAULT_ACTIONS, extra, termsHref = "/termos", privacyHref = "/privacidade" }: MainProps = {}) {
   return (
     <>
     <div className="scr scr--scroll">
@@ -99,17 +101,19 @@ export function Main({ inviteHref = "/entrar#codigo", account, banner, actions =
           {actions}
         </div>
         {extra}
-        <p className="rv-caption center" style={{ "marginTop": "14px" }}>
-          {"Ao continuar, você aceita os "}
-          <Link href={termsHref} className="link">
-            Termos
-          </Link>
-          {" e a "}
-          <Link href={privacyHref} className="link">
-            Privacidade
-          </Link>
-          .
-        </p>
+        {!hideLegal && (
+          <p className="rv-caption center" style={{ "marginTop": "14px" }}>
+            {"Ao continuar, você aceita os "}
+            <Link href={termsHref} className="link">
+              Termos
+            </Link>
+            {" e a "}
+            <Link href={privacyHref} className="link">
+              Privacidade
+            </Link>
+            .
+          </p>
+        )}
       </div>
       <div className="home-ind" />
       <div className="grain" />
