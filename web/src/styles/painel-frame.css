@@ -91,3 +91,8 @@ html:has(.pf) { scroll-padding-top: calc(var(--pf-top, 112px) + var(--space-3));
 .studio-stage { width: 160px; max-width: 100%; margin: 0 auto; }
 .studio-previa .studio-qr { display: none; }
 .studio-acoes { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* Compartilhar: o link longo se corta com reticências em vez de empurrar o botão Copiar para fora da tela */
+.pf .linkbox { min-width: 0; }
+.pf .linkbox > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf .linkbox .rv-btn { flex: none; }

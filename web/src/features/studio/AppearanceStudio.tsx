@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, CameraStage, Notice, OptionGroup, ToggleRow, WrapPicker } from "@/components/revela";
+import { Button, CameraStage, Notice, OptionGroup, WrapPicker } from "@/components/revela";
 import type { MemoEvent } from "@/domain/event";
 import { DEFAULT_FILM, FILM_LABEL, WRAP_INFO, wrapOf, type FilmLook, type Wrap } from "@/domain/options";
 import { MESSAGE_MAX, QR_STYLES, type QrStyle, type ThemeSpec } from "@/domain/theme";

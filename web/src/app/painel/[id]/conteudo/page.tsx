@@ -96,7 +96,7 @@ export default function Conteudo() {
       />
       {msg && <p role="status" className="rv-sr-only">{msg}</p>}
       {current && (
-        <Sheet title={`Foto de ${current.authorName}`} onClose={() => setPicked(undefined)}>
+        <Sheet title={`Foto de ${current.authorName}`} history onClose={() => setPicked(undefined)}>
           <div className="cont-viewer">
             <ModFotoGrande src={big[current.id] ?? urls[current.id]} alt={`Foto de ${current.authorName}`} />
             <p className="rv-caption">
@@ -114,7 +114,7 @@ export default function Conteudo() {
           </div>
         </Sheet>
       )}
-      {removing && <ConfirmSheet title="Excluir esta foto?" body="Os convidados deixam de vê-la e ela não volta." confirmLabel="Excluir foto" onCancel={() => setRemoving(undefined)} onConfirm={async () => { await act(removing, "remover"); setRemoving(undefined); }} />}
+      {removing && <ConfirmSheet history title="Excluir esta foto?" body="Os convidados deixam de vê-la e ela não volta." confirmLabel="Excluir foto" onCancel={() => setRemoving(undefined)} onConfirm={async () => { await act(removing, "remover"); setRemoving(undefined); }} />}
       {revealing && (
         <RevealNowSheet
           eventId={event.id} eventTitle={event.title}

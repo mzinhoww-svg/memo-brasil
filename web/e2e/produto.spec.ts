@@ -123,7 +123,9 @@ test("configurações confirmam 'Salvo.' ao mudar uma regra", async ({ page }) =
   await page.goto(`/painel/${id}/configuracoes`);
   await page.getByRole("button", { name: /^Poses\b/ }).click();
   await page.getByRole("dialog").getByRole("group", { name: "Fotos por pessoa" }).getByRole("button", { name: "5", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Salvo." })).toBeVisible();
+  // o resultado aparece dentro da folha aberta e também no aviso curto, que fica acima dela (não atrás)
+  await expect(page.getByRole("dialog").getByRole("status").filter({ hasText: "Salvo." })).toBeVisible();
+  await expect(page.locator(".rv-toast-in", { hasText: "Salvo." })).toBeInViewport();
 });
 
 // ---- Task 14 (restante): preços, rodapé, painel com plano, configurações. Modo local: o catálogo só tem o Grátis.

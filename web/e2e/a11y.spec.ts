@@ -77,6 +77,8 @@ for (const theme of ["dia", "noite"] as const) {
       if (route.endsWith("/explorar")) await page.waitForURL((u) => !u.pathname.endsWith("/explorar")); // rota de redirecionamento: audita o destino
       await page.locator("h1, h2, main").first().waitFor();
       await page.evaluate(() => document.fonts.ready);
+      // entradas animadas (rv-rise) no meio do fade medem contraste falso: espera as que terminam (as infinitas, como o brilho do esqueleto, ficam)
+      await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined))));
       const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       for (const v of r.violations.filter((v) => v.impact === "critical" || v.impact === "serious")) {
         problems.push(`${route} [${v.impact}] ${v.id}: ${v.help} -> ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);
