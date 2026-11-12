@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getPublicSettings } from "@/features/billing/api";
 import type { PublicSettings } from "@/features/billing/types";
 import { CONTACT_EMAIL } from "@/lib/contact";
 import { Signature } from "./Signature";
@@ -21,7 +20,8 @@ export function SiteFooter() {
   useEffect(() => {
     if (!show) return;
     let alive = true;
-    void getPublicSettings().then((s) => { if (alive) setSettings(s); }, () => undefined);
+    // a API de cobrança só entra nas páginas públicas que mostram o rodapé (fora do bundle comum do layout raiz)
+    void import("@/features/billing/api").then((m) => m.getPublicSettings()).then((s) => { if (alive) setSettings(s); }, () => undefined);
     return () => { alive = false; };
   }, [show]);
   if (!show) return null;

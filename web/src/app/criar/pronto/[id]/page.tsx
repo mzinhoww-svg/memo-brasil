@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useRef, useState } from "react";
-import { Button } from "@/components/revela";
+import { Button, ScreenSkeleton } from "@/components/revela";
 import { CameraPronta } from "@/revela/screens/CameraPronta";
 import { useEventData } from "@/features/app/hooks";
 import { inviteUrl } from "@/features/invitations/links";
@@ -16,7 +16,7 @@ export default function Pronto() {
   const linkInput = useRef<HTMLInputElement>(null);
   const link = event ? inviteUrl(window.location.origin, event.code) : "";
 
-  if (loading) return <main className="app-col" aria-busy="true"><p className="app-screen app-muted" role="status">Preparando o convite…</p></main>;
+  if (loading) return <main className="app-col"><ScreenSkeleton variant="lista" label="Preparando o convite…" /></main>;
   if (!event && error) return (
     <main className="app-col app-fluid"><div className="app-screen">
       <h1 className="titulo-tela app-h1">Não deu para abrir o convite agora.</h1>

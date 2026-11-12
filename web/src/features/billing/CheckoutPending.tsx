@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/revela";
 import { formatBRL, orderStatus } from "./api";
@@ -100,9 +101,9 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
         {returnHint === "falha" && <p className="app-p">Você voltou sem concluir o pagamento. Se quiser, continue de onde parou.</p>}
         <div className="app-stack">
           {order.provider === "validapay" ? (
-            <a className="rv-btn rv-btn--cta rv-btn--bloco" href={`/painel/${encodeURIComponent(eventId)}/checkout-validapay?plano=${encodeURIComponent(order.planCode)}`}>
+            <Link className="rv-btn rv-btn--cta rv-btn--bloco" href={`/painel/${encodeURIComponent(eventId)}/checkout-validapay?plano=${encodeURIComponent(order.planCode)}`}>
               <span>Continuar pagamento no Revela</span>
-            </a>
+            </Link>
           ) : order.checkoutUrl ? (
             <a className="rv-btn rv-btn--cta rv-btn--bloco" href={order.checkoutUrl} rel="noopener">
               <span>Continuar para o Mercado Pago</span>

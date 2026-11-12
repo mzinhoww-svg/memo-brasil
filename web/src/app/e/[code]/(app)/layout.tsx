@@ -85,22 +85,15 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     if (evId) void expirePending(repos, evId, clock(), 60 * 60_000);
   }, [evId, repos, clock]);
 
-  // aquece as rotas do evento: com o service worker ativo, ficam disponíveis mesmo sem sinal na festa
+  // pré-carrega as abas no cache do roteador (as rotas são estáticas: o prefetch traz a página inteira) e a troca de aba fica imediata
   const evCode = ev?.code;
   useEffect(() => {
-    if (!evCode || !navigator.onLine) return;
-    const key = `mm-aquecido-${evCode}`;
-    try {
-      if (sessionStorage.getItem(key)) return; // uma vez por sessão: não repete a cada página
-      sessionStorage.setItem(key, "1");
-    } catch {
-      /* sem sessionStorage: aquece mesmo assim */
-    }
+    if (!evCode) return;
     const id = setTimeout(() => {
-      for (const r of ["agora", "explorar", "voce", "postar"]) void fetch(`/e/${evCode}/${r}`, { credentials: "same-origin" }).catch(() => undefined);
-    }, 4000); // depois da primeira pintura, para não competir com a página
+      for (const r of ["agora", "minhas", "voce", "postar"]) router.prefetch(`/e/${evCode}/${r}`);
+    }, 1500); // depois da primeira pintura, para não competir com a página
     return () => clearTimeout(id);
-  }, [evCode]);
+  }, [evCode, router]);
 
   const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, counts: data.counts, refresh, revealStatus: status, developed, celebrating: celebrate } : null), [data, user, participant, isHost, now, refresh, status, developed, celebrate]);
 

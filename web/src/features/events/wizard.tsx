@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Breadcrumbs, Button, GoogleButton } from "@/components/revela";
+import { Breadcrumbs, Button, GoogleButton, ScreenSkeleton } from "@/components/revela";
 import { DEFAULT_FILM, DEFAULT_WRAP, WRAP_INFO, type EventCategory, type FilmLook, type Wrap } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
 import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
@@ -239,7 +239,7 @@ export function CreateWizard() {
   const revealChoiceViews: RevealChoiceView[] = options.map((o) => ({ id: o.id, label: o.label, small: o.at !== undefined ? shortWhen(o.at, tz) : (choice === "dia" && Number.isFinite(customAt) ? shortWhen(customAt, tz) : " ") }));
   const wrapLabelUi = WRAP_INFO[wrap].label;
 
-  if (!ready) return <p className="app-screen app-muted">Carregando…</p>;
+  if (!ready) return <ScreenSkeleton variant="camera" label="Abrindo o assistente…" />;
 
   if (codeOutcome) {
     const { eventId, eventTitle, code, applied, error } = codeOutcome;

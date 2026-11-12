@@ -9,7 +9,7 @@ import Link from "next/link";
 export default function Revelados() {
   const { ready } = useApp();
   const { events, failed, signedIn } = useRevealedEvents();
-  if (!ready || (signedIn && !events && !failed)) return <LoadingNote />;
+  if (!ready || (signedIn && !events && !failed)) return <LoadingNote tabs />;
   if (!signedIn) return <HostNote title="Entre para ver o que foi revelado." text="Use a conta com que você criou suas câmeras." action={<Link href="/eventos" className="rv-btn rv-btn--block rv-btn--primary">Entrar</Link>} />;
   if (failed) return <HostNote title="Não deu para carregar." text="Confira a conexão e abra de novo." action={<GoHome />} />;
   if (!events?.length) return <HostNote title="Nada revelado ainda." text="Quando uma das suas câmeras revelar, as fotos aparecem aqui." action={<GoHome />} />;

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Button, GoogleButton, LiveIndicator, Logo, Skeleton } from "@/components/revela";
+import { Button, GoogleButton, LiveIndicator, Logo, ScreenSkeleton } from "@/components/revela";
+import { HostTabs } from "@/revela/HostTabs";
 import { endAt, eventStatus, type MemoEvent } from "@/domain/event";
 import { hhmm } from "@/features/guest/format";
 import { AnfitriaoInicio } from "@/revela/screens/AnfitriaoInicio";
@@ -49,9 +50,10 @@ export default function MeusEventos() {
     );
   };
 
+  // carregando: o quadro de "Suas câmeras" (a tela que abre para quem tem eventos), sem pular quando os dados chegam
+  if (!ready || (user && !data && !failed)) return <ScreenSkeleton variant="inicio" label="Carregando seus eventos…" tabs={<HostTabs current="cameras" />} />;
   let body;
-  if (!ready || (user && !data && !failed)) body = <Skeleton label="Carregando seus eventos…" />;
-  else if (!user || (!organizer && !data?.joined.length)) {
+  if (!user || (!organizer && !data?.joined.length)) {
     body = (
       <>
         <p className="corpo app-p app-muted">Entre com a conta Google que você usou para criar seus eventos.</p>
