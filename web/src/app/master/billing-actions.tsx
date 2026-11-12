@@ -2,8 +2,9 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Field, Select, Sheet } from "@/components/revela";
+import { Button, Field, Select, Sheet, ToggleRow } from "@/components/revela";
 import { browserSupabase } from "@/lib/supabase/client";
+import { Ico } from "@/revela/master-kit";
 import { adminErrorText, brl, parseBrl, paymentRef, planPreview, reasonError, REASON_MAX, refundFailureText, refundNote } from "./billing";
 
 /** Motivo obrigatório (10 a 500): o erro só aparece depois da primeira tentativa de enviar. */
@@ -12,7 +13,7 @@ export function ReasonField({ label, value, onChange, error }: { label: string; 
   return (
     <div className="rvl-field">
       <label className="rv-field-label" htmlFor={id}>{label}</label>
-      <textarea id={id} className="rv-field-input adm-textarea" rows={4} maxLength={REASON_MAX + 50} value={value}
+      <textarea id={id} className="rv-field-input" style={{height:"auto",minHeight:104}} rows={4} maxLength={REASON_MAX + 50} value={value}
         aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-erro` : undefined} onChange={(e) => onChange(e.target.value)} />
       {error && <span id={`${id}-erro`} className="rv-field-erro">{error}</span>}
     </div>
@@ -20,13 +21,7 @@ export function ReasonField({ label, value, onChange, error }: { label: string; 
 }
 
 function Switch({ label, checked, onChange, disabled }: { label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
-  const id = useId();
-  return (
-    <div className="adm-switch-row">
-      <label htmlFor={id}>{label}</label>
-      <input id={id} type="checkbox" role="switch" className="adm-switch" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
-    </div>
-  );
+  return <ToggleRow label={label} checked={checked} onChange={onChange} disabled={disabled} />;
 }
 
 function useAction() {
@@ -63,7 +58,7 @@ export function CourtesyButton({ events, plans }: { events: { id: string; label:
           <Select label="Evento" value={eventId} onChange={(e) => setEventId(e.target.value)} options={events.map((e) => ({ value: e.id, label: e.label }))} />
           <Select label="Plano" value={plan} onChange={(e) => setPlan(e.target.value)} options={plans.map((p) => ({ value: p.code, label: p.name }))} />
           <ReasonField label="Motivo (obrigatório, 10 a 500 caracteres)" value={reason} onChange={setReason} error={rErr} />
-          <p className="adm-nota adm-sheet-nota">O evento ganha os limites do plano sem cobrança, em qualquer ambiente. Fica no registro de auditoria.</p>
+          <p className="rv-caption">O evento ganha os limites do plano sem cobrança, em qualquer ambiente. Fica no registro de auditoria.</p>
           {a.error && <p className="rv-field-erro" role="alert">{a.error}</p>}
           <Button block onClick={submit} disabled={a.busy}>{a.busy ? "Concedendo…" : "Conceder cortesia"}</Button>
           <Button variant="texto" block onClick={close}>Cancelar</Button>
@@ -77,7 +72,7 @@ export function CourtesyButton({ events, plans }: { events: { id: string; label:
 export interface RefundOrder { orderId: string; eventTitle: string | null; planName: string | null; amountCents: number; providerChargeId: string | null; providerPaymentId?: string | null; provider?: string | null; refundRequestedAt: string | null }
 
 /** Grava a solicitação (admin_request_refund) e chama payments-refund com o JWT do Master. Já solicitado: só reenvia ao provedor. */
-export function RefundButton({ order }: { order: RefundOrder }) {
+export function RefundButton({ order, designLabel=false }: { order: RefundOrder; designLabel?:boolean }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const a = useAction();
@@ -110,12 +105,12 @@ export function RefundButton({ order }: { order: RefundOrder }) {
   const resumo = `${order.eventTitle ?? "Evento excluído"} · ${order.planName ?? "—"} · ${brl(order.amountCents)} · ${paymentRef(order)}`;
   return (
     <>
-      <Button variant={retry ? "secundario" : "destrutivo"} small onClick={() => setOpen(true)}>{retry ? "Reenviar reembolso" : "Solicitar reembolso"}</Button>
+      {designLabel?<button type="button" className="rv-btn rv-btn--sm rv-btn--primary" onClick={()=>setOpen(true)}><Ico n="refresh"/>{retry?"Reenviar estorno":"Estornar"}</button>:<Button variant={retry ? "secundario" : "destrutivo"} small onClick={() => setOpen(true)}>{retry ? "Reenviar reembolso" : "Solicitar reembolso"}</Button>}
       {open && (
         <Sheet title={retry ? "Reenviar reembolso" : "Solicitar reembolso"} onClose={close}>
-          <p className="adm-nota adm-sheet-nota">{resumo}</p>
+          <p className="rv-caption">{resumo}</p>
           {!retry && <ReasonField label="Motivo (obrigatório, 10 a 500 caracteres)" value={reason} onChange={setReason} error={rErr} />}
-          <p className="adm-nota adm-sheet-nota">{refundNote(order.provider)}</p>
+          <p className="rv-caption">{refundNote(order.provider)}</p>
           {a.error && <p className="rv-field-erro" role="alert">{a.error}</p>}
           <Button variant="destrutivo" block onClick={submit} disabled={a.busy}>{a.busy ? "Enviando…" : retry ? "Reenviar ao provedor" : "Solicitar reembolso integral"}</Button>
           <Button variant="texto" block onClick={close}>Cancelar</Button>
@@ -170,20 +165,20 @@ export function PlanEditButton({ plan }: { plan: PlanRow }) {
           <Switch label="Ativo no sandbox" checked={sandbox} onChange={setSandbox} disabled={plan.isFree} />
           <Switch label="Ativo em produção" checked={production} onChange={setProduction} disabled={plan.isFree} />
           {!plan.isFree && <ReasonField label="Motivo (obrigatório)" value={reason} onChange={setReason} error={rErr} />}
-          <div className="adm-preview">
-            <span className="adm-eyebrow">Prévia para o organizador</span>
+          <div className="mcard">
+            <span className="rv-eyebrow">Prévia para o organizador</span>
             <strong>{preview.titulo}</strong>
             <span>{preview.nota}</span>
           </div>
           <div>
-            <span className="adm-eyebrow">Histórico</span>
+            <span className="rv-eyebrow">Histórico</span>
             {plan.history.length ? (
-              <ul className="adm-history">
+              <ul className="stack">
                 {plan.history.map((h, i) => (
                   <li key={i}>{day(h.at)} · {h.new ? brl(h.new.priceCents) : "—"}{h.old && h.new && h.old.priceCents !== h.new.priceCents ? ` (antes ${brl(h.old.priceCents)})` : ""} · {h.reason ?? "sem motivo"} · {h.actorRole ?? "operador"}</li>
                 ))}
               </ul>
-            ) : <p className="adm-nota adm-sheet-nota">Sem alterações registradas desde a aprovação.</p>}
+            ) : <p className="rv-caption">Sem alterações registradas desde a aprovação.</p>}
           </div>
           {a.error && <p className="rv-field-erro" role="alert">{a.error}</p>}
           {!plan.isFree && <Button block onClick={submit} disabled={a.busy}>{a.busy ? "Salvando…" : "Salvar com motivo"}</Button>}

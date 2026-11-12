@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MODULES } from "./modules";
+import { MASTER_NAV } from "@/revela/master-icons";
 import {
   brl, canRefund, refundFailureText, chargeHint, providerLabel, paymentRef, refundNote, lastChange, divergenceText, envLabel, orderStatus, parseBrl, planPreview, reasonError, REASON_MAX, REASON_MIN,
 } from "./billing";
@@ -131,7 +131,7 @@ describe("falha do reembolso", () => {
 
 describe("módulos do console", () => {
   it("inclui Pagamentos e Planos e preços", () => {
-    expect(MODULES).toHaveLength(15);
-    expect(MODULES).toEqual(expect.arrayContaining([{ rota: "pagamentos", rotulo: "Pagamentos" }, { rota: "planos", rotulo: "Planos e preços" }]));
+    expect(MASTER_NAV).toHaveLength(12);
+    expect(MASTER_NAV).toEqual(expect.arrayContaining([expect.objectContaining({ id: "pagamentos", label: "Pagamentos" }), expect.objectContaining({ id: "planos", label: "Planos e preços" })]));
   });
 });

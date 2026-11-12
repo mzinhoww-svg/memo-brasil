@@ -13,6 +13,7 @@ export interface PagamentosProps {
   /** Avisos acima da tabela (divergências). */
   alerts?: ReactNode;
   empty?: string;
+  pager?: ReactNode;
 }
 
 const REF_ROWS: PagamentoRow[] = [
@@ -33,7 +34,7 @@ export function MasterPagamentosView({
     { label: "Recusados", value: "9", note: "cartão sem confirmação" },
     { label: "Para estornar", value: "1", note: "pago em duplicidade" },
   ],
-  chips = REF_CHIPS, rows = REF_ROWS, actions, alerts, empty,
+  chips = REF_CHIPS, rows = REF_ROWS, actions, alerts, empty, pager,
 }: PagamentosProps = {}) {
   const mrows: MRow[] = rows.map((r) => ({
     key: r.key,
@@ -55,6 +56,7 @@ export function MasterPagamentosView({
       </div>
       {alerts}
       <MTable cols="0.9fr 0.8fr 1.3fr 0.9fr 0.9fr 0.8fr 0.8fr 0.2fr" head={["Quando", "Pedido", "Evento", "Plano", "Método", "Valor", "Situação", ""]} rows={mrows} empty={empty ?? "Nenhum pedido neste filtro."} />
+      {pager}
     </>
   );
 }
