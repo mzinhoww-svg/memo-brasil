@@ -2,7 +2,7 @@
 
 import { HostBar } from "./HostBar";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type UIEvent } from "react";
 import { retrospectiveOpen, eventStatus, isRevealed } from "@/domain/event";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
 import { useApp } from "@/features/app/provider";
@@ -23,6 +23,7 @@ import { FeedEvento, type FeedPostData, type FeedStory } from "@/revela/screens/
 import { revealFeed } from "@/lib/motion/revela-motion";
 import { useFirstOpen } from "@/lib/motion/use-moments";
 import { FeedReacoes } from "@/revela/screens/FeedReacoes";
+import { readFeedScroll, saveFeedScroll } from "./feed-scroll";
 
 const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const PAGE = 20;
@@ -33,8 +34,10 @@ const TURNED = new Set<string>();
 export function RevealedFeed() {
   const { repos, backend } = useApp();
   const { event, user, viewer, now, photos, reactions, participants, refresh, revealStatus, developed, celebrating } = useGuest();
-  const [author, setAuthor] = useState("t");
-  const [limit, setLimit] = useState(PAGE);
+  // posição guardada ao sair do feed (Retrospectiva, Minhas, Você…): autor e paginação voltam como estavam, a rolagem logo abaixo
+  const [saved] = useState(() => (typeof window === "undefined" ? undefined : readFeedScroll(event.code)));
+  const [pickedAuthor, setAuthor] = useState(() => saved?.author ?? "t");
+  const [limit, setLimit] = useState(() => Math.max(PAGE, saved?.limit ?? PAGE));
   const [openId, setOpenId] = useState<string | undefined>();
   const [commentsFor, setCommentsFor] = useState<string | undefined>();
   const [moreFor, setMoreFor] = useState<string | undefined>();
@@ -62,7 +65,40 @@ export function RevealedFeed() {
     for (const p of all) m.set(p.authorId, { id: p.authorId, name: p.authorName, n: (m.get(p.authorId)?.n ?? 0) + 1 });
     return [...m.values()].sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)).slice(0, 12);
   }, [all]);
+  // autor guardado que já não tem foto visível (removida, moderada): volta a "Todas"
+  const author = pickedAuthor === "t" || all.some((p) => p.authorId === pickedAuthor) ? pickedAuthor : "t";
   const shown = useMemo(() => (author === "t" ? all : all.filter((p) => p.authorId === author)), [all, author]);
+  const scroller = useRef<HTMLDivElement>(null);
+  const pos = useRef({ top: saved?.top ?? 0, limit, author });
+  const frame = useRef<number | null>(null);
+  const flush = useCallback(() => { saveFeedScroll(event.code, pos.current); }, [event.code]);
+  const onScroll = useCallback((e: UIEvent<HTMLDivElement>) => {
+    pos.current.top = e.currentTarget.scrollTop;
+    if (frame.current !== null) return;
+    frame.current = requestAnimationFrame(() => { frame.current = null; flush(); });
+  }, [flush]);
+  useEffect(() => () => {
+    if (frame.current !== null) cancelAnimationFrame(frame.current);
+    flush();
+  }, [flush]);
+  useEffect(() => {
+    pos.current.limit = limit;
+    pos.current.author = author;
+    flush();
+  }, [limit, author, flush]);
+  // restaura a rolagem no primeiro commit com posts: os cartões têm proporção fixa, então a altura já está certa
+  const restored = useRef(false);
+  const hasPosts = shown.length > 0;
+  useLayoutEffect(() => {
+    const el = scroller.current;
+    if (restored.current || !el || !hasPosts) return;
+    restored.current = true;
+    const want = saved?.top ?? 0;
+    if (want <= 0) return;
+    el.scrollTop = want;
+    const id = requestAnimationFrame(() => { if (Math.abs(el.scrollTop - want) > 2) el.scrollTop = want; });
+    return () => cancelAnimationFrame(id);
+  }, [hasPosts, saved]);
   const page = shown.slice(0, limit);
   const open = openId ? shown.findIndex((p) => p.id === openId) : -1;
   const develop = useFirstOpen(openId); // a foto revela (rv-develop) só na primeira vez que abre
@@ -171,7 +207,7 @@ export function RevealedFeed() {
       <FeedEvento
         code={event.code} stamp={stampDay(event.startAt, event.timezone)} title={event.title} bellHref={`/e/${event.code}/aviso-email`}
         stories={stories} onStory={(id) => { setAuthor(id); setLimit(PAGE); }}
-        posts={page.map(toPost)} scroll
+        posts={page.map(toPost)} scroll scrollRef={scroller} onScroll={onScroll}
         onOpen={setOpenId} onLike={onLike} onComments={setCommentsFor} onShare={() => void share()} onDownload={(id) => void download(id)} onMore={setMoreFor}
         notice={(notice || viewer.host || (viewer.host && revealStatus === "pendente") || (!live && retrospectiveOpen(event, now, viewer.host))) ? (
           <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>

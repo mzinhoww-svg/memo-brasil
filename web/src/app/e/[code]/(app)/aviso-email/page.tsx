@@ -10,6 +10,7 @@ import { firstName, photoMoment } from "@/features/feed/format";
 import { hhmm } from "@/features/guest/format";
 import { emailFailureText, getMyEmail, optOutMine, setMyEmail, type MyEmail } from "@/features/participants/guest-email";
 import { revealText } from "@/features/reveal/RevealIntro";
+import { useSmartBack } from "@/lib/smart-back";
 import { backendMode } from "@/lib/supabase/env";
 import { FeedEmail } from "@/revela/screens/FeedEmail";
 
@@ -18,6 +19,7 @@ export default function AvisoEmail() {
   const router = useRouter();
   const { event, user, viewer, now, photos, counts } = useGuest();
   const feed = `/e/${event.code}/agora`;
+  const back = useSmartBack(feed);
   const cloud = backendMode() === "supabase";
   const [mine, setMine] = useState<MyEmail | undefined>();
   const [email, setEmail] = useState("");
@@ -63,10 +65,10 @@ export default function AvisoEmail() {
         greeting={`Revelou, ${firstName(user.name)}.`}
         body={`${revealText(event.title, counts.total, counts.mine, "no feed").replace(`de ${event.title}`, `do ${kind}`)} Curta, comente e baixe as que quiser.`}
         prints={picks.filter((p) => urls[p.id]).map((p) => ({ src: urls[p.id] }))}
-        backHref={feed} openHref={feed} onOptOut={cloud ? () => void leave() : undefined}
+        backHref={feed} onBack={back} openHref={feed} onOptOut={cloud ? () => void leave() : undefined}
       />
       {open && (
-        <Sheet title="Aviso por e-mail" onClose={() => router.push(feed)}>
+        <Sheet title="Aviso por e-mail" onClose={back}>
           <p className="corpo app-p">Quer um aviso quando as fotos revelarem? Deixe seu e-mail. É o único e-mail que enviamos sobre esta festa, e você sai da lista quando quiser.</p>
           {!cloud && <p className="app-p app-muted" role="status">Neste modo de teste os avisos por e-mail não são enviados.</p>}
           {mine?.optedOut && <p className="app-p app-muted">Você saiu da lista. Deixe o e-mail de novo para voltar a receber.</p>}

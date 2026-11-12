@@ -1,5 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { FeedRetrospectiva, type RetroBar } from "./FeedRetrospectiva";
 
 const bar = (label: string, n: number, extra: Partial<RetroBar> = {}): RetroBar => ({ label, n, pct: n === 0 ? 0 : Math.max(8, n * 50), ...extra });
@@ -41,5 +41,22 @@ describe("FeedRetrospectiva · fotos por hora", () => {
     expect(screen.getByText("Pico (10 min)")).toBeInTheDocument();
     expect(screen.getByText("19:40–19:50")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("A festaem 1 foto");
+  });
+});
+
+describe("FeedRetrospectiva · seta de voltar", () => {
+  it("mantém backHref como href real e, no toque simples, chama onBack sem navegar", () => {
+    const onBack = vi.fn();
+    render(<FeedRetrospectiva backHref="/e/ABCD2345/agora" onBack={onBack} bars={[]} />);
+    const link = screen.getByRole("link", { name: "Voltar" });
+    expect(link).toHaveAttribute("href", "/e/ABCD2345/agora");
+    expect(fireEvent.click(link)).toBe(false); // preventDefault
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+  it("com tecla modificadora deixa o link abrir normalmente", () => {
+    const onBack = vi.fn();
+    render(<FeedRetrospectiva backHref="/e/ABCD2345/agora" onBack={onBack} bars={[]} />);
+    fireEvent.click(screen.getByRole("link", { name: "Voltar" }), { ctrlKey: true });
+    expect(onBack).not.toHaveBeenCalled();
   });
 });

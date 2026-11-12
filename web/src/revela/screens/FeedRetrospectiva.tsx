@@ -27,6 +27,8 @@ export interface FeedRetrospectivaProps {
   bars?: RetroBar[];
   shooters?: RetroShooter[];
   backHref?: string;
+  /** voltar pelo histórico; `backHref` segue como destino real do link (abrir em outra aba, sem JavaScript) */
+  onBack?: () => void;
 }
 
 export const RETRO_REF = {
@@ -38,14 +40,14 @@ export const RETRO_REF = {
 /** abaixo disso o gráfico ganha um aviso de poucos dados */
 const FEW = 5;
 
-export function FeedRetrospectiva({ stamp = "SÁB 14 MAR 2027", headline = ["O casamento", "em 418 fotos"], tiles = RETRO_REF.tiles, bars = RETRO_REF.bars, shooters = RETRO_REF.shooters, backHref }: FeedRetrospectivaProps = {}) {
+export function FeedRetrospectiva({ stamp = "SÁB 14 MAR 2027", headline = ["O casamento", "em 418 fotos"], tiles = RETRO_REF.tiles, bars = RETRO_REF.bars, shooters = RETRO_REF.shooters, backHref, onBack }: FeedRetrospectivaProps = {}) {
   const total = bars.reduce((a, b) => a + b.n, 0);
   return (
     <>
     <div className="scr">
       <div className="safe" style={backHref ? { overflowY: "auto" } : undefined}>
         <div className="row between">
-          <Link href={backHref ?? "#"} className="rv-icon-btn" aria-label="Voltar">
+          <Link href={backHref ?? "#"} className="rv-icon-btn" aria-label="Voltar" onClick={onBack && ((e) => { if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); onBack(); } })}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>

@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { createRef } from "react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { FeedEvento, FeedPost, FEED_REF_POSTS } from "./FeedEvento";
 
 describe("cartão do feed fluido", () => {
@@ -24,5 +25,25 @@ describe("cartão do feed fluido", () => {
     const safe = container.querySelector(".safe") as HTMLElement;
     expect(safe.classList.contains("safe--tabs")).toBe(true);
     expect(safe.style.paddingBottom).toBe("");
+  });
+  it("expõe o contêiner que rola por scrollRef e onScroll", () => {
+    const ref = createRef<HTMLDivElement>();
+    const onScroll = vi.fn();
+    const { container } = render(<FeedEvento scroll scrollRef={ref} onScroll={onScroll} />);
+    const safe = container.querySelector(".safe") as HTMLElement;
+    expect(ref.current).toBe(safe);
+    fireEvent.scroll(safe);
+    expect(onScroll).toHaveBeenCalledTimes(1);
+  });
+  it("sem as props novas a tela segue igual", () => {
+    const { container } = render(<FeedEvento />);
+    expect(container.querySelector(".safe")).not.toBeNull();
+  });
+  it("o nome acessível da foto é curto: só 'Abrir a foto de {autor}'", () => {
+    render(<FeedPost post={FEED_REF_POSTS[0]} onOpen={() => undefined} />);
+    const btn = screen.getByRole("button", { name: "Abrir a foto de Leo" });
+    expect(btn.getAttribute("aria-label")).toBe("Abrir a foto de Leo");
+    // o botão não contém o carimbo: a regra de nome x conteúdo visível não se aplica a ele
+    expect(btn.textContent).toBe("");
   });
 });

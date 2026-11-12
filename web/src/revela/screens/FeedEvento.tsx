@@ -1,7 +1,7 @@
 "use client";
 /* Feed-evento.html (24d): mesmo markup da referência; dados reais por props (padrão = desenho). */
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ReactNode, Ref, UIEventHandler } from "react";
 import { popHeart } from "@/lib/motion/use-moments";
 import { GuestTabs } from "../GuestTabs";
 
@@ -73,7 +73,6 @@ export function FeedPost({ post, onOpen, onLike, onComments, onShare, onDownload
       <div
         className={p.veiled ? "rv-print rv-print--feed rvm-veiled" : "rv-print rv-print--feed"}
         style={{ transform: "rotate(0deg)", zIndex: "1", ...(onOpen ? { cursor: "pointer" } : {}) }}
-        {...(onOpen ? { role: "button", tabIndex: 0, "aria-label": `${p.stampLeft} ${p.stampRight} · Abrir a foto de ${p.author}`, onClick: () => onOpen(p.id), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(p.id); } } } : {})}
       >
         <img src={p.imageSrc} alt={onOpen ? "" : "Foto de convidado"} className={p.veiled ? "rv-blurred" : undefined} />
         {p.veiled && <span className="rvm-lock" aria-hidden="true"><svg className="rv-lock-nudge" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg></span>}
@@ -81,6 +80,8 @@ export function FeedPost({ post, onOpen, onLike, onComments, onShare, onDownload
           <span>{p.stampLeft}</span>{" "}
           <span>{p.stampRight}</span>
         </div>
+        {/* o botão cobre a foto sem conter texto: o nome acessível fica curto e o carimbo não entra nele */}
+        {onOpen && <span className="rv-print__open" role="button" tabIndex={0} aria-label={`Abrir a foto de ${p.author}`} onClick={() => onOpen(p.id)} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(p.id); } }} />}
       </div>
       <div className="post-a">
         <button type="button" aria-label="Curtir" aria-pressed={onLike ? p.liked : undefined} className={p.liked ? "on" : ""} onClick={onLike && ((e) => { if (!p.liked) popHeart(e); onLike(p.id); })}>
@@ -134,13 +135,16 @@ export interface FeedEventoProps extends FeedPostHandlers {
   after?: ReactNode;
   /** aviso do cerimonial, logo abaixo do título */
   notice?: ReactNode;
+  /** contêiner que rola (a lista do feed): para guardar e restaurar a posição */
+  scrollRef?: Ref<HTMLDivElement>;
+  onScroll?: UIEventHandler<HTMLDivElement>;
 }
 
-export function FeedEvento({ code, stamp = "DOM 15 MAR", title = "Ana & Leo", stories = FEED_REF_STORIES, posts = FEED_REF_POSTS, scroll, bellHref, onStory, after, notice, ...h }: FeedEventoProps = {}) {
+export function FeedEvento({ code, stamp = "DOM 15 MAR", title = "Ana & Leo", stories = FEED_REF_STORIES, posts = FEED_REF_POSTS, scroll, bellHref, onStory, after, notice, scrollRef, onScroll, ...h }: FeedEventoProps = {}) {
   return (
     <>
     <div className="scr">
-      <div className={scroll ? "safe safe--tabs" : "safe"} style={{ ...(scroll ? {} : { paddingBottom: "0" }), overflow: scroll ? "hidden auto" : "hidden" }}>
+      <div ref={scrollRef} onScroll={onScroll} className={scroll ? "safe safe--tabs" : "safe"} style={{ ...(scroll ? {} : { paddingBottom: "0" }), overflow: scroll ? "hidden auto" : "hidden" }}>
         <div className="row between">
           <div>
             <div className="rv-stamp" style={{ fontSize: "12px" }}>{stamp}</div>
