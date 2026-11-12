@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/revela";
+import { Button, RowsSkeleton } from "@/components/revela";
 import { useApp } from "@/features/app/provider";
 import { HostTabs } from "@/revela/HostTabs";
 import { usePrintedAlbumEnabled } from "./flag";
@@ -42,7 +42,7 @@ export function OrdersPage() {
         <h1 className="rv-title-lg">Álbuns impressos</h1>
         <p className="rv-body muted" style={{ margin: "10px 0 16px" }}>Seus pedidos de impressão. O valor e o prazo chegam por contato, antes de qualquer pagamento.</p>
         {msg && <p className="rv-field-erro" role="alert">{msg}</p>}
-        {!ready || (userId && !orders && !failed) ? <p className="rv-caption" role="status">Carregando…</p>
+        {!ready || (userId && !orders && !failed) ? <RowsSkeleton label="Carregando seus pedidos…" />
           : !userId ? <p className="rv-body muted">Entre para ver seus pedidos.</p>
           : failed ? <p className="rv-body muted" role="alert">Não deu para carregar. Confira a conexão e abra de novo.</p>
           : !orders?.length ? <p className="rv-body muted">Nenhum pedido ainda. Abra um evento revelado e escolha “O álbum da festa, em papel”.</p>

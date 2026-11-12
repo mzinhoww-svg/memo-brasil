@@ -6,6 +6,7 @@ import type { MemoEvent } from "@/domain/event";
 import { loadMyEvents } from "@/features/app/my-events";
 import { useApp } from "@/features/app/provider";
 import { HostTabs } from "@/revela/HostTabs";
+import { ScreenSkeleton } from "@/components/revela/ScreenSkeleton";
 import { revealedEvents } from "./pick";
 
 /** Eventos do anfitrião já revelados (o mais recente primeiro). `undefined` = carregando. */
@@ -43,5 +44,8 @@ export function HostNote({ title, text, action, tabs = true }: { title?: string;
   );
 }
 
-export const LoadingNote = () => <div className="scr" role="status" aria-label="Carregando"><div className="safe" /></div>;
+/** Carregando: esqueleto no quadro da tela (com as abas do anfitrião quando a tela final as tem). */
+export const LoadingNote = ({ tabs = false, label = "Carregando os revelados…" }: { tabs?: boolean; label?: string }) => (
+  <ScreenSkeleton variant="grade" label={label} tabs={tabs ? <HostTabs current="revelados" /> : undefined} />
+);
 export const GoHome = () => <Link href="/eventos" className="rv-btn rv-btn--block rv-btn--primary">Ver minhas câmeras</Link>;
