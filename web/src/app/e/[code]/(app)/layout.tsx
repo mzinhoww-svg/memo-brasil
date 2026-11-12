@@ -10,6 +10,7 @@ import { usePresence } from "@/lib/motion/use-motion";
 import { GuestProvider } from "@/features/events/guest-context";
 import { devToolsEnabled } from "@/lib/dev-tools";
 import { RollPickerProvider } from "@/features/photos/roll-picker";
+import { UploadQueueProvider } from "@/features/photos/upload-queue-provider";
 import { normalizeShareCode } from "@/domain/share-code";
 import { notificationPlan } from "@/domain/notifications";
 import { computeRevealStatus } from "@/domain/reveal";
@@ -128,7 +129,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
             <span>Sem sinal agora. {data.counts.mine === 1 ? "Sua foto está guardada." : `Suas ${data.counts.mine} fotos estão guardadas.`}</span>
           </div>
         )}
-        <RollPickerProvider code={code}><main>{children}</main></RollPickerProvider>
+        <RollPickerProvider code={code}><UploadQueueProvider onConfirmed={refresh}><main>{children}</main></UploadQueueProvider></RollPickerProvider>
         {devToolsEnabled() && canSwitchIdentity && (
           // só no build de homologação (nunca em produção): trocar de pessoa neste aparelho para testar a festa com mais de um convidado
           <button type="button" aria-label="Entrar como outra pessoa" style={{ position: "fixed", top: 0, left: 0, width: 32, height: 32, opacity: 0, zIndex: 9999 }} onClick={async () => { await signOut(); router.push(`/e/${code}`); }} />

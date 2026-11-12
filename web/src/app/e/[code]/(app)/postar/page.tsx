@@ -6,7 +6,7 @@ import { useRollPickerOptional } from "@/features/photos/roll-picker";
 import { DEFAULT_FILM, wrapOf } from "@/domain/options";
 import { ConvidadoCamera } from "@/revela/screens/ConvidadoCamera";
 import type { CameraFx } from "@/revela/screens/CameraFrame";
-import { odometer, reduced, shoot as kitShoot } from "@/lib/motion/revela-motion";
+import { odometer, shoot as kitShoot } from "@/lib/motion/revela-motion";
 import { flyPose } from "@/lib/motion/use-moments";
 import { ConvidadoFim } from "@/revela/screens/ConvidadoFim";
 import { ConvidadoPermissao } from "@/revela/screens/ConvidadoPermissao";
@@ -14,15 +14,19 @@ import { momentName } from "@/domain/moments";
 import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
-import { cameraFailure, photoAudienceCopy, cameraHelp, fileToImage, isEmbeddedBrowser, renderPhoto, stampText } from "@/features/photos/capture";
+import { cameraFailure, photoAudienceCopy, cameraHelp, fileToImage, grabFrame, isEmbeddedBrowser, prewarmFilm, renderPhoto, renderPreview, stampText } from "@/features/photos/capture";
 import { clearPhotoDraft, loadPhotoDraft, savePhotoDraft, type PhotoDraft } from "@/features/photos/draft";
 import { postPhoto, retryDelayMs } from "@/features/photos/service";
+import { blocksShooting, countsTowardRoll, queueStatus, uploadQueue } from "@/features/photos/upload-queue";
+import { useQueuedUsed, useUploadQueue } from "@/features/photos/upload-queue-provider";
 import { useAlive } from "@/lib/use-alive";
 import type { PhotoData } from "@/repositories";
 
 /**
  * permissao = pré-permissão (explica a câmera antes de pedir); negada = o navegador recusou; sem-camera = aparelho sem câmera ao vivo;
  * guardando = enviando; sem-sinal = o envio caiu e a mesma foto tenta de novo (mesma photoId).
+ * guardando/sem-sinal/capturada são só da foto escolhida do aparelho: o disparo da câmera vai para a fila de envio
+ * (upload-queue.ts) e o visor continua aberto.
  */
 type Phase = "iniciando" | "permissao" | "camera" | "negada" | "sem-camera" | "camera-ocupada" | "camera-interrompida" | "capturada" | "guardando" | "sem-sinal" | "publicada";
 const REMEMBER_KEY = "mm-camera-liberada";
@@ -57,9 +61,18 @@ function PostarSession() {
   const [frozenLeft, setFrozenLeft] = useState<number | null | undefined>(); // o contador só muda quando a foto chegar
   const [flashOn, setFlashOn] = useState(true);
   const fx = useRef<CameraFx | null>(null); // peças da câmera que o disparo do kit anima
-  const quick = useRef(false); // disparo pelo obturador: a pose vai direto para o laboratório (sem prévia)
-  const video = useRef<HTMLVideoElement>(null);
+  const video = useRef<HTMLVideoElement | null>(null);
   const stream = useRef<MediaStream | null>(null);
+  // O <video> é remontado quando a tela troca (prévia → câmera): religa o stream aberto, senão o visor fica preto.
+  const attachVideo = useCallback((el: HTMLVideoElement | null) => {
+    video.current = el;
+    const s = stream.current;
+    if (el && s && el.srcObject !== s) {
+      el.srcObject = s;
+      void el.play()?.catch(() => undefined);
+    }
+  }, []);
+  const tapping = useRef(0); // disparos entre o toque e a entrada na fila (contam no rolo)
   const galleryInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const photoId = useRef<string>(crypto.randomUUID()); // a mesma em todas as tentativas desta foto
@@ -136,10 +149,16 @@ function PostarSession() {
   const inFlight = discarding || phase === "guardando" || phase === "sem-sinal";
   const used = counts.mine;
   const realLeft = shotsLeft(event, used);
-  const left = inFlight && frozenLeft !== undefined ? frozenLeft : realLeft;
+  // fila de envio da câmera: cada disparo pendente desconta na hora (left = real − pendentes) e o odômetro não volta
+  const queue = useUploadQueue(event.id, user.id);
+  const queued = queue.entries.filter(countsTowardRoll).length;
+  const queueUsed = useQueuedUsed(used, queue.entries);
+  const queueLeft = shotsLeft(event, queueUsed);
+  const left = inFlight && frozenLeft !== undefined ? frozenLeft : queueLeft;
   const ended = eventStatus(event, now) === "encerrado";
   const noRoll = left !== null && left <= 0;
-  const blocked = !!denial || (!inFlight && !shot && (ended || noRoll));
+  // com fotos na fila, a câmera continua na tela (a última pose ainda está indo) até o contador real confirmar
+  const blocked = !!denial || (!inFlight && !shot && queued === 0 && (ended || noRoll));
   const ua = typeof navigator === "undefined" ? "" : navigator.userAgent;
 
   const stop = useCallback(() => {
@@ -174,7 +193,7 @@ function PostarSession() {
         stream.current = s;
         if (video.current) {
           video.current.srcObject = s;
-          await video.current.play().catch(() => undefined);
+          await video.current.play()?.catch(() => undefined);
         }
         remember();
         if (picked.current) return; // escolheu da galeria durante o play(): a tela já é a da prévia
@@ -198,28 +217,45 @@ function PostarSession() {
     setAttempt((n) => n + 1);
   }
 
-  /** 22 · Disparo: flash de 120 ms, a pose vai para o laboratório e o visor continua aberto. */
+  // pré-aquece o filme (worker + LUT + grão) assim que a câmera abre, para o primeiro disparo não pagar isso
+  const look = lookOf(event) as "natural" | "filme35" | "vintage" | "preto-e-branco";
+  const cameraOpen = phase === "camera";
+  useEffect(() => { if (cameraOpen) prewarmFilm(look); }, [cameraOpen, look]);
+
+  /**
+   * 22 · Disparo: congela o quadro no toque e libera o obturador na hora. O clarão roda em paralelo; a prévia pequena
+   * (~320 px, mesmo filme) vai para o canto da câmera e a foto entra na fila, que revela em tamanho cheio e envia em
+   * segundo plano. O rolo conta as poses pendentes: não dá para disparar além das restantes.
+   */
   async function shoot() {
     const v = video.current;
-    if (!v || !v.videoWidth || sending.current) return;
+    if (!v || !v.videoWidth || ended || blocksShooting(queue.entries)) return;
+    if (left !== null && left - tapping.current <= 0) return;
+    tapping.current += 1;
     setError(undefined);
+    uploadQueue.dismiss(event.id);
     const parts = fx.current;
-    if (parts) void kitShoot({ flash: flashOn ? parts.flash : document.createElement("div"), shutter: parts.shutter, button: parts.button, wheel: parts.wheel, counter: parts.counter ?? undefined, remaining: left === null ? undefined : Math.max(0, left - 1) });
-    // o processamento da foto roda depois do clarão, fora do toque
-    if (!reduced()) await new Promise((r) => setTimeout(r, 120));
+    const remaining = left === null ? undefined : Math.max(0, left - tapping.current);
+    if (parts) void kitShoot({ flash: flashOn ? parts.flash : document.createElement("div"), shutter: parts.shutter, button: parts.button, wheel: parts.wheel, counter: parts.counter ?? undefined, remaining });
+    const mirror = facing === "user";
+    const createdAt = clock();
+    const takenAt = new Date(createdAt);
     try {
-      const data = await renderPhoto(v, v.videoWidth, v.videoHeight, lookOf(event) as "natural" | "filme35" | "vintage" | "preto-e-branco", facing === "user");
-      if (!alive.current) return;
-      quick.current = true;
-      picked.current = true;
-      setShot({ data, url: URL.createObjectURL(new Blob([data.bytes], { type: data.type })) });
-      const ghost = URL.createObjectURL(new Blob([data.bytes], { type: data.type }));
-      void flyPose(ghost, parts?.viewfinder ?? null, parts?.roll ?? null).finally(() => URL.revokeObjectURL(ghost));
-      await send(false, data);
+      const frame = await grabFrame(v);
+      const photoId = crypto.randomUUID();
+      // a prévia desenha agora (antes da fila revelar e liberar o quadro); só o JPEG pequeno sai depois
+      const preview = renderPreview(frame.source, frame.width, frame.height, look, mirror, takenAt);
+      uploadQueue.enqueue({ photoId, event, user, createdAt, takenAt, meta: { moment, tableLabel: participant?.tableLabel }, frame, style: look, mirror });
+      void preview.then((blob) => {
+        const url = URL.createObjectURL(blob);
+        uploadQueue.setLastShot({ photoId, eventId: event.id, userId: user.id, url, createdAt });
+        return flyPose(url, parts?.viewfinder ?? null, parts?.roll ?? null);
+      }).catch(() => undefined);
     } catch {
-      quick.current = false;
-      if (parts?.counter && left !== null) odometer(parts.counter, left);
+      if (parts?.counter && left !== null) odometer(parts.counter, Math.max(0, left - tapping.current + 1));
       setError("Não foi possível tirar a foto. Tente de novo.");
+    } finally {
+      tapping.current -= 1;
     }
   }
 
@@ -252,34 +288,28 @@ function PostarSession() {
     setError(undefined);
     setPhase("guardando");
     try {
+      // marca a tentativa no rascunho uma vez (a seleção já foi salva pelo efeito); retomadas não regravam os bytes
       const draft = snapshot();
-      if (draft) await persist(draft);
+      if (draft && !resuming) await persist(draft);
       const r = await postPhoto(repos, event, user, payload, { moment, caption, tableLabel: participant?.tableLabel }, clock(), { photoId: photoId.current, resume: resuming });
-      if (!alive.current) return;
       if (r.ok) {
+        // confirmado: limpa o rascunho e atualiza o contador mesmo que a tela tenha saído no meio do envio
+        // (senão, ao voltar, aparecia "pose sem confirmação" de uma foto já publicada)
         confirmed.current = true;
         await persistence.current;
         const cleared = await clearPhotoDraft(event.id, user.id);
-        if (!alive.current) return;
-        setDraftWarning(!cleared.ok);
         if (cleared.ok) draftPersisted.current = false;
         // Publicação confirmada não depende da atualização do contador.
         void Promise.resolve().then(refresh).catch(() => undefined);
+        if (!alive.current) return;
+        setDraftWarning(!cleared.ok);
         setFrozenLeft(undefined);
         photoId.current = crypto.randomUUID();
         setShot(undefined);
-        if (quick.current) {
-          // câmera descartável: volta ao visor, com o contador uma pose a menos
-          quick.current = false;
-          attempted.current = false;
-          setHasAttempt(false);
-          picked.current = false;
-          if (stream.current) setPhase("camera"); else { setPhase("iniciando"); setAttempt((n) => n + 1); }
-          return;
-        }
         setPhase("publicada");
         return;
       }
+      if (!alive.current) return;
       if (r.reason === "rede") {
         failures.current += 1;
         const draft = snapshot();
@@ -494,7 +524,7 @@ function PostarSession() {
   }
 
   // foto do rolo (ou disparo que não foi confirmado): prévia, momento, legenda e envio
-  if (!quick.current && (phase === "capturada" || phase === "guardando" || phase === "sem-sinal") || (quick.current && (phase === "capturada" || phase === "sem-sinal"))) {
+  if (phase === "capturada" || phase === "guardando" || phase === "sem-sinal") {
     return (
       <GuestShell closeHref={close} action={<div className="app-stack-sm">
         {phase === "sem-sinal" ? <Button block onClick={() => void send(true)}>Tentar agora</Button> : <Button icon="enviar" block disabled={inFlight} onClick={() => void send(false)}>{phase === "guardando" ? "Enviando…" : "Mandar para o laboratório"}</Button>}
@@ -510,16 +540,12 @@ function PostarSession() {
           </div>
         )}
         {phase === "guardando" && <div role="status"><Progress label="Foto" status="Enviando…" /></div>}
-        {!quick.current && (
-          <>
-            <div className="app-stack-sm">
-              <span className="rv-group-label" id="mom">Momento</span>
-              <Chips label="Momento">{event.moments.map(momentName).map((m) => <Chip key={m} variant="filtro" pressed={moment === m} onClick={() => { if (!inFlight) setMoment(m); }}>{m}</Chip>)}</Chips>
-            </div>
-            <Field label="Legenda (opcional)" value={caption} maxLength={140} placeholder="Ex.: Ninguém segurou a emoção." onChange={(e) => setCaption(e.target.value)} disabled={inFlight} />
-            <Chips label="Sugestões de legenda">{SUGGESTIONS.map((x) => <Chip key={x} variant="sugestao" onClick={() => { if (!inFlight) setCaption(x); }}>{x}</Chip>)}</Chips>
-          </>
-        )}
+        <div className="app-stack-sm">
+          <span className="rv-group-label" id="mom">Momento</span>
+          <Chips label="Momento">{event.moments.map(momentName).map((m) => <Chip key={m} variant="filtro" pressed={moment === m} onClick={() => { if (!inFlight) setMoment(m); }}>{m}</Chip>)}</Chips>
+        </div>
+        <Field label="Legenda (opcional)" value={caption} maxLength={140} placeholder="Ex.: Ninguém segurou a emoção." onChange={(e) => setCaption(e.target.value)} disabled={inFlight} />
+        <Chips label="Sugestões de legenda">{SUGGESTIONS.map((x) => <Chip key={x} variant="sugestao" onClick={() => { if (!inFlight) setCaption(x); }}>{x}</Chip>)}</Chips>
         {draftWarning && <p className="corpo-sm" role="alert">Não foi possível salvar o rascunho neste aparelho. Mantenha esta tela aberta até enviar; sair pode perder a foto.</p>}
         {error && <p className="rv-field-erro" role="alert">{error}</p>}
         {shot && hasAttempt && <p className="corpo-sm app-muted">{DISCARD_NOTICE}</p>}
@@ -530,14 +556,14 @@ function PostarSession() {
   }
 
   // 21 · Câmera, 22 · Disparo (clarão) e 23 · pedido de acesso (pré-permissão)
-  const live = phase === "camera" || phase === "guardando";
+  const live = phase === "camera";
   const isFilm = event.cameraStyle === "vintage" || (event.cameraStyle !== "preto-e-branco" && (event.filmLook ?? DEFAULT_FILM) === "filme35");
   const wrap = wrapOf(event.cameraStyle);
   const frame = {
     title: event.title, wrap, left, band, closeHref: close, closeLabel: "Fechar câmera", fase: phase,
     viewfinder: (
       <>
-        <video ref={video} playsInline muted aria-label="Câmera ao vivo" className={isFilm ? "rv-film-preview" : undefined} style={{ display: live ? "block" : "none", transform: facing === "user" ? "scaleX(-1)" : undefined }} />
+        <video ref={attachVideo} playsInline muted aria-label="Câmera ao vivo" className={isFilm ? "rv-film-preview" : undefined} style={{ display: live ? "block" : "none", transform: facing === "user" ? "scaleX(-1)" : undefined }} />
         {live && isFilm && <span className="rv-film-preview-vignette" aria-hidden="true" />}
         {phase === "iniciando" && <p className="vf-msg" aria-live="polite">Abrindo a câmera…</p>}
       </>
@@ -545,7 +571,8 @@ function PostarSession() {
     flashOn, onFlash: () => setFlashOn((f) => !f),
     stamp: isFilm ? stampText(new Date(now)) : undefined,
   };
-  const counter = <span data-testid="contador-rolo" className="rv-sr-only">{left ?? "ilimitado"}</span>;
+  const counter = <span data-testid="contador-rolo" data-fila={queue.entries.filter((e) => e.status !== "enviada" && countsTowardRoll(e)).length} className="rv-sr-only">{left ?? "ilimitado"}</span>;
+  const fila = queueStatus(queue.entries);
   if (phase === "permissao") {
     return (
       <ConvidadoPermissao {...frame} estado="pedir" onLater={() => setPhase("negada")} onAllow={allowCamera}>
@@ -558,14 +585,15 @@ function PostarSession() {
     <ConvidadoCamera
       {...frame}
       fx={fx}
-      shootDisabled={phase !== "camera" || sending.current}
+      shootDisabled={phase !== "camera" || noRoll || ended || blocksShooting(queue.entries)}
       onShoot={() => void shoot()}
       rollLabel="Enviar do rolo da câmera"
       onRoll={pickGallery}
+      lastShot={queue.lastShot?.url}
       flipDisabled={!live}
       onFlip={() => setFacing(facing === "environment" ? "user" : "environment")}
-      status={phase === "guardando" || error ? (error ?? "Mandando para o laboratório…") : undefined}
-      statusRole={error ? "alert" : "status"}
+      status={error ?? fila?.text}
+      statusRole={error || fila?.alert ? "alert" : "status"}
     >
       {counter}
       {inputs}

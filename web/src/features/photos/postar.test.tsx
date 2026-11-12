@@ -8,13 +8,21 @@ import type { MemoEvent } from "@/domain/event";
 import { createEvent, type EventInput } from "@/features/events/service";
 import Postar from "@/app/e/[code]/(app)/postar/page";
 import { loadPhotoDraft, savePhotoDraft } from "./draft";
+import { UploadQueueProvider } from "./upload-queue-provider";
 const ctx = vi.hoisted(() => ({
   guest: undefined as unknown as Pick<GuestCtx, "event" | "user" | "participant" | "now" | "counts" | "refresh">,
-  app: undefined as unknown as { repos: Repositories; now: () => number },
+  app: undefined as unknown as { repos: Repositories; now: () => number; user?: { id: string; name: string; createdAt: number } },
 }));
 vi.mock("@/features/app/provider", () => ({ useApp: () => ctx.app }));
 vi.mock("@/features/events/guest-context", () => ({ useGuest: () => ctx.guest }));
-vi.mock("./capture", async (original) => ({ ...await original<typeof import("./capture")>(), fileToImage: async () => ({ naturalWidth: 5, naturalHeight: 5 }), renderPhoto: async () => ({ bytes: new Uint8Array([1, 2]).buffer, type: "image/jpeg" }) }));
+vi.mock("./capture", async (original) => ({
+  ...await original<typeof import("./capture")>(),
+  fileToImage: async () => ({ naturalWidth: 5, naturalHeight: 5 }),
+  renderPhoto: async () => ({ bytes: new Uint8Array([1, 2]).buffer, type: "image/jpeg" }),
+  grabFrame: async () => ({ source: {}, width: 640, height: 480, close: () => {} }),
+  renderPreview: async () => new Blob([new Uint8Array([9])], { type: "image/jpeg" }),
+  prewarmFilm: () => {},
+}));
 const now = 1_800_000_000_000;
 let fixture: { event: MemoEvent; user: { id: string; name: string; createdAt: number } };
 let repos: ReturnType<typeof createMemoryRepositories>;
@@ -196,5 +204,74 @@ describe("envio resiliente na tela", () => {
     fireEvent.click(screen.getByRole("button", { name: "Tirar outra" }));
     await screen.findByText("Sem câmera por aqui");
     expect(screen.queryByAltText("Prévia da sua foto")).toBeNull();
+  });
+});
+
+describe("aviso falso de pose sem confirmação", () => {
+  it("sair da tela durante o envio ainda limpa o rascunho quando o servidor confirma", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
+    const finalize = repos.photos.finalize;
+    vi.spyOn(repos.photos, "finalize").mockImplementation(async (id) => { await gate; return finalize(id); });
+    const view = render(<Postar />); await choose();
+    fireEvent.click(screen.getByRole("button", { name: "Mandar para o laboratório" }));
+    await waitFor(async () => expect((await loadPhotoDraft(fixture.event.id, fixture.user.id, now)).draft?.attempted).toBe(true));
+    view.unmount();
+    release();
+    await waitFor(async () => expect((await repos.photos.listByEvent(fixture.event.id))).toHaveLength(1));
+    await waitFor(async () => expect((await loadPhotoDraft(fixture.event.id, fixture.user.id, now)).draft).toBeUndefined());
+    render(<Postar />);
+    await screen.findByText("Sem câmera por aqui");
+    expect(screen.queryByText("Você tem uma pose sem confirmação")).toBeNull();
+  });
+});
+
+describe("câmera descartável com fila de envio", () => {
+  let release: () => void;
+  beforeEach(() => {
+    const track = { stop: vi.fn() };
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [track] })) } });
+    vi.stubGlobal("matchMedia", (q: string) => ({ matches: q.includes("reduce"), addEventListener() {}, removeEventListener() {} }));
+    Object.defineProperty(HTMLVideoElement.prototype, "videoWidth", { configurable: true, get: () => 640 });
+    Object.defineProperty(HTMLVideoElement.prototype, "videoHeight", { configurable: true, get: () => 480 });
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    localStorage.setItem("mm-camera-liberada", "1");
+    ctx.app = { ...ctx.app, user: fixture.user } as typeof ctx.app;
+    const gate = new Promise<void>((r) => { release = r; });
+    const begin = repos.photos.begin;
+    vi.spyOn(repos.photos, "begin").mockImplementation(async (p) => { await gate; return begin(p); });
+  });
+  afterEach(() => { localStorage.clear(); delete (navigator as { mediaDevices?: unknown }).mediaDevices; delete (HTMLVideoElement.prototype as { videoWidth?: number }).videoWidth; delete (HTMLVideoElement.prototype as { videoHeight?: number }).videoHeight; });
+  const camera = async () => {
+    render(<UploadQueueProvider><Postar /></UploadQueueProvider>);
+    const shutter = await screen.findByRole("button", { name: "Tirar foto" });
+    await waitFor(() => expect(shutter.hasAttribute("disabled")).toBe(false));
+    return shutter;
+  };
+  it("libera o obturador logo depois de cada disparo, mostra a prévia no rolo e o contador desce sem voltar", async () => {
+    const shutter = await camera();
+    expect(screen.getByTestId("contador-rolo").textContent).toBe("5");
+    for (const left of ["4", "3", "2"]) {
+      fireEvent.click(shutter);
+      await waitFor(() => expect(screen.getByTestId("contador-rolo").textContent).toBe(left));
+      expect(shutter.hasAttribute("disabled")).toBe(false);
+    }
+    expect(await screen.findByTestId("ultima-pose")).toHaveProperty("src", expect.stringMatching(/^blob:/));
+    expect(screen.getByRole("status").textContent).toBe("Mandando 3 fotos…");
+    expect(screen.getByLabelText("Câmera ao vivo")).toBeDefined(); // o visor continua aberto
+    release();
+    await waitFor(async () => expect(await repos.photos.listByEvent(fixture.event.id)).toHaveLength(3));
+    await waitFor(() => expect(screen.getByTestId("contador-rolo").getAttribute("data-fila")).toBe("0"));
+    expect(screen.queryByText("Você tem uma pose sem confirmação")).toBeNull();
+  });
+  it("não deixa disparar além das poses restantes contando as pendentes", async () => {
+    ctx.guest = { ...ctx.guest, counts: { mine: 3, total: 3 } };
+    const shutter = await camera();
+    expect(screen.getByTestId("contador-rolo").textContent).toBe("2");
+    fireEvent.click(shutter); fireEvent.click(shutter); fireEvent.click(shutter);
+    await waitFor(() => expect(screen.getByTestId("contador-rolo").textContent).toBe("0"));
+    await waitFor(() => expect(shutter.hasAttribute("disabled")).toBe(true));
+    expect(screen.getByRole("status").textContent).toBe("Mandando 2 fotos…");
+    release();
   });
 });

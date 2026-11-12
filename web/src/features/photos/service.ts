@@ -3,6 +3,7 @@ import type { MemoEvent } from "@/domain/event";
 import { RepositoryError, StorageUnavailableError, retryOnConflict, type PhotoData, type Repositories, type User } from "@/repositories";
 import { withLock } from "@/lib/lock";
 import { takeFault } from "@/lib/test-faults";
+import { backendMode } from "@/lib/supabase/env";
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
@@ -18,6 +19,13 @@ export interface PostOptions {
   photoId?: string;
   /** Nova tentativa de uma foto já reservada: o rolo já a contou, então não a barra de novo (o servidor segue como autoridade). */
   resume?: boolean;
+  /**
+   * O servidor barra rolo e evento encerrado no `begin_photo` (trigger `photos_guard`: MM001/MM002), então a pré-checagem
+   * com `event_counts` é uma ida a mais à rede. Padrão: só o Supabase garante isso; o modo local (IndexedDB) checa aqui.
+   */
+  serverEnforcesRoll?: boolean;
+  /** Chamada quando a reserva (`begin`) foi aceita: a foto já conta no rolo do servidor. */
+  onReserved?: () => void;
 }
 
 /** Tentativas automáticas depois de uma falha de rede: 2 s, 5 s e 15 s. Depois disso, só manual ("Tentar agora"). */
@@ -44,12 +52,13 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
     moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "enviando",
   };
   try {
-    if (!opts.resume) {
+    if (!opts.resume && !(opts.serverEnforcesRoll ?? backendMode() === "supabase")) {
       const verdict = canPost(event, await usedShots(repos, event.id, user.id), now);
       if (!verdict.ok) return { ok: false, reason: verdict.reason };
     }
     // envio em duas fases: a linha reserva o rolo, os bytes seguem, e só então a foto fica visível
     await repos.photos.begin(photo);
+    opts.onReserved?.();
     if (takeFault("attach")) throw new RepositoryError("unavailable", "falha de rede simulada");
     await repos.photos.attach(photo.id, data);
     const published = await repos.photos.finalize(photo.id);

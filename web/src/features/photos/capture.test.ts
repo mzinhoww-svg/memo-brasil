@@ -42,3 +42,18 @@ describe("recuperação de câmera e público", () => {
     expect(photoAudienceCopy(true, true)).toMatch(/todos/);
   });
 });
+
+import { filmOptions, GRAIN_SEEDS } from "./capture";
+describe("semente do grão", () => {
+  it("usa um conjunto fixo de ladrilhos e desloca pelo horário do disparo", () => {
+    const seeds = new Set<number>();
+    for (let i = 0; i < 50; i++) {
+      const t = 1_800_000_000_000 + i * 997;
+      const o = filmOptions("filme35", new Date(t));
+      expect(GRAIN_SEEDS).toContain(o.seed);
+      expect(o.grainOffset).toBe(t);
+      seeds.add(o.seed!);
+    }
+    expect(seeds.size).toBe(GRAIN_SEEDS.length);
+  });
+});

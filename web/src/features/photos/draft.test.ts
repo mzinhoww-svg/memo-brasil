@@ -29,3 +29,34 @@ describe("rascunho local de fotos", () => {
     spy.mockRestore();
   });
 });
+
+import { openDB } from "idb";
+import { loadQueuedUploads, removeQueuedUpload, saveQueuedUpload, type QueuedUpload } from "./draft";
+const queued = (photoId: string, userId = "ana", createdAt = 1): QueuedUpload => ({
+  photoId, eventId: "ev", userId, createdAt, user: { id: userId, name: "Ana", createdAt: 1 }, event: { id: "ev" } as QueuedUpload["event"],
+  data: { bytes: new Uint8Array([1]).buffer, type: "image/jpeg" }, meta: { moment: "Agora" }, attempted: false, failures: 0,
+});
+describe("fila de envio no mesmo banco dos rascunhos", () => {
+  it("um item por photoId, só da pessoa, em ordem de disparo; remove por item", async () => {
+    await saveQueuedUpload(queued("b", "ana", 2));
+    await saveQueuedUpload(queued("a", "ana", 1));
+    await saveQueuedUpload(queued("c", "beto", 3));
+    expect((await loadQueuedUploads("ana")).items.map((i) => i.photoId)).toEqual(["a", "b"]);
+    await saveQueuedUpload({ ...queued("a", "ana", 1), failures: 2 });
+    expect((await loadQueuedUploads("ana")).items[0].failures).toBe(2);
+    await removeQueuedUpload("a");
+    expect((await loadQueuedUploads("ana")).items.map((i) => i.photoId)).toEqual(["b"]);
+    await removeQueuedUpload("b"); await removeQueuedUpload("c");
+  });
+  it("migra o banco v1 sem perder rascunhos existentes", async () => {
+    indexedDB.deleteDatabase("mm-photo-drafts");
+    const d = draft();
+    const v1 = await openDB("mm-photo-drafts", 1, { upgrade(db) { db.createObjectStore("drafts"); } });
+    await v1.put("drafts", d, JSON.stringify([d.eventId, d.userId]));
+    v1.close();
+    expect((await loadPhotoDraft(d.eventId, d.userId, 101)).draft).toEqual(d);
+    expect((await saveQueuedUpload(queued("z"))).ok).toBe(true);
+    expect((await loadQueuedUploads("ana")).items).toHaveLength(1);
+    await removeQueuedUpload("z");
+  });
+});

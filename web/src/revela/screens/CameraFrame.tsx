@@ -51,6 +51,8 @@ export interface CameraFrameProps {
   shootDisabled?: boolean;
   rollLabel?: string;
   onRoll?: () => void;
+  /** Prévia pequena da última pose (objectURL): aparece como a carta do topo do rolo. Sem isso, o rolo do desenho. */
+  lastShot?: string;
   onFlip?: () => void;
   flipDisabled?: boolean;
   /** Carimbo de data sobre o visor (filme 35 mm). */
@@ -70,7 +72,7 @@ export interface CameraFrameProps {
 
 export function CameraFrame({
   title = "Ana & Leo", wrap = "casamento", left = 24, viewfinder, dim, flash, closeHref, closeLabel = "Fechar", onClose,
-  flashOn, onFlash, onShoot, shootDisabled, rollLabel = "Minhas fotos", onRoll, onFlip, flipDisabled, stamp, band, status, statusRole = "status", overlay, fase, children, fx,
+  flashOn, onFlash, onShoot, shootDisabled, rollLabel = "Minhas fotos", onRoll, lastShot, onFlip, flipDisabled, stamp, band, status, statusRole = "status", overlay, fase, children, fx,
 }: CameraFrameProps = {}) {
   const vf = useRef<HTMLDivElement>(null);
   const flashLayer = useRef<HTMLDivElement>(null);
@@ -129,7 +131,7 @@ export function CameraFrame({
         <div className="body-foot">
           <button type="button" className="filmstack" ref={roll} aria-label={rollLabel} onClick={onRoll}>
             <i />
-            <i />
+            <i>{lastShot && <img key={lastShot} className="filmstack-shot" src={lastShot} alt="" data-testid="ultima-pose" />}</i>
           </button>
           <span />
           <button type="button" className="rv-icon-btn" style={{ background: "var(--k-00000022)", color: `var(--wrap-${wrap}-ink)` }} aria-label="Virar câmera" disabled={flipDisabled} onClick={onFlip}>{FLIP}</button>
