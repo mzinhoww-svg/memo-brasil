@@ -1,6 +1,6 @@
-import { Skeleton } from "@/components/revela/Skeleton";
+import { PainelBodySkeleton } from "@/components/revela/PainelBodySkeleton";
 
-/** Esqueleto enquanto a seção chega (estas seções usam a casca antiga do painel, com menu lateral). */
+/** Esqueleto do corpo enquanto a rota chega (cabeçalho e abas do quadro já estão na tela). */
 export default function Loading() {
-  return <Skeleton label="Abrindo o painel…" />;
+  return <PainelBodySkeleton />;
 }

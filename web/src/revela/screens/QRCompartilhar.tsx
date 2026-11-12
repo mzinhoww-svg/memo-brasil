@@ -1,6 +1,6 @@
 "use client";
 /* QR-compartilhar.html (26): mesmo markup da referência; dados reais por props (padrão = desenho). */
-import { svgProps } from "../painel-ui";
+import { svgProps, useEmbedded } from "../painel-ui";
 
 export interface QRCompartilharProps {
   cam?: string;
@@ -16,19 +16,21 @@ export interface QRCompartilharProps {
 }
 
 export function QRCompartilhar({ cam = "/revela/ref/cam-casamento.webp", link = "revela.app/e/ana-leo", copied = false, onClose, onCopy, onWhatsapp, onStories, onQr, onDownload }: QRCompartilharProps = {}) {
+  const embedded = useEmbedded();
+  const Title = embedded ? "h2" : "h1";
   return (
     <>
     <div className="scr sheet-scr">
-      <div className="safe" style={{ "opacity": ".4" }}>
+      <div className="safe" style={embedded ? undefined : { "opacity": ".4" }}>
         <div className="rv-stagebox">
-          <img src={cam} alt="" style={{ "width": "340px" }} />
+          <img src={cam} alt="" style={{ "width": embedded ? "min(240px, 70%)" : "340px" }} />
         </div>
       </div>
       <div className="sheet-full" style={{ "top": "auto", "height": "520px" }}>
         <div className="rv-sheet__grab" />
-        <h1 className="rv-title" style={{ "marginBottom": "4px" }}>
+        <Title className="rv-title" style={{ "marginBottom": "4px" }}>
           Chame os convidados
-        </h1>
+        </Title>
         <p className="rv-caption" style={{ "marginBottom": "16px" }}>
           Quem escaneia o QR entra direto na câmera do evento.
         </p>

@@ -1,6 +1,6 @@
 "use client";
 /* Anfitriao-ajustes.html (17): mesmo markup da referência; dados reais por props (padrão = desenho). */
-import { BackButton, Chevron, RowAction, ScreenFoot, svgProps } from "../painel-ui";
+import { Chevron, RowAction, ScreenFoot, ScreenHeader, svgProps } from "../painel-ui";
 
 export interface AjustesProps {
   name?: string;
@@ -36,11 +36,7 @@ export function AnfitriaoAjustes({ name = AJUSTES_REF.name, cam = AJUSTES_REF.ca
     <>
     <div className="scr sheet-scr">
       <div className="sheet-full" style={{ "paddingTop": "16px", "overflowY": "auto" }}>
-        <div className="row between">
-          <BackButton onBack={onClose} label="Fechar" close />
-          <h1 className="rv-title">
-            {name}
-          </h1>
+        <ScreenHeader onBack={onClose} backLabel="Fechar" close title={name} action={(
           <button type="button" className="rv-icon-btn" aria-label="Mais" onClick={onMore}>
             <svg {...svgProps}>
               <circle cx="5" cy="12" r="1.2" />
@@ -48,7 +44,7 @@ export function AnfitriaoAjustes({ name = AJUSTES_REF.name, cam = AJUSTES_REF.ca
               <circle cx="19" cy="12" r="1.2" />
             </svg>
           </button>
-        </div>
+        )} />
         <div className="row" style={{ "gap": "12px", "margin": "14px 0 6px" }}>
           <img src={cam} alt="" style={{ "width": "150px" }} />
           <div className="stack" style={{ "flex": "1", "gap": "8px" }}>

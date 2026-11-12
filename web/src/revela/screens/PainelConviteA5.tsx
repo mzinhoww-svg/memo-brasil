@@ -1,6 +1,6 @@
 "use client";
 /* Painel-convite-a5.html (17k): mesmo markup da referência; dados reais por props (padrão = desenho). */
-import { BackButton, QrSvg, ScreenFoot, svgProps } from "../painel-ui";
+import { ScreenHeader, QrSvg, ScreenFoot, svgProps } from "../painel-ui";
 
 export interface PainelConviteA5Props {
   name?: string;
@@ -23,13 +23,7 @@ export function PainelConviteA5({ name = CONVITE_A5_REF.name, date = CONVITE_A5_
     <>
     <div className="scr">
       <div className="safe">
-        <div className="row between">
-          <BackButton onBack={onBack} />
-          <h1 className="rv-title" style={{ "fontSize": "18px" }}>
-            Convite A5
-          </h1>
-          <span style={{ "width": "44px" }} />
-        </div>
+        <ScreenHeader onBack={onBack} title="Convite A5" />
         <div className="grow" style={{ "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
           <div className="a5">
             <div className="row" style={{ "gap": "8px", "justifyContent": "center" }}>

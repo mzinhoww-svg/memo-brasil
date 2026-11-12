@@ -1,6 +1,6 @@
 "use client";
 /* Anfitriao-convidados.html (17b): mesmo markup da referência; dados reais por props (padrão = desenho). */
-import { BackButton, RowAction, ScreenFoot, svgProps } from "../painel-ui";
+import { ScreenHeader, useEmbedded, RowAction, ScreenFoot, svgProps } from "../painel-ui";
 
 export interface GuestRow { id: string; initial: string; name: string; meta: string; used: number; shots: number | null; blocked?: boolean }
 export interface AnfitriaoConvidadosProps {
@@ -29,22 +29,24 @@ export const CONVIDADOS_REF: Required<AnfitriaoConvidadosProps> = {
 };
 
 export function AnfitriaoConvidados({ summary = CONVIDADOS_REF.summary, pct = CONVIDADOS_REF.pct, guests = CONVIDADOS_REF.guests, missing = CONVIDADOS_REF.missing, missingMeta = CONVIDADOS_REF.missingMeta, onBack, onInvite, onRemind, onGuest }: AnfitriaoConvidadosProps = {}) {
+  const embedded = useEmbedded();
   return (
     <>
     <div className="scr">
       <div className="safe">
-        <div className="row between">
-          <BackButton onBack={onBack} />
+        <ScreenHeader onBack={onBack} action={(
           <button type="button" className="rv-icon-btn" aria-label="Convidar" onClick={onInvite}>
             <svg {...svgProps}>
               <path d="M12 5v14M5 12h14" />
             </svg>
           </button>
-        </div>
-        <h1 className="rv-title-lg" style={{ "marginTop": "16px" }}>
-          Convidados
-        </h1>
-        <p className="rv-caption" style={{ "marginTop": "6px" }}>
+        )} />
+        {!embedded && (
+          <h1 className="rv-title-lg" style={{ "marginTop": "16px" }}>
+            Convidados
+          </h1>
+        )}
+        <p className="rv-caption" style={{ "marginTop": embedded ? "0" : "6px" }}>
           {summary}
         </p>
         <div className="meter">

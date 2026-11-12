@@ -1,6 +1,6 @@
 "use client";
 /* Painel-convites.html (17e): mesmo markup da referência; dados reais por props (padrão = desenho). */
-import { BackButton, RowAction, ScreenFoot, svgProps } from "../painel-ui";
+import { ScreenHeader, RowAction, ScreenFoot, svgProps } from "../painel-ui";
 
 export interface InviteRow { id: string; label: string; meta: string; off?: boolean }
 export interface PainelConvitesProps {
@@ -25,17 +25,13 @@ export function PainelConvites({ rows = CONVITES_REF, onBack, onNew, onRow, onPr
     <>
     <div className="scr">
       <div className="safe">
-        <div className="row between">
-          <BackButton onBack={onBack} />
-          <h1 className="rv-title" style={{ "fontSize": "18px" }}>
-            Convites e mesas
-          </h1>
+        <ScreenHeader onBack={onBack} title="Convites e mesas" action={(
           <button type="button" className="rv-icon-btn" aria-label="Novo convite" onClick={onNew}>
             <svg {...svgProps}>
               <path d="M12 5v14M5 12h14" />
             </svg>
           </button>
-        </div>
+        )} />
         <p className="rv-caption" style={{ "marginTop": "14px" }}>
           Cada mesa pode ter o seu QR. Assim cada foto sai com a mesa de quem tirou.
         </p>

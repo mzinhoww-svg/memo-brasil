@@ -1,6 +1,6 @@
 "use client";
 /* Painel-programacao.html (17f): mesmo markup da referência; dados reais por props (padrão = desenho). */
-import { BackButton, RowAction, ScreenFoot, svgProps } from "../painel-ui";
+import { ScreenHeader, RowAction, ScreenFoot, svgProps } from "../painel-ui";
 
 export interface PainelProgramacaoProps {
   place?: string;
@@ -29,15 +29,11 @@ export function PainelProgramacao({ place = PROGRAMACAO_REF.place, moments = PRO
     <>
     <div className="scr">
       <div className="safe">
-        <div className="row between">
-          <BackButton onBack={onBack} />
-          <h1 className="rv-title" style={{ "fontSize": "18px" }}>
-            Programação
-          </h1>
+        <ScreenHeader onBack={onBack} title="Programação" action={(
           <button type="button" className="rv-btn rv-btn--sm rv-btn--primary" onClick={onSave} disabled={!canSave || saving}>
             {saving ? "Salvando…" : "Salvar"}
           </button>
-        </div>
+        )} />
         <label className="rv-field" style={{ "marginTop": "16px" }}>
           <svg {...svgProps}>
             <path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z" />
