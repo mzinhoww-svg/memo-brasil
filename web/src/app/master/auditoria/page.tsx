@@ -5,10 +5,10 @@ import { requireMaster, rpc } from "../data";
 import { nf, relWhen } from "../format";
 
 interface A { id: number; at: string; actorId: string | null; actorRole: string | null; action: string; targetType: string | null; targetId: string | null; reason: string | null }
-const POR = 50;
+const POR = 25;
 const WHO: Record<string, string> = { master: "master", support: "suporte", organizador: "organizador", convidado: "convidado", system: "sistema", sistema: "sistema" };
 
-/** M13 · Auditoria: registro só de inserção. Filtro por prefixo da ação (`?a=plan.`), 50 por página. */
+/** M13 · Auditoria: registro só de inserção. Filtro por prefixo da ação (`?a=plan.`), 25 por página. */
 export default async function Auditoria({ searchParams }: { searchParams: Promise<{ a?: string; p?: string }> }) {
   const sb = await requireMaster();
   const sp = await searchParams;
@@ -25,15 +25,6 @@ export default async function Auditoria({ searchParams }: { searchParams: Promis
   return (
     <MasterAuditoriaView
       caption={`Toda ação sensível, só inserção${a ? ` · ações que começam com "${a}"` : ""}`} rows={rows} exportAction={<ExportButton kind="auditoria" screen="auditoria" filters={{ a }} />}
-      filter={(
-        <form method="get" role="search" className="row" style={{ gap: "8px", marginBottom: "14px" }}>
-          <label className="rv-field" style={{ maxWidth: "340px" }}>
-            <input name="a" defaultValue={a} placeholder="Ação começa com… (ex.: plan.)" aria-label="Prefixo da ação" maxLength={60} />
-          </label>
-          <button className="rv-btn rv-btn--sm" type="submit">Filtrar</button>
-          {a && <a className="rv-btn rv-btn--sm" href="/master/auditoria">Limpar</a>}
-        </form>
-      )}
       pager={last > 1 ? (
         <nav aria-label="Paginação" className="row" style={{ gap: "12px", marginTop: "16px", alignItems: "center" }}>
           {p > 1 && <a className="link" href={href(p - 1)}>← Anterior</a>}

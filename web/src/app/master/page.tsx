@@ -1,9 +1,10 @@
 import { MState } from "@/revela/master-kit";
 import { ExportButton } from "./ExportButton";
 import { MasterVisaoView, type PayRow } from "@/revela/screens/MasterVisao";
-import { brl, orderStatus } from "./billing";
+import { brl } from "./billing";
+import { orderLabel } from "./pagamentos/status";
 import { requireMaster, rpc } from "./data";
-import { methodLabel, pct, relWhen, toneOf } from "./format";
+import { methodLabel, pct, relWhen } from "./format";
 
 interface Kpi { value: number | null; previous: number | null; spark: number[] }
 interface Overview {
@@ -15,17 +16,17 @@ interface Overview {
 interface Order { orderId: string; createdAt: string; eventTitle: string | null; planCode: string; planName: string | null; amountCents: number; status: string; paymentMethod?: string | null; refundRequestedAt: string | null; needsRefund: boolean }
 interface Summary { byStatus: Record<string, { count: number; amountCents: number }> }
 
-const PERIODOS = [7, 30] as const;
 const dia = (iso: string) => new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Cuiaba" });
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ dias?: string }> }) {
   const sb = await requireMaster();
   const q = Number((await searchParams).dias);
   const dias: 7 | 30 = q === 7 ? 7 : 30;
-  const [o, s, list] = await Promise.all([
+  const [o, s, list, sales] = await Promise.all([
     rpc<Overview>(sb, "admin_overview", { p_days: dias }),
     rpc<Summary>(sb, "admin_payments_summary"),
     rpc<Order[]>(sb, "admin_list_payments", { p_limit: 200 }),
+    rpc<{name:string;count:number}[]>(sb,"admin_master_plan_sales",{p_days:dias}),
   ]);
   if (o.state !== "ok") return <MState kind={o.state === "denied" ? "denied" : "error"} text={o.state === "error" ? `Não foi possível carregar: ${o.message}` : undefined} />;
   const k = o.data.kpis;
@@ -40,12 +41,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const max = Math.max(0, ...spark);
   const bars = spark.map((v, i) => ({ pct: pct(v, max), label: (i + 1) % 5 === 0 ? String(new Date(`${o.data.series[i]?.day ?? ""}T12:00:00`).getDate()) : undefined, on: max > 0 && v === max }));
   const orders = list.state === "ok" ? list.data : [];
-  const sold = new Map<string, { name: string; count: number }>();
-  for (const x of orders.filter((x) => x.status === "pago")) sold.set(x.planCode, { name: x.planName ?? x.planCode, count: (sold.get(x.planCode)?.count ?? 0) + 1 });
-  const top = Math.max(0, ...[...sold.values()].map((p) => p.count));
+  const sold = sales.state==="ok"?sales.data:[];
+  const top = Math.max(0, ...sold.map((p) => p.count));
   const payments: PayRow[] = orders.slice(0, 3).map((x) => {
-    const st = orderStatus(x);
-    return { key: x.orderId, when: relWhen(x.createdAt), event: x.eventTitle ?? "Evento excluído", plan: x.planName ?? x.planCode, method: methodLabel(x.paymentMethod), amount: brl(x.amountCents), tone: toneOf(st.tone), status: st.label[0].toUpperCase() + st.label.slice(1) };
+    const st = orderLabel(x);
+    return { key: x.orderId, when: relWhen(x.createdAt), event: x.eventTitle ?? "Evento excluído", plan: x.planName ?? x.planCode, method: methodLabel(x.paymentMethod), amount: brl(x.amountCents), tone: st.tone, status: st.label };
   });
   return (
     <MasterVisaoView
@@ -57,7 +57,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         { label: "Pedidos pendentes", value: String(pend?.count ?? 0), note: pend?.count ? `${brl(pend.amountCents)} aguardando` : "nada aguardando" },
       ]}
       bars={bars} days={dias} periodHref={(d) => `/master?dias=${d}`}
-      plans={[...sold.values()].map((p) => ({ name: p.name, count: p.count, pct: pct(p.count, top) }))}
+      plans={sold.map((p) => ({ name: p.name, count: p.count, pct: pct(p.count, top) }))}
+      notice={sales.state!=="ok"?<MState kind={sales.state==="denied"?"denied":"error"}/>:undefined}
       payments={payments} allHref="/master/pagamentos" exportAction={<ExportButton kind="visao" screen="visao" filters={{ dias }} />}
     />
   );

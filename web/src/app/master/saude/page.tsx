@@ -29,14 +29,12 @@ export default async function Saude() {
   const lastHook = ov.state === "ok" ? ov.data.readiness?.lastWebhookAt ?? null : null;
   const env = ov.state === "ok" ? ov.data.readiness?.paymentsEnv ?? "desligado" : "desligado";
   const next = ov.state === "ok" ? ov.data.upcomingReveals.find((r) => r.revealAt)?.revealAt ?? null : null;
-  const badJobs = hh.jobs.filter((j) => !j.active || (j.lastRun && j.lastRun.status !== "succeeded")).length;
   const services: ServicoRow[] = [
     { key: "db", icon: "server", title: "Banco de dados", meta: `latência ${latency} ms`, tone: "ok", label: "Normal" },
     { key: "storage", icon: "photo", title: "Storage de fotos", meta: hh.uploads.stalled || hh.uploads.failed ? `${num(hh.uploads.stalled)} presas · ${num(hh.uploads.failed)} com falha` : "uploads em dia", tone: hh.uploads.stalled ? "wait" : "ok", label: hh.uploads.stalled ? "Atenção" : "Normal" },
     { key: "webhook", icon: "coin", title: "Webhook ValidaPay", meta: env === "desligado" ? "pagamentos desligados" : lastHook ? `último evento ${ago(lastHook)}` : "nenhum evento recebido ainda", tone: env === "desligado" || !lastHook ? "info" : "ok", label: env === "desligado" ? "Desligado" : lastHook ? "Normal" : "Sem eventos" },
     { key: "reveal", icon: "spark", title: "Fila de revelação", meta: hh.reveals.overdue ? `${hh.reveals.overdue} atrasada(s) · maior atraso ${Math.round(hh.reveals.maxDelaySeconds / 60)} min` : next ? `próxima ${relWhen(next)}` : "nada na fila", tone: hh.reveals.overdue ? "bad" : "ok", label: hh.reveals.overdue ? "Atrasada" : "Normal" },
     { key: "email", icon: "mail", title: "E-mail (Brevo)", meta: failedMail ? `${num(failedMail)} aviso(s) com falha` : "sem falhas", tone: failedMail ? "wait" : "ok", label: failedMail ? "Atenção" : "Normal" },
-    { key: "jobs", icon: "clock", title: "Tarefas agendadas", meta: hh.cronAvailable ? `${hh.jobs.length} tarefas${badJobs ? ` · ${badJobs} com problema` : ""}` : "pg_cron indisponível", tone: !hh.cronAvailable ? "bad" : badJobs ? "wait" : "ok", label: !hh.cronAvailable ? "Parado" : badJobs ? "Atenção" : "Normal" },
   ];
   const used = m.state === "ok" ? m.data.storage.photosBytes : 0;
   const q = Number(quota.data?.value ?? 0);

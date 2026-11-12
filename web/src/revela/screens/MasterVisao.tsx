@@ -41,7 +41,7 @@ export function MasterVisaoView({
 }: VisaoProps = {}) {
   const cols = "1fr 1.4fr 1fr 0.8fr 0.8fr 0.8fr";
   const rows: MRow[] = payments.map((p) => ({ key: p.key, cells: [p.when, p.event, p.plan, p.method, p.amount, <St key="s" tone={p.tone}>{p.status}</St>] }));
-  const seg = (d: 7 | 30) => (periodHref ? <a key={d} className={days === d ? "on" : ""} href={periodHref(d)}>{d} dias</a> : <span key={d} className={days === d ? "on" : ""}>{d} dias</span>);
+  const seg = (d: 7 | 30) => <span key={d} className={days === d ? "on" : ""}>{periodHref?<a href={periodHref(d)} aria-current={days===d?"page":undefined}>{d} dias</a>:<>{d} dias</>}</span>;
   return (
     <>
       <MHead title="Visão geral" caption={caption}>

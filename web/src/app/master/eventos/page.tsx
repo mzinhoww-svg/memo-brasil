@@ -51,7 +51,7 @@ export default async function Eventos({ searchParams }: { searchParams: Promise<
     <MasterEventosView
       caption={`${nf(c.todos)} eventos · ${nf(c.rolando)} rolando agora${sp.q ? ` · busca "${sp.q}"` : ""}`}
       chips={FILTROS.map(([k, label]) => ({ label, href: href({ f: k, p: 1 }), on: k === filtro }))}
-      rows={rows} exportAction={<ExportButton kind="eventos" screen="eventos" filters={{ f: filtro, q: sp.q?.slice(0, 80) }} />}
+      rows={rows} exportAction={<ExportButton kind="eventos" screen="eventos" label="Exportar CSV" filters={{ f: filtro, q: sp.q?.slice(0, 80) }} />}
       pager={last > 1 ? (
         <nav aria-label="Paginação" className="row" style={{ gap: "12px", marginTop: "16px", alignItems: "center" }}>
           {p > 1 && <a className="link" href={href({ p: p - 1 })}>← Anterior</a>}
