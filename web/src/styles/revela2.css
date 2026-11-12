@@ -133,7 +133,9 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 .link { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .home-ind { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: var(--ink); opacity: .85; z-index: 30; }
 .grain { position: absolute; inset: 0; pointer-events: none; z-index: 20; background-size: 256px; opacity: .22; mix-blend-mode: overlay; }
-.tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; padding-bottom: 20px; background: var(--k-0e0c0bf2); }
+.tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; padding-bottom: calc(20px + env(safe-area-inset-bottom)); background: var(--k-0e0c0bf2); }
+:root { --tabs-h: calc(64px + 20px + env(safe-area-inset-bottom)); }
+.safe--tabs { padding-bottom: calc(var(--tabs-h) + 8px); }
 .tabs .rv-tabbar { background: transparent; }
 .cta-bar { display: flex; gap: var(--space-3); align-items: center; }
 .cta-bar .rv-btn { flex: 1; }
@@ -307,6 +309,8 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 .story.on .avatar { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--revela); }
 .story small { font: 500 12px/14px var(--font-sans); color: var(--ink-muted); }
 .post { margin: 0 -20px 20px; padding: 0 20px; flex: none; }
+.post .rv-print--feed { display: block; width: 100%; max-width: none; height: auto; aspect-ratio: 350 / 392; }
+.post .rv-print--feed img { position: absolute; inset: 8px 8px 30px; width: calc(100% - 16px); height: calc(100% - 38px); object-fit: cover; }
 .post-h { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .post-h b { display: block; font: 600 15px/18px var(--font-sans); }
 .post-h span:not(.avatar) { font: 400 12px/16px var(--font-sans); color: var(--ink-muted); }
@@ -428,6 +432,14 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 .bars i { width: 100%; border-radius: 4px 4px 0 0; background: var(--surface-3); display: block; }
 .bars i.on { background: var(--revela); }
 .bars span { font: 400 11px/12px var(--font-stamp); color: var(--ink-muted); height: 12px; }
+.bars--retro { height: auto; justify-content: center; gap: 6px; }
+.bars--retro > div { flex: 0 1 32px; max-width: 32px; min-width: 0; height: auto; gap: 4px; }
+.bars--retro i { flex: none; min-height: 2px; }
+.bars--retro b { font: 600 11px/14px var(--font-sans); color: var(--ink); }
+.bars--retro span { text-align: center; }
+.bars--retro small { font: 500 10px/12px var(--font-stamp); color: var(--ink-faint); text-transform: uppercase; height: 12px; white-space: nowrap; }
+.tile--range b { font-size: 20px; line-height: 24px; }
+.retro-empty, .retro-few { margin-top: 12px; }
 .mail-h { margin: 18px 0 14px; }
 .mail-h b { display: block; font: 600 18px/24px var(--font-sans); }
 .mail-h span { font: 400 13px/18px var(--font-sans); color: var(--ink-faint); }

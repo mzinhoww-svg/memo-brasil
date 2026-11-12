@@ -25,7 +25,7 @@ export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de A
   return (
     <>
     <div className="scr">
-      <div className="safe" style={{ "paddingBottom": "92px" }}>
+      <div className="safe safe--tabs">
         <h1 className="rv-title-lg" style={{ "fontSize": "30px" }}>
           Você
         </h1>

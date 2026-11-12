@@ -182,6 +182,24 @@ test("revelação: outras pessoas só veem depois do fim do evento (relógio de 
   expect(id).toBeTruthy();
 });
 
+test("retrospectiva: com 2 fotos a barra fica estreita (≤ 32 px) e mostra o número", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const { code } = await createViaWizard(page, { title: "Retro barras" });
+  await switchPerson(page, code, "Ana");
+  await postViaFile(page, code);
+  await postViaFile(page, code);
+  const after = Date.now() + 7 * 3_600_000; // evento dura 6 h
+  await page.goto(`/e/${code}/retrospectiva?agora=${after}`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("em 2 fotos");
+  const full = page.locator(".bars--retro > div").filter({ has: page.locator("b") });
+  await expect(full).toHaveCount(1);
+  await expect(full.locator("b")).toHaveText("2");
+  await expect(full).toHaveAttribute("aria-label", /^\d+h: 2 fotos$/);
+  const box = await full.locator("i").boundingBox();
+  expect(box?.width ?? 999).toBeLessThanOrEqual(32.5);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
 test("pedido de remoção cai na fila do anfitrião, que oculta e depois remove a foto", async ({ page }) => {
   const { code, id } = await createViaWizard(page, { reveal: "desligada", title: "Moderação" });
   await switchPerson(page, code, "Ana");

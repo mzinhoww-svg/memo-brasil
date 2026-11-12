@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { retrospectiveOpen } from "@/domain/event";
+import { endAt, retrospectiveOpen } from "@/domain/event";
 import { visiblePhotos } from "@/domain/photo";
 import { useGuest } from "@/features/events/guest-context";
-import { retrospective } from "@/features/feed/retro";
+import { retroHeadline, retrospective } from "@/features/feed/retro";
 import { stampDay } from "@/features/guest/format";
 import { FeedRetrospectiva } from "@/revela/screens/FeedRetrospectiva";
 
@@ -13,11 +13,13 @@ import { FeedRetrospectiva } from "@/revela/screens/FeedRetrospectiva";
 export default function Retrospectiva() {
   const { event, viewer, now, photos, reactions } = useGuest();
   const open = retrospectiveOpen(event, now, viewer.host);
-  const shown = useMemo(() => visiblePhotos(event, photos, viewer, now), [event, photos, viewer, now]);
-  const data = useMemo(() => {
-    const ids = new Set(shown.map((p) => p.id));
-    return retrospective(shown, reactions.filter((r) => ids.has(r.photoId)), { tz: event.timezone || "America/Cuiaba", shotsPerPerson: event.shotsPerPerson });
-  }, [shown, reactions, event.timezone, event.shotsPerPerson]);
+  // o anfitrião vê os números do evento todo (menos fotos removidas); o convidado, só as fotos que já pode ver
+  const shown = useMemo(
+    () => (viewer.host ? photos.filter((p) => p.status !== "removida") : visiblePhotos(event, photos, viewer, now)),
+    [event, photos, viewer, now],
+  );
+  const data = useMemo(() => retrospective(shown, reactions, { tz: event.timezone || "America/Cuiaba", shotsPerPerson: event.shotsPerPerson, window: { start: event.startAt, end: endAt(event) } }),
+    [shown, reactions, event]);
 
   if (!open) {
     return (
@@ -34,7 +36,7 @@ export default function Retrospectiva() {
   return (
     <FeedRetrospectiva
       backHref={`/e/${event.code}/agora`} stamp={`${stampDay(event.startAt, event.timezone)} ${year}`}
-      headline={[`O ${event.category === "casamento" ? "casamento" : "evento"}`, `em ${shown.length.toLocaleString("pt-BR")} ${shown.length === 1 ? "foto" : "fotos"}`]}
+      headline={retroHeadline(event.category, shown.length)}
       tiles={data.tiles} bars={data.bars} shooters={data.shooters}
     />
   );

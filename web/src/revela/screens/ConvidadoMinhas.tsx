@@ -20,7 +20,7 @@ export function ConvidadoMinhas({ code, left = 18, total = 27, taken = DEFAULT_T
   return (
     <>
     <div className="scr">
-      <div className="safe" style={{ "paddingBottom": "92px" }}>
+      <div className="safe safe--tabs">
         <div className="row between">
           <h1 className="rv-title-lg" style={{ "fontSize": "30px" }}>
             Minhas poses

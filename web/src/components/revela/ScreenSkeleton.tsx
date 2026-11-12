@@ -125,14 +125,14 @@ export function ScreenSkeleton({ label, variant = "lista", tabs, padBottom }: {
   variant?: ScreenSkeletonVariant;
   /** barra de abas no rodapé: `true` = barra parada; ou a barra real (`<HostTabs current="…" />`) */
   tabs?: boolean | ReactNode;
-  /** reserva o espaço da barra de abas (as telas com abas usam `paddingBottom: 92px`) */
+  /** reserva o espaço da barra de abas (as telas com abas usam `safe--tabs`) */
   padBottom?: boolean;
 }) {
   const bar = tabs === true ? <TabsSkeleton /> : tabs || null;
   return (
     <div className="scr" aria-busy="true" data-skeleton={variant}>
       <span role="status" className="rv-sr-only">{label}</span>
-      <div className="safe" aria-hidden="true" style={(padBottom ?? Boolean(tabs)) ? { paddingBottom: "92px" } : undefined}>
+      <div className={(padBottom ?? Boolean(tabs)) ? "safe safe--tabs" : "safe"} aria-hidden="true">
         <Body variant={variant} />
       </div>
       {bar}

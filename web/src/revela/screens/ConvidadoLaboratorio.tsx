@@ -35,7 +35,7 @@ export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana
   return (
     <>
     <div className="scr">
-      <div className="safe" style={{ "paddingBottom": "92px" }}>
+      <div className="safe safe--tabs">
         <div className="row between">
           <div>
             <div className="rv-stamp" style={{ "fontSize": "12px" }}>{stamp}</div>

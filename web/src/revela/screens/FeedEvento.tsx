@@ -71,8 +71,8 @@ export function FeedPost({ post, onOpen, onLike, onComments, onShare, onDownload
         </button>
       </div>
       <div
-        className={p.veiled ? "rv-print rvm-veiled" : "rv-print"}
-        style={{ width: "350px", height: "392px", transform: "rotate(0deg)", zIndex: "1", ...(onOpen ? { cursor: "pointer" } : {}) }}
+        className={p.veiled ? "rv-print rv-print--feed rvm-veiled" : "rv-print rv-print--feed"}
+        style={{ transform: "rotate(0deg)", zIndex: "1", ...(onOpen ? { cursor: "pointer" } : {}) }}
         {...(onOpen ? { role: "button", tabIndex: 0, "aria-label": `${p.stampLeft} ${p.stampRight} · Abrir a foto de ${p.author}`, onClick: () => onOpen(p.id), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(p.id); } } } : {})}
       >
         <img src={p.imageSrc} alt={onOpen ? "" : "Foto de convidado"} className={p.veiled ? "rv-blurred" : undefined} />
@@ -140,7 +140,7 @@ export function FeedEvento({ code, stamp = "DOM 15 MAR", title = "Ana & Leo", st
   return (
     <>
     <div className="scr">
-      <div className="safe" style={{ paddingBottom: scroll ? "92px" : "0", overflow: scroll ? "hidden auto" : "hidden" }}>
+      <div className={scroll ? "safe safe--tabs" : "safe"} style={{ ...(scroll ? {} : { paddingBottom: "0" }), overflow: scroll ? "hidden auto" : "hidden" }}>
         <div className="row between">
           <div>
             <div className="rv-stamp" style={{ fontSize: "12px" }}>{stamp}</div>

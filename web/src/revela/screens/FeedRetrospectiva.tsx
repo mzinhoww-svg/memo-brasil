@@ -2,8 +2,20 @@
 /* Feed-retrospectiva.html (24h): mesmo markup da referência; dados reais por props (padrão = desenho). */
 import Link from "next/link";
 
-export interface RetroTile { label: string; value: string; note?: string }
-export interface RetroBar { label: string; pct: number; on?: boolean }
+export interface RetroTile { label: string; value: string; note?: string; /** valor em faixa (ex.: "19:40–19:50"), em corpo menor */ range?: boolean }
+export interface RetroBar {
+  /** rótulo curto da hora ("19h"); em blocos, a hora de início */
+  label: string;
+  /** fotos na hora (ou no bloco) */
+  n: number;
+  /** altura relativa, 0 a 100 (0 só quando n = 0) */
+  pct: number;
+  on?: boolean;
+  /** "18h às 21h", quando a barra junta várias horas */
+  range?: string;
+  /** dia da semana abreviado, na virada do dia ("dom") */
+  day?: string;
+}
 export interface RetroShooter { avatar: string; name: string; n: number; total?: number | null }
 
 export interface FeedRetrospectivaProps {
@@ -18,12 +30,16 @@ export interface FeedRetrospectivaProps {
 }
 
 export const RETRO_REF = {
-  tiles: [{ label: "Fotógrafos", value: "32" }, { label: "Reações", value: "1.204" }, { label: "Pico", value: "22:40", note: "Primeira dança" }] as RetroTile[],
-  bars: [{ label: "16h", pct: 12 }, { label: "17h", pct: 31 }, { label: "18h", pct: 48 }, { label: "19h", pct: 60 }, { label: "21h", pct: 100, on: true }, { label: "22h", pct: 92 }, { label: "23h", pct: 56 }, { label: "0h", pct: 35 }] as RetroBar[],
+  tiles: [{ label: "Fotógrafos", value: "32" }, { label: "Reações", value: "1.204" }, { label: "Pico (10 min)", value: "22:40–22:50", range: true, note: "Primeira dança" }] as RetroTile[],
+  bars: [{ label: "16h", n: 12, pct: 12 }, { label: "17h", n: 31, pct: 31 }, { label: "18h", n: 48, pct: 48 }, { label: "19h", n: 60, pct: 60 }, { label: "21h", n: 100, pct: 100, on: true }, { label: "22h", n: 92, pct: 92 }, { label: "23h", n: 56, pct: 56 }, { label: "0h", n: 35, pct: 35 }] as RetroBar[],
   shooters: [{ avatar: "B", name: "Bia Moraes", n: 36, total: 36 }, { avatar: "R", name: "Rafa Lima", n: 34, total: 36 }, { avatar: "L", name: "Lu Prado", n: 31, total: 36 }] as RetroShooter[],
 };
 
+/** abaixo disso o gráfico ganha um aviso de poucos dados */
+const FEW = 5;
+
 export function FeedRetrospectiva({ stamp = "SÁB 14 MAR 2027", headline = ["O casamento", "em 418 fotos"], tiles = RETRO_REF.tiles, bars = RETRO_REF.bars, shooters = RETRO_REF.shooters, backHref }: FeedRetrospectivaProps = {}) {
+  const total = bars.reduce((a, b) => a + b.n, 0);
   return (
     <>
     <div className="scr">
@@ -45,7 +61,7 @@ export function FeedRetrospectiva({ stamp = "SÁB 14 MAR 2027", headline = ["O c
         </h1>
         <div className="tiles">
           {tiles.map((t) => (
-            <div key={t.label} className="tile">
+            <div key={t.label} className={t.range ? "tile tile--range" : "tile"}>
               <span>{t.label}</span>
               <b>{t.value}</b>
               {t.note && <small>{t.note}</small>}
@@ -53,14 +69,23 @@ export function FeedRetrospectiva({ stamp = "SÁB 14 MAR 2027", headline = ["O c
           ))}
         </div>
         <h2 className="rv-group-h">Fotos por hora</h2>
-        <div className="bars">
-          {bars.map((b) => (
-            <div key={b.label}>
-              <i style={{ height: `${b.pct}%` }} className={b.on ? "on" : undefined} />
-              <span>{b.label}</span>
+        {bars.length === 0 ? (
+          <p className="rv-body muted retro-empty">Ainda não há fotos para contar.</p>
+        ) : (
+          <>
+            <div className="bars bars--retro" role="list" aria-label="Fotos por hora">
+              {bars.map((b, i) => (
+                <div key={`${i}-${b.label}`} role="listitem" aria-label={`${b.range ?? b.label}: ${b.n === 1 ? "1 foto" : `${b.n.toLocaleString("pt-BR")} fotos`}`}>
+                  {b.n > 0 && <b aria-hidden="true">{b.n.toLocaleString("pt-BR")}</b>}
+                  <i aria-hidden="true" style={{ height: `${b.pct * 0.9}px` }} className={b.on ? "on" : undefined} />
+                  <span aria-hidden="true">{b.label}</span>
+                  <small aria-hidden="true">{b.day ?? " "}</small>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+            {total < FEW && <p className="rv-caption muted retro-few">Ainda são poucas fotos. O gráfico ganha forma conforme o evento avança.</p>}
+          </>
+        )}
         <h2 className="rv-group-h">Quem mais fotografou</h2>
         <div className="rv-group">
           {shooters.map((s) => (
