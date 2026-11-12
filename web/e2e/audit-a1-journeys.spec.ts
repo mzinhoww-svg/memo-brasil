@@ -67,6 +67,7 @@ test("J2 painel: editar nome, aviso, momentos, encerrar, não reabrir, excluir, 
   const { code, id } = await createViaWizard(page, { reveal: "desligada" });
   await postViaFile(page, code);
   await page.goto(`/painel/${id}/configuracoes`);
+  await page.getByRole("button", { name: /Editar nome/ }).click();
   await page.getByRole("textbox", { name: "Nome do evento" }).fill("Nome Novo");
   await page.getByRole("button", { name: "Salvar nome" }).click();
   await page.waitForTimeout(300);

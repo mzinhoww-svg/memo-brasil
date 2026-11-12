@@ -5,7 +5,7 @@ import { HostTabs } from "../HostTabs";
 export interface ShelfItem { id: string; name: string; cam: string; caption: string; href?: string }
 export interface AnfitriaoInicioProps {
   /** Câmera em destaque; ausente = estado vazio (só a prateleira e o botão de montar). */
-  hero?: { name: string; cam: string; live: boolean; stamp: string; caption: string; openHref: string; qrHref: string; onShare?: () => void } | null;
+  hero?: { name: string; cam: string; live: boolean; stamp: string; caption: string; openHref: string; qrHref: string; panelHref?: string; onShare?: () => void } | null;
   shelf?: ShelfItem[];
 }
 
@@ -67,6 +67,12 @@ export function AnfitriaoInicio({ hero = HOST_HOME_REF.hero, shelf = HOST_HOME_R
                 </svg>
               </button>
             </div>
+            {hero.panelHref && (
+              <Link href={hero.panelHref} className="rv-btn rv-btn--block rv-btn--line" style={{ marginTop: "8px" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></svg>
+                Painel do evento
+              </Link>
+            )}
           </div>
         )}
         <div className="shelf-h">

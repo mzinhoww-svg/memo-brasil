@@ -33,3 +33,15 @@ export function useGuest(): GuestCtx {
   if (!v) throw new Error("useGuest fora do layout do convidado");
   return v;
 }
+
+/** Contexto do convidado quando existe (telas de desenho também rodam fora do layout, sem ele). */
+export function useGuestOptional(): GuestCtx | null {
+  return useContext(Ctx);
+}
+
+/** Atalhos do anfitrião dentro da área do convidado: de volta ao painel e à lista de eventos. `null` para quem não é anfitrião. */
+export interface HostNav { panelHref: string; eventsHref: string }
+export function useHostNav(): HostNav | null {
+  const g = useContext(Ctx);
+  return g?.isHost ? { panelHref: `/painel/${g.event.id}`, eventsHref: "/eventos" } : null;
+}

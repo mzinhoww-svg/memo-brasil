@@ -88,7 +88,7 @@ export default function MeusEventos() {
           name: heroEv.title, cam: `/revela/3d/cam-${heroEv.cameraStyle}-960.webp`, live: heroLive,
           stamp: heroLive ? `FECHA ${hhmm(endAtMs, heroEv.timezone)}` : "ENCERRADA",
           caption: counts ? `${counts.guests} ${counts.guests === 1 ? "convidado entrou" : "convidados entraram"} · ${counts.photos} ${counts.photos === 1 ? "pose tirada" : "poses tiradas"}` : " ",
-          openHref: `/e/${heroEv.code}/agora`, qrHref: `/painel/${heroEv.id}/qr`,
+          openHref: `/e/${heroEv.code}/agora`, panelHref: `/painel/${heroEv.id}`, qrHref: `/painel/${heroEv.id}/qr`,
           onShare: () => { const url = `${window.location.origin}/e/${heroEv.code}`; if (navigator.share) void navigator.share({ title: heroEv.title, url }).catch(() => undefined); else void navigator.clipboard?.writeText(url); },
         }}
         shelf={[...mine.slice(1), ...data.joined].map((e) => ({ id: e.id, name: e.title, cam: `/revela/3d/cam-${e.cameraStyle}-640.webp`, caption: revealText(e), href: e.hostId === user?.id ? `/painel/${e.id}` : `/e/${e.code}/agora` }))}

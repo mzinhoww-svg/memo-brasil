@@ -1,8 +1,11 @@
+"use client";
 import Link from "next/link";
+import { useHostNav } from "@/features/events/guest-context";
 
 /** Barra de abas do convidado (Feed / Minhas / Você): `nav.tabs` de Convidado-laboratorio.html, com links reais. */
 export function GuestTabs({ code, current }: { code?: string; current: "feed" | "minhas" | "voce" }) {
   const href = (p: string) => (code ? `/e/${code}/${p}` : "#");
+  const host = useHostNav();
   const tab = (id: "feed" | "minhas" | "voce") => `rv-tab rv-press${current === id ? " rv-tab--on" : ""}`;
   return (
     <nav className="tabs">
@@ -19,6 +22,12 @@ export function GuestTabs({ code, current }: { code?: string; current: "feed" | 
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
           <span>Você</span>
         </Link>
+        {host && (
+          <Link href={host.panelHref} data-tab="painel" className="rv-tab rv-press" aria-label="Painel do evento">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></svg>
+            <span>Painel</span>
+          </Link>
+        )}
       </div>
     </nav>
   );

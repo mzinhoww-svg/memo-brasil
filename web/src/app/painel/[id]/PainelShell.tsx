@@ -93,7 +93,7 @@ export function PainelShell({ children }: { children: ReactNode }) {
   // Só Plano, Aparência e o checkout ainda não têm tela do desenho: mantêm o cabeçalho e a navegação do painel.
   const legacy = LEGACY.test(path);
   const ctx = { event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh };
-  if (!legacy) return <AdminProvider value={ctx}>{children}</AdminProvider>;
+  if (!legacy) return <AdminProvider value={ctx}><div className="painel-scope">{children}</div></AdminProvider>;
   const state = `${formatDate(event.startAt)} · ${eventStatus(event, now) === "ativo" ? "ao vivo" : "encerrado"}`;
   const items = SECTIONS.map((s) => {
     const href = s.slug ? `${base}/${s.slug}` : base;

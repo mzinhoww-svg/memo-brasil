@@ -1,5 +1,6 @@
 "use client";
 
+import { HostBar } from "./HostBar";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { retrospectiveOpen, eventStatus, isRevealed } from "@/domain/event";
@@ -172,8 +173,9 @@ export function RevealedFeed() {
         stories={stories} onStory={(id) => { setAuthor(id); setLimit(PAGE); }}
         posts={page.map(toPost)} scroll
         onOpen={setOpenId} onLike={onLike} onComments={setCommentsFor} onShare={() => void share()} onDownload={(id) => void download(id)} onMore={setMoreFor}
-        notice={(notice || (viewer.host && revealStatus === "pendente") || (!live && retrospectiveOpen(event, now, viewer.host))) ? (
+        notice={(notice || viewer.host || (viewer.host && revealStatus === "pendente") || (!live && retrospectiveOpen(event, now, viewer.host))) ? (
           <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
+            {viewer.host && <HostBar />}
             {notice && <p className="rv-caption">{notice}</p>}
             {viewer.host && revealStatus === "pendente" && <p className="rv-caption" role="status">Revelação pendente: os convidados ainda não veem as fotos. Você vê tudo como anfitrião.</p>}
             {!live && retrospectiveOpen(event, now, viewer.host) && <Link className="rv-caption" href={`/e/${event.code}/retrospectiva`} style={{ textDecoration: "underline" }}>Ver a retrospectiva</Link>}

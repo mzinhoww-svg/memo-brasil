@@ -67,6 +67,7 @@ test("R2 fusos e DST (domínio) + mesmo instante nas superfícies, com fuso do a
   await page.goto(`/painel/${id}`);
   txt.painel_resumo = (await page.getByTestId("resumo-revelacao").innerText()).replace(/\s+/g, " ");
   await page.goto(`/painel/${id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click(); // a linha "Revela" abre a folha "Quando revelar"
   txt.config_resumo = (await page.getByTestId("config-revelacao").innerText()).replace(/\s+/g, " ").slice(0, 400);
   await page.getByRole("button", { name: "Pré-visualizar como convidado" }).click();
   txt.previa = (await page.getByTestId("aguardando-revelacao").innerText()).replace(/\s+/g, " ");
@@ -122,6 +123,7 @@ test("R3 validações: 31/02, hora, fuso, passado, +1 minuto (domínio) e UI", a
 test("R4 trocar o fuso mantém hora de parede (muda o instante)", async ({ page }) => {
   const { id } = await setup(page);
   await page.goto(`/painel/${id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click(); // a linha "Revela" abre a folha "Quando revelar"
   const antes = (await events(page))[0].revealAt as number;
   // 12h00 Cuiabá -> Lisboa mantendo a hora de parede = 12:00Z, anterior ao "agora" (15:00Z): precisa ser recusado
   await page.getByLabel("Fuso horário").selectOption("Europe/Lisbon");
@@ -322,6 +324,7 @@ test("R11 editar depois de revelada; ligar com fotos visíveis; desligar com fot
   // (a) desligada + foto -> ligar
   const a = await setup(page, { reveal: "desligada" });
   await page.goto(`/painel/${a.id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click(); // a linha "Revela" abre a folha "Quando revelar"
   await page.getByRole("group", { name: "Revelação programada" }).getByRole("button", { name: /^Ligada/ }).click();
   await page.getByRole("button", { name: "Salvar revelação" }).click();
   await page.waitForTimeout(500);
@@ -331,6 +334,7 @@ test("R11 editar depois de revelada; ligar com fotos visíveis; desligar com fot
   const b = await createViaWizard(page, { reveal: { date: "2026-11-10", time: "12:00", tz: "America/Cuiaba" }, title: "B" });
   await postViaFile(page, b.code);
   await page.goto(`/painel/${b.id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click(); // a linha "Revela" abre a folha "Quando revelar"
   await page.getByRole("group", { name: "Revelação programada" }).getByRole("button", { name: /^Desligada/ }).click();
   await page.getByRole("button", { name: "Salvar revelação" }).click();
   await expect(page.getByText("Revelação salva.")).toBeVisible();

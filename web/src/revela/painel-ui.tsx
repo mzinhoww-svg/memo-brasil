@@ -55,8 +55,8 @@ export function useFlash(): [ReactNode, (text: string) => void] {
   }, []);
   useEffect(() => () => clearTimeout(timer.current), []);
   const node = text ? (
-    <div style={{ position: "fixed", left: 0, right: 0, bottom: 28, zIndex: 30, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
-      <div role="status" className={leaving ? "rv-toast-out" : "rv-toast-in"} style={{ maxWidth: 340, padding: "12px 18px", borderRadius: "var(--radius-md)", background: "var(--surface-3)", color: "var(--ink)", font: "500 14px/20px var(--font-sans)", boxShadow: "var(--shadow-sheet)", textAlign: "center" }}>{text}</div>
+    <div style={{ position: "fixed", left: 0, right: 0, bottom: "calc(28px + env(safe-area-inset-bottom))", zIndex: 70, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
+      <div role="status" aria-live="polite" className={leaving ? "rv-toast-out" : "rv-toast-in"} style={{ maxWidth: 340, padding: "12px 18px", borderRadius: "var(--radius-md)", background: "var(--surface-3)", color: "var(--ink)", font: "500 14px/20px var(--font-sans)", boxShadow: "var(--shadow-sheet)", textAlign: "center" }}>{text}</div>
     </div>
   ) : null;
   return [node, flash];

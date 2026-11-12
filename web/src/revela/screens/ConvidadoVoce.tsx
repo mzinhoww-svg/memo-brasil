@@ -1,6 +1,8 @@
 "use client";
 /* Gerado de design-system/revela/html/Convidado-voce.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
+import Link from "next/link";
 import { GuestTabs } from "../GuestTabs";
+import { useHostNav } from "@/features/events/guest-context";
 
 export interface VoceProps {
   code?: string;
@@ -19,6 +21,7 @@ export interface VoceProps {
 }
 
 export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de Ana & Leo · Mesa 4", used = 9, total = 27, notify = true, email = "bia.moraes@email.com", onNotify, onEmail, onDownload, onLeave, onDelete }: VoceProps = {}) {
+  const host = useHostNav();
   return (
     <>
     <div className="scr">
@@ -46,6 +49,23 @@ export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de A
             </i>
           </div>
         </div>
+        {host && (
+          <>
+            <h2 className="rv-group-h">Anfitrião</h2>
+            <div className="rv-group">
+              <Link className="rv-row" href={host.panelHref} data-testid="voce-painel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></svg>
+                <div className="rv-row__text">Voltar ao painel do evento</div>
+                <span className="rv-row__end"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+              </Link>
+              <Link className="rv-row" href={host.eventsHref} data-testid="voce-eventos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13" r="4" /></svg>
+                <div className="rv-row__text">Meus eventos</div>
+                <span className="rv-row__end"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+              </Link>
+            </div>
+          </>
+        )}
         <h2 className="rv-group-h">
           Avisos
         </h2>
