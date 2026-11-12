@@ -87,11 +87,11 @@ export function GenerateCodeButton({ plans }: { plans: { code: string; name: str
           <Field label="Para quem / nota (obrigatório)" value={note} maxLength={NOTE_MAX + 20}
             onChange={(e) => setNote(e.target.value)} error={tried ? noteErr ?? undefined : undefined} />
           {code && (
-            <div className="adm-code-card" role="status">
-              <span className="adm-eyebrow">Código gerado · copie agora</span>
-              <strong className="adm-code">{code}</strong>
-              <p className="adm-nota adm-sheet-nota">Por segurança ele aparece inteiro só agora; depois, só o começo.</p>
-              <div className="adm-code-actions">
+            <div className="mcard" role="status">
+              <span className="rv-eyebrow">Código gerado · copie agora</span>
+              <strong className="rv-title">{code}</strong>
+              <p className="rv-caption">Por segurança ele aparece inteiro só agora; depois, só o começo.</p>
+              <div className="row">
                 <CopyButton text={code} label="Copiar código" />
                 <CopyButton text={codeLink(window.location.origin, code)} label="Copiar link" />
               </div>
@@ -109,7 +109,7 @@ export function GenerateCodeButton({ plans }: { plans: { code: string; name: str
 }
 
 // ---------------------------------------------------------------- revogar
-export function RevokeCodeButton({ code }: { code: { id: string; hint: string; planName: string | null } }) {
+export function RevokeCodeButton({ code, inline=false }: { code: { id: string; hint: string; planName: string | null }; inline?:boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -128,12 +128,12 @@ export function RevokeCodeButton({ code }: { code: { id: string; hint: string; p
   }
   return (
     <>
-      <Button variant="texto" small onClick={() => setOpen(true)} aria-label={`Revogar ${hintText(code.hint)}`}>Revogar</Button>
+      {inline?<button type="button" onClick={()=>setOpen(true)} aria-label={`Revogar ${hintText(code.hint)}`} style={{all:"unset",cursor:"pointer",font:"inherit",color:"inherit"}}>{hintText(code.hint)}</button>:<Button variant="texto" small onClick={() => setOpen(true)} aria-label={`Revogar ${hintText(code.hint)}`}>Revogar</Button>}
       {open && (
         <Sheet title="Revogar código" onClose={close}>
-          <p className="adm-nota adm-sheet-nota">{hintText(code.hint)} · {code.planName ?? "—"}</p>
+          <p className="rv-caption">{hintText(code.hint)} · {code.planName ?? "—"}</p>
           <ReasonField label="Motivo (obrigatório, 10 a 500 caracteres)" value={reason} onChange={setReason} error={tried ? reasonError(reason) : null} />
-          <p className="adm-nota adm-sheet-nota">O código para de funcionar agora. Planos já liberados com ele continuam. Fica no registro de auditoria.</p>
+          <p className="rv-caption">O código para de funcionar agora. Planos já liberados com ele continuam. Fica no registro de auditoria.</p>
           {error && <p className="rv-field-erro" role="alert">{error}</p>}
           <Button variant="destrutivo" block onClick={submit} disabled={busy}>{busy ? "Revogando…" : "Revogar código"}</Button>
           <Button variant="texto" block onClick={close}>Cancelar</Button>

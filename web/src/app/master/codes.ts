@@ -3,6 +3,10 @@
 export const NOTE_MIN = 3;
 export const NOTE_MAX = 200;
 export const USES_MAX = 1000;
+export function namedCodeError(value:string):string|null{
+ const s=value.trim().toUpperCase();
+ return /^[A-Z0-9][A-Z0-9-]{7,39}$/.test(s)&&s.replace(/-/g,"").length>=8?null:"Código: de 8 a 40 caracteres, com letras, números e hífen.";
+}
 
 type Tone = "ok" | "aviso" | "erro" | "info";
 export type CodeStatus = "ativo" | "usado" | "expirado" | "revogado";

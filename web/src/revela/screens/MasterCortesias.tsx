@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { Ico, MCard, MHead, MRow, MTable, MasterFrame, St, type Tone } from "../master-kit";
 
-export interface CortesiaRow { key: string; code: string; plan: string; uses: string; validity: string; tone: Tone; status: string; action?: ReactNode }
+export interface CortesiaRow { key: string; code: ReactNode; plan: string; uses: string; validity: string; tone: Tone; status: string; action?: ReactNode }
 export interface CortesiasProps {
   caption?: string;
   rows?: CortesiaRow[];
@@ -11,6 +11,7 @@ export interface CortesiasProps {
   /** Botões do cabeçalho (vazio no desenho). */
   actions?: ReactNode;
   empty?: string;
+  pager?: ReactNode;
 }
 
 const REF_ROWS: CortesiaRow[] = [
@@ -23,8 +24,8 @@ const REF_ROWS: CortesiaRow[] = [
 function RefForm() {
   return (
     <div className="stack" style={{ marginTop: "14px" }}>
-      <label className="rv-field"><Ico n="ticket" /><input defaultValue="BUFFET-JARDIM" aria-label="Código" /></label>
-      <label className="rv-field"><Ico n="tag" /><input defaultValue="Casamento · 250 convidados" aria-label="Plano" /></label>
+      <label className="rv-field"><Ico n="tag" /><input defaultValue="BUFFET-JARDIM" aria-label="Código" /></label>
+      <label className="rv-field"><Ico n="ticket" /><input defaultValue="Casamento · 250 convidados" aria-label="Plano" /></label>
       <div className="row" style={{ gap: "8px" }}>
         <label className="rv-field" style={{ flex: "1" }}><input defaultValue="20 usos" aria-label="Usos" /></label>
         <label className="rv-field" style={{ flex: "1" }}><input defaultValue="31/03/2027" aria-label="Validade" /></label>
@@ -34,7 +35,7 @@ function RefForm() {
   );
 }
 
-export function MasterCortesiasView({ caption = "Códigos que liberam um plano sem pagamento", rows = REF_ROWS, form = <RefForm />, actions, empty }: CortesiasProps = {}) {
+export function MasterCortesiasView({ caption = "Códigos que liberam um plano sem pagamento", rows = REF_ROWS, form = <RefForm />, actions, empty, pager }: CortesiasProps = {}) {
   const withAction = rows.some((r) => r.action);
   const mrows: MRow[] = rows.map((r) => ({ key: r.key, cells: [r.code, r.plan, r.uses, r.validity, <St key="s" tone={r.tone}>{r.status}</St>, ...(withAction ? [r.action] : [])] }));
   return (
@@ -43,6 +44,7 @@ export function MasterCortesiasView({ caption = "Códigos que liberam um plano s
       <div className="mgrid2" style={{ gridTemplateColumns: "1.6fr 1fr" }}>
         <MCard style={{ padding: "0" }}>
           <MTable cols={withAction ? "1.2fr 1fr .8fr 1fr .8fr .6fr" : "1.2fr 1fr .8fr 1fr .8fr"} head={["Código", "Plano", "Usos", "Validade", "Situação", ...(withAction ? [""] : [])]} rows={mrows} empty={empty ?? "Nenhum código gerado ainda."} />
+          {pager}
         </MCard>
         <MCard>
           <h2 className="rv-title" style={{ fontSize: "18px" }}>Novo código</h2>

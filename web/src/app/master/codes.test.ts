@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MODULES } from "./modules";
+import { MASTER_NAV } from "@/revela/master-icons";
 import { codeLink, codeStatus, defaultExpiry, expiryIso, hintText, noteError, parseUses, usesText } from "./codes";
 
 describe("códigos de cortesia (M3)", () => {
@@ -44,7 +44,7 @@ describe("códigos de cortesia (M3)", () => {
     expect(codeLink("http://localhost:3000/", "MMT-7KQ4-XR2P")).toBe("http://localhost:3000/c/MMT-7KQ4-XR2P");
   });
   it("console ganha o módulo Códigos", () => {
-    expect(MODULES).toHaveLength(15);
-    expect(MODULES).toEqual(expect.arrayContaining([{ rota: "codigos", rotulo: "Códigos" }]));
+    expect(MASTER_NAV).toHaveLength(12);
+    expect(MASTER_NAV).toEqual(expect.arrayContaining([expect.objectContaining({ id: "cortesias", label: "Cortesias" })]));
   });
 });
