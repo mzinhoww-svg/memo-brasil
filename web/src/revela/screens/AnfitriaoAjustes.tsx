@@ -127,7 +127,7 @@ export function AnfitriaoAjustes({ name = AJUSTES_REF.name, cam = AJUSTES_REF.ca
             </div>
             <Chevron />
           </RowAction>
-          <RowAction onClick={onFeed} role="switch" checked={feedOn}>
+          <RowAction onClick={onFeed} role="switch" checked={feedOn} label="Feed com curtidas e comentários">
             <svg {...svgProps}>
               <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
               <circle cx="12" cy="12" r="3" />
@@ -135,7 +135,8 @@ export function AnfitriaoAjustes({ name = AJUSTES_REF.name, cam = AJUSTES_REF.ca
             <div className="rv-row__text">
               Feed com curtidas e comentários
             </div>
-            <span className={feedOn ? "rv-toggle rv-toggle--on" : "rv-toggle"} />
+            <span className="rv-caption" aria-hidden="true">{feedOn ? "Ligado" : "Desligado"}</span>
+            <span aria-hidden="true" className={feedOn ? "rv-toggle rv-toggle--on" : "rv-toggle"} />
           </RowAction>
         </div>
         <div className="grow" />

@@ -78,3 +78,16 @@ html:has(.pf) { scroll-padding-top: calc(var(--pf-top, 112px) + var(--space-3));
 .cont-viewer { display: flex; flex-direction: column; gap: var(--space-3); }
 .cont-viewer-media { position: relative; width: 100%; max-height: 52dvh; aspect-ratio: 3 / 4; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-2); margin: 0 auto; }
 .cont-viewer-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* Aparência: prévia recolhível (sem sticky), formulário em coluna única */
+.studio { display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-4) var(--space-5) 0; }
+.studio-prev-wrap { gap: var(--space-2); }
+.studio-prev-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: left; }
+.studio-prev-toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.studio-prev-chev { width: 10px; height: 10px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform 160ms linear; margin-right: var(--space-2); }
+.studio-prev-chev[data-open="true"] { transform: rotate(-135deg); }
+.studio-previa[hidden] { display: none; }
+.studio-cartao-corpo { gap: var(--space-2); padding: var(--space-4); }
+.studio-stage { width: 160px; max-width: 100%; margin: 0 auto; }
+.studio-previa .studio-qr { display: none; }
+.studio-acoes { display: flex; flex-direction: column; gap: var(--space-2); }

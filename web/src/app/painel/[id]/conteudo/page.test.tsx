@@ -36,7 +36,7 @@ const seed = async (list: Photo[]) => { for (const p of list) await app.repos.ph
 function Harness({ ev }: { ev: MemoEvent }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const refresh = useCallback(async () => { setPhotos(await app.repos.photos.listByEvent("e1")); }, []);
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { let on = true; void app.repos.photos.listByEvent("e1").then((l) => { if (on) setPhotos(l); }); return () => { on = false; }; }, []);
   return (
     <AdminProvider value={{ event: ev, now: NOW, photos, reactions: [], participants: [], refresh }}>
       <PainelFrame title="Conteúdo" eventName={ev.title} backHref="/painel/e1"><Conteudo /></PainelFrame>
