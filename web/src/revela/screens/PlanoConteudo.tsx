@@ -9,13 +9,17 @@ export interface Gauge { label: string; text: string; pct: number; warn?: boolea
 export interface PlanoConteudoProps {
   current?: string; gauges?: Gauge[]; warning?: string | null; plans?: PlanView[]; selected?: string; payNote?: string; error?: string;
   onSelect?: (code: string) => void;
+  /** Entre o quadro do plano atual e "Aumentar para" (ex.: cartão "Mais poses"). */
+  extra?: ReactNode;
+  /** Logo abaixo dos cartões de plano (ex.: interruptor "Mais poses"). */
+  afterPlans?: ReactNode;
   /** Depois do erro, no fim do miolo (ex.: o botão, na tela inteira do desenho). */
   children?: ReactNode;
 }
 
 export function PlanoConteudo({
   current = "Festa · R$ 29", gauges = [{ label: "Convidados", text: "28 de 30", pct: 93, warn: true }, { label: "Poses por pessoa", text: "24 de 24", pct: 100 }],
-  warning = 'Faltam 2 lugares. Quem chegar depois vê "câmera lotada".', plans = PLANS_REF, selected = "celebracao", payNote = "Pix ou cartão, sem sair do app", error, onSelect, children,
+  warning = 'Faltam 2 lugares. Quem chegar depois vê "câmera lotada".', plans = PLANS_REF, selected = "celebracao", payNote = "Pix ou cartão, sem sair do app", error, onSelect, extra, afterPlans, children,
 }: PlanoConteudoProps = {}) {
   return (
     <>
@@ -39,8 +43,10 @@ export function PlanoConteudo({
         </div>
         {warning && <p className="rv-caption" style={{ marginTop: "12px", color: "var(--carimbo)" }}>{warning}</p>}
       </div>
+      {extra}
       <h2 className="rv-group-h">Aumentar para</h2>
       <PlanCards plans={plans} selected={selected} onSelect={onSelect} />
+      {afterPlans}
       <div className="grow" />
       <div className="paynote">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

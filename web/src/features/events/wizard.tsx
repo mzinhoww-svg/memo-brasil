@@ -22,12 +22,13 @@ import { CameraPoses, type PoseChoice } from "@/revela/screens/CameraPoses";
 import { CameraRevelacao, type RevealChoiceView } from "@/revela/screens/CameraRevelacao";
 import { CameraPublicar, type PlanView } from "@/revela/screens/CameraPublicar";
 import { hostFallbackName, suggestEventNames } from "./name-suggestions";
-import { clearPendingCode, planForShots, readPendingCode } from "./plan-catalog";
+import { clearPendingCode, planForShots, poseNotice, poseOption, poseOptions, readPendingCode } from "./plan-catalog";
 import { afterCreateDestination, type AfterCreate } from "./after-create";
 import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CodeApplied, REDEEM_TEXT, RedeemCode, redeemMessage } from "@/features/billing/RedeemCode";
-import { formatBRL, listPublicPlans, redeemCode } from "@/features/billing/api";
-import type { PublicPlan } from "@/features/billing/types";
+import { formatBRL, listPosePacks, listPublicPlans, redeemCode } from "@/features/billing/api";
+import { packAsPlan, packExtraShots, packForBase } from "@/features/billing/pose-packs";
+import type { PosePack, PublicPlan } from "@/features/billing/types";
 import { buildCreateInput, WIZARD_DEFAULTS } from "./wizard-input";
 import { defaultTimezone, zonedToEpoch, zoneLabel, type RevealErrors } from "@/domain/reveal";
 
@@ -36,8 +37,6 @@ export { WIZARD_DEFAULTS };
 /** Os 8 passos de "Monte a câmera": embalagem, nome, quando é a festa, poses, revelação, filme, quem vê, plano. */
 const STEP_COUNT = 8;
 const LAST_STEP = STEP_COUNT - 1;
-/** Opções de poses do desenho; a legenda de cada uma vem do catálogo (plano que a comporta). */
-const POSE_OPTIONS = [10, 24, 27, 36];
 type CreatedEvent = { eventId: string; title: string; paid: boolean; destination: AfterCreate; ready: boolean };
 
 /** "Antes de criar": folha centrada com o fundo e a entrada do kit. */
@@ -84,8 +83,10 @@ export function CreateWizard() {
     return () => clearTimeout(t);
   }, [user?.id]);
   const [rollOn, setRollOn] = useState(true);
-  const [desiredShots, setDesiredShots] = useState<number>(WIZARD_DEFAULTS.shots);
+  const [desiredShots, setDesiredShots] = useState<number | null>(WIZARD_DEFAULTS.shots); // null = poses livres
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
+  const [packs, setPacks] = useState<PosePack[]>([]);
+  const [packOn, setPackOn] = useState(false); // interruptor "Mais poses" do passo 8
   const [planCode, setPlanCode] = useState("gratis");
   const [pendingCode, setPendingCode] = useState<string | null>(null);
   const [codeOutcome, setCodeOutcome] = useState<{ eventId: string; eventTitle: string; code: string; applied: PublicPlan | null | "sem-plano"; error?: string } | null>(null);
@@ -132,6 +133,7 @@ export function CreateWizard() {
     const t = setTimeout(() => {
       setPendingCode(readPendingCode());
       void Promise.all([listPublicPlans()]).then(([p]) => { setPlans(p); }, () => setPlans([]));
+      void listPosePacks().then(setPacks, () => setPacks([]));
     }, 0);
     return () => clearTimeout(t);
   }, []);
@@ -185,7 +187,7 @@ export function CreateWizard() {
         }
         return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
       }
-      const chosen = plans?.find((p) => p.code === planCodeEff);
+      const chosen = orderPlan; // o plano do pedido: o escolhido, ou a variante "Mais poses" quando o interruptor está ligado
       const eventId = r.event.id;
       const paid = !!chosen && !chosen.isFree;
       // A identidade salva é terminal: retomar a saída nunca repete a criação ou o pedido.
@@ -227,15 +229,19 @@ export function CreateWizard() {
   // pré-seleção do plano: o mais barato que comporta as poses escolhidas, até a pessoa tocar em outro
   const planCodeEff = planTouched ? planCode : (shotsPlan?.code ?? catalog.find((p) => p.isFree)?.code ?? planCode);
   const chosenPlan = catalog.find((p) => p.code === planCodeEff);
+  // "Mais poses": só nos planos pagos que têm pacote à venda; o servidor cobra a variante (e só a diferença de quem já tem o plano)
+  const salePack = chosenPlan && !chosenPlan.isFree ? packForBase(packs, chosenPlan.code) : undefined;
+  const packActive = packOn && !!salePack;
+  const orderPlan = packActive && salePack ? packAsPlan(salePack) : chosenPlan;
   const tz = timezone;
   const cityLabel = zoneLabel(tz).split(" (")[0].replace(/^.*\//, "").replace(/_/g, " ");
   const money = (cents: number) => (cents % 100 === 0 ? `R$ ${cents / 100}` : formatBRL(cents));
   const options = revealOptions(endMs(), tz);
   const customAt = customDate && customTime ? zonedToEpoch(customDate, customTime, tz) : NaN;
   const revealAtMs = choice === "dia" ? customAt : options.find((o) => o.id === choice)?.at;
-  const poseChoices: PoseChoice[] = POSE_OPTIONS.map((n) => {
-    const need = planForShots(catalog, n);
-    return { n, caption: need ? `exige ${need.name}` : "Grátis" };
+  const poseChoices: PoseChoice[] = poseOptions(catalog).map((n) => {
+    // catálogo ainda carregando: sem legenda (nunca "indisponível" por engano)
+    return { n, caption: plans === null ? "\u00a0" : poseOption(catalog, n, money).caption };
   });
   const planViews: PlanView[] = catalog.map((p, i) => ({
     code: p.code, tier: p.name, price: p.isFree ? "Grátis" : money(p.priceCents),
@@ -333,19 +339,20 @@ export function CreateWizard() {
       );
     }
     if (step === 4) {
-      return <CameraPoses step={5} value={desiredShots} choices={poseChoices} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
+      return <CameraPoses step={5} value={desiredShots} choices={poseChoices} notice={poseNotice(catalog, desiredShots)} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
     }
     if (step === 5) return <CameraFiltro film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
     if (step === 6) return <CameraPrivacidade showDownload feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;
     if (step === 7) {
       const revealShort = revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz).replace(" ", ", ") : "—";
-      const cta = busy ? "Criando câmera…" : chosenPlan && !chosenPlan.isFree ? `Continuar · ${money(chosenPlan.priceCents)}` : "Criar câmera";
+      const cta = busy ? "Criando câmera…" : orderPlan && !orderPlan.isFree ? `Continuar · ${money(orderPlan.priceCents)}` : "Criar câmera";
       return (
         <>
           <CameraPublicar
-            image={`/revela/3d/cam-${wrap}-640.webp`} wrapLabel={wrapLabelUi} posesLabel={`${desiredShots} por pessoa`} revealLabel={revealShort}
+            image={`/revela/3d/cam-${wrap}-640.webp`} wrapLabel={wrapLabelUi} posesLabel={packActive && salePack ? `${salePack.maxShots} por pessoa` : desiredShots === null ? "livres" : `${desiredShots} por pessoa`} revealLabel={revealShort}
             plans={planViews.length ? planViews : undefined} selected={chosenPlan?.code ?? "gratis"} next={cta} busy={busy} error={errors.create}
-            onSelect={(c) => { setPlanCode(c); setPlanTouched(true); }} onBack={back}
+            pack={salePack ? { price: `+${money(salePack.extraCents)}`, meta: `+${packExtraShots(salePack)} poses por pessoa (${salePack.baseMaxShots} → ${salePack.maxShots})`, on: packActive, onToggle: setPackOn } : undefined}
+            onSelect={(c) => { setPlanCode(c); setPlanTouched(true); setPackOn(false); }} onBack={back}
             onNext={() => { if (acceptedTerms && ackedPrivacy) void create(); else setConsentOpen(true); }}
           />
           {consentOpen && (

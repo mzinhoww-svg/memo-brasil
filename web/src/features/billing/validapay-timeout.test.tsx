@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const api = vi.hoisted(() => ({ config: vi.fn(), recover: vi.fn(), quote: vi.fn(), push: vi.fn() }));
 vi.mock("./validapay-client", async (importOriginal) => ({ ...await importOriginal<typeof import("./validapay-client")>(), sandboxConfig: api.config, recoverSandbox: api.recover }));
-vi.mock("./api", () => ({ formatBRL: (n: number) => `R$ ${n / 100}`, quote: api.quote, listPublicPlans: async () => [] }));
+vi.mock("./api", () => ({ formatBRL: (n: number) => `R$ ${n / 100}`, quote: api.quote, listPosePacks: async () => [], listPublicPlans: async () => [] }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: api.push }) }));
 vi.mock("@/lib/supabase/client", () => ({ browserSupabase: () => ({ functions: { invoke: vi.fn() }, auth: { getUser: async () => ({ data: { user: { email: "t@example.test" } } }) } }) }));
 import { ValidaPayCheckout } from "./ValidaPayCheckout";

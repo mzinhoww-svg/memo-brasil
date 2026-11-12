@@ -17,7 +17,7 @@ const PLAN_W = 96, GAP = 8, VIEW = 248;
 
 /** Prévia do paywall como o anfitrião vê, já com os valores ainda não publicados (só planos ativos no ambiente). */
 export function previewOf(plans: PlanRow[], env: Env): { plans: PreviewPlan[]; cta: string; shift: number } {
-  const visible = plans.filter((p) => p.isFree || (env === "sandbox" ? p.sandboxActive : p.productionActive)).sort((a, b) => a.sort - b.sort);
+  const visible = plans.filter((p) => !p.packOf).filter((p) => p.isFree || (env === "sandbox" ? p.sandboxActive : p.productionActive)).sort((a, b) => a.sort - b.sort);
   const chosen = visible.find((p) => p.highlighted) ?? visible[visible.length > 1 ? 1 : 0];
   const idx = Math.max(0, visible.findIndex((p) => p.code === chosen?.code));
   const total = visible.length * PLAN_W + Math.max(0, visible.length - 1) * GAP;
@@ -31,6 +31,12 @@ export function previewOf(plans: PlanRow[], env: Env): { plans: PreviewPlan[]; c
     shift: Math.max(0, Math.min(idx * (PLAN_W + GAP) - 162, total - VIEW)),
   };
 }
+
+/** Linha de um pacote "Mais poses": nome e quanto custa sobre o plano-base (o preço editado é o total). */
+const packLabel = (p: PlanRow, all: PlanRow[]): string => {
+  const base = all.find((b) => b.code === p.packOf);
+  return base ? `${p.name} (+${brl(p.priceCents - base.priceCents)} sobre ${base.name})` : p.name;
+};
 
 /** M04: de → para, impacto e o código do autenticador (TOTP, segundo fator) antes de publicar. */
 function ConfirmModal({ original, draft, impact, onClose, onDone }: { original: PlanRow[]; draft: PlanRow[]; impact: PlanImpact; onClose: () => void; onDone: () => void }) {
@@ -126,7 +132,7 @@ export function PricesEditor({ plans, env, impact = {} }: { plans: PlanRow[]; en
     const o = orig.get(p.code);
     const changed = diffs.some((d) => d.code === p.code);
     return {
-      code: p.code, name: p.name, price: (p.priceCents / 100).toFixed(2).replace(".", ","), was: o && o.priceCents !== p.priceCents ? brl(o.priceCents) : undefined,
+      code: p.code, name: p.packOf ? packLabel(p, draft) : p.name, price: (p.priceCents / 100).toFixed(2).replace(".", ","), was: o && o.priceCents !== p.priceCents ? brl(o.priceCents) : undefined,
       guests: cell(p.maxGuests), shots: cell(p.maxShots), sandbox: p.sandboxActive, production: p.productionActive, highlighted: p.highlighted, free: p.isFree, changed, isNew: p.isNew,
     };
   });

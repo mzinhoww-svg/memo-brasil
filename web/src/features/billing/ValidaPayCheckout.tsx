@@ -9,7 +9,8 @@ import { Pagamento3ds } from "@/revela/screens/Pagamento3ds";
 import { PagamentoProcessando } from "@/revela/screens/PagamentoProcessando";
 import { PagamentoAprovado } from "@/revela/screens/PagamentoAprovado";
 import { PagamentoFalhou } from "@/revela/screens/PagamentoFalhou";
-import { listPublicPlans } from "./api";
+import { listPosePacks, listPublicPlans } from "./api";
+import { lookupPlans } from "./pose-packs";
 import type { PublicPlan } from "./types";
 import { useRouter } from "next/navigation";
 import { browserSupabase } from "@/lib/supabase/client";
@@ -95,7 +96,7 @@ export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa",
     return () => clearTimeout(t);
   }, [loading, loadVersion]);
 
-  useEffect(() => { let on = true; void listPublicPlans().then((p) => { if (on) setPlans(p); }, () => undefined); return () => { on = false; }; }, []);
+  useEffect(() => { let on = true; void Promise.all([listPublicPlans(), listPosePacks()]).then(([p, k]) => { if (on) setPlans(lookupPlans(p, k)); }, () => undefined); return () => { on = false; }; }, []);
   useEffect(() => { const t = setInterval(() => setTick(Date.now()), 1000); return () => clearInterval(t); }, []);
 
   const refresh = useCallback(async (): Promise<string | undefined> => {

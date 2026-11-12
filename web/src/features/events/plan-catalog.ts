@@ -19,6 +19,28 @@ export function planForShots(plans: PublicPlan[], shots: number | null): PublicP
   return paidPlans(plans).find((p) => p.maxShots === null || (shots !== null && p.maxShots >= shots));
 }
 
+/** Opções fixas do passo Poses (o 27 saiu: era um salto de R$ 59,90 para R$ 189 por 3 poses). "Livre" entra só se o catálogo tem plano sem limite. */
+export const POSE_STEPS = [10, 24, 36] as const;
+export const poseOptions = (plans: PublicPlan[]): (number | null)[] => [...POSE_STEPS, ...(paidPlans(plans).some((p) => p.maxShots === null) ? [null] : [])];
+
+export type PoseOption = { n: number | null; caption: string; plan?: PublicPlan };
+
+/**
+ * Legenda de cada opção a partir do catálogo real: "Grátis" quando o Grátis comporta; "a partir de R$ x" com o plano pago mais barato
+ * que comporta (`planForShots`); "indisponível" quando nenhum plano ativo comporta (pagamentos desligados). `money` formata centavos.
+ */
+export function poseOption(plans: PublicPlan[], n: number | null, money: (cents: number) => string): PoseOption {
+  if (n !== null && n <= freeShots(plans)) return { n, caption: "Grátis" };
+  const plan = planForShots(plans, n);
+  return plan ? { n, caption: `a partir de ${money(plan.priceCents)}`, plan } : { n, caption: "indisponível" };
+}
+
+/** Aviso curto ao escolher acima do Grátis: "Isso muda seu plano para Festa." (nada quando o Grátis comporta ou não há plano). */
+export function poseNotice(plans: PublicPlan[], n: number | null): string | null {
+  const plan = n !== null && n <= freeShots(plans) ? undefined : planForShots(plans, n);
+  return plan ? `Isso muda seu plano para ${plan.name}.` : null;
+}
+
 const KEY = "mm-codigo-pendente";
 
 /** `/c/<código>` guarda o código (normalizado) para o assistente aplicar ao criar. Só nesta aba. */

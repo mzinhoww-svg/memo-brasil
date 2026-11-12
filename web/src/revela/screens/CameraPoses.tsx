@@ -2,25 +2,28 @@
 /* Camera-poses.html (passo 4): mesmo markup e classes da referência; dados reais por props (padrão = desenho). */
 import { WizardSheet } from "../WizardSheet";
 
-export interface PoseChoice { n: number; caption: string }
+/** `n: null` = poses livres. `caption` já traz o custo ("Grátis", "a partir de R$ 59,90"). */
+export interface PoseChoice { n: number | null; caption: string }
 export const POSE_CHOICES_REF: PoseChoice[] = [
-  { n: 10, caption: "Grátis" }, { n: 24, caption: "exige Festa" }, { n: 27, caption: "exige Casamento" }, { n: 36, caption: "exige Casamento" },
+  { n: 10, caption: "Grátis" }, { n: 24, caption: "a partir de R$ 59,90" }, { n: 36, caption: "a partir de R$ 189" },
 ];
 
 export interface CameraPosesProps {
   /** Posição no assistente (n/8); o desenho mostra 4. */
   step?: number;
-  value?: number; choices?: PoseChoice[]; roll?: boolean; rollLimit?: number; busy?: boolean;
-  onPick?: (n: number) => void; onRoll?: (on: boolean) => void; onBack?: () => void; onNext?: () => void;
+  value?: number | null; choices?: PoseChoice[]; roll?: boolean; rollLimit?: number; busy?: boolean;
+  /** Aviso curto sob as opções ("Isso muda seu plano para Festa."). */
+  notice?: string | null;
+  onPick?: (n: number | null) => void; onRoll?: (on: boolean) => void; onBack?: () => void; onNext?: () => void;
 }
 
-export function CameraPoses({ step = 4, value = 27, choices = POSE_CHOICES_REF, roll = true, rollLimit = 10, busy, onPick, onRoll, onBack, onNext }: CameraPosesProps = {}) {
+export function CameraPoses({ step = 4, value = 36, choices = POSE_CHOICES_REF, roll = true, rollLimit = 10, busy, notice, onPick, onRoll, onBack, onNext }: CameraPosesProps = {}) {
   return (
     <WizardSheet step={step} title="Quantas poses?" caption="Cada convidado tem um filme. O plano certo é sugerido no fim." onBack={onBack} onNext={onNext} busy={busy}>
       <div className="posesviz">
         <div className="rv-counter" style={{ transform: "scale(1.35)" }}>
-          <b>{value}</b>
-          <span>poses por pessoa</span>
+          <b>{value ?? "Livre"}</b>
+          <span>{value === null ? "poses por pessoa, sem limite" : "poses por pessoa"}</span>
         </div>
         <div className="filmstrip">
           {Array.from({ length: 14 }, (_, i) => <i key={i} />)}
@@ -28,12 +31,14 @@ export function CameraPoses({ step = 4, value = 27, choices = POSE_CHOICES_REF, 
       </div>
       <div className="rv-choices" role="group" aria-label="Poses por pessoa">
         {choices.map((c) => (
-          <button key={c.n} type="button" className={`rv-choice rv-choice--num${c.n === value ? " rv-choice--on" : ""}`} aria-pressed={c.n === value} onClick={() => onPick?.(c.n)}>
-            {c.n}
+          <button key={c.n ?? "livre"} type="button" className={`rv-choice rv-choice--num${c.n === value ? " rv-choice--on" : ""}`} aria-pressed={c.n === value}
+            aria-label={`${c.n ?? "Livre"} · ${c.caption}`} onClick={() => onPick?.(c.n)}>
+            {c.n ?? "Livre"}
             <small>{c.caption}</small>
           </button>
         ))}
       </div>
+      {notice && <p className="rv-caption center" role="status" data-testid="aviso-plano-poses">{notice}</p>}
       <div className="rv-group">
         <div className="rv-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

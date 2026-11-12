@@ -7,7 +7,7 @@ vi.mock("@/lib/supabase/env", () => ({ backendMode: () => mocks.mode }));
 vi.mock("@/lib/supabase/client", () => ({ browserSupabase: () => mocks.client }));
 
 import {
-  BillingError, BillingUnavailableError, OpenOrderError, ProviderUnavailableError, formatBRL, getPublicSettings, listPublicPlans,
+  BillingError, BillingUnavailableError, OpenOrderError, ProviderUnavailableError, formatBRL, getPublicSettings, listPosePacks, listPublicPlans,
   normalizeCode, openOrder, orderStatus, quote, redeemCode, startCheckout,
 } from "./api";
 
@@ -112,6 +112,32 @@ describe("planos e configurações públicas", () => {
   it("getPublicSettings converte snake_case", async () => {
     fakeClient({ rpc: () => ({ data: { support_email: "a@b.c", support_phone: null, company_legal_name: "X Ltda", company_cnpj: null, payments_env: "sandbox", capacity_grace_pct: 10 } }) });
     expect(await getPublicSettings()).toEqual({ supportEmail: "a@b.c", supportPhone: null, companyLegalName: "X Ltda", companyCnpj: null, paymentsEnv: "sandbox", capacityGracePct: 10 });
+  });
+});
+
+describe("pacotes Mais poses", () => {
+  it("mapeia list_public_pose_packs (inclui os desligados com available=false) e descarta linha sem poses", async () => {
+    fakeClient({ rpc: (fn) => (fn === "list_public_pose_packs" ? { data: [
+      { code: "festa_36", baseCode: "festa", name: "Festa + Mais poses", maxGuests: 50, maxShots: 36, baseMaxShots: 24, priceCents: 7980, extraCents: 1990, available: true },
+      { code: "celebracao_36", baseCode: "celebracao", name: "Celebração + Mais poses", maxGuests: 100, maxShots: 36, baseMaxShots: 24, priceCents: 10890, extraCents: 1990, available: false },
+      { code: "lixo_36", baseCode: "lixo", name: "x", maxGuests: 1, maxShots: null, baseMaxShots: null, priceCents: 1, extraCents: 1, available: true },
+    ] } : { data: null }) });
+    expect(await listPosePacks()).toEqual([
+      { code: "festa_36", baseCode: "festa", name: "Festa + Mais poses", maxGuests: 50, maxShots: 36, baseMaxShots: 24, priceCents: 7980, extraCents: 1990, available: true },
+      { code: "celebracao_36", baseCode: "celebracao", name: "Celebração + Mais poses", maxGuests: 100, maxShots: 36, baseMaxShots: 24, priceCents: 10890, extraCents: 1990, available: false },
+    ]);
+  });
+  it("falha do servidor ou modo local: sem pacotes (a tela de plano segue funcionando)", async () => {
+    fakeClient({ rpc: () => ({ error: { code: "XX", message: "caiu" } }) });
+    expect(await listPosePacks()).toEqual([]);
+    mocks.mode = "local";
+    expect(await listPosePacks()).toEqual([]);
+    mocks.mode = "supabase";
+  });
+  it("list_public_plans nunca é usada para os pacotes: listPublicPlans mapeia só o que o servidor mandar", async () => {
+    const c = fakeClient({ rpc: () => ({ data: [{ code: "festa", name: "Festa", maxGuests: 50, maxShots: 24, priceCents: 5990, isFree: false, features: [] }] }) });
+    expect((await listPublicPlans()).map((p) => p.code)).toEqual(["festa"]);
+    expect(c.rpc.map(([fn]) => fn)).toEqual(["list_public_plans"]);
   });
 });
 
