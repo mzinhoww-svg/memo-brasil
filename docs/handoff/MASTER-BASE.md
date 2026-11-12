@@ -55,7 +55,7 @@ Campo "Motivo" 10–500 caracteres (texto aparado), contador `N/500 · mínimo 1
 <ExportSheet kind="pagamentos" filters={{ f: "pix" }} screen="pagamentos" screenLabel="Pagamentos"
   period="01 nov 2026 a 11 nov 2026" filtersText="Método: Pix · Situação: todas" rowsEstimate={74} onClose={…} onDone={(r) => …} />
 ```
-Mostra tela, período, filtros, formato, linhas estimadas; acima de 50.000 estimadas avisa o truncamento e o botão vira "Exportar 50.000 linhas"; aviso de auditoria. Usa `exportCsv` (`lib/master/export-csv.ts`) → RPC `admin_export_csv` (que grava a auditoria; só master e auditor). `filters` é o que a RPC aceita (`dias`, `f`, `q`, `aba`, `a`, `status`). Hook: `useExport({kind, filters, screen, onDone, run?})` → `{busy, error, start}`. O `ExportButton` atual (`app/master/ExportButton.tsx`) deve virar um botão que abre esta folha. `rowsEstimate`: passe o total que a tela já tem.
+Mostra tela, período, filtros, formato, linhas estimadas; acima de 50.000 estimadas avisa o truncamento e o botão vira "Exportar 50.000 linhas"; aviso de auditoria. Usa `exportCsv` (`lib/master/export-csv.ts`) → RPC `admin_export_csv` (que grava a auditoria; só master e auditor). `filters` é o que a RPC aceita (`dias`, `f`, `q`, `aba`, `a`, `status`). Hook: `useExport({kind, filters, screen, onDone, run?})` → `{busy, error, start}`. O botão que abre esta folha é `app/master/ExportSheetButton.tsx` (props da folha + `label`); o `ExportButton.tsx` antigo sai quando todas as listas migrarem. `rowsEstimate`: passe o total que a tela já tem.
 
 ### RevealNowSheet (M25, M25-a/b/c)
 ```tsx
@@ -69,7 +69,7 @@ const rec = useReconcile({ last: "hoje 08:51, por marcos@revela.app", onDone: ()
 <button onClick={() => void rec.start()}>Conciliar agora</button>
 {rec.state && <ReconcileSheet state={rec.state} onSubmitCode={(c) => void rec.submitCode(c)} onClose={rec.close} />}
 ```
-`start()` pula o código se a sessão já é aal2; senão pede os 6 números do autenticador (TOTP do Supabase), depois chama `payments-reconcile-now` (→ `admin_request_reconcile`: só master, aal2, 1 por minuto). Estados: `code` (com erro "Código incorreto…"), `running`, `result` (conciliados/falhas/"Sem mudança", "Próxima conciliação manual liberada em 00:57"), `wait` (MM006: contagem regressiva a cada segundo a partir de 60 s), `error`. Injeções para teste: `hasSecondFactor`, `verifyCode`, `reconcile`, `now`. **Pendência de backend (onda de Pagamentos)**: estender `payments-reconcile-now` para devolver `unchanged` e `failures[]` (hoje só `confirmed`, `failed`, `unattached`); `ReconcileResult` já aceita.
+`start()` pula o código se a sessão já é aal2; senão pede os 6 números do autenticador (TOTP do Supabase), depois chama `payments-reconcile-now` (→ `admin_request_reconcile`: só master, aal2, 1 por minuto). Estados: `code` (com erro "Código incorreto…"), `running`, `result` (conciliados/falhas/"Sem mudança", "Próxima conciliação manual liberada em 00:57"), `wait` (MM006: contagem regressiva a cada segundo a partir de 60 s), `error`. Injeções para teste: `hasSecondFactor`, `verifyCode`, `reconcile`, `now`. `payments-reconcile-now` já devolve `unchanged` e `failures[]` (onda Visão geral · Eventos · Pagamentos); `ReconcileSheetButton` (`app/master/`) liga a folha em `/master/pagamentos`.
 
 ### MasterSemAcesso / MasterAcessoLimitado (M32)
 `screens/MasterSemAcesso.tsx`: `MasterSemAcessoView` (props `caption`, `title`, `text`, `emailExample`, `rows`), `MasterSemAcesso` (fixture com moldura), `MasterAcessoLimitado({ role, caption })` (conteúdo do app com a matriz real).

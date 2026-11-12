@@ -36,9 +36,10 @@ Deno.serve(async (req) => {
       log(FN, null, String(res.status), "falhou");
       return json({ error: "indisponivel" }, 503);
     }
-    const out = (await res.json()) as { confirmed?: number; failed?: number; unattached?: number };
+    const out = (await res.json()) as { confirmed?: number; failed?: number; unchanged?: number; unattached?: number; failures?: { label?: string; message?: string }[] };
     log(FN, null, null, "ok");
-    return json({ ok: true, confirmed: out.confirmed ?? 0, failed: out.failed ?? 0, unattached: out.unattached ?? 0 });
+    const failures = (out.failures ?? []).slice(0, 20).map((f) => ({ label: String(f.label ?? ""), message: String(f.message ?? "") }));
+    return json({ ok: true, confirmed: out.confirmed ?? 0, failed: out.failed ?? 0, unchanged: out.unchanged ?? 0, unattached: out.unattached ?? 0, failures });
   } catch {
     log(FN, null, null, "erro_rede");
     return json({ error: "indisponivel" }, 503);

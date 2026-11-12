@@ -2,7 +2,7 @@
 import { browserSupabase } from "@/lib/supabase/client";
 
 export type ReconcileOutcome =
-  | { kind: "ok"; confirmed: number; failed: number }
+  | { kind: "ok"; confirmed: number; failed: number; unchanged?: number; failures?: { label: string; message: string }[] }
   | { kind: "stepup" | "ratelimited" | "forbidden" | "unavailable" };
 
 export function reconcileText(o: ReconcileOutcome): string {
@@ -28,8 +28,9 @@ export async function reconcileNow(): Promise<ReconcileOutcome> {
     const code = await errorBody(r.error);
     return { kind: code === "stepup" ? "stepup" : code === "ratelimited" ? "ratelimited" : code === "forbidden" || code === "unauthorized" ? "forbidden" : "unavailable" };
   }
-  const d = (r.data ?? {}) as { confirmed?: number; failed?: number };
-  return { kind: "ok", confirmed: Number(d.confirmed ?? 0), failed: Number(d.failed ?? 0) };
+  const d = (r.data ?? {}) as { confirmed?: number; failed?: number; unchanged?: number; failures?: { label?: unknown; message?: unknown }[] };
+  const failures = Array.isArray(d.failures) ? d.failures.map((f) => ({ label: String(f.label ?? ""), message: String(f.message ?? "") })) : undefined;
+  return { kind: "ok", confirmed: Number(d.confirmed ?? 0), failed: Number(d.failed ?? 0), unchanged: typeof d.unchanged === "number" ? d.unchanged : undefined, failures };
 }
 
 /** Garante a sessão com segundo fator: se ainda está em aal1, pede o código do autenticador já cadastrado. `false` = não confirmou. */

@@ -4,6 +4,7 @@
    `payments-reconcile-now`, que só então fala com o provedor); mostra o resultado. Uma conciliação manual por minuto: antes disso, a espera com contagem regressiva. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { browserSupabase } from "@/lib/supabase/client";
+import { relWhen } from "@/app/master/format";
 import { reconcileNow, type ReconcileOutcome } from "@/lib/master/reconcile";
 import { Ico } from "../master-kit";
 import { ErrLine } from "./ActionSheet";
@@ -15,7 +16,7 @@ const OTP_LENGTH = 6;
 export interface ReconcileResult {
   confirmed: number;
   failed: number;
-  /** "Sem mudança": a função ainda não devolve (pendência da onda de Pagamentos); sem valor, o cartão mostra "—". */
+  /** "Sem mudança": devolvido por `payments-reconcile-now`; sem valor (função antiga), o cartão mostra "—". */
   unchanged?: number;
   /** "hoje 08:51" (hora da conciliação). */
   at?: string;
@@ -75,7 +76,7 @@ export function useReconcile({ hasSecondFactor = defaultHasSecondFactor, verifyC
     const o = await reconcile();
     if (o.kind === "ok") {
       until.current = now() + RECONCILE_WAIT_SECONDS * 1000;
-      setState({ step: "result", result: { confirmed: o.confirmed, failed: o.failed, tookSeconds: Math.max(1, Math.round((now() - t0) / 1000)) }, nextIn: RECONCILE_WAIT_SECONDS });
+      setState({ step: "result", result: { confirmed: o.confirmed, failed: o.failed, unchanged: o.unchanged, failures: o.failures, at: relWhen(new Date(now()).toISOString()), tookSeconds: Math.max(1, Math.round((now() - t0) / 1000)) }, nextIn: RECONCILE_WAIT_SECONDS });
       onDone?.();
     } else if (o.kind === "ratelimited") {
       until.current = now() + RECONCILE_WAIT_SECONDS * 1000;

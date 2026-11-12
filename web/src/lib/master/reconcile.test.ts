@@ -13,6 +13,12 @@ describe("Conciliar agora", () => {
     expect(await reconcileNow()).toEqual({ kind: "ok", confirmed: 2, failed: 1 });
     expect(invoke).toHaveBeenCalledWith("payments-reconcile-now", { body: {} });
   });
+  it("devolve também 'sem mudança' e as falhas por pedido (função estendida)", async () => {
+    invoke.mockResolvedValue({ data: { ok: true, confirmed: 12, failed: 1, unchanged: 58, failures: [{ label: "#RV-2039 · Formatura Medicina", message: "O provedor respondeu com erro (503). A rotina tenta de novo." }] }, error: null });
+    expect(await reconcileNow()).toEqual({ kind: "ok", confirmed: 12, failed: 1, unchanged: 58, failures: [{ label: "#RV-2039 · Formatura Medicina", message: "O provedor respondeu com erro (503). A rotina tenta de novo." }] });
+    invoke.mockResolvedValue({ data: { ok: true, confirmed: 0, failed: 0, unchanged: 0, failures: [] }, error: null });
+    expect(await reconcileNow()).toMatchObject({ unchanged: 0, failures: [] });
+  });
   it("traduz as recusas da função", async () => {
     invoke.mockResolvedValue(failWith("stepup"));
     expect(await reconcileNow()).toEqual({ kind: "stepup" });
