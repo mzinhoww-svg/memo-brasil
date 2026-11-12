@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { LOCAL_ACTOR } from "@/domain/roles";
-import type { Participant, PhotoSize, PhotoUrl } from "@/repositories";
-import { readEventScoped, type EventAccess, type EventPreview, type ScopedEvent } from "@/features/access/read";
+import type { Participant, PhotoSize, PhotoUrl, Repositories } from "@/repositories";
+import { readEventScoped, type EventAccess, type EventKey, type EventPreview, type ScopedEvent } from "@/features/access/read";
 import { storeFor } from "./data-cache";
 import { loadPhotoUrls, nextRenewal, peekPhotoUrls } from "./photo-urls";
 import { useApp } from "./provider";
@@ -68,6 +68,22 @@ type Cached = ScopedEvent | null;
 const eventStore = (repos: object) => storeFor<Cached>(repos, "evento");
 const isInside = (v: Cached | undefined) => v?.access === "organizador" || v?.access === "membro";
 
+/** Chave do evento no cache: a pessoa + o código ou o id. */
+export const eventCacheKey = (userId: string | null, key: { code?: string; id?: string }) => `${userId ?? "-"}|${key.code ? `c:${key.code}` : key.id ? `i:${key.id}` : "-"}`;
+
+/**
+ * Lê o evento para `userId` e guarda no cache, para a próxima tela abrir sem "carregando" (ex.: logo depois de entrar na
+ * festa, antes de ir para a câmera). Mesma leitura escopada de `useEventData`.
+ */
+export async function prefetchEventData(repos: Repositories, key: EventKey, userId: string | null, now: number): Promise<void> {
+  await eventStore(repos).revalidate(eventCacheKey(userId, key), () => readEventScoped(repos, key, LOCAL_ACTOR(userId), now), { force: true });
+}
+
+/** O que o cache tem agora para este evento e pessoa (testes e diagnóstico). */
+export function cachedEventData(repos: object, key: { code?: string; id?: string }, userId: string | null): ScopedEvent | null | undefined {
+  return eventStore(repos).get(eventCacheKey(userId, key))?.value;
+}
+
 /**
  * Atualiza na hora o evento em cache (todas as telas que o mostram), ex.: curtida otimista. A próxima leitura do servidor
  * substitui o que foi feito aqui: o servidor continua sendo a verdade.
@@ -87,7 +103,7 @@ export function useEventData(key: { code?: string; id?: string }): EventData {
   const { repos, ready, user, now, backend } = useApp();
   const userId = user?.id ?? null;
   const store = eventStore(repos);
-  const cacheKey = `${userId ?? "-"}|${key.code ? `c:${key.code}` : key.id ? `i:${key.id}` : "-"}`;
+  const cacheKey = eventCacheKey(userId, key);
 
   // o que foi gravado no cache depois desta montagem (ou da troca de chave) vale mesmo sendo "convite"
   const [since, setSince] = useState(() => ({ key: cacheKey, seq: store.seq() }));

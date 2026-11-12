@@ -12,7 +12,7 @@ import { wrapOf } from "@/domain/options";
 import { ConvidadoCarregando } from "@/revela/screens/ConvidadoCarregando";
 import { eventStatus } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
-import { formatDate, useEventData } from "@/features/app/hooks";
+import { formatDate, prefetchEventData, useEventData } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
 import { tableFromSearch } from "@/features/invitations/links";
 import { joinEvent } from "@/features/participants/service";
@@ -125,6 +125,8 @@ export default function Convite() {
         return;
       }
       if (email.trim()) await saveGuestEmail(r.event.id, email);
+      // lê a festa já como membro antes de ir para a câmera: ela abre sem a tela de carregando (se falhar, ela mesma lê)
+      await prefetchEventData(repos, { code }, me.id, now()).catch(() => undefined);
       router.push(`/e/${code}/postar`);
     } catch {
       setError(MESSAGES.rede);
