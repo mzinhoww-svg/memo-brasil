@@ -32,3 +32,17 @@ export async function recordConsent(input: ConsentInput, client: SupabaseClient 
   });
   if (error) throw new ConsentError();
 }
+
+/**
+ * Aceite já registrado neste aparelho para as versões vigentes: quem já aceitou não é perguntado de novo a cada evento.
+ * O servidor continua gravando o aceite a cada criação (`recordConsent`); isto só poupa o diálogo. Sem armazenamento, pergunta.
+ */
+const rememberedKey = (userId: string) => `rv:consent:${TERMS_VERSION}:${PRIVACY_VERSION}:organizador:${userId}`;
+export function hasRememberedConsent(userId: string | null | undefined): boolean {
+  if (!userId) return false;
+  try { return window.localStorage.getItem(rememberedKey(userId)) === "1"; } catch { return false; }
+}
+export function rememberConsent(userId: string | null | undefined): void {
+  if (!userId) return;
+  try { window.localStorage.setItem(rememberedKey(userId), "1"); } catch { /* sem armazenamento: o diálogo volta a aparecer */ }
+}

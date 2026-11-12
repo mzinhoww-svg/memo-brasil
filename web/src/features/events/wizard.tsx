@@ -6,7 +6,7 @@ import { Breadcrumbs, Button, GoogleButton, ScreenSkeleton } from "@/components/
 import { DEFAULT_FILM, DEFAULT_WRAP, WRAP_INFO, type EventCategory, type FilmLook, type Wrap } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
 import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
-import { currentConsent, recordConsent } from "@/lib/consent";
+import { currentConsent, hasRememberedConsent, recordConsent, rememberConsent } from "@/lib/consent";
 import { createEvent } from "./service";
 import { REVEAL_ERROR_TEXT, resolveReveal } from "./reveal-input";
 import { buildRevealInput, type RevealChoice } from "./reveal-choice";
@@ -77,6 +77,12 @@ export function CreateWizard() {
   const [revCustom, setRevCustom] = useState(""); // aaaa-mm-ddTHH:MM no fuso do evento
   const [planTouched, setPlanTouched] = useState(false);
   const [consentOpen, setConsentOpen] = useState(false);
+  // quem já aceitou os Termos e a Política vigentes não é perguntado de novo a cada evento
+  useEffect(() => {
+    if (!hasRememberedConsent(user?.id)) return;
+    const t = setTimeout(() => { setAcceptedTerms(true); setAckedPrivacy(true); }, 0);
+    return () => clearTimeout(t);
+  }, [user?.id]);
   const [rollOn, setRollOn] = useState(true);
   const [desiredShots, setDesiredShots] = useState<number>(WIZARD_DEFAULTS.shots);
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
@@ -166,7 +172,7 @@ export function CreateWizard() {
     try {
       const me = await signIn(hostName);
       if (backend === "supabase") {
-        try { await recordConsent(currentConsent("organizador", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); } catch { return setErrors({ create: CONSENT_FAILED }); }
+        try { await recordConsent(currentConsent("organizador", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); rememberConsent(me.id); } catch { return setErrors({ create: CONSENT_FAILED }); }
       }
       const startNow = now();
       const hoursNow = (w.endMs - startNow) / 3_600_000;
