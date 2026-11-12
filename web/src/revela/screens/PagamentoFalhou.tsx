@@ -1,7 +1,16 @@
+"use client";
 /* Gerado de design-system/revela/html/Pagamento-falhou.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
+import { useRef } from "react";
+import { stampSlam } from "@/lib/motion/revela-motion";
+import { useMomentOnce } from "@/lib/motion/use-moments";
+
 export interface PagamentoFalhouProps { title?: string; message?: string; stamp?: string; primary?: string; secondary?: string | null; onClose?: () => void; onPrimary?: () => void; onSecondary?: () => void }
 
 export function PagamentoFalhou({ title = "O banco recusou", message = "O cartão final 4417 não foi aprovado. Nada foi cobrado. Tente com Pix ou com outro cartão.", stamp = "RECUSADO", primary = "Pagar com Pix", secondary = "Usar outro cartão", onClose, onPrimary, onSecondary }: PagamentoFalhouProps = {}) {
+  const mark = useRef<HTMLSpanElement>(null);
+  const paper = useRef<HTMLDivElement>(null);
+  // recusado ou expirado: o carimbo bate no papel (sem confete)
+  useMomentOnce(true, () => { if (mark.current) void stampSlam(mark.current, paper.current ?? undefined); });
   return (
     <>
     <div className="scr">
@@ -15,9 +24,11 @@ export function PagamentoFalhou({ title = "O banco recusou", message = "O cartã
           <span />
         </div>
         <div className="failviz">
-          <div className="rv-print rv-print--back" style={{ "position": "absolute", "left": "40px", "top": "20px", "width": "170px", "height": "215px", "transform": "rotate(-6deg)", "zIndex": "1" }} />
-          <span className="rv-stamp failstamp">
-            {stamp}
+          <div ref={paper} className="rv-print rv-print--back" style={{ "position": "absolute", "left": "40px", "top": "20px", "width": "170px", "height": "215px", "rotate": "-6deg", "zIndex": "1" }} />
+          <span className="failstamp-pos">
+            <span ref={mark} className="rv-stamp failstamp" data-testid="carimbo-falha" style={{ visibility: "hidden" }}>
+              {stamp}
+            </span>
           </span>
         </div>
         <h1 className="rv-title-lg">

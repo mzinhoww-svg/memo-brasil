@@ -2,6 +2,7 @@
 /* Feed-evento.html (24d): mesmo markup da referência; dados reais por props (padrão = desenho). */
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { popHeart } from "@/lib/motion/use-moments";
 import { GuestTabs } from "../GuestTabs";
 
 const svg = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -25,6 +26,8 @@ export interface FeedPostData {
   canDownload?: boolean;
   /** nome do botão; padrão "Baixar" */
   downloadLabel?: string;
+  /** virada da revelação: a foto aparece borrada, com cadeado, até `revealFeed` trocar pela foto real */
+  veiled?: boolean;
 }
 export interface FeedPostHandlers {
   onOpen?: (id: string) => void;
@@ -52,7 +55,7 @@ export const FEED_REF_STORIES: FeedStory[] = [
 export function FeedPost({ post, onOpen, onLike, onComments, onShare, onDownload, onMore }: { post: FeedPostData } & FeedPostHandlers) {
   const p = post;
   return (
-    <article className="post">
+    <article className="post" data-post-id={p.id}>
       <div className="post-h">
         <span className="avatar avatar--sm">{p.avatar}</span>
         <div style={{ flex: "1" }}>
@@ -68,18 +71,19 @@ export function FeedPost({ post, onOpen, onLike, onComments, onShare, onDownload
         </button>
       </div>
       <div
-        className="rv-print"
+        className={p.veiled ? "rv-print rvm-veiled" : "rv-print"}
         style={{ width: "350px", height: "392px", transform: "rotate(0deg)", zIndex: "1", ...(onOpen ? { cursor: "pointer" } : {}) }}
         {...(onOpen ? { role: "button", tabIndex: 0, "aria-label": `${p.stampLeft} ${p.stampRight} · Abrir a foto de ${p.author}`, onClick: () => onOpen(p.id), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(p.id); } } } : {})}
       >
-        <img src={p.imageSrc} alt={onOpen ? "" : "Foto de convidado"} />
+        <img src={p.imageSrc} alt={onOpen ? "" : "Foto de convidado"} className={p.veiled ? "rv-blurred" : undefined} />
+        {p.veiled && <span className="rvm-lock" aria-hidden="true"><svg className="rv-lock-nudge" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg></span>}
         <div className="rv-print__cap">
           <span>{p.stampLeft}</span>{" "}
           <span>{p.stampRight}</span>
         </div>
       </div>
       <div className="post-a">
-        <button type="button" aria-label="Curtir" aria-pressed={onLike ? p.liked : undefined} className={p.liked ? "on" : ""} onClick={onLike && (() => onLike(p.id))}>
+        <button type="button" aria-label="Curtir" aria-pressed={onLike ? p.liked : undefined} className={p.liked ? "on" : ""} onClick={onLike && ((e) => { if (!p.liked) popHeart(e); onLike(p.id); })}>
           <svg {...svg} fill={p.liked ? "currentColor" : "none"}>
             <path d="M12 20s-7.5-4.6-9.3-9.6C1.5 7.2 3.5 4.5 6.6 4.5c2 0 3.4 1 5.4 3 2-2 3.4-3 5.4-3 3.1 0 5.1 2.7 3.9 5.9C19.500 15.400 12 20 12 20z" />
           </svg>

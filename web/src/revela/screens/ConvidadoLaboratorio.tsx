@@ -1,6 +1,9 @@
+"use client";
 /* Gerado de design-system/revela/html/Convidado-laboratorio.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { GuestTabs } from "../GuestTabs";
+import { Odo } from "../Odo";
 
 export interface LaboratorioProps {
   code?: string;
@@ -17,9 +20,18 @@ export interface LaboratorioProps {
   /** texto do botão principal, ex.: "Abrir câmera · 18 poses" */
   cta?: string;
 }
-const p2 = (n: number) => String(n).padStart(2, "0");
+const LOCK = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+);
 
 export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana & Leo", live = true, photos = 418, guests = 32, countdown = { h: 27, m: 17, s: 40 }, revealLabel = "Revela domingo, 12:00", cta = "Abrir câmera · 18 poses" }: LaboratorioProps = {}) {
+  // foto nova chegando no laboratório: a pilha da frente "pula" para dentro (rv-pop), sem mostrar nada
+  const [pop, setPop] = useState(0);
+  const last = useRef(photos);
+  useEffect(() => {
+    if (photos > last.current) setPop((n) => n + 1);
+    last.current = photos;
+  }, [photos]);
   return (
     <>
     <div className="scr">
@@ -33,9 +45,10 @@ export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana
         </div>
         <div className="lab">
           <div className="stackviz" style={{ "width": "300px", "height": "230px", "margin": "0 auto" }}>
-            <div className="rv-print rv-print--back" style={{ "position": "absolute", "left": "40px", "top": "24px", "width": "150px", "height": "190px", "transform": "rotate(-9deg)", "zIndex": "1" }} />
-            <div className="rv-print rv-print--back" style={{ "position": "absolute", "left": "110px", "top": "6px", "width": "150px", "height": "190px", "transform": "rotate(5deg)", "zIndex": "2" }} />
-            <div className="rv-print rv-print--back" style={{ "position": "absolute", "left": "76px", "top": "40px", "width": "150px", "height": "190px", "transform": "rotate(-2deg)", "zIndex": "3" }} />
+            <div className="rv-print rv-print--back" style={{ "position": "absolute", "left": "40px", "top": "24px", "width": "150px", "height": "190px", "transform": "rotate(-9deg)", "zIndex": "1" }}><i className="rvm-ph"><i className="rv-blurred" /></i></div>
+            <div className="rv-print rv-print--back" style={{ "position": "absolute", "left": "110px", "top": "6px", "width": "150px", "height": "190px", "transform": "rotate(5deg)", "zIndex": "2" }}><i className="rvm-ph"><i className="rv-blurred" /></i></div>
+            <div key={pop} className={`rv-print rv-print--back${pop > 0 ? " rv-pop" : ""}`} data-testid="pilha-laboratorio" style={{ "position": "absolute", "left": "76px", "top": "40px", "width": "150px", "height": "190px", "rotate": "-2deg", "zIndex": "3" }}><i className="rvm-ph"><i className="rv-blurred" /></i></div>
+            <div className="rvm-lock" aria-hidden="true"><span className="rv-lock-nudge" style={{ display: "inline-flex" }}>{LOCK}</span></div>
           </div>
           <p className="rv-stamp" style={{ "textAlign": "center" }}>
             NO LABORATÓRIO
@@ -49,9 +62,9 @@ export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana
         </div>
         {countdown && (
         <div className="countdown" style={{ "marginTop": "18px" }} role="timer" aria-label={`Revela em ${countdown.h} horas e ${countdown.m} minutos`}>
-          <div><b>{p2(countdown.h)}</b><span>horas</span></div>
-          <div><b>{p2(countdown.m)}</b><span>min</span></div>
-          <div><b>{p2(countdown.s)}</b><span>seg</span></div>
+          <div><Odo value={countdown.h} padText /><span>horas</span></div>
+          <div><Odo value={countdown.m} padText /><span>min</span></div>
+          <div><Odo value={countdown.s} padText /><span>seg</span></div>
         </div>
         )}
         <p className="rv-caption" style={{ "textAlign": "center", "marginTop": "8px" }}>{revealLabel}</p>

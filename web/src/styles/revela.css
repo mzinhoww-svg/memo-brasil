@@ -251,9 +251,6 @@
 .rv-grain::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: url("/revela/fx/grain.webp"); background-size: 256px; opacity: .07; mix-blend-mode: screen; }
 
 /* Confete: só em momentos de festa (abertura e evento publicado) */
-.rv-confetti { position: absolute; inset: 0; pointer-events: none; background: url("/revela/3d/obj-confetti.webp") center top / 360px auto repeat-y; opacity: .85; animation: rv-confetti-cai 6s linear infinite; }
-@keyframes rv-confetti-cai { from { background-position-y: -360px; } to { background-position-y: 0; } }
-@media (prefers-reduced-motion: reduce) { .rv-confetti { animation: none; } }
 
 /* Abertura: vídeo de fundo + conteúdo ancorado embaixo */
 .rv-abertura { position: relative; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; isolation: isolate; background: var(--bg); }

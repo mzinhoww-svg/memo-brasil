@@ -8,6 +8,7 @@ import { useApp } from "@/features/app/provider";
 import { moderate } from "@/features/admin/service";
 import { firstName, initialOf, photoMoment, poseLabel, printStamp } from "@/features/feed/format";
 import { downloadPhoto, reactorsOf } from "@/features/photos/share";
+import { useFirstOpen } from "@/lib/motion/use-moments";
 import { ReveladosFoto } from "@/revela/screens/ReveladosFoto";
 import { GoHome, HostNote, LoadingNote } from "./use-revealed";
 
@@ -27,6 +28,7 @@ export function PhotoView({ id, photoId }: { id: string; photoId: string }) {
   const i = list.findIndex((p) => p.id === photoId);
   const photo = list[i];
   const urls = usePhotoUrls([photo, list[i - 1], list[i + 1]].filter((p) => p !== undefined));
+  const develop = useFirstOpen(photo?.id); // a foto "revela" só na primeira vez que abre
   const base = `/eventos/revelados/${id}`;
   const go = (j: number) => { if (list[j]) router.replace(`${base}/${list[j].id}`); };
 
@@ -72,7 +74,7 @@ export function PhotoView({ id, photoId }: { id: string; photoId: string }) {
       onTouchEnd={(e) => { const d = e.changedTouches[0].clientX - (x0.current ?? e.changedTouches[0].clientX); x0.current = null; if (Math.abs(d) > 60) go(d < 0 ? i + 1 : i - 1); }}
     >
       <ReveladosFoto
-        position={`${i + 1} de ${list.length}`} imageSrc={urls[photo.id] ?? BLANK}
+        position={`${i + 1} de ${list.length}`} imageSrc={urls[photo.id] ?? BLANK} develop={develop}
         stampLeft={printStamp(photoMoment(photo), event.timezone)} stampRight={`por ${firstName(photo.authorName)}`}
         avatar={initialOf(photo.authorName)} author={firstName(photo.authorName)} meta={poseLabel(photo, list, event)}
         highlighted={photo.highlighted} closeHref={base}

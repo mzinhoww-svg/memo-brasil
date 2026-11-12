@@ -8,6 +8,8 @@ export interface ReveladosFotoProps {
   /** "12 de 418" */
   position?: string;
   imageSrc?: string;
+  /** primeira vez que a foto abre: ela sai do banho do laboratório (rv-develop) */
+  develop?: boolean;
   stampLeft?: string;
   stampRight?: string;
   avatar?: string;
@@ -26,7 +28,7 @@ export interface ReveladosFotoProps {
   onNext?: () => void;
 }
 
-export function ReveladosFoto({ position = "12 de 418", imageSrc = "/revela/ref/sc-aliancas.jpg", stampLeft = "'27 03 14 · 22:41", stampRight = "por Leo", avatar = "L", author = "Leo", meta = "pose 19 de 27", highlighted = false, closeHref, onMore, onStar, onDownload, downloadLabel = "Baixar", onShare, onPrev, onNext }: ReveladosFotoProps = {}) {
+export function ReveladosFoto({ position = "12 de 418", imageSrc = "/revela/ref/sc-aliancas.jpg", develop = false, stampLeft = "'27 03 14 · 22:41", stampRight = "por Leo", avatar = "L", author = "Leo", meta = "pose 19 de 27", highlighted = false, closeHref, onMore, onStar, onDownload, downloadLabel = "Baixar", onShare, onPrev, onNext }: ReveladosFotoProps = {}) {
   return (
     <>
     <div className="scr">
@@ -48,7 +50,7 @@ export function ReveladosFoto({ position = "12 de 418", imageSrc = "/revela/ref/
         </div>
         <div className="grow" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div className="rv-print" style={{ width: "330px", height: "430px", transform: "rotate(-1.5deg)", zIndex: "1" }}>
-            <img src={imageSrc} alt="Foto de convidado" />
+            <img src={imageSrc} alt="Foto de convidado" className={develop ? "rv-develop" : undefined} />
             <div className="rv-print__cap">
               <span>{stampLeft}</span>
               <span>{stampRight}</span>

@@ -18,15 +18,19 @@ import { canDownloadOriginal, DOWNLOAD_DENIED_TEXT, downloadPhoto, DownloadNotAl
 import { stampDay } from "@/features/guest/format";
 import { DENUNCIA_MOTIVOS_FOTO, FeedDenunciar } from "@/revela/screens/FeedDenunciar";
 import { FeedEvento, type FeedPostData, type FeedStory } from "@/revela/screens/FeedEvento";
+import { revealFeed } from "@/lib/motion/revela-motion";
+import { useFirstOpen } from "@/lib/motion/use-moments";
 import { FeedReacoes } from "@/revela/screens/FeedReacoes";
 
 const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const PAGE = 20;
+/** Eventos cuja virada (revealFeed) já tocou nesta sessão: voltar ao feed depois não repete. */
+const TURNED = new Set<string>();
 
 /** 24d · 24e · 24f · 24g: o feed do evento revelado, ligado às fotos, reações e comentários reais. */
 export function RevealedFeed() {
   const { repos, backend } = useApp();
-  const { event, user, viewer, now, photos, reactions, participants, refresh, revealStatus } = useGuest();
+  const { event, user, viewer, now, photos, reactions, participants, refresh, revealStatus, developed, celebrating } = useGuest();
   const [author, setAuthor] = useState("t");
   const [limit, setLimit] = useState(PAGE);
   const [openId, setOpenId] = useState<string | undefined>();
@@ -59,17 +63,42 @@ export function RevealedFeed() {
   const shown = useMemo(() => (author === "t" ? all : all.filter((p) => p.authorId === author)), [all, author]);
   const page = shown.slice(0, limit);
   const open = openId ? shown.findIndex((p) => p.id === openId) : -1;
+  const develop = useFirstOpen(openId); // a foto revela (rv-develop) só na primeira vez que abre
   const wanted = useMemo(() => [...page, ...(open >= 0 ? [shown[open], shown[open - 1], shown[open + 1]].filter((p) => p !== undefined) : [])], [page, open, shown]);
   const urls = usePhotoUrls(wanted);
+
+  // virada da revelação: se o feed nasceu da passagem pendente → revelada, as primeiras fotos chegam borradas e viram fotos reais
+  const [veil, setVeil] = useState<{ ids: string[]; done: boolean } | null>(null);
+  const [unveiled, setUnveiled] = useState<ReadonlySet<string>>(new Set());
+  if (veil === null && developed && !TURNED.has(event.id) && page.length > 0) setVeil({ ids: page.slice(0, 4).map((p) => p.id), done: false });
+  const [veilWaited, setVeilWaited] = useState(false);
+  useEffect(() => {
+    if (!veil) return;
+    const t = setTimeout(() => setVeilWaited(true), 2500);
+    return () => clearTimeout(t);
+  }, [veil === null]); // eslint-disable-line react-hooks/exhaustive-deps
+  const turning = useRef(false);
+  useEffect(() => {
+    if (!veil || veil.done || celebrating || turning.current) return;
+    if (!veilWaited && veil.ids.some((id) => !urls[id])) return; // espera as fotos reais chegarem
+    const items = veil.ids.flatMap((id) => {
+      const post = document.querySelector(`article.post[data-post-id="${id}"]`);
+      const photo = post?.querySelector<HTMLElement>(".rv-print img");
+      return photo ? [{ id, photo, lock: post?.querySelector<HTMLElement>(".rvm-lock") ?? undefined }] : [];
+    });
+    turning.current = true;
+    TURNED.add(event.id);
+    void revealFeed(items, (i) => setUnveiled((s) => new Set(s).add(items[i].id))).then(() => setVeil((v) => v && { ...v, done: true }));
+  }, [veil, celebrating, veilWaited, urls, event.id]);
 
   const likeCount = (id: string) => reactions.filter((r) => r.photoId === id).length;
   const mine = (id: string) => reactions.find((r) => r.photoId === id && r.authorId === user.id);
   const toPost = useCallback((p: (typeof all)[number]): FeedPostData => ({
     id: p.id, avatar: initialOf(p.authorName), author: firstName(p.authorName), pose: poseLabel(p, all, event),
     imageSrc: urls[p.id] ?? BLANK, stampLeft: printStamp(photoMoment(p), event.timezone), stampRight: firstName(p.authorName),
-    canDownload: canDownloadOriginal(event, { host: viewer.host, userId: user.id }, p), downloadLabel: "Baixar em alta", liked: Boolean(mine(p.id)), likesText: likesText(likeCount(p.id)), caption: p.caption, commentsText: commentsText(counts[p.id] ?? 0),
+    canDownload: canDownloadOriginal(event, { host: viewer.host, userId: user.id }, p), downloadLabel: "Baixar em alta", liked: Boolean(mine(p.id)), likesText: likesText(likeCount(p.id)), veiled: Boolean(veil && !veil.done && veil.ids.includes(p.id) && !unveiled.has(p.id)), caption: p.caption, commentsText: commentsText(counts[p.id] ?? 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [all, event, urls, reactions, counts, user.id]);
+  }), [all, event, urls, reactions, counts, user.id, veil, unveiled]);
 
   async function onReact(photoId: string, kind: ReactionKind) {
     if (!event.reactionsEnabled) { setNote("O anfitrião desligou as reações deste evento."); return; }
@@ -160,7 +189,7 @@ export function RevealedFeed() {
       {openPhoto && (
         <Overlay label="Foto aberta">
           <FeedReacoes
-            position={`${open + 1} de ${shown.length}`} imageSrc={urls[openPhoto.id] ?? BLANK}
+            position={`${open + 1} de ${shown.length}`} imageSrc={urls[openPhoto.id] ?? BLANK} develop={develop}
             stampLeft={printStamp(photoMoment(openPhoto), event.timezone)} stampRight={`por ${firstName(openPhoto.authorName)}`}
             avatar={initialOf(openPhoto.authorName)} author={firstName(openPhoto.authorName)}
             meta={`${poseLabel(openPhoto, all, event)} · ${openPhoto.moment}`}

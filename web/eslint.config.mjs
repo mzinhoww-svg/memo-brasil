@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Kit de animações do designer: copiado sem alteração, então fica fora do lint.
+    "src/lib/motion/revela-motion.ts",
   ]),
   // Telas portadas da referência: imagens estáticas já em WebP/JPG nos tamanhos do desenho.
   { files: ["src/revela/screens/**"], rules: { "@next/next/no-img-element": "off" } },

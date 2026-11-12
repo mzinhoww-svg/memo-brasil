@@ -2,7 +2,8 @@
 /* Moldura da câmera do convidado (21, 22, 23 e fundo da 20d): mesma árvore e classes de Convidado-camera.html.
    Não é uma tela: as telas Convidado-camera/-flash/-permissao/-consentimento a compõem. */
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useImperativeHandle, useRef, type ReactNode, type Ref } from "react";
+import { Odo } from "../Odo";
 
 const CLOSE = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
@@ -14,7 +15,20 @@ const FLIP = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><path d="M9 13a3 3 0 0 1 5-2l1 1M15 13a3 3 0 0 1-5 2l-1-1" /></svg>
 );
 
+/** Peças da câmera que o disparo do kit anima (`shoot`). Lidas só na hora do disparo. */
+export interface CameraFx {
+  flash: HTMLElement;
+  shutter: HTMLElement;
+  button: HTMLElement;
+  wheel: HTMLElement;
+  counter: HTMLElement | null;
+  viewfinder: HTMLElement;
+  roll: HTMLElement;
+}
+
 export interface CameraFrameProps {
+  /** Recebe as peças para o disparo (camadas de clarão e obturador, botão, roda e contador). */
+  fx?: Ref<CameraFx | null>;
   /** Nome do evento no topo do visor. */
   title?: string;
   /** Embalagem da câmera (cor e textura do corpo). */
@@ -56,13 +70,31 @@ export interface CameraFrameProps {
 
 export function CameraFrame({
   title = "Ana & Leo", wrap = "casamento", left = 24, viewfinder, dim, flash, closeHref, closeLabel = "Fechar", onClose,
-  flashOn, onFlash, onShoot, shootDisabled, rollLabel = "Minhas fotos", onRoll, onFlip, flipDisabled, stamp, band, status, statusRole = "status", overlay, fase, children,
+  flashOn, onFlash, onShoot, shootDisabled, rollLabel = "Minhas fotos", onRoll, onFlip, flipDisabled, stamp, band, status, statusRole = "status", overlay, fase, children, fx,
 }: CameraFrameProps = {}) {
+  const vf = useRef<HTMLDivElement>(null);
+  const flashLayer = useRef<HTMLDivElement>(null);
+  const shutterLayer = useRef<HTMLDivElement>(null);
+  const shutterBtn = useRef<HTMLButtonElement>(null);
+  const wheel = useRef<HTMLDivElement>(null);
+  const counter = useRef<HTMLDivElement>(null);
+  const roll = useRef<HTMLButtonElement>(null);
+  useImperativeHandle(fx, () => ({
+    get flash() { return flashLayer.current!; },
+    get shutter() { return shutterLayer.current!; },
+    get button() { return shutterBtn.current!; },
+    get wheel() { return wheel.current!; },
+    get counter() { return counter.current?.querySelector<HTMLElement>(".rvm-odo") ?? null; },
+    get viewfinder() { return vf.current!; },
+    get roll() { return roll.current!; },
+  }), []);
   return (
     <div className="scr camscr" data-wrap={wrap} data-fase={fase}>
-      <div className="vf">
+      <div className="vf" ref={vf}>
         {viewfinder ?? <img src="/revela/ref/sc-pista.jpg" alt="Visor da câmera" />}
         {flash && <div className="flashfx" />}
+        <div className="rv-shutter-layer" ref={shutterLayer} aria-hidden="true" />
+        <div className="rv-flash-layer" ref={flashLayer} aria-hidden="true" />
         {dim && <div className="vfdim" />}
         <div className="vf-top">
           {closeHref ? (
@@ -85,17 +117,17 @@ export function CameraFrame({
       <div className={`body body--${wrap}`}>
         <div className="body-shade" />
         <div className="body-row">
-          <div className="rv-counter">
-            <b>{left === null ? "∞" : left}</b>
+          <div className="rv-counter" ref={counter}>
+            <Odo value={left} minDigits={2} />
             <span>poses restantes</span>
           </div>
-          <button type="button" className="shutter" aria-label="Tirar foto" disabled={shootDisabled} onClick={onShoot}>
+          <button type="button" className="shutter" ref={shutterBtn} aria-label="Tirar foto" disabled={shootDisabled} onClick={onShoot}>
             <i />
           </button>
-          <div className="wheel" aria-hidden="true" />
+          <div className="wheel" ref={wheel} aria-hidden="true" />
         </div>
         <div className="body-foot">
-          <button type="button" className="filmstack" aria-label={rollLabel} onClick={onRoll}>
+          <button type="button" className="filmstack" ref={roll} aria-label={rollLabel} onClick={onRoll}>
             <i />
             <i />
           </button>

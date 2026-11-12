@@ -99,7 +99,7 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     return () => clearTimeout(id);
   }, [evCode]);
 
-  const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, counts: data.counts, refresh, revealStatus: status, developed } : null), [data, user, participant, isHost, now, refresh, status, developed]);
+  const ctx = useMemo(() => (data.event && user ? { event: data.event, user, participant, isHost, viewer: { id: user.id, host: isHost }, now, photos: data.photos, reactions: data.reactions, participants: data.participants, counts: data.counts, refresh, revealStatus: status, developed, celebrating: celebrate } : null), [data, user, participant, isHost, now, refresh, status, developed, celebrate]);
 
   if (!ready || data.loading) return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
   if (data.error) return <main className="app-col app-fluid"><div className="app-screen">

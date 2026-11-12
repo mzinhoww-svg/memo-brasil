@@ -1,5 +1,7 @@
 "use client";
 /* Feed-reacoes.html (24f): mesmo markup da referência; dados reais por props (padrão = desenho). */
+import { popHeart } from "@/lib/motion/use-moments";
+
 const svg = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
 export interface ReacaoItem { id: string; label: string; count: number; on?: boolean }
@@ -14,6 +16,8 @@ export interface FeedReacoesProps {
   /** "12 de 418" */
   position?: string;
   imageSrc?: string;
+  /** primeira vez que a foto abre: ela sai do banho do laboratório (rv-develop) */
+  develop?: boolean;
   stampLeft?: string;
   stampRight?: string;
   avatar?: string;
@@ -33,7 +37,7 @@ export interface FeedReacoesProps {
   onNext?: () => void;
 }
 
-export function FeedReacoes({ position = "12 de 418", imageSrc = "/revela/ref/sc-aliancas.jpg", stampLeft = "'27 03 14 · 22:41", stampRight = "por Leo", avatar = "L", author = "Leo", meta = "pose 19 de 27 · Primeira dança", reactions = REACOES_REF, onClose, onMore, onReact, onComment, onDownload, canDownload = true, downloadLabel = "Baixar", onPrev, onNext }: FeedReacoesProps = {}) {
+export function FeedReacoes({ position = "12 de 418", imageSrc = "/revela/ref/sc-aliancas.jpg", develop = false, stampLeft = "'27 03 14 · 22:41", stampRight = "por Leo", avatar = "L", author = "Leo", meta = "pose 19 de 27 · Primeira dança", reactions = REACOES_REF, onClose, onMore, onReact, onComment, onDownload, canDownload = true, downloadLabel = "Baixar", onPrev, onNext }: FeedReacoesProps = {}) {
   return (
     <>
     <div className="scr">
@@ -55,7 +59,7 @@ export function FeedReacoes({ position = "12 de 418", imageSrc = "/revela/ref/sc
         </div>
         <div className="grow" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div className="rv-print" style={{ width: "330px", height: "420px", transform: "rotate(-1.5deg)", zIndex: "1" }}>
-            <img src={imageSrc} alt="Foto de convidado" />
+            <img src={imageSrc} alt="Foto de convidado" className={develop ? "rv-develop" : undefined} />
             <div className="rv-print__cap">
               <span>{stampLeft}</span>
               <span>{stampRight}</span>
@@ -74,7 +78,7 @@ export function FeedReacoes({ position = "12 de 418", imageSrc = "/revela/ref/sc
         )}
         <div className="reacbar">
           {reactions.map((r) => (
-            <button key={r.id} type="button" className={r.on ? "on" : ""} aria-pressed={onReact ? Boolean(r.on) : undefined} onClick={onReact && (() => onReact(r.id))}>
+            <button key={r.id} type="button" className={r.on ? "on" : ""} aria-pressed={onReact ? Boolean(r.on) : undefined} onClick={onReact && ((e) => { if (!r.on) popHeart(e); onReact(r.id); })}>
               <b>{r.label}</b>
               <small>{r.count}</small>
             </button>

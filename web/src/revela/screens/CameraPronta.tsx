@@ -1,13 +1,20 @@
 /* Gerado de design-system/revela/html/Camera-pronta.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
+"use client";
 import Link from "next/link";
+import { useRef } from "react";
+import { confetti } from "@/lib/motion/revela-motion";
+import { useMomentOnce } from "@/lib/motion/use-moments";
 
 export interface CameraProntaProps { name?: string; cam?: string; shareLabel?: string; printHref?: string; onShare?: () => void }
 
 export function CameraPronta({ name = "Ana & Leo", cam = "/revela/ref/cam-casamento.webp", shareLabel = "Compartilhar convite", printHref = "#", onShare }: CameraProntaProps = {}) {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  // câmera pronta: o confete estoura uma vez ao abrir a tela
+  useMomentOnce(true, () => { if (canvas.current) void confetti(canvas.current, { mode: "burst", origin: { x: 0.5, y: 0.5 } }); });
   return (
     <>
     <div className="scr">
-      <img src="/revela/ref/obj-confetti.webp" alt="" style={{ "position": "absolute", "inset": "-60px -80px auto", "width": "560px", "opacity": ".95" }} />
+      <canvas ref={canvas} className="rvm-fx" aria-hidden="true" data-testid="confete" />
       <div className="safe" style={{ "textAlign": "center", "alignItems": "center", "position": "relative" }}>
         <div className="grow" style={{ "display": "flex", "alignItems": "center", "justifyContent": "center", "margin": "0 -30px" }}>
           <div className="rv-stagebox" style={{  }}>

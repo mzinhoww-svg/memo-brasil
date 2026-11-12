@@ -1,5 +1,6 @@
 "use client";
 /* Feed-comentarios.html (24e): mesmo markup da referência; dados reais por props (padrão = desenho). */
+import { popHeart } from "@/lib/motion/use-moments";
 import { FeedPost, FEED_REF_POSTS, type FeedPostData } from "./FeedEvento";
 
 const svg = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -77,7 +78,7 @@ export function FeedComentarios({ title = "Ana & Leo", post = FEED_REF_POSTS[0],
                 {onReport && !c.mine && <span className="rv-caption" {...act(() => onReport(c.id))}>{" · Denunciar"}</span>}
                 {onDelete && c.mine && <span className="rv-caption" {...act(() => onDelete(c.id))}>{" · Apagar"}</span>}
               </div>
-              <button type="button" aria-label="Curtir comentário" aria-pressed={onLike ? c.liked : undefined} className={c.liked ? "on" : ""} onClick={onLike && (() => onLike(c.id))}>
+              <button type="button" aria-label="Curtir comentário" aria-pressed={onLike ? c.liked : undefined} className={c.liked ? "on" : ""} onClick={onLike && ((e) => { if (!c.liked) popHeart(e); onLike(c.id); })}>
                 <svg {...svg} fill={c.liked ? "currentColor" : "none"}>
                   <path d="M12 20s-7.5-4.6-9.3-9.6C1.5 7.2 3.5 4.5 6.6 4.5c2 0 3.4 1 5.4 3 2-2 3.4-3 5.4-3 3.1 0 5.1 2.7 3.9 5.9C19.500 15.400 12 20 12 20z" />
                 </svg>
