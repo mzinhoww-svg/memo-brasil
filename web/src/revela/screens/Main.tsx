@@ -52,7 +52,7 @@ export function Main({ inviteHref = "/entrar#codigo", account, banner, actions =
       <div className="safe" style={{ "position": "relative", "zIndex": "2" }}>
         <div className="row between">
           <Link href="/" className="row" style={{ "gap": "10px" }} aria-label="Revela, início">
-            <svg width="40" height="40" viewBox="0 0 64 64" aria-hidden="true" style={{ flex: "none" }}>
+            <svg width="40" height="40" viewBox="0 0 64 64" aria-hidden="true" style={{ flex: "none", width: 40, height: 40 }}>
               <rect width="64" height="64" rx="16" fill="var(--surface-1)" />
               <path d="M14 34.5a18 18 0 0 0 36 0z" fill="var(--revela)" />
               <path d="M15 29.5a17 17 0 0 1 34 0z" fill="none" stroke="var(--ink)" strokeWidth="2.4" strokeLinejoin="round" />
