@@ -1,6 +1,7 @@
-import { MNote, MState } from "@/revela/master-kit";
-import { ExportButton } from "../ExportButton";
-import { ReconcileButton } from "../ReconcileButton";
+import { MNote } from "@/revela/master-kit";
+import { MasterStatePage } from "@/revela/master";
+import { ExportSheetButton } from "../ExportSheetButton";
+import { ReconcileSheetButton } from "../ReconcileSheetButton";
 import { MasterPagamentosView, type PagamentoRow } from "@/revela/screens/MasterPagamentos";
 import { brl, divergenceText } from "../billing";
 import { requireRole, rpc } from "../data";
@@ -29,19 +30,24 @@ export default async function Pagamentos({ searchParams }: { searchParams: Promi
   const { sb } = gate;
   const f = (await searchParams).f ?? "";
   const filtro = MATCH[f] ? f : "";
-  const [s, list, div] = await Promise.all([
+  const [s, list, div, lastReq] = await Promise.all([
     rpc<Summary>(sb, "admin_payments_summary"),
     rpc<Order[]>(sb, "admin_list_payments", { p_limit: 200 }),
     rpc<Divergence[]>(sb, "admin_payment_divergences"),
+    rpc<{ items: { at: string }[] }>(sb, "admin_list_audit", { p_limit: 1, p_offset: 0, p_action: "payments.reconcile_requested" }),
   ]);
-  if (list.state !== "ok") return <MState kind={list.state === "denied" ? "denied" : "error"} text={list.state === "error" ? `Não foi possível carregar: ${list.message}` : undefined} />;
+  if (list.state !== "ok") return <MasterStatePage area="Pagamentos" variant={list.state === "denied" ? "denied" : "error"} />;
   const all = list.data;
   const shown = filtro ? all.filter(MATCH[filtro]) : all;
   const rows: PagamentoRow[] = shown.map((o) => {
     const st = orderLabel(o);
     return { key: o.orderId, when: relWhen(o.createdAt), order: `#${o.orderId.slice(0, 8).toUpperCase()}`, event: o.eventTitle ?? "Evento excluído", plan: o.planName ?? o.planCode, method: methodLabel(o.paymentMethod), amount: brl(o.amountCents), tone: st.tone, status: st.label, href: `/master/pagamentos/${o.orderId}` };
   });
+  if (all.length === 0 && !filtro) {
+    return <MasterStatePage area="Pagamentos" variant="empty" caption="Cobranças da ValidaPay, conciliadas com os pedidos do Revela" title="Nenhum pagamento ainda" text="Quando alguém pagar um plano, o pedido aparece aqui." actions={<ReconcileSheetButton />} />;
+  }
   const sum = s.state === "ok" ? s.data : null;
+  const lastAt = lastReq.state === "ok" ? lastReq.data.items[0]?.at : undefined;
   const pend = sum?.byStatus.pendente;
   const toRefund = all.filter((o) => o.needsRefund).length;
   return (
@@ -54,7 +60,12 @@ export default async function Pagamentos({ searchParams }: { searchParams: Promi
         { label: "Para estornar", value: nf(toRefund), note: toRefund ? "dinheiro recebido sem plano" : "nada a estornar" },
       ]}
       chips={FILTROS.map(([k, label]) => ({ label, href: k ? `/master/pagamentos?f=${k}` : "/master/pagamentos", on: k === filtro }))}
-      rows={rows} actions={<><ReconcileButton /><ExportButton kind="pagamentos" screen="pagamentos" filters={{ f: filtro }} /></>}
+      rows={rows}
+      actions={<>
+        <ReconcileSheetButton last={lastAt ? relWhen(lastAt) : undefined} />
+        <ExportSheetButton kind="pagamentos" screen="pagamentos" screenLabel="Pagamentos" filters={{ f: filtro }} period="Todo o período"
+          filtersText={`Método e situação: ${FILTROS.find(([k]) => k === filtro)?.[1] ?? "Todos"}`} rowsEstimate={shown.length} />
+      </>}
       alerts={div.state === "ok" && div.data.length > 0 ? (
         <div className="stack" style={{ marginBottom: "14px", gap: "8px" }} aria-label="Divergências">
           {div.data.map((d) => <MNote key={`${d.orderId}-${d.kind}`}><strong>{d.eventTitle ?? "Evento excluído"}:</strong> {divergenceText(d.kind)}{d.occurrences > 1 ? ` (${d.occurrences} vezes)` : ""}</MNote>)}
