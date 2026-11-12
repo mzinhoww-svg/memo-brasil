@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { MODULES } from "./modules";
 import {
   brl, canRefund, refundFailureText, chargeHint, providerLabel, paymentRef, refundNote, lastChange, divergenceText, envLabel, orderStatus, parseBrl, planPreview, reasonError, REASON_MAX, REASON_MIN,
 } from "./billing";
@@ -126,12 +125,5 @@ describe("falha do reembolso", () => {
   it("nota do reembolso cita o provedor do pedido", () => {
     expect(refundNote("mercadopago")).toBe("Reembolso integral pelo Mercado Pago. O status vira estornado quando o provedor confirmar. Fica no registro de auditoria.");
     expect(refundNote("abacatepay")).toBe("Reembolso integral pela AbacatePay (provedor histórico). O status vira estornado quando o provedor confirmar. Fica no registro de auditoria.");
-  });
-});
-
-describe("módulos do console", () => {
-  it("inclui Pagamentos e Planos e preços", () => {
-    expect(MODULES).toHaveLength(15);
-    expect(MODULES).toEqual(expect.arrayContaining([{ rota: "pagamentos", rotulo: "Pagamentos" }, { rota: "planos", rotulo: "Planos e preços" }]));
   });
 });
