@@ -32,7 +32,7 @@ export function MasterEventosView({ caption = "263 eventos · 41 rolando agora",
   return (
     <>
       <MHead title="Eventos" caption={caption}>
-        {exportAction ? exportAction : exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar CSV</BtnLink> : <button className="rv-btn rv-btn--sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>Exportar CSV</button>}
+        {exportAction !== undefined ? exportAction : exportHref === null ? null : exportHref ? <BtnLink href={exportHref} icon="download">Exportar CSV</BtnLink> : <button className="rv-btn rv-btn--sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>Exportar CSV</button>}
       </MHead>
       <Chips items={chips} />
       <MTable cols="1.6fr 1.1fr 0.9fr 0.9fr 0.8fr 0.6fr 0.9fr 1fr" head={["Evento", "Organizador", "Categoria", "Plano", "Convidados", "Fotos", "Revela", "Situação"]} rows={mrows} empty="Nenhum evento neste filtro." />
