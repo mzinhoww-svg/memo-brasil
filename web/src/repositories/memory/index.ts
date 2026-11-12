@@ -1,7 +1,7 @@
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { beginRow, isPublished, matchesFilter, paginate, sortNewestFirst } from "../paging";
-import { objectUrl } from "../object-url";
+import { objectUrl, urlsFromSingle } from "../object-url";
 import { localCounts, toPreview } from "../preview";
 import { RepositoryError, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryOptions, type User } from "../types";
 
@@ -25,6 +25,7 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
   const assertAllowed = (p: { eventId: string; authorId: string }) => {
     if (participants.get(pk(p.eventId, p.authorId))?.blockedAt !== undefined) throw new RepositoryError("blocked", "Participante bloqueado");
   };
+  const urlOf = async (id: string) => (data.has(id) ? objectUrl(data.get(id)!) : undefined);
   return {
     events: {
       preview: async (code, now) => {
@@ -98,7 +99,8 @@ export function createMemoryRepositories(opts: RepositoryOptions = {}): Reposito
         return clone(saved);
       },
       pending: async (id) => sortNewestFirst([...photos.values()].filter((p) => p.eventId === id && !isPublished(p))).map(clone),
-      getUrl: async (id) => (data.has(id) ? objectUrl(data.get(id)!) : undefined),
+      getUrl: urlOf,
+      getUrls: (photos, size) => urlsFromSingle(urlOf, photos, size),
       add: async (p, d) => {
         assertAllowed(p);
         if (photos.has(p.id)) return;

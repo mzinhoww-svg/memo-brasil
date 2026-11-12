@@ -149,6 +149,15 @@ describe.each(impls)("contrato v2: fotos por URL e envio em duas fases (%s)", (_
     await r.photos.begin(ph("p2", 2, { uploadStatus: "enviando" }));
     expect(await r.photos.getUrl("p2", "full")).toBeUndefined();
   });
+  it("getUrls entrega várias URLs de uma vez e deixa de fora quem não tem bytes", async () => {
+    await r.photos.add(ph("p1", 1), data(1));
+    await r.photos.add(ph("p3", 3), data(3));
+    await r.photos.begin(ph("p2", 2, { uploadStatus: "enviando" }));
+    const got = await r.photos.getUrls!([{ id: "p1", eventId: "e1" }, { id: "p2", eventId: "e1" }, { id: "p3", eventId: "e1" }], "thumb");
+    expect(Object.keys(got).sort()).toEqual(["p1", "p3"]);
+    expect(got.p1.url).toMatch(/^blob:/);
+    expect(got.p1.expiresAt).toBeUndefined();
+  });
 });
 
 describe("contrato v2: created_at é do repositório quando ele tem relógio (servidor)", () => {

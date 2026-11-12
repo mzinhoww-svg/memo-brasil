@@ -4,7 +4,7 @@ import type { Photo, Reaction } from "@/domain/photo";
 import { paginate, sortNewestFirst } from "../paging";
 import type { ThemeSpec } from "@/domain/theme";
 import { isMissingThemeSchema } from "./compat";
-import { RepositoryError, type EventPreview, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryErrorCode, type User } from "../types";
+import { RepositoryError, type EventPreview, type Invitation, type Participant, type PhotoData, type PhotoUrl, type Repositories, type RepositoryErrorCode, type User } from "../types";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -14,6 +14,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  */
 const BUCKET = "event-photos";
 const PAGE = 1000; // PostgREST trunca em 1000 linhas por requisição
+/** Validade das URLs assinadas: longa o bastante para o cache do cliente reaproveitar a mesma URL entre telas. */
+export const SIGNED_URL_TTL_S = 3600;
 
 type Row = Record<string, unknown>;
 const ms = (v: unknown): number | undefined => (typeof v === "string" ? Date.parse(v) : undefined);
@@ -109,6 +111,30 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
     if (sameTheme(cur, e.theme)) return;
     if (e.theme) ok(await sb.from("event_themes").upsert(themeRow(e.id, e.theme), { onConflict: "event_id" }));
     else ok(await sb.from("event_themes").delete().eq("event_id", e.id));
+  };
+
+  /**
+   * Assina em lote (uma ida): o caminho é `${event_id}/${id}` (constraint `photos_path_matches`) e a miniatura, quando
+   * existe, `${caminho}.thumb`. Para `thumb` as duas são assinadas juntas e a miniatura vence; sem miniatura o Storage
+   * devolve erro só naquele item e fica a original, sem sondagem em série. Quem decide se a pessoa pode ver é a política
+   * do Storage (mesma regra da linha da foto): foto bloqueada não recebe URL.
+   */
+  const signUrls = async (photos: { id: string; eventId: string }[], size: "thumb" | "full"): Promise<Record<string, PhotoUrl>> => {
+    if (!photos.length) return {};
+    const base = (p: { id: string; eventId: string }) => `${p.eventId}/${p.id}`;
+    const paths = photos.flatMap((p) => (size === "thumb" ? [`${base(p)}.thumb`, base(p)] : [base(p)]));
+    const at = Date.now();
+    const r = await sb.storage.from(BUCKET).createSignedUrls(paths, SIGNED_URL_TTL_S);
+    if (r.error) throw toRepositoryError(r.error);
+    const got = (i: number) => { const d = r.data?.[i]; return d && !d.error && d.signedUrl ? d.signedUrl : undefined; };
+    const out: Record<string, PhotoUrl> = {};
+    photos.forEach((p, i) => {
+      const thumb = size === "thumb" ? got(2 * i) : undefined;
+      const full = got(size === "thumb" ? 2 * i + 1 : i);
+      const url = thumb ?? full;
+      if (url) out[p.id] = { url, release: () => undefined, expiresAt: at + SIGNED_URL_TTL_S * 1000, size: thumb ? "thumb" : "full" };
+    });
+    return out;
   };
 
   const selectAll = async (table: string, build: (q: ReturnType<typeof sb.from>) => unknown): Promise<Row[]> => {
@@ -267,15 +293,12 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         return { bytes: await r.data.arrayBuffer(), type: (p.mime as string) ?? r.data.type } as PhotoData;
       },
       getUrl: async (id, size) => {
-        const p = ok(await sb.from("photos").select("storage_path").eq("id", id).maybeSingle()) as Row | null;
+        // só o id: o caminho vem da linha (1 ida) e a assinatura sai num único lote com a miniatura (1 ida)
+        const p = ok(await sb.from("photos").select("event_id").eq("id", id).maybeSingle()) as Row | null;
         if (!p) return undefined;
-        const base = p.storage_path as string;
-        for (const path of size === "thumb" ? [`${base}.thumb`, base] : [base]) {
-          const r = await sb.storage.from(BUCKET).createSignedUrl(path, 60);
-          if (!r.error) return { url: r.data.signedUrl, release: () => undefined };
-        }
-        return undefined;
+        return (await signUrls([{ id, eventId: p.event_id as string }], size))[id];
       },
+      getUrls: (photos, size) => signUrls(photos, size),
       remove: async (id) => void ok(await sb.rpc("discard_photo", { p_id: id })),
       removeByEvent: async () => undefined, // cascata do banco (delete_event)
     },

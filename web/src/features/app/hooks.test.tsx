@@ -4,9 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const readEventScoped = vi.fn();
 vi.mock("@/features/access/read", () => ({ readEventScoped: (...a: unknown[]) => readEventScoped(...a) }));
 vi.mock("./provider", () => ({ useApp: () => app }));
-const app = { repos: {}, ready: true, user: { id: "u1" }, now: () => 1 };
+const app = { repos: {}, ready: true, user: { id: "u1" } as { id: string }, now: () => 1 };
 
-import { useEventData } from "./hooks";
+import { patchEventData, useEventData } from "./hooks";
+import { clearAppData, markAppDataStale } from "./data-cache";
 
 const result = { access: "membro", event: { id: "e1" }, participants: [], photos: [], reactions: [], counts: { mine: 0, total: 0 } };
 const visibility = (state: "visible" | "hidden") => {
@@ -15,7 +16,7 @@ const visibility = (state: "visible" | "hidden") => {
 };
 
 describe("useEventData", () => {
-  beforeEach(() => { vi.useFakeTimers(); readEventScoped.mockReset(); readEventScoped.mockResolvedValue(result); visibility("visible"); });
+  beforeEach(() => { vi.useFakeTimers(); clearAppData(app.repos); app.user = { id: "u1" }; readEventScoped.mockReset(); readEventScoped.mockResolvedValue(result); visibility("visible"); });
   afterEach(() => vi.useRealTimers());
 
   it("recarrega em visibilitychange para visível, não para oculto", async () => {
@@ -53,5 +54,53 @@ describe("useEventData", () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
     expect(r.current.loading).toBe(false);
     expect(r.current.error).toBe("rate-limited");
+  });
+
+  it("outra tela do mesmo evento (convite → câmera) mostra na hora o que já foi lido, sem nova ida nem carregando", async () => {
+    const first = renderHook(() => useEventData({ code: "ABCD2345" }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    first.unmount();
+    const second = renderHook(() => useEventData({ code: "ABCD2345" }));
+    expect(second.result.current.loading).toBe(false);
+    expect(second.result.current.access).toBe("membro");
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(readEventScoped).toHaveBeenCalledTimes(1);
+  });
+  it("cache velho (mais de 15 s ou depois de uma mutação) aparece na hora e é relido por baixo", async () => {
+    renderHook(() => useEventData({ code: "ABCD2345" })).unmount();
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    markAppDataStale(app.repos);
+    const again = renderHook(() => useEventData({ code: "ABCD2345" }));
+    expect(again.result.current.loading).toBe(false);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(readEventScoped).toHaveBeenCalledTimes(2);
+    again.unmount();
+    await act(async () => { await vi.advanceTimersByTimeAsync(16_000); });
+    renderHook(() => useEventData({ code: "ABCD2345" }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(readEventScoped).toHaveBeenCalledTimes(3);
+  });
+  it("convite em cache não é mostrado de novo sem reler (entrar muda a resposta)", async () => {
+    readEventScoped.mockResolvedValueOnce({ ...result, access: "convite", event: undefined, preview: { title: "Festa" } });
+    renderHook(() => useEventData({ code: "ABCD2345" })).unmount();
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    const again = renderHook(() => useEventData({ code: "ABCD2345" }));
+    expect(again.result.current.loading).toBe(true);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(again.result.current.access).toBe("membro");
+  });
+  it("cada pessoa tem a sua entrada: trocar de usuário não mostra o que a outra viu", async () => {
+    renderHook(() => useEventData({ code: "ABCD2345" })).unmount();
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    app.user = { id: "u2" };
+    const other = renderHook(() => useEventData({ code: "ABCD2345" }));
+    expect(other.result.current.loading).toBe(true);
+  });
+  it("patchEventData atualiza na hora quem está mostrando o evento (curtida otimista)", async () => {
+    const { result: r } = renderHook(() => useEventData({ code: "ABCD2345" }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    act(() => patchEventData(app.repos, "e1", (v) => ({ ...v, reactions: [{ eventId: "e1", photoId: "p1", authorId: "u1", kind: "amei" }] })));
+    expect(r.current.reactions).toHaveLength(1);
+    expect(readEventScoped).toHaveBeenCalledTimes(1);
   });
 });
