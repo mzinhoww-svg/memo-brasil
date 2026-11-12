@@ -5,6 +5,8 @@ export interface User {
   id: string;
   name: string;
   createdAt: number;
+  /** Só na nuvem: sessão anônima (convidado sem conta). Serve à interface; quem autoriza é o servidor (JWT/RLS). */
+  anonymous?: boolean;
 }
 export interface Participant {
   eventId: string;
@@ -52,7 +54,14 @@ export interface Page<T> { items: T[]; total: number; nextCursor: string | null 
 export interface PhotoCountFilter { authorId?: string; status?: Photo["status"]; excludeStatus?: Photo["status"] }
 
 /** URL para exibir a foto; `release` devolve o recurso (revoga o object URL ou descarta a URL assinada). */
-export interface PhotoUrl { url: string; release: () => void }
+export interface PhotoUrl {
+  url: string;
+  release: () => void;
+  /** Até quando a URL vale (ms). Ausente = não vence (object URL local). */
+  expiresAt?: number;
+  /** O tamanho que a URL realmente entrega: `thumb` pedido pode chegar como `full` quando não há miniatura. */
+  size?: PhotoSize;
+}
 export type PhotoSize = "thumb" | "full";
 export interface RepositoryOptions {
   /** Relógio do repositório. Com ele, `createdAt` é do repositório (servidor); sem ele vale o horário do cliente. */
@@ -95,7 +104,10 @@ export interface EventRepository {
   /** "Revelar agora" no servidor (RPC `reveal_now`, a mesma do Master). Ausente nos adaptadores locais, que aplicam a mesma regra no cliente. */
   revealNow?(eventId: string, reason?: string): Promise<void>;
   list(): Promise<MemoEvent[]>;
-  /** Só os eventos que a pessoa criou ou em que entrou (no servidor; a RLS do Master veria todos com `list`). */
+  /**
+   * Só os eventos que a pessoa criou ou em que entrou (no servidor; a RLS do Master veria todos com `list`). Todo evento
+   * devolvido que não é da pessoa é um em que ela entrou: quem chama não precisa conferir a participação de novo.
+   */
   listMine?(userId: string): Promise<MemoEvent[]>;
   get(id: string): Promise<MemoEvent | undefined>;
   getByCode(code: string): Promise<MemoEvent | undefined>;
@@ -135,6 +147,12 @@ export interface PhotoRepository {
   add(photo: Photo, data: PhotoData): Promise<void>;
   /** URL de exibição; `thumb` cai para a imagem inteira quando não há miniatura. */
   getUrl(id: string, size: PhotoSize): Promise<PhotoUrl | undefined>;
+  /**
+   * URLs de várias fotos de uma vez (no servidor, uma única ida: o caminho `${eventId}/${id}` é montado aqui e todas são
+   * assinadas em lote). Foto sem URL (inexistente, bloqueada) fica fora do resultado. `thumb` cai para a inteira sem sondar
+   * foto a foto. Opcional: sem ele, quem chama usa `getUrl` em paralelo.
+   */
+  getUrls?(photos: Pick<Photo, "id" | "eventId">[], size: PhotoSize): Promise<Record<string, PhotoUrl>>;
   /** Versionado; foto inexistente é `not-found`. */
   update(photo: Photo, opts?: WriteOptions): Promise<Photo>;
   getData(id: string): Promise<PhotoData | undefined>;

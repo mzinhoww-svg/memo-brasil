@@ -6,6 +6,7 @@ import { retrospectiveOpen, eventStatus, isRevealed } from "@/domain/event";
 import { visiblePhotos, type ReactionKind } from "@/domain/photo";
 import { useApp } from "@/features/app/provider";
 import { usePhotoUrls } from "@/features/app/hooks";
+import { reactOptimistic } from "@/features/feed/optimistic";
 import { createCloudComments, createLocalComments, type CommentsApi } from "@/features/comments/service";
 import { CommentsOverlay, Overlay } from "@/features/feed/CommentsOverlay";
 import { commentsText, firstName, initialOf, likesText, photoMoment, poseLabel, printStamp, reactionItems } from "@/features/feed/format";
@@ -13,7 +14,7 @@ import { useGuest } from "@/features/events/guest-context";
 import { CreateYourOwn } from "@/features/reveal/CreateYourOwn";
 import { MoreSheet } from "@/features/photos/components";
 import { photoReasonAt } from "@/features/moderation/report-reasons";
-import { react, reportPhoto } from "@/features/photos/service";
+import { reportPhoto } from "@/features/photos/service";
 import { canDownloadOriginal, DOWNLOAD_DENIED_TEXT, downloadPhoto, DownloadNotAllowedError, reactorsOf } from "@/features/photos/share";
 import { stampDay } from "@/features/guest/format";
 import { DENUNCIA_MOTIVOS_FOTO, FeedDenunciar } from "@/revela/screens/FeedDenunciar";
@@ -64,8 +65,10 @@ export function RevealedFeed() {
   const page = shown.slice(0, limit);
   const open = openId ? shown.findIndex((p) => p.id === openId) : -1;
   const develop = useFirstOpen(openId); // a foto revela (rv-develop) só na primeira vez que abre
-  const wanted = useMemo(() => [...page, ...(open >= 0 ? [shown[open], shown[open - 1], shown[open + 1]].filter((p) => p !== undefined) : [])], [page, open, shown]);
-  const urls = usePhotoUrls(wanted);
+  // posts da lista: miniatura (cai na original quando não há); foto aberta e vizinhas: inteira. Mesma URL em todas as telas.
+  const urls = usePhotoUrls(page, "thumb");
+  const near = useMemo(() => (open >= 0 ? [shown[open], shown[open - 1], shown[open + 1]].filter((p) => p !== undefined) : []), [open, shown]);
+  const fullUrls = usePhotoUrls(near, "full");
 
   // virada da revelação: se o feed nasceu da passagem pendente → revelada, as primeiras fotos chegam borradas e viram fotos reais
   const [veil, setVeil] = useState<{ ids: string[]; done: boolean } | null>(null);
@@ -102,8 +105,8 @@ export function RevealedFeed() {
 
   async function onReact(photoId: string, kind: ReactionKind) {
     if (!event.reactionsEnabled) { setNote("O anfitrião desligou as reações deste evento."); return; }
-    await react(repos, event, photoId, user.id, kind, now);
-    await refresh();
+    // otimista: aparece na hora; grava e reconcilia por baixo, sem reler o evento inteiro
+    if (!(await reactOptimistic(repos, event, photoId, user.id, kind, now, mine(photoId)))) setNote("Não deu para registrar a reação. Tente de novo.");
   }
   const onLike = (id: string) => void onReact(id, mine(id)?.kind ?? "amei");
   async function share() {
@@ -189,7 +192,7 @@ export function RevealedFeed() {
       {openPhoto && (
         <Overlay label="Foto aberta">
           <FeedReacoes
-            position={`${open + 1} de ${shown.length}`} imageSrc={urls[openPhoto.id] ?? BLANK} develop={develop}
+            position={`${open + 1} de ${shown.length}`} imageSrc={fullUrls[openPhoto.id] ?? urls[openPhoto.id] ?? BLANK} develop={develop}
             stampLeft={printStamp(photoMoment(openPhoto), event.timezone)} stampRight={`por ${firstName(openPhoto.authorName)}`}
             avatar={initialOf(openPhoto.authorName)} author={firstName(openPhoto.authorName)}
             meta={`${poseLabel(openPhoto, all, event)} · ${openPhoto.moment}`}
