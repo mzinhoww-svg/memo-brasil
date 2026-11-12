@@ -95,7 +95,7 @@ export function nextRenewal(repo: object, photos: Pick<Photo, "id">[], size: Pho
   return next;
 }
 
-/** Testes. */
+/** Esquece as URLs guardadas deste repositório (troca de pessoa/logout). */
 export function resetPhotoUrlCache(repo: object): void {
   caches.delete(repo);
 }

@@ -14,6 +14,7 @@ import { backendMode } from "@/lib/supabase/env";
 import { serverRevealAuthority } from "@/features/authority";
 import { clearAppData, markAppDataStale } from "./data-cache";
 import { loadIdentity } from "./identity";
+import { resetPhotoUrlCache } from "./photo-urls";
 import { withWriteHook } from "./invalidate";
 
 /** Repositórios que marcam o cache de dados como velho depois de cada escrita (postar, curtir, mudar o evento...). */
@@ -108,7 +109,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const userId = user?.id;
   useEffect(() => {
     if (!ready) return;
-    if (lastUser.current !== null && lastUser.current !== userId) clearAppData(repos);
+    if (lastUser.current !== null && lastUser.current !== userId) {
+      clearAppData(repos);
+      resetPhotoUrlCache(repos.photos); // URLs assinadas para a sessão anterior também saem
+    }
     lastUser.current = userId;
   }, [ready, userId, repos]);
 
