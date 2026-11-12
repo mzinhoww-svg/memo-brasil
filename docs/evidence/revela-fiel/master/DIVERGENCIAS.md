@@ -48,3 +48,17 @@ A tela M32 do app mostra a matriz real (`ROLE_MATRIX` em `roles.ts`); a do desen
 - Páginas antigas (`usuarios`, `organizadores`, `participantes`, `storage`, `analytics`) estão redirecionadas (308) mas o código delas e o de `ui.tsx`, `.adm-*`, `modules.ts` e `admin.css` seguem no repositório.
 - O destino `/master/pessoas?aba=contas` (e `convites`) só funciona quando a onda de Pessoas criar essas abas; hoje a página trata `aba` desconhecida como o padrão.
 - E2E `master-studio.spec.ts`, `session.spec.ts` e `reveal.spec.ts` continuam esperando o menu de 12 links e `.adm-table` (já estavam desatualizados); reescrever contra o menu novo (13 itens, 12 sem a chave).
+
+## 5. Impressões (M29/M30) e Configurações (M31)
+
+- **Gênero**: o desenho escreve "anfitriã"/"convidada"; o banco não guarda gênero, então a tela mostra "anfitrião"/"convidado".
+- **Código do pedido** (`IMP-7K2Q`): não existia; migration `20261111000500` cria `print_orders.seq` e `print_order_code()` (único, 4 símbolos). A busca da lista aceita o código.
+- **Avançar status (M30.f1)** não pede motivo, como no desenho (a folha não é a `ActionSheet`, que sempre pede motivo); o servidor audita quem e quando. **Cancelar (M30.f2)** usa a `ActionSheet` (motivo 10 a 500, irreversível). O motivo do cancelamento agora vai só para a auditoria e para a linha do tempo, sem sobrescrever a nota interna.
+- **Nota interna**: o desenho não tem botão; salva ao sair do campo (`admin_set_print_order_note`, só master, até 500, auditada sem o texto).
+- **Fotos**: números = posição da foto na galeria do evento; "todas as fotos" conta as prontas do evento. Mostra 18 números e "+N".
+- **Linha do tempo** de pedido cancelado (não desenhada): termina em "Cancelado" com quando, quem e motivo, sem os passos por fazer.
+- **Pedido não encontrado / carregando** no app: título é o da área ("Impressões") e só o botão Voltar aparece (o desenho mostra também Cancelar e Marcar).
+- **Paginação** fica no fluxo da página no app (no desenho é fixa no rodapé de 900 px).
+- **Configurações**: nova chave "Álbum impresso" (`printed_album`) em um cartão "Recursos", fora do desenho (exigida pela decisão 2). Folhas para ligar chaves e para alterar suporte, empresa e folga reutilizam a M31.f1/f2 com textos paralelos. O botão Salvar só recusa valor inválido ao clicar (a linha vermelha avisa na hora); o servidor valida de novo.
+- **Servidor**: `admin_set_setting` recusa `payments_env`, Pix fora de 5–1.440 e valores inválidos; motivo de 10 a 500 também em `admin_set_feature_flag`; a auditoria guarda valor antigo e novo dos parâmetros públicos e das chaves. Webhook: URL da função `payments-validapay-webhook`, estado "Ativo", "Sem eventos" ou "Com falhas" a partir de `validapay_webhook_inbox`.
+- M14 (`MasterConfig`) e as telas antigas de impressões foram removidas.

@@ -87,7 +87,6 @@ import { MasterPessoas } from "./MasterPessoas";
 import { MasterSaude } from "./MasterSaude";
 import { MasterLgpd } from "./MasterLgpd";
 import { MasterAuditoria } from "./MasterAuditoria";
-import { MasterConfig } from "./MasterConfig";
 import { MasterPessoasContas } from "./MasterPessoasContas";
 import { MasterPessoasContasVazio } from "./MasterPessoasContasVazio";
 import { MasterPessoasContasErro } from "./MasterPessoasContasErro";
@@ -271,7 +270,6 @@ export const COMPONENTS: Record<string, () => import("react").JSX.Element> = {
   "Master-saude": MasterSaude,
   "Master-lgpd": MasterLgpd,
   "Master-auditoria": MasterAuditoria,
-  "Master-config": MasterConfig,
   "Master-pessoas-contas": MasterPessoasContas,
   "Master-pessoas-contas--vazio": MasterPessoasContasVazio,
   "Master-pessoas-contas--erro": MasterPessoasContasErro,
