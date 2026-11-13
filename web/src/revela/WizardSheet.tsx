@@ -9,8 +9,10 @@ const BACK = (
   </svg>
 );
 
-export function WizardSheet({ step, title, caption, children, next = "Próximo", onBack, onNext, busy }: {
+export function WizardSheet({ step, title, caption, children, next = "Próximo", onBack, onNext, busy, foot }: {
   step: number; title: string; caption: string; children: ReactNode; next?: string; onBack?: () => void; onNext?: () => void; busy?: boolean;
+  /** Texto fixo logo acima da barra de ação (ex.: aviso de aceite); não rola com o corpo e não cobre o botão. */
+  foot?: ReactNode;
 }) {
   const dir = useWizardDirection();
   // o traço do passo atual enche depois de montar (transição do kit); os anteriores já entram cheios
@@ -35,6 +37,7 @@ export function WizardSheet({ step, title, caption, children, next = "Próximo",
           {Array.from({ length: 8 }, (_, i) => <i key={i} className={`rv-seg${i < step ? " on" : ""}`} data-on={i < filled} />)}
         </div>
         <div className={`sheet-body ${dir ? "rv-step" : "rv-rise"}`} data-dir={dir}>{children}</div>
+        {foot && <div className="sheet-foot" style={{ flex: "none", padding: "0 0 10px", textAlign: "center" }}>{foot}</div>}
         <div className="cta-bar">
           <button type="button" className="rv-icon-btn rv-press" aria-label="Voltar" onClick={onBack} disabled={busy}>{BACK}</button>
           <button type="button" className="rv-btn rv-btn--primary rv-press" onClick={onNext} disabled={busy} aria-busy={busy}>{next}</button>

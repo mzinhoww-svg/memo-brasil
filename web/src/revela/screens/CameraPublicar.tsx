@@ -30,7 +30,16 @@ export function CameraPublicar({
   plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, pack, legal, onSelect, onBack, onNext,
 }: CameraPublicarProps = {}) {
   return (
-    <WizardSheet step={8} title="Escolha o plano" caption="Pague uma vez por evento. Sem assinatura." onBack={onBack} onNext={onNext} next={next} busy={busy}>
+    <WizardSheet step={8} title="Escolha o plano" caption="Pague uma vez por evento. Sem assinatura." onBack={onBack} onNext={onNext} next={next} busy={busy}
+      foot={legal && (
+      <p className="rv-caption center" data-testid="aviso-aceite" style={{ margin: "0" }}>
+        {"Ao continuar, você aceita os "}
+        <Link href={legal.termsHref} className="link" target="_blank">Termos de Uso</Link>
+        {" e a "}
+        <Link href={legal.privacyHref} className="link" target="_blank">Política de Privacidade</Link>
+        .
+      </p>
+    )}>
       <div className="rv-stagebox" style={{ marginTop: "-6px" }}>
         <Cam3D src={image} alt="Câmera do evento" width={260} />
       </div>
@@ -53,15 +62,6 @@ export function CameraPublicar({
         </svg>
         <span>ValidaPay</span>
       </div>
-      {legal && (
-        <p className="rv-caption center" data-testid="aviso-aceite" style={{ margin: "0" }}>
-          {"Ao continuar, você aceita os "}
-          <Link href={legal.termsHref} className="link" target="_blank">Termos de Uso</Link>
-          {" e a "}
-          <Link href={legal.privacyHref} className="link" target="_blank">Política de Privacidade</Link>
-          .
-        </p>
-      )}
     </WizardSheet>
   );
 }
