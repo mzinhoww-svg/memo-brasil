@@ -1,9 +1,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const mocks = vi.hoisted(() => ({ signIn: vi.fn(), lookup: vi.fn(), save: vi.fn(), push: vi.fn() }));
+const mocks = vi.hoisted(() => ({ signIn: vi.fn(), lookup: vi.fn(), save: vi.fn(), push: vi.fn(), peek: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }), usePathname: () => "/criar" }));
 vi.mock("@/features/app/provider", () => ({ useApp: () => ({ repos: { events: { getByCode: mocks.lookup, save: mocks.save } }, user: { id: "u", name: "Ana" }, signIn: mocks.signIn, now: () => 1800000000000, ready: true, backend: "local", canCreate: true }) }));
-vi.mock("@/features/billing/api", async (orig) => ({ ...(await orig<typeof import("@/features/billing/api")>()), listPublicPlans: async () => [{ code: "gratis", name: "Grátis", isFree: true, maxShots: 10, maxGuests: 10, priceCents: 0, features: [] }], getPublicSettings: async () => ({}) }));
+vi.mock("@/features/billing/api", async (orig) => ({ ...(await orig<typeof import("@/features/billing/api")>()), listPublicPlans: async () => [{ code: "gratis", name: "Grátis", isFree: true, maxShots: 10, maxGuests: 10, priceCents: 0, features: [] }], getPublicSettings: async () => ({}), peekCode: async (c: string) => (mocks.peek(c) ?? null) }));
 import { CreateWizard } from "./wizard";
 const next = () => fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
 beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); mocks.signIn.mockResolvedValue({ id: "u", name: "Ana" }); mocks.lookup.mockResolvedValue(null); mocks.save.mockImplementation(async (e) => e); });
@@ -47,6 +47,31 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", async () => 
       for (let i = 0; i < 6; i++) next();
       expect(await screen.findByTestId("aviso-codigo")).toHaveTextContent("Código de cortesia MMT-7KQ4-AB12 será aplicado ao criar o evento.");
     } finally { localStorage.clear(); }
+  });
+  it("8 · presente válido: um só cartão com o plano do código, sem preço, e o botão cria a câmera sem pagar", async () => {
+    localStorage.setItem("mm-codigo-pendente", JSON.stringify({ c: "MMT-7KQ4-AB12", t: Date.now() }));
+    mocks.peek.mockResolvedValue({ status: "ativo", planCode: "casamento", planName: "Casamento", maxGuests: 250, maxShots: 36 });
+    try {
+      render(<CreateWizard />);
+      next();
+      fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Ana & Leo" } });
+      for (let i = 0; i < 6; i++) next();
+      expect(await screen.findByText("Presente: plano Casamento, sem pagamento.")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Criar câmera" })).toBeInTheDocument();
+      expect(screen.queryByText(/R\$/)).toBeNull();
+    } finally { localStorage.clear(); mocks.peek.mockReset(); mocks.peek.mockResolvedValue(null); }
+  });
+  it("8 · presente já usado: o código é descartado e o plano segue normal", async () => {
+    localStorage.setItem("mm-codigo-pendente", JSON.stringify({ c: "MMT-7KQ4-AB12", t: Date.now() }));
+    mocks.peek.mockResolvedValue({ status: "usado", planCode: "casamento", planName: "Casamento", maxGuests: 250, maxShots: 36 });
+    try {
+      render(<CreateWizard />);
+      next();
+      fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Ana & Leo" } });
+      for (let i = 0; i < 6; i++) next();
+      await waitFor(() => expect(screen.queryByTestId("aviso-codigo")).toBeNull());
+      expect(screen.getByRole("button", { name: "Criar câmera" })).toBeInTheDocument();
+    } finally { localStorage.clear(); mocks.peek.mockReset(); mocks.peek.mockResolvedValue(null); }
   });
   it("6 e 7 · filme e quem vê: escolhas viram campos do evento criado", async () => {
     render(<CreateWizard />);

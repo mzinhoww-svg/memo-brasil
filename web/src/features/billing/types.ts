@@ -82,3 +82,7 @@ export type PublicSettings = {
 export type RedeemReason = "ok" | "ja_incluido" | "invalido" | "muitas_tentativas" | "evento_encerrado";
 
 export type RedeemResult = { applied: boolean; planCode: string | null; reason: RedeemReason };
+
+/** Leitura do presente pelo link `/c/<código>` (RPC `peek_code`): nunca consome uso. */
+export type GiftStatus = "ativo" | "usado" | "expirado" | "revogado" | "invalido";
+export type GiftView = { status: GiftStatus; planCode: string | null; planName: string | null; maxGuests: number | null; maxShots: number | null };

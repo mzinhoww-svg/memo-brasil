@@ -34,7 +34,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
 import { devToolsEnabled } from "@/lib/dev-tools";
-import type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PosePack, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
+import type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, GiftStatus, GiftView, PosePack, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
 
 export type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PosePack, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
 
@@ -290,6 +290,19 @@ export async function openOrder(eventId: string): Promise<OrderView | null> {
   const { open, latest } = await readOrders(eventId);
   const row = open ?? latest;
   return row ? refresh(rowToOrderView(row)) : null;
+}
+
+const GIFT_STATUSES: readonly GiftStatus[] = ["ativo", "usado", "expirado", "revogado", "invalido"];
+
+/** Espia o código sem consumir: qual plano ele libera e se ainda vale. Falha de rede vira `null` (a tela segue sem o presente). */
+export async function peekCode(code: string): Promise<GiftView | null> {
+  try {
+    const r = await rpc<Json>("peek_code", { p_code: normalizeCode(code) });
+    const num = (v: unknown) => (typeof v === "number" ? v : null);
+    return { status: oneOf(r.status, GIFT_STATUSES, "invalido"), planCode: strOrNull(r.planCode), planName: strOrNull(r.planName), maxGuests: num(r.maxGuests), maxShots: num(r.maxShots) };
+  } catch {
+    return null;
+  }
 }
 
 export async function redeemCode(eventId: string, code: string): Promise<RedeemResult> {

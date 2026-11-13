@@ -22,7 +22,7 @@ function Copy({ text, label }: { text: string; label: string }) {
 export function CodeForm({ plans }: { plans: { code: string; name: string }[] }) {
   const router = useRouter();
   const [plan, setPlan] = useState(plans[0]?.code ?? "");
-  const [uses, setUses] = useState("20");
+  const [uses, setUses] = useState("1");
   const [expiry, setExpiry] = useState(defaultExpiry);
   const [note, setNote] = useState("");
   const [tried, setTried] = useState(false);

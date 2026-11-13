@@ -25,9 +25,9 @@ import { clearPendingCode, planForShots, poseNotice, poseOption, poseOptions, re
 import { afterCreateDestination, type AfterCreate } from "./after-create";
 import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CodeApplied, REDEEM_TEXT, RedeemCode, redeemMessage } from "@/features/billing/RedeemCode";
-import { formatBRL, listPosePacks, listPublicPlans, redeemCode } from "@/features/billing/api";
+import { formatBRL, listPosePacks, listPublicPlans, peekCode, redeemCode } from "@/features/billing/api";
 import { packAsPlan, packExtraShots, packForBase } from "@/features/billing/pose-packs";
-import type { PosePack, PublicPlan } from "@/features/billing/types";
+import type { GiftView, PosePack, PublicPlan } from "@/features/billing/types";
 import { buildCreateInput, WIZARD_DEFAULTS } from "./wizard-input";
 import { defaultTimezone, zonedToEpoch, zoneLabel, type RevealErrors } from "@/domain/reveal";
 
@@ -62,6 +62,7 @@ export function CreateWizard() {
   const [packOn, setPackOn] = useState(false); // interruptor "Mais poses" do passo 8
   const [planCode, setPlanCode] = useState("gratis");
   const [pendingCode, setPendingCode] = useState<string | null>(null);
+  const [gift, setGift] = useState<GiftView | null>(null);
   const [codeOutcome, setCodeOutcome] = useState<{ eventId: string; eventTitle: string; code: string; applied: PublicPlan | null | "sem-plano"; error?: string } | null>(null);
   const [errors, setErrors] = useState<{ title?: string; termino?: string; reveal?: string; create?: string }>({});
   const [revealErrors, setRevealErrors] = useState<RevealErrors | undefined>();
@@ -104,7 +105,12 @@ export function CreateWizard() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      setPendingCode(readPendingCode());
+      const pc = readPendingCode();
+      setPendingCode(pc);
+      if (pc) void peekCode(pc).then((g) => {
+        if (g && g.status !== "ativo" && g.status !== "invalido") setPendingCode(null); // usado/vencido/cancelado: não tenta aplicar
+        if (g?.status === "ativo") setGift(g);
+      });
       void Promise.all([listPublicPlans()]).then(([p]) => { setPlans(p); }, () => setPlans([]));
       void listPosePacks().then(setPacks, () => setPacks([]));
     }, 0);
@@ -200,7 +206,7 @@ export function CreateWizard() {
   const shotsPlan = planForShots(catalog, desiredShots);
   // pré-seleção do plano: o mais barato que comporta as poses escolhidas, até a pessoa tocar em outro
   const planCodeEff = planTouched ? planCode : (shotsPlan?.code ?? catalog.find((p) => p.isFree)?.code ?? planCode);
-  const chosenPlan = catalog.find((p) => p.code === planCodeEff);
+  const chosenPlan = gift ? undefined : catalog.find((p) => p.code === planCodeEff); // presente: o plano vem do código, sem cobrança
   // "Mais poses": só nos planos pagos que têm pacote à venda; o servidor cobra a variante (e só a diferença de quem já tem o plano)
   const salePack = chosenPlan && !chosenPlan.isFree ? packForBase(packs, chosenPlan.code) : undefined;
   const packActive = packOn && !!salePack;
@@ -215,7 +221,11 @@ export function CreateWizard() {
     // catálogo ainda carregando: sem legenda (nunca "indisponível" por engano)
     return { n, caption: plans === null ? "\u00a0" : poseOption(catalog, n, money).caption };
   });
-  const planViews: PlanView[] = catalog.map((p, i) => ({
+  const giftView: PlanView | undefined = gift?.planCode ? {
+    code: gift.planCode, tier: gift.planName ?? "Presente", price: "Presente",
+    lines: [gift.maxGuests === null ? "convidados sem limite" : `${gift.maxGuests} convidados`, gift.maxShots === null ? "poses livres" : `${gift.maxShots} poses cada`],
+  } : undefined;
+  const planViews: PlanView[] = giftView ? [giftView] : catalog.map((p, i) => ({
     code: p.code, tier: p.name, price: p.isFree ? "Grátis" : money(p.priceCents),
     lines: [p.maxGuests === null ? "convidados sem limite" : `${p.maxGuests} convidados`, p.maxShots === null ? "poses livres" : `${p.maxShots} poses cada`],
     gold: !p.isFree && i === catalog.length - 1 && catalog.length > 2,
@@ -322,11 +332,11 @@ export function CreateWizard() {
         <>
           <CameraPublicar
             image={`/revela/3d/cam-${wrap}-640.webp`} wrapLabel={wrapLabelUi} posesLabel={packActive && salePack ? `${salePack.maxShots} por pessoa` : desiredShots === null ? "livres" : `${desiredShots} por pessoa`} revealLabel={revealShort}
-            plans={planViews.length ? planViews : undefined} selected={chosenPlan?.code ?? "gratis"} next={cta} busy={busy} error={errors.create}
+            plans={planViews.length ? planViews : undefined} selected={giftView?.code ?? chosenPlan?.code ?? "gratis"} next={cta} busy={busy} error={errors.create}
             pack={salePack ? { price: `+${money(salePack.extraCents)}`, meta: `+${packExtraShots(salePack)} poses por pessoa (${salePack.baseMaxShots} → ${salePack.maxShots})`, on: packActive, onToggle: setPackOn } : undefined}
             onSelect={(c) => { setPlanCode(c); setPlanTouched(true); setPackOn(false); }} onBack={back}
             legal={{ termsHref: "/termos", privacyHref: "/privacidade" }}
-            codeNotice={pendingCode ? `Código de cortesia ${pendingCode} será aplicado ao criar o evento.` : undefined}
+            codeNotice={giftView ? `Presente: plano ${giftView.tier}, sem pagamento.` : pendingCode ? `Código de cortesia ${pendingCode} será aplicado ao criar o evento.` : undefined}
             onNext={() => void create()}
           />
         </>
