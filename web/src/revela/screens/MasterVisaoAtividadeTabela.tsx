@@ -252,7 +252,7 @@ export function MasterVisaoAtividadeTabela() {
               </div>
             </div>
           </div>
-          <div className="mtable">
+          <div className="mtable" tabIndex={0} role="region" aria-label="Tabela">
             <div className="mtr mth" style={{ "gridTemplateColumns": "1.2fr 1fr 1.2fr 1fr 1fr" }}>
               <span>
                 Dia

@@ -175,7 +175,7 @@ export function MasterRevelarAgoraFolhaErroJaRevelado() {
           <div className="row" style={{ "gap": "8px" }} />
         </div>
         <div className="mdim">
-          <div className="mtable">
+          <div className="mtable" tabIndex={0} role="region" aria-label="Tabela">
             <div className="mtr mth" style={{ "gridTemplateColumns": "1fr 1.5fr .6fr 1.4fr .8fr .9fr" }}>
               <span>
                 Revela

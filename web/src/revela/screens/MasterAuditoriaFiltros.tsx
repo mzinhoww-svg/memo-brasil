@@ -20,7 +20,7 @@ const REF_ROWS: AuditRowText[] = [
 ];
 const REF_EXPORT = <button className="rv-btn rv-btn--sm"><Ico n="download" />Exportar</button>;
 const REF_FIELD = (
-  <label className="mfield" style={{ maxWidth: "260px", width: "260px" }}>
+  <label className="mfield" style={{ width: "100%", maxWidth: "260px" }}>
     <i>Evento</i><input defaultValue={AUDIT_ALL_EVENTS} aria-label="Filtrar por evento" /><Ico n="chevron" />
   </label>
 );

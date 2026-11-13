@@ -72,7 +72,7 @@ export function MasterSemAcessoView({
         </MCard>
         <MCard style={{ paddingBottom: "8px" }}>
           <h2 className="rv-title" style={{ fontSize: "18px" }}>O que cada papel vê</h2>
-          <div className="mtable">
+          <div className="mtable" tabIndex={0} role="region" aria-label="Tabela">
             <div className="mtr mth" style={{ gridTemplateColumns: COLS }}><span /><span>master</span><span>support</span><span>auditor</span></div>
             {rows.map((r) => (
               <div className="mtr" style={{ gridTemplateColumns: COLS }} key={r.label}>

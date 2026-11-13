@@ -39,7 +39,7 @@ const ref = (name: string) => new DOMParser().parseFromString(readFileSync(resol
 
 function sig(el: Element, out: string[] = [], depth = 0): string[] {
   const tag = el.tagName.toLowerCase();
-  if (tag === "input" || tag === "style" || tag === "script") return out;
+  if (tag === "input" || tag === "style" || tag === "script" || el.hasAttribute("data-rsp")) return out; // data-rsp: peças só do app responsivo (botão de menu, fundo da gaveta)
   const cls = [...el.classList].sort().join(".");
   out.push(`${"  ".repeat(depth)}${tag}${cls ? "." + cls : ""}`);
   if (tag === "svg" || tag === "textarea") return out;

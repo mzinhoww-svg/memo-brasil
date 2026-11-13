@@ -56,7 +56,7 @@ export function MasterImpressoesView({
         </div>
         {(() => {
           const field = (
-            <label className="msearch" style={{ width: "320px", height: "36px" }}>
+            <label className="msearch" style={{ width: "100%", maxWidth: "320px", height: "36px" }}>
               <Ico n="search" />
               <input name="q" defaultValue={search.value ?? ""} placeholder="Buscar por pedido, evento ou pessoa" aria-label="Buscar por pedido, evento ou pessoa" maxLength={80} />
             </label>
@@ -68,7 +68,7 @@ export function MasterImpressoesView({
         })()}
       </div>
       {emptyFilter ? <MasterState variant="empty" title="Nenhum pedido neste filtro" text="Troque o filtro ou limpe a busca." /> : (
-        <div className="mtable">
+        <div className="mtable" tabIndex={0} role="region" aria-label="Tabela">
           <div className="mtr mth" style={g}>
             <span>Pedido</span><span>Evento</span><span>Quem pediu</span><span>Produto</span><span>Qtd.</span><span>Fotos</span><span>Status</span><span>Criado em</span><span />
           </div>

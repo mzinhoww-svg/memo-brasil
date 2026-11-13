@@ -251,7 +251,7 @@ export function MasterExportarFolha() {
               Estornos
             </span>
           </div>
-          <div className="mtable">
+          <div className="mtable" tabIndex={0} role="region" aria-label="Tabela">
             <div className="mtr mth" style={{ "gridTemplateColumns": ".9fr .8fr 1.3fr .9fr .7fr .8fr .8fr" }}>
               <span>
                 Quando

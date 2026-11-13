@@ -25,7 +25,7 @@ export const pessoasHref = (aba: PessoasAba, query: PessoasQuery = {}, page = 1)
 
 export function PessoasTabs({ aba, counts, live }: { aba: PessoasAba; counts?: TabCounts; live?: boolean }) {
   return (
-    <div style={{ width: "820px", marginBottom: "14px" }}>
+    <div style={{ maxWidth: "820px", marginBottom: "14px" }}>
       <Seg items={ABAS.map((a) => ({ label: counts?.[a.id] === undefined ? a.label : `${a.label} ${fmt(counts[a.id]!)}`, on: a.id === aba, href: live ? pessoasHref(a.id) : undefined }))} />
     </div>
   );
@@ -43,7 +43,7 @@ export function FilterBar({ chips, caption, placeholder, q, live, aba, f }: {
   chips?: ChipItem[]; caption?: string; placeholder: string; q?: string; live?: boolean; aba: PessoasAba; f?: string;
 }) {
   const search = (
-    <label className="msearch" style={{ width: "320px", height: "36px" }}>
+    <label className="msearch" style={{ width: "100%", maxWidth: "320px", height: "36px" }}>
       <Ico n="search" />
       <input key={q ?? ""} name={live ? "q" : undefined} defaultValue={q ?? ""} placeholder={placeholder} aria-label={placeholder} maxLength={80} />
     </label>
