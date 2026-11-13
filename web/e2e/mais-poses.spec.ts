@@ -126,3 +126,18 @@ test.describe("painel · Plano: cartão Mais poses (bancada /dev/plano-painel)",
     await expect(page.getByTestId("cartao-mais-poses")).toHaveCount(0);
   });
 });
+
+test("plano pago: continuar vai direto ao checkout, sem popup e sem parar no painel", async ({ page }) => {
+  test.skip(!NATIVO, "o destino direto ao checkout nativo só existe no build com NEXT_PUBLIC_VALIDAPAY_CHECKOUT=1");
+  const next = await chegarEmPoses(page, CATALOGO);
+  await page.getByRole("group", { name: "Poses por pessoa" }).getByRole("button", { name: /^24/ }).click();
+  await next(); // filme
+  await next(); // quem vê
+  await next(); // plano
+  const continuar = page.getByRole("button", { name: /^Continuar · R\$ 59,90$/ });
+  await expect(continuar).toBeVisible();
+  await expect(page.getByTestId("aviso-aceite")).toContainText("Ao continuar, você aceita os Termos de Uso");
+  await continuar.click();
+  await expect(page.getByRole("dialog", { name: "Antes de criar" })).toHaveCount(0);
+  await page.waitForURL(/\/painel\/[^/]+\/checkout-validapay\?plano=festa$/);
+});
