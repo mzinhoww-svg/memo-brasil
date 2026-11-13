@@ -92,12 +92,9 @@ export async function wizardToSummary(page: Page, opts: { title?: string; reveal
   await page.getByRole("heading", { level: 1, name: "Escolha o plano" }).waitFor();
 }
 
-/** Passo 8 → diálogo "Antes de criar": aceita os Termos e a Política (as duas são obrigatórias) e confirma. */
+/** Passo 8: não há mais diálogo "Antes de criar"; tocar em continuar vale como aceite (aviso junto ao botão). Mantida para os chamadores. */
 export async function acceptTerms(page: Page) {
-  const dialog = page.getByRole("dialog", { name: "Antes de criar" });
-  await dialog.getByRole("checkbox", { name: /Li e aceito os Termos/ }).check();
-  await dialog.getByRole("checkbox", { name: /Li a Política/ }).check();
-  await dialog.getByRole("button", { name: "Aceitar" }).click();
+  await expect(page.getByRole("dialog", { name: "Antes de criar" })).toHaveCount(0);
 }
 
 /** Aplica pelas configurações do painel a revelação que o assistente não oferece (desligada ou com outro fuso). */

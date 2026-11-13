@@ -12,13 +12,10 @@ const next = () => fireEvent.click(screen.getByRole("button", { name: "Próximo"
 async function nameAndNext() { next(); fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Festa preservada" } }); next(); }
 /** Do passo 3 até o 8: festa, poses, revelar, filme, quem vê. */
 async function finalStep() { await nameAndNext(); for (let i = 0; i < 5; i++) next(); await screen.findByRole("radio", { name: /^Grátis/ }); }
-/** CTA do passo 8 → diálogo "Antes de criar" → aceites → Aceitar. */
+/** CTA do passo 8: tocar em continuar vale como aceite (aviso junto ao botão); não há diálogo. */
 async function submit() {
   fireEvent.click(screen.getByRole("button", { name: /Criar câmera|Continuar ·/ }));
-  const dialog = screen.queryByRole("dialog", { name: "Antes de criar" }); // só na primeira vez: os aceites ficam guardados
-  if (!dialog) return;
-  Array.from(dialog.querySelectorAll<HTMLInputElement>("input[type=checkbox]")).forEach((c) => fireEvent.click(c));
-  fireEvent.click(screen.getByRole("button", { name: "Aceitar" }));
+  expect(screen.queryByRole("dialog", { name: "Antes de criar" })).toBeNull();
 }
 beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); mocks.push.mockReset(); mocks.destination.mockReset(); mocks.openCheckout.mockReset(); mocks.signIn.mockResolvedValue({ id: "u", name: "Ana" }); mocks.lookup.mockResolvedValue(null); mocks.save.mockImplementation(async (e) => e); });
 describe("recuperação do assistente", () => {

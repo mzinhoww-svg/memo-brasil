@@ -5,13 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { Breadcrumbs, Button, GoogleButton, ScreenSkeleton } from "@/components/revela";
 import { DEFAULT_FILM, DEFAULT_WRAP, WRAP_INFO, type EventCategory, type FilmLook, type Wrap } from "@/domain/options";
 import { useApp } from "@/features/app/provider";
-import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
-import { currentConsent, hasRememberedConsent, recordConsent, rememberConsent } from "@/lib/consent";
+import { CONSENT_FAILED } from "@/features/consent/ConsentCheck";
+import { currentConsent, recordConsent } from "@/lib/consent";
 import { createEvent } from "./service";
 import { REVEAL_ERROR_TEXT, resolveReveal } from "./reveal-input";
 import { buildRevealInput, type RevealChoice } from "./reveal-choice";
 import { WINDOW_ERROR_TEXT, REVEAL_BEFORE_END_TEXT, defaultWindow, longDay, noticeLine, resolveWindow, revealOptions, shortWhen, type WindowInput } from "./wizard-time";
-import { useOpen } from "@/lib/motion/use-motion";
 import { WizardDirection } from "@/revela/wizard-motion";
 import { CameraEmbalagem } from "@/revela/screens/CameraEmbalagem";
 import { CameraNome } from "@/revela/screens/CameraNome";
@@ -39,23 +38,6 @@ const STEP_COUNT = 8;
 const LAST_STEP = STEP_COUNT - 1;
 type CreatedEvent = { eventId: string; title: string; paid: boolean; destination: AfterCreate; ready: boolean };
 
-/** "Antes de criar": folha centrada com o fundo e a entrada do kit. */
-function ConsentDialog({ terms, privacy, onTerms, onPrivacy, onAccept, onCancel }: { terms: boolean; privacy: boolean; onTerms: (v: boolean) => void; onPrivacy: (v: boolean) => void; onAccept: () => void; onCancel: () => void }) {
-  const open = useOpen();
-  return (
-    <div className="rv-dialog rv-backdrop" data-open={open} role="dialog" aria-modal="true" aria-labelledby="consent-h">
-      <div className="rv-dialog__panel rv-sheet-motion" data-open={open}>
-        <div className="rv-dialog__body">
-          <h2 id="consent-h">Antes de criar</h2>
-          <ConsentChecks terms={terms} privacy={privacy} onTerms={onTerms} onPrivacy={onPrivacy} />
-          <Button block disabled={!terms || !privacy} onClick={onAccept}>Aceitar</Button>
-          <Button variant="texto" block onClick={onCancel}>Cancelar</Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function CreateWizard() {
   const router = useRouter();
   const { repos, user, signIn, now, ready, backend, canCreate, signInWithGoogle } = useApp();
@@ -64,8 +46,6 @@ export function CreateWizard() {
   const [wrap, setWrap] = useState<Wrap>(DEFAULT_WRAP);
   const [film, setFilm] = useState<FilmLook>(DEFAULT_FILM);
   const [everyoneSeesAll, setEveryoneSeesAll] = useState(true);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [ackedPrivacy, setAckedPrivacy] = useState(false);
   const [title, setTitle] = useState("");
   // o tipo do evento sai da embalagem escolhida (o desenho não pergunta o tipo): casamento → casamento, as outras → festa
   const category: EventCategory = wrap === "casamento" ? "casamento" : "festa";
@@ -75,13 +55,6 @@ export function CreateWizard() {
   const [choice, setChoice] = useState<RevealChoice>("manha");
   const [revCustom, setRevCustom] = useState(""); // aaaa-mm-ddTHH:MM no fuso do evento
   const [planTouched, setPlanTouched] = useState(false);
-  const [consentOpen, setConsentOpen] = useState(false);
-  // quem já aceitou os Termos e a Política vigentes não é perguntado de novo a cada evento
-  useEffect(() => {
-    if (!hasRememberedConsent(user?.id)) return;
-    const t = setTimeout(() => { setAcceptedTerms(true); setAckedPrivacy(true); }, 0);
-    return () => clearTimeout(t);
-  }, [user?.id]);
   const [rollOn, setRollOn] = useState(true);
   const [desiredShots, setDesiredShots] = useState<number | null>(WIZARD_DEFAULTS.shots); // null = poses livres
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
@@ -161,7 +134,6 @@ export function CreateWizard() {
   }
 
   async function create() {
-    if (!acceptedTerms || !ackedPrivacy) return setErrors({ create: CONSENT_REQUIRED });
     if (creating.current || createdResult.current) return;
     const w = resolveWindow(win, now());
     if (!w.ok) {
@@ -174,7 +146,7 @@ export function CreateWizard() {
     try {
       const me = await signIn(hostName);
       if (backend === "supabase") {
-        try { await recordConsent(currentConsent("organizador", null, { termsAccepted: acceptedTerms, privacyAcknowledged: ackedPrivacy })); rememberConsent(me.id); } catch { return setErrors({ create: CONSENT_FAILED }); }
+        try { await recordConsent(currentConsent("organizador", null, { termsAccepted: true, privacyAcknowledged: true })); } catch { return setErrors({ create: CONSENT_FAILED }); }
       }
       const startNow = now();
       const hoursNow = (w.endMs - startNow) / 3_600_000;
@@ -353,11 +325,9 @@ export function CreateWizard() {
             plans={planViews.length ? planViews : undefined} selected={chosenPlan?.code ?? "gratis"} next={cta} busy={busy} error={errors.create}
             pack={salePack ? { price: `+${money(salePack.extraCents)}`, meta: `+${packExtraShots(salePack)} poses por pessoa (${salePack.baseMaxShots} → ${salePack.maxShots})`, on: packActive, onToggle: setPackOn } : undefined}
             onSelect={(c) => { setPlanCode(c); setPlanTouched(true); setPackOn(false); }} onBack={back}
-            onNext={() => { if (acceptedTerms && ackedPrivacy) void create(); else setConsentOpen(true); }}
+            legal={{ termsHref: "/termos", privacyHref: "/privacidade" }}
+            onNext={() => void create()}
           />
-          {consentOpen && (
-            <ConsentDialog terms={acceptedTerms} privacy={ackedPrivacy} onTerms={setAcceptedTerms} onPrivacy={setAckedPrivacy} onAccept={() => { setConsentOpen(false); void create(); }} onCancel={() => setConsentOpen(false)} />
-          )}
         </>
       );
     }

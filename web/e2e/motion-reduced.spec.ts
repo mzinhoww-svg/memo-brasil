@@ -56,7 +56,7 @@ test("home: botões e entradas sem movimento", async ({ page }) => {
   await expectCalm(page, "home");
 });
 
-test("assistente: passos, traços, câmera 3D e folha 'Antes de criar' sem movimento", async ({ page }) => {
+test("assistente: passos, traços e câmera 3D sem movimento", async ({ page }) => {
   await page.goto("/criar");
   await page.getByRole("heading", { level: 1, name: "Escolha a embalagem" }).waitFor();
   await expectCalm(page, "passo 1 (câmera 3D, rv-cam-in, rv-float)", 3);
@@ -68,13 +68,8 @@ test("assistente: passos, traços, câmera 3D e folha 'Antes de criar' sem movim
   expect(await page.locator(".rv-step, .rv-rise").count()).toBeGreaterThan(0);
   expect(await page.locator(".rv-steps .rv-seg").count()).toBe(8);
 
-  await page.getByRole("button", { name: /Criar câmera|Continuar ·/ }).click();
-  const dialog = page.getByRole("dialog", { name: "Antes de criar" });
-  await expect(dialog).toBeVisible();
-  await expect(dialog.locator(".rv-sheet-motion")).toHaveAttribute("data-open", "true");
-  await expectCalm(page, "folha (rv-sheet-motion, rv-backdrop)", 2);
-  // a folha aberta fica no lugar, sem deslocamento
-  expect(await dialog.locator(".rv-sheet-motion").evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+  // o passo 8 não abre mais folha de aceite: o aviso fica junto ao botão
+  await expect(page.getByRole("dialog", { name: "Antes de criar" })).toHaveCount(0);
 });
 
 test("feed e Minhas: listas sem movimento", async ({ page }) => {

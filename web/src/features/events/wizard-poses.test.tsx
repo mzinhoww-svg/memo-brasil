@@ -73,9 +73,7 @@ describe("passo Poses: opções e custo do catálogo real", () => {
 describe("passo 8: interruptor Mais poses", () => {
   async function onFesta() { await toPoses(); await waitFor(() => expect(choice("24")).toHaveTextContent("a partir de")); fireEvent.click(choice("24")); await toPlanStep(); }
   async function accept() {
-    const dialog = await screen.findByRole("dialog", { name: "Antes de criar" });
-    Array.from(dialog.querySelectorAll<HTMLInputElement>("input[type=checkbox]")).forEach((c) => fireEvent.click(c));
-    fireEvent.click(screen.getByRole("button", { name: "Aceitar" }));
+    expect(screen.queryByRole("dialog", { name: "Antes de criar" })).toBeNull(); // sem popup: continuar já é aceitar
   }
   it("aparece nos cartões Festa e Celebração com o preço do catálogo; não no Grátis nem no Casamento", async () => {
     render(<CreateWizard />); await onFesta();

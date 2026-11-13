@@ -58,9 +58,8 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", async () => 
     expect(screen.getByRole("switch", { name: "Convidados veem o feed" })).not.toBeChecked();
     next();
     fireEvent.click(await screen.findByRole("button", { name: "Criar câmera" }));
-    const dialog = screen.getByRole("dialog", { name: "Antes de criar" });
-    Array.from(dialog.querySelectorAll<HTMLInputElement>("input[type=checkbox]")).forEach((c) => fireEvent.click(c));
-    fireEvent.click(screen.getByRole("button", { name: "Aceitar" }));
+    expect(screen.queryByRole("dialog", { name: "Antes de criar" })).toBeNull(); // sem popup: continuar já é aceitar
+    expect(screen.getByTestId("aviso-aceite")).toHaveTextContent("Ao continuar, você aceita os Termos de Uso e a Política de Privacidade");
     await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledOnce());
     expect(mocks.save.mock.calls[0][0]).toMatchObject({ title: "Ana & Leo", cameraStyle: "festa", filmLook: "natural", everyoneSeesAll: false, guestDownloadHigh: false });
   });

@@ -18,25 +18,14 @@ test("termos e privacidade são páginas públicas na versão 2026-10-22-v1, sem
   }
 });
 
-test("organizador: diálogo 'Antes de criar' nasce com caixas desmarcadas; uma sem a outra não cria; as duas criam", async ({ page }) => {
+test("organizador: sem popup; o aviso de aceite fica junto ao botão e continuar já cria", async ({ page }) => {
   await wizardToSummary(page);
-  await page.getByRole("button", { name: /Criar câmera/ }).click();
-  const dialog = page.getByRole("dialog", { name: "Antes de criar" });
-  const termos = dialog.getByRole("checkbox", { name: /Li e aceito os Termos/ });
-  const politica = dialog.getByRole("checkbox", { name: /Li a Política/ });
-  const aceitar = dialog.getByRole("button", { name: "Aceitar" });
-  await expect(termos).not.toBeChecked();
-  await expect(politica).not.toBeChecked();
-  await expect(aceitar).toBeDisabled(); // nenhuma confirmação: não cria
-  await termos.check();
-  await expect(aceitar).toBeDisabled(); // só os Termos: a ciência da Política é outra afirmação
-  await termos.uncheck();
-  await politica.check();
-  await expect(aceitar).toBeDisabled(); // só a Política: não aceita os Termos
-  await expect(page).toHaveURL(/\/criar$/);
-  await termos.check();
-  await expect(aceitar).toBeEnabled();
-  await aceitar.click();
+  const aviso = page.getByTestId("aviso-aceite");
+  await expect(aviso).toContainText("Ao continuar, você aceita os Termos de Uso e a Política de Privacidade");
+  await expect(aviso.getByRole("link", { name: "Termos de Uso" })).toHaveAttribute("href", "/termos");
+  await expect(aviso.getByRole("link", { name: "Política de Privacidade" })).toHaveAttribute("href", "/privacidade");
+  await page.getByRole("button", { name: /Criar câmera|Continuar ·/ }).click();
+  await expect(page.getByRole("dialog", { name: "Antes de criar" })).toHaveCount(0);
   await page.waitForURL(/\/criar\/pronto\//);
 });
 

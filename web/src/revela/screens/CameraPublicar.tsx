@@ -1,5 +1,6 @@
 "use client";
 /* Camera-publicar.html (passo 8): mesmo markup e classes da referência; planos do catálogo por props (padrão = desenho). */
+import Link from "next/link";
 import { Cam3D } from "@/components/revela/Cam3D";
 import { PackSwitch, type PackSwitchProps } from "../PackSwitch";
 import { PlanCards } from "../PlanCards";
@@ -19,12 +20,14 @@ export interface CameraPublicarProps {
   plans?: PlanView[]; selected?: string; payNote?: string; next?: string; busy?: boolean; error?: string;
   /** Interruptor "Mais poses" sob os cartões (só nos planos que têm pacote). */
   pack?: PackSwitchProps;
+  /** Aviso de aceite junto ao botão: tocar em continuar vale como aceite dos Termos e da Política. */
+  legal?: { termsHref: string; privacyHref: string };
   onSelect?: (code: string) => void; onBack?: () => void; onNext?: () => void;
 }
 
 export function CameraPublicar({
   image = "/revela/ref/cam-casamento.webp", wrapLabel = "Casamento", posesLabel = "27 por pessoa", revealLabel = "dom, 12:00",
-  plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, pack, onSelect, onBack, onNext,
+  plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, pack, legal, onSelect, onBack, onNext,
 }: CameraPublicarProps = {}) {
   return (
     <WizardSheet step={8} title="Escolha o plano" caption="Pague uma vez por evento. Sem assinatura." onBack={onBack} onNext={onNext} next={next} busy={busy}>
@@ -50,6 +53,15 @@ export function CameraPublicar({
         </svg>
         <span>ValidaPay</span>
       </div>
+      {legal && (
+        <p className="rv-caption center" data-testid="aviso-aceite" style={{ margin: "0" }}>
+          {"Ao continuar, você aceita os "}
+          <Link href={legal.termsHref} className="link" target="_blank">Termos de Uso</Link>
+          {" e a "}
+          <Link href={legal.privacyHref} className="link" target="_blank">Política de Privacidade</Link>
+          .
+        </p>
+      )}
     </WizardSheet>
   );
 }
