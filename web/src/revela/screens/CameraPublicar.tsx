@@ -22,23 +22,28 @@ export interface CameraPublicarProps {
   pack?: PackSwitchProps;
   /** Aviso de aceite junto ao botão: tocar em continuar vale como aceite dos Termos e da Política. */
   legal?: { termsHref: string; privacyHref: string };
+  /** Código de cortesia guardado neste aparelho: avisa que ele será aplicado ao criar o evento. */
+  codeNotice?: string;
   onSelect?: (code: string) => void; onBack?: () => void; onNext?: () => void;
 }
 
 export function CameraPublicar({
   image = "/revela/ref/cam-casamento.webp", wrapLabel = "Casamento", posesLabel = "27 por pessoa", revealLabel = "dom, 12:00",
-  plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, pack, legal, onSelect, onBack, onNext,
+  plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, pack, legal, codeNotice, onSelect, onBack, onNext,
 }: CameraPublicarProps = {}) {
   return (
     <WizardSheet step={8} title="Escolha o plano" caption="Pague uma vez por evento. Sem assinatura." onBack={onBack} onNext={onNext} next={next} busy={busy}
-      foot={legal && (
-      <p className="rv-caption center" data-testid="aviso-aceite" style={{ margin: "0" }}>
+      foot={(legal || codeNotice) && (
+      <>
+      {codeNotice && <p className="rv-caption center" role="status" data-testid="aviso-codigo" style={{ margin: "0 0 6px", color: "var(--revela-text)" }}>{codeNotice}</p>}
+      {legal && <p className="rv-caption center" data-testid="aviso-aceite" style={{ margin: "0" }}>
         {"Ao continuar, você aceita os "}
         <Link href={legal.termsHref} className="link" target="_blank">Termos de Uso</Link>
         {" e a "}
         <Link href={legal.privacyHref} className="link" target="_blank">Política de Privacidade</Link>
         .
-      </p>
+      </p>}
+      </>
     )}>
       <div className="rv-stagebox" style={{ marginTop: "-6px" }}>
         <Cam3D src={image} alt="Câmera do evento" width={260} />

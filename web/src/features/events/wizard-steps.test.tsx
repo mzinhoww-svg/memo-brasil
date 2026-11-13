@@ -38,6 +38,16 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", async () => 
     next();
     expect(screen.getByRole("heading", { name: "Quando é a festa?" })).toBeInTheDocument();
   });
+  it("8 · com código de cortesia guardado no aparelho, o passo do plano avisa que ele será aplicado", async () => {
+    localStorage.setItem("mm-codigo-pendente", JSON.stringify({ c: "MMT-7KQ4-AB12", t: Date.now() }));
+    try {
+      render(<CreateWizard />);
+      next();
+      fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Ana & Leo" } });
+      for (let i = 0; i < 6; i++) next();
+      expect(await screen.findByTestId("aviso-codigo")).toHaveTextContent("Código de cortesia MMT-7KQ4-AB12 será aplicado ao criar o evento.");
+    } finally { localStorage.clear(); }
+  });
   it("6 e 7 · filme e quem vê: escolhas viram campos do evento criado", async () => {
     render(<CreateWizard />);
     next();

@@ -31,7 +31,18 @@ describe("plan-catalog (tudo vem do catálogo recebido)", () => {
 });
 
 describe("código pendente de /c/<código>", () => {
-  beforeEach(() => sessionStorage.clear());
+  beforeEach(() => { sessionStorage.clear(); localStorage.clear(); });
+  it("sobrevive a outra aba (só o localStorage) e vale por 7 dias", () => {
+    const t0 = 1_800_000_000_000;
+    savePendingCode("mmt 7kq4 ab12", t0);
+    sessionStorage.clear(); // o login do Google voltou noutra aba/navegador
+    expect(readPendingCode(t0 + 6 * 24 * 3_600_000)).toBe("MMT-7KQ4-AB12");
+    expect(readPendingCode(t0 + 8 * 24 * 3_600_000)).toBeNull();
+  });
+  it("lê o formato antigo (código puro na sessão)", () => {
+    sessionStorage.setItem("mm-codigo-pendente", "MMT-AAAA-BBBB");
+    expect(readPendingCode()).toBe("MMT-AAAA-BBBB");
+  });
   it("guarda normalizado e lê; limpa", () => {
     savePendingCode("mmt 7kq4 ab12");
     expect(readPendingCode()).toBe("MMT-7KQ4-AB12");

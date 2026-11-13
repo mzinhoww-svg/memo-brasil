@@ -326,6 +326,7 @@ export function CreateWizard() {
             pack={salePack ? { price: `+${money(salePack.extraCents)}`, meta: `+${packExtraShots(salePack)} poses por pessoa (${salePack.baseMaxShots} → ${salePack.maxShots})`, on: packActive, onToggle: setPackOn } : undefined}
             onSelect={(c) => { setPlanCode(c); setPlanTouched(true); setPackOn(false); }} onBack={back}
             legal={{ termsHref: "/termos", privacyHref: "/privacidade" }}
+            codeNotice={pendingCode ? `Código de cortesia ${pendingCode} será aplicado ao criar o evento.` : undefined}
             onNext={() => void create()}
           />
         </>
