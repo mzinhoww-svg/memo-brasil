@@ -108,7 +108,7 @@ export function MasterPlanosView({
       </MHead>
       <div className="mgrid-plans">
         <section className="mcard" style={{ padding: "0", overflow: "hidden" }}>
-          <div className="mtable" style={{ margin: "0" }}>
+          <div className="mtable" style={{ margin: "0" }} tabIndex={0} role="region" aria-label="Tabela">
             <div className="mtr mth" style={{ gridTemplateColumns: COLS }}>
               <span>Plano</span><span>Preço</span><span>Convidados</span><span>Poses</span><span>Sandbox</span><span>Produção</span><span>Paywall</span><span />
             </div>

@@ -33,7 +33,7 @@ export function MasterState({ variant, title, text, onRetry, cols = 6, rows = 8,
   if (variant === "loading") {
     const g = { gridTemplateColumns: Array.from({ length: cols }, () => "1fr").join(" ") };
     return (
-      <div className="mtable" aria-busy="true" aria-label={label} style={style}>
+      <div className="mtable" aria-busy="true" aria-label={label} style={style} tabIndex={0} role="region">
         {Array.from({ length: rows }, (_, r) => (
           <div className="mtr" style={g} key={r}>
             {Array.from({ length: cols }, (_, c) => <span key={c}><i className="msk" style={{ width: `${skeletonWidth(r, c)}%` }} /></span>)}

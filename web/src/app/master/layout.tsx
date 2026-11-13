@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ROLE_LABEL, visibleNav } from "@/lib/master/roles";
 import { masterAccess, printedAlbumOn } from "@/lib/master/server";
 import { MasterFrame } from "@/revela/master-kit";
+import { RAIL_BOOT_SCRIPT } from "@/revela/master-menu";
 import { MasterAcessoLimitado } from "@/revela/screens/MasterSemAcesso";
 import "@/styles/admin.css";
 import { MasterLogin } from "@/revela/screens/MasterLogin";
@@ -30,6 +31,7 @@ export default async function MasterLayout({ children }: { children: React.React
     // M32: conta logada sem papel de plataforma. Moldura do desenho, sem links; nenhuma RPC do console é chamada.
     return (
       <div id="conteudo-admin">
+        <script dangerouslySetInnerHTML={{ __html: RAIL_BOOT_SCRIPT }} />
         <MasterFrame user={{ name, role: "Sem papel no console" }}><MasterAcessoLimitado role={null} /></MasterFrame>
       </div>
     );
@@ -37,8 +39,11 @@ export default async function MasterLayout({ children }: { children: React.React
   const [settings, printed] = await Promise.all([sb.rpc("get_public_settings"), printedAlbumOn(sb)]);
   const env = String((settings.data as { payments_env?: string } | null)?.payments_env ?? "desligado");
   return (
-    <MasterShell user={{ name, role: ROLE_LABEL[role] }} env={env} visible={visibleNav(role, { printedAlbum: printed })}>
-      <div id="conteudo-admin">{children}</div>
-    </MasterShell>
+    <>
+      <script dangerouslySetInnerHTML={{ __html: RAIL_BOOT_SCRIPT }} />
+      <MasterShell user={{ name, role: ROLE_LABEL[role] }} env={env} visible={visibleNav(role, { printedAlbum: printed })}>
+        <div id="conteudo-admin">{children}</div>
+      </MasterShell>
+    </>
   );
 }

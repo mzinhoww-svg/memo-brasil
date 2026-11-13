@@ -1,7 +1,8 @@
 /* Peças do Master (desktop 1440×900) com o markup e as classes de design-system/revela/html/Master-*.html.
    As 15 telas de `screens/Master*.tsx` e as páginas reais de `app/master/**` usam estas mesmas peças: o desenho e o app não divergem. */
 import type { CSSProperties, ReactNode } from "react";
-import { MASTER_LOGO, MASTER_NAV, type MasterNavId } from "./master-icons";
+import { MASTER_HREF, type MasterNavId } from "./master-icons";
+import { MasterAside, MasterChrome, MenuToggle, type MasterUser } from "./master-shell";
 
 const SV = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
@@ -41,41 +42,12 @@ export function Ico({ n }: { n: IconName }) {
   return <svg {...SV}>{ICONS[n]}</svg>;
 }
 
-export interface MasterUser { name: string; role: string }
-
 /** Itens do menu (os 13 do desenho, na ordem do HTML: Impressões entre Moderação e Storage e saúde). */
 export type AppNavId = MasterNavId;
 
-/** Rotas reais de cada item do menu (as mesmas do console). */
-export const MASTER_HREF: Record<AppNavId, string> = {
-  visao: "/master", eventos: "/master/eventos", pessoas: "/master/pessoas", planos: "/master/planos", pagamentos: "/master/pagamentos", cortesias: "/master/codigos",
-  impressoes: "/master/impressoes", revelacoes: "/master/revelacoes", moderacao: "/master/moderacao", saude: "/master/saude", lgpd: "/master/lgpd", auditoria: "/master/auditoria", configuracoes: "/master/configuracoes",
-};
-
-/** Menu lateral do Master. Sem `Link` para continuar sendo servidor puro; `<a href>` navega do mesmo jeito.
- *  `visible` (só no app) restringe os itens: o layout tira o que o papel não abre e "Impressões" quando a chave `printed_album` está desligada. */
-export function MasterAside({ current, links = false, user = { name: "Marcos", role: "Administrador · master" }, visible }: { current?: AppNavId; links?: boolean; user?: MasterUser; visible?: readonly AppNavId[] }) {
-  const items = visible ? MASTER_NAV.filter((m) => visible.includes(m.id)) : [...MASTER_NAV];
-  return (
-    <aside className="mside">
-      {MASTER_LOGO}
-      {items.map((m) => (
-        <a key={m.id} className={m.id === current ? "mnav on" : "mnav"} href={links ? MASTER_HREF[m.id] : undefined} aria-current={m.id === current ? "page" : undefined}>
-          {m.icon}
-          <span>{m.label}</span>
-        </a>
-      ))}
-      <div className="grow" />
-      <div className="muser">
-        <span className="avatar avatar--sm">{user.name.slice(0, 1).toUpperCase()}</span>
-        <div>
-          <b>{user.name}</b>
-          <span>{user.role}</span>
-        </div>
-      </div>
-    </aside>
-  );
-}
+/* O menu (recolhível/gaveta) e a moldura interativa moram em master-shell.tsx (componente de cliente); aqui só se reexportam. */
+export { MASTER_HREF };
+export { MasterAside, type MasterUser };
 
 const ENV_LABEL: Record<string, string> = { production: "Produção", sandbox: "Sandbox", desligado: "Pagamentos desligados" };
 /** Barra de cima: busca global (vai para /master/busca) e o ambiente de pagamento. */
@@ -88,6 +60,7 @@ export function MasterTop({ env = "production", q, links = false }: { env?: stri
   );
   return (
     <div className="mtop">
+      <MenuToggle />
       {links ? <form action="/master/busca" method="get" role="search" style={{ display: "contents" }}>{search}</form> : search}
       <span className="envb" data-env={env}>
         <Ico n="lock" />
@@ -100,14 +73,14 @@ export function MasterTop({ env = "production", q, links = false }: { env?: stri
 /** Moldura de uma tela do Master. Nas telas do desenho (`/dev/revela`) traz o menu e a barra; no app, o layout monta a moldura uma vez. */
 export function MasterFrame({ current, children, links = false, user, env, q, visible }: { current?: AppNavId; children: ReactNode; links?: boolean; user?: MasterUser; env?: string; q?: string; visible?: readonly AppNavId[] }) {
   return (
-    <div className="dsk">
+    <MasterChrome>
       <MasterAside current={current} links={links} user={user} visible={visible} />
-      <main className="mmain" style={links ? { overflowY: "auto" } : undefined}>
+      <main className="mmain">
         <MasterTop env={env} q={q} links={links} />
         {children}
       </main>
       <div className="grain" />
-    </div>
+    </MasterChrome>
   );
 }
 
@@ -172,8 +145,10 @@ export interface MRow { key: string; cells: ReactNode[]; className?: string; sty
 /** Tabela do Master: `cols` é o `gridTemplateColumns` do desenho; `head` o rótulo de cada coluna (vazio = coluna de ação). */
 export function MTable({ cols, head, rows, empty, style }: { cols: string; head: string[]; rows: MRow[]; empty?: string; style?: CSSProperties }) {
   const g = { gridTemplateColumns: cols };
+  // Abaixo de 1200 px as linhas têm largura mínima (proporcional às colunas) e a tabela rola por dentro, sem rolar a página.
+  const min = { "--mt-min": `${Math.max(560, head.length * 112)}px` } as CSSProperties;
   return (
-    <div className="mtable" style={style}>
+    <div className="mtable" style={{ ...min, ...style }} tabIndex={0} role="region" aria-label="Tabela">
       <div className="mtr mth" style={g}>{head.map((h, i) => <span key={i}>{h}</span>)}</div>
       {rows.map((r) => (
         <div className={r.className ? `mtr ${r.className}` : "mtr"} key={r.key} style={{ ...g, ...r.style }}>{r.cells.map((c, i) => <span key={i}>{c}</span>)}</div>

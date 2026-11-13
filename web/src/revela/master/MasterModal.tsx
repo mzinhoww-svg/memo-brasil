@@ -25,7 +25,7 @@ export function MasterModal({ label, width = 480, onClose, inline = false, child
     return () => prev?.focus?.();
   }, [inline]);
   const node = (
-    <div className="mmodal" style={inline ? undefined : { position: "fixed", zIndex: 1000, overflowY: "auto", padding: "16px", fontFamily: "var(--font-sans)", color: "var(--ink)" }}
+    <div className="mmodal" style={inline ? undefined : { zIndex: 1000, fontFamily: "var(--font-sans)", color: "var(--ink)" }}
       onKeyDown={(e) => { if (e.key === "Escape" && onClose) { e.stopPropagation(); onClose(); } }}>
       <div ref={card} className="mmodal-card" role="dialog" aria-modal={inline ? undefined : true} aria-label={label} tabIndex={-1}
         style={inline ? { width: `${width}px` } : { width: `${width}px`, maxWidth: "100%", maxHeight: "100%", overflowY: "auto" }}>

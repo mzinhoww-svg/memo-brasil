@@ -42,7 +42,7 @@ const TAB_ORDER: ModTabId[] = ["fotos", "comentarios", "bloqueados"];
 /** As três abas (largura do desenho: 660 px); sem contagem mostra só o nome. Com `href` as abas são links. */
 export function ModTabs({ tab, counts = REF_COUNTS, hrefs }: { tab: ModTabId; counts?: ModTabCounts; hrefs?: Record<ModTabId, string> }) {
   return (
-    <div style={{ width: "660px", marginBottom: "14px" }}>
+    <div style={{ maxWidth: "660px", marginBottom: "14px" }}>
       <Seg items={TAB_ORDER.map((t) => ({ label: counts[t] == null ? TAB_LABEL[t] : `${TAB_LABEL[t]} ${counts[t]}`, on: t === tab, href: hrefs?.[t] }))} />
     </div>
   );

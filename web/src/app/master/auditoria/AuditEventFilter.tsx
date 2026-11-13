@@ -19,7 +19,7 @@ export function AuditEventFilter({ events, selected, cat }: { events: { id: stri
     if (hit && hit.id !== selected) router.push(auditHref({ cat, evento: hit.id }));
   };
   return (
-    <label className="mfield" style={{ maxWidth: "260px", width: "260px" }}>
+    <label className="mfield" style={{ width: "100%", maxWidth: "260px" }}>
       <i>Evento</i>
       <input value={value} list={list} aria-label="Filtrar por evento" onFocus={(e) => e.currentTarget.select()} onChange={(e) => go(e.target.value)} onBlur={() => setValue(current)} />
       <datalist id={list}>
