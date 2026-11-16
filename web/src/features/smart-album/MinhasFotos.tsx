@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ConfirmSheet, Sheet, Tabs, panelId } from "@/components/revela";
 import { isRevealed } from "@/domain/event";
 import { visiblePhotos, type Photo } from "@/domain/photo";
@@ -51,6 +51,15 @@ export function MinhasFotos() {
     const t = setTimeout(() => setOnboarding("intro"), 0);
     return () => clearTimeout(t);
   }, [state?.ui, state?.face.consented, k]);
+
+  // ativou antes da revelação (ou trocou a foto): quando o evento revela, a busca começa sozinha, uma vez por visita
+  const autoSearched = useRef(false);
+  const f = state?.face;
+  useEffect(() => {
+    if (autoSearched.current || !state?.revealed || !f?.available || !f.consented || (f.profile !== "pending" && f.profile !== "ready") || f.job) return;
+    autoSearched.current = true;
+    void sa.api.requestSearch(event.id, `sa-${crypto.randomUUID().replace(/-/g, "")}`).then(() => { track("smart_album_job_started"); return sa.reload(); }).catch(() => {});
+  }, [state?.revealed, f?.available, f?.consented, f?.profile, f?.job, sa, event.id]);
 
   const list = current === "found" ? found : current === "favorites" ? favorites : taken;
   const urls = usePhotoUrls(list, "thumb");

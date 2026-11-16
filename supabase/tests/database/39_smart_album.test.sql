@@ -44,6 +44,8 @@ insert into public.photos (id, event_id, author_id, author_name, storage_path, u
   ('00000000-0000-4000-8000-0000000039f5', '00000000-0000-4000-8000-0000000039e3', '00000000-0000-4000-8000-0000000039a7', 'Duda', '00000000-0000-4000-8000-0000000039e3/00000000-0000-4000-8000-0000000039f5', 'pronta');
 
 -- ===================================================================== padrão: tudo desligado
+-- (a 20261116000300 publica o termo v1 aprovado; aqui ele é desaprovado na transação para provar cada gate isoladamente)
+update public.face_consent_documents set approved = false where version = '2026-11-16-v1';
 select is((select count(*)::int from public.feature_flags where key like 'smart_album%'), 0, 'sem linhas: as duas chaves nascem desligadas');
 select is((select count(*)::int from public.face_consent_documents where approved), 0, 'nenhuma versão do consentimento biométrico está aprovada');
 select is((select public from storage.buckets where id = 'face-references'), false, 'bucket da referência é privado');

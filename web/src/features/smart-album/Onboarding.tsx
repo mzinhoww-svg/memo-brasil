@@ -180,7 +180,8 @@ function ConsentStep({ state, busy, problem, agree, setAgree, onActivate, onManu
       <p className="rv-caption">{COPY.consentThirdParties}</p>
       <ul className="sa-facts">
         <li>Finalidade: sugerir fotos deste evento em que você pode aparecer. Nada de treinar modelos, publicidade ou perfis.</li>
-        <li>Retenção: a foto de referência é apagada quando você desativa, ou no máximo 30 dias após o evento (prazo em validação jurídica).</li>
+        <li>Como funciona: a foto que você escolher fica guardada de forma privada e é comparada só com as fotos deste evento que você já pode ver, num servidor do Revela. Ninguém mais vê essa foto.</li>
+        <li>Retenção: a foto de referência é apagada quando você desativa, troca a foto, ou no máximo 30 dias após o evento.</li>
         <li>Versão do termo: {state.face.consentVersion}. <Link href="/privacidade">Política de privacidade</Link> · <a href={`mailto:${CONTACT_EMAIL}`}>Contato de privacidade</a></li>
       </ul>
       <label className="sa-check">

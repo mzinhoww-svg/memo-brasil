@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { DisabledFaceEngine, FaceEngineDisabledError, FakeFaceEngine } from "./face-engine.ts";
-import { checkReferenceBytes, processJob, runBatch, type ClaimedJob, type WorkerDeps } from "./smart-album-worker.ts";
+import { checkReferenceBytes, httpRemoteEngine, processJob, processJobRemote, runBatch, type ClaimedJob, type RemoteDeps, type WorkerDeps } from "./smart-album-worker.ts";
 
 /** PNG sintético válido (assinatura + IHDR com as dimensões pedidas) seguido de um marcador de teste. Não contém rosto algum. */
 function png(w: number, h: number, marker = ""): Uint8Array {
@@ -138,5 +138,71 @@ describe("runBatch", () => {
     }) as WorkerDeps["rpc"];
     const out = await runBatch(d, 2);
     expect(out.map((o) => [o.jobId, o.status])).toEqual([["j1", "cancelled"], ["j2", "completed"]]);
+  });
+});
+
+describe("motor remoto (servidor próprio)", () => {
+  const job2: ClaimedJob = { jobId: "j9", eventId: "e1", profileId: "p1", referencePath: "e1/u1/p1", photoIds: ["f1", "f2", "f3"] };
+  function rdeps(over: Partial<RemoteDeps> = {}) {
+    const calls: { fn: string; args: Record<string, unknown> }[] = [];
+    const searched: { ref: string; photos: { id: string; url: string }[] }[] = [];
+    const d: RemoteDeps = {
+      rpc: vi.fn(async (fn: string, args: Record<string, unknown>) => {
+        calls.push({ fn, args });
+        if (fn === "smart_album_worker_complete") return { data: (args.p_matches as unknown[]).length, error: null };
+        if (fn === "smart_album_worker_fail") return { data: "failed", error: null };
+        return { data: null, error: null };
+      }),
+      sign: vi.fn(async (bucket: string, paths: string[]) => Object.fromEntries(paths.filter((p) => !p.endsWith("f3")).map((p) => [p, `https://abc.supabase.co/sign/${bucket}/${p}?t=x`]))),
+      remote: {
+        version: "opencv-yunet-sface.t1",
+        search: vi.fn(async (ref: string, photos: { id: string; url: string }[]) => {
+          searched.push({ ref, photos });
+          return { reference: "ok", results: [{ id: "f1", band: "probable" as const }, { id: "zz", band: "probable" as const }], processed: photos.length };
+        }),
+      },
+      log: vi.fn(),
+      ...over,
+    };
+    return { d, calls, searched };
+  }
+  it("manda só URLs assinadas e grava só fotos do lote (id estranho do motor é descartado)", async () => {
+    const { d, calls, searched } = rdeps();
+    const out = await processJobRemote(d, job2);
+    expect(out).toMatchObject({ status: "completed", matches: 1, processed: 3 });
+    expect(searched[0].ref).toContain("face-references/e1/u1/p1");
+    expect(searched[0].photos.map((p) => p.id)).toEqual(["f1", "f2"]); // f3 sem URL (sumiu) fica de fora
+    expect(calls.at(-1)).toEqual({ fn: "smart_album_worker_complete", args: { p_job: "j9", p_matches: [{ photoId: "f1", band: "probable" }], p_processed: 3, p_engine: "opencv-yunet-sface.t1" } });
+    expect(d.sign).toHaveBeenCalledWith("face-references", ["e1/u1/p1"], 300);
+  });
+  it("referência sem rosto vira falha definitiva com referência inválida", async () => {
+    const { d, calls } = rdeps({ remote: { version: "x", search: vi.fn(async () => ({ reference: "no_face", results: [], processed: 0 })) } });
+    expect((await processJobRemote(d, job2)).status).toBe("failed");
+    expect(calls.at(-1)).toEqual({ fn: "smart_album_worker_fail", args: { p_job: "j9", p_error: "no_face", p_reference_invalid: true } });
+  });
+  it("motor fora do ar: falha transitória", async () => {
+    const { d, calls } = rdeps({ remote: { version: "x", search: vi.fn(async () => { throw new Error("down"); }) } });
+    await processJobRemote(d, job2);
+    expect(calls.at(-1)?.args).toMatchObject({ p_error: "engine_unavailable", p_reference_invalid: false });
+  });
+  it("referência sumida do bucket: falha marcando a referência", async () => {
+    const { d, calls } = rdeps({ sign: vi.fn(async () => ({})) });
+    await processJobRemote(d, job2);
+    expect(calls.at(-1)?.args).toMatchObject({ p_error: "reference_missing", p_reference_invalid: true });
+  });
+  it("divide em lotes", async () => {
+    const big: ClaimedJob = { ...job2, photoIds: Array.from({ length: 7 }, (_, i) => `g${i}`) };
+    const { d, searched } = rdeps({ chunk: 3 });
+    await processJobRemote(d, big);
+    expect(searched.map((s) => s.photos.length)).toEqual([3, 3, 1]);
+  });
+  it("cliente HTTP: Bearer, valida a resposta e descarta campos extras", async () => {
+    const fetchFn = vi.fn(async () => new Response(JSON.stringify({ reference: "ok", results: [{ id: "f1", band: "probable", score: 0.9 }, { id: 2, band: "probable" }, { id: "f2", band: "x" }], processed: 2 }), { status: 200 }));
+    const eng = httpRemoteEngine("https://motor.exemplo/", "tok", fetchFn as never);
+    expect(await eng.search("https://r", [{ id: "f1", url: "https://u" }])).toEqual({ reference: "ok", results: [{ id: "f1", band: "probable" }], processed: 2 });
+    const [url, init] = fetchFn.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://motor.exemplo/v1/search");
+    expect((init.headers as Record<string, string>).authorization).toBe("Bearer tok");
+    await expect(httpRemoteEngine("https://m", "t", (async () => new Response("", { status: 403 })) as never).search("r", [])).rejects.toThrow("engine_403");
   });
 });
