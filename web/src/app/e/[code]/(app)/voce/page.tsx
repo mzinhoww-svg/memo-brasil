@@ -8,6 +8,7 @@ import { useGuest } from "@/features/events/guest-context";
 import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
 import { ConvidadoVoce } from "@/revela/screens/ConvidadoVoce";
+import { createCloudSmartAlbum } from "@/features/smart-album/service";
 
 /** 23g · Você */
 export default function Voce() {
@@ -24,6 +25,18 @@ export default function Voce() {
     void browserSupabase().rpc("get_my_email", { p_event: event.id }).then(({ data }) => { if (live && data?.email) { setEmail(String(data.email)); setNotify(true); } });
     return () => { live = false; };
   }, [cloud, event.id]);
+
+  // privacidade: estado da busca facial da conta (gerenciar abre Minhas Fotos, onde liga, troca a selfie ou desliga)
+  const [face, setFace] = useState<string | undefined>();
+  useEffect(() => {
+    if (!cloud || user.anonymous) return;
+    let live = true;
+    createCloudSmartAlbum().accountStatus().then((s) => {
+      if (!live || !s.available) return;
+      setFace(s.consented ? (s.referenceAt ? `Ligada · selfie de ${new Date(s.referenceAt).toLocaleDateString("pt-BR")}` : "Ligada · falta a sua selfie") : "Desligada");
+    }).catch(() => undefined);
+    return () => { live = false; };
+  }, [cloud, user.anonymous]);
 
   async function toggleNotify() {
     if (notify) { setNotify(false); if (cloud) await browserSupabase().rpc("email_opt_out_mine", { p_event: event.id }); setEmail(undefined); return; }
@@ -67,7 +80,7 @@ export default function Voce() {
   return (
     <>
       <ConvidadoVoce code={event.code} name={user.name} sub={sub} used={counts.mine} total={total} notify={notify} email={email ?? "Adicionar e-mail"}
-        onNotify={() => void toggleNotify()} onEmail={() => void editEmail()} onDownload={() => void downloadMine()} onLeave={() => void leave()} onDelete={() => void wipe()} />
+        onNotify={() => void toggleNotify()} onEmail={() => void editEmail()} onDownload={() => void downloadMine()} onLeave={() => void leave()} onDelete={() => void wipe()} face={face} />
       {msg && <p className="rv-field-erro rv-toast-in" role="status" style={{ position: "fixed", left: 20, right: 20, bottom: "calc(var(--tabs-h) + 8px)", textAlign: "center", zIndex: 40 }} onClick={() => setMsg(undefined)}>{msg}</p>}
       <span className="rv-sr-only" data-now={now} />
     </>

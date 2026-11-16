@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ConfirmSheet, Sheet, Tabs, panelId } from "@/components/revela";
 import { isRevealed } from "@/domain/event";
@@ -47,6 +48,19 @@ export function MinhasFotos() {
   useEffect(() => { track("smart_album_viewed"); }, []);
   // primeiro acesso com a chave ligada: abre o convite uma vez (pulável; a escolha fica só neste aparelho, sem dado biométrico)
   const k = onbKey(event.id, user.id);
+  const router = useRouter();
+  // vindo da entrada com "quero a busca facial" marcado (?selfie=1): abre direto na escolha da selfie; ao terminar, segue para `next`
+  const selfieAsked = useRef(false);
+  useEffect(() => {
+    if (selfieAsked.current || !state?.ui) return;
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("selfie") !== "1") return;
+    selfieAsked.current = true;
+    if (state.face.available && state.face.consented && !state.face.profile) {
+      const t = setTimeout(() => setOnboarding("source"), 0);
+      return () => clearTimeout(t);
+    }
+  }, [state?.ui, state?.face.available, state?.face.consented, state?.face.profile, event.code]);
   useEffect(() => {
     if (!state?.ui || state.face.consented || readOnb(k)) return;
     const t = setTimeout(() => setOnboarding("intro"), 0);
@@ -100,6 +114,9 @@ export function MinhasFotos() {
     setOnboarding(null);
     writeOnb(k, r);
     if (r === "activated") setNote(state?.revealed ? COPY.searching : "Pronto. Depois da revelação, procuramos suas fotos.");
+    const q = new URLSearchParams(window.location.search);
+    const next = q.get("selfie") === "1" ? q.get("next") : null;
+    if (next && next.startsWith(`/e/${event.code}/`) && !next.includes("//")) router.replace(next);
   }
 
   const tabs = [
@@ -130,7 +147,7 @@ export function MinhasFotos() {
             <div className="sa-grid" aria-busy="true" aria-label="Carregando suas fotos">{Array.from({ length: 6 }, (_, i) => <span key={i} className="sa-tile sa-tile--skeleton" />)}</div>
           ) : (
             <>
-              {state && <FaceCard state={state} onSetup={() => setOnboarding(state.face.profile ? "source" : "intro")} onRetry={() => void retry()} onRevoke={() => setConfirmRevoke(true)} />}
+              {state && <FaceCard state={state} onSetup={() => setOnboarding(state.face.profile || (state.face.consented && !state.face.consentOutdated) ? "source" : "intro")} onRetry={() => void retry()} onRevoke={() => setConfirmRevoke(true)} />}
               <Tabs base="sa" label="Minhas Fotos" tabs={tabs} value={current} onChange={(id) => { setSegment(id as Segment); if (id === "found") track("smart_album_results_opened", { count_bucket: countBucket(found.length) }); }} />
               <section id={panelId("sa", current)} role="tabpanel" aria-label={tabs.find((t) => t.id === current)?.label}>
                 {!revealed && !viewer.host ? (
@@ -173,7 +190,9 @@ export function MinhasFotos() {
         <ConfirmSheet
           history
           title="Desativar a busca facial?"
-          body="Seu consentimento é retirado, as sugestões somem e a foto de referência entra na fila de exclusão. Fotos que tirei e favoritas continuam."
+          body={state?.face.scope === "account"
+            ? "Vale para todos os seus eventos: o consentimento da sua conta é retirado, as sugestões somem e a sua foto de referência entra na fila de exclusão. Fotos que tirei e favoritas continuam."
+            : "Seu consentimento é retirado, as sugestões somem e a foto de referência entra na fila de exclusão. Fotos que tirei e favoritas continuam."}
           confirmLabel="Desativar e apagar"
           onCancel={() => setConfirmRevoke(false)}
           onConfirm={async () => {
@@ -193,7 +212,8 @@ export function MinhasFotos() {
 function FaceCard({ state, onSetup, onRetry, onRevoke }: { state: SmartAlbumState; onSetup: () => void; onRetry: () => void; onRevoke: () => void }) {
   const f = state.face;
   if (!f.available) {
-    // busca indisponível: só o convite (a escolha de foto não envia nada) quando a pessoa ainda não viu
+    // organizador desligou: quem tinha a busca ligada entende por que não há sugestões; nos demais casos, nada a mostrar
+    if (f.hostDisabled && f.consented) return <div className="sa-card"><p className="rv-body">{COPY.hostOff}</p></div>;
     return null;
   }
   if (!f.consented) {
@@ -202,6 +222,16 @@ function FaceCard({ state, onSetup, onRetry, onRevoke }: { state: SmartAlbumStat
         <b className="sa-h3">{COPY.inviteTitle}</b>
         <p className="rv-caption">{COPY.inviteBody}</p>
         <Button small onClick={onSetup}>Escolher minha foto</Button>
+      </div>
+    );
+  }
+  if (!f.profile && !f.consentOutdated) {
+    return (
+      <div className="sa-card">
+        <b className="sa-h3">Falta só a sua foto</b>
+        <p className="rv-caption">A busca facial já está autorizada na sua conta. Escolha uma selfie e procuramos você neste e nos próximos eventos.</p>
+        <Button small icon="camera" onClick={onSetup}>Escolher minha foto</Button>
+        <button type="button" className="sa-link" onClick={onRevoke}>{COPY.privacy}</button>
       </div>
     );
   }
@@ -228,6 +258,9 @@ function FaceCard({ state, onSetup, onRetry, onRevoke }: { state: SmartAlbumStat
         </div>
       ) : (
         <p className="rv-body">Busca ativada{n === 0 ? " · nenhuma sugestão ainda" : ""}.</p>
+      )}
+      {f.scope === "account" && f.referenceAt && (
+        <p className="rv-caption sa-reminder">Procurando você com a selfie de {new Date(f.referenceAt).toLocaleDateString("pt-BR")}, em todos os seus eventos.</p>
       )}
       <div className="sa-row">
         {state.revealed && !working && f.profile && <Button small variant="secundario" onClick={onRetry}>Procurar de novo</Button>}

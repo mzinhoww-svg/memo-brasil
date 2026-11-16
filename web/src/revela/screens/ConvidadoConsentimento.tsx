@@ -13,13 +13,16 @@ export interface ConvidadoConsentimentoProps extends Omit<CameraFrameProps, "ove
   error?: string;
   onLater?: () => void;
   onAccept?: () => void;
+  /** Aceite OPCIONAL e separado da busca facial (consentimento específico e destacado, LGPD art. 11). Só aparece para conta não anônima
+      com a busca liberada; nasce desmarcado e recusar não muda nada na entrada. */
+  face?: { checked: boolean; onCheck: (value: boolean) => void };
 }
 
 const CHECK = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5 9-10" /></svg>
 );
 
-export function ConvidadoConsentimento({ checked = [true, true], onCheck, error, onLater, onAccept, left = 27, ...frame }: ConvidadoConsentimentoProps = {}) {
+export function ConvidadoConsentimento({ checked = [true, true], onCheck, error, onLater, onAccept, face, left = 27, ...frame }: ConvidadoConsentimentoProps = {}) {
   const panel = useRef<HTMLDivElement>(null);
   const open = useOpen();
   useEffect(() => { panel.current?.focus({ preventScroll: true }); }, []);
@@ -44,6 +47,20 @@ export function ConvidadoConsentimento({ checked = [true, true], onCheck, error,
                   <span>{text}</span>
                 </label>
               ))}
+              {face && (
+                <div className="consent-optional">
+                  <p className="consent-optional__tag">Opcional · busca facial</p>
+                  <label className="consent">
+                    <input type="checkbox" checked={face.checked} onChange={(e) => face.onCheck(e.target.checked)} />
+                    <i className={`cbx${face.checked ? " on" : ""}`}>{CHECK}</i>
+                    <span>
+                      Quero que o Revela encontre fotos em que eu apareço, em todos os eventos de que eu participar, usando uma selfie minha
+                      (dado biométrico, guardado por até 12 meses; desligo quando quiser). Tenho 18 anos ou mais.{" "}
+                      <Link href="/privacidade" className="link" target="_blank" rel="noopener">Como funciona</Link>
+                    </span>
+                  </label>
+                </div>
+              )}
               <p style={{ fontSize: "13px" }}>
                 {"Leia os "}
                 <Link href="/termos" className="link" target="_blank" rel="noopener">Termos</Link>

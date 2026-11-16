@@ -19,8 +19,8 @@ export const COPY = {
   selfConfirm: "Esta foto é minha e mostra o meu rosto.",
   consentTitle: "Ativar busca de fotos em que apareço (opcional)",
   consentBody:
-    "Quero usar uma imagem minha como referência para que o Revela sugira fotografias deste evento em que eu possa aparecer. Entendo que a busca pode errar, que minhas fotos só serão exibidas conforme as permissões e a revelação do evento, e que posso desativar o recurso e solicitar exclusão dos dados relacionados. Li as informações específicas sobre processamento, retenção e compartilhamento.",
-  consentThirdParties: "Outras pessoas também aparecem nas fotos do evento. A busca só procura você, nunca dá nome a ninguém e não funciona em outros eventos.",
+    "Quero usar uma imagem minha como referência para que o Revela sugira fotografias em que eu possa aparecer, nos eventos de que eu participar. Entendo que a busca pode errar, que minhas fotos só serão exibidas conforme as permissões e a revelação do evento, e que posso desativar o recurso e solicitar exclusão dos dados relacionados. Li as informações específicas sobre processamento, retenção e compartilhamento.",
+  consentThirdParties: "Outras pessoas também aparecem nas fotos. A busca só procura você, nunca dá nome a ninguém e só olha fotos que você já pode ver.",
   activate: "Ativar Minhas Fotos",
   faceUnavailableTitle: "A busca por reconhecimento ainda não está liberada.",
   faceUnavailableBody: "Nada da sua foto foi enviado. Enquanto isso, Minhas Fotos mostra as fotos que você tirou e as que você marcar como favoritas.",
@@ -33,6 +33,7 @@ export const COPY = {
   emptyBody: "Você pode trocar sua foto ou selecionar fotos manualmente.",
   beforeReveal: "Suas fotos serão mostradas quando o evento for revelado.",
   privacy: "Desativar busca facial e apagar meus dados de referência",
+  hostOff: "O organizador desligou a busca facial neste evento. Suas fotos que tirei e favoritas continuam aqui.",
   inviteTitle: "Encontre fotos em que você aparece",
   inviteBody: "Escolha uma foto sua e, depois da revelação, veja sugestões das fotos em que você pode estar.",
 } as const;

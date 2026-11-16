@@ -1,7 +1,7 @@
-/** Textos das páginas /termos e /privacidade, versão 2026-10-22-v1. Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
+/** Textos das páginas /termos e /privacidade, versão 2026-11-16-v2 (v1 + seção 11, busca facial opcional). Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
 export type LegalSection = { title: string; blocks: (string | string[])[] };
 
-export const LEGAL_UPDATED_AT = "22 de outubro de 2026";
+export const LEGAL_UPDATED_AT = "16 de novembro de 2026";
 
 export const TERMS_TEXT: LegalSection[] = [
   { title: "1. Sobre o serviço", blocks: [
@@ -49,6 +49,9 @@ export const TERMS_TEXT: LegalSection[] = [
   { title: "10. Atualizações e legislação", blocks: [
     "Alterações relevantes serão comunicadas pela plataforma. Quando necessário, será solicitado novo aceite. Mudanças não retirarão retroativamente direitos ou condições já contratadas.",
     "Aplica-se a legislação brasileira, preservados os direitos do consumidor e as regras legais sobre competência territorial.",
+  ] },  { title: "11. Minhas Fotos e busca facial (opcional)", blocks: [
+    "O Revela oferece, de forma opcional, uma busca que usa uma selfie sua para sugerir fotografias em que você pode aparecer. Ela só funciona com autorização específica e separada, dada em caixa própria (nunca pré-marcada), e pode ser desligada a qualquer momento em Minhas Fotos.",
+    "A busca sugere, não identifica: pode errar, nunca dá nome a outras pessoas e só considera fotografias que você já pode ver no evento. O organizador pode desligá-la no evento dele. As condições de tratamento estão na Política de Privacidade.",
   ] },
 ];
 
@@ -109,5 +112,12 @@ export const PRIVACY_TEXT: LegalSection[] = [
   { title: "10. Segurança e alterações", blocks: [
     "Adotamos controles de autenticação, autorização e restrição de acesso. Nenhum sistema está livre de riscos; incidentes serão avaliados e tratados conforme as obrigações aplicáveis.",
     "Esta Política poderá ser atualizada. Mudanças relevantes serão comunicadas e, quando necessário, haverá nova manifestação do usuário.",
+  ] },  { title: "11. Minhas Fotos e busca facial (opcional)", blocks: [
+    "O que é: uma busca opcional que compara uma selfie sua com as fotografias dos eventos de que você participa, para sugerir aquelas em que você pode aparecer. A selfie e a comparação envolvem dado biométrico, que é dado pessoal sensível.",
+    "Fundamento: consentimento específico e destacado (art. 11, I, da LGPD), dado uma única vez para a sua conta, em caixa própria e nunca pré-marcada, na entrada do evento ou em Minhas Fotos. Aceitar os Termos não ativa a busca. É preciso ter 18 anos ou mais.",
+    "Como funciona: a selfie fica em armazenamento privado e é comparada, num servidor do Revela, apenas com as fotografias que você já pode ver em cada evento, depois da revelação e quando chegam fotos novas. Nada é usado para treinar modelos, publicidade ou perfis; rostos de outras pessoas são comparados e descartados, sem nome e sem registro.",
+    "Onde: o processamento da comparação ocorre em servidor localizado nos Estados Unidos (fornecedor de hospedagem), com acesso restrito e sem guarda das imagens após cada busca.",
+    "Retenção: a selfie é apagada quando você desliga a busca ou troca a foto e, no máximo, 12 meses após o envio; as sugestões somem junto. O organizador pode desligar a busca no evento dele.",
+    "Seus controles: em Minhas Fotos você troca a selfie, oculta sugestões (\"Não sou eu\") e desliga a busca, o que retira o consentimento e apaga selfie e sugestões em todos os eventos. Em Você aparece o estado atual da busca.",
   ] },
 ];

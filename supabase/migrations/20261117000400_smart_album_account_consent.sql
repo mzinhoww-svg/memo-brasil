@@ -38,6 +38,8 @@ alter table public.face_profiles add constraint face_profiles_path check (refere
 create unique index if not exists face_profiles_account_active on public.face_profiles (user_id) where event_id is null and status in ('pending', 'ready');
 
 insert into public.face_consent_documents (version, approved) values ('2026-11-16-v2', true) on conflict (version) do update set approved = true;
+-- Termos e Política 2026-11-16-v2: seção 11 "Minhas Fotos e busca facial (opcional)" (texto em web/src/lib/legal-text.ts)
+insert into public.legal_documents (kind, version) values ('terms', '2026-11-16-v2'), ('privacy', '2026-11-16-v2') on conflict do nothing;
 
 -- ===================================================================================================================== gates e helpers
 create or replace function public.smart_album_face_enabled(p_event uuid) returns boolean

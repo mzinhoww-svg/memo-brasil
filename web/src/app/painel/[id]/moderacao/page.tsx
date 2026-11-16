@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { moderationQueue } from "@/domain/photo";
 import { AUTO_HIDE_REPORTS, moderateComment, useModerationComments, type CommentAction } from "@/features/admin/comments";
@@ -14,6 +14,8 @@ import { useReportReasons } from "@/features/moderation/use-report-reasons";
 import { plural } from "@/lib/plural";
 import { PainelModeracao, type ModTab, type ModcItem } from "@/revela/screens/PainelModeracao";
 import { useFlash } from "@/revela/painel-ui";
+import { browserSupabase } from "@/lib/supabase/client";
+import { backendMode } from "@/lib/supabase/env";
 
 const withReasons = (text: string, counts: Parameters<typeof formatReasonCounts>[0]) => { const r = formatReasonCounts(counts); return r ? `${text} · Motivos: ${r}` : text; };
 const firstName = (n: string) => n.trim().split(/\s+/)[0] || "Convidado sem nome";
@@ -27,6 +29,16 @@ export default function Moderacao() {
   const reasons = useReportReasons(event.id, comments.length + photos.length);
   const [tab, setTab] = useState<ModTab>("fotos");
   const [toast, flash] = useFlash();
+  // busca facial (Minhas Fotos) neste evento: o organizador pode desligar; só existe na nuvem
+  const cloud = backendMode() === "supabase";
+  const [faceOn, setFaceOn] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!cloud) return;
+    let live = true;
+    void browserSupabase().from("events").select("face_search_enabled").eq("id", event.id).maybeSingle()
+      .then(({ data }) => { if (live && data) setFaceOn((data as { face_search_enabled?: boolean }).face_search_enabled !== false); });
+    return () => { live = false; };
+  }, [cloud, event.id]);
   const live = useMemo(() => photos.filter((p) => p.status !== "removida"), [photos]);
   const reported = useMemo(() => moderationQueue(live).filter((p) => p.status === "visivel"), [live]);
   const queue = comments.filter((c) => c.hidden || c.reports > 0);
@@ -78,6 +90,11 @@ export default function Moderacao() {
         toggles={[
           { label: "Comentários ligados", on: event.reactionsEnabled, onClick: () => void run(async () => { await updateSettings(repos, event.id, { reactionsEnabled: !event.reactionsEnabled }); await refresh(); }) },
           { label: `Esconder ao receber ${AUTO_HIDE_REPORTS} denúncias`, on: true },
+          ...(faceOn === null ? [] : [{ label: "Busca facial dos convidados (Minhas Fotos)", on: faceOn, onClick: () => void run(async () => {
+            const { error } = await browserSupabase().rpc("set_event_face_search", { p_event: event.id, p_enabled: !faceOn });
+            if (error) throw error;
+            setFaceOn(!faceOn);
+          }) }]),
         ]}
         onBack={() => router.push(`/painel/${event.id}`)}
       />

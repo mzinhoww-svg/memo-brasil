@@ -3,7 +3,7 @@ import { countBucket, sanitize, track } from "./analytics";
 import { failureText, jobErrorText, referenceProblemText } from "./copy";
 import { localFlags } from "./flags";
 import { checkInput, countFaces, fetchGooglePicture, fitInside, googlePictureUrl, isHeic, problemFor } from "./reference";
-import { createCloudSmartAlbum, createLocalSmartAlbum, LOCAL_CONSENT_VERSION, LOCAL_FAKE_MATCHES_KEY, parseState, SmartAlbumError, toSmartAlbumError } from "./service";
+import { createCloudSmartAlbum, createLocalSmartAlbum, LOCAL_CONSENT_VERSION, LOCAL_FAKE_MATCHES_KEY, parseAccountStatus, parseState, SmartAlbumError, toSmartAlbumError } from "./service";
 
 const mem = () => {
   const m = new Map<string, string>();
@@ -31,9 +31,9 @@ describe("service · nuvem", () => {
   });
   it("só chama RPCs com os parâmetros do contrato; nunca envia user id", async () => {
     const rpc = vi.fn(async (fn: string) => {
-      if (fn === "smart_album_begin_reference") return { data: { bucket: "face-references", path: "e/u/p" }, error: null };
+      if (fn === "smart_album_begin_account_reference") return { data: { bucket: "face-references", path: "conta/u/p" }, error: null };
       if (fn === "smart_album_list_matches") return { data: [{ photo_id: "f1", band: "probable", created_at: "2026-11-16T00:00:00Z" }], error: null };
-      if (fn === "smart_album_revoke_face") return { data: { status: "purge_queued" }, error: null };
+      if (fn === "smart_album_revoke_account") return { data: { status: "purge_queued" }, error: null };
       return { data: null, error: null };
     });
     const upload = vi.fn(async () => ({ error: null }));
@@ -42,9 +42,22 @@ describe("service · nuvem", () => {
     await api.uploadReference("e", "camera", new Blob(["x"], { type: "image/jpeg" }));
     expect(await api.matches("e")).toEqual([{ photoId: "f1", band: "probable", createdAt: Date.parse("2026-11-16T00:00:00Z") }]);
     expect(await api.revoke("e")).toEqual({ status: "purge_queued" });
-    expect(rpc).toHaveBeenCalledWith("smart_album_grant_face_consent", { p_event: "e", p_version: "v1", p_source: "camera", p_self_attested: true });
-    expect(upload).toHaveBeenCalledWith("face-references", "e/u/p", expect.any(Blob));
+    // aceite e selfie são da conta: não levam evento nem usuário
+    expect(rpc).toHaveBeenCalledWith("smart_album_grant_account_consent", { p_version: "v1", p_source: "camera", p_self_attested: true });
+    expect(rpc).toHaveBeenCalledWith("smart_album_begin_account_reference", { p_source: "camera" });
+    expect(rpc).toHaveBeenCalledWith("smart_album_revoke_account", {});
+    expect(upload).toHaveBeenCalledWith("face-references", "conta/u/p", expect.any(Blob));
     for (const c of rpc.mock.calls as unknown as [string, Record<string, unknown>][]) expect(Object.keys(c[1] ?? {})).not.toContain("p_user");
+  });
+  it("status da conta: só campos conhecidos, datas validadas", () => {
+    expect(parseAccountStatus({ available: true, account: true, consentVersion: "v2", consented: true, consentedAt: "2026-11-16T00:00:00Z", profile: "ready", referenceAt: "lixo" }))
+      .toEqual({ available: true, account: true, consentVersion: "v2", consented: true, consentOutdated: false, consentedAt: Date.parse("2026-11-16T00:00:00Z"), profile: "ready", referenceAt: null });
+  });
+  it("estado por evento: escopo do aceite e organizador que desligou", () => {
+    const s = parseState({ face: { available: false, consented: true, scope: "account", hostDisabled: true, consentedAt: "2026-11-16T00:00:00Z" } });
+    expect(s.face.scope).toBe("account");
+    expect(s.face.hostDisabled).toBe(true);
+    expect(parseState({ face: { scope: "global" } }).face.scope).toBeNull();
   });
   it("recusa caminho de upload fora do bucket privado", async () => {
     const api = createCloudSmartAlbum(async () => ({ data: { bucket: "event-photos", path: "x" }, error: null }), vi.fn());

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { PNG } from "pngjs";
-import { createViaWizard, postViaFile, switchPerson } from "./helpers";
+import { createViaWizard, enterAsGuest, postViaFile, switchPerson } from "./helpers";
 
 /**
  * Revela Smart Album · Minhas Fotos em modo local (sem servidor). As chaves ligam pelo localStorage, que só vale em build de
@@ -212,4 +212,41 @@ test("câmera: frontal abre e captura; câmera do evento segue intacta", async (
   await settled(page);
   await page.goto(`/e/${code}/postar`);
   await expect(page.getByLabel("Escolher foto do aparelho")).toBeAttached();
+});
+
+test("aceite único: autorizou num evento, no outro só escolhe a selfie (sem pedir o termo de novo)", async ({ page }) => {
+  const a = await createViaWizard(page, { title: "SA conta A", reveal: "desligada" });
+  const b = await createViaWizard(page, { title: "SA conta B", reveal: "desligada" });
+  await switchPerson(page, a.code, "Ana");
+  await setFlag(page, "face");
+  await page.goto(`/e/${a.code}/minhas-fotos`);
+  await page.getByRole("dialog", { name: "Encontre seus momentos." }).getByRole("button", { name: "Continuar", exact: true }).click();
+  await refInput(page).setInputFiles({ name: "eu.png", mimeType: "image/png", buffer: referencePng() });
+  const review = page.getByRole("dialog", { name: "Confira a foto" });
+  await review.getByRole("checkbox", { name: "Esta foto é minha e mostra o meu rosto." }).check();
+  await review.getByRole("button", { name: "Continuar", exact: true }).click();
+  const consent = page.getByRole("dialog", { name: "Autorização" });
+  await expect(consent.getByText(/todos os eventos de que participar/)).toBeVisible();
+  await consent.getByRole("checkbox", { name: /Li e autorizo a busca de fotos em que apareço nos eventos de que eu participar/ }).check();
+  await consent.getByRole("button", { name: "Ativar Minhas Fotos" }).click();
+  await expect(page.getByRole("dialog", { name: "Autorização" })).toHaveCount(0);
+
+  // outro evento: a mesma pessoa entra; Minhas Fotos não abre convite nem termo, só pede a foto
+  await page.goto(`/e/${b.code}`);
+  await enterAsGuest(page, "Ana");
+  await page.waitForURL(/postar$/);
+  await page.goto(`/e/${b.code}/minhas-fotos`);
+  await expect(page.getByText("Falta só a sua foto")).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Escolher minha foto" }).click();
+  await expect(page.getByRole("dialog", { name: "Escolha uma foto sua" }).getByText("Passo 2 de 2")).toBeVisible();
+  await refInput(page).setInputFiles({ name: "eu.png", mimeType: "image/png", buffer: referencePng() });
+  const review2 = page.getByRole("dialog", { name: "Confira a foto" });
+  await expect(review2.getByText(/Busca facial autorizada na sua conta/)).toBeVisible();
+  await review2.getByRole("checkbox", { name: "Esta foto é minha e mostra o meu rosto." }).check();
+  await review2.getByRole("button", { name: "Usar esta foto" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Autorização" })).toHaveCount(0);
+  await expect(page.getByText(/Busca ativada/)).toBeVisible();
+  await page.screenshot({ path: path.join(EVID, "e2e-aceite-unico.png") });
 });

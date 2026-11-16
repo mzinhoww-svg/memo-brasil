@@ -4,17 +4,24 @@ import { LEGAL_UPDATED_AT, PRIVACY_TEXT, TERMS_TEXT, type LegalSection } from ".
 
 const flat = (sections: LegalSection[]) => sections.flatMap((s) => [s.title, ...s.blocks.flat()]).join("\n");
 
-describe("textos legais 2026-10-22-v1", () => {
-  it("têm dez seções cada, numeradas", () => {
+describe("textos legais 2026-11-16-v2", () => {
+  it("têm onze seções cada, numeradas", () => {
     for (const t of [TERMS_TEXT, PRIVACY_TEXT]) {
-      expect(t).toHaveLength(10);
+      expect(t).toHaveLength(11);
       t.forEach((s, i) => expect(s.title.startsWith(`${i + 1}. `)).toBe(true));
     }
   });
   it("a versão vigente do código é a do texto publicado", () => {
-    expect(TERMS_VERSION).toBe("2026-10-22-v1");
-    expect(PRIVACY_VERSION).toBe("2026-10-22-v1");
-    expect(LEGAL_UPDATED_AT).toBe("22 de outubro de 2026");
+    expect(TERMS_VERSION).toBe("2026-11-16-v2");
+    expect(PRIVACY_VERSION).toBe("2026-11-16-v2");
+    expect(LEGAL_UPDATED_AT).toBe("16 de novembro de 2026");
+  });
+  it("seção 11: busca facial opcional, com aceite separado, 12 meses e processamento nos EUA", () => {
+    const p = flat(PRIVACY_TEXT);
+    expect(p).toContain("consentimento específico e destacado (art. 11, I, da LGPD)");
+    expect(p).toContain("no máximo, 12 meses após o envio");
+    expect(p).toContain("Estados Unidos");
+    expect(flat(TERMS_TEXT)).toContain("autorização específica e separada, dada em caixa própria (nunca pré-marcada)");
   });
   it("publicam os prazos de retenção: 90 dias de disponibilidade e exclusão em até 30 dias", () => {
     const t = flat(TERMS_TEXT);

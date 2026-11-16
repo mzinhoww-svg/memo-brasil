@@ -48,12 +48,12 @@ describe("versões vigentes", () => {
   it("sem confirmações marcadas, currentConsent não as inventa", () => {
     expect(currentConsent("convidado", null, { termsAccepted: false, privacyAcknowledged: false })).toMatchObject({ termsAccepted: false, privacyAcknowledged: false });
   });
-  it("a versão vigente é a 2026-10-22-v1", () => {
-    expect(TERMS_VERSION).toBe("2026-10-22-v1");
-    expect(PRIVACY_VERSION).toBe("2026-10-22-v1");
+  it("a versão vigente é a 2026-11-16-v2 (seção 11: busca facial opcional)", () => {
+    expect(TERMS_VERSION).toBe("2026-11-16-v2");
+    expect(PRIVACY_VERSION).toBe("2026-11-16-v2");
   });
   it("as versões do código existem na migration que as publica (sem divergência)", () => {
-    const sql = readFileSync(resolve(__dirname, "../../../supabase/migrations/20261022001300_legal_v1_retention.sql"), "utf8");
+    const sql = readFileSync(resolve(__dirname, "../../../supabase/migrations/20261117000400_smart_album_account_consent.sql"), "utf8");
     expect(sql).toContain(`('terms', '${TERMS_VERSION}'`);
     expect(sql).toContain(`('privacy', '${PRIVACY_VERSION}'`);
   });
