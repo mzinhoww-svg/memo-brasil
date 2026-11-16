@@ -100,7 +100,7 @@ export function QRConvite({ name = QR_CONVITE_REF.name, date = QR_CONVITE_REF.da
             <span>{square ? "Quadrado" : "Retrato"}</span>
           </button>
         </div>
-        <div className="grow" style={{ "display": "flex", "alignItems": "center" }}>
+        <div className="qr-stage">
           <Carousel count={models} index={shown - 1} onIndexChange={pick} label="Modelos do cartão de mesa" trackLabel="Modelos do cartão de mesa">
             {Array.from({ length: models }, (_, i) => (
               <div key={i} className="cx-slide" role="group" aria-roledescription="slide" aria-label={`Modelo ${i + 1} de ${models}`}>
