@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { claim, complete, fail, PULL_ENGINE_VERSION, safeEqual, sha256Hex, tokenOk, type PullDeps } from "./smart-album-pull.ts";
+import { claim, claimPhotos, complete, completePhotos, fail, PULL_ENGINE_VERSION, safeEqual, sha256Hex, tokenOk, type PullDeps } from "./smart-album-pull.ts";
 
 const J = "00000000-0000-4000-8000-0000000000aa";
 const P1 = "00000000-0000-4000-8000-0000000000f1";
@@ -57,5 +57,30 @@ describe("modo pull", () => {
     expect(await fail(d, { jobId: J, error: "no_face", referenceInvalid: true })).toBe("failed");
     expect(calls.at(-1)?.args).toEqual({ p_job: J, p_error: "no_face", p_reference_invalid: true });
     await expect(fail(d, { jobId: J, error: "Texto Livre com PII" })).rejects.toThrow("invalid");
+  });
+  it("claimPhotos: lote com URLs de fotos e selfies; fila vazia = null; foto/selfie sem URL fica de fora", async () => {
+    const E = "00000000-0000-4000-8000-0000000000e1", R1 = "00000000-0000-4000-8000-0000000000c1";
+    const rpc = vi.fn(async () => ({ data: { photos: [{ photoId: P1, eventId: E }, { photoId: P2, eventId: E }], refs: [{ eventId: E, profileId: R1, referencePath: "conta/u/p" }] }, error: null }));
+    const { d } = deps({ rpc });
+    expect(await claimPhotos(d)).toEqual({
+      photos: [{ id: P1, eventId: E, url: `https://abc.supabase.co/s/event-photos/${E}/${P1}` }],
+      refs: [{ eventId: E, profileId: R1, url: "https://abc.supabase.co/s/face-references/conta/u/p" }],
+    });
+    expect(rpc).toHaveBeenCalledWith("smart_album_worker_claim_photos", { p_limit: 8 });
+    expect(await claimPhotos(deps({ rpc: vi.fn(async () => ({ data: { photos: [], refs: [] }, error: null })) }).d)).toBeNull();
+  });
+  it("completePhotos: saneia ids, faixas, números e erros de selfie; versão do motor fixada no servidor", async () => {
+    const R1 = "00000000-0000-4000-8000-0000000000c1";
+    const rpc = vi.fn(async () => ({ data: 1, error: null }));
+    const { d } = deps({ rpc });
+    expect(await completePhotos(d, {
+      results: [{ photoId: P1, faces: 3.7, sharpness: -5, score: 0.9, matches: [{ profileId: R1, band: "probable", score: 0.8 }, { profileId: "x", band: "probable" }, { profileId: R1, band: "certo" }] }, { photoId: "nao-uuid", faces: 1 }],
+      failed: [P2, "lixo"], refErrors: [{ profileId: R1, error: "no_face" }, { profileId: R1, error: "DROP TABLE" }], engine: "falso",
+    })).toBe(1);
+    expect(rpc).toHaveBeenCalledWith("smart_album_worker_complete_photos", {
+      p_results: [{ photoId: P1, faces: 3, sharpness: 0, matches: [{ profileId: R1, band: "probable" }] }],
+      p_failed: [P2], p_ref_errors: [{ profileId: R1, error: "no_face" }], p_engine: PULL_ENGINE_VERSION,
+    });
+    await expect(completePhotos(d, { results: "x" })).rejects.toThrow("invalid");
   });
 });

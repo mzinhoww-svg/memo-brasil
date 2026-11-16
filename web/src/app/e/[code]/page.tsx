@@ -22,6 +22,8 @@ import { EMAIL_RE, saveGuestEmail } from "@/features/participants/guest-email";
 import { currentConsent, recordConsent } from "@/lib/consent";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
+import { createCloudSmartAlbum, type AccountFaceStatus } from "@/features/smart-album/service";
+import { track } from "@/features/smart-album/analytics";
 import { getWhatsappStatus } from "@/features/whatsapp/api";
 import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 
@@ -58,9 +60,21 @@ export default function Convite() {
   const [ackedPrivacy, setAckedPrivacy] = useState(false);
   const [consentError, setConsentError] = useState<string | undefined>();
   const [askConsent, setAskConsent] = useState(false);
+  // busca facial: aceite OPCIONAL e separado na mesma tela dos Termos; só para conta (não anônima) e com a busca liberada no app
+  const [faceOffer, setFaceOffer] = useState<AccountFaceStatus | null>(null);
+  const [faceOptIn, setFaceOptIn] = useState(false);
+  useEffect(() => {
+    if (!askConsent || backend !== "supabase" || !user || user.anonymous) return;
+    let live = true;
+    createCloudSmartAlbum().accountStatus()
+      .then((s) => { if (live && s.available && s.account && !s.consented && s.consentVersion) setFaceOffer(s); })
+      .catch(() => undefined); // sem status: a caixa simplesmente não aparece
+    return () => { live = false; };
+  }, [askConsent, backend, user]);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | undefined>();
   const [full, setFull] = useState(false);
+  const afterJoin = useRef<string | null>(null); // destino depois dos passos opcionais (selfie da busca facial, se marcada)
   const [avisosEventId, setAvisosEventId] = useState<string | undefined>(); // passo opcional: avisos por WhatsApp, depois de entrar
   const member = data.participants.find((p) => p.userId === user?.id);
   const event = data.event ?? data.preview; // quem ainda não entrou só recebe a prévia do convite
@@ -130,12 +144,21 @@ export default function Convite() {
       if (email.trim()) await saveGuestEmail(r.event.id, email);
       // lê a festa já como membro antes de ir para a câmera: ela abre sem a tela de carregando (se falhar, ela mesma lê)
       await prefetchEventData(repos, { code }, me.id, now()).catch(() => undefined);
+      let dest = `/e/${code}/postar`;
+      if (faceOptIn && faceOffer?.consentVersion) {
+        try {
+          await createCloudSmartAlbum().grantConsent(r.event.id, faceOffer.consentVersion, "entrada");
+          track("smart_album_consent_granted", { source: "entrada" });
+          dest = `/e/${code}/minhas-fotos?selfie=1&next=${encodeURIComponent(`/e/${code}/postar`)}`;
+        } catch { /* o aceite opcional falhou: a entrada segue normal e o convite aparece depois em Minhas Fotos */ }
+      }
+      afterJoin.current = dest;
       // passo opcional e pulável: só aparece se o recurso está ligado, a pessoa já é participante e ainda não ativou
       if (backend === "supabase") {
         const st = await getWhatsappStatus(r.event.id).catch(() => null);
         if (st && st.enabled && st.eligible && !st.optin && !isRevealed(r.event, now())) { setAvisosEventId(r.event.id); return; }
       }
-      router.push(`/e/${code}/postar`);
+      router.push(dest);
     } catch {
       setError(MESSAGES.rede);
     } finally {
@@ -145,7 +168,7 @@ export default function Convite() {
   useEffect(() => { enterRef.current = enter; });
 
   if (avisosEventId) {
-    const go = () => router.push(`/e/${code}/postar`);
+    const go = () => router.push(afterJoin.current ?? `/e/${code}/postar`);
     return (
       <EventTheme wrap={event?.cameraStyle}>
         <GuestShell>
@@ -230,6 +253,7 @@ export default function Convite() {
             onCheck={(i, v) => { if (i === 0) setAcceptedTerms(v); else setAckedPrivacy(v); setConsentError(undefined); }}
             error={consentError}
             onLater={() => setAskConsent(false)}
+            face={faceOffer ? { checked: faceOptIn, onCheck: setFaceOptIn } : undefined}
             onAccept={() => { if (!acceptedTerms || !ackedPrivacy) { setConsentError(CONSENT_REQUIRED); return; } setAskConsent(false); void enter(); }}
           />
         </main>

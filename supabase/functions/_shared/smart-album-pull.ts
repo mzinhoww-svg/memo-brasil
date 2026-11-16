@@ -3,7 +3,7 @@
 // recebe chave do banco; só um Bearer próprio (SMART_ALBUM_ENGINE_TOKEN). Lógica pura, testada sem Deno.
 interface ClaimedJob { jobId: string; eventId: string; profileId: string; referencePath: string; photoIds: string[] }
 
-export const PULL_ENGINE_VERSION = "opencv-yunet-sface.t1";
+export const PULL_ENGINE_VERSION = "opencv-yunet-sface.t3";
 export const SIGN_TTL_SECONDS = 1800; // o motor processa em sequência; 30 min cobre eventos grandes
 const ERR = /^[a-z_]{1,40}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -72,4 +72,55 @@ export async function fail(deps: PullDeps, body: unknown): Promise<string> {
   const { data, error } = await deps.rpc("smart_album_worker_fail", { p_job: b.jobId, p_error: b.error, p_reference_invalid: b.referenceInvalid === true });
   if (error) throw new Error("fail");
   return String(data);
+}
+
+// ---------------------------------------------------------------------------------------------------------------- pré-processamento
+// Cada foto pronta é analisada uma vez, durante o evento, contra as selfies de quem autorizou e participa. O motor recebe só URLs
+// assinadas e ids opacos (foto, perfil); devolve {faces, sharpness, matches[{profileId, band}]}. O banco revalida tudo ao gravar.
+export interface PhotoBatch { photos: { id: string; eventId: string; url: string }[]; refs: { eventId: string; profileId: string; url: string }[] }
+const REF_ERR = new Set(["no_face", "multiple_faces", "low_quality"]);
+
+async function signAll(deps: PullDeps, bucket: "face-references" | "event-photos", paths: string[]): Promise<Record<string, string>> {
+  const out: Record<string, string> = {};
+  for (let i = 0; i < paths.length; i += 200) Object.assign(out, await deps.sign(bucket, paths.slice(i, i + 200), SIGN_TTL_SECONDS));
+  return out;
+}
+
+/** Reserva um lote de fotos e monta as URLs. Fila vazia: null. Foto sem URL volta à fila pelo próprio banco (lock expira). */
+export async function claimPhotos(deps: PullDeps, limit = 8): Promise<PhotoBatch | null> {
+  const { data, error } = await deps.rpc("smart_album_worker_claim_photos", { p_limit: limit });
+  if (error) throw new Error("claim");
+  const d = (data ?? {}) as { photos?: { photoId: string; eventId: string }[]; refs?: { eventId: string; profileId: string; referencePath: string }[] };
+  const claimed = d.photos ?? [];
+  if (!claimed.length) return null;
+  const photoUrls = await signAll(deps, "event-photos", claimed.map((p) => `${p.eventId}/${p.photoId}`));
+  const refList = (d.refs ?? []).slice(0, 2000);
+  const refUrls = await signAll(deps, "face-references", [...new Set(refList.map((r) => r.referencePath))]);
+  return {
+    photos: claimed.filter((p) => photoUrls[`${p.eventId}/${p.photoId}`]).map((p) => ({ id: p.photoId, eventId: p.eventId, url: photoUrls[`${p.eventId}/${p.photoId}`] })),
+    refs: refList.filter((r) => refUrls[r.referencePath]).map((r) => ({ eventId: r.eventId, profileId: r.profileId, url: refUrls[r.referencePath] })),
+  };
+}
+
+/** Grava o lote. Só passam ids em formato UUID, faixas conhecidas e erros de selfie conhecidos; números são saneados. */
+export async function completePhotos(deps: PullDeps, body: unknown): Promise<number> {
+  const b = (body ?? {}) as { results?: unknown; failed?: unknown; refErrors?: unknown };
+  if (!Array.isArray(b.results)) throw new Error("invalid");
+  const num = (v: unknown, max: number) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.min(v, max) : 0);
+  const results = (b.results as { photoId?: unknown; faces?: unknown; sharpness?: unknown; matches?: unknown }[])
+    .filter((r) => typeof r.photoId === "string" && UUID.test(r.photoId))
+    .slice(0, 50)
+    .map((r) => ({
+      photoId: r.photoId as string, faces: Math.floor(num(r.faces, 500)), sharpness: num(r.sharpness, 1e6),
+      matches: (Array.isArray(r.matches) ? (r.matches as { profileId?: unknown; band?: unknown }[]) : [])
+        .filter((m) => typeof m.profileId === "string" && UUID.test(m.profileId) && (m.band === "probable" || m.band === "review"))
+        .map((m) => ({ profileId: m.profileId as string, band: m.band as string })),
+    }));
+  const failed = (Array.isArray(b.failed) ? (b.failed as unknown[]) : []).filter((v): v is string => typeof v === "string" && UUID.test(v)).slice(0, 50);
+  const refErrors = (Array.isArray(b.refErrors) ? (b.refErrors as { profileId?: unknown; error?: unknown }[]) : [])
+    .filter((e) => typeof e.profileId === "string" && UUID.test(e.profileId) && typeof e.error === "string" && REF_ERR.has(e.error))
+    .map((e) => ({ profileId: e.profileId as string, error: e.error as string }));
+  const { data, error } = await deps.rpc("smart_album_worker_complete_photos", { p_results: results, p_failed: failed, p_ref_errors: refErrors, p_engine: PULL_ENGINE_VERSION });
+  if (error) throw new Error("complete");
+  return Number(data ?? 0);
 }

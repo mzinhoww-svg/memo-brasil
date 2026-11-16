@@ -22,6 +22,13 @@ export interface SmartAlbumState {
     consentVersion: string | null;
     consented: boolean;
     consentOutdated: boolean;
+    /** "account" = aceite único da conta (vale em todos os eventos); "event" = aceite antigo, só deste evento */
+    scope: "account" | "event" | null;
+    consentedAt: number | null;
+    /** quando a selfie em uso foi enviada (lembrete "usando sua selfie de …") */
+    referenceAt: number | null;
+    /** o organizador desligou a busca facial neste evento */
+    hostDisabled: boolean;
     profile: ProfileStatus;
     source: ReferenceSource | null;
     job: { id: string; status: JobStatus; processed: number; eligible: number | null; errorCode: string | null } | null;
@@ -30,6 +37,17 @@ export interface SmartAlbumState {
   };
 }
 export interface Match { photoId: string; band: Band; createdAt: number }
+/** Aceite e selfie da conta (fora de evento): usado na entrada e em Você. */
+export interface AccountFaceStatus {
+  available: boolean;
+  account: boolean;
+  consentVersion: string | null;
+  consented: boolean;
+  consentOutdated: boolean;
+  consentedAt: number | null;
+  profile: ProfileStatus;
+  referenceAt: number | null;
+}
 export interface Item { photoId: string; kind: ItemKind; createdAt: number }
 
 export type SmartAlbumFailure = "disabled" | "consent" | "notrevealed" | "forbidden" | "invalid" | "rate-limited" | "unavailable";
@@ -50,18 +68,33 @@ export interface SmartAlbumApi {
   state(eventId: string): Promise<SmartAlbumState>;
   items(eventId: string): Promise<Item[]>;
   setItem(photoId: string, kind: ItemKind, on: boolean): Promise<void>;
-  grantConsent(eventId: string, version: string, source: ReferenceSource): Promise<void>;
+  /** Aceite único da conta (o eventId só identifica a tela de origem no modo local). */
+  grantConsent(eventId: string, version: string, source: ReferenceSource | "entrada"): Promise<void>;
+  accountStatus(): Promise<AccountFaceStatus>;
   /** Cria o perfil pendente e envia a referência JÁ preparada (recomprimida, sem EXIF) ao bucket privado. */
   uploadReference(eventId: string, source: ReferenceSource, image: Blob): Promise<void>;
   requestSearch(eventId: string, idempotencyKey: string): Promise<{ jobId: string; status: JobStatus }>;
   matches(eventId: string): Promise<Match[]>;
   hideMatch(eventId: string, photoId: string): Promise<void>;
-  /** Retira o consentimento e apaga referência/resultados. `purge_queued` = objeto na fila de purga (não é "já apagado"). */
+  /** Retira o consentimento da conta e apaga selfie/resultados em TODOS os eventos. `purge_queued` = objeto na fila de purga. */
   revoke(eventId: string): Promise<{ status: "purge_queued" | "done" }>;
 }
 
 type Rpc = (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
 type Upload = (bucket: string, path: string, body: Blob) => Promise<{ error: unknown }>;
+
+const ts = (v: unknown): number | null => (typeof v === "string" && !Number.isNaN(Date.parse(v)) ? Date.parse(v) : null);
+const profileOf = (v: unknown): ProfileStatus => (["pending", "ready", "error"].includes(String(v)) ? v : null) as ProfileStatus;
+
+export function parseAccountStatus(raw: unknown): AccountFaceStatus {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  return {
+    available: r.available === true, account: r.account === true,
+    consentVersion: typeof r.consentVersion === "string" ? r.consentVersion : null,
+    consented: r.consented === true, consentOutdated: r.consentOutdated === true, consentedAt: ts(r.consentedAt),
+    profile: profileOf(r.profile), referenceAt: ts(r.referenceAt),
+  };
+}
 
 export function parseState(raw: unknown): SmartAlbumState {
   const r = (raw ?? {}) as Record<string, unknown>;
@@ -76,7 +109,11 @@ export function parseState(raw: unknown): SmartAlbumState {
       consentVersion: typeof f.consentVersion === "string" ? f.consentVersion : null,
       consented: f.consented === true,
       consentOutdated: f.consentOutdated === true,
-      profile: (["pending", "ready", "error"].includes(String(f.profile)) ? f.profile : null) as ProfileStatus,
+      scope: f.scope === "account" || f.scope === "event" ? f.scope : null,
+      consentedAt: ts(f.consentedAt),
+      referenceAt: ts(f.referenceAt),
+      hostDisabled: f.hostDisabled === true,
+      profile: profileOf(f.profile),
       source: (["google", "upload", "camera"].includes(String(f.source)) ? f.source : null) as ReferenceSource | null,
       job: j ? { id: String(j.id), status: j.status as JobStatus, processed: Number(j.processed ?? 0), eligible: typeof j.eligible === "number" ? j.eligible : null, errorCode: typeof j.errorCode === "string" ? j.errorCode : null } : null,
       matches: typeof f.matches === "number" ? f.matches : null,
@@ -102,9 +139,10 @@ export function createCloudSmartAlbum(
     items: async (eventId) => (((await call("smart_album_my_items", { p_event: eventId })) as Array<Record<string, unknown>>) ?? [])
       .map((r) => ({ photoId: String(r.photo_id), kind: r.kind as ItemKind, createdAt: Date.parse(String(r.created_at)) })),
     setItem: async (photoId, kind, on) => void (await call("smart_album_set_item", { p_photo: photoId, p_kind: kind, p_on: on })),
-    grantConsent: async (eventId, version, source) => void (await call("smart_album_grant_face_consent", { p_event: eventId, p_version: version, p_source: source, p_self_attested: true })),
-    uploadReference: async (eventId, source, image) => {
-      const r = (await call("smart_album_begin_reference", { p_event: eventId, p_source: source })) as { bucket: string; path: string };
+    grantConsent: async (_eventId, version, source) => void (await call("smart_album_grant_account_consent", { p_version: version, p_source: source, p_self_attested: true })),
+    accountStatus: async () => parseAccountStatus(await call("smart_album_account_status", {})),
+    uploadReference: async (_eventId, source, image) => {
+      const r = (await call("smart_album_begin_account_reference", { p_source: source })) as { bucket: string; path: string };
       if (!r?.path || r.bucket !== "face-references") throw new SmartAlbumError("unavailable");
       const { error } = await upload(r.bucket, r.path, image);
       if (error) throw toSmartAlbumError(error);
@@ -116,8 +154,8 @@ export function createCloudSmartAlbum(
     matches: async (eventId) => (((await call("smart_album_list_matches", { p_event: eventId, p_limit: 100 })) as Array<Record<string, unknown>>) ?? [])
       .map((r) => ({ photoId: String(r.photo_id), band: r.band as Band, createdAt: Date.parse(String(r.created_at)) })),
     hideMatch: async (eventId, photoId) => void (await call("smart_album_hide_match", { p_event: eventId, p_photo: photoId })),
-    revoke: async (eventId) => {
-      const r = (await call("smart_album_revoke_face", { p_event: eventId })) as { status?: string };
+    revoke: async () => {
+      const r = (await call("smart_album_revoke_account", {})) as { status?: string };
       return { status: r?.status === "purge_queued" ? "purge_queued" : "done" };
     },
   };
@@ -143,6 +181,12 @@ export const LOCAL_CONSENT_VERSION = "local-demo";
 
 export function createLocalSmartAlbum(me: { id: string; anonymous?: boolean }, ctx: LocalCtx, storage: Pick<Storage, "getItem" | "setItem"> | undefined = typeof localStorage === "undefined" ? undefined : localStorage): SmartAlbumApi {
   const key = (eventId: string) => `mm-smart-album-v1:${eventId}:${me.id}`;
+  // aceite único: guardado por conta (vale em todos os eventos deste aparelho); perfil/busca seguem por evento na simulação
+  const acctKey = `mm-smart-album-conta-v1:${me.id}`;
+  const acct = (): { consented: boolean; at: number | null } => {
+    try { return (JSON.parse(storage?.getItem(acctKey) ?? "null") as { consented: boolean; at: number | null } | null) ?? { consented: false, at: null }; } catch { return { consented: false, at: null }; }
+  };
+  const setAcct = (v: { consented: boolean; at: number | null }) => { try { storage?.setItem(acctKey, JSON.stringify(v)); } catch { /* sem armazenamento */ } };
   const read = (eventId: string): LocalRow => {
     try {
       const v = JSON.parse(storage?.getItem(key(eventId)) ?? "null") as LocalRow | null;
@@ -161,14 +205,21 @@ export function createLocalSmartAlbum(me: { id: string; anonymous?: boolean }, c
     state: async (eventId) => {
       const row = read(eventId);
       const face = faceOn();
+      const a = acct();
+      const consented = a.consented || row.consented;
       return {
         ui: ctx.ui, revealed: ctx.revealed(),
         face: {
-          available: face, account: !me.anonymous, consentVersion: face ? LOCAL_CONSENT_VERSION : null, consented: row.consented, consentOutdated: false,
+          available: face, account: !me.anonymous, consentVersion: face ? LOCAL_CONSENT_VERSION : null, consented, consentOutdated: false,
+          scope: a.consented ? "account" : row.consented ? "event" : null, consentedAt: a.at, referenceAt: row.profile ? a.at : null, hostDisabled: false,
           profile: row.profile, source: row.source, job: row.job,
-          matches: face && row.consented && ctx.revealed() ? visibleMatches(eventId, row).length : null,
+          matches: face && consented && ctx.revealed() ? visibleMatches(eventId, row).length : null,
         },
       };
+    },
+    accountStatus: async () => {
+      const a = acct();
+      return { available: faceOn(), account: !me.anonymous, consentVersion: faceOn() ? LOCAL_CONSENT_VERSION : null, consented: a.consented, consentOutdated: false, consentedAt: a.at, profile: null, referenceAt: null };
     },
     items: async (eventId) => (ctx.ui ? read(eventId).items.filter((i) => ctx.canSee(i.photoId)) : []),
     setItem: async (photoId, kind, on) => {
@@ -183,19 +234,20 @@ export function createLocalSmartAlbum(me: { id: string; anonymous?: boolean }, c
     grantConsent: async (eventId, version, source) => {
       if (!faceOn()) throw new SmartAlbumError("disabled");
       if (version !== LOCAL_CONSENT_VERSION) throw new SmartAlbumError("invalid");
-      write(eventId, { ...read(eventId), consented: true, source });
+      setAcct({ consented: true, at: Date.now() });
+      write(eventId, { ...read(eventId), consented: true, source: source === "entrada" ? null : source });
     },
     uploadReference: async (eventId, source, image) => {
       if (!faceOn()) throw new SmartAlbumError("disabled");
       const row = read(eventId);
-      if (!row.consented) throw new SmartAlbumError("consent");
+      if (!row.consented && !acct().consented) throw new SmartAlbumError("consent");
       if (!image.size) throw new SmartAlbumError("invalid");
       write(eventId, { ...row, profile: "pending", source, job: null }); // a imagem não é guardada
     },
     requestSearch: async (eventId) => {
       if (!faceOn()) throw new SmartAlbumError("disabled");
       const row = read(eventId);
-      if (!row.consented) throw new SmartAlbumError("consent");
+      if (!row.consented && !acct().consented) throw new SmartAlbumError("consent");
       if (!ctx.revealed()) throw new SmartAlbumError("notrevealed");
       if (!row.profile) throw new SmartAlbumError("invalid");
       const job = { id: `local-${Date.now()}`, status: "completed" as const, processed: 0, eligible: null, errorCode: null };
@@ -205,7 +257,7 @@ export function createLocalSmartAlbum(me: { id: string; anonymous?: boolean }, c
     matches: async (eventId) => {
       if (!faceOn()) throw new SmartAlbumError("disabled");
       const row = read(eventId);
-      if (!row.consented) throw new SmartAlbumError("consent");
+      if (!row.consented && !acct().consented) throw new SmartAlbumError("consent");
       if (!ctx.revealed()) throw new SmartAlbumError("notrevealed");
       return visibleMatches(eventId, row);
     },
@@ -216,7 +268,8 @@ export function createLocalSmartAlbum(me: { id: string; anonymous?: boolean }, c
     },
     revoke: async (eventId) => {
       const row = read(eventId);
-      const had = row.consented || row.profile !== null;
+      const had = row.consented || row.profile !== null || acct().consented;
+      setAcct({ consented: false, at: null });
       write(eventId, { ...row, consented: false, profile: null, source: null, job: null, hidden: [] });
       return { status: had ? "purge_queued" : "done" };
     },

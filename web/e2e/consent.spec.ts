@@ -3,8 +3,8 @@ import { createViaWizard, openInviteAsGuest, wizardToSummary } from "./helpers";
 
 const ALERTA = /Aceite os Termos de Uso e confirme a leitura da Política de Privacidade/;
 
-test("termos (v1) e privacidade (v2) são páginas públicas, sem aviso de rascunho", async ({ page }) => {
-  for (const [rota, titulo, aba, carimbo] of [["/termos", "Termos de uso", "Termos", "ATUALIZADO EM 22 DE OUTUBRO DE 2026 · VERSÃO 2026-10-22-V1"], ["/privacidade", "Política de privacidade", "Privacidade", "ATUALIZADO EM 16 DE NOVEMBRO DE 2026 · VERSÃO 2026-11-16-V2"]] as const) {
+test("termos (v2) e privacidade (v3) são páginas públicas, sem aviso de rascunho", async ({ page }) => {
+  for (const [rota, titulo, aba, carimbo] of [["/termos", "Termos de uso", "Termos", "ATUALIZADO EM 16 DE NOVEMBRO DE 2026 · VERSÃO 2026-11-16-V2"], ["/privacidade", "Política de privacidade", "Privacidade", "ATUALIZADO EM 16 DE NOVEMBRO DE 2026 · VERSÃO 2026-11-16-V3"]] as const) {
     const r = await page.goto(rota);
     expect(r?.status(), rota).toBe(200);
     await expect(page.getByRole("tab", { name: aba, selected: true })).toBeVisible();

@@ -42,6 +42,8 @@ a.glass { text-decoration: none; }
 .consent { position: relative; cursor: pointer; }
 .consent input[type="checkbox"] { position: absolute; left: 0; top: 0; width: 24px; height: 24px; margin: 0; opacity: 0; cursor: pointer; }
 .consent input[type="checkbox"]:focus-visible + .cbx { outline: 2px solid var(--revela); outline-offset: 2px; }
+.consent-optional { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.consent-optional__tag { margin: 0 0 var(--space-2); font: 600 11px/14px var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); }
 .cbx:not(.on) { background: transparent; color: transparent; box-shadow: inset 0 0 0 2px var(--ink-muted); }
 .consent .link { color: var(--revela-text); }
 

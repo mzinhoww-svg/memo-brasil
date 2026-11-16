@@ -19,11 +19,13 @@ export interface VoceProps {
   onDownload?: () => void;
   onLeave?: () => void;
   onDelete?: () => void;
+  /** Privacidade · busca facial da conta: "Ligada · selfie de 16/11" ou "Desligada" (ausente = não mostra a linha) */
+  face?: string;
   /** Linha extra do grupo Avisos (ex.: avisos por WhatsApp). */
   whatsapp?: ReactNode;
 }
 
-export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de Ana & Leo · Mesa 4", used = 9, total = 27, notify = true, email = "bia.moraes@email.com", onNotify, onEmail, onDownload, onLeave, onDelete, whatsapp }: VoceProps = {}) {
+export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de Ana & Leo · Mesa 4", used = 9, total = 27, notify = true, email = "bia.moraes@email.com", onNotify, onEmail, onDownload, onLeave, onDelete, whatsapp, face }: VoceProps = {}) {
   const host = useHostNav();
   return (
     <>
@@ -106,6 +108,22 @@ export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de A
           Seus dados
         </h2>
         <div className="rv-group">
+          {face && code && (
+            <Link className="rv-row" href={`/e/${code}/minhas-fotos`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="9" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+              </svg>
+              <div className="rv-row__text">
+                Busca facial (Minhas Fotos)
+                <div className="rv-caption">{face}</div>
+              </div>
+              <span className="rv-row__end">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </span>
+            </Link>
+          )}
           <div className="rv-row" role="button" tabIndex={0} onClick={onDownload}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />

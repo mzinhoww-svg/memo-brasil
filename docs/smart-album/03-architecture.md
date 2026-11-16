@@ -74,3 +74,32 @@ nenhuma executável por `anon`; worker/audit/erase/expire só `service_role`. Fl
 (on, `{"all":true}`); `platform_settings.smart_album.legal_gate` aprovado com referência "parecer declarado pelo proprietário em 16/11/2026
 (sem nº informado)"; termo `2026-11-16-v1` aprovado. `/claim` responde 200 desde 04:36:37 (fila vazia). Desligar: `supabase/ops/rollback_smart_album.sql`
 ou `update feature_flags set enabled=false where key='smart_album_face_matching'`.
+
+## 10. Consentimento único por conta (termo v2, 16/11/2026)
+- **Aceite:** uma vez por conta, em caixa própria e desmarcada: na tela "Antes de fotografar" (só para conta não anônima, com a busca
+  liberada no app) ou no onboarding de Minhas Fotos. Gravado em `face_consents` com `event_id` nulo, retenção `smart-album-conta-12m`.
+  Aceitar os Termos não ativa a busca (Política §11).
+- **Selfie de conta:** `face_profiles` com `event_id` nulo, caminho `conta/<titular>/<perfil>`, validade de 12 meses (`smart_album_expire`
+  revoga o aceite junto). Trocar apaga a anterior e as sugestões dela.
+- **Busca automática:** `smart_album_worker_claim` chama `smart_album_enqueue_auto`, que cria a busca quando o evento revela ou quando chega
+  foto nova depois da última busca daquela selfie. O app não precisa estar aberto.
+- **Lembretes, sem novo aceite:** linha "Procurando você com a selfie de …" em Minhas Fotos; "Passo 2 de 2" (só a foto) em evento novo;
+  estado em Você → Seus dados; política §11.
+- **Organizador:** `events.face_search_enabled` + `set_event_face_search` (Painel → Moderação). Desligar cancela as buscas do evento.
+- **Desligar (titular):** `smart_album_revoke_account` retira o aceite de conta e os legados por evento, apaga selfie e sugestões em todos os
+  eventos.
+- **Termos e Política 2026-11-16-v2:** seção 11 nos dois textos; `legal_documents` publica a versão na mesma migration.
+- Testes: pgTAP `41_smart_album_account_consent` (45), unitários do serviço, e2e "aceite único".
+
+## 11. Pré-processamento durante o evento (motor t3)
+- **Antes:** cada pessoa com a busca ligada fazia o motor reanalisar todas as fotos do evento depois da revelação (N pessoas × M fotos).
+- **Agora:** cada foto é analisada uma vez, quando fica pronta. Gatilho em `photos` → `photo_analysis` (fila). O motor chama
+  `/claim-photos` (lote de 8 + selfies de quem autorizou e participa do evento: `smart_album_event_references`), compara em memória e
+  devolve por `/complete-photos` só `{photoId, faces, sharpness, matches[{profileId, band}]}`. Nenhum embedding vai ao banco; rostos de
+  quem não autorizou são descartados no motor. As selfies ficam em cache só na memória do processo (15 min).
+- **Revelação:** nada a processar. `face_photo_matches` já existe e continua fechado por `is_revealed` + `can_see_photo` na leitura.
+- **Recuperação:** selfie enviada (ou entrada no evento) depois de fotos já analisadas → `smart_album_enqueue_auto` cria uma busca por
+  pessoa, depois da revelação, como antes. Foto nova nunca cria busca por pessoa.
+- **Classificação sem identidade:** `photo_analysis.kind` (retrato/grupo/sem_pessoas pela contagem de rostos) e `sharpness`. Ainda sem
+  tela: os dados ficam prontos para filtros e "melhores fotos".
+- Testes: pgTAP 41 (fila, lote, resultado fechado antes da revelação, recuperação), `smart-album-pull.test.ts`, `test_engine.py`.

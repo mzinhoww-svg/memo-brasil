@@ -35,7 +35,7 @@ test("convidado anônimo entra pelo código, posta, espera e vê a foto só depo
     expect(part).toHaveLength(1);
     const aceites = (await admin.from("user_consents").select("role,terms_version,privacy_version,context,terms_accepted_at,privacy_acknowledged_at").eq("user_id", part[0].user_id)).data!;
     expect(aceites).toHaveLength(1);
-    expect(aceites[0]).toMatchObject({ role: "convidado", terms_version: "2026-10-22-v1", privacy_version: "2026-11-16-v2", context: "entrar-evento" });
+    expect(aceites[0]).toMatchObject({ role: "convidado", terms_version: "2026-11-16-v2", privacy_version: "2026-11-16-v3", context: "entrar-evento" });
     expect(aceites[0].terms_accepted_at).toBeTruthy();
     expect(aceites[0].privacy_acknowledged_at).toBeTruthy();
 

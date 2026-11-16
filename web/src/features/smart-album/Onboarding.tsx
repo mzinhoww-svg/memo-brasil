@@ -31,6 +31,8 @@ export function Onboarding({ sa, eventId, state, onDone, startAt = "intro" }: { 
   const [mine, setMine] = useState(false);
   const [agree, setAgree] = useState(false);
   const [google, setGoogle] = useState<string | null | undefined>(undefined);
+  // aceite único: quem já autorizou na conta (na entrada ou em outro evento) não vê o termo de novo, só escolhe a selfie
+  const preConsented = state.face.consented && !state.face.consentOutdated && state.face.scope === "account";
   const file = useRef<HTMLInputElement>(null);
   const fileUser = useRef<HTMLInputElement>(null);
 
@@ -77,12 +79,14 @@ export function Onboarding({ sa, eventId, state, onDone, startAt = "intro" }: { 
   }
 
   async function activate() {
-    if (!ref || !source || !state.face.consentVersion) return;
+    if (!ref || !source || (!state.face.consentVersion && !preConsented)) return;
     setBusy(true);
     setProblem(null);
     try {
-      await sa.api.grantConsent(eventId, state.face.consentVersion, toSource(source));
-      track("smart_album_consent_granted", { source });
+      if (!preConsented && state.face.consentVersion) {
+        await sa.api.grantConsent(eventId, state.face.consentVersion, toSource(source));
+        track("smart_album_consent_granted", { source });
+      }
       await sa.api.uploadReference(eventId, toSource(source), ref.blob);
       if (state.face.profile) track("smart_album_reference_changed", { source });
       if (state.revealed) {
@@ -102,10 +106,12 @@ export function Onboarding({ sa, eventId, state, onDone, startAt = "intro" }: { 
   const close = (r: OnboardingResult) => { setRef(null); onDone(r); };
   const title = step === "intro" ? COPY.introTitle : step === "consent" ? "Autorização" : step === "review" ? COPY.reviewTitle : COPY.sourceTitle;
   const counter = step === "intro" ? 1 : step === "consent" ? 3 : 2;
+  const total = preConsented ? 2 : 3;
 
   return (
     <Sheet title={title} onClose={() => close("skipped")} history>
-      <p className="sa-steps" aria-label={`Passo ${counter} de 3`}>Passo {counter} de 3</p>
+      <p className="sa-steps" aria-label={`Passo ${counter} de ${total}`}>Passo {counter} de {total}</p>
+      {preConsented && step !== "intro" && <p className="rv-caption sa-reminder">Busca facial autorizada na sua conta{state.face.consentedAt ? ` em ${new Date(state.face.consentedAt).toLocaleDateString("pt-BR")}` : ""}. Falta só a sua foto.</p>}
       <input ref={file} type="file" accept={ACCEPT} hidden aria-hidden="true" tabIndex={-1} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void accept(f, "gallery"); }} />
       <input ref={fileUser} type="file" accept="image/*" capture="user" hidden aria-hidden="true" tabIndex={-1} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void accept(f, "camera"); }} />
 
@@ -143,7 +149,10 @@ export function Onboarding({ sa, eventId, state, onDone, startAt = "intro" }: { 
             <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
             <span>{COPY.selfConfirm}</span>
           </label>
-          <Button block disabled={!mine} onClick={() => setStep("consent")}>Continuar</Button>
+          {problem && <p className="sa-problem" role="alert">{problem}</p>}
+          {preConsented
+            ? <Button block disabled={!mine || busy} onClick={() => void activate()}>{busy ? "Enviando…" : "Usar esta foto"}</Button>
+            : <Button block disabled={!mine} onClick={() => setStep("consent")}>Continuar</Button>}
           <Button variant="texto" onClick={() => { setRef(null); setStep("source"); }}>Trocar foto</Button>
         </div>
       )}
@@ -179,14 +188,15 @@ function ConsentStep({ state, busy, problem, agree, setAgree, onActivate, onManu
       <p className="rv-body">{COPY.consentBody}</p>
       <p className="rv-caption">{COPY.consentThirdParties}</p>
       <ul className="sa-facts">
-        <li>Finalidade: sugerir fotos deste evento em que você pode aparecer. Nada de treinar modelos, publicidade ou perfis.</li>
-        <li>Como funciona: a foto que você escolher fica guardada de forma privada e é comparada só com as fotos deste evento que você já pode ver, num servidor do Revela. Ninguém mais vê essa foto.</li>
-        <li>Retenção: a foto de referência é apagada quando você desativa, troca a foto, ou no máximo 30 dias após o evento.</li>
+        <li>Vale para a sua conta: você autoriza uma vez e a busca funciona em todos os eventos de que participar. Cada organizador pode desligá-la no evento dele.</li>
+        <li>Finalidade: sugerir fotos em que você pode aparecer. Nada de treinar modelos, publicidade ou perfis.</li>
+        <li>Como funciona: a sua foto fica guardada de forma privada e é comparada com as fotos dos seus eventos conforme elas chegam, num servidor do Revela (nos EUA). As sugestões só aparecem depois da revelação e só para fotos que você pode ver. Ninguém mais vê a sua foto.</li>
+        <li>Retenção: a foto de referência é apagada quando você desativa ou troca a foto, e no máximo 12 meses depois do envio.</li>
         <li>Versão do termo: {state.face.consentVersion}. <Link href="/privacidade">Política de privacidade</Link> · <a href={`mailto:${CONTACT_EMAIL}`}>Contato de privacidade</a></li>
       </ul>
       <label className="sa-check">
         <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-        <span>Li e autorizo a busca de fotos em que apareço neste evento.</span>
+        <span>Li e autorizo a busca de fotos em que apareço nos eventos de que eu participar. Tenho 18 anos ou mais.</span>
       </label>
       {problem && <p className="sa-problem" role="alert">{problem}</p>}
       <Button block disabled={!agree || busy} onClick={onActivate}>{busy ? "Ativando…" : COPY.activate}</Button>

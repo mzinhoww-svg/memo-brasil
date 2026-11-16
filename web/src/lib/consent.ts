@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { browserSupabase } from "./supabase/client";
 
-/** Versões publicadas em `legal_documents` (migrations 20261022001300 e 20261116000100). Origem: texto fornecido pelo operador; nenhuma revisão jurídica profissional registrada. */
-export const TERMS_VERSION = "2026-10-22-v1";
-export const PRIVACY_VERSION = "2026-11-16-v2"; // v2 acrescenta os avisos por WhatsApp (migration 20261116000100); os Termos seguem na v1
+/** Versões publicadas em `legal_documents` (migrations 20261022001300, 20261118000100 e 20261117000400). Origem: texto fornecido pelo operador; nenhuma revisão jurídica profissional registrada. */
+export const TERMS_VERSION = "2026-11-16-v2"; // v2: seção 11 (busca facial opcional)
+export const PRIVACY_VERSION = "2026-11-16-v3"; // v2: avisos por WhatsApp; v3: seção 11 (busca facial opcional)
 
 export type ConsentRole = "organizador" | "convidado";
 export type ConsentContext = "criar-evento" | "entrar-evento";
