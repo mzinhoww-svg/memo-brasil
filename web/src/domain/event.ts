@@ -106,7 +106,10 @@ export function validateDraft(d: Draft, _now: number): DraftErrors {
   return errors;
 }
 
-/** A retrospectiva abre quando o evento terminou e as fotos foram reveladas (anfitrião vê sempre). */
+/**
+ * A retrospectiva abre assim que as fotos são reveladas (anfitrião vê sempre). Em evento sem revelação (álbum ao vivo),
+ * as fotos já estão abertas desde o começo: aí a retrospectiva espera o fim do evento.
+ */
 export function retrospectiveOpen(e: MemoEvent, now: number, isHost: boolean): boolean {
-  return isHost || (eventStatus(e, now) === "encerrado" && isRevealed(e, now));
+  return isHost || (isRevealed(e, now) && (e.revealEnabled || eventStatus(e, now) === "encerrado"));
 }

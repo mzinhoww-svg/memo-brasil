@@ -28,7 +28,7 @@ export default function Retrospectiva() {
       <div className="scr">
         <div className="safe">
           <h1 className="rv-title-lg">A retrospectiva ainda não abriu.</h1>
-          <p className="rv-body muted" style={{ margin: "10px 0 16px" }}>Ela abre quando o evento terminar e as fotos forem reveladas.</p>
+          <p className="rv-body muted" style={{ margin: "10px 0 16px" }}>Ela abre quando as fotos forem reveladas.</p>
           <Link href={`/e/${event.code}/agora`} className="rv-btn rv-btn--block rv-btn--primary" onClick={(e) => { e.preventDefault(); back(); }}>Voltar</Link>
         </div>
       </div>
