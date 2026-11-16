@@ -30,7 +30,7 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${vpScripts}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${sbOrigin ? ` ${sbOrigin}` : ""}${validapayEnabled ? " https://h.online-metrix.net" : ""}`,
+  `img-src 'self' data: blob:${sbOrigin ? ` ${sbOrigin} https://lh3.googleusercontent.com` : ""}${validapayEnabled ? " https://h.online-metrix.net" : ""}`,
   "media-src 'self' blob:",
   "font-src 'self' data:",
   `connect-src 'self'${sbOrigin ? ` ${sbOrigin} ${sbWs}` : ""}${vpApi}`,

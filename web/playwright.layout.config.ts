@@ -12,7 +12,7 @@ const webkit = process.env.LAYOUT_WEBKIT !== "0";
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: ["sheet-layout.spec.ts", "wizard-oito-passos.spec.ts", "wizard-mobile-layout.spec.ts", "nome-previa.spec.ts", "qr-layout.spec.ts", "minhas-rolagem.spec.ts", "pwa.spec.ts"],
+  testMatch: ["sheet-layout.spec.ts", "wizard-oito-passos.spec.ts", "wizard-mobile-layout.spec.ts", "nome-previa.spec.ts", "qr-layout.spec.ts", "minhas-rolagem.spec.ts", "eventos-rolagem.spec.ts", "pwa.spec.ts"],
   timeout: 90_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,

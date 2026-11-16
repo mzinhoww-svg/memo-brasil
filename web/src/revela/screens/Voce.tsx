@@ -4,35 +4,46 @@ import { HostTabs } from "../HostTabs";
 
 export interface VoceProps {
   name?: string; initial?: string; caption?: string;
+  /** E-mail da conta com a qual a pessoa entrou e foto do perfil (https): aparecem sob o nome. */
+  email?: string; avatarUrl?: string;
   /** Valor à direita de uma linha (ex.: telefone); ausente = chevron do desenho. */
   actions?: Record<string, () => void>;
   /** Linhas que não aparecem (ex.: "Álbuns impressos" com a chave `printed_album` desligada). */
   hide?: string[];
 }
 
-export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmeras · 61 poses tiradas", actions = {}, hide = [] }: VoceProps = {}) {
+export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmeras · 61 poses tiradas", email, avatarUrl, actions = {}, hide = [] }: VoceProps = {}) {
+  // no desenho de referência (sem ações) todas as linhas aparecem; na tela real só as que fazem algo (nada "clicável" que não responde)
+  const interactive = Object.keys(actions).length > 0;
+  const shows = (label: string) => !hide.includes(label) && (!interactive || !!actions[label]);
   const act = (label: string) => (actions[label] ? { role: "button" as const, tabIndex: 0, style: { cursor: "pointer" }, onClick: actions[label], onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); actions[label](); } } } : {});
   return (
     <>
     <div className="scr">
-      <div className="safe" style={{ "paddingBottom": "92px" }}>
+      <div className="safe safe--tabs safe--scroll">
         <div className="row" style={{ "gap": "14px", "marginTop": "8px" }}>
           <span className="avatar avatar--photo">
-            {initial}
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- foto do perfil Google (https), tamanho fixo
+              <img src={avatarUrl} alt="" referrerPolicy="no-referrer" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+            ) : initial}
           </span>
           <div>
             <h1 className="rv-title" style={{ "fontSize": "26px" }}>
               {name}
             </h1>
+            {email && <p className="rv-caption" data-testid="voce-email" style={{ overflowWrap: "anywhere" }}>Entrou com {email}</p>}
             <p className="rv-caption">
               {caption}
             </p>
           </div>
         </div>
+        {(shows("Nome e foto") || shows("Telefone") || shows("Avisos de revelação")) && (<>
         <div className="rv-group-h">
           Sua conta
         </div>
         <div className="rv-group">
+          {shows("Nome e foto") && (
           <div className="rv-row" {...act("Nome e foto")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="4" />
@@ -42,11 +53,13 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
               Nome e foto
             </div>
             <span className="rv-row__end">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              {shows("Nome e foto") && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
-              </svg>
+              </svg>}
             </span>
           </div>
+          )}
+          {shows("Telefone") && (
           <div className="rv-row" {...act("Telefone")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />
@@ -55,11 +68,13 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
               Telefone
             </div>
             <span className="rv-row__end">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              {shows("Telefone") && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
-              </svg>
+              </svg>}
             </span>
           </div>
+          )}
+          {shows("Avisos de revelação") && (
           <div className="rv-row" {...act("Avisos de revelação")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
@@ -69,17 +84,20 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
               Avisos de revelação
             </div>
             <span className="rv-row__end">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              {shows("Avisos de revelação") && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
-              </svg>
+              </svg>}
             </span>
           </div>
+          )}
         </div>
+        </>)}
+        {(shows("Álbuns impressos") || shows("Ícone do app")) && (<>
         <div className="rv-group-h">
           Extras
         </div>
         <div className="rv-group">
-          {!hide.includes("Álbuns impressos") && (
+          {shows("Álbuns impressos") && (
           <div className="rv-row" {...act("Álbuns impressos")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 4h10a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z" />
@@ -89,12 +107,13 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
               Álbuns impressos
             </div>
             <span className="rv-row__end">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              {shows("Álbuns impressos") && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
-              </svg>
+              </svg>}
             </span>
           </div>
           )}
+          {shows("Ícone do app") && (
           <div className="rv-row" {...act("Ícone do app")}>
             <span style={{ "display": "inline-flex" }}>
               <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
@@ -108,16 +127,20 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
             </div>
             <span className="rv-row__end">
               {"Laranja "}
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              {shows("Ícone do app") && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
-              </svg>
+              </svg>}
             </span>
           </div>
+          )}
         </div>
+        </>)}
+        {(shows("Como funciona a revelação") || shows("Falar com a gente") || shows("Privacidade")) && (<>
         <div className="rv-group-h">
           Ajuda
         </div>
         <div className="rv-group">
+          {shows("Como funciona a revelação") && (
           <div className="rv-row" {...act("Como funciona a revelação")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="9" />
@@ -127,11 +150,13 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
               Como funciona a revelação
             </div>
             <span className="rv-row__end">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              {shows("Como funciona a revelação") && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
-              </svg>
+              </svg>}
             </span>
           </div>
+          )}
+          {shows("Falar com a gente") && (
           <div className="rv-row" {...act("Falar com a gente")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12a8 8 0 0 1-12 7l-5 1 1-4a8 8 0 1 1 16-4z" />
@@ -140,11 +165,13 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
               Falar com a gente
             </div>
             <span className="rv-row__end">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              {shows("Falar com a gente") && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
-              </svg>
+              </svg>}
             </span>
           </div>
+          )}
+          {shows("Privacidade") && (
           <div className="rv-row" {...act("Privacidade")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
@@ -153,13 +180,16 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
               Privacidade
             </div>
             <span className="rv-row__end">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              {shows("Privacidade") && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 6l6 6-6 6" />
-              </svg>
+              </svg>}
             </span>
           </div>
+          )}
         </div>
+        </>)}
         <div className="rv-group" style={{ "marginTop": "20px" }}>
+          {shows("Sair") && (
           <div className="rv-row" {...act("Sair")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3" />
@@ -168,6 +198,7 @@ export function Voce({ name = "Ana Ribeiro", initial = "A", caption = "3 câmera
               Sair
             </div>
           </div>
+          )}
         </div>
       </div>
       <HostTabs current="voce" />

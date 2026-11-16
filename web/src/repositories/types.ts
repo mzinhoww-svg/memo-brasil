@@ -7,6 +7,9 @@ export interface User {
   createdAt: number;
   /** Só na nuvem: sessão anônima (convidado sem conta). Serve à interface; quem autoriza é o servidor (JWT/RLS). */
   anonymous?: boolean;
+  /** Só na nuvem, e só para mostrar: o e-mail da conta com a qual a pessoa entrou e a foto do perfil Google (https). */
+  email?: string;
+  avatarUrl?: string;
 }
 export interface Participant {
   eventId: string;

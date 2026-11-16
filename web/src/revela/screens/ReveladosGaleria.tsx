@@ -44,7 +44,7 @@ export function ReveladosGaleria({ caption = "Ana & Leo · 418 fotos de 32 convi
   return (
     <>
     <div className="scr">
-      <div className="safe" style={{ paddingBottom: "92px", ...(backHref ? { overflowY: "auto" } : {}) }}>
+      <div className={`safe safe--scroll${backHref ? "" : " safe--tabs"}`} style={backHref ? { paddingBottom: "92px" } : undefined}>
         <div className="row between">
           <Link href={backHref ?? "#"} className="rv-icon-btn" aria-label="Voltar">
             <svg {...svg}>

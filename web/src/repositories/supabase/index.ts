@@ -345,7 +345,9 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         const user = data.session?.user;
         if (!user) return undefined;
         const prof = ok(await sb.from("profiles").select("display_name, created_at").eq("id", user.id).maybeSingle()) as Row | null;
-        return { id: user.id, name: (prof?.display_name as string) ?? "", createdAt: ms(prof?.created_at) ?? Date.parse(user.created_at), anonymous: user.is_anonymous === true } as User;
+        const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+        const pic = [meta.avatar_url, meta.picture].find((v): v is string => typeof v === "string" && /^https:\/\//.test(v));
+        return { id: user.id, name: (prof?.display_name as string) ?? "", createdAt: ms(prof?.created_at) ?? Date.parse(user.created_at), anonymous: user.is_anonymous === true, email: user.email || undefined, avatarUrl: pic } as User;
       },
       // a identidade é a da sessão (auth.uid()): sem sessão, entra como convidado anônimo; só o nome de exibição é gravado
       // (a sessão local basta para saber o id: o UPDATE é filtrado pela RLS com o JWT, então não grava em perfil alheio)

@@ -21,7 +21,7 @@ export function AnfitriaoInicio({ hero = HOST_HOME_REF.hero, shelf = HOST_HOME_R
   return (
     <>
     <div className="scr">
-      <div className="safe" style={{ paddingBottom: "92px" }}>
+      <div className="safe safe--tabs safe--scroll">
         <div className="row between">
           <h1 className="rv-title-lg" style={{ fontSize: "30px" }}>Suas câmeras</h1>
           <Link href="/criar" className="rv-icon-btn" aria-label="Montar câmera">
