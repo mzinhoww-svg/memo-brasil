@@ -8,6 +8,7 @@ import { hhmm } from "@/features/guest/format";
 import { myPoseTimes } from "@/features/photos/pose-times";
 import { useRollPicker } from "@/features/photos/roll-picker";
 import { ConvidadoMinhas } from "@/revela/screens/ConvidadoMinhas";
+import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 
 /** 23c · Minhas poses */
 export default function Minhas() {
@@ -25,5 +26,5 @@ export default function Minhas() {
   const mine = useMemo(() => photos.filter((p) => p.authorId === user.id && p.status !== "removida" && p.uploadStatus === "pronta").sort((a, b) => a.createdAt - b.createdAt), [photos, user.id]);
   const urls = usePhotoUrls(revealed ? mine : [], "thumb");
   const thumbs = revealed ? mine.map((p) => urls[p.id]) : undefined;
-  return <ConvidadoMinhas code={event.code} left={shotsLeft(event, counts.mine)} total={event.shotsPerPerson} taken={taken} thumbs={thumbs} revealed={revealed} onPickRoll={roll.open} />;
+  return <ConvidadoMinhas code={event.code} left={shotsLeft(event, counts.mine)} total={event.shotsPerPerson} taken={taken} thumbs={thumbs} revealed={revealed} onPickRoll={roll.open} extra={<WhatsappOptIn variant="compacta" eventId={event.id} revealed={revealed} />} />;
 }

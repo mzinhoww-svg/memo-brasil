@@ -6,6 +6,7 @@ import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
 import { useNow } from "@/features/app/hooks";
 import { countdown, revealLine, stampDay } from "@/features/guest/format";
 import { ConvidadoLaboratorio } from "@/revela/screens/ConvidadoLaboratorio";
+import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 import { RevealedFeed } from "@/features/feed/RevealedFeed";
 import { RevealIntro } from "@/features/reveal/RevealIntro";
 import { useGuest } from "@/features/events/guest-context";
@@ -26,6 +27,7 @@ function Laboratorio() {
       guests={Math.max(participants.length, 1)}
       countdown={ms === null ? null : countdown(ms)}
       revealLabel={event.revealAt ? revealLine(event.revealAt, event.timezone) : "Revela na hora"}
+      extra={ms !== null && ms > 0 ? <WhatsappOptIn variant="compacta" eventId={event.id} /> : undefined}
       cta={left === null || left <= 0 ? "Abrir câmera" : `Abrir câmera · ${left} ${left === 1 ? "pose" : "poses"}`}
     />
   );

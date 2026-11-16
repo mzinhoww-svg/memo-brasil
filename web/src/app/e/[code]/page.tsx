@@ -10,7 +10,7 @@ import { ConvidadoInvalido } from "@/revela/screens/ConvidadoInvalido";
 import { ConvidadoLotado } from "@/revela/screens/ConvidadoLotado";
 import { wrapOf } from "@/domain/options";
 import { ConvidadoCarregando } from "@/revela/screens/ConvidadoCarregando";
-import { eventStatus } from "@/domain/event";
+import { eventStatus, isRevealed } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
 import { formatDate, prefetchEventData, useEventData } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
@@ -22,6 +22,8 @@ import { EMAIL_RE, saveGuestEmail } from "@/features/participants/guest-email";
 import { currentConsent, recordConsent } from "@/lib/consent";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
+import { getWhatsappStatus } from "@/features/whatsapp/api";
+import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 
 const MESSAGES = {
   encerrado: "Esta festa já terminou. As fotos continuam com quem estava lá.",
@@ -59,6 +61,7 @@ export default function Convite() {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | undefined>();
   const [full, setFull] = useState(false);
+  const [avisosEventId, setAvisosEventId] = useState<string | undefined>(); // passo opcional: avisos por WhatsApp, depois de entrar
   const member = data.participants.find((p) => p.userId === user?.id);
   const event = data.event ?? data.preview; // quem ainda não entrou só recebe a prévia do convite
   const isHost = data.access === "organizador";
@@ -127,6 +130,11 @@ export default function Convite() {
       if (email.trim()) await saveGuestEmail(r.event.id, email);
       // lê a festa já como membro antes de ir para a câmera: ela abre sem a tela de carregando (se falhar, ela mesma lê)
       await prefetchEventData(repos, { code }, me.id, now()).catch(() => undefined);
+      // passo opcional e pulável: só aparece se o recurso está ligado, a pessoa já é participante e ainda não ativou
+      if (backend === "supabase") {
+        const st = await getWhatsappStatus(r.event.id).catch(() => null);
+        if (st && st.enabled && st.eligible && !st.optin && !isRevealed(r.event, now())) { setAvisosEventId(r.event.id); return; }
+      }
       router.push(`/e/${code}/postar`);
     } catch {
       setError(MESSAGES.rede);
@@ -135,6 +143,17 @@ export default function Convite() {
     }
   }
   useEffect(() => { enterRef.current = enter; });
+
+  if (avisosEventId) {
+    const go = () => router.push(`/e/${code}/postar`);
+    return (
+      <EventTheme wrap={event?.cameraStyle}>
+        <GuestShell>
+          <WhatsappOptIn variant="passo" eventId={avisosEventId} onContinue={go} onSkip={go} />
+        </GuestShell>
+      </EventTheme>
+    );
+  }
 
   const dateStamp = event ? stampDate(event.startAt) : undefined;
   const top = dateStamp ? <span className="rv-stamp">{dateStamp}</span> : undefined;

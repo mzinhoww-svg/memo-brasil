@@ -20,12 +20,14 @@ export interface ConvidadoFimProps {
   closeHref?: string;
   feedHref?: string;
   onClose?: () => void;
+  /** Lembrete extra antes da revelação (ex.: avisos por WhatsApp). */
+  extra?: ReactNode;
   /** Contador para leitores de tela / testes. */
   children?: ReactNode;
 }
 
 
-export function ConvidadoFim({ taken = 27, ended, revealed, remainingMs = 13 * 3_600_000 + 42 * 60_000 + 8_000, notify = true, body, closeHref, feedHref, onClose, children }: ConvidadoFimProps = {}) {
+export function ConvidadoFim({ taken = 27, ended, revealed, remainingMs = 13 * 3_600_000 + 42 * 60_000 + 8_000, notify = true, body, closeHref, feedHref, onClose, extra, children }: ConvidadoFimProps = {}) {
   const ms = Math.max(0, remainingMs ?? 0);
   const hh = Math.floor(ms / 3_600_000), mm = Math.floor((ms % 3_600_000) / 60_000), ss = Math.floor((ms % 60_000) / 1000);
   const x = (
@@ -96,6 +98,7 @@ export function ConvidadoFim({ taken = 27, ended, revealed, remainingMs = 13 * 3
             </span>
           </div>
         )}
+        {!revealed && extra}
         {revealed && feedHref
           ? <Link href={feedHref} className="rv-btn rv-btn--block rv-btn--primary">Ver o feed</Link>
           : <button type="button" className="rv-btn rv-btn--block" aria-disabled="true">Ver o feed quando abrir</button>}

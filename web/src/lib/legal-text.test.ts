@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { PRIVACY_VERSION, TERMS_VERSION } from "./consent";
-import { LEGAL_UPDATED_AT, PRIVACY_TEXT, TERMS_TEXT, type LegalSection } from "./legal-text";
+import { LEGAL_UPDATED_AT, PRIVACY_TEXT, PRIVACY_UPDATED_AT, TERMS_TEXT, type LegalSection } from "./legal-text";
 
 const flat = (sections: LegalSection[]) => sections.flatMap((s) => [s.title, ...s.blocks.flat()]).join("\n");
 
-describe("textos legais 2026-10-22-v1", () => {
+describe("textos legais (Termos 2026-10-22-v1, Política 2026-11-16-v2)", () => {
   it("têm dez seções cada, numeradas", () => {
     for (const t of [TERMS_TEXT, PRIVACY_TEXT]) {
       expect(t).toHaveLength(10);
@@ -13,8 +13,9 @@ describe("textos legais 2026-10-22-v1", () => {
   });
   it("a versão vigente do código é a do texto publicado", () => {
     expect(TERMS_VERSION).toBe("2026-10-22-v1");
-    expect(PRIVACY_VERSION).toBe("2026-10-22-v1");
+    expect(PRIVACY_VERSION).toBe("2026-11-16-v2");
     expect(LEGAL_UPDATED_AT).toBe("22 de outubro de 2026");
+    expect(PRIVACY_UPDATED_AT).toBe("16 de novembro de 2026");
   });
   it("publicam os prazos de retenção: 90 dias de disponibilidade e exclusão em até 30 dias", () => {
     const t = flat(TERMS_TEXT);
@@ -42,5 +43,14 @@ describe("textos legais 2026-10-22-v1", () => {
   });
   it("a Política fala em ciência, não em consentimento genérico", () => {
     expect(flat(PRIVACY_TEXT)).toContain("Aceitar os Termos ou declarar ciência desta Política não autoriza automaticamente publicidade, reconhecimento facial ou qualquer uso incompatível");
+  });
+  it("a Política v2 descreve os avisos por WhatsApp: opt-in próprio, SAIR, exclusão do número e número oculto do organizador", () => {
+    const p = flat(PRIVACY_TEXT);
+    expect(p).toContain("Número de telefone do WhatsApp");
+    expect(p).toContain("enviando SAIR");
+    expect(p).toContain("o número é apagado");
+    expect(p).toContain("O organizador do evento não vê o seu número");
+    expect(p).toContain("não é um canal oficial da Meta");
+    expect(flat(TERMS_TEXT)).not.toContain("WhatsApp");
   });
 });

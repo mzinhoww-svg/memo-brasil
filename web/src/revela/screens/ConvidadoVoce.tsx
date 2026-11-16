@@ -1,6 +1,7 @@
 "use client";
 /* Gerado de design-system/revela/html/Convidado-voce.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { GuestTabs } from "../GuestTabs";
 import { useHostNav } from "@/features/events/guest-context";
 
@@ -18,9 +19,11 @@ export interface VoceProps {
   onDownload?: () => void;
   onLeave?: () => void;
   onDelete?: () => void;
+  /** Linha extra do grupo Avisos (ex.: avisos por WhatsApp). */
+  whatsapp?: ReactNode;
 }
 
-export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de Ana & Leo · Mesa 4", used = 9, total = 27, notify = true, email = "bia.moraes@email.com", onNotify, onEmail, onDownload, onLeave, onDelete }: VoceProps = {}) {
+export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de Ana & Leo · Mesa 4", used = 9, total = 27, notify = true, email = "bia.moraes@email.com", onNotify, onEmail, onDownload, onLeave, onDelete, whatsapp }: VoceProps = {}) {
   const host = useHostNav();
   return (
     <>
@@ -97,6 +100,7 @@ export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de A
               </svg>
             </span>
           </div>
+                  {whatsapp}
         </div>
         <h2 className="rv-group-h">
           Seus dados

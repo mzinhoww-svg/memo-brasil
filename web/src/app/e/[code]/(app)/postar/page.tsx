@@ -9,6 +9,7 @@ import type { CameraFx } from "@/revela/screens/CameraFrame";
 import { odometer, shoot as kitShoot } from "@/lib/motion/revela-motion";
 import { flyPose } from "@/lib/motion/use-moments";
 import { ConvidadoFim } from "@/revela/screens/ConvidadoFim";
+import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 import { ConvidadoPermissao } from "@/revela/screens/ConvidadoPermissao";
 import { momentName } from "@/domain/moments";
 import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
@@ -502,7 +503,8 @@ function PostarSession() {
       : notify ? undefined : `Suas ${used} fotos estão no laboratório. Quando todas forem reveladas, elas entram no feed do evento.`;
     return (
       <EventTheme wrap={event.cameraStyle}>
-        <ConvidadoFim taken={used} ended={ended} revealed={revealed} remainingMs={ms} notify={notify} body={text} closeHref={close} feedHref={close}>
+        <ConvidadoFim taken={used} ended={ended} revealed={revealed} remainingMs={ms} notify={notify} body={text} closeHref={close} feedHref={close}
+          extra={<WhatsappOptIn variant="compacta" eventId={event.id} revealed={revealed} />}>
           <span data-testid="contador-rolo" className="rv-sr-only">{left ?? "ilimitado"}</span>
         </ConvidadoFim>
       </EventTheme>
