@@ -15,6 +15,7 @@
 @import "../styles/painel-frame.css";
 @import "../styles/sheet-revela.css";
 @import "../styles/master-responsivo.css";
+@import "../styles/smart-album.css";
 
 /* Revela: tokens expostos ao Tailwind v4 (modo inline; tokens.css continua a fonte de verdade). */
 @theme inline {

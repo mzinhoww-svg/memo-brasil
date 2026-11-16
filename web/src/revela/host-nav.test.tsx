@@ -11,7 +11,7 @@ const wrap = (isHost: boolean, ui: React.ReactNode) => render(<GuestProvider val
 describe("anfitrião dentro da área do convidado", () => {
   it("o convidado vê só Feed, Minhas e Você", () => {
     wrap(false, <GuestTabs code="ABC123" current="feed" />);
-    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual(["Feed", "Minhas", "Você"]);
+    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual(["Feed", "Fotos", "Você"]);
   });
   it("o anfitrião ganha a aba Painel, que leva ao painel do evento", () => {
     wrap(true, <GuestTabs code="ABC123" current="feed" />);

@@ -2,7 +2,7 @@
 // Só o service_role (agendador) chama; o corpo da requisição não escolhe caminho nem bucket.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const BUCKETS = new Set(["event-photos", "event-branding"]);
+const BUCKETS = new Set(["event-photos", "event-branding", "face-references"]); // face-references: referência do Smart Album (revogação/expiração)
 const LOTE = 100;
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "x-content-type-options": "nosniff" } });
 

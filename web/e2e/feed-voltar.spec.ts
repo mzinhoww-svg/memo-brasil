@@ -48,7 +48,7 @@ for (const vp of [{ width: 390, height: 844 }, { width: 430, height: 932 }]) {
     expect(Math.abs((await safe.evaluate((el) => el.scrollTop)) - target)).toBeLessThanOrEqual(40);
 
     // Feed → Minhas → aba Feed
-    await page.getByRole("link", { name: "Minhas", exact: true }).click();
+    await page.getByRole("link", { name: "Fotos", exact: true }).click();
     await expect(page).toHaveURL(/\/minhas/);
     await page.getByRole("link", { name: "Feed", exact: true }).click();
     await expect(page).toHaveURL(/\/agora/);
