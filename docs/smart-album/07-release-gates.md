@@ -33,6 +33,9 @@ Legenda: ✅ comprovado nesta entrega (evidência em `05-test-evidence.md`) · �
 | Pentest direcionado (IDOR, SSRF, upload malicioso, abuso de inferência) | ⏳ revisão de código e testes automatizados feitos; pentest não |
 | Worker agendado e observado em pré-produção com imagens consentidas | ❌ |
 | Infra: consentimento, referência privada, jobs, gates, revogação, purga, kill switch | ✅ (pgTAP 39, unit do worker) |
+| Varredura periódica de objetos em `face-references` sem perfil ativo (fecha a corrida rara upload × revogação apontada na revisão) | ⏳ |
+| Upload real pela Storage API sem política de SELECT (confirmar no Supabase completo) | ⏳ |
+| Agendar `smart_album_expire()` junto com a ativação (cobre saída do evento, exclusão de conta, bloqueio, prazo) | ⏳ |
 
 **Classificação Gate B: NO-GO.** A infraestrutura está pronta e desligada; nenhuma condição jurídica, de modelo ou de benchmark foi satisfeita. Não ligar sem todos os itens ❌ resolvidos e registrados por responsável.
 
