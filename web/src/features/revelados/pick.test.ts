@@ -27,3 +27,14 @@ describe("galeria dos revelados", () => {
     expect(whenLabel(now - 5 * 86_400_000, now, "America/Cuiaba")).toBe("10 mar, 12:00");
   });
 });
+
+describe("revealedEvents · eventos em que a pessoa entrou", () => {
+  it("festa de outra pessoa já revelada entra na lista junto com as próprias, a mais recente primeiro", () => {
+    const mk = (id: string, revealedAt: number | undefined, hostId: string) => ({ id, hostId, revealedAt, revealEnabled: true, revealAt: revealedAt, startAt: 0, durationHours: 1 }) as never;
+    const now = 10_000;
+    const own = mk("meu", 5_000, "eu");
+    const joined = mk("convidado", 8_000, "outro");
+    const pending = mk("futuro", undefined, "outro");
+    expect(revealedEvents([own, joined, pending], now).map((e) => (e as { id: string }).id)).toEqual(["convidado", "meu"]);
+  });
+});

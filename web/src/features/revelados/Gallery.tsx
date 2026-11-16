@@ -38,7 +38,9 @@ export function Gallery({ id }: { id: string }) {
   }, [visible]);
 
   if (data.loading) return <LoadingNote />;
-  if (!event || data.access !== "organizador") return <HostNote title="Não achamos esta galeria." text="Ela não existe ou não é de um evento seu." action={<GoHome />} />;
+  // anfitrião (do evento) ou convidado que entrou nele: o servidor já entrega só as fotos que a pessoa pode ver
+  const host = data.access === "organizador";
+  if (!event || (!host && data.access !== "membro")) return <HostNote title="Não achamos esta galeria." text="Ela não existe ou você não participou desse evento." action={<GoHome />} />;
 
   const at = event.revealedAt ?? event.revealAt ?? event.startAt;
   const others = (events ?? []).filter((e) => e.id !== event.id);
@@ -47,7 +49,7 @@ export function Gallery({ id }: { id: string }) {
       <ReveladosGaleria
         caption={galleryCaption(event.title, author ? visible.filter((p) => p.authorId === author).length : visible.length, participants.length, whenLabel(at, now(), event.timezone))}
         prints={picks.map((p) => ({ src: urls[p.id] ?? "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==", stampLeft: printDate(photoMoment(p), event.timezone), stampRight: firstName(p.authorName), href: `/eventos/revelados/${event.id}/${p.id}` }))}
-        backHref="/eventos" downloadHref={`/painel/${event.id}/downloads`} albumHref={printed ? `/eventos/revelados/${event.id}/album` : null}
+        backHref="/eventos" downloadHref={host ? `/painel/${event.id}/downloads` : `/e/${event.code}/voce`} albumHref={host && printed ? `/eventos/revelados/${event.id}/album` : null}
         onFilter={() => setFiltering(true)} empty={picks.length === 0 ? "Ainda não há fotos aqui." : undefined}
       />
       {filtering && (

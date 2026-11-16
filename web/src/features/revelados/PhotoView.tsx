@@ -8,6 +8,7 @@ import { useApp } from "@/features/app/provider";
 import { moderate } from "@/features/admin/service";
 import { firstName, initialOf, photoMoment, poseLabel, printStamp } from "@/features/feed/format";
 import { downloadPhoto, reactorsOf } from "@/features/photos/share";
+import { react } from "@/features/photos/service";
 import { useFirstOpen } from "@/lib/motion/use-moments";
 import { ReveladosFoto } from "@/revela/screens/ReveladosFoto";
 import { GoHome, HostNote, LoadingNote } from "./use-revealed";
@@ -42,7 +43,9 @@ export function PhotoView({ id, photoId }: { id: string; photoId: string }) {
   const x0 = useRef<number | null>(null);
 
   if (data.loading) return <LoadingNote />;
-  if (!event || data.access !== "organizador" || !photo) return <HostNote title="Não achamos esta foto." text="Ela foi removida ou não é de um evento seu." action={<GoHome />} />;
+  // anfitrião modera; convidado que entrou no evento só vê, baixa, compartilha e reage
+  const host = data.access === "organizador";
+  if (!event || (!host && data.access !== "membro") || !photo) return <HostNote title="Não achamos esta foto." text="Ela foi removida ou você não participou desse evento." action={<GoHome />} />;
 
   async function download() {
     setNote((await downloadPhoto(repos, photo).catch(() => false)) ? "Foto baixada." : "Não deu para baixar essa foto. Tente de novo.");
@@ -58,7 +61,8 @@ export function PhotoView({ id, photoId }: { id: string; photoId: string }) {
     } catch { /* cancelado pela pessoa */ }
   }
   async function star() {
-    await moderate(repos, photo.id, "destacar");
+    if (host) await moderate(repos, photo.id, "destacar");
+    else await react(repos, event!, photo.id, user!.id, "amei", Date.now());
     await refresh();
   }
   async function act(action: "ocultar" | "mostrar" | "remover") {
@@ -91,13 +95,13 @@ export function PhotoView({ id, photoId }: { id: string; photoId: string }) {
               return rs.length === 0 ? <p className="app-p app-muted">Ninguém reagiu a esta foto ainda.</p> : <ul className="app-stack-sm" style={{ margin: 0, padding: 0, listStyle: "none" }}>{rs.map((r) => <li key={r.name + r.label} className="app-between"><span>{r.name}</span><span className="app-muted">{r.label}</span></li>)}</ul>;
             })()}
           </section>
-          <Button variant="secundario" block onClick={() => void act(photo.status === "oculta" ? "mostrar" : "ocultar")}>{photo.status === "oculta" ? "Mostrar para os convidados" : "Esconder dos convidados"}</Button>
-          {confirm ? (
+          {host && <Button variant="secundario" block onClick={() => void act(photo.status === "oculta" ? "mostrar" : "ocultar")}>{photo.status === "oculta" ? "Mostrar para os convidados" : "Esconder dos convidados"}</Button>}
+          {host && (confirm ? (
             <>
               <p className="corpo app-p">Remover esta foto de vez? Não dá para desfazer.</p>
               <Button variant="destrutivo" block onClick={() => void act("remover")}>Remover foto</Button>
             </>
-          ) : <Button variant="destrutivo" block onClick={() => setConfirm(true)}>Remover foto</Button>}
+          ) : <Button variant="destrutivo" block onClick={() => setConfirm(true)}>Remover foto</Button>)}
           <Button variant="texto" block onClick={() => { setMore(false); setConfirm(false); }}>Fechar</Button>
         </Sheet>
       )}

@@ -9,7 +9,7 @@ import { HostTabs } from "@/revela/HostTabs";
 import { ScreenSkeleton } from "@/components/revela/ScreenSkeleton";
 import { revealedEvents } from "./pick";
 
-/** Eventos do anfitrião já revelados (o mais recente primeiro). `undefined` = carregando. */
+/** Eventos já revelados que a pessoa criou OU em que entrou como convidada (o mais recente primeiro). `undefined` = carregando. */
 export function useRevealedEvents(): { events: MemoEvent[] | undefined; failed: boolean; signedIn: boolean } {
   const { repos, ready, user, now } = useApp();
   const [events, setEvents] = useState<MemoEvent[] | undefined>();
@@ -19,7 +19,7 @@ export function useRevealedEvents(): { events: MemoEvent[] | undefined; failed: 
     let live = true;
     const t = setTimeout(() => {
       loadMyEvents(repos, user.id, now()).then(
-        (d) => { if (live) setEvents(revealedEvents([...d.active, ...d.ended], now())); },
+        (d) => { if (live) setEvents(revealedEvents([...d.active, ...d.ended, ...d.joined], now())); },
         () => { if (live) setFailed(true); },
       );
     }, 0);
