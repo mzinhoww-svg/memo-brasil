@@ -114,6 +114,23 @@ def run(img_dir: str) -> None:
     assert post({"reference_url": "x", "photos": [{}] * 61}, f"Bearer {token}")[0] == 400
     srv.shutdown()
     print("ok contrato HTTP")
+    # modo pull: claim -> processa -> complete; referência ruim -> fail; fila vazia -> idle
+    calls = []
+    def fake_post(url, tok, body):
+        calls.append((url.rsplit("/", 1)[-1], body))
+        if url.endswith("/claim"):
+            return {"job": queue.pop(0) if queue else None}
+        return {"matches": len(body.get("matches", []))}
+    pf = fe.Fetcher("h")
+    pf.get = store.get  # type: ignore[assignment]
+    queue = [{"jobId": "j1", "referenceUrl": "https://h/ref", "photos": [{"id": "a", "url": "https://h/a"}, {"id": "b", "url": "https://h/b"}]},
+             {"jobId": "j2", "referenceUrl": "https://h/vazia", "photos": []}]
+    assert fe.pull_once(eng, pf, "https://h/fn", "t", fake_post) == "done"
+    assert calls[-1] == ("complete", {"jobId": "j1", "matches": [{"photoId": "a", "band": "probable"}], "processed": 2}), calls[-1]
+    assert fe.pull_once(eng, pf, "https://h/fn", "t", fake_post) == "failed"
+    assert calls[-1] == ("fail", {"jobId": "j2", "error": "no_face", "referenceInvalid": True}), calls[-1]
+    assert fe.pull_once(eng, pf, "https://h/fn", "t", fake_post) == "idle"
+    print("ok modo pull")
     print("TODOS OS TESTES PASSARAM")
 
 

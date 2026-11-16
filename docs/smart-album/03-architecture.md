@@ -61,3 +61,16 @@ Revogar/trocar/expirar → `smart_album_erase`: cancela jobs, apaga matches, mar
 
 ## 8. Cliente
 `web/src/features/smart-album/`: `service.ts` (nuvem/local), `reference.ts`, `use-smart-album.ts`, `MinhasFotos.tsx`, `Onboarding.tsx`, `CameraCapture.tsx`, `copy.ts`, `flags.ts`, `analytics.ts`; rota `web/src/app/e/[code]/(app)/minhas-fotos`. Nada biométrico em localStorage/IndexedDB/analytics/URL.
+
+## 9. Motor em produção (16/11/2026)
+Motor próprio `services/face-engine` (YuNet + SFace) rodando na Vertra como worker sem endereço público (app `revela-face-engine`,
+384 MB, Python 3.13). **Modo pull:** a cada 20 s chama a Edge Function `smart-album-engine` (Bearer `SMART_ALBUM_ENGINE_TOKEN`),
+que reserva 1 job (`smart_album_worker_claim`), devolve URLs assinadas de 30 min (referência + fotos elegíveis) e grava o resultado
+(`smart_album_worker_complete`/`_fail`, versão do motor fixada no servidor). O motor não tem chave do banco e só baixa do host do Storage.
+Por isso não há pg_cron para o Smart Album. Vertra fica no cluster `usa1` (EUA): processamento fora do Brasil (ver RIPD).
+
+**Estado em produção (16/11/2026, 04:40 UTC):** 21 funções `smart_album_*` presentes e migrations 20261116000200/000300 registradas;
+nenhuma executável por `anon`; worker/audit/erase/expire só `service_role`. Flags `smart_album_ui` (on) e `smart_album_face_matching`
+(on, `{"all":true}`); `platform_settings.smart_album.legal_gate` aprovado com referência "parecer declarado pelo proprietário em 16/11/2026
+(sem nº informado)"; termo `2026-11-16-v1` aprovado. `/claim` responde 200 desde 04:36:37 (fila vazia). Desligar: `supabase/ops/rollback_smart_album.sql`
+ou `update feature_flags set enabled=false where key='smart_album_face_matching'`.

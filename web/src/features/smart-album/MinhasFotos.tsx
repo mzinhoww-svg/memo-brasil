@@ -33,6 +33,7 @@ export function MinhasFotos() {
   const taken = useMemo(() => visible.filter((p) => p.authorId === user.id), [visible, user.id]);
   const favorites = useMemo(() => items.filter((i) => i.kind === "favorite").map((i) => byId.get(i.photoId)).filter((p): p is Photo => Boolean(p)), [items, byId]);
   const found = useMemo(() => matches.map((m) => byId.get(m.photoId)).filter((p): p is Photo => Boolean(p)), [matches, byId]);
+  const reviewIds = useMemo(() => new Set(matches.filter((m) => m.band === "review").map((m) => m.photoId)), [matches]);
   const favSet = useMemo(() => new Set(favorites.map((p) => p.id)), [favorites]);
   const faceActive = Boolean(state?.face.available && state.face.consented);
 
@@ -110,7 +111,7 @@ export function MinhasFotos() {
   return (
     <>
       <div className="scr">
-        <div className="safe safe--tabs sa-hub">
+        <div className="safe safe--tabs safe--scroll sa-hub">
           <div className="row between">
             <h1 className="rv-title-lg" style={{ fontSize: "30px" }}>{COPY.title}</h1>
             <span className="avatar" aria-hidden="true">{user.name.trim().charAt(0).toUpperCase() || "?"}</span>
@@ -140,14 +141,23 @@ export function MinhasFotos() {
                 ) : list.length === 0 ? (
                   <EmptyState segment={current} state={state} />
                 ) : (
-                  <div className="sa-grid">
-                    {list.map((p) => (
-                      <button key={p.id} type="button" className="sa-tile rv-press" onClick={() => { setSegment(current); setOpenId(p.id); }} aria-label={`Abrir a foto de ${p.authorName}`}>
-                        <img src={urls[p.id] ?? BLANK} alt="" loading="lazy" />
-                        {favSet.has(p.id) && <span className="sa-tile__fav" aria-hidden="true">★</span>}
-                      </button>
-                    ))}
-                  </div>
+                  (current === "found"
+                    ? [{ key: "sure", title: "É você", items: list.filter((p) => !reviewIds.has(p.id)) }, { key: "maybe", title: "Talvez seja você", items: list.filter((p) => reviewIds.has(p.id)) }]
+                    : [{ key: "all", title: "", items: list }]
+                  ).filter((g) => g.items.length > 0).map((g) => (
+                    <div key={g.key} className="sa-group">
+                      {g.title && <h2 className="sa-group__title">{g.title} <span>{g.items.length}</span></h2>}
+                      <div className="sa-grid">
+                        {g.items.map((p) => (
+                          <button key={p.id} type="button" className="sa-tile rv-press" onClick={() => { setSegment(current); setOpenId(p.id); }} aria-label={`Abrir a foto de ${p.authorName}${g.key === "maybe" ? " (talvez seja você)" : ""}`}>
+                            <img src={urls[p.id] ?? BLANK} alt="" loading="lazy" />
+                            {g.key === "maybe" && <span className="sa-tile__maybe" aria-hidden="true">?</span>}
+                            {favSet.has(p.id) && <span className="sa-tile__fav" aria-hidden="true">★</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))
                 )}
               </section>
             </>
@@ -197,22 +207,33 @@ function FaceCard({ state, onSetup, onRetry, onRevoke }: { state: SmartAlbumStat
   }
   const job = f.job;
   const working = job?.status === "queued" || job?.status === "processing";
+  const failed = f.profile === "error" || job?.status === "failed";
+  const done = state.revealed && !working && !failed;
+  const n = typeof f.matches === "number" ? f.matches : null;
   return (
-    <div className="sa-card">
+    <div className={`sa-card${done && n ? " sa-card--hero" : ""}`}>
       {working ? (
-        <p className="rv-body" role="status"><b>{COPY.searching}</b> {COPY.searchingBody}</p>
-      ) : f.profile === "error" || job?.status === "failed" ? (
+        <div className="sa-progress" role="status">
+          <p className="rv-body"><b>{COPY.searching}</b> {COPY.searchingBody}</p>
+          <span className="sa-progress__bar" aria-hidden="true"><span /></span>
+        </div>
+      ) : failed ? (
         <p className="rv-body" role="alert">{jobErrorText(job?.errorCode ?? null)}</p>
       ) : !state.revealed ? (
         <p className="rv-body">Busca ativada. Procuramos suas fotos quando o evento for revelado.</p>
+      ) : n ? (
+        <div className="sa-hero" role="status" aria-label={`Busca ativada · ${n === 1 ? "1 sugestão" : `${n} sugestões`}`}>
+          <span className="sa-hero__num">{n}</span>
+          <span className="sa-hero__text"><b>{n === 1 ? "foto com você" : "fotos com você"}</b><span>Encontradas pela sua selfie. Toque para conferir.</span></span>
+        </div>
       ) : (
-        <p className="rv-body">Busca ativada{typeof f.matches === "number" ? ` · ${f.matches === 1 ? "1 sugestão" : `${f.matches} sugestões`}` : ""}.</p>
+        <p className="rv-body">Busca ativada{n === 0 ? " · nenhuma sugestão ainda" : ""}.</p>
       )}
       <div className="sa-row">
-        <Button small variant="secundario" onClick={onSetup}>Trocar minha foto</Button>
         {state.revealed && !working && f.profile && <Button small variant="secundario" onClick={onRetry}>Procurar de novo</Button>}
+        <Button small variant="secundario" icon="camera" onClick={onSetup}>Trocar minha foto</Button>
       </div>
-      <Button variant="texto" onClick={onRevoke}>{COPY.privacy}</Button>
+      <button type="button" className="sa-link" onClick={onRevoke}>{COPY.privacy}</button>
     </div>
   );
 }

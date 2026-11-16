@@ -8,10 +8,10 @@
 .sa-note { padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-2); color: var(--ink); font: 500 14px/20px var(--font-sans); }
 .sa-problem { color: var(--danger); font: 600 14px/20px var(--font-sans); margin: 0; }
 .sa-empty { display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-start; padding: var(--space-6) 0; }
-.sa-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-1); margin-top: var(--space-2); }
-.sa-tile { position: relative; aspect-ratio: 1; border: 0; padding: 0; border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-2); cursor: pointer; }
+.sa-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; margin-top: var(--space-2); border-radius: var(--radius-md); overflow: hidden; }
+.sa-tile { position: relative; aspect-ratio: 1; border: 0; padding: 0; border-radius: 2px; overflow: hidden; background: var(--surface-2); cursor: pointer; }
 .sa-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.sa-tile:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.sa-tile:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
 .sa-tile__fav { position: absolute; right: 6px; bottom: 4px; color: var(--champanhe); font: 700 16px/1 var(--font-sans); text-shadow: 0 1px 2px var(--bg); }
 .sa-tile--skeleton { display: block; animation: sa-pulse 1.4s ease-in-out infinite; }
 @keyframes sa-pulse { 50% { opacity: .55; } }
@@ -25,4 +25,23 @@
 .sa-camera video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 .sa-camera__guide { position: absolute; inset: 14% 22%; border: 2px dashed var(--ink-muted); border-radius: 50%; pointer-events: none; }
 .rv-tab[data-tab="fotos"] span { white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .sa-tile--skeleton { animation: none; } }
+/* cartão-resumo: número grande + ações compactas; desativar fica como link discreto (continua visível e alcançável) */
+.sa-card--hero { background: linear-gradient(160deg, var(--surface-2), var(--surface-1)); }
+.sa-hero { display: flex; align-items: center; gap: var(--space-3); }
+.sa-hero__num { font: 400 52px/1 var(--font-display); color: var(--champanhe); min-width: 1.2ch; }
+.sa-hero__text { display: flex; flex-direction: column; gap: 2px; }
+.sa-hero__text b { font: 600 17px/22px var(--font-sans); color: var(--ink); }
+.sa-hero__text span { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.sa-card .sa-row { margin-top: var(--space-1); }
+.sa-link { align-self: flex-start; min-height: 44px; padding: var(--space-2) 0; border: 0; background: none; color: var(--ink-faint); font: 500 13px/18px var(--font-sans); text-align: left; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.sa-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--radius-sm); }
+.sa-progress { display: flex; flex-direction: column; gap: var(--space-2); }
+.sa-progress__bar { position: relative; height: 4px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
+.sa-progress__bar span { position: absolute; inset: 0 auto 0 0; width: 40%; border-radius: inherit; background: var(--champanhe); animation: sa-slide 1.6s ease-in-out infinite; }
+@keyframes sa-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+/* grupos de resultados */
+.sa-group { display: flex; flex-direction: column; margin-top: var(--space-3); }
+.sa-group__title { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; font: 400 20px/24px var(--font-display); color: var(--ink); }
+.sa-group__title span { font: 600 12px/16px var(--font-sans); color: var(--ink-faint); }
+.sa-tile__maybe { position: absolute; left: 6px; top: 6px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: var(--radius-pill); background: var(--bg); color: var(--ink); font: 700 12px/1 var(--font-sans); opacity: .85; }
+@media (prefers-reduced-motion: reduce) { .sa-tile--skeleton, .sa-progress__bar span { animation: none; } }
