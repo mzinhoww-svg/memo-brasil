@@ -5,7 +5,9 @@ Modelos abertos do OpenCV Zoo, com licença comercial:
   * SFace 2021dec (reconhecimento, 128-d) — Apache 2.0 — opencv_zoo/models/face_recognition_sface
 Os pesos são baixados na primeira subida e conferidos por SHA-256 (o código não aceita outro arquivo).
 
-Contrato (só JSON, autenticado por Bearer):
+Modo padrão "pull" (ENGINE_MODE=pull): sem endereço público; a cada PULL_INTERVAL s pergunta à Edge Function `smart-album-engine` (no
+mesmo host do Storage) se há busca na fila, processa e devolve só {photoId, band}. Modo "http" (ENGINE_MODE=http): servidor abaixo.
+Contrato HTTP (só JSON, autenticado por Bearer):
   POST /v1/search {"reference_url": str, "photos": [{"id": str, "url": str}, ...]}
     -> {"reference": "ok" | "no_face" | "multiple_faces" | "low_quality" | "invalid_image",
         "results": [{"id": str, "band": "probable" | "review"}], "processed": int}
@@ -189,6 +191,61 @@ def search(engine: Engine, fetch, reference_url: str, photos: list[dict]) -> dic
     return {"reference": "ok", "results": results, "processed": processed}
 
 
+def run_job(engine: Engine, fetch, reference_url: str, photos: list[dict]) -> dict:
+    """Job inteiro (modo pull): referência calculada uma vez, todas as fotos em sequência."""
+    ref_img = decode(fetch(reference_url) or b"")
+    if ref_img is None:
+        return {"reference": "invalid_image", "results": [], "processed": 0}
+    with engine.lock:
+        status, ref_face = pick_reference(engine.faces(ref_img))
+        if status != "ok":
+            return {"reference": status, "results": [], "processed": 0}
+        ref = engine.embed(ref_img, ref_face)
+    del ref_img
+    results, processed = [], 0
+    for p in photos:
+        img = decode(fetch(str(p.get("url", ""))) or b"")
+        processed += 1
+        if img is None:
+            continue
+        best = -1.0
+        with engine.lock:
+            for face in engine.faces(img):
+                best = max(best, engine.similarity(ref, engine.embed(img, face)))
+        del img
+        b = band_for(best)
+        if b:
+            results.append({"photoId": str(p.get("id", "")), "band": b})
+    return {"reference": "ok", "results": results, "processed": processed}
+
+
+def post_json(url: str, token: str, body: dict, timeout: int = 60) -> dict:
+    req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
+                                 headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "User-Agent": "revela-face-engine"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read() or b"{}")
+
+
+def pull_once(engine: Engine, fetcher: Fetcher, base_url: str, token: str, post=post_json) -> str:
+    """Uma rodada: reserva um job, processa e devolve o resultado. Retorna 'idle', 'done' ou 'failed'."""
+    job = (post(f"{base_url}/claim", token, {}) or {}).get("job")
+    if not job:
+        return "idle"
+    try:
+        out = run_job(engine, fetcher.get, job["referenceUrl"], job.get("photos") or [])
+    except Exception as e:  # noqa: BLE001
+        log(f"job={job.get('jobId')} erro={type(e).__name__}")
+        post(f"{base_url}/fail", token, {"jobId": job["jobId"], "error": "engine_error", "referenceInvalid": False})
+        return "failed"
+    if out["reference"] != "ok":
+        post(f"{base_url}/fail", token, {"jobId": job["jobId"], "error": out["reference"], "referenceInvalid": True})
+        log(f"job={job['jobId']} referencia={out['reference']}")
+        return "failed"
+    r = post(f"{base_url}/complete", token, {"jobId": job["jobId"], "matches": out["results"], "processed": out["processed"]})
+    log(f"job={job['jobId']} processadas={out['processed']} resultados={r.get('matches')}")
+    return "done"
+
+
 def make_handler(engine: Engine, token: str, fetcher: Fetcher):
     class Handler(BaseHTTPRequestHandler):
         server_version = "revela-face-engine"
@@ -241,6 +298,20 @@ def main() -> None:
         log("ENGINE_TOKEN (>=32) e ALLOWED_FETCH_HOST são obrigatórios")
         sys.exit(1)
     engine = Engine()
+    if os.environ.get("ENGINE_MODE", "pull") == "pull":
+        # sem endereço público: pergunta à Edge Function smart-album-engine (mesmo host do Storage) se há busca na fila
+        import time
+        base = f"https://{host}/functions/v1/smart-album-engine"
+        interval = max(5, int(os.environ.get("PULL_INTERVAL", "20")))
+        log(f"pronto ({ENGINE_VERSION}), modo pull a cada {interval}s")
+        while True:
+            try:
+                state = pull_once(engine, Fetcher(host), base, token)
+            except Exception as e:  # noqa: BLE001 - rede/servidor: tenta de novo na próxima rodada
+                log(f"pull erro={type(e).__name__}")
+                state = "idle"
+            if state == "idle":
+                time.sleep(interval)
     port = int(os.environ.get("PORT", "80"))
     log(f"pronto ({ENGINE_VERSION}) na porta {port}")
     ThreadingHTTPServer(("0.0.0.0", port), make_handler(engine, token, Fetcher(host))).serve_forever()

@@ -43,7 +43,7 @@ MVP **sem** reconhecimento para menores. Controle técnico atual: só eventos na
 
 ## 7. Operadores e transferência internacional
 - Supabase (banco/storage) — região do projeto a confirmar (há projeto regional de ensaio em São Paulo). Vercel (pdx1, EUA) não recebe a imagem de referência (upload vai direto ao Storage).
-- Motor de reconhecimento: **não escolhido** (ver `04-model-evaluation.md`). Exigir DPA, região compatível, proibição de retenção/treinamento.
+- Motor de reconhecimento: modelo próprio (YuNet + SFace, `services/face-engine`) na **Vertra, cluster `usa1` (EUA)**: há transferência internacional da imagem de referência e das fotos do evento (URLs assinadas de 30 min; nada fica gravado no motor, que não guarda embeddings em disco). **Pendente jurídico:** registrar a base da transferência (LGPD art. 33) e o contrato/DPA com a Vertra.
 
 ## 8. Direitos do titular
 Revogação na própria tela (efeito imediato nos resultados; purga assíncrona do objeto). Exclusão completa também ocorre com exclusão do evento/conta (cascata). Contato de privacidade na tela de consentimento.
