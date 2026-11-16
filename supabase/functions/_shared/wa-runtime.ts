@@ -1,6 +1,7 @@
 // Cola Deno das funções de WhatsApp (lê Deno.env e cria clientes Supabase). A lógica testável fica em wa-*.ts, sem Deno.
 // Nunca registra telefone, corpo bruto, chave nem segredo: o log é só {fn, outcome}.
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "./cors.ts";
 import { resolveWaConfig, type WaConfig } from "./wa-gateway.ts";
 
 export const DEFAULT_SITE = "https://newmemocuiaba.vercel.app";
@@ -36,3 +37,16 @@ export function sameSecret(a: string, b: string): boolean {
   for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return d === 0;
 }
+
+/** Cliente com o JWT do chamador (RLS vale; a sessão anônima do convidado também é um usuário). */
+export const userClient = (authHeader: string): SupabaseClient =>
+  createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } });
+
+const SECURITY_HEADERS = { "content-type": "application/json", "x-content-type-options": "nosniff", "cache-control": "no-store" };
+/** Resposta JSON com CORS restrito à lista de origens do app (ALLOWED_ORIGINS acrescenta domínios próprios). */
+export function corsResponder(req: Request) {
+  const headers = { ...corsHeaders(req.headers.get("origin"), Deno.env.get("ALLOWED_ORIGINS") ?? ""), ...SECURITY_HEADERS };
+  return (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
+}
+export const corsPreflight = (req: Request): Response =>
+  new Response(null, { status: 204, headers: corsHeaders(req.headers.get("origin"), Deno.env.get("ALLOWED_ORIGINS") ?? "") });

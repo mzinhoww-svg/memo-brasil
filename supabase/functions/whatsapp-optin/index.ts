@@ -2,14 +2,13 @@
 // Sessão do convidado (anônima vale); o banco decide se ele é participante não bloqueado e se o recurso está ligado.
 import { createOptin } from "../_shared/wa-gateway.ts";
 import { handleOptinRequest } from "../_shared/wa-optin.ts";
-import { preflight, responder, userClient } from "../_shared/payments-runtime.ts";
-import { adminClient, logWa, siteOrigin, waConfig } from "../_shared/wa-runtime.ts";
+import { adminClient, corsPreflight, corsResponder, logWa, siteOrigin, userClient, waConfig } from "../_shared/wa-runtime.ts";
 
 const FN = "whatsapp-optin";
 
 Deno.serve(async (req) => {
-  const json = responder(req, true);
-  if (req.method === "OPTIONS") return preflight(req);
+  const json = corsResponder(req);
+  if (req.method === "OPTIONS") return corsPreflight(req);
   if (req.method !== "POST") return json({ error: "method" }, 405);
 
   const auth = req.headers.get("Authorization") ?? "";
