@@ -1,7 +1,8 @@
-/** Textos das páginas /termos e /privacidade, versão 2026-11-16-v2 (v1 + seção 11, busca facial opcional). Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
+/** Textos das páginas /termos (2026-11-16-v2) e /privacidade (2026-11-16-v3). Política v2: avisos por WhatsApp; Termos v2 e Política v3: seção 11 (busca facial opcional). Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
 export type LegalSection = { title: string; blocks: (string | string[])[] };
 
 export const LEGAL_UPDATED_AT = "16 de novembro de 2026";
+export const PRIVACY_UPDATED_AT = "16 de novembro de 2026";
 
 export const TERMS_TEXT: LegalSection[] = [
   { title: "1. Sobre o serviço", blocks: [
@@ -69,6 +70,7 @@ export const PRIVACY_TEXT: LegalSection[] = [
       "Dados do evento, convites, configurações e horários.",
       "Fotografias enviadas e informações técnicas necessárias ao processamento.",
       "Registros de aceite, versões dos documentos e datas.",
+      "Número de telefone do WhatsApp e data da ativação, somente se você pedir os avisos por WhatsApp do Revela.",
       "Informações técnicas de acesso, erros, segurança e atendimento.",
     ],
     "Não recebemos sua senha do Google. Não solicitamos CPF ou outros documentos apenas para participar de um evento.",
@@ -76,6 +78,7 @@ export const PRIVACY_TEXT: LegalSection[] = [
   { title: "3. Finalidades e fundamentos", blocks: [
     "Utilizamos os dados para autenticar usuários, administrar eventos, admitir convidados, armazenar fotografias, aplicar limites, controlar a revelação, disponibilizar a galeria e atender solicitações.",
     "O tratamento pode se fundamentar na execução do serviço solicitado, cumprimento de obrigações legais, exercício regular de direitos e interesses legítimos de segurança e funcionamento, quando cabíveis.",
+    "Avisos por WhatsApp (opcionais): se você tocar em \"Receber avisos no WhatsApp\" e enviar a mensagem pronta do seu próprio número, usamos esse número apenas para avisar sobre o evento, como o aviso de que as fotos foram reveladas. Não enviamos propaganda nem mensagens de outros eventos. O consentimento é específico e pode ser desfeito a qualquer momento enviando SAIR; ao sair, ao deixar o evento ou quando o evento é excluído, o número é apagado. O organizador do evento não vê o seu número.",
     "Quando uma finalidade exigir consentimento, ele será solicitado de maneira específica. Aceitar os Termos ou declarar ciência desta Política não autoriza automaticamente publicidade, reconhecimento facial ou qualquer uso incompatível.",
   ] },
   { title: "4. Acesso às fotografias", blocks: [
@@ -86,6 +89,7 @@ export const PRIVACY_TEXT: LegalSection[] = [
   { title: "5. Fornecedores e compartilhamento", blocks: [
     "Utilizamos fornecedores de autenticação, hospedagem e armazenamento, incluindo Google, Vercel e Supabase, conforme os recursos em operação.",
     "Dados poderão ser tratados em infraestrutura localizada fora do Brasil. Quando aplicável, serão adotados os mecanismos e requisitos legais de transferência internacional.",
+    "Os avisos por WhatsApp são enviados por uma conexão de WhatsApp operada por nós, que não é um canal oficial da Meta; as mensagens passam também pelo próprio WhatsApp, que as trata conforme seus termos. Só enviamos a quem optou.",
     "Também poderemos compartilhar informações estritamente necessárias para atender obrigações legais ou proteger direitos.",
     "Não vendemos dados pessoais nem utilizamos fotografias dos eventos para publicidade ou treinamento de inteligência artificial sem autorização específica.",
     "Uma futura integração de pagamentos deverá ser informada antes de sua utilização, incluindo o provedor e os dados necessários à transação.",

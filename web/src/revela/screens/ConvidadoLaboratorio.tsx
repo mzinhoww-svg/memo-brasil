@@ -1,7 +1,7 @@
 "use client";
 /* Gerado de design-system/revela/html/Convidado-laboratorio.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { GuestTabs } from "../GuestTabs";
 import { Odo } from "../Odo";
 
@@ -17,6 +17,8 @@ export interface LaboratorioProps {
   countdown?: { h: number; m: number; s: number } | null;
   /** "Revela domingo, 12:00" */
   revealLabel?: string;
+  /** Lembrete extra sob a contagem (ex.: avisos por WhatsApp). */
+  extra?: ReactNode;
   /** texto do botão principal, ex.: "Abrir câmera · 18 poses" */
   cta?: string;
 }
@@ -24,7 +26,7 @@ const LOCK = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
 );
 
-export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana & Leo", live = true, photos = 418, guests = 32, countdown = { h: 27, m: 17, s: 40 }, revealLabel = "Revela domingo, 12:00", cta = "Abrir câmera · 18 poses" }: LaboratorioProps = {}) {
+export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana & Leo", live = true, photos = 418, guests = 32, countdown = { h: 27, m: 17, s: 40 }, revealLabel = "Revela domingo, 12:00", cta = "Abrir câmera · 18 poses", extra }: LaboratorioProps = {}) {
   // foto nova chegando no laboratório: a pilha da frente "pula" para dentro (rv-pop), sem mostrar nada
   const [pop, setPop] = useState(0);
   const last = useRef(photos);
@@ -68,6 +70,7 @@ export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana
         </div>
         )}
         <p className="rv-caption" style={{ "textAlign": "center", "marginTop": "8px" }}>{revealLabel}</p>
+        {extra}
         <div className="grow" />
         <div className="row" style={{ "gap": "8px" }}>
           <Link href={code ? `/e/${code}/postar` : "#"} className="rv-btn rv-btn--block rv-btn--primary" style={{ "flex": "1" }}>

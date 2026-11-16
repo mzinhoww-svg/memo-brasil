@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "gen:revela": "node scripts/gen-revela-assets.mjs",
-    "test:integration": "vitest run --config vitest.integration.config.ts && node --test --test-force-exit integration/supabase.integration.test.mjs"
+    "test:integration": "vitest run --config vitest.integration.config.ts && node --test --test-force-exit integration/supabase.integration.test.mjs",
+    "test:e2e:layout": "playwright test --config playwright.layout.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/schibsted-grotesk": "^5.3.0",

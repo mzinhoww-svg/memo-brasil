@@ -11,3 +11,14 @@
 /* linha de resultado dentro da folha (Salvo., erro): fica logo acima das ações */
 .app-dialog-status { margin: 0; font: 600 14px/20px var(--font-sans); color: var(--success); }
 .app-dialog-status[data-tone="erro"] { color: var(--danger); }
+
+/* área visível curta (teclado em 360×640, paisagem): a folha usa tudo e o rodapé rola junto, para sobrar espaço ao campo */
+.app-dialog[data-compact] .app-dialog-panel { max-height: 100%; }
+.app-dialog[data-compact] .app-dialog-foot { position: static; }
+
+/* tablet e telas largas: a folha deixa de ficar colada embaixo e vira um cartão centrado */
+@media (min-width: 768px) and (min-height: 560px) {
+  .app-dialog { align-items: center; }
+  .app-dialog-panel { border-radius: var(--radius-xl); max-height: 86%; padding-bottom: var(--space-6); }
+  .app-dialog-panel .app-sheet-handle { display: none; }
+}

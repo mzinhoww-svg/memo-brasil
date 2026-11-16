@@ -1,6 +1,7 @@
 "use client";
 /* Gerado de design-system/revela/html/Convidado-minhas.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { GuestTabs } from "../GuestTabs";
 import { Odo } from "../Odo";
 
@@ -17,10 +18,12 @@ export interface MinhasProps {
   thumbs?: (string | undefined)[];
   /** a revelação já aconteceu: as poses viram foto */
   revealed?: boolean;
+  /** Lembrete antes da revelação (ex.: avisos por WhatsApp). */
+  extra?: ReactNode;
 }
 const DEFAULT_TAKEN = ["21:04", "21:10", "21:32", "22:01", "22:40", "22:41", "23:15", "23:30", "23:58"];
 
-export function ConvidadoMinhas({ code, left = 18, total = 27, taken = DEFAULT_TAKEN, onPickRoll, thumbs, revealed = false }: MinhasProps = {}) {
+export function ConvidadoMinhas({ code, left = 18, total = 27, taken = DEFAULT_TAKEN, onPickRoll, thumbs, revealed = false, extra }: MinhasProps = {}) {
   return (
     <>
     <div className="scr">
@@ -53,6 +56,7 @@ export function ConvidadoMinhas({ code, left = 18, total = 27, taken = DEFAULT_T
             </div>
           ))}
         </div>
+        {!revealed && extra}
         <div className="grow" />
         <button type="button" className="rv-btn rv-btn--block" onClick={onPickRoll}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
