@@ -66,7 +66,7 @@ select is((public.event_preview(:'ev_code') ->> 'title'), 'Emy & Igor', 'prévia
 select is((select array_agg(k order by k) from jsonb_object_keys(public.event_preview(:'ev_code')) k),
   array['cameraStyle','capacity','category','code','eventFont','everyoneSeesAll','filmLook','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
   'prévia só tem os 11 campos seguros da v1 + theme (v2) + campos de plano/revelação (COM-003)');
-select throws_ok($$select public.join_event('ZZZZZZZZ', 'Ana')$$, 'MM005', 'invalid', 'código inexistente');
+select is(public.join_event('ZZZZZZZZ', 'Ana') ->> 'error', 'MM005', 'código inexistente (devolve {error}: o contador de tentativas persiste, ver 39_rate_limit_hardening)');
 select throws_ok(format($$select public.join_event(%L, '  ')$$, :'ev_code'), 'MM005', 'invalid', 'nome vazio');
 select is((public.join_event(:'ev_code', 'Ana') ->> 'role'), 'membro', 'convidado anônimo entra com o código');
 select is((public.join_event(:'ev_code', 'Ana Maria') ->> 'role'), 'membro', 'reentrada é idempotente e atualiza o nome');
