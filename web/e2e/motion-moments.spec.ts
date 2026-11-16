@@ -127,8 +127,8 @@ test("laboratório (23b): cadeado balança, miniaturas borradas respiram e os vi
   await expect(digits).toHaveCount(3);
   await expect(digits.nth(0)).toHaveAttribute("aria-label", "27");
   await expect(digits.nth(1)).toHaveAttribute("aria-label", "17");
-  // a fita mostra o 2 e o 7 (cada dígito sobe a fita em em)
-  expect(await digits.nth(0).locator("> span > span").first().evaluate((e) => (e as HTMLElement).style.transform)).toBe("translateY(-2em)");
+  // a fita mostra o 2 e o 7 (cada dígito sobe a fita em % da fita de 10 linhas: 2 → 20%)
+  expect(await digits.nth(0).locator("> span > span").first().evaluate((e) => (e as HTMLElement).style.transform)).toBe("translateY(-20%)");
 });
 
 test("virada do feed: 'Revelou.' com confete e fotos na mesa; ao abrir o feed as miniaturas borradas viram fotos reais", async ({ page, context }) => {

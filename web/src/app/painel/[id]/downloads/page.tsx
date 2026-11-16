@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { retrospectiveOpen } from "@/domain/event";
+import { isRevealed, retrospectiveOpen } from "@/domain/event";
 import { photosAvailableUntil } from "@/domain/retention";
 import { guestRanking } from "@/features/admin/service";
 import { useAdmin } from "@/features/admin/context";
@@ -55,12 +55,18 @@ export default function Downloads() {
     } finally { setCsvBusy(false); }
   }
 
+  // abre junto com a revelação; o texto diz o que falta quando ainda não abriu
+  const retroOpen = retrospectiveOpen(event, now, false);
+  const retroTile = retroOpen && count > 0 ? { desc: "Disponível agora", href: `/e/${event.code}/retrospectiva` }
+    : retroOpen ? { desc: "Sem fotos ainda" }
+    : isRevealed(event, now) ? { desc: "Abre quando o evento terminar" }
+    : { desc: "Disponível depois da revelação" };
   const pct = progress ? Math.round((progress.done / Math.max(1, progress.total)) * 100) : undefined;
   return (
     <PainelDownloads
       zip={{ desc: `${count} ${plural(count, "foto", "fotos")} · originais com filme`, pct, progressText: progress ? `Preparando… ${pct}% (${progress.done} de ${progress.total})` : undefined, disabled: count === 0 }}
       csv={{ desc: `${people} ${plural(people, "pessoa", "pessoas")} · nome, mesa, fotos tiradas`, disabled: csvBusy }}
-      retro={retrospectiveOpen(event, now, false) && count > 0 ? { desc: "Disponível agora", href: `/e/${event.code}/retrospectiva` } : { desc: "Disponível depois da revelação" }}
+      retro={retroTile}
       message={error ? { text: error, error: true } : result ? { text: result } : undefined}
       note={until !== null ? `As fotos ficam disponíveis até ${formatDate(until)}. ${copyFor(backendMode()).downloadsNote}` : copyFor(backendMode()).downloadsNote}
       onBack={() => router.push(`/painel/${event.id}`)}

@@ -264,11 +264,11 @@ select tests.login('00000000-0000-4000-8000-0000000000a1');
 select lives_ok(format($$insert into public.event_themes (event_id, colors) values ('10000000-0000-4000-8000-00000000000d', %L::jsonb)$$, tests.palette()), 'antes da revelação o host edita o tema');
 reset role;
 update public.events set start_at = now() - interval '7 hours' where id = '10000000-0000-4000-8000-00000000000d'; -- relógio andando: reveal_at no passado
-select is(public.event_theme_locked('10000000-0000-4000-8000-00000000000d'), true, 'tema bloqueado quando a revelação venceu');
+select is(public.event_theme_locked('10000000-0000-4000-8000-00000000000d'), false, 'tema não trava mesmo com a revelação vencida (aparência editável depois de revelar)');
 select tests.login('00000000-0000-4000-8000-0000000000a1');
-update public.event_themes set welcome_message = 'tarde demais' where event_id = '10000000-0000-4000-8000-00000000000d';
+update public.event_themes set welcome_message = 'ainda dá tempo' where event_id = '10000000-0000-4000-8000-00000000000d';
 reset role;
-select is((select welcome_message from public.event_themes where event_id = '10000000-0000-4000-8000-00000000000d'), null, 'após o bloqueio o host não altera o tema');
+select is((select welcome_message from public.event_themes where event_id = '10000000-0000-4000-8000-00000000000d'), 'ainda dá tempo', 'depois da revelação o host altera o tema');
 select is(public.event_theme_locked('10000000-0000-4000-8000-00000000000a'), false, 'evento sem revelação nunca bloqueia o tema');
 
 -- cascata e Realtime
@@ -406,9 +406,9 @@ insert into public.events (id, title, category, host_id, host_name, duration_hou
   ('10000000-0000-4000-8000-00000000000e', 'Evento E', 'formatura', '00000000-0000-4000-8000-0000000000a1', 'Emy', 6, true, 'fim', 0);
 update public.events set start_at = now() - interval '7 hours' where id = '10000000-0000-4000-8000-00000000000e';
 select tests.login('00000000-0000-4000-8000-0000000000a1');
-select throws_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000c01', '10000000-0000-4000-8000-00000000000e', 'logo', 'image/png', 400, 400)$$, 'MM008', 'revealed', 'asset bloqueado depois do bloqueio de edição');
+select lives_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000c01', '10000000-0000-4000-8000-00000000000e', 'logo', 'image/png', 400, 400)$$, 'depois da revelação o host ainda envia logo e capa');
 reset role;
-select is((select count(*)::int from public.event_assets where event_id = '10000000-0000-4000-8000-00000000000e'), 0, 'nenhum asset criado no evento bloqueado');
+select is((select count(*)::int from public.event_assets where event_id = '10000000-0000-4000-8000-00000000000e'), 1, 'o asset foi criado no evento já revelado');
 set local role anon;
 select throws_ok($$select * from public.event_assets$$, '42501', null, 'anon sem acesso a event_assets');
 reset role;

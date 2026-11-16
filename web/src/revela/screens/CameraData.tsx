@@ -1,6 +1,5 @@
 "use client";
 /* Camera-data.html (passo 3): mesmo markup e classes da referência; dados reais por props (padrão = desenho). */
-import { useRef } from "react";
 import { WizardSheet } from "../WizardSheet";
 
 const CAL = (
@@ -35,18 +34,19 @@ export interface CameraDataProps {
 }
 
 function PickRow({ icon, meta, text, type, value, label, onChange, min, on }: { icon: React.ReactNode; meta: string; text: string; type: "date" | "time"; value: string; label: string; onChange?: (v: string) => void; min?: string; on?: boolean }) {
-  const ref = useRef<HTMLInputElement>(null);
-  const open = () => { const el = ref.current; if (!el) return; try { el.showPicker(); } catch { el.focus(); el.click(); } };
+  // O campo nativo cobre a linha inteira e recebe o toque de verdade: no iPhone o seletor abre pelo próprio campo
+  // (showPicker/click programático não funcionam lá); nos navegadores de computador, showPicker abre o calendário.
+  const openPicker = (el: HTMLInputElement) => { try { el.showPicker?.(); } catch { /* o toque no campo já abre o seletor nativo */ } };
   return (
-    <div className={`rv-row${on ? " wrow-on" : ""}`} onClick={open} style={{ cursor: "pointer", position: "relative" }}>
+    <div className={`rv-row${on ? " wrow-on" : ""}`} style={{ cursor: "pointer", position: "relative" }}>
       {icon}
       <div className="rv-row__text">
         <span className="rv-row__meta">{meta}</span>
         {text}
       </div>
       {CHEV}
-      <input ref={ref} type={type} value={value} min={min} aria-label={label} tabIndex={-1} onClick={(e) => e.stopPropagation()} onChange={(e) => onChange?.(e.target.value)}
-        style={{ position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
+      <input type={type} value={value} min={min} aria-label={label} onClick={(e) => openPicker(e.currentTarget)} onChange={(e) => onChange?.(e.target.value)}
+        style={{ position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%", cursor: "pointer", font: "inherit", fontSize: "16px" }} />
     </div>
   );
 }

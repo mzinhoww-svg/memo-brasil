@@ -81,7 +81,7 @@ describe("ITG-101: leitura escopada por papel", () => {
   it("com tema personalizado a prévia ganha só a chave theme, sem expor nada além", async () => {
     const { PRESETS } = await import("@/lib/event-theme/spec");
     const { saveTheme } = await import("@/features/events/theme");
-    await saveTheme(repos, id, { preset: "oceano", colors: { ...PRESETS.oceano.dia }, font: "vibes", welcomeMessage: "Oi!", qrStyle: "arredondado" }, NOW);
+    await saveTheme(repos, id, { preset: "oceano", colors: { ...PRESETS.oceano.dia }, font: "vibes", welcomeMessage: "Oi!", qrStyle: "arredondado" });
     const v = await readEventScoped(repos, { code }, asGuest(null), NOW + 1);
     expect(Object.keys(v.preview!).sort()).toEqual(["cameraStyle", "filmLook", "capacity", "category", "code", "eventFont", "full", "hostName", "palette", "place", "startAt", "status", "theme", "title", "everyoneSeesAll", "revealAt", "revealStatus", "shotsPerPerson", "timezone"].sort());
   });

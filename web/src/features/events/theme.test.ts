@@ -22,32 +22,35 @@ beforeEach(async () => {
 
 describe("saveTheme", () => {
   it("grava o tema válido só no evento alvo (isolamento)", async () => {
-    const r = await saveTheme(repos, a, oceano, NOW);
+    const r = await saveTheme(repos, a, oceano);
     expect(r.ok && r.event.theme?.preset).toBe("oceano");
     expect((await repos.events.get(a))?.theme?.qrStyle).toBe("pontos");
     expect((await repos.events.get(b))?.theme).toBeUndefined();
   });
   it("recusa tema sem contraste e não grava nada", async () => {
     const bad = { ...oceano, colors: { ...oceano.colors, texto: "#EEEEEE" } };
-    const r = await saveTheme(repos, a, bad, NOW);
+    const r = await saveTheme(repos, a, bad);
     expect(r).toMatchObject({ ok: false, reason: "invalido" });
     expect((await repos.events.get(a))?.theme).toBeUndefined();
   });
   it("recusa evento inexistente", async () => {
-    expect(await saveTheme(repos, "nada", oceano, NOW)).toEqual({ ok: false, reason: "inexistente" });
+    expect(await saveTheme(repos, "nada", oceano)).toEqual({ ok: false, reason: "inexistente" });
   });
-  it("bloqueia a edição depois da revelação", async () => {
+  it("continua editável depois da revelação", async () => {
     const e = (await repos.events.get(a))!;
     const depois = (e.revealAt ?? NOW) + 1000;
     await reconcileReveal(repos, a, depois);
-    expect(await saveTheme(repos, a, oceano, depois)).toEqual({ ok: false, reason: "bloqueado" });
+    const r = await saveTheme(repos, a, oceano);
+    expect(r.ok).toBe(true);
+    expect((await repos.events.get(a))?.theme).toEqual(oceano);
+    expect((await restoreDefaultTheme(repos, a)).ok).toBe(true);
   });
 });
 
 describe("restoreDefaultTheme", () => {
   it("remove o tema personalizado e volta à paleta do evento", async () => {
-    await saveTheme(repos, a, oceano, NOW);
-    const r = await restoreDefaultTheme(repos, a, NOW);
+    await saveTheme(repos, a, oceano);
+    const r = await restoreDefaultTheme(repos, a);
     expect(r.ok && r.event.theme).toBeUndefined();
     expect((await repos.events.get(a))?.palette).toBe("salvia");
   });

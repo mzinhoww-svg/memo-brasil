@@ -13,14 +13,18 @@ export interface MinhasProps {
   /** poses tiradas, em ordem: horário "hh:mm" de cada uma */
   taken?: string[];
   onPickRoll?: () => void;
+  /** miniatura de cada pose, na mesma ordem de `taken` (indefinida = ainda carregando); só depois da revelação */
+  thumbs?: (string | undefined)[];
+  /** a revelação já aconteceu: as poses viram foto */
+  revealed?: boolean;
 }
 const DEFAULT_TAKEN = ["21:04", "21:10", "21:32", "22:01", "22:40", "22:41", "23:15", "23:30", "23:58"];
 
-export function ConvidadoMinhas({ code, left = 18, total = 27, taken = DEFAULT_TAKEN, onPickRoll }: MinhasProps = {}) {
+export function ConvidadoMinhas({ code, left = 18, total = 27, taken = DEFAULT_TAKEN, onPickRoll, thumbs, revealed = false }: MinhasProps = {}) {
   return (
     <>
     <div className="scr">
-      <div className="safe safe--tabs">
+      <div className="safe safe--tabs safe--scroll">
         <div className="row between">
           <h1 className="rv-title-lg" style={{ "fontSize": "30px" }}>
             Minhas poses
@@ -33,11 +37,15 @@ export function ConvidadoMinhas({ code, left = 18, total = 27, taken = DEFAULT_T
           </div>
         </div>
         <p className="rv-caption" style={{ "marginTop": "6px" }}>
-          {total === null ? `${taken.length} tiradas` : `${taken.length} de ${total} tiradas`}. Elas viram foto na revelação.
+          {total === null ? `${taken.length} tiradas` : `${taken.length} de ${total} tiradas`}. {revealed ? "Aqui estão as suas fotos reveladas." : "Elas viram foto na revelação."}
         </p>
         <div className="rollgrid rv-rise" style={{ "--i": 1 } as React.CSSProperties}>
           {taken.map((t, i) => (
-            <div key={i} className="rv-print rv-print--back">
+            <div key={i} className={`rv-print${thumbs?.[i] ? "" : " rv-print--back"}`} data-testid={thumbs?.[i] ? "minha-foto" : undefined}>
+              {thumbs?.[i] && (
+                // eslint-disable-next-line @next/next/no-img-element -- miniatura assinada do Storage
+                <img src={thumbs[i]} alt={`Pose ${i + 1}`} loading="lazy" decoding="async" />
+              )}
               <div className="rv-print__cap">
                 <span>{`pose ${String(i + 1).padStart(2, "0")}`}</span>
                 <span>{t}</span>

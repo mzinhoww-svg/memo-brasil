@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, CameraStage, Notice, OptionGroup, WrapPicker } from "@/components/revela";
+import { Button, CameraStage, OptionGroup, WrapPicker } from "@/components/revela";
 import type { MemoEvent } from "@/domain/event";
 import { DEFAULT_FILM, FILM_LABEL, WRAP_INFO, wrapOf, type FilmLook, type Wrap } from "@/domain/options";
 import { MESSAGE_MAX, QR_STYLES, type QrStyle, type ThemeSpec } from "@/domain/theme";
@@ -28,7 +28,7 @@ export function initialTheme(event: Pick<MemoEvent, "theme" | "palette" | "event
  * Aparência do evento no Revela: a identidade é a embalagem da câmera (festa, casamento, aniversario, noite),
  * mais o filme, a mensagem de boas-vindas, o estilo do QR e as imagens. Cores e fontes por evento não existem mais.
  */
-export function AppearanceStudio({ event, locked, onSave, onSaveLook, images }: { event: MemoEvent; locked: boolean; onSave: (t: ThemeSpec) => Promise<string | undefined>; onSaveLook: (p: LookPatch) => Promise<string | undefined>; images?: StudioImages }) {
+export function AppearanceStudio({ event, onSave, onSaveLook, images }: { event: MemoEvent; onSave: (t: ThemeSpec) => Promise<string | undefined>; onSaveLook: (p: LookPatch) => Promise<string | undefined>; images?: StudioImages }) {
   const [wrap, setWrap] = useState<Wrap>(wrapOf(event.cameraStyle));
   const [film, setFilm] = useState<FilmLook>(event.filmLook ?? DEFAULT_FILM);
   const [draft, setDraft] = useState<ThemeSpec>(() => initialTheme(event));
@@ -61,7 +61,7 @@ export function AppearanceStudio({ event, locked, onSave, onSaveLook, images }: 
   const save_ = (
     <>
       <p className="app-p" role="status" aria-live="polite" data-testid="studio-msg">{msg ?? ""}</p>
-      <Button variant="primario" block disabled={locked || !verdict.ok || busy} aria-busy={busy} onClick={() => void save()}>Salvar aparência</Button>
+      <Button variant="primario" block disabled={!verdict.ok || busy} aria-busy={busy} onClick={() => void save()}>Salvar aparência</Button>
     </>
   );
 
@@ -88,8 +88,7 @@ export function AppearanceStudio({ event, locked, onSave, onSaveLook, images }: 
       </section>
 
       <section className="app-stack">
-        {locked && <Notice text="A revelação já aconteceu: a aparência da câmera não pode mais mudar." />}
-        <fieldset disabled={locked} className="studio-fieldset">
+        <fieldset className="studio-fieldset">
           <div className="app-stack-sm">
             <span className="rv-group-label">Embalagem</span>
             <WrapPicker value={wrap} onChange={(w) => { setMsg(undefined); setWrap(w); }} />
