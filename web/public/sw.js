@@ -1,11 +1,13 @@
 /* Revela · service worker. Estratégia:
  * - estáticos (/_next/static, fontes, marca, ícones): cache primeiro;
- * - navegação: rede primeiro; guarda a página visitada; sem rede usa a cópia ou /offline.
+ * - navegação: rede primeiro; guarda a página PÚBLICA visitada (nunca /master, /painel, /conta nem no-store); sem rede usa a cópia ou /offline.
  * Os dados (eventos e fotos) vivem no IndexedDB e não passam pelo SW.
  * A versão vem de /sw.js?v=<build>: cada deploy usa um cache novo e o antigo é apagado ao ativar. */
 const VERSION = "mm-" + (new URL(self.location.href).searchParams.get("v") || "dev");
 const SHELL = ["/", "/entrar", "/criar", "/offline", "/manifest.webmanifest"];
 const STATIC = /^\/(_next\/static|fonts|brand|icons|pwa)\//;
+// páginas de quem está logado: nunca vão para o cache (depois do logout o HTML não pode reaparecer offline)
+const PRIVATE = /^\/(master|painel|conta)(\/|$)/;
 const MAX_PAGES = 40; // páginas visitadas guardadas (as mais antigas saem primeiro)
 
 /** /offline nunca é visitada online: sem os scripts dela no cache, a página offline cairia em "Algo deu errado". */
@@ -30,6 +32,25 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith("mm-") && k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim()),
   );
+});
+
+/** Só guarda páginas públicas: nada de rotas privadas nem respostas marcadas no-store/private. */
+function cacheable(req, res) {
+  if (!res.ok || PRIVATE.test(new URL(req.url).pathname)) return false;
+  return !/no-store|private/i.test(res.headers.get("cache-control") || "");
+}
+
+/** Apaga as páginas visitadas (mantém estáticos e o shell). Chamado no logout. */
+async function clearPages() {
+  const cache = await caches.open(VERSION);
+  for (const r of await cache.keys()) {
+    const p = new URL(r.url).pathname;
+    if (!STATIC.test(p) && !SHELL.includes(p)) await cache.delete(r);
+  }
+}
+
+self.addEventListener("message", (event) => {
+  if (event.data === "mm-clear-pages") event.waitUntil(clearPages());
 });
 
 async function remember(req, res) {
@@ -58,9 +79,9 @@ self.addEventListener("fetch", (event) => {
   if (req.mode === "navigate" || req.headers.get("accept")?.includes("text/html")) {
     event.respondWith(
       fetch(req).then((res) => {
-        if (res.ok) event.waitUntil(remember(req, res.clone()));
+        if (cacheable(req, res)) event.waitUntil(remember(req, res.clone()));
         return res;
-      }).catch(() => caches.match(req).then((hit) => hit || caches.match("/offline"))),
+      }).catch(() => (PRIVATE.test(url.pathname) ? caches.match("/offline") : caches.match(req).then((hit) => hit || caches.match("/offline")))),
     );
   }
 });

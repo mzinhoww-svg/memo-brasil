@@ -8,14 +8,6 @@ const BACK = (
   </svg>
 );
 
-/** Faixa de baixo de cada embalagem (cor do fundo e do texto), para escrever o nome digitado por cima do texto de exemplo. */
-const BAND: Record<Wrap, { bg: string; ink: string }> = {
-  aniversario: { bg: "#0e1a66", ink: "#f6c945" },
-  casamento: { bg: "#c9a35c", ink: "#1c0b03" },
-  festa: { bg: "#1a0700", ink: "#fad9b8" },
-  noite: { bg: "#0b1f16", ink: "#eff7e2" },
-};
-
 export interface CameraNomeProps {
   wrap?: Wrap; name?: string; suggestions?: string[]; error?: string; busy?: boolean;
   /** Mostra o teclado desenhado (só no desenho de referência). */
@@ -41,7 +33,7 @@ export function CameraNome({ wrap = "casamento", name = "Ana & Leo", suggestions
         </div>
         <div className="namepreview">
           <img src={`/revela/ref/label-${wrap}.jpg`} alt="Embalagem com o nome do evento" />
-          <span className="namepreview__band" aria-hidden="true" style={{ background: BAND[wrap].bg, color: BAND[wrap].ink }}>{name.trim() || "Nome do evento"}</span>
+          <span className={`namepreview__band namepreview__band--${wrap}`} aria-hidden="true">{name.trim() || "Nome do evento"}</span>
         </div>
         <label className="rv-field rv-field--focus" style={{ marginTop: "14px" }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

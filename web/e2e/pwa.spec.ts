@@ -33,3 +33,24 @@ test("dados do IndexedDB sobrevivem a um recarregamento (persistência local)", 
   await expect(page.getByRole("link", { name: "Abrir câmera" }).first()).toBeVisible();
   expect(url).toContain("/e/");
 });
+
+test("páginas privadas (/master, /painel, /conta) nunca entram no cache do service worker; o logout limpa as páginas guardadas", async ({ page, context }) => {
+  await page.goto("/");
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; }).catch(() => page.waitForLoadState("load"));
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await page.goto("/master");
+  await page.goto("/painel");
+  await page.goto("/conta/excluir");
+  await page.goto("/entrar");
+  const names = () => page.evaluate(async () => (await (await caches.open((await caches.keys()).find((k) => k.startsWith("mm-"))!)).keys()).map((r) => new URL(r.url).pathname));
+  const cached = await names();
+  expect(cached.some((p) => /^\/(master|painel|conta)(\/|$)/.test(p))).toBe(false);
+  expect(cached).toContain("/entrar");
+  // o logout manda o SW apagar as páginas visitadas, mantendo o shell
+  await page.evaluate(() => navigator.serviceWorker.controller?.postMessage("mm-clear-pages"));
+  await expect.poll(async () => (await names()).includes("/entrar")).toBe(true); // /entrar faz parte do shell e fica
+  await context.setOffline(true);
+  await page.goto("/master").catch(() => undefined);
+  await context.setOffline(false);
+});

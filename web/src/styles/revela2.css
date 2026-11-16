@@ -175,6 +175,10 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 .wrapname { text-align: center; display: flex; flex-direction: column; gap: 4px; margin-top: -10px; }
 .namepreview { margin: 16px -4px 0; container-type: inline-size; border-radius: 10px; overflow: hidden; position: relative; box-shadow: 0 14px 30px var(--k-000000aa), inset 0 0 0 1px var(--hl); aspect-ratio: 1300 / 700; }
 .namepreview img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.namepreview__band--aniversario { background: var(--k-0e1a66); color: var(--k-f6c945); }
+.namepreview__band--casamento { background: var(--k-c9a35c); color: var(--k-1c0b03); }
+.namepreview__band--festa { background: var(--k-1a0700); color: var(--k-fad9b8); }
+.namepreview__band--noite { background: var(--k-0b1f16); color: var(--k-eff7e2); }
 .namepreview__band { position: absolute; left: 0; right: 0; bottom: 0; height: 25.8%; display: flex; align-items: center; padding: 0 4%; font: 600 clamp(11px, 3.4cqw, 20px)/1 var(--font-stamp); letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .kb { background: var(--k-1d1a18); margin: 0 calc(-1 * var(--space-5)) -34px; padding: 8px 4px 34px; display: flex; flex-direction: column; gap: 10px; }
 .kb .r { display: flex; justify-content: center; gap: 6px; }

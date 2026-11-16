@@ -16,6 +16,7 @@ import { clearAppData, markAppDataStale } from "./data-cache";
 import { loadIdentity } from "./identity";
 import { resetPhotoUrlCache } from "./photo-urls";
 import { withWriteHook } from "./invalidate";
+import { clearCachedPages } from "@/lib/register-sw";
 
 /** Repositórios que marcam o cache de dados como velho depois de cada escrita (postar, curtir, mudar o evento...). */
 function cached(r: Repositories): Repositories {
@@ -131,6 +132,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const signOut = useCallback(async () => {
     await repos.users.clear();
+    clearCachedPages();
     setUser(undefined);
   }, [repos]);
   const switchTo = useCallback(

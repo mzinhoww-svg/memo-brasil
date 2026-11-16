@@ -1,3 +1,5 @@
+> **Estado atual:** o produto é o **Revela 2.0**: app em `web/` (Next.js, Vercel) e banco em `supabase/`. O servidor Express/SQLite descrito abaixo (Lume) foi **aposentado** e está em `legacy/`. Veja `legacy/README.md`.
+
 # Memo Brasil (MVP web)
 
 Lume: o álbum de casamento que se revela aos poucos, com as fotos de todos os convidados guardadas até a hora certa. Qualquer pessoa cadastra o seu casamento (tenant); a organização (casal e cerimonial) gere tudo em um painel; os convidados entram pelo QR Code e fotografam. As fotos ficam bloqueadas até a hora da revelação. Um admin master administra todos os casamentos e as variáveis da plataforma.

@@ -162,8 +162,10 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         return { mine: Number(d.mine), total: Number(d.total) };
       },
       join: async (code, name, table, token) => {
-        const d = ok(await sb.rpc("join_event", { p_code: code, p_name: name, p_table: table ?? null, p_token: token ?? null })) as { role: "organizador" | "membro"; eventId: string };
-        return d;
+        const d = ok(await sb.rpc("join_event", { p_code: code, p_name: name, p_table: table ?? null, p_token: token ?? null })) as { role?: "organizador" | "membro"; eventId?: string; error?: string };
+        // código/convite inválido volta como {error} (e não como exceção) para o contador de tentativas sobreviver no banco
+        if (d.error) throw toRepositoryError({ code: d.error, message: d.error });
+        return d as { role: "organizador" | "membro"; eventId: string };
       },
       list: async () => {
         try { return (await selectAll("events", (q) => q.select("*, event_themes(*)").order("created_at", { ascending: false }))).map(toEvent); }

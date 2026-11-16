@@ -1,4 +1,9 @@
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
+
+// Raiz do repositório: o app importa código compartilhado de ../supabase/functions/_shared. Fixada aqui para não depender de onde está o
+// lockfile (a raiz tinha o package-lock do servidor antigo, hoje em legacy/; sem raiz explícita o Turbopack enxerga só web/).
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 
 // Decisões (docs/architecture): sem cacheComponents/Activity (app local-first; câmera não deve ficar viva em rota oculta).
 const isProd = process.env.NODE_ENV === "production";
@@ -39,6 +44,7 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: repoRoot,
   // Fixa em "0" quando não definido: o código do relógio de teste sai do bundle de produção.
   env: {
     NEXT_PUBLIC_MM_TEST_CLOCK: process.env.NEXT_PUBLIC_MM_TEST_CLOCK ?? "0",
@@ -69,6 +75,7 @@ const nextConfig: NextConfig = {
     ];
   },
   turbopack: {
+    root: repoRoot,
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

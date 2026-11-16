@@ -76,7 +76,7 @@ jobs:
         if: always()
         run: npx --yes supabase@3.0.0 stop
 
-  test:
+  secrets:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -85,12 +85,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm test
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:

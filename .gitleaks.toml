@@ -4,6 +4,10 @@
 # Nunca coloque valor real aqui.
 title = "memo-brasil"
 
+# Sem [extend] o gitleaks v8 usa SÓ as regras deste arquivo (nenhuma): o scanner passava sem escanear nada.
+[extend]
+useDefault = true
+
 [allowlist]
 description = "Vetores públicos de teste (RFC 6238) e senhas de exemplo dos testes"
 regexTarget = "match"

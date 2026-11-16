@@ -146,9 +146,9 @@ select lives_ok($$select public.moderate_comment((select id from public.photo_co
 reset role;
 select is((select hidden_by from public.photo_comments where body = 'Que noite!'), 'master', 'registra quem escondeu');
 
--- rate limit: check_rate_limit conta a partir da 2ª chamada (limite 20 = 21 comentários passam); Ana já fez 3: 280 chars, "Que noite!" e "minha foto..."
+-- rate limit: limite 20 = 20 comentários por janela (a linha nasce com 1 chamada); Ana já fez 3: 280 chars, "Que noite!" e "minha foto..."
 select tests.login('00000000-0000-4000-8000-0000000028b1');
-do $$ begin for i in 1..18 loop perform public.post_comment('00000000-0000-4000-8000-0000000028f1', 'c' || i); end loop; end $$;
+do $$ begin for i in 1..17 loop perform public.post_comment('00000000-0000-4000-8000-0000000028f1', 'c' || i); end loop; end $$;
 select throws_ok($$select public.post_comment('00000000-0000-4000-8000-0000000028f1', 'passou do limite')$$, 'MM006', null, 'rate limit de comentários');
 reset role;
 

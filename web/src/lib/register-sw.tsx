@@ -10,3 +10,8 @@ export function RegisterServiceWorker() {
   }, []);
   return null;
 }
+
+/** Pede ao service worker que apague as páginas guardadas (logout: o HTML de quem saiu não pode voltar offline). */
+export function clearCachedPages(): void {
+  try { navigator.serviceWorker?.controller?.postMessage("mm-clear-pages"); } catch { /* sem SW: nada a limpar */ }
+}

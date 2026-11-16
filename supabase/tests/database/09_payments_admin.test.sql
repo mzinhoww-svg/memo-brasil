@@ -6,7 +6,7 @@ select no_plan();
 create schema tests;
 create function tests.login(p_user uuid, p_role text default null) returns void language plpgsql as $$
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'is_anonymous', false,
+  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'is_anonymous', false, 'aal', 'aal2',
     'app_metadata', case when p_role is null then '{}'::json else json_build_object('role', p_role) end)::text, true);
   set local role authenticated;
 end $$;

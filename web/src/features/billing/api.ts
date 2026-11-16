@@ -298,6 +298,7 @@ const GIFT_STATUSES: readonly GiftStatus[] = ["ativo", "usado", "expirado", "rev
 export async function peekCode(code: string): Promise<GiftView | null> {
   try {
     const r = await rpc<Json>("peek_code", { p_code: normalizeCode(code) });
+    if (r.status === "muitas_tentativas") return null; // limite de tentativas: a tela segue sem o presente
     const num = (v: unknown) => (typeof v === "number" ? v : null);
     return { status: oneOf(r.status, GIFT_STATUSES, "invalido"), planCode: strOrNull(r.planCode), planName: strOrNull(r.planName), maxGuests: num(r.maxGuests), maxShots: num(r.maxShots) };
   } catch {

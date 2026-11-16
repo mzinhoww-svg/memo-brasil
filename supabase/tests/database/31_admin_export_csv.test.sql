@@ -114,7 +114,7 @@ reset role;
 -- ===================================================================== limite de frequência
 delete from public.rate_limits where key like 'export:%';
 select tests.login('00000000-0000-4000-8000-0000000032c1', 'master');
-select count(public.admin_export_csv('visao')) from generate_series(1, 21);
+select count(public.admin_export_csv('visao')) from generate_series(1, 20);
 select throws_ok($$select public.admin_export_csv('visao')$$, 'MM006', null, 'exportar em rajada é limitado');
 reset role;
 
