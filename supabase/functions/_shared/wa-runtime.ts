@@ -4,7 +4,8 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "./cors.ts";
 import { resolveWaConfig, type WaConfig } from "./wa-gateway.ts";
 
-export const DEFAULT_SITE = "https://newmemocuiaba.vercel.app";
+// domínio próprio: link de marca na mensagem do bot (prévia melhor e mais confiança que *.vercel.app); PUBLIC_SITE_URL sobrepõe
+export const DEFAULT_SITE = "https://fotosdocasamento.online";
 
 export function waConfig(): WaConfig | null {
   return resolveWaConfig({ WA_GATEWAY_URL: Deno.env.get("WA_GATEWAY_URL"), WA_GATEWAY_API_KEY: Deno.env.get("WA_GATEWAY_API_KEY") });

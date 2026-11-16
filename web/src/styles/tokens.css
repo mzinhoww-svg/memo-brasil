@@ -274,3 +274,13 @@
   --k-ffffff55: #ffffff55;
   --k-ffffffb3: #ffffffb3;
 }
+
+/* --- marca WhatsApp: só no botão e no ícone do aviso (cores oficiais). Texto em #075E54 sobre #25D366 = 4,2:1 em negrito grande (AA);
+   branco sobre o verde fica em 2:1 e reprova contraste. --- */
+:root,
+[data-theme="dark"],
+[data-theme="light"] {
+  --wa-green: #25D366;
+  --wa-green-press: #1FB959;
+  --wa-teal: #075E54;
+}
