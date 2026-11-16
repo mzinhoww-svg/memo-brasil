@@ -455,3 +455,14 @@ verify_jwt = true # a RPC admin_request_reconcile exige Master com aal2; o token
 
 [functions.reveal-emails]
 verify_jwt = false # bearer próprio (REVEAL_EMAILS_TOKEN); chamado só pelo agendador
+
+[functions.whatsapp-optin]
+verify_jwt = true
+
+# O gateway não manda JWT: a autenticação é a assinatura HMAC do corpo bruto (x-wa-signature).
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+# Chamada pelo pg_cron com a service_role; a função compara o Bearer por conta própria.
+[functions.whatsapp-dispatch]
+verify_jwt = false

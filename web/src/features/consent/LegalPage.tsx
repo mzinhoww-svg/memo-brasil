@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/consent";
-import { LEGAL_UPDATED_AT, type LegalSection } from "@/lib/legal-text";
+import { LEGAL_UPDATED_AT, PRIVACY_UPDATED_AT, type LegalSection } from "@/lib/legal-text";
 import { ApoioTermos } from "@/revela/screens/ApoioTermos";
 
 /** 31 · Termos e privacidade (texto em lib/legal-text). Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
@@ -15,7 +15,7 @@ export function LegalPage({ title, kind, sections, version }: { title: string; k
     <main aria-label={title}>
       <ApoioTermos
         tab={kind} sections={sections}
-        stamp={`ATUALIZADO EM ${LEGAL_UPDATED_AT.toUpperCase()} · VERSÃO ${v.toUpperCase()}`}
+        stamp={`ATUALIZADO EM ${(kind === "terms" ? LEGAL_UPDATED_AT : PRIVACY_UPDATED_AT).toUpperCase()} · VERSÃO ${v.toUpperCase()}`}
         note={isDraftVersion(v) ? "Rascunho: este texto ainda não é a versão final." : undefined}
         onBack={() => router.back()} onTab={(t) => router.replace(t === "terms" ? "/termos" : "/privacidade")}
       />
