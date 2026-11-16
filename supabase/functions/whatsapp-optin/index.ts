@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
   const admin = adminClient();
 
   try {
-    const r = await handleOptinRequest({ eventId: body.eventId }, {
+    const r = await handleOptinRequest({ eventId: body.eventId, code: body.code, prejoin: body.prejoin }, {
       userId,
       status: async (eventId) => {
         const { data, error } = await client!.rpc("whatsapp_status", { p_event: eventId });
@@ -48,6 +48,11 @@ Deno.serve(async (req) => {
       issueReturnToken: async (eventId, uid, tokenHash) => {
         const { error } = await admin.rpc("whatsapp_issue_return_token", { p_event: eventId, p_user: uid, p_hash: tokenHash });
         if (error) throw new Error("token");
+      },
+      prejoin: async (code, uid) => {
+        const { data, error } = await admin.rpc("whatsapp_prejoin_event", { p_code: code, p_user: uid });
+        if (error) throw new Error("prejoin");
+        return (data ?? { status: "not_found" }) as { status: string; eventId?: string };
       },
       siteOrigin: siteOrigin(),
       createOptin: (i) => createOptin(cfg, i),

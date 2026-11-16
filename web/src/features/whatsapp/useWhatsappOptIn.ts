@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { backendMode } from "@/lib/supabase/env";
-import { getWhatsappStatus, requestWhatsappLink, subscribeWhatsappStatus, WhatsappError, type WhatsappLink, type WhatsappStatus } from "./api";
+import { getWhatsappStatus, requestWhatsappLink, requestWhatsappLinkForCode, subscribeWhatsappStatus, WhatsappError, type WhatsappLink, type WhatsappStatus } from "./api";
 import { WA_COPY } from "./copy";
 
 export type OptInPhase = "idle" | "opening" | "waiting" | "error";
@@ -14,7 +14,29 @@ export const OPENING_MS = 1500; // "Abrindo o WhatsApp…" antes de "Aguardando 
 // Um link por evento, compartilhado entre as variantes da mesma tela (linha, lembrete, passo): pré-gerado ao renderizar, renovado
 // antes de vencer. Pedir o código antes do toque é o que deixa o toque instantâneo (sem aba em branco nem espera de rede).
 const cache = new Map<string, { value?: WhatsappLink; pending?: Promise<WhatsappLink> }>();
-export function __resetWhatsappLinkCache() { cache.clear(); }
+const openedAt = new Map<string, number>();
+export function __resetWhatsappLinkCache() { cache.clear(); openedAt.clear(); }
+
+/** Formulário de entrada: prepara o link pelo código do convite enquanto a pessoa digita (aquece a função e gera o código). */
+export async function prefetchJoinLink(code: string): Promise<WhatsappLink> {
+  const key = `codigo:${code}`;
+  const hit = cache.get(key);
+  if (hit?.value && hit.value.validUntil > Date.now()) return hit.value;
+  if (hit?.pending) return hit.pending;
+  const pending = requestWhatsappLinkForCode(code).then(
+    (v) => { cache.set(key, { value: v }); cache.set(v.eventId, { value: { link: v.link, validUntil: v.validUntil } }); return v; },
+    (e) => { cache.delete(key); throw e; },
+  );
+  cache.set(key, { pending });
+  return pending;
+}
+/** Link pronto para o toque (síncrono: o WhatsApp precisa abrir dentro do próprio toque). */
+export function readyJoinLink(code: string): string | undefined {
+  const v = cache.get(`codigo:${code}`)?.value;
+  return v && v.validUntil > Date.now() ? v.link : undefined;
+}
+/** Abriu o WhatsApp na entrada: as telas do evento já começam em "Aguardando confirmação…". */
+export function markWhatsappOpened(eventId: string) { openedAt.set(eventId, Date.now()); }
 
 function fresh(eventId: string, now = Date.now()): WhatsappLink | undefined {
   const v = cache.get(eventId)?.value;
@@ -40,10 +62,10 @@ async function ensureLink(eventId: string, force = false): Promise<WhatsappLink>
 export function useWhatsappOptIn(eventId: string) {
   const live = backendMode() === "supabase";
   const [status, setStatus] = useState<WhatsappStatus | null>(null);
-  const [phase, setPhase] = useState<OptInPhase>("idle");
+  const [phase, setPhase] = useState<OptInPhase>(() => ((openedAt.get(eventId) ?? 0) > Date.now() - WAIT_MS ? "waiting" : "idle"));
   const [error, setError] = useState<string | undefined>();
   const [link, setLink] = useState<WhatsappLink | undefined>(() => fresh(eventId));
-  const until = useRef(0);
+  const until = useRef((openedAt.get(eventId) ?? 0) + WAIT_MS);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
@@ -109,10 +131,11 @@ export function useWhatsappOptIn(eventId: string) {
 
   /** Chamado no clique do <a href={link}>: o navegador já está abrindo o WhatsApp; aqui só muda o estado da tela. */
   const opened = useCallback(() => {
+    markWhatsappOpened(eventId);
     until.current = Date.now() + WAIT_MS;
     setError(undefined);
     setPhase("opening");
-  }, []);
+  }, [eventId]);
 
   return {
     live, status, optin, error, refresh,

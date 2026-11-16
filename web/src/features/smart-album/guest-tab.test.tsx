@@ -3,7 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { GuestProvider, type GuestCtx } from "@/features/events/guest-context";
 import { GuestTabs } from "@/revela/GuestTabs";
 
-const ctx = { event: { id: "ev1", code: "ABC123" }, isHost: false, viewer: { id: "u", host: false } } as unknown as GuestCtx;
+// evento já encerrado: aqui só importa a aba Minhas Fotos (o botão central de câmera tem teste próprio em host-nav.test.tsx)
+const ctx = { event: { id: "ev1", code: "ABC123", startAt: 0, durationHours: 1 }, now: 2 * 3_600_000, isHost: false, viewer: { id: "u", host: false } } as unknown as GuestCtx;
 const tabs = (current: Parameters<typeof GuestTabs>[0]["current"] = "feed") => render(<GuestProvider value={ctx}><GuestTabs code="ABC123" current={current} /></GuestProvider>);
 
 afterEach(() => vi.unstubAllEnvs());

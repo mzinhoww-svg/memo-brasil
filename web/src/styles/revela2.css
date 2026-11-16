@@ -690,3 +690,14 @@ em.warn { font-style: normal; color: var(--carimbo); }
 .scr .home-ind { display: none; }
 .dev-frame .scr .home-ind { display: block; }
 .dev-frame .scr { max-width: 390px; }
+
+/* Botão central de câmera na barra do convidado (só com o evento rolando): laranja Revela, maior e elevado acima da barra. */
+.rv-tab-cam { flex: 1; height: 64px; display: flex; align-items: center; justify-content: center; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.rv-tab-cam__btn { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: var(--revela); color: var(--on-revela); transform: translateY(-14px); box-shadow: 0 0 0 4px var(--bg), inset 0 1px 0 var(--hl-strong), 0 10px 22px var(--glow-revela); transition: transform .12s ease; }
+.rv-tab-cam__btn svg { width: 28px; height: 28px; }
+.rv-tab-cam:active .rv-tab-cam__btn { transform: translateY(-14px) scale(.94); }
+.rv-tab-cam:focus-visible { outline: none; }
+.rv-tab-cam:focus-visible .rv-tab-cam__btn { outline: 3px solid var(--focus); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .rv-tab-cam__btn { transition: none; } }
+/* com o botão de câmera saltado, o fim da tela rolável ganha folga para o botão não cobrir o último CTA */
+body:has(.rv-tab-cam) .safe--tabs { padding-bottom: calc(var(--tabs-h) + 30px); }

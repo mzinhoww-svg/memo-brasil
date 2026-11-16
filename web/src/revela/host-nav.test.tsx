@@ -5,13 +5,24 @@ import { HostBar } from "@/features/feed/HostBar";
 import { GuestTabs } from "./GuestTabs";
 import { ConvidadoVoce } from "./screens/ConvidadoVoce";
 
-const ctx = (isHost: boolean) => ({ event: { id: "ev1", code: "ABC123" }, isHost, viewer: { id: "u", host: isHost } }) as unknown as GuestCtx;
-const wrap = (isHost: boolean, ui: React.ReactNode) => render(<GuestProvider value={ctx(isHost)}>{ui}</GuestProvider>);
+const HOUR = 3_600_000;
+const ctx = (isHost: boolean, ended = false) => ({ event: { id: "ev1", code: "ABC123", startAt: 0, durationHours: 6 }, now: ended ? 7 * HOUR : HOUR, isHost, viewer: { id: "u", host: isHost } }) as unknown as GuestCtx;
+const wrap = (isHost: boolean, ui: React.ReactNode, ended = false) => render(<GuestProvider value={ctx(isHost, ended)}>{ui}</GuestProvider>);
+const tabNames = () => screen.getAllByRole("link").map((a) => a.getAttribute("aria-label") ?? a.textContent);
 
 describe("anfitrião dentro da área do convidado", () => {
   it("o convidado vê só Feed, Minhas e Você", () => {
+    wrap(false, <GuestTabs code="ABC123" current="feed" />, true);
+    expect(tabNames()).toEqual(["Feed", "Fotos", "Você"]);
+  });
+  it("evento rolando: botão central de câmera entre Fotos e Você, que abre a câmera", () => {
     wrap(false, <GuestTabs code="ABC123" current="feed" />);
-    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual(["Feed", "Fotos", "Você"]);
+    expect(tabNames()).toEqual(["Feed", "Fotos", "Abrir câmera", "Você"]);
+    expect(screen.getByRole("link", { name: "Abrir câmera" }).getAttribute("href")).toBe("/e/ABC123/postar");
+  });
+  it("evento encerrado: a barra volta ao desenho normal, sem o botão de câmera", () => {
+    wrap(false, <GuestTabs code="ABC123" current="feed" />, true);
+    expect(screen.queryByRole("link", { name: "Abrir câmera" })).not.toBeInTheDocument();
   });
   it("o anfitrião ganha a aba Painel, que leva ao painel do evento", () => {
     wrap(true, <GuestTabs code="ABC123" current="feed" />);

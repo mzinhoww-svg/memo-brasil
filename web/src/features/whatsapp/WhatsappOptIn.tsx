@@ -59,15 +59,49 @@ export function WhatsappOptIn({ eventId, variant, revealed = false, onContinue, 
   const body = optin ? active : phase === "waiting" ? waiting : cta;
 
   if (variant === "linha") {
-    return (
-      <div className="rv-row" style={{ alignItems: "flex-start" }} data-testid="wa-linha">
-        <WhatsappLogo className="wa-icon" />
-        <div className="rv-row__text stack" style={{ width: "100%", gap: 8 }}>
-          {!optin && phase !== "waiting" && <span className="rv-row__meta">{WA_COPY.pitchShort}</span>}
-          {body}
-          {!optin && <span className="rv-row__meta">{WA_COPY.privacy}</span>}
+    // mesmo desenho das outras linhas de Você: ícone, texto + legenda, ação à direita (o verde só no ícone e no "Ativado ✓")
+    const icon = <WhatsappLogo className="wa-icon" />;
+    if (optin) {
+      return (
+        <div className="rv-row wa-row" data-testid="wa-linha">
+          {icon}
+          <div className="rv-row__text">Avisos no WhatsApp<div className="rv-row__meta"><span className="wa-ok-text">{WA_COPY.active}</span> · <span>{WA_COPY.howToStop}</span></div></div>
         </div>
-      </div>
+      );
+    }
+    if (phase === "waiting") {
+      return (
+        <div className="rv-row wa-row" data-testid="wa-linha">
+          {icon}
+          <div className="rv-row__text" role="status">{WA_COPY.waiting}<div className="rv-row__meta">{WA_COPY.waitingHelp}</div></div>
+          {link && <a className="rv-row__end wa-row__acao" href={link} target="_blank" rel="noopener" onClick={opened} aria-label={WA_COPY.reopen}>Abrir de novo</a>}
+        </div>
+      );
+    }
+    if (phase === "error") {
+      return (
+        <div className="rv-row wa-row" data-testid="wa-linha">
+          {icon}
+          <div className="rv-row__text"><span role="alert">{error}</span></div>
+          <button type="button" className="rv-row__end wa-row__acao" onClick={retry}>{WA_COPY.retry}</button>
+        </div>
+      );
+    }
+    if (!link) {
+      return (
+        <div className="rv-row wa-row" data-testid="wa-linha" aria-busy="true">
+          {icon}
+          <div className="rv-row__text" data-testid="wa-preparando">{WA_COPY.preparing}<div className="rv-row__meta">{WA_COPY.privacy}</div></div>
+          <span className="rv-row__end"><span className="wa-spin" aria-hidden="true" /></span>
+        </div>
+      );
+    }
+    return (
+      <a className="rv-row wa-row" href={link} target="_blank" rel="noopener" onClick={opened} data-testid="wa-linha" aria-label={phase === "opening" ? WA_COPY.opening : WA_COPY.button}>
+        {icon}
+        <div className="rv-row__text">{phase === "opening" ? WA_COPY.opening : WA_COPY.button}<div className="rv-row__meta">{WA_COPY.privacy}</div></div>
+        <span className="rv-row__end"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></span>
+      </a>
     );
   }
 

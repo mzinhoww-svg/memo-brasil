@@ -79,3 +79,10 @@ a.rv-btn { text-decoration: none; }
 .wa-hero__badge svg { width: 32px; height: 32px; fill: currentColor; }
 .wa-skip { align-self: center; min-height: 44px; border: 0; background: none; color: var(--ink-faint); font: 500 15px/20px var(--font-sans); cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .wa-spin { animation-duration: 2.4s; } .wa-btn { transition: none; } }
+/* linha de Você: igual às outras linhas (ícone 20px), com o ícone e o "Ativado ✓" na cor do WhatsApp */
+.rv-row > svg.wa-icon:first-child { color: var(--wa-green); fill: currentColor; }
+a.rv-row.wa-row { text-decoration: none; color: var(--ink); min-height: 56px; -webkit-tap-highlight-color: transparent; }
+a.rv-row.wa-row:active { background: var(--surface-2); }
+.wa-row .rv-row__text { flex: 1; min-width: 0; padding: 10px 0; }
+.wa-ok-text { color: var(--wa-green); font-weight: 700; }
+.wa-row__acao { border: 0; background: none; color: var(--ink); font: 600 14px/20px var(--font-sans); text-decoration: underline; text-underline-offset: 3px; min-height: 44px; cursor: pointer; white-space: nowrap; }

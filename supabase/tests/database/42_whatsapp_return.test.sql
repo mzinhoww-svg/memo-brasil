@@ -18,7 +18,7 @@ create temporary table h42 (k text primary key, v text);
 insert into h42 values ('ok', repeat('a', 64)), ('old', repeat('b', 64)), ('used', repeat('c', 64)), ('blk', repeat('d', 64));
 
 select throws_ok($$select public.whatsapp_issue_return_token('00000000-0000-4000-8000-0000000042e1', '00000000-0000-4000-8000-0000000042a2', 'nao-hex')$$, 'MM005', null, 'só aceita SHA-256 em hex');
-select throws_ok($$select public.whatsapp_issue_return_token('00000000-0000-4000-8000-0000000042e1', '00000000-0000-4000-8000-0000000042a1', repeat('e', 64))$$, 'MM004', null, 'só para participante (anfitrião não entra por aqui)');
+select throws_ok($$select public.whatsapp_issue_return_token('00000000-0000-4000-8000-000000004299', '00000000-0000-4000-8000-0000000042a1', repeat('e', 64))$$, 'MM004', null, 'evento inexistente: recusa');
 select lives_ok($$select public.whatsapp_issue_return_token('00000000-0000-4000-8000-0000000042e1', '00000000-0000-4000-8000-0000000042a2', (select v from h42 where k = 'ok'))$$, 'emite token');
 select public.whatsapp_issue_return_token('00000000-0000-4000-8000-0000000042e1', '00000000-0000-4000-8000-0000000042a2', (select v from h42 where k = 'old'), 5);
 update public.whatsapp_return_tokens set expires_at = now() - interval '1 minute' where token_hash = (select v from h42 where k = 'old');
@@ -34,6 +34,26 @@ select is(public.whatsapp_consume_return_token('x') ->> 'status', 'invalid', 'fo
 update public.participants set blocked_at = now() where user_id = '00000000-0000-4000-8000-0000000042a3';
 select is(public.whatsapp_consume_return_token((select v from h42 where k = 'blk')) ->> 'status', 'blocked', 'bloqueado não troca');
 
+select throws_ok($$select public.whatsapp_issue_return_token('00000000-0000-4000-8000-0000000042e1', '00000000-0000-4000-8000-0000000042a3', repeat('9', 64))$$, 'MM004', null, 'participante bloqueado não recebe token');
+
+-- antes de entrar (aviso pedido no formulário): prepara para quem ainda não é participante; o opt-in só vale se ele entrar
+insert into auth.users (id, email, is_anonymous) values ('00000000-0000-4000-8000-0000000042a4', null, true);
+create temporary table c42 as select code from public.events where id = '00000000-0000-4000-8000-0000000042e1';
+update public.events set reveal_enabled = true, reveal_at = now() + interval '1 day' where id = '00000000-0000-4000-8000-0000000042e1'; -- ainda não revelado
+select is(public.whatsapp_prejoin_event((select code from c42), '00000000-0000-4000-8000-0000000042a4') ->> 'status', 'disabled', 'recurso desligado: não prepara');
+insert into public.feature_flags (key, enabled) values ('whatsapp_avisos', true) on conflict (key) do update set enabled = true;
+select is(public.whatsapp_prejoin_event((select code from c42), '00000000-0000-4000-8000-0000000042a4') ->> 'eventId', '00000000-0000-4000-8000-0000000042e1', 'visitante com o código: pode preparar');
+select is(public.whatsapp_prejoin_event(lower((select code from c42)), '00000000-0000-4000-8000-0000000042a4') ->> 'status', 'ok', 'código sem diferenciar maiúsculas');
+select is(public.whatsapp_prejoin_event((select code from c42), '00000000-0000-4000-8000-0000000042a1') ->> 'status', 'forbidden', 'anfitrião: não');
+select is(public.whatsapp_prejoin_event((select code from c42), '00000000-0000-4000-8000-0000000042a3') ->> 'status', 'forbidden', 'bloqueado: não');
+select is(public.whatsapp_prejoin_event('NAOEXISTE', '00000000-0000-4000-8000-0000000042a4') ->> 'status', 'not_found', 'código inexistente');
+select is(public.whatsapp_prejoin_event('x; drop', '00000000-0000-4000-8000-0000000042a4') ->> 'status', 'not_found', 'código malformado');
+select lives_ok($$select public.whatsapp_issue_return_token('00000000-0000-4000-8000-0000000042e1', '00000000-0000-4000-8000-0000000042a4', repeat('7', 64))$$, 'token emitido antes de entrar');
+select is(public.whatsapp_consume_return_token(repeat('7', 64)) ->> 'status', 'blocked', 'sem participação, a troca não abre sessão');
+select is(public.whatsapp_apply_event('optin.confirmed', '00000000-0000-4000-8000-0000000042e1', '00000000-0000-4000-8000-0000000042a4', '5565999990000', now()), 'unknown_subject', 'opt-in de quem não entrou é ignorado');
+update public.events set reveal_enabled = false where id = '00000000-0000-4000-8000-0000000042e1'; -- revela na hora = já revelado
+select is(public.whatsapp_prejoin_event((select code from c42), '00000000-0000-4000-8000-0000000042a4') ->> 'status', 'forbidden', 'evento revelado: não pede mais');
+
 -- anônimo: só o e-mail técnico volta a ser anônimo; conta de verdade nunca é tocada
 update auth.users set email = 'wa-00000000-0000-4000-8000-0000000042a2@retorno.invalid', is_anonymous = false where id = '00000000-0000-4000-8000-0000000042a2';
 select is(public.whatsapp_restore_anonymous('00000000-0000-4000-8000-0000000042a2'), true, 'e-mail técnico: volta a ser anônimo');
@@ -47,6 +67,8 @@ select set_config('request.jwt.claims', json_build_object('sub', '00000000-0000-
 select throws_ok($$select count(*) from public.whatsapp_return_tokens$$, '42501', null, 'cliente não lê tokens');
 select throws_ok($$select public.whatsapp_consume_return_token(repeat('a', 64))$$, '42501', null, 'cliente não troca token direto');
 select throws_ok($$select public.whatsapp_restore_anonymous('00000000-0000-4000-8000-0000000042a2')$$, '42501', null, 'cliente não mexe em auth.users');
+select throws_ok($$select public.whatsapp_prejoin_event('ABCD1234', '00000000-0000-4000-8000-0000000042a2')$$, '42501', null, 'cliente não chama o prejoin direto');
+select is(public.whatsapp_available(), true, 'convidado só vê se os avisos estão ligados (booleano)');
 reset role;
 
 select ok(exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'participant_whatsapp')

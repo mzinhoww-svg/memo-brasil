@@ -46,6 +46,17 @@ export async function requestWhatsappLink(eventId: string, now = Date.now()): Pr
   return { link: d.waLink, validUntil: end - RENEW_MARGIN_MS };
 }
 
+/** Antes de entrar (formulário de entrada): prepara o link pelo código do convite. Devolve também o id do evento. */
+export async function requestWhatsappLinkForCode(code: string, now = Date.now()): Promise<WhatsappLink & { eventId: string }> {
+  const r = await browserSupabase().functions.invoke("whatsapp-optin", { body: { code, prejoin: true } });
+  if (r.error) throw new WhatsappError("gateway");
+  const d = (r.data ?? {}) as { waLink?: unknown; expiresAt?: unknown; eventId?: unknown };
+  if (typeof d.waLink !== "string" || !/^https:\/\/wa\.me\//.test(d.waLink) || typeof d.eventId !== "string") throw new WhatsappError("gateway");
+  const server = typeof d.expiresAt === "string" ? Date.parse(d.expiresAt) : NaN;
+  const end = Number.isFinite(server) ? Math.min(server, now + LINK_TTL_MS) : now + LINK_TTL_MS;
+  return { link: d.waLink, validUntil: end - RENEW_MARGIN_MS, eventId: d.eventId };
+}
+
 /** Mudanças da própria linha (Realtime): "Ativado ✓" assim que o webhook grava. Devolve a função que cancela. */
 export function subscribeWhatsappStatus(eventId: string, onChange: () => void): () => void {
   if (backendMode() !== "supabase") return () => undefined;

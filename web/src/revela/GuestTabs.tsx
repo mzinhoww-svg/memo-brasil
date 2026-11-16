@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
+import { eventStatus } from "@/domain/event";
 import { useGuestOptional, useHostNav } from "@/features/events/guest-context";
 import { useSmartAlbumUi } from "@/features/smart-album/use-smart-album";
 
-type TabId = "feed" | "minhas" | "voce" | "fotos";
+type TabId = "feed" | "minhas" | "voce" | "fotos" | "camera";
 
 /** "Minhas Fotos" (Smart Album): só com a chave `smart_album_ui` ligada para o evento. Fora do layout do convidado não aparece. */
 function SmartAlbumTab({ eventId, href, on }: { eventId: string; href: string; on: boolean }) {
@@ -23,6 +24,8 @@ export function GuestTabs({ code, current }: { code?: string; current: TabId }) 
   const host = useHostNav();
   const guest = useGuestOptional();
   const tab = (id: TabId) => `rv-tab rv-press${current === id ? " rv-tab--on" : ""}`;
+  // evento rolando: botão central de câmera, laranja e em destaque; terminou o evento, a barra volta ao desenho normal
+  const live = guest ? eventStatus(guest.event, guest.now) === "ativo" : false;
   return (
     <nav className="tabs">
       <div className="rv-tabbar">
@@ -34,6 +37,13 @@ export function GuestTabs({ code, current }: { code?: string; current: TabId }) 
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13" r="4" /></svg>
           <span>Fotos</span>
         </Link>
+        {live && (
+          <Link href={href("postar")} data-tab="camera" className="rv-tab-cam rv-press" aria-label="Abrir câmera" aria-current={current === "camera" ? "page" : undefined}>
+            <span className="rv-tab-cam__btn" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13" r="4" /></svg>
+            </span>
+          </Link>
+        )}
         {guest && <SmartAlbumTab eventId={guest.event.id} href={href("minhas-fotos")} on={current === "fotos"} />}
         <Link href={href("voce")} className={tab("voce")} aria-current={current === "voce" ? "page" : undefined}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
