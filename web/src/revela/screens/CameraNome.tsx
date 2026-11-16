@@ -10,10 +10,10 @@ const BACK = (
 
 /** Faixa de baixo de cada embalagem (cor do fundo e do texto), para escrever o nome digitado por cima do texto de exemplo. */
 const BAND: Record<Wrap, { bg: string; ink: string }> = {
-  aniversario: { bg: "#0e1a66", ink: "#f6c945" },
-  casamento: { bg: "#c9a35c", ink: "#1c0b03" },
-  festa: { bg: "#1a0700", ink: "#fad9b8" },
-  noite: { bg: "#0b1f16", ink: "#eff7e2" },
+  aniversario: { bg: "var(--wrap-aniversario-name-bg)", ink: "var(--wrap-aniversario-name-ink)" },
+  casamento: { bg: "var(--wrap-casamento-name-bg)", ink: "var(--wrap-casamento-name-ink)" },
+  festa: { bg: "var(--wrap-festa-name-bg)", ink: "var(--wrap-festa-name-ink)" },
+  noite: { bg: "var(--wrap-noite-name-bg)", ink: "var(--wrap-noite-name-ink)" },
 };
 
 export interface CameraNomeProps {
