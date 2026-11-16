@@ -132,7 +132,7 @@ export function PainelShell({ children }: { children: ReactNode }) {
 
   const event = data.event;
   const ctx = { event, now, photos: data.photos, reactions: data.reactions, participants: data.participants, refresh };
-  if (FULLSCREEN.test(path)) return <AdminProvider value={ctx}><div className="painel-scope">{children}</div></AdminProvider>;
+  if (FULLSCREEN.test(path)) return <AdminProvider value={ctx}><main className="painel-scope">{children}</main></AdminProvider>;
   const title = slug ? route.title : event.title; // a visão geral leva o nome do evento no lugar do título
   return <AdminProvider value={ctx}><PainelFrame title={title} eventName={slug ? event.title : undefined} backHref={backHref} tabs={frameTabs(base, path, pending)}>{children}</PainelFrame></AdminProvider>;
 }
