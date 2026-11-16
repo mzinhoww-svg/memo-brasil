@@ -1,9 +1,9 @@
-import { fileURLToPath } from "node:url";
+import path from "node:path";
 import type { NextConfig } from "next";
 
 // Raiz do repositório: o app importa código compartilhado de ../supabase/functions/_shared. Fixada aqui para não depender de onde está o
 // lockfile (a raiz tinha o package-lock do servidor antigo, hoje em legacy/; sem raiz explícita o Turbopack enxerga só web/).
-const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+const repoRoot = path.resolve(/* turbopackIgnore: true */ process.cwd(), "..");
 
 // Decisões (docs/architecture): sem cacheComponents/Activity (app local-first; câmera não deve ficar viva em rota oculta).
 const isProd = process.env.NODE_ENV === "production";
