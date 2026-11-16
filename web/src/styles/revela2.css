@@ -303,7 +303,7 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 .lk-h b { color: var(--ink); font-weight: 600; }
 .lk-t { font: 700 15px/20px var(--font-sans); margin-top: 2px; }
 .lk-b { font: 400 15px/21px var(--font-sans); color: var(--ink); opacity: .9; }
-.stories { display: flex; gap: 14px; margin: 14px -20px 12px; padding: 0 20px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; flex: none; }
+.stories { display: flex; gap: 14px; margin: 8px -20px 6px; padding: 6px 20px; /* folga para o anel (box-shadow de 4px) não ser cortado pelo overflow */ overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; flex: none; }
 .stories::-webkit-scrollbar { display: none; }
 .story { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: none; }
 .story .avatar { width: 58px; height: 58px; font-size: 24px; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--line-strong, var(--k-5a4f47)); }
