@@ -14,7 +14,7 @@ export interface PullDeps {
 }
 
 /** SHA-256 (hex) do token do motor: o token em si fica só na Vertra; a função compara hashes (sem segredo no painel). */
-export const ENGINE_TOKEN_SHA256 = "812095005a8f37cb3c64df9d7263e94c89c180e675a20ee96e50d7de4b82aa89";
+export const ENGINE_TOKEN_SHA256 = "812095005a8f37cb3c64df9d7263e94c89c180e675a20ee96e50d7de4b82aa89"; // gitleaks:allow (SHA-256 público, não é o token)
 export async function sha256Hex(s: string): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
