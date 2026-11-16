@@ -11,12 +11,12 @@ afterEach(() => vi.unstubAllEnvs());
 describe("aba Minhas Fotos", () => {
   it("chave desligada (padrão): a barra continua Feed, Minhas, Você", () => {
     tabs();
-    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual(["Feed", "Minhas", "Você"]);
+    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual(["Feed", "Fotos", "Você"]);
   });
   it("chave ligada (modo local): Minhas Fotos entra depois de Minhas, sem tirar nenhuma aba", () => {
     vi.stubEnv("NEXT_PUBLIC_MM_SMART_ALBUM", "ui");
     tabs("fotos");
-    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual(["Feed", "Minhas", "Minhas Fotos", "Você"]);
+    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual(["Feed", "Fotos", "Minhas Fotos", "Você"]);
     const link = screen.getByRole("link", { name: "Minhas Fotos" });
     expect(link.getAttribute("href")).toBe("/e/ABC123/minhas-fotos");
     expect(link.getAttribute("aria-current")).toBe("page");

@@ -35,7 +35,7 @@ test("chave desligada: sem aba Minhas Fotos e a rota direta só informa que não
   await switchPerson(page, code, "Ana");
   await setFlag(page, null);
   await page.goto(`/e/${code}/minhas`);
-  await expect(page.getByRole("link", { name: "Minhas", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Fotos", exact: true })).toBeVisible();
   await expect(page.locator('[data-tab="fotos"]')).toHaveCount(0);
   await page.goto(`/e/${code}/minhas-fotos`);
   await expect(page.getByText("Minhas Fotos ainda não está disponível neste evento.")).toBeVisible();

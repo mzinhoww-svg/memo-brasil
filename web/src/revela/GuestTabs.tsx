@@ -32,7 +32,7 @@ export function GuestTabs({ code, current }: { code?: string; current: TabId }) 
         </Link>
         <Link href={href("minhas")} data-tab="minhas" className={tab("minhas")} aria-current={current === "minhas" ? "page" : undefined}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13" r="4" /></svg>
-          <span>Minhas</span>
+          <span>Fotos</span>
         </Link>
         {guest && <SmartAlbumTab eventId={guest.event.id} href={href("minhas-fotos")} on={current === "fotos"} />}
         <Link href={href("voce")} className={tab("voce")} aria-current={current === "voce" ? "page" : undefined}>

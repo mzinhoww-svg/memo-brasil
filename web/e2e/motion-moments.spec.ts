@@ -5,7 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createViaWizard, postViaFile, switchPerson } from "./helpers";
 
 /**
- * Momentos de movimento do Revela (kit do designer): disparo, contador, voo para "Minhas", virada do feed,
+ * Momentos de movimento do Revela (kit do designer): disparo, contador, voo para "Fotos", virada do feed,
  * "Revelou.", câmera pronta, fotos na mesa, pago/expirou e curtir. Confere os estados finais, que as camadas de animação
  * nunca bloqueiam toque e que "reduzir movimento" chega ao fim sem animar. Também grava os vídeos de evidência
  * (390x844) em docs/evidence/movimento: disparo, virada do feed e "Revelou.".

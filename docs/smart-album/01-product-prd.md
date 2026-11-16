@@ -50,7 +50,7 @@ Entrega em duas camadas independentes:
 Eventos de `analytics.ts` (lista fechada, sem PII): viewed, onboarding_started, source_selected (google|gallery|camera|skip), consent_granted, consent_revoked, job_started, results_opened (faixa de contagem), match_hidden, reference_changed, manual_favorite_added. `job_completed/failed` ficam do lado do worker (log sem PII). O repositório não tem coletor: os eventos saem como `CustomEvent('mm:analytics')`.
 
 ## 6. Decisões de UX
-1. **Rótulo "Minhas Fotos" ao lado de "Minhas" (poses).** Mantido o texto do plano e a aba homologada intacta. Recomendação para decisão do dono: renomear "Minhas" para "Poses" quando a chave for ligada, para evitar confusão.
+1. **Aba "Minhas" (poses) renomeada para "Fotos"** por decisão do dono (16/11/2026). Só o rótulo mudou: a rota (`/minhas`), a tela "Minhas poses" e o alvo da animação (`data-tab="minhas"`) continuam iguais. Com a chave ligada, a barra fica Feed · Fotos · Minhas Fotos · Você.
 2. O convite de onboarding abre **uma vez** por evento/pessoa (preferência não biométrica no `localStorage`); depois só pelo card.
 3. A aba atual é fixada ao abrir uma foto (ocultar a última sugestão não leva a pessoa para outra aba — bug achado pelo E2E e corrigido).
 4. Avatar: mostra a inicial (como em "Você"). A foto do Google como avatar persistido **não** foi implementada (exigiria coluna/bucket novo em `profiles`); fica como pendência de produto.
