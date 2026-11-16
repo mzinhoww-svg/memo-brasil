@@ -25,7 +25,7 @@ Desligar: mesmo comando com `enabled = false`. Uma tela no Master para estas cha
 
 ## 2. Ordem de publicação — Fase A (álbum pessoal, sem biometria)
 1. Confirmar o SHA vivo na Vercel e mesclar esta branch sobre ele (ver `00-repository-audit.md` §1).
-2. `supabase db push --linked --dry-run` deve listar **só** `20261116000100_smart_album.sql`. Aplicar (aditiva; cria bucket privado vazio).
+2. `supabase db push --linked --dry-run` deve listar **só** `20261116000200_smart_album.sql`. Aplicar (aditiva; cria bucket privado vazio).
 3. Rodar `node scripts/test-db.mjs` no stack local e confirmar 0 falhas.
 4. Publicar o app (procedimento de `docs/supabase/PUBLISH-AND-ROLLBACK.md` §7/§15: candidato sem tráfego → validação → promover). Com a chave desligada nada muda para ninguém.
 5. Ligar `smart_album_ui` com `{"events":["<evento de laboratório>"]}`; validar com contas de teste (dono + convidado): aba aparece só nesse evento, favoritas, antes/depois da revelação, outro convidado não vê os itens.

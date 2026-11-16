@@ -37,7 +37,7 @@ O app não tem rotas de API para regras de negócio: tudo é RPC `security defin
 
 Códigos: MM004 (sem acesso; foto inexistente responde igual), MM005 (inválido), MM006 (frequência), MM017 (antes da revelação), **MM019** (busca/álbum indisponível), **MM020** (sem consentimento biométrico).
 
-## 3. Dados (migration `20261116000100_smart_album.sql`)
+## 3. Dados (migration `20261116000200_smart_album.sql`)
 - `personal_photo_items(event_id, user_id, photo_id, kind)` — PK composta; RLS de leitura: dono **e** `can_see_photo`; escrita só por RPC.
 - `face_consent_documents(version, approved)` — só `2026-11-16-rascunho` (não aprovada).
 - `face_consents` — append-only por trigger (só `revoked_at` muda, uma vez); um ativo por (evento, titular).

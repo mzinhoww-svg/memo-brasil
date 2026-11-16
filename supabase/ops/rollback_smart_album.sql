@@ -1,4 +1,4 @@
--- Reversão de 20261116000100_smart_album.sql (Revela Smart Album · Minhas Fotos).
+-- Reversão de 20261116000200_smart_album.sql (Revela Smart Album · Minhas Fotos).
 -- Só objetos criados por aquela migration; nada existente é tocado. Rodar numa transação, no SQL Editor, com service_role.
 -- ANTES de rodar: (1) desligar as chaves `smart_album_ui` e `smart_album_face_matching` pelo Master; (2) se houve uso da busca facial,
 -- deixar o purge-storage esvaziar a fila de `face-references` (ou remover os objetos do bucket pelo painel) — o bucket só é apagado vazio.
@@ -41,5 +41,5 @@ drop function if exists public.smart_album_ui_enabled(uuid);
 
 delete from public.platform_settings where key = 'smart_album.legal_gate';
 delete from public.feature_flags where key in ('smart_album_ui', 'smart_album_face_matching');
-delete from supabase_migrations.schema_migrations where version = '20261116000100';
+delete from supabase_migrations.schema_migrations where version = '20261116000200';
 commit;
