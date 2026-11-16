@@ -123,7 +123,7 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 *, *::before, *::after { box-sizing: border-box; }
 .scr { width: 100%; max-width: 480px; margin: 0 auto; height: 100dvh; position: relative; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--font-sans); display: flex; flex-direction: column; }
 .scr button { font-family: inherit; }
-.safe { padding: 58px var(--space-5) 34px; flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; z-index: 1; }
+.safe { padding: max(58px, calc(env(safe-area-inset-top) + 16px)) var(--space-5) calc(34px + env(safe-area-inset-bottom)); flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; z-index: 1; }
 .grow { flex: 1; min-height: 0; }
 .center { text-align: center; }
 .row { display: flex; align-items: center; gap: var(--space-3); }
@@ -170,7 +170,10 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 
 /* Sheets */
 .sheet-scr { background: var(--k-050404); }
-.sheet-full { position: absolute; top: 50px; left: 0; right: 0; bottom: 0; background: var(--surface-1); border-radius: var(--radius-xl) var(--radius-xl) 0 0; display: flex; flex-direction: column; padding: 10px var(--space-5) 34px; box-shadow: var(--shadow-sheet); z-index: 2; }
+.sheet-full { position: absolute; top: 50px; left: 0; right: 0; bottom: 0; background: var(--surface-1); border-radius: var(--radius-xl) var(--radius-xl) 0 0; display: flex; flex-direction: column; padding: 10px var(--space-5) calc(34px + env(safe-area-inset-bottom)); box-shadow: var(--shadow-sheet); z-index: 2; overflow-y: auto; overscroll-behavior: contain; }
+/* com o teclado aberto (iOS não redimensiona a página) a folha rola e o campo + a barra de ação continuam alcançáveis */
+.sheet-full > * { flex-shrink: 0; }
+.sheet-full > .grow { flex: 1 0 var(--space-4); min-height: var(--space-4); }
 .sheet-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); min-height: 0; overflow-y: auto; overflow-x: hidden; justify-content: safe center; align-self: stretch; /* a caixa de recorte vai até as bordas da folha: a câmera (margem -20px, sombra e flutuação) não é cortada */ margin: -16px calc(-1 * var(--space-5)); padding: 16px var(--space-5); }
 .wrapname { text-align: center; display: flex; flex-direction: column; gap: 4px; margin-top: -10px; }
 .namepreview { margin: 16px -4px 0; container-type: inline-size; border-radius: 10px; overflow: hidden; position: relative; box-shadow: 0 14px 30px var(--k-000000aa), inset 0 0 0 1px var(--hl); aspect-ratio: 1300 / 700; }

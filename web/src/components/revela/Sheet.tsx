@@ -6,7 +6,20 @@ import { useOpen } from "@/lib/motion/use-motion";
 /** Toques que começam aqui nunca arrastam a folha (campos, controles deslizantes). */
 const DRAG_BLOCK = 'input, textarea, select, [role="slider"], [contenteditable="true"]';
 
-const focusables = (panel: HTMLElement) => Array.from(panel.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter((el) => !el.hasAttribute("disabled"));
+/** Visível de fato: `checkVisibility` onde existe (esconde display:none/visibility), senão o atributo `hidden` em algum ancestral. */
+const visible = (el: HTMLElement) => (typeof el.checkVisibility === "function" ? el.checkVisibility({ visibilityProperty: true }) : !el.closest("[hidden]"));
+const focusables = (panel: HTMLElement) => Array.from(panel.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter((el) => !el.hasAttribute("disabled") && visible(el));
+
+/** O toque começou dentro de algo que rola por conta própria (lista, carrossel)? Então o gesto é desse conteúdo e não da folha. */
+function scrollsOnItsOwn(from: HTMLElement, panel: HTMLElement): boolean {
+  for (let el: HTMLElement | null = from; el && el !== panel; el = el.parentElement) {
+    const cs = window.getComputedStyle(el);
+    const y = /(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight;
+    const x = /(auto|scroll)/.test(cs.overflowX) && el.scrollWidth > el.clientWidth;
+    if (x || (y && el.scrollTop > 0)) return true;
+  }
+  return false;
+}
 
 /** Folhas abertas, da mais antiga à mais nova: só a de cima responde a Esc e Tab, e só ela fecha com o botão voltar. */
 const stack: { id: symbol; close: () => void; history: boolean }[] = [];
@@ -14,11 +27,28 @@ const stack: { id: symbol; close: () => void; history: boolean }[] = [];
 /* Rolagem do fundo: travada enquanto houver folha aberta (contador, para folhas empilhadas). */
 let locks = 0;
 let savedOverflow = "";
+let pinned: { y: number; position: string; top: string; width: string } | null = null;
 function lockScroll() {
-  if (locks++ === 0) { savedOverflow = document.body.style.overflow; document.body.style.overflow = "hidden"; }
+  if (locks++ !== 0) return;
+  savedOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  // iOS Safari ignora overflow:hidden no body: em tela de toque o fundo é fixado no lugar e a posição volta ao fechar
+  if (typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches) {
+    const b = document.body.style;
+    pinned = { y: window.scrollY, position: b.position, top: b.top, width: b.width };
+    b.position = "fixed"; b.top = `-${pinned.y}px`; b.width = "100%";
+  }
 }
 function unlockScroll() {
-  if (--locks === 0) document.body.style.overflow = savedOverflow;
+  if (--locks !== 0) return;
+  document.body.style.overflow = savedOverflow;
+  if (pinned) {
+    const b = document.body.style;
+    const { y, position, top, width } = pinned;
+    pinned = null;
+    b.position = position; b.top = top; b.width = width;
+    window.scrollTo(0, y);
+  }
 }
 
 /**
@@ -101,26 +131,30 @@ export function Sheet({ title, onClose, children, footer, history = false }: { t
     const vv = window.visualViewport;
     const fit = () => {
       const el = backdrop.current;
-      if (!el || !vv) return;
+      if (!el || !vv || vv.scale > 1.01) return; // zoom por pinça também encolhe a área visível: não é teclado
       el.style.setProperty("--sheet-vh", `${vv.height}px`);
       el.style.setProperty("--sheet-top", `${vv.offsetTop}px`);
+      // área visível muito curta (teclado em tela pequena ou paisagem): a folha ocupa tudo e o rodapé deixa de ser fixo
+      if (vv.height < 420) el.setAttribute("data-compact", ""); else el.removeAttribute("data-compact");
     };
     fit();
     vv?.addEventListener("resize", fit);
     vv?.addEventListener("scroll", fit);
+    let focusTimer: ReturnType<typeof setTimeout> | undefined;
     const onFocusIn = (e: FocusEvent) => {
       const t = e.target as HTMLElement;
-      if (t.matches("input, textarea, select")) setTimeout(() => t.scrollIntoView?.({ block: "center", behavior: "auto" }), 300);
+      clearTimeout(focusTimer);
+      if (t.matches("input, textarea, select")) focusTimer = setTimeout(() => t.scrollIntoView?.({ block: "nearest", behavior: "auto" }), 300);
     };
     panel.addEventListener("focusin", onFocusIn);
     // arrastar para baixo fecha: pela alça e pelo título sempre; pelo corpo só com a folha no topo da rolagem e fora de campos
-    let drag: { y0: number; t0: number; on: boolean; ok: boolean; grip: boolean } | null = null;
+    let drag: { x0: number; y0: number; t0: number; on: boolean; ok: boolean; grip: boolean } | null = null;
     const reduced = () => typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) { drag = null; return; }
       const t = e.target as HTMLElement;
       const grip = !!t.closest(".app-sheet-handle, h2");
-      drag = { y0: e.touches[0].clientY, t0: e.timeStamp, on: false, grip, ok: grip || (panel.scrollTop <= 0 && !t.closest(DRAG_BLOCK)) };
+      drag = { x0: e.touches[0].clientX, y0: e.touches[0].clientY, t0: e.timeStamp, on: false, grip, ok: grip || (panel.scrollTop <= 0 && !t.closest(DRAG_BLOCK) && !scrollsOnItsOwn(t, panel)) };
     };
     const onTouchMove = (e: TouchEvent) => {
       if (!drag || !drag.ok) return;
@@ -128,6 +162,7 @@ export function Sheet({ title, onClose, children, footer, history = false }: { t
       if (!drag.on) {
         if (dy < -4) { drag.ok = false; return; }
         if (dy <= 8 || (!drag.grip && panel.scrollTop > 0)) return;
+        if (Math.abs(e.touches[0].clientX - drag.x0) > dy) { drag.ok = false; return; } // gesto mais lateral que vertical: não é da folha
         drag.on = true;
         panel.style.transition = "none";
       }
@@ -164,6 +199,7 @@ export function Sheet({ title, onClose, children, footer, history = false }: { t
       vv?.removeEventListener("resize", fit);
       vv?.removeEventListener("scroll", fit);
       panel.removeEventListener("focusin", onFocusIn);
+      clearTimeout(focusTimer);
       const i = stack.indexOf(me);
       if (i >= 0) stack.splice(i, 1);
       unlockScroll();
