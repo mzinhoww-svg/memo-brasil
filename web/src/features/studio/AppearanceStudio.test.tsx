@@ -8,7 +8,7 @@ import { AppearanceStudio } from "./AppearanceStudio";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 afterEach(() => { cleanup(); window.localStorage.clear(); });
 const ev = { id: "e1", title: "Ana e Leo", code: "ABCD1234", palette: "salvia", eventFont: "birthstone", cameraStyle: "festa" } as MemoEvent;
-const props = () => ({ event: ev, locked: false, onSave: vi.fn(async () => undefined), onSaveLook: vi.fn(async () => undefined) });
+const props = () => ({ event: ev, onSave: vi.fn(async () => undefined), onSaveLook: vi.fn(async () => undefined) });
 
 describe("AppearanceStudio (Revela)", () => {
   it("lista as 4 embalagens e marca a atual", () => {
@@ -30,17 +30,19 @@ describe("AppearanceStudio (Revela)", () => {
     expect(await screen.findByText("Aparência salva.")).toBeTruthy();
   });
   it("falha ao gravar a embalagem não grava o resto e mostra o motivo", async () => {
-    const p = { ...props(), onSaveLook: vi.fn(async () => "A revelação já aconteceu; não dá para mudar.") };
+    const p = { ...props(), onSaveLook: vi.fn(async () => "Não deu para gravar a embalagem.") };
     render(<AppearanceStudio {...p} />);
     fireEvent.click(screen.getByRole("button", { name: "Salvar aparência" }));
-    expect(await screen.findByText(/revelação já aconteceu/)).toBeTruthy();
+    expect(await screen.findByText("Não deu para gravar a embalagem.")).toBeTruthy();
     expect(p.onSave).not.toHaveBeenCalled();
   });
-  it("depois da revelação tudo fica travado, com aviso", () => {
-    render(<AppearanceStudio {...props()} locked />);
-    expect(screen.getByText(/não pode mais mudar/)).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Salvar aparência" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByRole("radio", { name: "Noite" }).matches(":disabled")).toBe(true);
+  it("depois da revelação tudo continua editável: sem aviso de trava e com os campos e o botão ligados", () => {
+    const revelado = { ...ev, revealEnabled: true, revealedAt: 1 } as MemoEvent;
+    render(<AppearanceStudio {...props()} event={revelado} />);
+    expect(screen.queryByText(/não pode mais mudar/)).toBeNull();
+    expect((screen.getByRole("button", { name: "Salvar aparência" }) as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getByRole("radio", { name: "Noite" }).matches(":disabled")).toBe(false);
+    expect((screen.getByLabelText("Mensagem de boas-vindas") as HTMLTextAreaElement).disabled).toBe(false);
   });
 
   it("sozinha tem um único título; dentro do quadro do painel o título é só o do quadro", () => {
