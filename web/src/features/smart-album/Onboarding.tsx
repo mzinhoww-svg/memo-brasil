@@ -190,7 +190,7 @@ function ConsentStep({ state, busy, problem, agree, setAgree, onActivate, onManu
       <ul className="sa-facts">
         <li>Vale para a sua conta: você autoriza uma vez e a busca funciona em todos os eventos de que participar. Cada organizador pode desligá-la no evento dele.</li>
         <li>Finalidade: sugerir fotos em que você pode aparecer. Nada de treinar modelos, publicidade ou perfis.</li>
-        <li>Como funciona: a sua foto fica guardada de forma privada e é comparada só com as fotos que você já pode ver em cada evento, num servidor do Revela (nos EUA). Ninguém mais vê essa foto.</li>
+        <li>Como funciona: a sua foto fica guardada de forma privada e é comparada com as fotos dos seus eventos conforme elas chegam, num servidor do Revela (nos EUA). As sugestões só aparecem depois da revelação e só para fotos que você pode ver. Ninguém mais vê a sua foto.</li>
         <li>Retenção: a foto de referência é apagada quando você desativa ou troca a foto, e no máximo 12 meses depois do envio.</li>
         <li>Versão do termo: {state.face.consentVersion}. <Link href="/privacidade">Política de privacidade</Link> · <a href={`mailto:${CONTACT_EMAIL}`}>Contato de privacidade</a></li>
       </ul>

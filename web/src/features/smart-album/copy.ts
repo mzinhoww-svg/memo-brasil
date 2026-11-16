@@ -20,7 +20,7 @@ export const COPY = {
   consentTitle: "Ativar busca de fotos em que apareço (opcional)",
   consentBody:
     "Quero usar uma imagem minha como referência para que o Revela sugira fotografias em que eu possa aparecer, nos eventos de que eu participar. Entendo que a busca pode errar, que minhas fotos só serão exibidas conforme as permissões e a revelação do evento, e que posso desativar o recurso e solicitar exclusão dos dados relacionados. Li as informações específicas sobre processamento, retenção e compartilhamento.",
-  consentThirdParties: "Outras pessoas também aparecem nas fotos. A busca só procura você, nunca dá nome a ninguém e só olha fotos que você já pode ver.",
+  consentThirdParties: "Outras pessoas também aparecem nas fotos. A busca só procura você, nunca dá nome a ninguém e só mostra fotos que você pode ver.",
   activate: "Ativar Minhas Fotos",
   faceUnavailableTitle: "A busca por reconhecimento ainda não está liberada.",
   faceUnavailableBody: "Nada da sua foto foi enviado. Enquanto isso, Minhas Fotos mostra as fotos que você tirou e as que você marcar como favoritas.",

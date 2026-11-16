@@ -51,7 +51,7 @@ export const TERMS_TEXT: LegalSection[] = [
     "Aplica-se a legislação brasileira, preservados os direitos do consumidor e as regras legais sobre competência territorial.",
   ] },  { title: "11. Minhas Fotos e busca facial (opcional)", blocks: [
     "O Revela oferece, de forma opcional, uma busca que usa uma selfie sua para sugerir fotografias em que você pode aparecer. Ela só funciona com autorização específica e separada, dada em caixa própria (nunca pré-marcada), e pode ser desligada a qualquer momento em Minhas Fotos.",
-    "A busca sugere, não identifica: pode errar, nunca dá nome a outras pessoas e só considera fotografias que você já pode ver no evento. O organizador pode desligá-la no evento dele. As condições de tratamento estão na Política de Privacidade.",
+    "A busca sugere, não identifica: pode errar, nunca dá nome a outras pessoas e só mostra fotografias que você pode ver no evento, depois da revelação. O organizador pode desligá-la no evento dele. As condições de tratamento estão na Política de Privacidade.",
   ] },
 ];
 
@@ -115,7 +115,7 @@ export const PRIVACY_TEXT: LegalSection[] = [
   ] },  { title: "11. Minhas Fotos e busca facial (opcional)", blocks: [
     "O que é: uma busca opcional que compara uma selfie sua com as fotografias dos eventos de que você participa, para sugerir aquelas em que você pode aparecer. A selfie e a comparação envolvem dado biométrico, que é dado pessoal sensível.",
     "Fundamento: consentimento específico e destacado (art. 11, I, da LGPD), dado uma única vez para a sua conta, em caixa própria e nunca pré-marcada, na entrada do evento ou em Minhas Fotos. Aceitar os Termos não ativa a busca. É preciso ter 18 anos ou mais.",
-    "Como funciona: a selfie fica em armazenamento privado e é comparada, num servidor do Revela, apenas com as fotografias que você já pode ver em cada evento, depois da revelação e quando chegam fotos novas. Nada é usado para treinar modelos, publicidade ou perfis; rostos de outras pessoas são comparados e descartados, sem nome e sem registro.",
+    "Como funciona: a selfie fica em armazenamento privado e é comparada, num servidor do Revela, com as fotografias dos eventos de que você participa, conforme elas chegam. As sugestões só aparecem depois da revelação e apenas para fotografias que você pode ver; resultados de fotografias que você não pode ver nunca são exibidos. Nada é usado para treinar modelos, publicidade ou perfis; rostos de outras pessoas são comparados e descartados, sem nome e sem registro.",
     "Onde: o processamento da comparação ocorre em servidor localizado nos Estados Unidos (fornecedor de hospedagem), com acesso restrito e sem guarda das imagens após cada busca.",
     "Retenção: a selfie é apagada quando você desliga a busca ou troca a foto e, no máximo, 12 meses após o envio; as sugestões somem junto. O organizador pode desligar a busca no evento dele.",
     "Seus controles: em Minhas Fotos você troca a selfie, oculta sugestões (\"Não sou eu\") e desliga a busca, o que retira o consentimento e apaga selfie e sugestões em todos os eventos. Em Você aparece o estado atual da busca.",
