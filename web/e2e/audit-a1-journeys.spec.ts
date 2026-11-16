@@ -48,11 +48,11 @@ test("J1 criar -> convite (código/link/QR) -> entrar -> limites de rolo e de ca
   await page.goto(`/e/${code}/agora`);
   for (let i = 0; i < 6; i++) {
     await page.goto(`/e/${code}/postar`);
-    if (await page.getByText("Seu rolo acabou.").count()) { rolo.push("bloqueado: Seu rolo acabou."); break; }
+    if (await page.getByText("Seu filme acabou").count()) { rolo.push("bloqueado: Seu filme acabou"); break; }
     await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "f.png", mimeType: "image/png", buffer: PNG });
     await page.getByRole("button", { name: "O sim", exact: true }).click();
-    await page.getByRole("button", { name: "Postar", exact: true }).click();
-    await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+    await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+    await expect(page.getByText("Foi para o laboratório")).toBeVisible();
     rolo.push(`foto ${i + 1} ok`);
   }
   await shot(page, "j1-rolo-acabou");
@@ -67,6 +67,7 @@ test("J2 painel: editar nome, aviso, momentos, encerrar, não reabrir, excluir, 
   const { code, id } = await createViaWizard(page, { reveal: "desligada" });
   await postViaFile(page, code);
   await page.goto(`/painel/${id}/configuracoes`);
+  await page.getByRole("button", { name: /Editar nome/ }).click();
   await page.getByRole("textbox", { name: "Nome do evento" }).fill("Nome Novo");
   await page.getByRole("button", { name: "Salvar nome" }).click();
   await page.waitForTimeout(300);
@@ -124,8 +125,8 @@ test("J3 moderação, reações (uma por pessoa), 'Quem reagiu', exportação va
   await page.goto(`/painel/${id}/conteudo`);
   await page.waitForTimeout(600);
   const fila = await body(page, 330);
-  await page.getByRole("tab", { name: /Todas/ }).click();
-  await page.getByRole("button", { name: "Ocultar" }).first().click();
+  await page.getByRole("button", { name: /^Foto de/ }).first().click();
+  await page.getByRole("dialog").getByRole("button", { name: "Tirar do álbum" }).click();
   await page.waitForTimeout(400);
   await asPerson(page, "Ana");
   await page.goto(`/e/${code}/agora`);
@@ -133,8 +134,8 @@ test("J3 moderação, reações (uma por pessoa), 'Quem reagiu', exportação va
   const aposOcultar = await page.locator("img[alt^='Foto de']").count();
   await asPerson(page, "Emy");
   await page.goto(`/painel/${id}/conteudo`);
-  await page.getByRole("tab", { name: /Ocultas/ }).click();
-  await page.getByRole("button", { name: "Mostrar de novo" }).first().click();
+  await page.getByRole("button", { name: /^Foto de/ }).first().click();
+  await page.getByRole("dialog").getByRole("button", { name: "Devolver ao álbum" }).click();
   await page.waitForTimeout(400);
   await asPerson(page, "Ana");
   await page.goto(`/e/${code}/agora`);
@@ -209,7 +210,7 @@ test("J6 editor: abrir foto visível, desenhar/texto, concluir e baixar; foto bl
 test("J7 remover convidado e reentrar; AC-01 término < 30 min; corrida do último tiro em duas abas", async ({ page, context }) => {
   // AC-01
   await page.goto("/criar");
-  await page.getByLabel("Nome que os convidados vão ver").fill("Curto");
+  await page.getByLabel("Nome do evento").fill("Curto");
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Outra data" }).click();
   const soon = new Date(Date.now() + 10 * 60_000 - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
@@ -240,7 +241,7 @@ test("J7 remover convidado e reentrar; AC-01 término < 30 min; corrida do últi
   const prep = async (p: Page) => { await p.goto(`/e/${code}/postar`); await p.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "f.png", mimeType: "image/png", buffer: PNG }); };
   await prep(page);
   await prep(b);
-  await Promise.all([page.getByRole("button", { name: "Postar", exact: true }).click(), b.getByRole("button", { name: "Postar", exact: true }).click()]);
+  await Promise.all([page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click(), b.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click()]);
   await page.waitForTimeout(1200);
   const total = await page.evaluate(() => new Promise<number>((res) => { const r = indexedDB.open("memoriesmt"); r.onsuccess = () => { const g = r.result.transaction("photos").objectStore("photos").getAll(); g.onsuccess = () => res((g.result as { authorName: string }[]).filter((p) => p.authorName === "Ana").length); }; }));
   rec("J7", { ac01, apos_remover_convidado: aposRemover, reentrada_apos_remocao: reentrou, fotos_da_Ana_apos_corrida_rolo_5: total });

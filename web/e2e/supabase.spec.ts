@@ -42,17 +42,17 @@ test("convidado anônimo entra pelo código, posta, espera e vê a foto só depo
     await page.goto(`/e/${ev.code}/postar`);
     await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
     await page.getByRole("button", { name: "O sim", exact: true }).click();
-    await page.getByRole("button", { name: "Postar", exact: true }).click();
-    await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+    await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+    await expect(page.getByText("Foi para o laboratório")).toBeVisible();
 
     await page.goto(`/e/${ev.code}/agora`);
     await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
-    await expect(page.locator(".mm-post")).toHaveCount(0); // bloqueada: nem a própria
+    await expect(page.locator(".rv-post")).toHaveCount(0); // bloqueada: nem a própria
     // o servidor revela (simula o tempo passando: início 7 h atrás, duração 1 h)
     await admin.from("events").update({ start_at: new Date(Date.now() - 7 * 3600_000).toISOString(), duration_hours: 1 }).eq("id", ev.id);
     expect((await admin.rpc("reveal_due_events")).data).toBeGreaterThanOrEqual(1);
     await page.reload();
-    await expect(page.locator(".mm-post")).toHaveCount(1, { timeout: 15_000 });
+    await expect(page.locator(".rv-post")).toHaveCount(1, { timeout: 15_000 });
     await ctx.close();
   } finally {
     await admin.from("events").delete().eq("id", ev.id);

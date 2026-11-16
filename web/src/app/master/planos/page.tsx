@@ -1,51 +1,28 @@
-import { num, requireMaster, rpc } from "../data";
-import { Badge, StateBox, Table } from "../ui";
-import { brl, envLabel, lastChange } from "../billing";
-import { PlanEditButton, type PlanRow } from "../billing-actions";
+import { MState } from "@/revela/master-kit";
+import { requireRole, rpc } from "../data";
+import { PricesEditor, type PlanImpact } from "./PricesEditor";
+import type { PlanRow } from "../prices";
 
-type Plan = PlanRow & { updatedAt: string; sort: number };
+type Plan = PlanRow & { updatedAt: string; history: { at: string }[] };
+interface Order { planCode: string; status: string; amountCents: number }
 
-const day = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Cuiaba" }) : "—");
-
+/** M03: planos e preços editáveis na tabela, prévia do paywall e publicação com o código do autenticador (M04). */
 export default async function Planos() {
-  const sb = await requireMaster();
-  const [plans, settings] = await Promise.all([
+  const gate = await requireRole("planos");
+  if ("denied" in gate) return gate.denied;
+  const { sb } = gate;
+  const [plans, settings, orders] = await Promise.all([
     rpc<Plan[]>(sb, "admin_list_plans"),
     rpc<{ payments_env: string }>(sb, "get_public_settings"),
+    rpc<Order[]>(sb, "admin_list_payments", { p_limit: 200 }),
   ]);
+  if (plans.state !== "ok") return <MState kind={plans.state === "denied" ? "denied" : "error"} text={plans.state === "error" ? `Não foi possível carregar: ${plans.message}` : undefined} />;
   const env = settings.state === "ok" ? settings.data.payments_env : "desligado";
-  const last = plans.state === "ok" ? lastChange(plans.data) : null;
-  return (
-    <>
-      <header className="adm-head">
-        <div>
-          <div className="adm-head-title">
-            <h1>Planos e preços</h1>
-            <Badge s={env === "production" ? "ok" : env === "sandbox" ? "aviso" : "info"}>Pagamentos: {envLabel(env)}</Badge>
-          </div>
-          <p>{last ? `Última alteração em ${day(last)}. ` : ""}Mudanças valem para pedidos novos; um pagamento já iniciado mantém o valor dele.</p>
-        </div>
-      </header>
-      {plans.state === "ok" ? (
-        <Table
-          vazio="Nenhum plano cadastrado."
-          cols={[{ k: "n", h: "Plano" }, { k: "g", h: "Convidados", num: true }, { k: "f", h: "Fotos/pessoa", num: true }, { k: "p", h: "Preço", num: true },
-                 { k: "s", h: "Sandbox" }, { k: "r", h: "Produção" }, { k: "u", h: "Alterado em" }, { k: "a", h: "Ações" }]}
-          rows={plans.data.map((p) => ({
-            n: p.name,
-            g: p.maxGuests == null ? "sem limite" : num(p.maxGuests),
-            f: p.maxShots == null ? "sem limite" : num(p.maxShots),
-            p: brl(p.priceCents),
-            s: p.sandboxActive ? "sim" : <Badge s="info">não</Badge>,
-            r: p.productionActive ? "sim" : <Badge s="info">não</Badge>,
-            u: p.isFree ? "—" : day(p.updatedAt),
-            a: <PlanEditButton plan={p} />,
-          }))}
-        />
-      ) : <StateBox load={plans} />}
-      <p className="adm-nota" style={{ marginTop: 16, fontSize: 14 }}>
-        Limites de convidados e fotos mudam só por migration (afetam direitos já vendidos). Aqui: preço e ativação.
-      </p>
-    </>
-  );
+  const impact: PlanImpact = {};
+  for (const o of orders.state === "ok" ? orders.data : []) {
+    const i = (impact[o.planCode] ??= { paid: 0, open: 0 });
+    if (o.status === "pago") i.paid += 1;
+    else if (o.status === "pendente") i.open += 1;
+  }
+  return <PricesEditor plans={plans.data.map(({ updatedAt: _u, history: _h, ...p }) => { void _u; void _h; return p; })} env={env} impact={impact} />;
 }

@@ -46,7 +46,7 @@ test("organizador cria → convidado entra e posta → servidor revela (cron) �
   const octx = await ctxWith(browser, org.session);
   const op = await octx.newPage();
   await op.goto("/criar");
-  await op.getByLabel("Nome que os convidados vão ver").fill(`Homolog ${tag}`);
+  await op.getByLabel("Nome do evento").fill(`Homolog ${tag}`);
   await op.getByRole("button", { name: "Continuar" }).click();
   await op.getByRole("group", { name: "E quando as fotos aparecem?" }).getByRole("button", { name: "Quando acabar" }).click(); // término 6 h, revelação ao terminar
   await op.getByRole("button", { name: "Continuar" }).click();
@@ -76,8 +76,8 @@ test("organizador cria → convidado entra e posta → servidor revela (cron) �
   await expect(gp.getByTestId("aguardando-revelacao")).toBeVisible();
   await gp.goto(`/e/${code}/postar`);
   await gp.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "foto.png", mimeType: "image/png", buffer: PNG });
-  await gp.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(gp.getByText("Sua visão entrou na história.")).toBeVisible({ timeout: 30_000 });
+  await gp.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(gp.getByText("Foi para o laboratório")).toBeVisible({ timeout: 30_000 });
 
   // 3) upload persistido e Storage privado
   const photos = (await admin.from("photos").select("id,storage_path,upload_status").eq("event_id", eventId.id)).data!;
@@ -85,7 +85,7 @@ test("organizador cria → convidado entra e posta → servidor revela (cron) �
   const pub = await fetch(`${SB}/storage/v1/object/public/event-photos/${photos[0].storage_path}`);
   expect(pub.status).not.toBe(200); // bucket privado
   await gp.goto(`/e/${code}/agora`);
-  await expect(gp.locator(".mm-post")).toHaveCount(0); // bloqueada: nem a própria antes da revelação
+  await expect(gp.locator(".rv-post")).toHaveCount(0); // bloqueada: nem a própria antes da revelação
 
   // 4) permissões: convidado não abre o painel nem o console; organizador comum não abre o console; organizador B não vê a foto
   await gp.goto(`/painel/${eventId.id}`);
@@ -107,9 +107,9 @@ test("organizador cria → convidado entra e posta → servidor revela (cron) �
   const diag = JSON.stringify({ ev, ph, now: new Date().toISOString(), url: gp.url(), texto: (await gp.locator("main").first().innerText().catch(() => "")).slice(0, 300) });
   test.info().annotations.push({ type: "diag", description: diag });
   console.log("DIAG", diag);
-  await expect(gp.locator(".mm-post"), diag).toHaveCount(1, { timeout: 30_000 });
+  await expect(gp.locator(".rv-post"), diag).toHaveCount(1, { timeout: 30_000 });
   // 6) o álbum fica disponível ao participante (URL assinada, só com a sessão dele) e continua fechado ao estranho
-  const imgSrc = await gp.locator(".mm-post img").first().getAttribute("src");
+  const imgSrc = await gp.locator(".rv-post img").first().getAttribute("src");
   expect(imgSrc).toMatch(/^(blob:|https?:)/);
   expect((await orgB.client.storage.from("event-photos").createSignedUrl(photos[0].storage_path, 60)).error).toBeTruthy(); // outro organizador, mesmo depois da revelação
   const pub2 = await fetch(`${SB}/storage/v1/object/public/event-photos/${photos[0].storage_path}`);

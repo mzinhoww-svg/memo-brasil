@@ -264,11 +264,11 @@ select tests.login('00000000-0000-4000-8000-0000000000a1');
 select lives_ok(format($$insert into public.event_themes (event_id, colors) values ('10000000-0000-4000-8000-00000000000d', %L::jsonb)$$, tests.palette()), 'antes da revelação o host edita o tema');
 reset role;
 update public.events set start_at = now() - interval '7 hours' where id = '10000000-0000-4000-8000-00000000000d'; -- relógio andando: reveal_at no passado
-select is(public.event_theme_locked('10000000-0000-4000-8000-00000000000d'), true, 'tema bloqueado quando a revelação venceu');
+select is(public.event_theme_locked('10000000-0000-4000-8000-00000000000d'), false, 'tema não trava mesmo com a revelação vencida (aparência editável depois de revelar)');
 select tests.login('00000000-0000-4000-8000-0000000000a1');
-update public.event_themes set welcome_message = 'tarde demais' where event_id = '10000000-0000-4000-8000-00000000000d';
+update public.event_themes set welcome_message = 'ainda dá tempo' where event_id = '10000000-0000-4000-8000-00000000000d';
 reset role;
-select is((select welcome_message from public.event_themes where event_id = '10000000-0000-4000-8000-00000000000d'), null, 'após o bloqueio o host não altera o tema');
+select is((select welcome_message from public.event_themes where event_id = '10000000-0000-4000-8000-00000000000d'), 'ainda dá tempo', 'depois da revelação o host altera o tema');
 select is(public.event_theme_locked('10000000-0000-4000-8000-00000000000a'), false, 'evento sem revelação nunca bloqueia o tema');
 
 -- cascata e Realtime
@@ -280,7 +280,7 @@ select is((select count(*)::int from pg_publication_tables where pubname = 'supa
 -- ===================================================== prévia segura com tema
 select tests.login('00000000-0000-4000-8000-0000000000b3', true);
 select is((select array_agg(k order by k) from jsonb_object_keys(public.event_preview(:'code_a')) k),
-  array['capacity','category','code','eventFont','everyoneSeesAll','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
+  array['cameraStyle','capacity','category','code','eventFont','everyoneSeesAll','filmLook','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
   'prévia: 11 campos da v1 + theme + campos de plano/revelação (COM-003)');
 select is(public.event_preview(:'code_a') #>> '{theme,font}', 'pinyon', 'prévia devolve o tema ao convidado que ainda não entrou');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.event_preview(:'code_a') -> 'theme') k),
@@ -406,9 +406,9 @@ insert into public.events (id, title, category, host_id, host_name, duration_hou
   ('10000000-0000-4000-8000-00000000000e', 'Evento E', 'formatura', '00000000-0000-4000-8000-0000000000a1', 'Emy', 6, true, 'fim', 0);
 update public.events set start_at = now() - interval '7 hours' where id = '10000000-0000-4000-8000-00000000000e';
 select tests.login('00000000-0000-4000-8000-0000000000a1');
-select throws_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000c01', '10000000-0000-4000-8000-00000000000e', 'logo', 'image/png', 400, 400)$$, 'MM008', 'revealed', 'asset bloqueado depois do bloqueio de edição');
+select lives_ok($$select public.begin_asset('20000000-0000-4000-8000-000000000c01', '10000000-0000-4000-8000-00000000000e', 'logo', 'image/png', 400, 400)$$, 'depois da revelação o host ainda envia logo e capa');
 reset role;
-select is((select count(*)::int from public.event_assets where event_id = '10000000-0000-4000-8000-00000000000e'), 0, 'nenhum asset criado no evento bloqueado');
+select is((select count(*)::int from public.event_assets where event_id = '10000000-0000-4000-8000-00000000000e'), 1, 'o asset foi criado no evento já revelado');
 set local role anon;
 select throws_ok($$select * from public.event_assets$$, '42501', null, 'anon sem acesso a event_assets');
 reset role;
@@ -588,8 +588,8 @@ select cmp_ok((public.admin_health() #>> '{reveals,maxDelaySeconds}')::bigint, '
 select is((public.admin_health() #>> '{uploads,stalled}')::int, 1, 'saúde: envio parado');
 select is((public.admin_health() #>> '{purgeQueue,size}')::int >= 0, true, 'saúde: fila de limpeza');
 select is((public.admin_health() ->> 'cronAvailable')::boolean, true, 'saúde: pg_cron disponível');
-select is(jsonb_array_length(public.admin_health() -> 'jobs'), 6, 'saúde: os 6 jobs mm-* agendados');
-select is((select array_agg(j ->> 'name' order by j ->> 'name') from jsonb_array_elements(public.admin_health() -> 'jobs') j), array['mm-audit-integrity', 'mm-expire-assets', 'mm-expire-retention', 'mm-expire-uploads', 'mm-purge-deleted', 'mm-reveal-due'], 'saúde: nomes dos jobs');
+select is(jsonb_array_length(public.admin_health() -> 'jobs'), 7, 'saúde: os 7 jobs mm-* agendados (mm-purge-anon-orphans veio em 20261024000100)');
+select is((select array_agg(j ->> 'name' order by j ->> 'name') from jsonb_array_elements(public.admin_health() -> 'jobs') j), array['mm-audit-integrity', 'mm-expire-assets', 'mm-expire-retention', 'mm-expire-uploads', 'mm-purge-anon-orphans', 'mm-purge-deleted', 'mm-reveal-due'], 'saúde: nomes dos jobs');
 reset role;
 
 -- ===================================================== listagens do console (usuários, participantes, convites, auditoria)

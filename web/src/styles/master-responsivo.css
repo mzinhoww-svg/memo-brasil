@@ -1,0 +1,160 @@
+/* Master responsivo: o console (/master/*) se adapta a celular, tablet e desktop e o menu lateral recolhe.
+   Carregado depois de revela2.css, que guarda o desenho de desktop (1440×900); aqui ficam só as adaptações.
+   Pontos de quebra: 1024 px = menu vira coluna (expandida ou trilho de ícones); abaixo, gaveta.
+                     1200 px = grades de 2 colunas viram uma e as tabelas rolam por dentro em vez de espremer as colunas.
+   A PÁGINA nunca rola na horizontal: só `.mtable` rola por dentro (com sombra de borda). */
+
+/* ---- moldura: a página rola normalmente (sem altura fixa nem overflow oculto) ---- */
+.dsk { overflow-x: clip; }
+.mmain { flex: 1; min-width: 0; padding: 0 16px 28px; }
+.mmain > * { min-width: 0; }
+
+/* ---- barra de cima: sticky, quebra linha, busca fluida ---- */
+.mtop { position: sticky; top: 0; z-index: 30; flex-wrap: wrap; justify-content: flex-start; gap: 10px 12px; margin: 0 -16px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: var(--bg); }
+.mmenu-btn { flex: none; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); cursor: pointer; }
+.mmenu-btn:hover { background: var(--surface-2); }
+.mmenu-btn svg, .mside-close svg { width: 22px; height: 22px; }
+.mtop .msearch { flex: 1 1 220px; width: auto; max-width: 440px; min-width: 0; height: 44px; }
+.msearch { width: 100%; max-width: 440px; min-width: 0; }
+.msearch input { min-width: 0; }
+.mtop .envb { margin-left: auto; }
+[data-theme="light"] .envb { color: color-mix(in srgb, var(--success) 55%, black); } /* contraste AA do selo de ambiente no tema Dia */
+
+/* ---- cabeçalho da tela ---- */
+.mhead { flex-wrap: wrap; gap: 12px 16px; margin: 20px 0 16px; }
+.mhead > div:first-child { min-width: 0; flex: 1 1 220px; }
+.mhead .row { flex-wrap: wrap; }
+.rv-title-lg { overflow-wrap: anywhere; }
+
+/* ---- tabelas: rolam por dentro, com sombra nas bordas que indicam rolagem ---- */
+.mtable { --mt-min: 720px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch;
+  background:
+    linear-gradient(to right, var(--surface-1) 30%, transparent) left center / 36px 100% no-repeat local,
+    linear-gradient(to left, var(--surface-1) 30%, transparent) right center / 36px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, var(--mt-shade, rgba(0, 0, 0, .45)), transparent) left center / 14px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, var(--mt-shade, rgba(0, 0, 0, .45)), transparent) right center / 14px 100% no-repeat scroll,
+    var(--surface-1); }
+[data-theme="light"] .mtable { --mt-shade: rgba(23, 18, 15, .22); }
+.mcard .mtable { background: transparent; }
+.mtable:focus-visible { outline-offset: -2px; }
+.mpager { position: static; margin-top: 18px; flex-wrap: wrap; gap: 10px; }
+
+/* ---- cartões, tiles e grades ---- */
+.mcard { min-width: 0; padding: 16px; overflow-wrap: anywhere; }
+.mcard > .row, .mcard .row.between { flex-wrap: wrap; }
+.mtiles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 156px), 1fr)); }
+.mtiles .tile { min-width: 0; container-type: inline-size; }
+.mtiles .tile b { font-size: clamp(18px, 17cqi, 32px); line-height: 1.15; overflow-wrap: anywhere; }
+.mminis { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 18px; }
+.mmods { grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); }
+.mgrid2 > *, .mgrid3 > *, .mgrid-plans > * { min-width: 0; }
+.mcard .bars { min-width: 0; }
+.bars > div { min-width: 0; }
+.bars span { overflow: hidden; text-overflow: clip; white-space: nowrap; max-width: 100%; }
+.mfield { max-width: 100%; }
+.kv > div { grid-template-columns: minmax(0, 120px) minmax(0, 1fr); }
+.diff { flex-wrap: wrap; gap: 12px 20px; }
+.phonepv { width: min(300px, 100%); margin-inline: auto; }
+.mlogin { padding: 16px; min-width: 0; }
+.mlogin-card { width: min(420px, 100%); padding: 28px 20px; box-sizing: border-box; }
+.mstate { padding: 64px 16px; }
+.mnote { margin-inline: 0; }
+.mcard .mnote, .mmodal-card .mnote { margin-inline: 0; }
+
+/* ---- barra de publicar e de lote: fixa no pé, respeita a área segura ---- */
+.mpublish { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; flex-wrap: wrap; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.mpublish > span { flex: 1 1 200px; min-width: 0; }
+.mmain:has(.mpublish) { padding-bottom: calc(132px + env(safe-area-inset-bottom)); }
+
+/* ---- folhas/diálogos: rolam por dentro, cabem em 360 px, respeitam área segura e teclado ---- */
+.mmodal { position: fixed; inset: 0; z-index: 1000; overflow-y: auto; overscroll-behavior: contain; align-items: flex-start; justify-content: center;
+  padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left)); box-sizing: border-box; }
+.mmodal-card { width: min(460px, 100%); max-width: 100%; box-sizing: border-box; margin-block: auto; padding: 22px 18px; overflow-wrap: anywhere; }
+.mmodal-card .row { flex-wrap: wrap; }
+.mmodal-card .rv-btn { white-space: normal; }
+
+/* ---- menu: gaveta no celular e no tablet ---- */
+.mside { position: fixed; z-index: 70; top: 0; bottom: 0; left: 0; width: min(300px, 86vw); height: 100dvh; overflow-y: auto; overscroll-behavior: contain;
+  padding: calc(14px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom)); transform: translateX(-102%); visibility: hidden; }
+.dsk[data-menu="open"] .mside { transform: none; visibility: visible; box-shadow: inset -1px 0 0 var(--line), 0 0 48px rgba(0, 0, 0, .55); }
+.mside-close { align-self: flex-end; width: 44px; height: 44px; margin-bottom: 2px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; }
+.mside-close:hover { background: var(--surface-2); }
+.mscrim { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .6); opacity: 0; pointer-events: none; }
+.dsk[data-menu="open"] .mscrim { opacity: 1; pointer-events: auto; }
+.mnav { min-height: 48px; white-space: nowrap; }
+.muser { min-width: 0; }
+.muser > div { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+[data-theme="light"] .mside { background: var(--surface-1); }
+@media (prefers-reduced-motion: no-preference) {
+  .mside { transition: transform .22s ease, visibility 0s linear .22s; }
+  .dsk[data-menu="open"] .mside { transition: transform .22s ease; }
+  .mscrim { transition: opacity .2s ease; }
+}
+
+/* ---- tabelas com largura mínima abaixo de 1200 px (a coluna fica legível; a tabela rola por dentro) ---- */
+@media (max-width: 1199.98px) {
+  .mtable .mtr { min-width: var(--mt-min, 720px); }
+  .mgrid2, .mgrid3, .mgrid-plans { grid-template-columns: minmax(0, 1fr) !important; } /* !important vence o gridTemplateColumns inline das telas */
+}
+
+/* ---- celular e tablet (< 1024 px): alvos de toque de 44 px ---- */
+@media (max-width: 1023.98px) {
+  .dsk .rv-btn--sm, .dsk .chip, .dsk .chip--sm, .dsk .seg a, .dsk .seg span, .dsk .mfield, .dsk .msearch, .dsk .mpager > div > * { min-height: 44px; }
+  .dsk .chip, .dsk .chip--sm { height: 44px; }
+  .mcard .seg span, .mcard .seg a { height: 44px; line-height: 44px; }
+  .dsk .mfield { height: 44px; }
+  .dsk .mpager > div > * { min-width: 44px; }
+  .dsk .mmain .row { flex-wrap: wrap; }
+  .mhead { flex-direction: column; align-items: stretch; }
+  .mhead > div:first-child { flex: none; }
+  .mhead > .row { align-items: stretch; }
+  .mhead > .row > .rv-btn { flex: 1 1 auto; }
+  .mtable .mtr { padding: 0 14px; }
+}
+@media (max-width: 479.98px) {
+  .kv > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .mcard .bars { height: 150px; }
+}
+@media (min-width: 560px) {
+  .mtop { flex-wrap: nowrap; }
+  .mtop .envb { flex: none; }
+}
+
+/* ---- desktop (≥ 1024 px): menu coluna fixa, expandida (248 px) ou trilho de ícones (68 px) ---- */
+@media (min-width: 1024px) {
+  .mmain { padding: 0 36px 28px; }
+  .mtop { margin: 0 -36px; padding: 18px 36px 12px; }
+  .mtop .msearch { height: 42px; }
+  .mhead { align-items: flex-end; margin: 14px 0 20px; }
+  .mcard { padding: 20px; }
+  .mside { position: sticky; top: 0; z-index: 35; flex: none; width: 248px; height: 100dvh; align-self: flex-start; padding: 22px 14px; transform: none; visibility: visible; overflow-x: hidden; }
+  .mside-close, .mscrim { display: none; }
+  .mnav { min-height: 40px; }
+  .mpublish { position: sticky; left: auto; right: auto; bottom: 20px; margin-top: 24px; flex-wrap: nowrap; border-radius: var(--radius-lg); padding: 12px 14px 12px 20px; }
+  .mmain:has(.mpublish) { padding-bottom: 28px; }
+  .mmodal-card { padding: 28px; }
+  .mlogin-card { padding: 36px; }
+  .mstate { padding: 110px 20px; }
+  .mpager { margin-top: 24px; }
+  .mtiles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr)); }
+  @media (prefers-reduced-motion: no-preference) {
+    .mside { transition: width .18s ease; }
+  }
+  /* trilho: só ícones; o rótulo continua em aria-label e title */
+  :is(.dsk[data-rail="1"], html[data-mrail="1"] .dsk:not([data-rail])) .mside { width: 68px; }
+  :is(.dsk[data-rail="1"], html[data-mrail="1"] .dsk:not([data-rail])) .mnav { width: 40px; padding: 0; justify-content: center; }
+  :is(.dsk[data-rail="1"], html[data-mrail="1"] .dsk:not([data-rail])) .mnav span,
+  :is(.dsk[data-rail="1"], html[data-mrail="1"] .dsk:not([data-rail])) .muser > div,
+  :is(.dsk[data-rail="1"], html[data-mrail="1"] .dsk:not([data-rail])) .mside > .row > svg:nth-of-type(n + 2),
+  :is(.dsk[data-rail="1"], html[data-mrail="1"] .dsk:not([data-rail])) .mside > .row > .mtag { display: none; }
+  :is(.dsk[data-rail="1"], html[data-mrail="1"] .dsk:not([data-rail])) .mside > .row { justify-content: center; padding-inline: 0 !important; }
+  :is(.dsk[data-rail="1"], html[data-mrail="1"] .dsk:not([data-rail])) .muser { padding: 0; background: transparent; justify-content: center; }
+}
+
+/* ---- telas largas (≥ 1200 px): grades de duas colunas e tabelas na largura natural, como no desenho ---- */
+@media (min-width: 1200px) {
+  .mtiles { grid-template-columns: repeat(4, 1fr); }
+  .mminis { grid-template-columns: repeat(4, 1fr); gap: 22px; }
+  .mmods { grid-template-columns: repeat(4, 1fr); }
+  .kv > div { grid-template-columns: 150px 1fr; }
+}

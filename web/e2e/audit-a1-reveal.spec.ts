@@ -67,6 +67,7 @@ test("R2 fusos e DST (domínio) + mesmo instante nas superfícies, com fuso do a
   await page.goto(`/painel/${id}`);
   txt.painel_resumo = (await page.getByTestId("resumo-revelacao").innerText()).replace(/\s+/g, " ");
   await page.goto(`/painel/${id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click(); // a linha "Revela" abre a folha "Quando revelar"
   txt.config_resumo = (await page.getByTestId("config-revelacao").innerText()).replace(/\s+/g, " ").slice(0, 400);
   await page.getByRole("button", { name: "Pré-visualizar como convidado" }).click();
   txt.previa = (await page.getByTestId("aguardando-revelacao").innerText()).replace(/\s+/g, " ");
@@ -97,7 +98,7 @@ test("R3 validações: 31/02, hora, fuso, passado, +1 minuto (domínio) e UI", a
   const ui: Record<string, string> = {};
   for (const [k, time] of Object.entries({ "11:00 (=agora)": "11:00", "11:01 (=+60s)": "11:01" })) {
     await page.goto("/criar");
-    await page.getByLabel("Nome que os convidados vão ver").fill("Teste");
+    await page.getByLabel("Nome do evento").fill("Teste");
     await page.getByRole("button", { name: "Continuar" }).click();
     await page.getByRole("button", { name: "Escolher dia" }).click();
     await page.getByLabel("Data", { exact: true }).fill("2026-11-10");
@@ -109,7 +110,7 @@ test("R3 validações: 31/02, hora, fuso, passado, +1 minuto (domínio) e UI", a
   }
   // data vazia no modo data
   await page.goto("/criar");
-  await page.getByLabel("Nome que os convidados vão ver").fill("Teste");
+  await page.getByLabel("Nome do evento").fill("Teste");
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByRole("button", { name: "Escolher dia" }).click();
   await page.getByRole("button", { name: "Continuar" }).click();
@@ -122,6 +123,7 @@ test("R3 validações: 31/02, hora, fuso, passado, +1 minuto (domínio) e UI", a
 test("R4 trocar o fuso mantém hora de parede (muda o instante)", async ({ page }) => {
   const { id } = await setup(page);
   await page.goto(`/painel/${id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click(); // a linha "Revela" abre a folha "Quando revelar"
   const antes = (await events(page))[0].revealAt as number;
   // 12h00 Cuiabá -> Lisboa mantendo a hora de parede = 12:00Z, anterior ao "agora" (15:00Z): precisa ser recusado
   await page.getByLabel("Fuso horário").selectOption("Europe/Lisbon");
@@ -227,11 +229,11 @@ test("R8 postagem durante a revelação e exatamente em revealAt", async ({ page
   const t0 = Date.now();
   await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
   const modalSobrePostagem = true;
-  const cliqueBloqueado = await page.getByRole("button", { name: "Postar", exact: true }).click({ timeout: 1500 }).then(() => false, () => true);
+  const cliqueBloqueado = await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click({ timeout: 1500 }).then(() => false, () => true);
   await page.getByRole("button", { name: "Ver as fotos" }).click({ timeout: 6000 });
   const msAteLiberar = Date.now() - t0;
-  await page.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(page.getByText("Sua visão entrou na história.")).toBeVisible();
+  await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(page.getByText("Foi para o laboratório")).toBeVisible();
   const msgEscuro = await page.getByTestId("guardada-no-escuro").isVisible();
   // exatamente em revealAt (em outro evento)
   const ctx2 = await context.browser()!.newContext({ permissions: ["camera"] });
@@ -241,8 +243,8 @@ test("R8 postagem durante a revelação e exatamente em revealAt", async ({ page
   await p2.clock.setFixedTime(REVEAL);
   await p2.goto(`/e/${s2.code}/postar`);
   await p2.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "f.png", mimeType: "image/png", buffer: PNG });
-  await p2.getByRole("button", { name: "Postar", exact: true }).click();
-  await expect(p2.getByText("Sua visão entrou na história.")).toBeVisible();
+  await p2.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+  await expect(p2.getByText("Foi para o laboratório")).toBeVisible();
   const msgEscuroExato = await p2.getByTestId("guardada-no-escuro").isVisible();
   await p2.goto(`/e/${s2.code}/agora`);
   await p2.waitForTimeout(500);
@@ -322,6 +324,7 @@ test("R11 editar depois de revelada; ligar com fotos visíveis; desligar com fot
   // (a) desligada + foto -> ligar
   const a = await setup(page, { reveal: "desligada" });
   await page.goto(`/painel/${a.id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click(); // a linha "Revela" abre a folha "Quando revelar"
   await page.getByRole("group", { name: "Revelação programada" }).getByRole("button", { name: /^Ligada/ }).click();
   await page.getByRole("button", { name: "Salvar revelação" }).click();
   await page.waitForTimeout(500);
@@ -331,6 +334,7 @@ test("R11 editar depois de revelada; ligar com fotos visíveis; desligar com fot
   const b = await createViaWizard(page, { reveal: { date: "2026-11-10", time: "12:00", tz: "America/Cuiaba" }, title: "B" });
   await postViaFile(page, b.code);
   await page.goto(`/painel/${b.id}/configuracoes`);
+  await page.getByRole("button", { name: /^Revela\b/ }).click(); // a linha "Revela" abre a folha "Quando revelar"
   await page.getByRole("group", { name: "Revelação programada" }).getByRole("button", { name: /^Desligada/ }).click();
   await page.getByRole("button", { name: "Salvar revelação" }).click();
   await expect(page.getByText("Revelação salva.")).toBeVisible();
@@ -348,7 +352,7 @@ test("R12 acessibilidade da espera e da transição (axe, role=timer, foco)", as
   const { code } = await setup(page);
   await switchPerson(page, code, "Ana");
   const timer = page.getByRole("timer");
-  const attrs = { role_timer: await timer.count(), aria_live: await timer.getAttribute("aria-live"), sr_polite: await page.locator(".mm-sr-only[aria-live=polite]").innerText() };
+  const attrs = { role_timer: await timer.count(), aria_live: await timer.getAttribute("aria-live"), sr_polite: await page.locator(".rv-sr-only[aria-live=polite]").innerText() };
   const axe1 = await new AxeBuilder({ page }).analyze();
   await page.clock.fastForward(3_600_000 + 5000);
   await expect(page.getByTestId("transicao-revelacao")).toBeVisible();

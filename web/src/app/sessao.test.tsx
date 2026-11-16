@@ -20,10 +20,9 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }), usePathname: () => "/painel/x", useParams: () => ({ id: paramId }),
   useSearchParams: () => new URLSearchParams(search),
 }));
-vi.mock("@/components/memoriesmt/ThemeToggle", () => ({ ThemeToggle: () => null }));
 vi.mock("next/link", () => ({ default: ({ href, children, ...p }: { href: string; children: React.ReactNode }) => <a href={href} {...p}>{children}</a> }));
 vi.mock("@/features/app/hooks", async (orig) => ({ ...(await orig<typeof import("@/features/app/hooks")>()), useEventData: () => eventData, useClock: () => ({ now: 1, sync: vi.fn() }) }));
-vi.mock("@/features/events/guest-context", () => ({ useGuest: () => ({ event: { id: "e1", code: "ABCD2345", shotsPerPerson: 10, revealStatus: "desativada", revealEnabled: false }, user: app.user, now: 1, photos: [], counts: { mine: 0, total: 0 }, isHost: false }) }));
+vi.mock("@/features/events/guest-context", () => ({ useHostNav: () => null, useGuestOptional: () => null, useGuest: () => ({ event: { id: "e1", code: "ABCD2345", shotsPerPerson: 10, revealStatus: "desativada", revealEnabled: false }, user: app.user, now: 1, photos: [], counts: { mine: 0, total: 0 }, isHost: false }) }));
 vi.mock("@/features/studio/useBrandImages", () => ({ useBrandImages: () => ({}) }));
 vi.mock("@/features/invitations/qr", () => ({ qrDataUrl: async () => "data:image/png;base64,AA==" }));
 
@@ -35,16 +34,14 @@ beforeEach(() => {
 });
 
 describe("voce (UX-01)", () => {
-  it("voce não mostra 'Entrar como outra pessoa' quando canSwitchIdentity=false", async () => {
+  it("a tela Você (23g) segue o desenho: nada de 'Entrar como outra pessoa' nem de Voltar ao início", async () => {
     process.env.NEXT_PUBLIC_MM_DEV_TOOLS = "1";
     const { default: Voce } = await import("./e/[code]/(app)/voce/page");
-    app.canSwitchIdentity = false;
-    const { unmount } = render(<Voce />);
-    expect(screen.queryByRole("button", { name: "Entrar como outra pessoa" })).toBeNull();
-    unmount();
-    app.canSwitchIdentity = true;
+    app.canSwitchIdentity = true; mode = "local";
     render(<Voce />);
-    expect(screen.getByRole("button", { name: "Entrar como outra pessoa" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Entrar como outra pessoa" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Você" })).toBeInTheDocument();
+    expect(screen.getByText("Apagar meus dados")).toBeInTheDocument();
   });
 });
 
@@ -82,23 +79,24 @@ describe("home (UX-13, E6)", () => {
     const { default: Home } = await import("./page");
     render(<Home />);
     expect(screen.queryByRole("alert")).toBeNull();
-    expect(screen.queryByText(/Guia de componentes|Ver uma festa de exemplo|revelação em 2 minutos/i)).toBeNull();
-    // a festa de exemplo em memória (S3) é um link visível para /exemplo, não um botão que grava dados
-    expect(screen.getByRole("link", { name: "Experimentar câmera" })).toHaveAttribute("href", "/exemplo");
+    expect(screen.queryByText(/Guia de componentes|revelação em 2 minutos/i)).toBeNull();
+    // a abertura não oferece mais "Experimentar câmera": a festa de exemplo continua existindo em /exemplo, mas sem botão na home
+    expect(screen.queryByRole("link", { name: "Experimentar câmera" })).toBeNull();
   });
-  it("home não lista eventos; com sessão oferece Meus eventos", async () => {
+  it("home não lista eventos; com sessão de anfitrião oferece Minhas câmeras", async () => {
+    app.canCreate = true;
     const { default: Home } = await import("./page");
     render(<Home />);
     expect(screen.queryByRole("heading", { name: /Seus eventos|Festas em que você entrou/ })).toBeNull();
-    expect(screen.getByRole("link", { name: "Meus eventos" })).toHaveAttribute("href", "/eventos");
-    expect(screen.getByRole("link", { name: "Criar meu evento grátis" })).toHaveAttribute("href", "/criar");
-    expect(screen.getByRole("link", { name: "Entrar com código" })).toHaveAttribute("href", "/entrar");
+    expect(screen.getByRole("link", { name: "Minhas câmeras" })).toHaveAttribute("href", "/eventos");
+    expect(screen.getByRole("link", { name: "Montar câmera" })).toHaveAttribute("href", "/criar");
+    expect(screen.getByRole("link", { name: "Tenho um convite" })).toHaveAttribute("href", "/entrar#codigo");
   });
   it("visitante sem sessão não vê Meus eventos", async () => {
     app.user = undefined;
     const { default: Home } = await import("./page");
     render(<Home />);
-    expect(screen.queryByRole("link", { name: "Meus eventos" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Minhas câmeras" })).toBeNull();
   });
 });
 
@@ -109,9 +107,9 @@ describe("criar/pronto (UX-12, O7)", () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error("negado")) } });
     const { default: Pronto } = await import("./criar/pronto/[id]/page");
     render(<Pronto />);
-    await userEvent.click(screen.getByRole("button", { name: "Copiar link" }));
+    await userEvent.click(screen.getByRole("button", { name: "Compartilhar convite" }));
     expect(await screen.findByText("Não conseguimos copiar. O link está selecionado.")).toBeInTheDocument();
-    expect(screen.queryByText(/Link copiado/)).toBeNull();
+    expect(screen.queryByText(/Convite copiado/)).toBeNull();
     await waitFor(() => expect(document.activeElement).toBe(screen.getByTestId("link-convite")));
   });
   it("clipboard ok diz copiado", async () => {
@@ -120,23 +118,20 @@ describe("criar/pronto (UX-12, O7)", () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
     const { default: Pronto } = await import("./criar/pronto/[id]/page");
     render(<Pronto />);
-    await userEvent.click(screen.getByRole("button", { name: "Copiar link" }));
-    expect(await screen.findByText("Link copiado para a área de transferência.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Compartilhar convite" }));
+    expect(await screen.findByRole("button", { name: "Convite copiado" })).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalled();
   });
 });
 
 describe("textos por modo na tela", () => {
-  it("convite inválido na nuvem não menciona o aparelho", async () => {
-    const { default: Convite } = await import("./e/[code]/page");
-    render(<Convite />);
-    expect(screen.getByText("Confira as 8 letras e números no card da mesa.")).toBeInTheDocument();
+  it("código que não abre festa vai para a tela do código, em vermelho (20h), sem mencionar o aparelho", async () => {
+    search = "erro=ZZZZ2222";
+    const { default: Entrar } = await import("./entrar/page");
+    render(<Entrar />);
+    expect(screen.getByText("Esse código não abre nenhuma festa. Confira as letras no convite.")).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/neste aparelho/);
-  });
-  it("convite inválido no modo local mantém o texto atual", async () => {
-    mode = "local"; app.backend = "local";
-    const { default: Convite } = await import("./e/[code]/page");
-    render(<Convite />);
-    expect(document.body.textContent).toMatch(/neste aparelho/);
+    search = "";
   });
   it("erro e offline na nuvem", async () => {
     const { default: Erro } = await import("./error");

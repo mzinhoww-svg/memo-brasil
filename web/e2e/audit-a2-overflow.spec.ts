@@ -22,8 +22,8 @@ test("textos longos", async ({ browser }) => {
       await page.goto(`/e/${code}/postar`);
       await page.getByLabel("Escolher foto do aparelho").setInputFiles({ name: "f.png", mimeType: "image/png", buffer: PNG });
       await page.getByLabel("Legenda (opcional)").fill(cap);
-      await page.getByRole("button", { name: "Postar", exact: true }).click();
-      await page.getByText("Sua visão entrou na história.").waitFor();
+      await page.getByRole("button", { name: "Mandar para o laboratório", exact: true }).click();
+      await page.getByText("Foi para o laboratório").waitFor();
     };
     await post(CAP);
     await page.goto(`/e/${code}/voce`);
@@ -46,7 +46,7 @@ test("textos longos", async ({ browser }) => {
       const a = await page.evaluate(ANALYZE) as Record<string, unknown>;
       const clipped = await page.evaluate(() => [...document.querySelectorAll("body *")].filter((e) => { const s = getComputedStyle(e); return e.scrollWidth > e.clientWidth + 1 && s.overflowX !== "visible" && e.clientWidth > 0 && !["scroll", "auto"].includes(s.overflowX); }).map((e) => e.tagName + "." + String((e as HTMLElement).className).slice(0, 30) + ` ${e.scrollWidth}>${e.clientWidth}`).slice(0, 6));
       // sobreposição de texto do seletor de evento
-      const sw = await page.evaluate(() => { const el = document.querySelector(".mm-event-switch"); if (!el) return null; const r = el.getBoundingClientRect(); const kids = [...el.children].map((k) => k.getBoundingClientRect().bottom); return { boxH: Math.round(r.height), childBottomMax: Math.round(Math.max(...kids)), boxBottom: Math.round(r.bottom), overflows: Math.max(...kids) > r.bottom + 1 }; });
+      const sw = await page.evaluate(() => { const el = document.querySelector(".rv-event-switch"); if (!el) return null; const r = el.getBoundingClientRect(); const kids = [...el.children].map((k) => k.getBoundingClientRect().bottom); return { boxH: Math.round(r.height), childBottomMax: Math.round(Math.max(...kids)), boxBottom: Math.round(r.bottom), overflows: Math.max(...kids) > r.bottom + 1 }; });
       out[`painel${s ? "-" + s : ""}-${vp.w}-${theme}`] = { overflowX: a.overflowX, clippedText: clipped, eventSwitch: sw };
       await page.screenshot({ path: path.join(EV, "screenshots", `a2-longos-painel${s ? "-" + s : ""}-${vp.w}-${theme}.png`), animations: "disabled" });
     }

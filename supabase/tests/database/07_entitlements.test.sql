@@ -40,7 +40,7 @@ insert into public.events (id, title, category, host_id, host_name, duration_hou
 
 -- ===================================================== seed de planos e configurações
 select results_eq(
-  $$select code, max_guests, max_shots, price_cents, sandbox_active, production_active from public.plans order by sort$$,
+  $$select code, max_guests, max_shots, price_cents, sandbox_active, production_active from public.plans where pack_of is null order by sort$$,
   $$values ('gratis', 10, 10, 0, true, true),
            ('festa', 30, 24, 2900, true, true),
            ('celebracao', 100, 24, 8900, true, true),
@@ -309,7 +309,7 @@ reset role;
 select code as e4_code from public.events where id = '00000000-0000-4000-8000-0000000006e4' \gset
 select tests.login('00000000-0000-4000-8000-000000000712');
 select is((select array_agg(k order by k) from jsonb_object_keys(public.event_preview(:'e6_code')) k),
-  array['capacity','category','code','eventFont','everyoneSeesAll','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
+  array['cameraStyle','capacity','category','code','eventFont','everyoneSeesAll','filmLook','full','hostName','palette','place','planCode','revealAt','revealStatus','shotsPerPerson','startAt','status','theme','timezone','title'],
   'event_preview mantém as chaves e acrescenta shotsPerPerson, revealAt, revealStatus, timezone, everyoneSeesAll e planCode');
 select is(public.event_preview(:'e6_code') ->> 'planCode', 'gratis', 'planCode do grátis');
 select is(public.event_preview(:'e4_code') ->> 'planCode', 'festa', 'planCode vem do direito efetivo (cortesia festa)');

@@ -1,24 +1,45 @@
 "use client";
 
-import Image from "next/image";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { Button, ConfirmSheet, Field, Skeleton } from "@/components/memoriesmt";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ConfirmSheet, Skeleton } from "@/components/revela";
+import { PagamentoResumo } from "@/revela/screens/PagamentoResumo";
+import { PagamentoPix } from "@/revela/screens/PagamentoPix";
+import { PagamentoCartao, type CardValues } from "@/revela/screens/PagamentoCartao";
+import { Pagamento3ds } from "@/revela/screens/Pagamento3ds";
+import { PagamentoProcessando } from "@/revela/screens/PagamentoProcessando";
+import { PagamentoAprovado } from "@/revela/screens/PagamentoAprovado";
+import { PagamentoFalhou } from "@/revela/screens/PagamentoFalhou";
+import { listPosePacks, listPublicPlans } from "./api";
+import { lookupPlans } from "./pose-packs";
+import type { PublicPlan } from "./types";
+import { useRouter } from "next/navigation";
 import { browserSupabase } from "@/lib/supabase/client";
 import { formatBRL, quote } from "./api";
 import { prepareCard } from "./validapay-card";
-import { ValidaPayOpenOrderError, ValidaPayEnvironmentConflictError, validateReceiptEnvironment, recoverSandbox, sandboxCall, sandboxConfig, sandboxRefund, type SandboxConfig, type SandboxReceipt } from "./validapay-client";
+import { LOAD_TIMEOUT_MS, ValidaPayTimeoutError, withTimeout, ValidaPayOpenOrderError, ValidaPayEnvironmentConflictError, validateReceiptEnvironment, recoverSandbox, sandboxCall, sandboxConfig, sandboxRefund, type SandboxConfig, type SandboxReceipt } from "./validapay-client";
+
+const SLOW_AFTER_MS = Math.min(8_000, LOAD_TIMEOUT_MS);
 
 /** Native checkout. The Edge Function and database authorize payment operations. */
-export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; planCode: string }) {
+export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa", wrap = "festa" }: { eventId: string; planCode: string; eventTitle?: string; wrap?: string }) {
   const [config, setConfig] = useState<SandboxConfig | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [order, setOrder] = useState<SandboxReceipt | null>(null);
   const [method, setMethod] = useState<"pix" | "card">("pix");
   const [email, setEmail] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [doc, setDoc] = useState("");
+  const [card, setCard] = useState<CardValues>({ number: "", exp: "", cvv: "", holder: "", doc: "" });
+  const [extra, setExtra] = useState({ phone: "", zipCode: "", street: "", addressNumber: "", neighborhood: "", city: "", state: "" });
+  const [step, setStep] = useState<"resumo" | "cartao">("resumo");
+  const [plans, setPlans] = useState<PublicPlan[]>([]);
+  const [tick, setTick] = useState(() => Date.now());
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [loadVersion, setLoadVersion] = useState(0);
+  const [slow, setSlow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -29,27 +50,30 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
 
   const fail = useCallback((cause: unknown, fallback: string) => {
     if (cause instanceof ValidaPayEnvironmentConflictError) { setConfig(null); setError(cause.message); }
+    else if (cause instanceof ValidaPayTimeoutError) setError(cause.message);
     else setError(cause instanceof ValidaPayOpenOrderError ? cause.message : fallback);
   }, []);
 
   useEffect(() => {
     let stopped = false;
     async function load() {
-      setLoading(true); setLoadFailed(false); setError(null);
+      setLoading(true); setLoadFailed(false); setError(null); setSlow(false);
       try {
-        const cfg = await sandboxConfig();
+        const cfg = await withTimeout(sandboxConfig());
         if (stopped) return;
         if (cfg.environment !== "sandbox" && cfg.environment !== "production") throw new Error("invalid_environment");
         setConfig(cfg);
         if (!cfg.enabled) return;
-        const [previous, user] = await Promise.all([recoverSandbox(eventId), browserSupabase().auth.getUser()]);
+        const [previous, user] = await Promise.all([withTimeout(recoverSandbox(eventId)), withTimeout(browserSupabase().auth.getUser())]);
         if (stopped) return;
         if (previous) validateReceiptEnvironment(previous, cfg.environment);
         const restore = previous && (previous.planCode === planCode || ["pendente", "criado"].includes(previous.status)) ? previous : null;
         setOrder(restore); setEmail(user.data.user?.email ?? "");
+        const meta = user.data.user?.user_metadata as { full_name?: string; name?: string } | undefined;
+        setAccountName(String(meta?.full_name ?? meta?.name ?? user.data.user?.email?.split("@")[0] ?? "").trim());
         setMethod(restore?.paymentMethod === "card" ? "card" : "pix");
         if (!restore || !["pago", "pendente", "criado"].includes(restore.status)) {
-          const quoted = await quote(eventId, planCode);
+          const quoted = await withTimeout(quote(eventId, planCode));
           if (!stopped) {
             if (!quoted.payable) {
               const messages = { ja_incluido: "Este plano já está incluído no seu evento.", evento_encerrado: "O evento foi encerrado e não permite novas compras.", plano_inativo: "Este plano não está disponível para compra.", valor_minimo: "O valor disponível não permite esta compra.", ok: "Este plano não está disponível para compra." };
@@ -65,10 +89,20 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
     return () => { stopped = true; };
   }, [eventId, planCode, fail, loadVersion]);
 
-  const refresh = useCallback(async () => {
-    if (!order || !config || submitting.current) return;
-    try { const next = await sandboxCall<SandboxReceipt>({ action: "status", orderId: order.orderId }); setOrder(validateReceiptEnvironment(next, config.environment)); setError(null); }
-    catch (cause) { fail(cause, "A confirmação está demorando. Você pode consultar novamente sem criar outro pagamento."); }
+  // carregando há mais de ~8 s: avisa e oferece saída dentro do mesmo layout (cada chamada ainda vence em 12 s)
+  useEffect(() => {
+    if (!loading) return;
+    const t = setTimeout(() => setSlow(true), SLOW_AFTER_MS);
+    return () => clearTimeout(t);
+  }, [loading, loadVersion]);
+
+  useEffect(() => { let on = true; void Promise.all([listPublicPlans(), listPosePacks()]).then(([p, k]) => { if (on) setPlans(lookupPlans(p, k)); }, () => undefined); return () => { on = false; }; }, []);
+  useEffect(() => { const t = setInterval(() => setTick(Date.now()), 1000); return () => clearInterval(t); }, []);
+
+  const refresh = useCallback(async (): Promise<string | undefined> => {
+    if (!order || !config || submitting.current) return undefined;
+    try { const next = validateReceiptEnvironment(await sandboxCall<SandboxReceipt>({ action: "status", orderId: order.orderId }), config.environment); setOrder(next); setError(null); return next.status; }
+    catch (cause) { fail(cause, "A confirmação está demorando. Você pode consultar novamente sem criar outro pagamento."); return undefined; }
   }, [order, config, fail]);
   const uncertain = order?.status === "criado" && order.canAbandon !== true;
   const effectivePlan = order && ["criado", "pendente"].includes(order.status) ? order.planCode : planCode;
@@ -100,13 +134,13 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
     return () => { stopped = true; };
   }, [order?.emv]);
 
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function submit() {
     if (submitting.current || !config?.enabled || amount === null || uncertain || loadFailed) return;
     submitting.current = true; setBusy(true); setError(null);
-    const form = e.currentTarget;
-    const values = new FormData(form);
-    const text = (name: string) => String(values.get(name) ?? "").trim();
+    const values: Record<string, string> = method === "card"
+      ? { name: card.holder, document: card.doc, holderName: card.holder, cardNumber: card.number, expiration: card.exp.length === 5 ? `${card.exp.slice(0, 3)}20${card.exp.slice(3)}` : card.exp, cvv: card.cvv, ...extra }
+      : { name: accountName || "Cliente Revela", document: doc };
+    const text = (name: string) => String(values[name] ?? "").trim();
     const digits = (name: string) => text(name).replace(/\D/g, "");
     let submittedOrderId: string | null = null;
     try {
@@ -171,24 +205,81 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
         : "Não foi possível concluir. Confira os dados e tente novamente; o mesmo pedido será reutilizado.");
     }
     finally {
-      for (const name of ["cardNumber", "cvv", "expiration", "holderName"]) { const input = form.elements.namedItem(name); if (input instanceof HTMLInputElement) input.value = ""; }
+      setCard((c) => ({ ...c, number: "", exp: "", cvv: "" }));
       submitting.current = false; setBusy(false);
     }
   }
 
+  const plan = plans.find((p) => p.code === (order?.planCode ?? effectivePlan));
+  const money = (cents: number) => (cents % 100 === 0 ? `R$ ${cents / 100}` : formatBRL(cents));
+  const exact = (cents: number) => `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
+  const shown = order?.amountCents ?? amount ?? 0;
+  const camSrc = `/revela/3d/cam-${wrap}-640.webp`;
+  const planCaption = plan ? `${plan.maxGuests === null ? "convidados sem limite" : `${plan.maxGuests} convidados`} · ${plan.maxShots === null ? "poses livres" : `${plan.maxShots} poses cada`}` : undefined;
+  const cardEnabled = !!config?.publicId;
+  const methodLabel = order?.paymentMethod === "card" ? "Cartão" : "Pix";
+  const back = () => router.push(`/painel/${eventId}/plano`);
+  const abandon = async () => {
+    if (!order) return;
+    if (submitting.current) return;
+    submitting.current = true; setBusy(true); setError(null);
+    try {
+      const result = await sandboxCall<{ abandoned: boolean }>({ action: "abandon", orderId: order.orderId });
+      if (result.abandoned !== true) throw new Error("not_abandoned");
+      key.current = null;
+      for (const chosen of ["pix", "card"]) { try { sessionStorage.removeItem(`validapay:${config!.environment}:${eventId}:${order.planCode}:${chosen}`); } catch { /* in-memory fallback */ } }
+      // Do not offer a fresh intention until its price is available.
+      setAmount(null); setOrder(null); setQr(null); setCopied(false); setStep("resumo");
+      const quoted = await quote(eventId, planCode);
+      if (!quoted.payable) throw new Error("not_payable");
+      setAmount(quoted.amountCents);
+    } catch (cause) { setLoadFailed(true); fail(cause, "Não foi possível trocar a forma de pagamento. Consulte o pagamento e tente novamente."); }
+    finally { submitting.current = false; setBusy(false); }
+  };
+
+  const abandonOrCancel = async () => {
+    if (!order || submitting.current) return;
+    submitting.current = true; setBusy(true);
+    try {
+      const next = await sandboxCall<SandboxReceipt>({ action: "cancel", orderId: order.orderId });
+      setOrder(validateReceiptEnvironment(next, config!.environment));
+      setMethod("pix"); setStep("resumo");
+    } catch (cause) { fail(cause, "Não foi possível cancelar. Consulte o estado do pagamento antes de tentar novamente."); }
+    finally { submitting.current = false; setBusy(false); }
+  };
+
+  if (loading && slow) {
+    return (
+      <div className="scr">
+        <div className="safe">
+          <Skeleton label="Abrindo pagamento…" />
+          <h2 className="rv-title-lg" style={{ marginTop: "var(--space-5)" }}>Está demorando mais que o normal</h2>
+          <p className="rv-body muted" role="status" style={{ margin: "8px 0 var(--space-5)" }}>A conexão com o pagamento está lenta. Você pode esperar mais um pouco ou tentar de novo; nada foi cobrado.</p>
+          <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={() => setLoadVersion((version) => version + 1)}>Tentar de novo</button>
+          <button type="button" className="rv-btn rv-btn--text rv-btn--block" onClick={back}>Voltar aos planos</button>
+        </div>
+      </div>
+    );
+  }
   if (loading) return <Skeleton label="Abrindo pagamento…" />;
-  if (loadFailed) return <div className="plano-estado app-stack"><h1 className="titulo-tela app-h1">Checkout indisponível</h1>{error && <p role="alert">{error}</p>}<Button onClick={() => setLoadVersion((version) => version + 1)}>Tentar novamente</Button><Button variant="texto" href={`/painel/${eventId}/plano`}>Voltar aos planos</Button></div>;
-  if (!config?.enabled) return <div className="plano-estado"><h1 className="titulo-tela app-h1">Checkout indisponível</h1><p className="app-p">Esta forma de pagamento ainda não está disponível.</p>{error && <p role="alert">{error}</p>}</div>;
-  if (order?.status === "estornado") return <div className="plano-estado"><h1 className="titulo-tela app-h1">Pagamento estornado</h1><p className="app-p">A devolução foi confirmada e o benefício deste pagamento foi revogado.</p><Button href={`/painel/${eventId}`}>Ir para o painel</Button></div>;
-  if (order?.status === "pago") return <div className="plano-estado app-stack">
-    <h1 className="titulo-tela app-h1">Pagamento confirmado</h1><p className="app-p">O pagamento foi confirmado pelo servidor.</p>
-    {order.entitlementActive === true ? <p className="app-p">O plano {order.planCode} está ativo.</p> : <p className="app-p">{order.entitlementActive === false ? "O plano não foi liberado por este pagamento." : "A liberação do plano ainda não foi confirmada."} Consulte o suporte com a referência do pedido.</p>}
-    {order.needsRefund === true && <p className="app-p">A devolução está em análise. Este recibo não confirma um reembolso concluído.</p>}
-    <p className="app-p">Pedido: {order.orderId}</p>
-    <Button href={`/painel/${eventId}`}>Ir para o painel</Button>
-    {config.environment === "sandbox" && <Button variant="texto" disabled={busy} onClick={() => setAskRefund(true)}>Solicitar estorno de teste</Button>}
-    {error && <p role="alert" className="app-p">{error}</p>}
-    {config.environment === "sandbox" && askRefund && <ConfirmSheet title="Estornar este pagamento de teste?" body="A devolução integral só revoga o plano após confirmação do provedor." confirmLabel="Confirmar estorno integral" onCancel={() => setAskRefund(false)} onConfirm={async () => {
+  if (loadFailed) return <PagamentoFalhou title="Checkout indisponível" stamp="INDISPONÍVEL" message={error ?? "Não foi possível abrir o checkout."} primary="Tentar novamente" secondary="Voltar aos planos" onPrimary={() => setLoadVersion((version) => version + 1)} onSecondary={back} onClose={back} />;
+  if (!config?.enabled) return <PagamentoFalhou title="Checkout indisponível" stamp="INDISPONÍVEL" message={error ?? "Esta forma de pagamento ainda não está disponível."} primary="Tentar de novo" secondary="Voltar aos planos" onPrimary={() => setLoadVersion((version) => version + 1)} onSecondary={back} onClose={back} />;
+  if (order?.status === "estornado") return <PagamentoFalhou title="Pagamento estornado" stamp="ESTORNADO" message="A devolução foi confirmada e o benefício deste pagamento foi revogado." primary="Ir para o painel" secondary={null} onPrimary={() => router.push(`/painel/${eventId}`)} onClose={() => router.push(`/painel/${eventId}`)} />;
+  if (order?.status === "pago") {
+    const active = order.entitlementActive;
+    const message = active === true
+      ? `A câmera de ${eventTitle} está liberada${plan ? ` para ${plan.maxGuests ?? "muitos"} convidados, com ${plan.maxShots === null ? "poses livres" : `${plan.maxShots} poses cada`}` : ""}.`
+      : `${active === false ? "O plano não foi liberado por este pagamento." : "A liberação do plano ainda não foi confirmada."} Consulte o suporte com a referência do pedido.${order.needsRefund === true ? " A devolução está em análise. Este recibo não confirma um reembolso concluído." : ""} Pedido: ${order.orderId}`;
+    return (
+      <>
+        <PagamentoAprovado cam={camSrc} message={message} paid={`${methodLabel} · ${exact(order.amountCents)}`} when={`${new Date(tick).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} · pedido ${order.orderId.slice(0, 8)}`} onContinue={() => router.push(`/criar/pronto/${eventId}`)} />
+        {config.environment === "sandbox" && (
+          <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 30, display: "flex", justifyContent: "center", gap: 8, padding: 8 }}>
+            <button type="button" className="rv-btn rv-btn--text" disabled={busy} onClick={() => setAskRefund(true)}>Solicitar estorno de teste</button>
+          </div>
+        )}
+        {error && <p role="alert" className="rv-caption center" style={{ position: "fixed", left: 0, right: 0, top: 8, color: "var(--danger)" }}>{error}</p>}
+        {config.environment === "sandbox" && askRefund && <ConfirmSheet title="Estornar este pagamento de teste?" body="A devolução integral só revoga o plano após confirmação do provedor." confirmLabel="Confirmar estorno integral" onCancel={() => setAskRefund(false)} onConfirm={async () => {
       if (submitting.current) return;
       submitting.current = true; setBusy(true);
       try {
@@ -199,77 +290,64 @@ export function ValidaPayCheckout({ eventId, planCode }: { eventId: string; plan
       } catch { setError("O estorno está em verificação. Aguarde a conciliação antes de solicitar outra devolução."); }
       finally { submitting.current = false; setBusy(false); setAskRefund(false); }
     }} />}
-  </div>;
-  if (order && (["pendente", "expirado"].includes(order.status) || uncertain)) return (
-    <div className="plano-estado app-stack" aria-busy={busy}>
-      <h1 className="titulo-tela app-h1">{uncertain ? "Pagamento em verificação" : order.status === "expirado" ? "Pagamento expirado" : "Aguardando pagamento"}</h1>
-      <p className="app-p">Plano {order.planCode} · {formatBRL(order.amountCents)} · {order.paymentMethod === "card" ? "Cartão" : "Pix"}</p>
+      </>
+    );
+  }
+  if (order && (["pendente", "expirado"].includes(order.status) || uncertain)) {
+    if (order.status === "expirado") {
+      return <PagamentoFalhou title="Pagamento expirado" stamp="EXPIROU" message="O tempo para pagar acabou e nada foi cobrado. Gere um novo pagamento para continuar." primary="Tentar novo pagamento" secondary={null}
+        onPrimary={() => {
+          key.current = null;
+          for (const chosen of ["pix", "card"]) { try { sessionStorage.removeItem(`validapay:${config.environment}:${eventId}:${order.planCode}:${chosen}`); } catch { /* in-memory fallback */ } }
+          setOrder(null); setQr(null); setCopied(false);
+        }} onClose={back} />;
+    }
+    if ((order.paymentMethod ?? "pix") === "pix" && order.emv && !uncertain) {
+      const left = order.expiresAt ? Math.max(0, Math.floor((new Date(order.expiresAt).getTime() - tick) / 1000)) : null;
+      const mmss = left === null ? "--:--" : `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+      return (
+        <>
+          <PagamentoPix amount={money(order.amountCents)} expires={mmss} code={order.emv} qr={qr ?? undefined} copied={copied} onClose={back}
+            onCopy={() => { void navigator.clipboard?.writeText(order.emv!).then(() => setCopied(true), () => setCopied(false)); }} />
+          {error && <p role="alert" className="rv-caption center" style={{ position: "fixed", left: 0, right: 0, top: 8, color: "var(--danger)" }}>{error}</p>}
+        </>
+      );
+    }
+    if (order.paymentMethod === "card" && order.status === "pendente" && !uncertain) {
+      return <Pagamento3ds amount={money(order.amountCents)} onBack={back} onApproved={() => void refresh()} onPix={() => void abandonOrCancel()} busy={busy} />;
+    }
+    return (
+      <>
+        <PagamentoProcessando cam={camSrc} onClose={() => void refresh().then((st) => { if (st === "pendente" || st === "criado") back(); })} />
+        {error && <p role="alert" className="rv-caption center" style={{ position: "fixed", left: 0, right: 0, top: 8, color: "var(--danger)" }}>{error}</p>}
+      </>
+    );
+  }
+  if (order && ["falhou", "cancelado"].includes(order.status) && !busy) {
+    const card = order.paymentMethod === "card";
+    return <PagamentoFalhou title={card ? "O banco recusou" : "Não deu certo"} stamp={card ? "RECUSADO" : "NÃO PAGO"} message={card ? "O cartão não foi aprovado. Nada foi cobrado. Tente com Pix ou com outro cartão." : "O pagamento não foi concluído. Nada foi cobrado. Você pode tentar de novo."}
+      primary="Pagar com Pix" secondary={card && cardEnabled ? "Usar outro cartão" : null} onClose={back}
+      onPrimary={() => { setOrder(null); setMethod("pix"); setStep("resumo"); }} onSecondary={() => { setOrder(null); setMethod("card"); setStep("cartao"); }} />;
+  }
+  if (busy && method === "card" && step === "cartao") {
+    return <Pagamento3ds amount={money(shown)} onBack={back} onApproved={() => void refresh()} onPix={() => { setMethod("pix"); setStep("resumo"); }} busy />;
+  }
+  if (step === "cartao" && method === "card" && cardEnabled) {
+    const field = (label: string, key2: keyof typeof extra, auto: string) => (
+      <label className="rv-field" style={{ marginTop: "10px" }}><input value={extra[key2]} onChange={(e) => setExtra((x) => ({ ...x, [key2]: e.target.value }))} aria-label={label} placeholder={label} autoComplete={auto} /></label>
+    );
+    return <>{order?.canAbandon === true && <button type="button" className="rv-btn rv-btn--text" disabled={busy} style={{ position: "fixed", right: 8, top: 8, zIndex: 30 }} onClick={() => void abandon()}>{mismatch ? "Abandonar reserva e escolher outro plano" : "Trocar forma de pagamento"}</button>}<PagamentoCartao amount={money(shown)} values={card} busy={busy} error={error ?? undefined}
+      onField={(f, v) => setCard((c) => ({ ...c, [f]: v }))} onBack={() => setStep("resumo")} onPay={() => void submit()}
+      extra={<>{field("Telefone", "phone", "tel")}{field("CEP", "zipCode", "postal-code")}{field("Rua", "street", "address-line1")}{field("Número do endereço", "addressNumber", "off")}{field("Bairro", "neighborhood", "off")}{field("Cidade", "city", "address-level2")}{field("UF", "state", "address-level1")}</>} /></>;
+  }
+  return (
+    <>
       {conflictNotice}
-      {uncertain && <p className="app-p">A resposta da cobrança ainda não foi confirmada. Não inicie outro pagamento. Pedido: {order.orderId}</p>}
-      {order.expiresAt && <p className="app-p">Válido até {new Date(order.expiresAt).toLocaleString("pt-BR")}</p>}
-      {qr && <Image src={qr} alt="QR Code Pix" width={256} height={256} unoptimized style={{ maxWidth: "100%", height: "auto", alignSelf: "center" }} />}
-      {order.emv && <><label className="mm-field-label" htmlFor="validapay-emv">Pix copia e cola</label><textarea id="validapay-emv" className="mm-field-input" readOnly value={order.emv} style={{ width: "100%", minHeight: 100, overflowWrap: "anywhere" }} /><Button onClick={() => { void navigator.clipboard.writeText(order.emv!).then(() => setCopied(true)).catch(() => setError("Selecione e copie o código Pix manualmente.")); }}>{copied ? "Código copiado" : "Copiar código Pix"}</Button></>}
-      {error && <p role="alert" className="app-p">{error}</p>}
-      <p role="status" className="app-p">{uncertain ? "O pagamento está em verificação. A confirmação será atualizada automaticamente." : "A confirmação será atualizada automaticamente."}</p>
-      <Button variant="secundario" onClick={() => void refresh()}>Consultar pagamento</Button>
-      {order.status === "pendente" && <Button variant="texto" disabled={busy} onClick={() => {
-        if (submitting.current) return;
-        submitting.current = true; setBusy(true);
-        void sandboxCall<SandboxReceipt>({ action: "cancel", orderId: order.orderId }).then((next) => setOrder(validateReceiptEnvironment(next, config.environment)))
-          .catch((cause) => fail(cause, "Não foi possível cancelar. Consulte o estado do pagamento antes de tentar novamente."))
-          .finally(() => { submitting.current = false; setBusy(false); });
-      }}>Cancelar pagamento</Button>}
-      {order.status === "expirado" && <Button onClick={() => {
-        key.current = null;
-        for (const chosen of ["pix", "card"]) { try { sessionStorage.removeItem(`validapay:${config.environment}:${eventId}:${order.planCode}:${chosen}`); } catch { /* in-memory fallback */ } }
-        setOrder(null); setQr(null); setCopied(false);
-      }}>Tentar novo pagamento</Button>}
-    </div>
+      {order?.canAbandon === true && <button type="button" className="rv-btn rv-btn--text" disabled={busy} style={{ position: "fixed", right: 8, top: 8, zIndex: 30 }} onClick={() => void abandon()}>{mismatch ? "Abandonar reserva e escolher outro plano" : "Trocar forma de pagamento"}</button>}
+      <PagamentoResumo cam={camSrc} planName={plan?.name ?? effectivePlan} caption={planCaption ?? ""} price={amount !== null ? money(amount) : "—"} priceExact={amount !== null ? exact(amount) : "—"} eventName={eventTitle}
+        method={method} cardEnabled={cardEnabled} askDocument document={doc} busy={busy} error={error ?? (order ? "O pagamento anterior não foi concluído. Você pode tentar novamente." : undefined)}
+        onMethod={(m) => { setMethod(m); setError(null); }} onDocument={setDoc} onBack={back}
+        onPay={() => { if (method === "card") setStep("cartao"); else void submit(); }} />
+    </>
   );
-  return <div className="plano-estado app-stack">
-    <h1 className="titulo-tela app-h1">Pagar plano {effectivePlan}</h1>
-    {conflictNotice}
-    <p className="app-p">{amount !== null ? formatBRL(amount) : "Valor indisponível"} · Pagamento único</p>
-    {order?.canAbandon === true && <Button variant="texto" disabled={busy} onClick={async () => {
-      if (submitting.current) return;
-      submitting.current = true; setBusy(true); setError(null);
-      try {
-        const result = await sandboxCall<{ abandoned: boolean }>({ action: "abandon", orderId: order.orderId });
-        if (result.abandoned !== true) throw new Error("not_abandoned");
-        key.current = null;
-        for (const chosen of ["pix", "card"]) { try { sessionStorage.removeItem(`validapay:${config.environment}:${eventId}:${order.planCode}:${chosen}`); } catch { /* in-memory fallback */ } }
-        // Do not offer a fresh intention until its price is available.
-        setAmount(null); setOrder(null); setQr(null); setCopied(false);
-        const quoted = await quote(eventId, planCode);
-        if (!quoted.payable) throw new Error("not_payable");
-        setAmount(quoted.amountCents);
-      } catch (cause) { setLoadFailed(true); fail(cause, "Não foi possível trocar a forma de pagamento. Consulte o pagamento e tente novamente."); }
-      finally { submitting.current = false; setBusy(false); }
-    }}>{mismatch ? "Abandonar reserva e escolher outro plano" : "Trocar forma de pagamento"}</Button>}
-    {order && <p role="status" className="app-p">O pagamento anterior não foi concluído. Você pode tentar novamente.</p>}
-    <form className="app-stack" onSubmit={(e) => void submit(e)} aria-busy={busy}>
-      <fieldset disabled={busy} style={{ border: 0, padding: 0, minWidth: 0 }} className="app-stack">
-        <legend className="mm-field-label">Forma de pagamento</legend>
-        <label><input type="radio" name="method" checked={method === "pix"} disabled={!!order && ["criado", "pendente"].includes(order.status) && method !== "pix"} onChange={() => { setMethod("pix"); key.current = null; }} /> Pix</label>
-        <label><input type="radio" name="method" checked={method === "card"} disabled={!config.publicId || (!!order && ["criado", "pendente"].includes(order.status) && method !== "card")} onChange={() => { setMethod("card"); key.current = null; }} /> Cartão</label>
-        <Field label="Nome completo" name="name" autoComplete="name" required minLength={2} maxLength={200} />
-        <Field label="CPF ou CNPJ" name="document" inputMode="numeric" required maxLength={18} />
-        {method === "card" && <>
-          <Field label="Nome do titular" name="holderName" autoComplete="cc-name" required />
-          <Field label="Número do cartão" name="cardNumber" autoComplete="cc-number" inputMode="numeric" required maxLength={23} />
-          <Field label="Validade (MM/AAAA)" name="expiration" autoComplete="cc-exp" placeholder="12/2030" inputMode="numeric" required pattern="(0[1-9]|1[0-2])/20[0-9]{2}" />
-          <Field label="Código de segurança" name="cvv" type="password" autoComplete="cc-csc" inputMode="numeric" required minLength={3} maxLength={4} />
-          <Field label="Telefone" name="phone" autoComplete="tel" inputMode="tel" required />
-          <Field label="CEP" name="zipCode" autoComplete="postal-code" inputMode="numeric" required />
-          <Field label="Rua" name="street" autoComplete="address-line1" required />
-          <Field label="Número do endereço" name="addressNumber" required />
-          <Field label="Bairro" name="neighborhood" required />
-          <Field label="Cidade" name="city" autoComplete="address-level2" required />
-          <Field label="Estado (UF)" name="state" autoComplete="address-level1" required maxLength={2} />
-        </>}
-        {error && <p role="alert" className="app-p">{error}</p>}
-        <Button type="submit" block disabled={amount === null || busy}>{busy ? "Processando…" : method === "pix" ? "Gerar Pix" : "Confirmar pagamento"}</Button>
-      </fieldset>
-    </form>
-  </div>;
 }

@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/memoriesmt";
+import { Button } from "@/components/revela";
 import { formatBRL, orderStatus } from "./api";
 import { PLAN_TEXT, countdown, formatDateTime, joinGuests, paymentLabel, screenFor, type ReturnHint } from "./flow";
 import { getCheckoutBridge } from "./checkout-nav";
 import type { OrderView, PublicPlan } from "./types";
+import { ScreenH1 } from "@/revela/painel-ui";
 
 /** Pendente: 5 s. Expirado (o Pix pode ser confirmado depois do prazo): 15 s, no máximo 20 consultas. */
 const POLL_PENDING_MS = 5000;
@@ -95,16 +97,16 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
       <div className="plano-estado" data-testid="checkout-pendente">
         {live}
         <Header plan={plan} order={order} />
-        <h1 className="titulo-tela app-h1">Pagamento em andamento</h1>
+        <ScreenH1 className="titulo-tela app-h1">Pagamento em andamento</ScreenH1>
         {banner}
         {returnHint === "falha" && <p className="app-p">Você voltou sem concluir o pagamento. Se quiser, continue de onde parou.</p>}
         <div className="app-stack">
           {order.provider === "validapay" ? (
-            <a className="mm-btn mm-btn--cta mm-btn--bloco" href={`/painel/${encodeURIComponent(eventId)}/checkout-validapay?plano=${encodeURIComponent(order.planCode)}`}>
-              <span>Continuar pagamento no MemoriesMT</span>
-            </a>
+            <Link className="rv-btn rv-btn--cta rv-btn--bloco" href={`/painel/${encodeURIComponent(eventId)}/checkout-validapay?plano=${encodeURIComponent(order.planCode)}`}>
+              <span>Continuar pagamento no Revela</span>
+            </Link>
           ) : order.checkoutUrl ? (
-            <a className="mm-btn mm-btn--cta mm-btn--bloco" href={order.checkoutUrl} rel="noopener">
+            <a className="rv-btn rv-btn--cta rv-btn--bloco" href={order.checkoutUrl} rel="noopener">
               <span>Continuar para o Mercado Pago</span>
             </a>
           ) : (
@@ -130,7 +132,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
           </div>
           <section className="plano-como" aria-labelledby="como-pagar">
             <h2 id="como-pagar" className="titulo-card app-h1">Como pagar</h2>
-            <p className="app-p app-muted">{order.provider === "validapay" ? "Continue no MemoriesMT para consultar seu Pix ou cartão e acompanhar a confirmação." : order.provider === "mercadopago" ? "No Mercado Pago você escolhe a forma de pagamento (cartão e, quando houver, Pix). Quando terminar, volte para cá." : "Consulte o estado deste pedido no painel. Se já pagou, aguarde a confirmação antes de iniciar outro pagamento."}</p>
+            <p className="app-p app-muted">{order.provider === "validapay" ? "Continue no Revela para consultar seu Pix ou cartão e acompanhar a confirmação." : order.provider === "mercadopago" ? "No Mercado Pago você escolhe a forma de pagamento (cartão e, quando houver, Pix). Quando terminar, volte para cá." : "Consulte o estado deste pedido no painel. Se já pagou, aguarde a confirmação antes de iniciar outro pagamento."}</p>
           </section>
           <p className="app-p app-muted">Pode fechar esta tela. O pedido fica guardado no painel e o plano libera sozinho quando o pagamento for confirmado.</p>
           <p className="app-p app-muted">{order.provider === "validapay" ? "Pagamento processado pela ValidaPay." : order.provider === "mercadopago" ? "Pagamento processado pelo Mercado Pago." : "Pedido histórico processado pela AbacatePay."}</p>
@@ -146,7 +148,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
         {live}
         <span className="plano-selo" aria-hidden="true">✓</span>
         <p className="plano-eyebrow">Pagamento confirmado</p>
-        <h1 className="titulo-tela app-h1">{order.entitlementActive === true ? `Plano ${plan?.name ?? order.planCode} ativo.` : "Pagamento recebido"}</h1>
+        <ScreenH1 className="titulo-tela app-h1">{order.entitlementActive === true ? `Plano ${plan?.name ?? order.planCode} ativo.` : "Pagamento recebido"}</ScreenH1>
         {order.entitlementActive !== true && <p className="app-p">{order.entitlementActive === false ? "O plano não foi liberado por este pagamento." : "A liberação do plano ainda não foi confirmada."} Consulte o suporte com a referência do pedido.</p>}
         {order.needsRefund === true && <p className="app-p">A devolução está em análise. A confirmação do reembolso ainda não foi recebida.</p>}
         {order.entitlementActive === true && plan && <p className="app-p app-muted">{joinGuests(plan.maxGuests, plan.maxShots)} Já vale para quem entrar agora.</p>}
@@ -154,7 +156,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
         <p className="app-p app-muted plano-nota">Guarde este comprovante. Ele também fica em Painel › Plano.</p>
         <div className="app-stack-sm plano-acoes">
           <Button href={painel} block>Voltar ao painel</Button>
-          <Button href={`${painel}/qr`} variant="secundario" block>Imprimir os cards das mesas</Button>
+          <Button href={`${painel}/qr`} variant="secundario" block>Baixar QR code</Button>
           <Button variant="texto" block onClick={onChoosePlan}>Ver outros planos</Button>
         </div>
       </div>
@@ -167,7 +169,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
         {live}
         <Header plan={plan} order={order} />
         <span className="plano-selo" aria-hidden="true">◷</span>
-        <h1 className="titulo-tela app-h1">Este pagamento expirou.</h1>
+        <ScreenH1 className="titulo-tela app-h1">Este pagamento expirou.</ScreenH1>
         <p className="app-p app-muted">{PLAN_TEXT.expirado}</p>
         <section className="plano-cartao"><p className="app-p">Pagou agora há pouco? O plano libera sozinho. Não pague de novo.</p></section>
         <div className="app-stack-sm plano-acoes">
@@ -184,7 +186,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
         {live}
         <Header plan={plan} order={order} />
         <span className="plano-selo plano-selo--erro" aria-hidden="true">×</span>
-        <h1 className="titulo-tela app-h1">O pagamento não foi concluído.</h1>
+        <ScreenH1 className="titulo-tela app-h1">O pagamento não foi concluído.</ScreenH1>
         <p className="app-p app-muted">Nada foi cobrado. Tente de novo em instantes.</p>
         <div className="app-stack-sm plano-acoes">
           <Button block onClick={onNewCheckout} disabled={busy}>Tentar de novo</Button>
@@ -198,7 +200,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
     return (
       <div className="plano-estado" data-testid="checkout-estornado">
         <Header plan={plan} order={order} />
-        <h1 className="titulo-tela app-h1" aria-live="polite">Pagamento devolvido.</h1>
+        <ScreenH1 className="titulo-tela app-h1" aria-live="polite">Pagamento devolvido.</ScreenH1>
         <p className="app-p app-muted">O valor voltou para quem pagou. O evento segue com os limites do plano que ele tem agora.</p>
         <div className="app-stack-sm plano-acoes">
           <Button block onClick={onChoosePlan}>Escolher um plano</Button>
@@ -211,7 +213,7 @@ export function CheckoutPending({ order, plans, warning, eventId, returnHint, on
   return (
     <div className="plano-estado" data-testid="checkout-em-disputa">
       <Header plan={plan} order={order} />
-      <h1 className="titulo-tela app-h1" aria-live="polite">Pagamento em análise.</h1>
+      <ScreenH1 className="titulo-tela app-h1" aria-live="polite">Pagamento em análise.</ScreenH1>
       <p className="app-p app-muted">Seus convidados continuam usando o evento.</p>
       <div className="app-stack-sm plano-acoes"><Button href={painel} block>Voltar ao painel</Button></div>
     </div>
@@ -230,7 +232,7 @@ export function ProviderDown({ planName, amountLabel, onRetry, seconds = 60, bus
     <div className="plano-estado" data-testid="provedor-fora">
       {planName && <p className="plano-eyebrow">Plano {planName}{amountLabel ? ` · ${amountLabel}` : ""}</p>}
       <span className="plano-selo plano-selo--aviso" aria-hidden="true">!</span>
-      <h1 className="titulo-tela app-h1" aria-live="assertive">O sistema de pagamento não respondeu.</h1>
+      <ScreenH1 className="titulo-tela app-h1" aria-live="assertive">O sistema de pagamento não respondeu.</ScreenH1>
       <p className="app-p app-muted">{PLAN_TEXT.provedor}</p>
       <div className="app-stack-sm plano-acoes">
         <Button block disabled={left > 0 || busy} onClick={onRetry}>{label}</Button>

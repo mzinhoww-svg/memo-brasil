@@ -1,19 +1,18 @@
-import { requireMaster, when } from "../data";
-import { Badge, PageHead, StateBox, Table } from "../ui";
+import { MasterStatePage } from "@/revela/master/MasterState";
+import { requireRole, rpc } from "../data";
+import { relWhen } from "../format";
+import { ConfigPanel } from "./ConfigPanel";
+import { viewOf, type ConfigOverview } from "./config";
 
-interface S { key: string; value: unknown; updated_at: string }
-interface F { key: string; enabled: boolean; rollout: unknown; updated_at: string }
+/** M31 · Configurações (só master). Ambiente do pagamento somente leitura; chaves, validade do Pix, suporte, empresa e folga gravam pela RPC com motivo e auditoria. */
 export default async function Configuracoes() {
-  const sb = await requireMaster();
-  const [s, f] = await Promise.all([sb.from("platform_settings").select("key,value,updated_at").order("key"), sb.from("feature_flags").select("key,enabled,rollout,updated_at").order("key")]);
-  const fail = (e: { message: string } | null) => e ? ({ state: "error", message: e.message } as const) : null;
-  return (
-    <>
-      <PageHead titulo="Configurações" texto="Parâmetros e feature flags da plataforma. Leitura aqui; alterações passam pelas RPCs admin_set_* (somente master, com justificativa e auditoria)." />
-      <h2 style={{ fontSize: 18 }}>Parâmetros</h2>
-      {fail(s.error) ? <StateBox load={fail(s.error)!} /> : <Table vazio="Nenhum parâmetro definido." cols={[{ k: "k", h: "Chave" }, { k: "v", h: "Valor" }, { k: "u", h: "Atualizado" }]} rows={((s.data ?? []) as S[]).map((x) => ({ k: <code>{x.key}</code>, v: <code>{JSON.stringify(x.value)}</code>, u: when(x.updated_at) }))} />}
-      <h2 style={{ fontSize: 18, marginTop: 32 }}>Feature flags</h2>
-      {fail(f.error) ? <StateBox load={fail(f.error)!} /> : <Table vazio="Nenhuma flag definida." cols={[{ k: "k", h: "Flag" }, { k: "e", h: "Estado" }, { k: "r", h: "Rollout" }, { k: "u", h: "Atualizada" }]} rows={((f.data ?? []) as F[]).map((x) => ({ k: <code>{x.key}</code>, e: <Badge s={x.enabled ? "ok" : "info"}>{x.enabled ? "ligada" : "desligada"}</Badge>, r: <code>{JSON.stringify(x.rollout)}</code>, u: when(x.updated_at) }))} />}
-    </>
-  );
+  const gate = await requireRole("configuracoes");
+  if ("denied" in gate) return gate.denied;
+  const r = await rpc<ConfigOverview | null>(gate.sb, "admin_config_overview");
+  if (r.state === "denied") return <MasterStatePage area="Configurações" variant="denied" />;
+  if (r.state === "error") return <MasterStatePage area="Configurações" variant="error" />;
+  if (!r.data) return <MasterStatePage area="Configurações" variant="empty" caption="Cada alteração pede motivo e entra na auditoria" title="Configurações indisponíveis" text="Nenhum valor foi lido do servidor." />;
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const url = `${base}/functions/v1/payments-validapay-webhook`;
+  return <ConfigPanel overview={r.data} view={viewOf(r.data, url, (iso) => relWhen(iso))} />;
 }

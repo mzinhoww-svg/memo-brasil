@@ -4,7 +4,7 @@ import type { Photo, Reaction } from "@/domain/photo";
 import { paginate, sortNewestFirst } from "../paging";
 import type { ThemeSpec } from "@/domain/theme";
 import { isMissingThemeSchema } from "./compat";
-import { RepositoryError, type EventPreview, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryErrorCode, type User } from "../types";
+import { RepositoryError, type EventPreview, type Invitation, type Participant, type PhotoData, type PhotoUrl, type Repositories, type RepositoryErrorCode, type User } from "../types";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -14,6 +14,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  */
 const BUCKET = "event-photos";
 const PAGE = 1000; // PostgREST trunca em 1000 linhas por requisição
+/** Validade das URLs assinadas: longa o bastante para o cache do cliente reaproveitar a mesma URL entre telas. */
+export const SIGNED_URL_TTL_S = 3600;
 
 type Row = Record<string, unknown>;
 const ms = (v: unknown): number | undefined => (typeof v === "string" ? Date.parse(v) : undefined);
@@ -52,12 +54,12 @@ const sameTheme = (a?: ThemeSpec, b?: ThemeSpec) => JSON.stringify(a ?? null) ==
 const toEvent = (r: Row): MemoEvent => ({
   id: r.id as string, code: r.code as string, title: r.title as string, category: r.category as MemoEvent["category"],
   hostId: r.host_id as string, hostName: r.host_name as string, startAt: ms(r.start_at)!, durationHours: Number(r.duration_hours),
-  endedAt: ms(r.ended_at), cameraStyle: r.camera_style as MemoEvent["cameraStyle"],
+  endedAt: ms(r.ended_at), cameraStyle: r.camera_style as MemoEvent["cameraStyle"], filmLook: (r.film_look as MemoEvent["filmLook"] | null) ?? undefined,
   revealEnabled: r.reveal_enabled as boolean, revealAt: ms(r.reveal_at) ?? null, revealAnchor: r.reveal_anchor as MemoEvent["revealAnchor"],
   revealOffsetDays: r.reveal_offset_days as number, timezone: r.timezone as string, revealStatus: r.reveal_status as MemoEvent["revealStatus"],
   revealedAt: ms(r.revealed_at) ?? null, version: r.version as number, retentionPolicy: (r.retention_policy as string | null) ?? undefined,
   capacity: r.capacity as MemoEvent["capacity"], shotsPerPerson: r.shots_per_person as MemoEvent["shotsPerPerson"],
-  everyoneSeesAll: r.everyone_sees_all as boolean, reactionsEnabled: r.reactions_enabled as boolean,
+  everyoneSeesAll: r.everyone_sees_all as boolean, guestDownloadHigh: r.guest_download_high !== false, reactionsEnabled: r.reactions_enabled as boolean,
   palette: r.palette as MemoEvent["palette"], eventFont: r.event_font as MemoEvent["eventFont"], place: (r.place as string | null) ?? undefined,
   moments: (r.moments as string[]) ?? [], tables: r.tables as number,
   notice: (r.notice as MemoEvent["notice"] | null) ?? undefined, createdAt: ms(r.created_at)!,
@@ -67,9 +69,9 @@ const toEvent = (r: Row): MemoEvent => ({
 /** Colunas editáveis pelo cliente. host_id, code, version, revealed_at, reveal_status e created_at são do servidor. */
 const eventPatch = (e: MemoEvent): Row => ({
   title: e.title, category: e.category, host_name: e.hostName, start_at: iso(e.startAt), duration_hours: e.durationHours, ended_at: iso(e.endedAt),
-  camera_style: e.cameraStyle, reveal_enabled: e.revealEnabled, reveal_at: iso(e.revealAt), reveal_anchor: e.revealAnchor,
+  camera_style: e.cameraStyle, film_look: e.filmLook ?? "filme35", reveal_enabled: e.revealEnabled, reveal_at: iso(e.revealAt), reveal_anchor: e.revealAnchor,
   reveal_offset_days: e.revealOffsetDays, timezone: e.timezone, capacity: e.capacity, shots_per_person: e.shotsPerPerson,
-  everyone_sees_all: e.everyoneSeesAll, reactions_enabled: e.reactionsEnabled, palette: e.palette, event_font: e.eventFont,
+  everyone_sees_all: e.everyoneSeesAll, guest_download_high: e.guestDownloadHigh ?? true, reactions_enabled: e.reactionsEnabled, palette: e.palette, event_font: e.eventFont,
   place: e.place ?? null, moments: e.moments, tables: e.tables, notice: e.notice ?? null,
 });
 
@@ -111,6 +113,30 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
     else ok(await sb.from("event_themes").delete().eq("event_id", e.id));
   };
 
+  /**
+   * Assina em lote (uma ida): o caminho é `${event_id}/${id}` (constraint `photos_path_matches`) e a miniatura, quando
+   * existe, `${caminho}.thumb`. Para `thumb` as duas são assinadas juntas e a miniatura vence; sem miniatura o Storage
+   * devolve erro só naquele item e fica a original, sem sondagem em série. Quem decide se a pessoa pode ver é a política
+   * do Storage (mesma regra da linha da foto): foto bloqueada não recebe URL.
+   */
+  const signUrls = async (photos: { id: string; eventId: string }[], size: "thumb" | "full"): Promise<Record<string, PhotoUrl>> => {
+    if (!photos.length) return {};
+    const base = (p: { id: string; eventId: string }) => `${p.eventId}/${p.id}`;
+    const paths = photos.flatMap((p) => (size === "thumb" ? [`${base(p)}.thumb`, base(p)] : [base(p)]));
+    const at = Date.now();
+    const r = await sb.storage.from(BUCKET).createSignedUrls(paths, SIGNED_URL_TTL_S);
+    if (r.error) throw toRepositoryError(r.error);
+    const got = (i: number) => { const d = r.data?.[i]; return d && !d.error && d.signedUrl ? d.signedUrl : undefined; };
+    const out: Record<string, PhotoUrl> = {};
+    photos.forEach((p, i) => {
+      const thumb = size === "thumb" ? got(2 * i) : undefined;
+      const full = got(size === "thumb" ? 2 * i + 1 : i);
+      const url = thumb ?? full;
+      if (url) out[p.id] = { url, release: () => undefined, expiresAt: at + SIGNED_URL_TTL_S * 1000, size: thumb ? "thumb" : "full" };
+    });
+    return out;
+  };
+
   const selectAll = async (table: string, build: (q: ReturnType<typeof sb.from>) => unknown): Promise<Row[]> => {
     const out: Row[] = [];
     for (let from = 0; ; from += PAGE) {
@@ -136,8 +162,10 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         return { mine: Number(d.mine), total: Number(d.total) };
       },
       join: async (code, name, table, token) => {
-        const d = ok(await sb.rpc("join_event", { p_code: code, p_name: name, p_table: table ?? null, p_token: token ?? null })) as { role: "organizador" | "membro"; eventId: string };
-        return d;
+        const d = ok(await sb.rpc("join_event", { p_code: code, p_name: name, p_table: table ?? null, p_token: token ?? null })) as { role?: "organizador" | "membro"; eventId?: string; error?: string };
+        // código/convite inválido volta como {error} (e não como exceção) para o contador de tentativas sobreviver no banco
+        if (d.error) throw toRepositoryError({ code: d.error, message: d.error });
+        return d as { role: "organizador" | "membro"; eventId: string };
       },
       list: async () => {
         try { return (await selectAll("events", (q) => q.select("*, event_themes(*)").order("created_at", { ascending: false }))).map(toEvent); }
@@ -145,12 +173,25 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       },
       listMine: async (userId) => {
         if (!UUID_RE.test(userId)) return [];
-        // eventos em que entrou + os que criou: o Master não recebe a base inteira só para filtrar no navegador
-        const ids = (await selectAll("participants", (q) => q.select("event_id").eq("user_id", userId))).map((r) => String(r.event_id)).filter((id) => UUID_RE.test(id));
-        const mine = (sel: string) => selectAll("events", (q) => { const b = q.select(sel); return (ids.length ? b.or(`host_id.eq.${userId},id.in.(${ids.join(",")})`) : b.eq("host_id", userId)).order("created_at", { ascending: false }); });
-        try { return (await mine("*, event_themes(*)")).map(toEvent); }
-        catch (e) { if (!isMissingThemeSchema((e as RepositoryError).cause)) throw e; return (await mine("*")).map(toEvent); }
+        // as duas consultas saem juntas (antes: participações e depois eventos, em série): os eventos que criou e, pela
+        // participação (embed participants -> events, com a mesma RLS de events), os eventos em que entrou.
+        // O Master não recebe a base inteira só para filtrar no navegador.
+        const run = (sel: string) => Promise.all([
+          selectAll("events", (q) => q.select(sel).eq("host_id", userId).order("created_at", { ascending: false })),
+          selectAll("participants", (q) => q.select(`event_id, events(${sel})`).eq("user_id", userId)),
+        ]);
+        let hosted: Row[], joined: Row[];
+        try { [hosted, joined] = await run("*, event_themes(*)"); }
+        catch (e) { if (!isMissingThemeSchema((e as RepositoryError).cause)) throw e; [hosted, joined] = await run("*"); }
+        const byId = new Map<string, Row>();
+        for (const r of hosted) byId.set(String(r.id), r);
+        for (const p of joined) {
+          const e = (Array.isArray(p.events) ? p.events[0] : p.events) as Row | null | undefined; // evento apagado/oculto pela RLS: nulo
+          if (e && !byId.has(String(e.id))) byId.set(String(e.id), e);
+        }
+        return [...byId.values()].map(toEvent).sort((a, b) => b.createdAt - a.createdAt);
       },
+      revealNow: async (eventId, reason) => void ok(await sb.rpc("reveal_now", { p_event: eventId, p_reason: reason ?? null })),
       get: async (id) => {
         const r = await readEvent("id", id);
         return r ? toEvent(r) : undefined;
@@ -201,7 +242,8 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       removeByEvent: async () => undefined, // cascata do banco (delete_event)
     },
     photos: {
-      report: async (photoId) => void ok(await sb.rpc("report_photo", { p_photo: photoId })),
+      downloadAllowed: async (photoId) => ok(await sb.rpc("photo_download_allowed", { p_photo: photoId })) === true,
+      report: async (photoId, reason) => void ok(await sb.rpc("report_photo", reason ? { p_photo: photoId, p_reason: reason } : { p_photo: photoId })),
       listByEvent: async (id) => sortNewestFirst((await selectAll("photos", (q) => q.select("*").eq("event_id", id).eq("upload_status", "pronta").order("created_at", { ascending: false }))).map(toPhoto)),
       count: async (id, f) => {
         let q = sb.from("photos").select("id", { count: "exact", head: true }).eq("event_id", id);
@@ -230,6 +272,10 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       attach: async (id, data) => {
         const r = await sb.storage.from(BUCKET).upload(pathOf(id), new Blob([data.bytes], { type: data.type }), { contentType: data.type, upsert: false });
         if (r.error && !/already exists|Duplicate/i.test(r.error.message)) throw toRepositoryError(r.error); // nova tentativa depois de a resposta se perder: os bytes já estão lá
+      },
+      attachThumb: async (id, data) => {
+        const r = await sb.storage.from(BUCKET).upload(`${pathOf(id)}.thumb`, new Blob([data.bytes], { type: data.type }), { contentType: data.type, upsert: false });
+        if (r.error && !/already exists|Duplicate/i.test(r.error.message)) throw toRepositoryError(r.error);
       },
       finalize: async (id) => {
         ok(await sb.rpc("finalize_photo", { p_id: id }));
@@ -265,15 +311,12 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
         return { bytes: await r.data.arrayBuffer(), type: (p.mime as string) ?? r.data.type } as PhotoData;
       },
       getUrl: async (id, size) => {
-        const p = ok(await sb.from("photos").select("storage_path").eq("id", id).maybeSingle()) as Row | null;
+        // só o id: o caminho vem da linha (1 ida) e a assinatura sai num único lote com a miniatura (1 ida)
+        const p = ok(await sb.from("photos").select("event_id").eq("id", id).maybeSingle()) as Row | null;
         if (!p) return undefined;
-        const base = p.storage_path as string;
-        for (const path of size === "thumb" ? [`${base}.thumb`, base] : [base]) {
-          const r = await sb.storage.from(BUCKET).createSignedUrl(path, 60);
-          if (!r.error) return { url: r.data.signedUrl, release: () => undefined };
-        }
-        return undefined;
+        return (await signUrls([{ id, eventId: p.event_id as string }], size))[id];
       },
+      getUrls: (photos, size) => signUrls(photos, size),
       remove: async (id) => void ok(await sb.rpc("discard_photo", { p_id: id })),
       removeByEvent: async () => undefined, // cascata do banco (delete_event)
     },
@@ -291,21 +334,29 @@ export function createSupabaseRepositories(sb: SupabaseClient): Repositories {
       removeByEvent: async () => undefined,
     },
     users: {
+      /**
+       * Identidade para a INTERFACE: `getSession()` lê a sessão guardada no aparelho (sem ida à rede enquanto o token vale;
+       * se venceu, o SDK renova). Não é verificação de segurança e nada depende dela para autorizar: toda consulta, RPC e
+       * URL assinada leva o JWT, que o servidor valida (RLS com `auth.uid()` e `is_anonymous()` no JWT). Uma sessão
+       * adulterada no aparelho só mudaria o que a tela tenta mostrar; o servidor recusa o resto.
+       */
       current: async () => {
-        const { data } = await sb.auth.getUser();
-        if (!data.user) return undefined;
-        const prof = ok(await sb.from("profiles").select("display_name, created_at").eq("id", data.user.id).maybeSingle()) as Row | null;
-        return { id: data.user.id, name: (prof?.display_name as string) ?? "", createdAt: ms(prof?.created_at) ?? Date.parse(data.user.created_at) } as User;
+        const { data } = await sb.auth.getSession();
+        const user = data.session?.user;
+        if (!user) return undefined;
+        const prof = ok(await sb.from("profiles").select("display_name, created_at").eq("id", user.id).maybeSingle()) as Row | null;
+        return { id: user.id, name: (prof?.display_name as string) ?? "", createdAt: ms(prof?.created_at) ?? Date.parse(user.created_at), anonymous: user.is_anonymous === true } as User;
       },
       // a identidade é a da sessão (auth.uid()): sem sessão, entra como convidado anônimo; só o nome de exibição é gravado
+      // (a sessão local basta para saber o id: o UPDATE é filtrado pela RLS com o JWT, então não grava em perfil alheio)
       save: async (u) => {
-        let { data } = await sb.auth.getUser();
-        if (!data.user) {
+        let id = (await sb.auth.getSession()).data.session?.user.id;
+        if (!id) {
           const r = await sb.auth.signInAnonymously();
           if (r.error) throw toRepositoryError(r.error);
-          data = { user: r.data.user! };
+          id = r.data.user!.id;
         }
-        ok(await sb.from("profiles").update({ display_name: u.name }).eq("id", data.user!.id));
+        ok(await sb.from("profiles").update({ display_name: u.name }).eq("id", id));
       },
       clear: async () => void (await sb.auth.signOut()),
       known: async () => [],

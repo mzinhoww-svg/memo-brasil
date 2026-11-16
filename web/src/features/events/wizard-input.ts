@@ -1,4 +1,4 @@
-import type { EventCategory } from "@/domain/options";
+import { DEFAULT_FILM, DEFAULT_WRAP, type CameraStyle, type EventCategory, type FilmLook } from "@/domain/options";
 import type { EventFontId, PaletteId } from "@/domain/event";
 import type { RevealInput } from "./reveal-input";
 import type { EventInput } from "./service";
@@ -7,15 +7,22 @@ import type { EventInput } from "./service";
 export const WIZARD_DEFAULTS = { capacity: 10, shots: 10 } as const;
 
 /** Identidade vai para o Studio (/painel/[id]/aparencia); o assistente só cria com os padrões atuais. */
-export const IDENTITY_DEFAULTS: { cameraStyle: "original"; palette: PaletteId; eventFont: EventFontId } = { cameraStyle: "original", palette: "salvia", eventFont: "birthstone" };
+export const IDENTITY_DEFAULTS: { cameraStyle: CameraStyle; filmLook: FilmLook; palette: PaletteId; eventFont: EventFontId } = { cameraStyle: DEFAULT_WRAP, filmLook: DEFAULT_FILM, palette: "salvia", eventFont: "birthstone" };
 
 export interface WizardForm {
   title: string;
   category: EventCategory;
   durationHours: number;
   reveal: RevealInput;
-  /** Escolha do passo Fotos: só orienta o plano; NÃO é enviada acima do Grátis. */
+  /** Escolha do passo Poses: só orienta o plano; NÃO é enviada acima do Grátis. */
   desiredShots: number | null;
+  /** Embalagem e filme escolhidos nos passos 1 e 6; ausentes = padrões. */
+  cameraStyle?: CameraStyle;
+  filmLook?: FilmLook;
+  /** Passo 7: se os convidados veem o feed de todos depois da revelação. */
+  everyoneSeesAll?: boolean;
+  /** Passo 7: se os convidados podem baixar o original (em alta) das fotos dos outros. */
+  downloadHigh?: boolean;
 }
 
 export function buildCreateInput(f: WizardForm): EventInput {
@@ -25,8 +32,11 @@ export function buildCreateInput(f: WizardForm): EventInput {
     durationHours: f.durationHours,
     reveal: f.reveal,
     ...IDENTITY_DEFAULTS,
+    ...(f.cameraStyle ? { cameraStyle: f.cameraStyle } : {}),
+    ...(f.filmLook ? { filmLook: f.filmLook } : {}),
     capacity: WIZARD_DEFAULTS.capacity,
     shotsPerPerson: WIZARD_DEFAULTS.shots,
-    everyoneSeesAll: true,
+    everyoneSeesAll: f.everyoneSeesAll ?? true,
+    guestDownloadHigh: f.downloadHigh ?? true,
   };
 }

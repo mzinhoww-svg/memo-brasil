@@ -13,8 +13,7 @@ const watchWrites = (page: Page) => {
 test("câmera da festa de exemplo: liga com permissão, fotografa e fecha ao sair sem gravar", async ({ page }) => {
   await page.goto("/");
   const writes = watchWrites(page);
-  await page.getByRole("link", { name: "Experimentar câmera" }).click();
-  await page.waitForURL(/\/exemplo$/);
+  await page.goto("/exemplo");
   // nada de câmera sem pedir: começa desligada, com a ação visível
   await expect(page.getByText("A câmera fica desligada até você pedir.")).toBeVisible();
   expect(await page.evaluate(() => document.querySelector("video")?.srcObject ?? null)).toBeNull();
@@ -65,49 +64,50 @@ test.describe("permissão de câmera recusada", () => {
   });
 });
 
-test("home não lista eventos; Meus eventos mostra os ativos com Painel", async ({ page }) => {
+test("home não lista eventos; Minhas câmeras mostra a câmera ativa com acesso ao painel (QR)", async ({ page }) => {
   await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Seus eventos|Festas em que você entrou/ })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /Seus eventos|Suas câmeras|Festas em que você entrou/ })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Ver no Agora" })).toHaveCount(0);
-  await page.getByRole("link", { name: "Meus eventos" }).click();
+  await page.getByRole("link", { name: "Minhas câmeras" }).click();
   await page.waitForURL(/\/eventos$/);
-  await expect(page.getByRole("heading", { name: "Meus eventos", level: 1 })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Ativos" }).getByRole("link", { name: "Painel" }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Suas câmeras", level: 1 })).toBeVisible();
+  await expect(page.getByText("Rolando agora")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Abrir câmera" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "QR code" })).toHaveAttribute("href", /\/painel\/[^/]+\/qr$/);
 });
 
 for (const size of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 1280, height: 800 }]) {
   test(`home ${size.width}px sem rolagem horizontal e com as ações visíveis`, async ({ page }) => {
     await page.setViewportSize(size);
     await page.goto("/");
-    for (const name of ["Experimentar câmera", "Criar meu evento grátis", "Entrar com código"]) await expect(page.getByRole("link", { name })).toBeVisible();
+    for (const name of ["Montar câmera", "Tenho um convite"]) await expect(page.getByRole("link", { name })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Experimentar câmera" })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     // rodapé só com o próprio conteúdo, sem bloco vazio de tela cheia
     expect((await page.getByRole("contentinfo", { name: "Rodapé" }).boundingBox())!.height).toBeLessThan(260);
   });
 }
 
-test("home por teclado: Tab alcança as ações na ordem e Enter abre a festa de exemplo", async ({ page }) => {
+test("home por teclado: Tab alcança as ações na ordem; a festa de exemplo segue em /exemplo", async ({ page }) => {
   await page.goto("/");
   const reached: string[] = [];
-  for (let i = 0; i < 12 && reached.length < 3; i++) {
+  for (let i = 0; i < 12 && reached.length < 2; i++) {
     await page.keyboard.press("Tab");
     const name = await page.evaluate(() => (document.activeElement as HTMLElement | null)?.innerText?.trim() ?? "");
-    if (["Experimentar câmera", "Criar meu evento grátis", "Entrar com código"].includes(name)) reached.push(name);
+    if (["Tenho um convite", "Montar câmera"].includes(name)) reached.push(name);
   }
-  expect(reached).toEqual(["Experimentar câmera", "Criar meu evento grátis", "Entrar com código"]);
-  await page.getByRole("link", { name: "Experimentar câmera" }).focus();
-  await page.keyboard.press("Enter");
-  await page.waitForURL(/\/exemplo$/);
+  expect(reached).toEqual(["Tenho um convite", "Montar câmera"]);
+  await page.goto("/exemplo");
   await page.getByRole("link", { name: "Criar meu evento grátis" }).focus();
   await page.keyboard.press("Enter");
   await page.waitForURL(/\/criar/);
 });
 
-test("Entrar com código leva ao formulário de código", async ({ page }) => {
+test("Tenho um convite leva ao formulário de código", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Entrar com código" }).click();
-  await page.waitForURL(/\/entrar$/);
-  await expect(page.getByRole("heading", { name: "Entrar na festa", level: 1 })).toBeVisible();
+  await page.getByRole("link", { name: "Tenho um convite" }).click();
+  await page.waitForURL(/\/entrar/);
+  await expect(page.getByRole("heading", { name: /Digite o código/, level: 1 })).toBeVisible();
 });

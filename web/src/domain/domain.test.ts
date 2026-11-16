@@ -161,9 +161,13 @@ describe("visibilidade e moderação", () => {
 });
 
 describe("retrospectiva", () => {
-  it("só abre para convidados depois do fim E da revelação; anfitrião sempre", () => {
+  it("abre assim que as fotos são reveladas (mesmo com a festa em andamento); sem revelação, só no fim; anfitrião sempre", () => {
+    const cedo = { ...base, revealAt: base.startAt + H }; // revelada no meio da festa
+    expect(retrospectiveOpen(cedo, base.startAt + H - 1, false)).toBe(false);
+    expect(retrospectiveOpen(cedo, base.startAt + H, false)).toBe(true);
+    expect(retrospectiveOpen(cedo, base.startAt + 2 * H, false)).toBe(true);
     const imediata = { ...base, revealEnabled: false, revealAt: null };
-    expect(retrospectiveOpen(imediata, base.startAt + H, false)).toBe(false); // revelada, mas o evento segue
+    expect(retrospectiveOpen(imediata, base.startAt + H, false)).toBe(false); // álbum ao vivo: espera o fim do evento
     expect(retrospectiveOpen(imediata, endAt(base), false)).toBe(true);
     const depois = { ...base, revealAt: endAt(base) + D };
     expect(retrospectiveOpen(depois, endAt(base), false)).toBe(false);

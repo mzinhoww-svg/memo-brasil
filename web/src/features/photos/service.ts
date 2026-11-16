@@ -3,6 +3,8 @@ import type { MemoEvent } from "@/domain/event";
 import { RepositoryError, StorageUnavailableError, retryOnConflict, type PhotoData, type Repositories, type User } from "@/repositories";
 import { withLock } from "@/lib/lock";
 import { takeFault } from "@/lib/test-faults";
+import { backendMode } from "@/lib/supabase/env";
+import { makeThumb } from "./thumb";
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
@@ -18,6 +20,15 @@ export interface PostOptions {
   photoId?: string;
   /** Nova tentativa de uma foto já reservada: o rolo já a contou, então não a barra de novo (o servidor segue como autoridade). */
   resume?: boolean;
+  /**
+   * O servidor barra rolo e evento encerrado no `begin_photo` (trigger `photos_guard`: MM001/MM002), então a pré-checagem
+   * com `event_counts` é uma ida a mais à rede. Padrão: só o Supabase garante isso; o modo local (IndexedDB) checa aqui.
+   */
+  serverEnforcesRoll?: boolean;
+  /** Chamada quando a reserva (`begin`) foi aceita: a foto já conta no rolo do servidor. */
+  onReserved?: () => void;
+  /** Gerador da miniatura (injetável em teste). Padrão: `makeThumb` no aparelho. */
+  thumb?: (data: PhotoData) => Promise<PhotoData | undefined>;
 }
 
 /** Tentativas automáticas depois de uma falha de rede: 2 s, 5 s e 15 s. Depois disso, só manual ("Tentar agora"). */
@@ -44,14 +55,20 @@ async function postLocked(repos: Repositories, event: MemoEvent, user: User, dat
     moment: meta.moment, caption: meta.caption?.trim() || undefined, tableLabel: meta.tableLabel, status: "visivel", reports: 0, highlighted: false, version: 1, uploadStatus: "enviando",
   };
   try {
-    if (!opts.resume) {
+    if (!opts.resume && !(opts.serverEnforcesRoll ?? backendMode() === "supabase")) {
       const verdict = canPost(event, await usedShots(repos, event.id, user.id), now);
       if (!verdict.ok) return { ok: false, reason: verdict.reason };
     }
     // envio em duas fases: a linha reserva o rolo, os bytes seguem, e só então a foto fica visível
     await repos.photos.begin(photo);
+    opts.onReserved?.();
     if (takeFault("attach")) throw new RepositoryError("unavailable", "falha de rede simulada");
+    // a miniatura (`.thumb`) é feita enquanto a original sobe e vai antes do `finalize` (o Storage só aceita com a foto
+    // `enviando`). É um extra: falhar ao gerar ou enviar não impede a publicação, e quem exibe cai na original.
+    const thumb = repos.photos.attachThumb ? (opts.thumb ?? makeThumb)(data).catch(() => undefined) : undefined;
     await repos.photos.attach(photo.id, data);
+    const t = await thumb;
+    if (t) await repos.photos.attachThumb!(photo.id, t).catch(() => undefined);
     const published = await repos.photos.finalize(photo.id);
     return { ok: true, photo: published };
   } catch (e) {
@@ -96,8 +113,9 @@ export async function expirePending(repos: Repositories, eventId: string, now: n
   return stale.length;
 }
 
-export async function reportPhoto(repos: Repositories, photoId: string): Promise<Photo | undefined> {
-  if (repos.photos.report) { await repos.photos.report(photoId); return undefined; }
+/** `reason`: código do motivo (24g). Só o servidor guarda o motivo; o modo local conta a denúncia como antes. */
+export async function reportPhoto(repos: Repositories, photoId: string, reason?: string): Promise<Photo | undefined> {
+  if (repos.photos.report) { await repos.photos.report(photoId, reason); return undefined; }
   return withLock(`denuncia:${photoId}`, async () => {
     try {
       return await retryOnConflict(async () => {

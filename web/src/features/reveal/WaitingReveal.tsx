@@ -1,11 +1,10 @@
 "use client";
 
-import { StatGrid, StatTile } from "@/components/memoriesmt";
+import { StatGrid, StatTile } from "@/components/revela";
 import type { MemoEvent } from "@/domain/event";
 import { formatCountdown, formatInZone, zoneLabel } from "@/domain/reveal";
 import { revealDayTime } from "@/features/invitations/invite-copy";
 import { useClock } from "@/features/app/hooks";
-import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 
 /** Tela de espera da revelação: contagem regressiva no fuso do evento. `preview` marca a prévia do organizador. */
 export function WaitingReveal({ event, ownCount, totalCount, preview }: { event: MemoEvent; ownCount: number; totalCount: number; preview?: boolean }) {
@@ -26,14 +25,13 @@ export function WaitingReveal({ event, ownCount, totalCount, preview }: { event:
       <div className="app-card">
         <span className="eyebrow app-muted">Faltam</span>
         <span role="timer" aria-live="off" className="display" data-testid="contagem" style={{ fontVariantNumeric: "tabular-nums" }}>{left.text}</span>
-        <span className="mm-sr-only" aria-live="polite">Faltam {minutes} {minutes === 1 ? "minuto" : "minutos"} para a revelação.</span>
+        <span className="rv-sr-only" aria-live="polite">Faltam {minutes} {minutes === 1 ? "minuto" : "minutos"} para a revelação.</span>
         <span className="corpo app-muted">Revela em {when.date} às {when.time}, {zoneLabel(event.timezone).split(" (")[0]}.</span>
       </div>
       <StatGrid>
         <StatTile value={ownCount.toLocaleString("pt-BR")} label={ownCount === 1 ? "foto sua guardada" : "fotos suas guardadas"} />
         {event.everyoneSeesAll && <StatTile value={totalCount.toLocaleString("pt-BR")} label={totalCount === 1 ? "foto no álbum" : "fotos no álbum"} />}
       </StatGrid>
-      {!preview && <WhatsappOptIn variant="compacta" eventId={event.id} />}
     </section>
   );
 }

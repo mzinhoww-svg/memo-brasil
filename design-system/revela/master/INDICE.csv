@@ -1,0 +1,95 @@
+﻿id;título;arquivo;png;rota sugerida;dados (origem);ações;no canvas
+M15;Pessoas: contas;html/Master-pessoas-contas.html;png/Master-pessoas-contas.png;/master/pessoas?aba=contas;admin_list_users / admin_search_users (auth.users + platform_roles);"filtrar por tipo; buscar; paginar; exportar";sim
+M15.v;Pessoas: contas (vazio);html/Master-pessoas-contas--vazio.html;png/Master-pessoas-contas--vazio.png;/master/pessoas?aba=contas;estado;;não
+M15.e;Pessoas: contas (erro);html/Master-pessoas-contas--erro.html;png/Master-pessoas-contas--erro.png;/master/pessoas?aba=contas;estado;;não
+M15.p;Pessoas: contas (sem permissão);html/Master-pessoas-contas--sem-permissao.html;png/Master-pessoas-contas--sem-permissao.png;/master/pessoas?aba=contas;estado;;não
+M15.c;Pessoas: contas (carregando);html/Master-pessoas-contas--carregando.html;png/Master-pessoas-contas--carregando.png;/master/pessoas?aba=contas;estado;;não
+M16;Pessoas: organizadores;html/Master-pessoas-organizadores.html;png/Master-pessoas-organizadores.png;/master/pessoas?aba=organizadores;admin_list_organizers (profiles, events, photos, payment_orders, account_deletion_requests);"buscar; paginar; exportar; a linha abre Eventos filtrado pela pessoa (/master/eventos?organizador=<id>)";sim
+M16.v;Pessoas: organizadores (vazio);html/Master-pessoas-organizadores--vazio.html;png/Master-pessoas-organizadores--vazio.png;/master/pessoas?aba=organizadores;estado;;não
+M16.e;Pessoas: organizadores (erro);html/Master-pessoas-organizadores--erro.html;png/Master-pessoas-organizadores--erro.png;/master/pessoas?aba=organizadores;estado;;não
+M16.p;Pessoas: organizadores (sem permissão);html/Master-pessoas-organizadores--sem-permissao.html;png/Master-pessoas-organizadores--sem-permissao.png;/master/pessoas?aba=organizadores;estado;;não
+M16.c;Pessoas: organizadores (carregando);html/Master-pessoas-organizadores--carregando.html;png/Master-pessoas-organizadores--carregando.png;/master/pessoas?aba=organizadores;estado;;não
+M17;Pessoas: convidados;html/Master-pessoas-convidados.html;png/Master-pessoas-convidados.png;/master/pessoas?aba=convidados;admin_list_participants / admin_search_participants (participants, events, photos);"filtrar por situação; buscar; paginar; exportar";sim
+M17.v;Pessoas: convidados (vazio);html/Master-pessoas-convidados--vazio.html;png/Master-pessoas-convidados--vazio.png;/master/pessoas?aba=convidados;estado;;não
+M17.e;Pessoas: convidados (erro);html/Master-pessoas-convidados--erro.html;png/Master-pessoas-convidados--erro.png;/master/pessoas?aba=convidados;estado;;não
+M17.p;Pessoas: convidados (sem permissão);html/Master-pessoas-convidados--sem-permissao.html;png/Master-pessoas-convidados--sem-permissao.png;/master/pessoas?aba=convidados;estado;;não
+M17.c;Pessoas: convidados (carregando);html/Master-pessoas-convidados--carregando.html;png/Master-pessoas-convidados--carregando.png;/master/pessoas?aba=convidados;estado;;não
+M18;Pessoas: convites;html/Master-pessoas-convites.html;png/Master-pessoas-convites.png;/master/pessoas?aba=convites;admin_list_invites / admin_search_invites (invitations, events). Token nunca é retornado;"filtrar por estado; buscar; paginar; exportar";sim
+M18.v;Pessoas: convites (vazio);html/Master-pessoas-convites--vazio.html;png/Master-pessoas-convites--vazio.png;/master/pessoas?aba=convites;estado;;não
+M18.e;Pessoas: convites (erro);html/Master-pessoas-convites--erro.html;png/Master-pessoas-convites--erro.png;/master/pessoas?aba=convites;estado;;não
+M18.p;Pessoas: convites (sem permissão);html/Master-pessoas-convites--sem-permissao.html;png/Master-pessoas-convites--sem-permissao.png;/master/pessoas?aba=convites;estado;;não
+M18.c;Pessoas: convites (carregando);html/Master-pessoas-convites--carregando.html;png/Master-pessoas-convites--carregando.png;/master/pessoas?aba=convites;estado;;não
+M19;Pessoas: equipe;html/Master-pessoas-equipe.html;png/Master-pessoas-equipe.png;/master/pessoas?aba=equipe;platform_roles + auth.users;"conceder papel (admin_grant_platform_role); revogar papel (admin_revoke_platform_role)";sim
+M19.v;Pessoas: equipe (vazio);html/Master-pessoas-equipe--vazio.html;png/Master-pessoas-equipe--vazio.png;/master/pessoas?aba=equipe;estado;;não
+M19.e;Pessoas: equipe (erro);html/Master-pessoas-equipe--erro.html;png/Master-pessoas-equipe--erro.png;/master/pessoas?aba=equipe;estado;;não
+M19.p;Pessoas: equipe (sem permissão);html/Master-pessoas-equipe--sem-permissao.html;png/Master-pessoas-equipe--sem-permissao.png;/master/pessoas?aba=equipe;estado;;não
+M19.c;Pessoas: equipe (carregando);html/Master-pessoas-equipe--carregando.html;png/Master-pessoas-equipe--carregando.png;/master/pessoas?aba=equipe;estado;;não
+M19.f1;Equipe: conceder papel;html/Master-pessoas-equipe--folha-conceder.html;png/Master-pessoas-equipe--folha-conceder.png;folha sobre a tela-base;folha;admin_grant_platform_role(email, papel, motivo);sim
+M19.f2;Equipe: revogar papel;html/Master-pessoas-equipe--folha-revogar.html;png/Master-pessoas-equipe--folha-revogar.png;folha sobre a tela-base;folha;admin_revoke_platform_role(id, motivo);sim
+M20;Visão geral: atividade por dia;html/Master-visao-atividade.html;png/Master-visao-atividade.png;/master;admin_overview / admin_dashboard_metrics (events, participants, photos, uploads com falha);"alternar 7/30 dias; alternar barras/tabela; exportar";sim
+M20.v;Visão geral: atividade por dia (vazio);html/Master-visao-atividade--vazio.html;png/Master-visao-atividade--vazio.png;/master;estado;;não
+M20.e;Visão geral: atividade por dia (erro);html/Master-visao-atividade--erro.html;png/Master-visao-atividade--erro.png;/master;estado;;não
+M20.p;Visão geral: atividade por dia (sem permissão);html/Master-visao-atividade--sem-permissao.html;png/Master-visao-atividade--sem-permissao.png;/master;estado;;não
+M20.c;Visão geral: atividade por dia (carregando);html/Master-visao-atividade--carregando.html;png/Master-visao-atividade--carregando.png;/master;estado;;não
+M20.t;Visão geral: atividade por dia (tabela);html/Master-visao-atividade--tabela.html;png/Master-visao-atividade--tabela.png;/master;mesmos dados da M20;alternar para barras;sim
+M21;Evento: detalhe;html/Master-evento-detalhe.html;png/Master-evento-detalhe.png;/master/eventos/[id];admin_event_detail (events, event_entitlements, participants, photos, reveal_email_queue, photo_reports, print_orders, audit_logs);"revelar agora (admin_reveal_now); marcar/desmarcar teste (admin_set_test_flag); excluir evento de teste (admin_soft_delete_test_events)";sim
+M21.v;Evento: detalhe (vazio);html/Master-evento-detalhe--vazio.html;png/Master-evento-detalhe--vazio.png;/master/eventos/[id];estado;;não
+M21.e;Evento: detalhe (erro);html/Master-evento-detalhe--erro.html;png/Master-evento-detalhe--erro.png;/master/eventos/[id];estado;;não
+M21.p;Evento: detalhe (sem permissão);html/Master-evento-detalhe--sem-permissao.html;png/Master-evento-detalhe--sem-permissao.png;/master/eventos/[id];estado;;não
+M21.c;Evento: detalhe (carregando);html/Master-evento-detalhe--carregando.html;png/Master-evento-detalhe--carregando.png;/master/eventos/[id];estado;;não
+M21.f1;Evento: marcar como teste;html/Master-evento-detalhe--folha-teste.html;png/Master-evento-detalhe--folha-teste.png;folha sobre a tela-base;folha;admin_set_test_flag(event_id, true, motivo);sim
+M21.f1r;Evento: marcar como teste (recusado);html/Master-evento-detalhe--folha-teste-recusa.html;png/Master-evento-detalhe--folha-teste-recusa.png;folha sobre a tela-base;folha;mostra a recusa do servidor;sim
+M21.f2;Evento: excluir evento de teste;html/Master-evento-detalhe--folha-excluir-teste.html;png/Master-evento-detalhe--folha-excluir-teste.png;folha sobre a tela-base;folha;admin_soft_delete_test_events([id], motivo);sim
+M22;Eventos de teste;html/Master-eventos-teste.html;png/Master-eventos-teste.png;/master/eventos?filtro=teste;admin_list_events (events.is_test, payment_orders);"selecionar; desmarcar teste (admin_set_test_flag); excluir em lote (admin_soft_delete_test_events)";sim
+M22.v;Eventos de teste (vazio);html/Master-eventos-teste--vazio.html;png/Master-eventos-teste--vazio.png;/master/eventos?filtro=teste;estado;;não
+M22.e;Eventos de teste (erro);html/Master-eventos-teste--erro.html;png/Master-eventos-teste--erro.png;/master/eventos?filtro=teste;estado;;não
+M22.p;Eventos de teste (sem permissão);html/Master-eventos-teste--sem-permissao.html;png/Master-eventos-teste--sem-permissao.png;/master/eventos?filtro=teste;estado;;não
+M22.c;Eventos de teste (carregando);html/Master-eventos-teste--carregando.html;png/Master-eventos-teste--carregando.png;/master/eventos?filtro=teste;estado;;não
+M22.f1;Eventos de teste: excluir em lote;html/Master-eventos-teste--folha-excluir-lote.html;png/Master-eventos-teste--folha-excluir-lote.png;folha sobre a tela-base;folha;admin_soft_delete_test_events(ids, motivo);sim
+M22.f2;Eventos de teste: lote recusado;html/Master-eventos-teste--folha-recusa.html;png/Master-eventos-teste--folha-recusa.png;folha sobre a tela-base;folha;mostra o motivo da recusa por evento;sim
+M23;Pagamentos: conciliar agora (código);html/Master-pagamentos--folha-conciliar-codigo.html;png/Master-pagamentos--folha-conciliar-codigo.png;/master/pagamentos;folha;elevar sessão para aal2 (TOTP) e chamar admin_request_reconcile;sim
+M23.r;Pagamentos: conciliar agora (resultado);html/Master-pagamentos--folha-conciliar-resultado.html;png/Master-pagamentos--folha-conciliar-resultado.png;/master/pagamentos;folha;mostra conciliados, falhas e o tempo de espera;sim
+M23.w;Pagamentos: conciliar agora (aguarde);html/Master-pagamentos--folha-conciliar-espera.html;png/Master-pagamentos--folha-conciliar-espera.png;/master/pagamentos;folha;bloqueio de 1 min entre chamadas;sim
+M24;Exportar (folha padrão);html/Master-exportar--folha.html;png/Master-exportar--folha.png;reusável em todas as listas;folha;admin_export_csv(tela, filtros);sim
+M24.t;Exportar (truncado em 50 mil linhas);html/Master-exportar--folha-truncado.html;png/Master-exportar--folha-truncado.png;reusável em todas as listas;folha;admin_export_csv com aviso de truncamento;sim
+M25;Revelar agora (folha única);html/Master-revelar-agora--folha.html;png/Master-revelar-agora--folha.png;/master/revelacoes, /master/eventos/[id] e painel do anfitrião;folha;admin_reveal_now(event_id, motivo);sim
+M25.a;Revelar agora (erro: Este evento já foi revelado.);html/Master-revelar-agora--folha-erro-ja-revelado.html;png/Master-revelar-agora--folha-erro-ja-revelado.png;folha;mensagem de erro do servidor;;não
+M25.b;Revelar agora (erro: Evento sem revelação ligada.);html/Master-revelar-agora--folha-erro-sem-revelacao.html;png/Master-revelar-agora--folha-erro-sem-revelacao.png;folha;mensagem de erro do servidor;;não
+M25.c;Revelar agora (erro: Sem permissão);html/Master-revelar-agora--folha-erro-sem-permissao.html;png/Master-revelar-agora--folha-erro-sem-permissao.png;folha;mensagem de erro do servidor;;não
+M26;Moderação: fotos com motivos;html/Master-moderacao-motivos.html;png/Master-moderacao-motivos.png;/master/moderacao?aba=fotos;"admin_moderation_queue (photo_reports agrupado por foto e motivo; sem imagem e sem denunciante)";"manter; esconder; excluir (todas com motivo)";sim
+M26.v;Moderação: fotos com motivos (vazio);html/Master-moderacao-motivos--vazio.html;png/Master-moderacao-motivos--vazio.png;/master/moderacao?aba=fotos;estado;;não
+M26.e;Moderação: fotos com motivos (erro);html/Master-moderacao-motivos--erro.html;png/Master-moderacao-motivos--erro.png;/master/moderacao?aba=fotos;estado;;não
+M26.p;Moderação: fotos com motivos (sem permissão);html/Master-moderacao-motivos--sem-permissao.html;png/Master-moderacao-motivos--sem-permissao.png;/master/moderacao?aba=fotos;estado;;não
+M26.c;Moderação: fotos com motivos (carregando);html/Master-moderacao-motivos--carregando.html;png/Master-moderacao-motivos--carregando.png;/master/moderacao?aba=fotos;estado;;não
+M26.b;Moderação: comentários com motivos;html/Master-moderacao-motivos--comentarios.html;png/Master-moderacao-motivos--comentarios.png;/master/moderacao?aba=comentarios;admin_moderation_queue (comment_reports por comentário e motivo);"manter; esconder; excluir";sim
+M26.f1;Moderação: esconder foto;html/Master-moderacao-motivos--folha-esconder.html;png/Master-moderacao-motivos--folha-esconder.png;folha sobre a tela-base;folha;esconder foto com motivo (auditoria photo.hidden);sim
+M27;Storage e saúde (completa);html/Master-saude-completa.html;png/Master-saude-completa.png;/master/saude;admin_health, admin_health_history, admin_storage_breakdown (photos, event_assets, storage_purge_queue, cron.job_run_details);nenhuma (somente leitura);sim
+M27.v;Storage e saúde (completa) (vazio);html/Master-saude-completa--vazio.html;png/Master-saude-completa--vazio.png;/master/saude;estado;;não
+M27.e;Storage e saúde (completa) (erro);html/Master-saude-completa--erro.html;png/Master-saude-completa--erro.png;/master/saude;estado;;não
+M27.p;Storage e saúde (completa) (sem permissão);html/Master-saude-completa--sem-permissao.html;png/Master-saude-completa--sem-permissao.png;/master/saude;estado;;não
+M27.c;Storage e saúde (completa) (carregando);html/Master-saude-completa--carregando.html;png/Master-saude-completa--carregando.png;/master/saude;estado;;não
+M28;Auditoria (filtros);html/Master-auditoria-filtros.html;png/Master-auditoria-filtros.png;/master/auditoria;admin_list_audit (audit_logs) com filtro de categoria e de evento;"filtrar por categoria; filtrar por evento; paginar; exportar";sim
+M28.v;Auditoria (filtros) (vazio);html/Master-auditoria-filtros--vazio.html;png/Master-auditoria-filtros--vazio.png;/master/auditoria;estado;;não
+M28.e;Auditoria (filtros) (erro);html/Master-auditoria-filtros--erro.html;png/Master-auditoria-filtros--erro.png;/master/auditoria;estado;;não
+M28.p;Auditoria (filtros) (sem permissão);html/Master-auditoria-filtros--sem-permissao.html;png/Master-auditoria-filtros--sem-permissao.png;/master/auditoria;estado;;não
+M28.c;Auditoria (filtros) (carregando);html/Master-auditoria-filtros--carregando.html;png/Master-auditoria-filtros--carregando.png;/master/auditoria;estado;;não
+M29;Impressões: pedidos;html/Master-impressoes.html;png/Master-impressoes.png;/master/impressoes;admin_print_orders (print_orders);"filtrar por status; buscar; paginar; exportar; a linha abre o detalhe";sim
+M29.v;Impressões: pedidos (vazio);html/Master-impressoes--vazio.html;png/Master-impressoes--vazio.png;/master/impressoes;estado;;não
+M29.e;Impressões: pedidos (erro);html/Master-impressoes--erro.html;png/Master-impressoes--erro.png;/master/impressoes;estado;;não
+M29.p;Impressões: pedidos (sem permissão);html/Master-impressoes--sem-permissao.html;png/Master-impressoes--sem-permissao.png;/master/impressoes;estado;;não
+M29.c;Impressões: pedidos (carregando);html/Master-impressoes--carregando.html;png/Master-impressoes--carregando.png;/master/impressoes;estado;;não
+M30;Impressão: detalhe do pedido;html/Master-impressao-detalhe.html;png/Master-impressao-detalhe.png;/master/impressoes/[id];print_orders (contact_*, shipping, note, photo_ids/all_photos, status e datas, note_internal);"avançar status e cancelar (admin_set_print_order_status); salvar nota interna";sim
+M30.v;Impressão: detalhe do pedido (vazio);html/Master-impressao-detalhe--vazio.html;png/Master-impressao-detalhe--vazio.png;/master/impressoes/[id];estado;;não
+M30.e;Impressão: detalhe do pedido (erro);html/Master-impressao-detalhe--erro.html;png/Master-impressao-detalhe--erro.png;/master/impressoes/[id];estado;;não
+M30.p;Impressão: detalhe do pedido (sem permissão);html/Master-impressao-detalhe--sem-permissao.html;png/Master-impressao-detalhe--sem-permissao.png;/master/impressoes/[id];estado;;não
+M30.c;Impressão: detalhe do pedido (carregando);html/Master-impressao-detalhe--carregando.html;png/Master-impressao-detalhe--carregando.png;/master/impressoes/[id];estado;;não
+M30.f1;Impressão: avançar status;html/Master-impressao-detalhe--folha-avancar.html;png/Master-impressao-detalhe--folha-avancar.png;folha sobre a tela-base;folha;"admin_set_print_order_status(id, ""em_producao"")";sim
+M30.f2;Impressão: cancelar pedido;html/Master-impressao-detalhe--folha-cancelar.html;png/Master-impressao-detalhe--folha-cancelar.png;folha sobre a tela-base;folha;"admin_set_print_order_status(id, ""cancelado"", motivo)";sim
+M31;Configurações (revisada);html/Master-config-revisada.html;png/Master-config-revisada.png;/master/configuracoes;platform_settings, feature_flags, validapay_webhook_inbox;"ligar/desligar checkout e cartão (admin_set_feature_flag); alterar validade, suporte, empresa e folga (admin_set_setting), todas com motivo";sim
+M31.v;Configurações (revisada) (vazio);html/Master-config-revisada--vazio.html;png/Master-config-revisada--vazio.png;/master/configuracoes;estado;;não
+M31.e;Configurações (revisada) (erro);html/Master-config-revisada--erro.html;png/Master-config-revisada--erro.png;/master/configuracoes;estado;;não
+M31.p;Configurações (revisada) (sem permissão);html/Master-config-revisada--sem-permissao.html;png/Master-config-revisada--sem-permissao.png;/master/configuracoes;estado;;não
+M31.c;Configurações (revisada) (carregando);html/Master-config-revisada--carregando.html;png/Master-config-revisada--carregando.png;/master/configuracoes;estado;;não
+M31.f1;Configurações: alterar valor;html/Master-config-revisada--folha-alterar.html;png/Master-config-revisada--folha-alterar.png;folha sobre a tela-base;folha;admin_set_setting(chave, valor, motivo);sim
+M31.f2;Configurações: desligar checkout;html/Master-config-revisada--folha-chave.html;png/Master-config-revisada--folha-chave.png;folha sobre a tela-base;folha;admin_set_feature_flag(chave, valor, motivo);sim
+M32;Sem acesso (papéis);html/Master-sem-acesso.html;png/Master-sem-acesso.png;qualquer rota /master sem permissão;"platform_roles do usuário; matriz fixa de papéis (confirmar com as policies)";nenhuma;sim

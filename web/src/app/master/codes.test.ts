@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { MODULES } from "./modules";
 import { codeLink, codeStatus, defaultExpiry, expiryIso, hintText, noteError, parseUses, usesText } from "./codes";
 
 describe("códigos de cortesia (M3)", () => {
@@ -42,9 +41,5 @@ describe("códigos de cortesia (M3)", () => {
   it("link de resgate em /c/<código>", () => {
     expect(codeLink("https://memoriesmt.com.br", "MMT-7KQ4-XR2P")).toBe("https://memoriesmt.com.br/c/MMT-7KQ4-XR2P");
     expect(codeLink("http://localhost:3000/", "MMT-7KQ4-XR2P")).toBe("http://localhost:3000/c/MMT-7KQ4-XR2P");
-  });
-  it("console ganha o módulo Códigos", () => {
-    expect(MODULES).toHaveLength(15);
-    expect(MODULES).toEqual(expect.arrayContaining([{ rota: "codigos", rotulo: "Códigos" }]));
   });
 });

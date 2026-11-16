@@ -1,19 +1,31 @@
-import { listArgs, type ListProps } from "../pagination";
-import { requireMaster, rpc, when } from "../data";
-import { Badge, PageHead, StateBox, Table, ListSearchForm, ListPagination } from "../ui";
+import { MasterStatePage } from "@/revela/master/MasterState";
+import { MasterRevelacoesView, type RevelacaoRow } from "@/revela/screens/MasterRevelacoes";
+import { requireRole, rpc } from "../data";
+import { nf, nowMs, plannedWhen, relWhen } from "../format";
+import { RevealNow } from "./RevealNow";
 
-interface Ev { id: string; title: string; hostName: string; revealAt: string | null; revealState: string }
-export default async function Revelacoes({ searchParams }: ListProps) {
-  const sp = await searchParams;
-  const sb = await requireMaster();
-  const r = await rpc<{ total: number; items: Ev[] }>(sb, "admin_list_reveals", listArgs(sp));
+interface Rev { id: string; title: string; revealAt: string | null; revealedAt: string | null; photos: number; emailOptIns: number; emailsSent: number; emailsFailed: number; emailsQueued: number }
 
-  return (
-    <>
-      <PageHead titulo="Revelações" texto="Eventos com revelação ainda não executada pelo servidor; atrasadas primeiro quando passam do horário." />
-      <ListSearchForm q={sp.q} />
-      {r.state !== "ok" ? <StateBox load={r} /> : <><ListPagination total={r.data.total} sp={sp} /><Table vazio="Nenhuma revelação pendente." cols={[{ k: "t", h: "Evento" }, { k: "h", h: "Anfitrião" }, { k: "a", h: "Revela em" }, { k: "s", h: "Estado" }]}
-        rows={r.data.items.map((e) => ({ t: e.title, h: e.hostName, a: when(e.revealAt), s: <Badge s={e.revealState === "atrasada" ? "erro" : "aviso"}>{e.revealState}</Badge> }))} /></>}
-    </>
-  );
+/** M08 · Revelações: a fila do relógio do servidor, com o aviso por e-mail de cada evento (só números).
+ *  Master, support e auditor leem; "Revelar agora" (folha única M25, a mesma do painel do anfitrião) é só do master. */
+export default async function Revelacoes() {
+  const gate = await requireRole("revelacoes");
+  if ("denied" in gate) return gate.denied;
+  const { sb, role } = gate;
+  const r = await rpc<{ items: Rev[] }>(sb, "admin_reveals_board", { p_limit: 100 });
+  if (r.state !== "ok") return <MasterStatePage area="Revelações" variant={r.state === "denied" ? "denied" : "error"} />;
+  const now = nowMs();
+  const rows: RevelacaoRow[] = r.data.items.map((e) => {
+    const done = e.revealedAt != null;
+    const late = !done && e.revealAt != null && Date.parse(e.revealAt) < now;
+    const email = done
+      ? `${nf(e.emailsSent)} enviados${e.emailsFailed ? ` · ${nf(e.emailsFailed)} ${e.emailsFailed === 1 ? "falhou" : "falharam"}` : ""}${e.emailsQueued ? ` · ${nf(e.emailsQueued)} na fila` : ""}`
+      : `${nf(e.emailOptIns)} ${e.emailOptIns === 1 ? "e-mail" : "e-mails"}`;
+    return {
+      key: e.id, when: relWhen(done ? e.revealedAt : e.revealAt), event: e.title, photos: nf(e.photos),
+      phone: "—", email, tone: done ? "ok" : late ? "bad" : "wait", status: done ? "Revelado" : late ? "Atrasada" : "Na fila",
+      action: done || role !== "master" ? undefined : <RevealNow event={{ id: e.id, title: e.title, plannedAt: plannedWhen(e.revealAt), notices: `${nf(e.emailOptIns)} ${e.emailOptIns === 1 ? "e-mail" : "e-mails"}, de uma vez` }} />,
+    };
+  });
+  return <MasterRevelacoesView rows={rows} note="Quem não instalou o app recebe o aviso por e-mail, se deixou o endereço ao entrar. O e-mail sai pela Brevo; o aviso no celular ainda não está ativo." />;
 }

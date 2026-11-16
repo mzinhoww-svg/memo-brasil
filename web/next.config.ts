@@ -1,4 +1,9 @@
+import path from "node:path";
 import type { NextConfig } from "next";
+
+// Raiz do repositório: o app importa código compartilhado de ../supabase/functions/_shared. Fixada aqui para não depender de onde está o
+// lockfile (a raiz tinha o package-lock do servidor antigo, hoje em legacy/; sem raiz explícita o Turbopack enxerga só web/).
+const repoRoot = path.resolve(/* turbopackIgnore: true */ process.cwd(), "..");
 
 // Decisões (docs/architecture): sem cacheComponents/Activity (app local-first; câmera não deve ficar viva em rota oculta).
 const isProd = process.env.NODE_ENV === "production";
@@ -39,11 +44,22 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: repoRoot,
   // Fixa em "0" quando não definido: o código do relógio de teste sai do bundle de produção.
   env: {
     NEXT_PUBLIC_MM_TEST_CLOCK: process.env.NEXT_PUBLIC_MM_TEST_CLOCK ?? "0",
     // Versão do service worker = deploy; cache antigo é descartado ao ativar.
     NEXT_PUBLIC_BUILD_ID: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ?? String(Date.now()),
+  },
+  // Páginas antigas do Master absorvidas pelas telas novas (M15–M32). Permanentes (308); o código antigo sai quando as ondas seguintes substituírem as telas.
+  async redirects() {
+    return [
+      { source: "/master/usuarios", destination: "/master/pessoas?aba=contas", permanent: true },
+      { source: "/master/organizadores", destination: "/master/pessoas?aba=organizadores", permanent: true },
+      { source: "/master/participantes", destination: "/master/pessoas?aba=convidados", permanent: true },
+      { source: "/master/storage", destination: "/master/saude", permanent: true },
+      { source: "/master/analytics", destination: "/master", permanent: true },
+    ];
   },
   async headers() {
     const security = [
@@ -59,6 +75,7 @@ const nextConfig: NextConfig = {
     ];
   },
   turbopack: {
+    root: repoRoot,
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

@@ -2,61 +2,87 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MemoEvent } from "@/domain/event";
+import { PainelFrame } from "@/components/revela/PainelFrame";
 import { AppearanceStudio } from "./AppearanceStudio";
 
-const qrSpy = vi.hoisted(() => vi.fn(async (_url: string, ..._r: unknown[]) => "data:image/png;base64,AAAA"));
-vi.mock("@/features/invitations/qr", () => ({ qrDataUrl: qrSpy }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+afterEach(() => { cleanup(); window.localStorage.clear(); });
+const ev = { id: "e1", title: "Ana e Leo", code: "ABCD1234", palette: "salvia", eventFont: "birthstone", cameraStyle: "festa" } as MemoEvent;
+const props = () => ({ event: ev, onSave: vi.fn(async () => undefined), onSaveLook: vi.fn(async () => undefined) });
 
-afterEach(cleanup);
-const ev = { id: "e1", title: "Emy e Igor", palette: "salvia", eventFont: "birthstone" } as MemoEvent;
+describe("AppearanceStudio (Revela)", () => {
+  it("lista as 4 embalagens e marca a atual", () => {
+    render(<AppearanceStudio {...props()} />);
+    const radios = screen.getAllByRole("radio");
+    expect(radios.map((r) => r.textContent)).toEqual(["Festa", "Casamento", "Aniversário", "Noite"]);
+    expect(screen.getByRole("radio", { name: "Festa" }).getAttribute("aria-checked")).toBe("true");
+  });
+  it("salvar grava embalagem e filme escolhidos e depois a mensagem", async () => {
+    const p = props();
+    render(<AppearanceStudio {...p} />);
+    fireEvent.click(screen.getByRole("radio", { name: "Casamento" }));
+    fireEvent.click(screen.getByRole("button", { name: "Natural" }));
+    fireEvent.change(screen.getByLabelText(/Mensagem de boas-vindas/), { target: { value: "Vem dançar" } });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar aparência" }));
+    await waitFor(() => expect(p.onSave).toHaveBeenCalled());
+    expect(p.onSaveLook).toHaveBeenCalledWith({ cameraStyle: "casamento", filmLook: "natural" });
+    expect((p.onSave.mock.calls[0] as unknown[])[0]).toMatchObject({ welcomeMessage: "Vem dançar" });
+    expect(await screen.findByText("Aparência salva.")).toBeTruthy();
+  });
+  it("falha ao gravar a embalagem não grava o resto e mostra o motivo", async () => {
+    const p = { ...props(), onSaveLook: vi.fn(async () => "Não deu para gravar a embalagem.") };
+    render(<AppearanceStudio {...p} />);
+    fireEvent.click(screen.getByRole("button", { name: "Salvar aparência" }));
+    expect(await screen.findByText("Não deu para gravar a embalagem.")).toBeTruthy();
+    expect(p.onSave).not.toHaveBeenCalled();
+  });
+  it("depois da revelação tudo continua editável: sem aviso de trava e com os campos e o botão ligados", () => {
+    const revelado = { ...ev, revealEnabled: true, revealedAt: 1 } as MemoEvent;
+    render(<AppearanceStudio {...props()} event={revelado} />);
+    expect(screen.queryByText(/não pode mais mudar/)).toBeNull();
+    expect((screen.getByRole("button", { name: "Salvar aparência" }) as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getByRole("radio", { name: "Noite" }).matches(":disabled")).toBe(false);
+    expect((screen.getByLabelText("Mensagem de boas-vindas") as HTMLTextAreaElement).disabled).toBe(false);
+  });
 
-describe("AppearanceStudio", () => {
-  it("a prévia do QR usa a origem atual, não um domínio fixo (UX-18)", async () => {
-    render(<AppearanceStudio event={{ ...ev, code: "ABCD1234" } as MemoEvent} locked={false} onSave={vi.fn()} onRestore={vi.fn()} />);
-    await waitFor(() => expect(qrSpy).toHaveBeenCalled());
-    const url = String(qrSpy.mock.calls[0][0]);
-    expect(url).toBe(`${window.location.origin}/e/ABCD1234`);
-    expect(url).not.toContain("memoriesmt.app");
+  it("sozinha tem um único título; dentro do quadro do painel o título é só o do quadro", () => {
+    const { unmount } = render(<AppearanceStudio {...props()} />);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.queryByRole("group", { name: "Aparência da câmera" })).toBeNull(); // sem a legenda repetida
+    unmount();
+    render(<PainelFrame title="Aparência" backHref="/painel/e1/configuracoes"><AppearanceStudio {...props()} /></PainelFrame>);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Aparência");
   });
-  it("cor sem contraste mostra o erro e bloqueia o salvamento; a prévia não aplica o tema inválido", () => {
-    const onSave = vi.fn();
-    render(<AppearanceStudio event={ev} locked={false} onSave={onSave} onRestore={vi.fn()} />);
-    const campo = screen.getByLabelText(/^Texto/);
-    fireEvent.change(campo, { target: { value: "#e8ece4" } });
-    expect(screen.getByTestId("studio-erros").textContent).toMatch(/contraste/i);
-    expect(campo.getAttribute("aria-invalid")).toBe("true"); // o erro é ligado ao campo certo
-    expect(campo.getAttribute("aria-describedby")).toMatch(/ap-cor-erro-texto/);
-    expect(screen.getByText(/mostrando o último tema válido/)).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Salvar aparência" }) as HTMLButtonElement).disabled).toBe(true);
-    const cartao = document.querySelector(".studio-cartao") as HTMLElement;
-    expect(cartao.style.getPropertyValue("--evento-texto").toUpperCase()).toBe("#5B6752"); // a prévia mostra o ÚLTIMO tema válido, não a cor inválida
+
+  it("a prévia é recolhível (aria-expanded), pequena e lembrada neste aparelho", () => {
+    const { container, unmount } = render(<AppearanceStudio {...props()} />);
+    const toggle = screen.getByRole("button", { name: "Prévia da câmera" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(container.querySelector(".studio-stage")).not.toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(container.querySelector("#ap-previa")?.hasAttribute("hidden")).toBe(true);
+    unmount();
+    render(<AppearanceStudio {...props()} />);
+    expect(screen.getByRole("button", { name: "Prévia da câmera" }).getAttribute("aria-expanded")).toBe("false");
   });
-  it("aviso de salvo fica numa região live sempre montada e some ao editar", async () => {
-    render(<AppearanceStudio event={ev} locked={false} onSave={vi.fn().mockResolvedValue(undefined)} onRestore={vi.fn()} />);
-    const msg = screen.getByTestId("studio-msg");
-    expect(msg.getAttribute("aria-live")).toBe("polite"); expect(msg.textContent).toBe("");
-    fireEvent.click(screen.getByRole("button", { name: "Salvar aparência" }));
-    await waitFor(() => expect(msg.textContent).toBe("Aparência salva."));
-    fireEvent.change(screen.getByLabelText("Mensagem de boas-vindas"), { target: { value: "novo" } });
-    expect(msg.textContent).toBe(""); // não fica "salvo" depois de editar
-    expect(screen.getByTestId("studio-msg")).toBe(msg); // mesmo elemento: a região live não foi remontada
+
+  it("Salvar aparência fica no rodapé fixo do quadro e continua acessível", async () => {
+    const p = props();
+    const { container } = render(<PainelFrame title="Aparência" backHref="/x"><AppearanceStudio {...p} /></PainelFrame>);
+    const save = await screen.findByRole("button", { name: "Salvar aparência" });
+    expect(container.querySelector(".pf-foot")?.contains(save)).toBe(true);
+    fireEvent.click(save);
+    await waitFor(() => expect(p.onSave).toHaveBeenCalled());
+    expect(await screen.findByTestId("studio-msg")).toHaveTextContent("Aparência salva.");
   });
-  it("tema válido salva o rascunho e mostra a mensagem na prévia", async () => {
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    render(<AppearanceStudio event={ev} locked={false} onSave={onSave} onRestore={vi.fn()} />);
-    fireEvent.change(screen.getByLabelText("Mensagem de boas-vindas"), { target: { value: "Que bom ter você!" } });
-    expect(screen.getAllByText("Que bom ter você!").length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole("button", { name: "Salvar aparência" }));
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ welcomeMessage: "Que bom ter você!", preset: "salvia" })));
-  });
-  it("depois da revelação tudo fica travado", () => {
-    render(<AppearanceStudio event={ev} locked onSave={vi.fn()} onRestore={vi.fn()} />);
-    expect((screen.getByRole("button", { name: "Salvar aparência" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByLabelText("Mensagem de boas-vindas").matches(":disabled")).toBe(true); // desabilitado pelo fieldset
-  });
-  it("a prévia fica isolada no wrapper do evento e mantém a assinatura da plataforma", () => {
-    render(<AppearanceStudio event={ev} locked={false} onSave={vi.fn()} onRestore={vi.fn()} />);
-    expect(document.documentElement.style.getPropertyValue("--evento-superficie")).toBe("");
-    expect(screen.getByText("Powered by MemoriesMT")).toBeTruthy();
+
+  it("o texto do filme acompanha a opção marcada", () => {
+    render(<AppearanceStudio {...props()} />);
+    expect(screen.getByTestId("filme-info").textContent).toMatch(/^Filme 35mm: tons quentes/);
+    fireEvent.click(screen.getByRole("button", { name: "Natural" }));
+    expect(screen.getByTestId("filme-info").textContent).toMatch(/^Natural: as cores/);
+    expect(screen.getByTestId("filme-info").textContent).not.toMatch(/35mm/);
   });
 });

@@ -17,7 +17,7 @@ test("publicado: home, fontes, tema, manifest e service worker", async ({ page }
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "noite");
   const m = await (await page.request.get("/manifest.webmanifest")).json();
-  expect(m.name).toBe("MemoriesMT");
+  expect(m.name).toBe("Revela");
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   expect(await page.evaluate(() => navigator.serviceWorker.getRegistrations().then((r) => r.length))).toBeGreaterThan(0);
 });
@@ -28,9 +28,9 @@ test("publicado: criar evento, entrar como convidado, postar e reagir", async ({
   await switchPerson(page, code, "Ana");
   await postViaFile(page, code);
   await page.goto(`/e/${code}/agora`);
-  await expect(page.getByText("Visão de Ana")).toBeVisible();
-  await page.getByRole("button", { name: /^Amei/ }).click();
-  await expect(page.getByRole("button", { name: /^Amei/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("article.post b", { hasText: /^Ana$/ }).first()).toBeVisible();
+  await page.getByRole("button", { name: "Curtir" }).click();
+  await expect(page.getByRole("button", { name: "Curtir" })).toHaveAttribute("aria-pressed", "true");
   expect(id).toBeTruthy();
 });
 
@@ -83,11 +83,11 @@ test("publicado: revelação programada (espera, contagem, revelação sem rede)
   await page.goto(`/e/${code}/agora`);
   await expect(page.getByTestId("aguardando-revelacao")).toBeVisible();
   await expect(page.getByTestId("contagem")).toContainText(/\d{2}h \d{2}min \d{2}s/);
-  await expect(page.locator(".mm-media img")).toHaveCount(0);
+  await expect(page.locator("article.post .rv-print img")).toHaveCount(0);
   await context.setOffline(true);
   await page.clock.fastForward("04:00");
   await expect(page.getByTestId("transicao-revelacao")).toBeVisible();
-  await page.getByRole("button", { name: "Ver as fotos" }).click({ timeout: 8000 });
-  await expect(page.locator(".mm-media img").first()).toBeVisible();
+  await page.getByRole("button", { name: "Abrir o feed" }).click({ timeout: 8000 });
+  await expect(page.locator("article.post .rv-print img").first()).toBeVisible();
   await context.setOffline(false);
 });

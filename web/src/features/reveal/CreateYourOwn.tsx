@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
-import { Icon } from "@/components/memoriesmt";
+import { Icon } from "@/components/revela";
 
 const keyOf = (eventId: string, userId: string) => `mm-crie-o-seu-${eventId}-${userId}`;
 const dismissed = new Set<string>(); // vale mesmo sem localStorage (modo privado)
@@ -30,10 +30,10 @@ export function CreateYourOwn({ eventId, userId }: { eventId: string; userId: st
     <aside className="app-card" aria-labelledby="crie-h" data-testid="crie-o-seu">
       <div className="app-between">
         <h2 id="crie-h" className="titulo-tela app-h1">Tem uma festa vindo aí?</h2>
-        <button type="button" className="mm-btn mm-btn--texto" aria-label="Dispensar convite para criar evento" onClick={close}><Icon name="fechar" decorative /></button>
+        <button type="button" className="rv-btn rv-btn--texto" aria-label="Dispensar convite para criar evento" onClick={close}><Icon name="fechar" decorative /></button>
       </div>
       <p className="corpo app-p">Faça a sua do mesmo jeito. Até 10 convidados é grátis.</p>
-      <Link className="mm-btn mm-btn--secundario mm-btn--bloco" href="/" onClick={() => write(key)}>Criar o meu evento</Link>
+      <Link className="rv-btn rv-btn--secundario rv-btn--bloco" href="/" onClick={() => write(key)}>Criar o meu evento</Link>
     </aside>
   );
 }

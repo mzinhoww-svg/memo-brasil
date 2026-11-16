@@ -1,4 +1,4 @@
-import type { CameraStyle, Capacity, EventCategory, Shots } from "./options";
+import type { CameraStyle, Capacity, EventCategory, FilmLook, Shots } from "./options";
 import { computeRevealStatus, type RevealAnchor, type RevealStatus } from "./reveal";
 import { MIN_DURATION_HOURS } from "./options";
 import type { ThemeSpec } from "./theme";
@@ -16,7 +16,10 @@ export interface MemoEvent {
   startAt: number; // ms epoch
   durationHours: number;
   endedAt?: number; // "Encerrar agora"
+  /** Embalagem da câmera (festa, casamento, aniversario, noite). */
   cameraStyle: CameraStyle;
+  /** Filme aplicado nas fotos; ausente = Filme 35mm. */
+  filmLook?: FilmLook;
   /** Revelação programada: desligada = fotos visíveis na hora. */
   revealEnabled: boolean;
   revealAt: number | null; // epoch UTC
@@ -32,6 +35,8 @@ export interface MemoEvent {
   capacity: Capacity;
   shotsPerPerson: Shots;
   everyoneSeesAll: boolean;
+  /** Convidados podem baixar o original das fotos de outras pessoas; ausente = permitido. O anfitrião e o autor sempre podem. */
+  guestDownloadHigh?: boolean;
   reactionsEnabled: boolean;
   palette: PaletteId;
   eventFont: EventFontId;
@@ -40,7 +45,8 @@ export interface MemoEvent {
   place?: string;
   moments: string[];
   tables: number;
-  notice?: { text: string; expiresAt?: number };
+  /** `startsAt`: aviso agendado, só aparece aos convidados a partir desse instante. */
+  notice?: { text: string; expiresAt?: number; startsAt?: number };
   createdAt: number;
   /** Política de retenção gravada pelo servidor na criação (ex.: "2026-10-22-v1"); ausente em eventos anteriores. */
   retentionPolicy?: string;
@@ -100,7 +106,10 @@ export function validateDraft(d: Draft, _now: number): DraftErrors {
   return errors;
 }
 
-/** A retrospectiva abre quando o evento terminou e as fotos foram reveladas (anfitrião vê sempre). */
+/**
+ * A retrospectiva abre assim que as fotos são reveladas (anfitrião vê sempre). Em evento sem revelação (álbum ao vivo),
+ * as fotos já estão abertas desde o começo: aí a retrospectiva espera o fim do evento.
+ */
 export function retrospectiveOpen(e: MemoEvent, now: number, isHost: boolean): boolean {
-  return isHost || (eventStatus(e, now) === "encerrado" && isRevealed(e, now));
+  return isHost || (isRevealed(e, now) && (e.revealEnabled || eventStatus(e, now) === "encerrado"));
 }

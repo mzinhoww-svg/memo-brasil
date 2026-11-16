@@ -37,16 +37,34 @@ export async function readEventScoped(repos: Repositories, key: EventKey, actor:
   }
 
   const isHost = can(actor, "photo.moderate", event);
-  const member = actor.userId ? await repos.participants.get(event.id, actor.userId) : undefined;
+  if (!isHost && !actor.userId) return { access: "convite", preview: toPreview(event, now, await repos.participants.count(event.id)), ...EMPTY };
+
+  // Com o evento em mãos, o resto vai num único lote (uma ida em vez de quatro em série). A RLS já filtra no servidor;
+  // se a pessoa ainda for "convite" (não entrou ou foi bloqueada), tudo o que veio no lote é descartado abaixo, inclusive
+  // as recusas (ex.: `event_counts` nega quem não é membro): só valem depois de confirmada a participação.
+  // O anfitrião não consulta a própria participação: o papel dele vem do evento.
+  const settle = <T,>(p: Promise<T>) => p.then((v) => ({ ok: true as const, v }), (e: unknown) => ({ ok: false as const, e }));
+  const [memberR, photosR, countsR, participantsR, reactionsR] = await Promise.all([
+    isHost ? Promise.resolve({ ok: true as const, v: undefined }) : settle(repos.participants.get(event.id, actor.userId!)),
+    settle(repos.photos.listByEvent(event.id)),
+    settle(repos.events.counts(event.id, { userId: actor.userId, host: isHost })),
+    settle(repos.participants.listByEvent(event.id)),
+    settle(repos.reactions.listByEvent(event.id)),
+  ]);
+  if (!memberR.ok) throw memberR.e;
+  const member = memberR.v;
   if (!isHost && (!member || member.blockedAt !== undefined)) {
     return { access: "convite", preview: toPreview(event, now, await repos.participants.count(event.id)), ...EMPTY };
   }
+  const value = <T,>(r: { ok: true; v: T } | { ok: false; e: unknown }): T => {
+    if (!r.ok) throw r.e;
+    return r.v;
+  };
+  const [rawPhotos, counts, participants, reactions] = [value(photosR), value(countsR), value(participantsR), value(reactionsR)];
 
   const viewer: Viewer = { id: actor.userId ?? "", host: isHost };
-  const photos = visiblePhotos(event, await repos.photos.listByEvent(event.id), viewer, now);
+  const photos = visiblePhotos(event, rawPhotos, viewer, now);
   const allowed = new Set(photos.map((p) => p.id));
-  const counts = await repos.events.counts(event.id, { userId: actor.userId, host: isHost });
-  const [participants, reactions] = await Promise.all([repos.participants.listByEvent(event.id), repos.reactions.listByEvent(event.id)]);
   return { access: isHost ? "organizador" : "membro", event, participants, photos, reactions: reactions.filter((r) => allowed.has(r.photoId)), counts };
 }
 

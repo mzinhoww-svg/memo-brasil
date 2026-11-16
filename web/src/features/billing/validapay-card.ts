@@ -25,7 +25,7 @@ export async function prepareCard(config: { publicId: string; environment: Valid
   const [{ collectDevice, tokenize }, { authenticate }] = await Promise.all([import("@validapay/tokenize/browser"), import("@validapay/3ds")]);
   const { deviceId } = await collectDevice({ publicId, environment });
   if (!deviceId) throw new Error("Não foi possível identificar este dispositivo.");
-  const authentication = await authenticate({ publicId, environment, amount, card, customer, statementDescriptor: "MemoriesMT" });
+  const authentication = await authenticate({ publicId, environment, amount, card, customer, statementDescriptor: "Revela" });
   if (!authentication?.authenticationId || !authentication.cardId) throw new Error("A autenticação do banco não está disponível. Tente mais tarde.");
   const token = await tokenize({ publicId, environment, card, customer, authentication });
   if (!/^ctk_[A-Za-z0-9_-]+$/.test(token.cardToken)) throw new Error("Não foi possível proteger os dados do cartão.");

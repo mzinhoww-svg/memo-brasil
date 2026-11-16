@@ -1,8 +1,8 @@
 "use client";
 
-import { contactFrom } from "@/components/memoriesmt/SiteFooter";
+import { contactFrom } from "@/components/revela/SiteFooter";
 import { useId } from "react";
-import { Button, Skeleton } from "@/components/memoriesmt";
+import { Button, Skeleton } from "@/components/revela";
 import { PlanCard } from "@/features/billing/PlanCard";
 import { TrustBlock } from "@/features/billing/TrustBlock";
 import type { PublicPlan, PublicSettings } from "@/features/billing/types";

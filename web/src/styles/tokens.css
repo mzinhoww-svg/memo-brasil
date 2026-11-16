@@ -1,108 +1,276 @@
-/* MemoriesMT · gerado de tokens.json. Tema: <html data-theme="dia"> ou "noite". */
+/* Revela 2.0 · tokens. ÚNICO arquivo com valores de cor hex do app (ver src/styles/no-hex.test.ts).
+   Fonte: design-system/revela/codigo/tokens.css. Tema do app: Noite (data-theme="dark"); Dia só para site, e-mail e impressos. */
 
-@font-face { font-family: "Bricolage Grotesque"; src: url("/fonts/BricolageGrotesque-Variable.woff2") format("woff2"); font-weight: 200 800; font-style: normal; font-display: swap; }
-@font-face { font-family: "Instrument Serif"; src: url("/fonts/InstrumentSerif-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
-@font-face { font-family: "Instrument Serif"; src: url("/fonts/InstrumentSerif-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+:root,
+[data-theme="dark"] {
+  --bg:#0E0C0B;
+  --surface-1:#191614;
+  --surface-2:#24201D;
+  --surface-3:#302A26;
+  --line:#3E3732;
+  --ink:#F6EFE6;
+  --ink-muted:#B5AA9F;
+  --ink-faint:#776D65;
+  --revela:#FF4D1F;
+  --on-revela:#1A0700;
+  --revela-text:#FF8A5E;
+  --revela-soft:#3D1A10;
+  --carimbo:#FFA23A;
+  --carimbo-on-paper:#9E5400;
+  --champanhe:#E8CF9E;
+  --paper:#F7F2EA;
+  --on-paper:#17120F;
+  --flash:#FFF7EA;
+  --wrap-festa:#FF4D1F;
+  --wrap-casamento:#F1E7D6;
+  --wrap-aniversario:#2340D8;
+  --wrap-noite:#17392C;
+  --success:#5BC98F;
+  --danger:#FF6B6B;
+  --focus:#FFB199;
+  --scrim:#000000B8;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --space-8:32px;
+  --space-12:48px;
+  --radius-print:3px;
+  --radius-sm:6px;
+  --radius-md:12px;
+  --radius-lg:18px;
+  --radius-xl:28px;
+  --radius-pill:999px;
+  --shadow-print:0 18px 36px #000000B3, 0 2px 6px #00000099;
+  --shadow-object:0 40px 60px #000000A6;
+  --shadow-sheet:0 -16px 40px #00000099;
+  --font-display:Gloock, Georgia, serif;
+  --font-sans:"Schibsted Grotesk", system-ui, -apple-system, sans-serif;
+  --font-stamp:"Share Tech Mono", ui-monospace, monospace;
 
-:root, [data-theme="dia"] {
-  --fundo: #FFFFFF;
-  --neutro: #F4F2EF;
-  --tinta: #1C1917;
-  --apoio: #6B645F;
-  --borda: #D9D5D1;
-  --borda-controle: #8A8480; /* borda de controles interativos: >= 3:1 sobre o fundo (WCAG 1.4.11) */
-  --divisor: #E4E0DC;
-  --acao: var(--tinta);
-  --on-acao: #FFFFFF;
-  --foco: var(--tinta);
-  --rec: #E1261C;
-  --rec-texto: #C41E14;
-  --on-rec: #FFFFFF;
-  --desabilitado: #D9D5D1;
-  --on-desabilitado: #6B645F;
-  --evento-superficie: #E8ECE4;
-  --evento-grafismo: #AAB4A2;
-  --evento-controle: #889082;
-  --evento-texto: #5B6752;
-  --evento-profundo: #4A5543;
-  --on-evento: #FFFFFF;
+  --glow-revela: #ff4d1f40;
+  --glow-carimbo: #ff8a2a99;
+  --hl: #ffffff14;
+  --hl-strong: #ffffff40;
+  --shade: #00000066;
+  --shade-mid: #00000099;
+  --shade-strong: #000000b3;
+  --viewfinder: #0a0908;
+  --paper-ink: #6a6058;
+  --paper-back: #E9E1D5;
+  --paper-hatch-a: #d8cebf;
+  --paper-hatch-b: #e4dbcf;
+  --nav-glass: #0e0c0bee;
+  --success-soft: #5bc98f1f;
+  --on-flash: #17120F;
+  --white-1: #ffffff;
+  --black-1: #000000;
+  /* tinta impressa nas embalagens (mesmas cores das texturas em design-system/revela/codigo/blender/wraps.py) */
+  --wrap-festa-ink: #1A0700;
+  --wrap-festa-stamp: #FFB27A;
+  --wrap-casamento-ink: #2A211A;
+  --wrap-casamento-sub: #6A5A48;
+  --wrap-aniversario-ink: #F6EFE6;
+  --wrap-aniversario-stamp: #FFD23F;
+  --wrap-noite-ink: #E8CF9E;
+  --wrap-casamento-band: #C9A35B;
+  --wrap-aniversario-band: #0E1A66;
+  --wrap-noite-band: #0B1F17;
+  /* faixa da prévia do nome no assistente (passo 2): fundo e texto por embalagem */
+  --wrap-aniversario-name-bg: #0E1A66;
+  --wrap-aniversario-name-ink: #F6C945;
+  --wrap-casamento-name-bg: #C9A35C;
+  --wrap-casamento-name-ink: #1C0B03;
+  --wrap-festa-name-bg: #1A0700;
+  --wrap-festa-name-ink: #FAD9B8;
+  --wrap-noite-name-bg: #0B1F16;
+  --wrap-noite-name-ink: #EFF7E2;
 }
 
-[data-theme="noite"] {
-  --fundo: #141211;
-  --neutro: #2A2624;
-  --tinta: #F4F2EF;
-  --apoio: #A8A29D;
-  --borda: #3A3533;
-  --borda-controle: #7F7773;
-  --divisor: #2A2624;
-  --acao: var(--tinta);
-  --on-acao: #1C1917;
-  --foco: var(--tinta);
-  --rec: #FF5A4E;
-  --rec-texto: #FF5A4E;
-  --on-rec: #141211;
-  --desabilitado: #3A3533;
-  --on-desabilitado: #A8A29D;
-  --evento-superficie: #262D24;
-  --evento-grafismo: #5B6752;
-  --evento-controle: #889082;
-  --evento-texto: #AAB4A2;
-  --evento-profundo: #C9D1C1;
-  --on-evento: #141211;
+[data-theme="light"] {
+  --bg:#F6F0E7;
+  --surface-1:#FFFFFF;
+  --surface-2:#EEE6DB;
+  --surface-3:#E2D8CB;
+  --line:#D5C9BA;
+  --ink:#17120F;
+  --ink-muted:#62574F;
+  --ink-faint:#A3978C;
+  --revela:#E23E12;
+  --on-revela:#1A0700;
+  --revela-text:#B3300C;
+  --revela-soft:#FFE1D5;
+  --carimbo:#9E5400;
+  --carimbo-on-paper:#9E5400;
+  --champanhe:#7E5F22;
+  --paper:#FFFFFF;
+  --on-paper:#17120F;
+  --flash:#FFF7EA;
+  --wrap-festa:#FF4D1F;
+  --wrap-casamento:#F1E7D6;
+  --wrap-aniversario:#2340D8;
+  --wrap-noite:#17392C;
+  --success:#1E7F52;
+  --danger:#C42B3E;
+  --focus:#B3300C;
+  --scrim:#17120F80;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --space-8:32px;
+  --space-12:48px;
+  --radius-print:3px;
+  --radius-sm:6px;
+  --radius-md:12px;
+  --radius-lg:18px;
+  --radius-xl:28px;
+  --radius-pill:999px;
+  --shadow-print:0 14px 30px #17120F33, 0 2px 4px #17120F26;
+  --shadow-object:0 30px 50px #17120F40;
+  --shadow-sheet:0 -12px 32px #17120F26;
+  --font-display:Gloock, Georgia, serif;
+  --font-sans:"Schibsted Grotesk", system-ui, -apple-system, sans-serif;
+  --font-stamp:"Share Tech Mono", ui-monospace, monospace;
+
+  --glow-revela: #ff4d1f40;
+  --glow-carimbo: #ff8a2a99;
+  --hl: #ffffff14;
+  --hl-strong: #ffffff40;
+  --shade: #00000066;
+  --shade-mid: #00000099;
+  --shade-strong: #000000b3;
+  --viewfinder: #0a0908;
+  --paper-ink: #6a6058;
+  --paper-back: #E9E1D5;
+  --paper-hatch-a: #d8cebf;
+  --paper-hatch-b: #e4dbcf;
+  --nav-glass: #0e0c0bee;
+  --success-soft: #5bc98f1f;
+  --on-flash: #17120F;
+  --white-1: #ffffff;
+  --black-1: #000000;
+  /* tinta impressa nas embalagens (mesmas cores das texturas em design-system/revela/codigo/blender/wraps.py) */
+  --wrap-festa-ink: #1A0700;
+  --wrap-festa-stamp: #FFB27A;
+  --wrap-casamento-ink: #2A211A;
+  --wrap-casamento-sub: #6A5A48;
+  --wrap-aniversario-ink: #F6EFE6;
+  --wrap-aniversario-stamp: #FFD23F;
+  --wrap-noite-ink: #E8CF9E;
+  --wrap-casamento-band: #C9A35B;
+  --wrap-aniversario-band: #0E1A66;
+  --wrap-noite-band: #0B1F17;
+  /* faixa da prévia do nome no assistente (passo 2): fundo e texto por embalagem */
+  --wrap-aniversario-name-bg: #0E1A66;
+  --wrap-aniversario-name-ink: #F6C945;
+  --wrap-casamento-name-bg: #C9A35C;
+  --wrap-casamento-name-ink: #1C0B03;
+  --wrap-festa-name-bg: #1A0700;
+  --wrap-festa-name-ink: #FAD9B8;
+  --wrap-noite-name-bg: #0B1F16;
+  --wrap-noite-name-ink: #EFF7E2;
 }
 
+/* Extensões de app sem cor: alvos de toque e larguras. */
 :root {
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 28px;
-  --space-8: 32px;
-  --space-9: 48px;
-  --space-10: 72px;
-  --radius-xs: 8px;
-  --radius-sm: 10px;
-  --radius-md: 12px;
-  --radius-control: 14px;
-  --radius-panel: 16px;
-  --radius-lg: 18px;
-  --radius-xl: 20px;
-  --radius-icone: 32px;
-  --radius-pill: 999px;
-  --size-avatar: 36px;
   --size-alvo: 44px;
-  --size-opcao: 48px;
-  --size-nav: 52px;
+  --size-opcao: 56px;
   --size-campo: 56px;
-  --size-cta: 64px;
-  --size-cta-xl: 72px;
-  --font-sans: "Bricolage Grotesque", "Helvetica Neue", sans-serif;
-  --font-serif: "Instrument Serif", Georgia, serif;
-  --font-evento: "Birthstone Bounce", cursive;
+  --size-cta: 56px;
+  --size-cta-xl: 64px;
+  --size-avatar: 40px;
+  --size-nav: 64px;
+  --space-7: 28px;
+  --space-9: 64px;
+  --space-10: 80px;
 }
 
-.display-xl { font-family: var(--font-sans); font-size: 56px; line-height: 1.04; font-weight: 800; letter-spacing: -0.03em; }
-.display { font-family: var(--font-sans); font-size: 40px; line-height: 1.06; font-weight: 800; letter-spacing: -0.03em; }
-.titulo-pagina { font-family: var(--font-sans); font-size: 34px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
-.numero { font-family: var(--font-sans); font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
-.titulo-tela { font-family: var(--font-sans); font-size: 28px; line-height: 1.08; font-weight: 800; letter-spacing: -0.02em; }
-.titulo-card { font-family: var(--font-sans); font-size: 20px; line-height: 1.2; font-weight: 800; letter-spacing: -0.02em; }
-.cta { font-family: var(--font-sans); font-size: 18px; line-height: 1.2; font-weight: 800; }
-.botao { font-family: var(--font-sans); font-size: 17px; line-height: 1.2; font-weight: 700; }
-.corpo { font-family: var(--font-sans); font-size: 17px; line-height: 1.4; font-weight: 400; }
-.nome { font-family: var(--font-sans); font-size: 16px; line-height: 1.25; font-weight: 700; }
-.rotulo { font-family: var(--font-sans); font-size: 15px; line-height: 1.35; font-weight: 600; }
-.corpo-sm { font-family: var(--font-sans); font-size: 15px; line-height: 1.4; font-weight: 400; }
-.meta { font-family: var(--font-sans); font-size: 13px; line-height: 1.35; font-weight: 500; }
-.eyebrow { font-family: var(--font-sans); font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-.nav { font-family: var(--font-sans); font-size: 12px; line-height: 1.3; font-weight: 600; }
-.emocao-lg { font-family: var(--font-serif); font-size: 42px; line-height: 1.04; font-weight: 400; font-style: italic; }
-.emocao { font-family: var(--font-serif); font-size: 34px; line-height: 1.05; font-weight: 400; font-style: italic; }
-.emocao-sm { font-family: var(--font-serif); font-size: 22px; line-height: 1.2; font-weight: 400; font-style: italic; }
-.nome-evento { font-family: var(--font-evento); font-size: 54px; line-height: 1.05; font-weight: 400; }
-
-/* Fonte do evento: padrão do DS (Birthstone Bounce) via next/font; cada evento sobrescreve --font-evento. */
-:root { --font-evento: var(--fonte-birthstone), "Birthstone Bounce", cursive; }
+/* --- valores literais da referência Revela (gerado por css-from-reference.py) --- */
+:root,
+[data-theme="dark"],
+[data-theme="light"] {
+  --k-00000000: #00000000;
+  --k-00000014: #00000014;
+  --k-0000001f: #0000001f;
+  --k-00000026: #00000026;
+  --k-0000002e: #0000002e;
+  --k-00000033: #00000033;
+  --k-00000040: #00000040;
+  --k-00000044: #00000044;
+  --k-0000004d: #0000004d;
+  --k-00000080: #00000080;
+  --k-00000088: #00000088;
+  --k-0000008c: #0000008c;
+  --k-000000a0: #000000a0;
+  --k-000000a6: #000000a6;
+  --k-000000aa: #000000aa;
+  --k-000000bb: #000000bb;
+  --k-000000cc: #000000cc;
+  --k-050404: #050404;
+  --k-0d0a08: #0d0a08;
+  --k-0d0c0b: #0d0c0b;
+  --k-0e0c0b00: #0e0c0b00;
+  --k-0e0c0bd9: #0e0c0bd9;
+  --k-0e0c0bf2: #0e0c0bf2;
+  --k-141110: #141110;
+  --k-161311: #161311;
+  --k-17120f26: #17120f26;
+  --k-1a0505: #1a0505;
+  --k-1a0b0bcc: #1a0b0bcc;
+  --k-1c1210: #1c1210;
+  --k-1d1917f2: #1d1917f2;
+  --k-1d1a18: #1d1a18;
+  --k-241c17: #241c17;
+  --k-2a1610: #2a1610;
+  --k-2a161000: #2a161000;
+  --k-2a1610f2: #2a1610f2;
+  --k-2a221d: #2a221d;
+  --k-2a2420: #2a2420;
+  --k-2a2522: #2a2522;
+  --k-2b211a: #2b211a;
+  --k-2b2623e6: #2b2623e6;
+  --k-2f2824: #2f2824;
+  --k-2f2a27: #2f2a27;
+  --k-3a2018: #3a2018;
+  --k-3a3532: #3a3532;
+  --k-3d342e: #3d342e;
+  --k-47413c: #47413c;
+  --k-4a1709: #4a1709;
+  --k-4a4039: #4a4039;
+  --k-5a4f47: #5a4f47;
+  --k-5bc98f33: #5bc98f33;
+  --k-5c5048: #5c5048;
+  --k-7e5f22: #7e5f22;
+  --k-8d6b2c: #8d6b2c;
+  --k-9e5400: #9e5400;
+  --k-c2340f: #c2340f;
+  --k-c2381a: #c2381a;
+  --k-c9a45a: #c9a45a;
+  --k-d9c7a6: #d9c7a6;
+  --k-d9cdb8: #d9cdb8;
+  --k-e8cf9e1a: #e8cf9e1a;
+  --k-ede3d2: #ede3d2;
+  --k-fbf8f3: #fbf8f3;
+  --k-ff4d1f0f: #ff4d1f0f;
+  --k-ff4d1f44: #ff4d1f44;
+  --k-ff6b6b1f: #ff6b6b1f;
+  --k-ff7a4e: #ff7a4e;
+  --k-ff9a6e: #ff9a6e;
+  --k-ffa23a1f: #ffa23a1f;
+  --k-ffb46a: #ffb46a;
+  --k-fff7ea66: #fff7ea66;
+  --k-ffffff05: #ffffff05;
+  --k-ffffff0f: #ffffff0f;
+  --k-ffffff10: #ffffff10;
+  --k-ffffff12: #ffffff12;
+  --k-ffffff1a: #ffffff1a;
+  --k-ffffff33: #ffffff33;
+  --k-ffffff4d: #ffffff4d;
+  --k-ffffff55: #ffffff55;
+  --k-ffffffb3: #ffffffb3;
+}

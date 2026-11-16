@@ -2,7 +2,7 @@
  * Endereço público e canônico do app (convites impressos, QR). Nunca o domínio do preview, localhost ou URL assinada:
  * o que vai para o papel precisa continuar valendo depois do deploy. `NEXT_PUBLIC_SITE_URL` permite trocar o domínio.
  */
-export const DEFAULT_SITE_ORIGIN = "https://newmemocuiaba.vercel.app";
+export const DEFAULT_SITE_ORIGIN = "https://fotosdocasamento.online";
 
 export function siteOrigin(env: string | undefined = process.env.NEXT_PUBLIC_SITE_URL): string {
   if (!env) return DEFAULT_SITE_ORIGIN;

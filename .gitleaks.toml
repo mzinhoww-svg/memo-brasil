@@ -4,9 +4,15 @@
 # Nunca coloque valor real aqui.
 title = "memo-brasil"
 
+# Sem [extend] o gitleaks v8 usa SÓ as regras deste arquivo (nenhuma): o scanner passava sem escanear nada.
+[extend]
+useDefault = true
+
 [allowlist]
 description = "Vetores públicos de teste (RFC 6238) e senhas de exemplo dos testes"
 regexTarget = "match"
 regexes = [
   '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
+  # SHA-256 do token do motor do Smart Album (o token fica só na Vertra; o hash é público por desenho)
+  '''812095005a8f37cb3c64df9d7263e94c89c180e675a20ee96e50d7de4b82aa89''',
 ]

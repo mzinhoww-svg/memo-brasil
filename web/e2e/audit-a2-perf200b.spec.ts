@@ -41,14 +41,14 @@ test("200 fotos: carregar tudo, voce e zip", async ({ browser }) => {
     const p = await ctx.newPage(); const c = await ctx.newCDPSession(p); await c.send("Performance.enable");
     const t0 = Date.now();
     await p.goto(`/e/${code}/agora`);
-    await p.waitForSelector(".mm-post img[src^=blob]");
+    await p.waitForSelector(".rv-post img[src^=blob]");
     const first = Date.now() - t0;
     let clicks = 0;
     const tc = Date.now();
     while (await p.getByRole("button", { name: "Ver mais fotos" }).count()) { await p.getByRole("button", { name: "Ver mais fotos" }).click(); clicks++; await p.waitForTimeout(150); }
-    await p.waitForFunction(() => { const im = [...document.querySelectorAll(".mm-post img")]; return im.length >= 200 && im.every((i) => (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0); }, null, { timeout: 120000, polling: 250 }).catch(() => undefined);
+    await p.waitForFunction(() => { const im = [...document.querySelectorAll(".rv-post img")]; return im.length >= 200 && im.every((i) => (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0); }, null, { timeout: 120000, polling: 250 }).catch(() => undefined);
     const all = Date.now() - tc;
-    const dom = await p.evaluate(() => ({ posts: document.querySelectorAll(".mm-post").length, imgsLoaded: [...document.querySelectorAll(".mm-post img")].filter((i) => (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0).length, nodes: document.getElementsByTagName("*").length, pageH: document.documentElement.scrollHeight }));
+    const dom = await p.evaluate(() => ({ posts: document.querySelectorAll(".rv-post").length, imgsLoaded: [...document.querySelectorAll(".rv-post img")].filter((i) => (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0).length, nodes: document.getElementsByTagName("*").length, pageH: document.documentElement.scrollHeight }));
     await p.waitForTimeout(1000);
     const m = await metrics(c);
     const sc0 = Date.now();

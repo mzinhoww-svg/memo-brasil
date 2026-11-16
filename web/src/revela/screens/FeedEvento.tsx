@@ -1,0 +1,205 @@
+"use client";
+/* Feed-evento.html (24d): mesmo markup da referência; dados reais por props (padrão = desenho). */
+import Link from "next/link";
+import type { ReactNode, Ref, UIEventHandler } from "react";
+import { popHeart } from "@/lib/motion/use-moments";
+import { GuestTabs } from "../GuestTabs";
+
+const svg = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+
+export interface FeedStory { id: string; name: string; avatar: string; on?: boolean }
+export interface FeedPostData {
+  id: string;
+  avatar: string;
+  author: string;
+  /** "pose 19 de 27" */
+  pose: string;
+  imageSrc: string;
+  /** legenda do carimbo, esquerda e direita */
+  stampLeft: string;
+  stampRight: string;
+  liked: boolean;
+  likesText: string;
+  caption?: string;
+  commentsText: string;
+  /** false esconde "Baixar" (convidado sem permissão para fotos de outros); ausente = mostra */
+  canDownload?: boolean;
+  /** nome do botão; padrão "Baixar" */
+  downloadLabel?: string;
+  /** virada da revelação: a foto aparece borrada, com cadeado, até `revealFeed` trocar pela foto real */
+  veiled?: boolean;
+}
+export interface FeedPostHandlers {
+  onOpen?: (id: string) => void;
+  onLike?: (id: string) => void;
+  onComments?: (id: string) => void;
+  onShare?: (id: string) => void;
+  onDownload?: (id: string) => void;
+  onMore?: (id: string) => void;
+}
+
+export const FEED_REF_POSTS: FeedPostData[] = [
+  { id: "p1", avatar: "L", author: "Leo", pose: "pose 19 de 27", imageSrc: "/revela/ref/sc-aliancas.jpg", stampLeft: "'27 03 14 · 22:41", stampRight: "Leo", liked: true, likesText: "86 curtidas", caption: "Esse foi o momento.", commentsText: "Ver os 14 comentários" },
+  { id: "p2", avatar: "R", author: "Rafa", pose: "pose 7 de 27", imageSrc: "/revela/ref/sc-bolo.jpg", stampLeft: "'27 03 14 · 22:41", stampRight: "Rafa", liked: false, likesText: "52 curtidas", caption: "O bolo durou 4 minutos.", commentsText: "Ver os 9 comentários" },
+];
+export const FEED_REF_STORIES: FeedStory[] = [
+  { id: "t", name: "Todas", avatar: "T", on: true },
+  { id: "l", name: "Leo", avatar: "L" },
+  { id: "b", name: "Bia", avatar: "B" },
+  { id: "r", name: "Rafa", avatar: "R" },
+  { id: "lu", name: "Lu", avatar: "L" },
+  { id: "a", name: "Ana", avatar: "A" },
+];
+
+/** Uma publicação do feed (article.post). Sem handlers = só o desenho; usada também como fundo da folha de comentários. */
+export function FeedPost({ post, onOpen, onLike, onComments, onShare, onDownload, onMore }: { post: FeedPostData } & FeedPostHandlers) {
+  const p = post;
+  return (
+    <article className="post" data-post-id={p.id}>
+      <div className="post-h">
+        <span className="avatar avatar--sm">{p.avatar}</span>
+        <div style={{ flex: "1" }}>
+          <b>{p.author}</b>
+          <span>{p.pose}</span>
+        </div>
+        <button type="button" className="rv-icon-btn" aria-label="Mais" onClick={onMore && (() => onMore(p.id))}>
+          <svg {...svg}>
+            <circle cx="5" cy="12" r="1.2" />
+            <circle cx="12" cy="12" r="1.2" />
+            <circle cx="19" cy="12" r="1.2" />
+          </svg>
+        </button>
+      </div>
+      <div
+        className={p.veiled ? "rv-print rv-print--feed rvm-veiled" : "rv-print rv-print--feed"}
+        style={{ transform: "rotate(0deg)", zIndex: "1", ...(onOpen ? { cursor: "pointer" } : {}) }}
+      >
+        <img src={p.imageSrc} alt={onOpen ? "" : "Foto de convidado"} className={p.veiled ? "rv-blurred" : undefined} />
+        {p.veiled && <span className="rvm-lock" aria-hidden="true"><svg className="rv-lock-nudge" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg></span>}
+        <div className="rv-print__cap">
+          <span>{p.stampLeft}</span>{" "}
+          <span>{p.stampRight}</span>
+        </div>
+        {/* o botão cobre a foto sem conter texto: o nome acessível fica curto e o carimbo não entra nele */}
+        {onOpen && <span className="rv-print__open" role="button" tabIndex={0} aria-label={`Abrir a foto de ${p.author}`} onClick={() => onOpen(p.id)} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(p.id); } }} />}
+      </div>
+      <div className="post-a">
+        <button type="button" aria-label="Curtir" aria-pressed={onLike ? p.liked : undefined} className={p.liked ? "on" : ""} onClick={onLike && ((e) => { if (!p.liked) popHeart(e); onLike(p.id); })}>
+          <svg {...svg} fill={p.liked ? "currentColor" : "none"}>
+            <path d="M12 20s-7.5-4.6-9.3-9.6C1.5 7.2 3.5 4.5 6.6 4.5c2 0 3.4 1 5.4 3 2-2 3.4-3 5.4-3 3.1 0 5.1 2.7 3.9 5.9C19.500 15.400 12 20 12 20z" />
+          </svg>
+        </button>
+        <button type="button" aria-label="Comentar" onClick={onComments && (() => onComments(p.id))}>
+          <svg {...svg}>
+            <path d="M21 12a8 8 0 0 1-12 7l-5 1 1-4a8 8 0 1 1 16-4z" />
+          </svg>
+        </button>
+        <button type="button" aria-label="Compartilhar" onClick={onShare && (() => onShare(p.id))}>
+          <svg {...svg}>
+            <path d="M12 3v13M7 8l5-5 5 5" />
+            <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+          </svg>
+        </button>
+        {p.canDownload !== false && <button type="button" aria-label={p.downloadLabel ?? "Baixar"} style={{ marginLeft: "auto" }} onClick={onDownload && (() => onDownload(p.id))}>
+          <svg {...svg}>
+            <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+          </svg>
+        </button>}
+      </div>
+      <div className="post-c">
+        <b>{p.likesText}</b>
+        {p.caption && (
+          <p>
+            <b>{p.author}</b>
+            {` ${p.caption}`}
+          </p>
+        )}
+        <span className="rv-caption" {...(onComments ? { role: "button", tabIndex: 0, style: { cursor: "pointer", ...(p.caption ? {} : { display: "block" }) }, onClick: () => onComments(p.id), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onComments(p.id); } } } : {})}>{p.commentsText}</span>
+      </div>
+    </article>
+  );
+}
+
+export interface FeedEventoProps extends FeedPostHandlers {
+  code?: string;
+  /** "DOM 15 MAR" */
+  stamp?: string;
+  title?: string;
+  stories?: FeedStory[];
+  posts?: FeedPostData[];
+  /** liga a rolagem do feed (a referência é uma imagem estática) */
+  scroll?: boolean;
+  bellHref?: string;
+  onStory?: (id: string) => void;
+  /** conteúdo depois das publicações (estado vazio, sentinela de paginação) */
+  after?: ReactNode;
+  /** aviso do cerimonial, logo abaixo do título */
+  notice?: ReactNode;
+  /** contêiner que rola (a lista do feed): para guardar e restaurar a posição */
+  scrollRef?: Ref<HTMLDivElement>;
+  onScroll?: UIEventHandler<HTMLDivElement>;
+  /** formato do feed: lista de fotos grandes (padrão) ou grade de 3 colunas, como o perfil do Instagram */
+  view?: FeedView;
+  /** presente = mostra a chave Lista/Grade */
+  onView?: (v: FeedView) => void;
+}
+export type FeedView = "lista" | "grade";
+
+const ICON_LIST = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="1.5" /><rect x="4" y="13" width="16" height="7" rx="1.5" /></svg>
+);
+const ICON_GRID = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1" /><rect x="13.5" y="3.5" width="7" height="7" rx="1" /><rect x="3.5" y="13.5" width="7" height="7" rx="1" /><rect x="13.5" y="13.5" width="7" height="7" rx="1" /></svg>
+);
+
+export function FeedEvento({ code, stamp = "DOM 15 MAR", title = "Ana & Leo", stories = FEED_REF_STORIES, posts = FEED_REF_POSTS, scroll, bellHref, onStory, after, notice, scrollRef, onScroll, view = "lista", onView, ...h }: FeedEventoProps = {}) {
+  return (
+    <>
+    <div className="scr">
+      <div ref={scrollRef} onScroll={onScroll} className={scroll ? "safe safe--tabs" : "safe"} style={{ ...(scroll ? {} : { paddingBottom: "0" }), overflow: scroll ? "hidden auto" : "hidden" }}>
+        <div className="row between">
+          <div>
+            <div className="rv-stamp" style={{ fontSize: "12px" }}>{stamp}</div>
+            <h1 className="rv-display" style={{ fontSize: "34px", lineHeight: "36px", marginTop: "4px" }}>{title}</h1>
+          </div>
+          <Link href={bellHref ?? "#"} className="rv-icon-btn" aria-label="Notificações">
+            <svg {...svg}>
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10 21a2 2 0 0 0 4 0" />
+            </svg>
+          </Link>
+        </div>
+        {notice}
+        <div className="stories">
+          {stories.map((s) => (
+            <div key={s.id} className={s.on ? "story on" : "story"} {...(onStory ? { role: "button", tabIndex: 0, "aria-pressed": Boolean(s.on), style: { cursor: "pointer" }, onClick: () => onStory(s.id), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onStory(s.id); } } } : {})}>
+              <span className="avatar">{s.avatar}</span>
+              <small>{s.name}</small>
+            </div>
+          ))}
+        </div>
+        {onView && (
+          <div className="feed-view" role="group" aria-label="Formato do feed">
+            <button type="button" className="rv-icon-btn" aria-label="Ver em lista" aria-pressed={view === "lista"} onClick={() => onView("lista")}>{ICON_LIST}</button>
+            <button type="button" className="rv-icon-btn" aria-label="Ver em grade" aria-pressed={view === "grade"} onClick={() => onView("grade")}>{ICON_GRID}</button>
+          </div>
+        )}
+        {view === "grade" ? (
+          <div className="feed-grid" data-testid="feed-grade">
+            {posts.map((p) => (
+              <button key={p.id} type="button" className="feed-grid__item" data-post-id={p.id} aria-label={`Abrir a foto de ${p.author}, ${p.pose}`} onClick={() => h.onOpen?.(p.id)}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- miniatura assinada do Storage */}
+                <img src={p.imageSrc} alt="" loading="lazy" decoding="async" />
+              </button>
+            ))}
+          </div>
+        ) : posts.map((p) => <FeedPost key={p.id} post={p} {...h} />)}
+        {after}
+      </div>
+      <GuestTabs code={code} current="feed" />
+      <div className="home-ind" />
+      <div className="grain" />
+    </div>
+    </>
+  );
+}

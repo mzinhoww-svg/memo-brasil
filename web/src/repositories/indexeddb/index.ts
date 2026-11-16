@@ -3,7 +3,7 @@ import { inferRevealAnchor, migrateLegacyReveal } from "@/domain/reveal";
 import type { MemoEvent } from "@/domain/event";
 import type { Photo, Reaction } from "@/domain/photo";
 import { beginRow, isPublished, matchesFilter, paginate, sortNewestFirst } from "../paging";
-import { objectUrl } from "../object-url";
+import { objectUrl, urlsFromSingle } from "../object-url";
 import { localCounts, toPreview } from "../preview";
 import { RepositoryError, StorageUnavailableError, type Invitation, type Participant, type PhotoData, type Repositories, type RepositoryOptions, type User } from "../types";
 
@@ -123,6 +123,10 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
     }
   };
 
+  const urlOf = (id: string) => guard(async (d) => {
+    const data = await d.get("photoData", id);
+    return data ? objectUrl(data) : undefined;
+  });
   return {
     events: {
       preview: (code, now) =>
@@ -211,10 +215,8 @@ export function createIndexedDbRepositories(name: string = DB_NAME, migrations: 
           return saved;
         }),
       pending: (id) => guard(async (d) => sortNewestFirst((await d.getAllFromIndex("photos", "eventId", id)).filter((p) => !isPublished(p)))),
-      getUrl: (id) => guard(async (d) => {
-        const data = await d.get("photoData", id);
-        return data ? objectUrl(data) : undefined;
-      }),
+      getUrl: urlOf,
+      getUrls: (photos, size) => urlsFromSingle(urlOf, photos, size),
       add: (p, data) =>
         guard(async (d) => {
           const tx = d.transaction(["photos", "photoData", "participants"], "readwrite");

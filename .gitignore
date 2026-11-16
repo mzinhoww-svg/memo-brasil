@@ -14,3 +14,5 @@ scripts/ci-output.txt
 supabase/.temp/
 supabase/.branches/
 .DS_Store
+.claude/worktrees/
+.next/

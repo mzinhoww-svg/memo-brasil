@@ -1,6 +1,6 @@
 import { caller, preflight, responder, serviceClient, UUID_RE, log } from "../_shared/payments-runtime.ts";
-import { confirmSandboxCharge, validapayEnabled, validapayClient, validapayEnvironment, validapayRuntimeEnabled } from "../_shared/validapay-runtime.ts";
-import { assertChargeOrder, ValidaPayError, type ChargeInput } from "../_shared/validapay.ts";
+import { confirmSandboxCharge, pixExpiryMinutes, validapayCardEnabled, validapayEnabled, validapayClient, validapayEnvironment, validapayRuntimeEnabled } from "../_shared/validapay-runtime.ts";
+import { assertChargeOrder, pixExpired, ValidaPayError, type ChargeInput } from "../_shared/validapay.ts";
 
 const FN = "payments-validapay";
 Deno.serve(async (req) => {
@@ -20,15 +20,20 @@ Deno.serve(async (req) => {
     if (!b || typeof b !== "object" || Array.isArray(b)) return json({ error: "invalid" }, 400);
     const sandboxAllowed = !master.error && master.data === true;
     const enabled = await validapayEnabled(admin) && (environment !== "sandbox" || sandboxAllowed);
-    if (b.action === "config") return json({ enabled, environment: environment ?? "sandbox", publicId: enabled ? Deno.env.get(environment === "production" ? "VALIDAPAY_PRODUCTION_PUBLIC_ID" : "VALIDAPAY_SANDBOX_PUBLIC_ID") ?? null : null, requires3DS: true });
+    if (b.action === "config") {
+      // Cartão: a chave `validapay_card` (Master > Configurações) liga o cartão no checkout; desligada, publicId vai nulo e a tela só oferece Pix.
+      const card = enabled && await validapayCardEnabled(admin);
+      return json({ enabled, environment: environment ?? "sandbox", publicId: card ? Deno.env.get(environment === "production" ? "VALIDAPAY_PRODUCTION_PUBLIC_ID" : "VALIDAPAY_SANDBOX_PUBLIC_ID") ?? null : null, requires3DS: true, cardEnabled: card, pixExpiryMinutes: await pixExpiryMinutes(admin) });
+    }
     if (!validapayRuntimeEnabled(environment)) return json({ error: "pagamento_indisponivel" }, 503);
     if ((b.action === "submit" || b.action === "reserve") && environment === "sandbox" && !sandboxAllowed) return json({ error: "sandbox_restrito" }, 403);
     if ((b.action === "submit" || b.action === "reserve") && !enabled) return json({ error: "pagamento_indisponivel" }, 503);
+    if ((b.action === "submit" || b.action === "reserve") && b.method === "card" && !(await validapayCardEnabled(admin))) return json({ error: "cartao_indisponivel" }, 503);
 
     const view = async (id: string) => {
       const read = await who.client.rpc("payments_order_status", { p_order: id });
       if (read.error || read.data?.provider !== "validapay") return null;
-      const row = await admin.from("payment_orders").select("id,status,provider_env,provider_charge_id,payment_method,brcode,amount_cents,expires_at,plan_code,validapay_attempted_at")
+      const row = await admin.from("payment_orders").select("id,status,provider_env,provider_charge_id,payment_method,brcode,amount_cents,expires_at,plan_code,validapay_attempted_at,created_at")
         .eq("id", id).eq("provider", "validapay").maybeSingle();
       if (row.error || !row.data || !["sandbox", "production"].includes(row.data.provider_env)) return null;
       if (row.data.provider_env === "sandbox" && (master.error || master.data !== true)) return null;
@@ -104,7 +109,9 @@ Deno.serve(async (req) => {
       return json({ ...current.view, emv: current.row.brcode, abandoned: abandoned.data === true });
     }
     if (current.row.provider_charge_id) {
-      if (b.action === "cancel") {
+      // Pix além da validade configurada pelo Master: cancela a cobrança no provedor, como no cancelamento pedido pelo anfitrião.
+      const lapsed = b.action === "status" && current.row.payment_method === "pix" && current.row.status === "pendente" && pixExpired(current.row.created_at, await pixExpiryMinutes(admin), Date.now());
+      if (b.action === "cancel" || lapsed) {
         try { await validapayClient(current.row.provider_env).cancelCharge(current.row.provider_charge_id, orderId!); }
         catch (e) { if (!(e instanceof ValidaPayError) || e.status !== 400) throw e; }
         await confirmSandboxCharge(admin, orderId!, current.row.provider_charge_id, "status");

@@ -68,3 +68,22 @@ describe("finalização com resposta incerta", () => {
     expect((await repos.photos.get(photoId))?.uploadStatus).toBe("pronta");
   });
 });
+
+describe("sem pré-checagem redundante", () => {
+  it("com o servidor barrando o rolo, não chama event_counts e a recusa do begin vira a razão", async () => {
+    const repos = createMemoryRepositories();
+    const created = await createEvent(repos, user, input, now);
+    if (!created.ok) throw new Error("fixture");
+    let counted = 0;
+    const counts = repos.events.counts;
+    repos.events.counts = async (...args) => { counted += 1; return counts(...args); };
+    const reserved: string[] = [];
+    const ok = await postPhoto(repos, created.event, user, data, { moment: "Agora" }, now, { serverEnforcesRoll: true, onReserved: () => reserved.push("x") });
+    expect(ok.ok).toBe(true);
+    expect(counted).toBe(0);
+    expect(reserved).toHaveLength(1);
+    repos.photos.begin = async () => { throw new RepositoryError("shot-limit", "MM001"); };
+    expect(await postPhoto(repos, created.event, user, data, { moment: "Agora" }, now, { serverEnforcesRoll: true })).toEqual({ ok: false, reason: "rolo" });
+    expect(counted).toBe(0);
+  });
+});

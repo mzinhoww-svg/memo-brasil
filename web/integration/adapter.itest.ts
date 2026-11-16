@@ -151,7 +151,7 @@ describe("adaptador Supabase atrás do contrato de repositório", () => {
     afterAll(async () => { if (tEvent) await admin.from("events").delete().eq("id", tEvent); });
     const oceano: ThemeSpec = { preset: "oceano", colors: { ...PRESETS.oceano.dia }, font: "pinyon", welcomeMessage: "Que bom ter você!", qrStyle: "pontos" };
     it("host grava o tema; o convidado vê na prévia e o estranho sem entrar também (só campos de tema)", async () => {
-      const r = await saveTheme(host, tEvent, oceano, NOW());
+      const r = await saveTheme(host, tEvent, oceano);
       expect(r.ok && r.event.theme).toMatchObject({ preset: "oceano", font: "pinyon", welcomeMessage: "Que bom ter você!", qrStyle: "pontos" });
       expect((await host.events.get(tEvent))?.theme?.colors.superficie).toBe(PRESETS.oceano.dia.superficie);
       const prev = await stranger.events.preview(tCode, NOW());
@@ -211,10 +211,10 @@ describe("adaptador Supabase atrás do contrato de repositório", () => {
       expect(await ok.text()).not.toMatch(/MM00|postgres/i); // sem texto de erro do banco
     });
     it("restaurar o padrão apaga a linha; salvar outras configurações não mexe no tema", async () => {
-      const r = await restoreDefaultTheme(host, tEvent, NOW());
+      const r = await restoreDefaultTheme(host, tEvent);
       expect(r.ok && r.event.theme).toBeUndefined();
       expect((await host.events.get(tEvent))?.theme).toBeUndefined();
-      await saveTheme(host, tEvent, oceano, NOW());
+      await saveTheme(host, tEvent, oceano);
       const u = await updateSettings(host, tEvent, { place: "Salão" });
       expect(u.ok && u.event.theme?.preset).toBe("oceano");
     });

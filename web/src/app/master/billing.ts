@@ -1,7 +1,6 @@
 /** Formatação e validação puras das telas de pagamentos (M1) e planos (M2) do console master. */
 
-export const REASON_MIN = 10;
-export const REASON_MAX = 500;
+export { REASON_MIN, REASON_MAX, reasonError, adminErrorText } from "@/lib/master/reason";
 
 const int = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 const cents2 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -28,14 +27,6 @@ export function parseBrl(text: string): number | null {
   if (!/^\d+(\.\d{1,2})?$/.test(s)) return null;
   const [r, c = ""] = s.split(".");
   return Number(r) * 100 + Number(c.padEnd(2, "0"));
-}
-
-/** Mensagem de erro do motivo (o servidor confere de novo, MM011) ou null quando válido. */
-export function reasonError(reason: string): string | null {
-  const n = reason.trim().length;
-  if (n < REASON_MIN) return `Escreva o motivo com pelo menos ${REASON_MIN} caracteres.`;
-  if (n > REASON_MAX) return `O motivo pode ter no máximo ${REASON_MAX} caracteres.`;
-  return null;
 }
 
 export type PaymentsEnv = "desligado" | "sandbox" | "production";
@@ -77,7 +68,7 @@ export function canRefund(o: { status: string; needsRefund: boolean; providerCha
 /** Nome do provedor no console. Pedidos antigos continuam legíveis e identificados como históricos. */
 export function providerLabel(provider: string | null | undefined): string {
   if (!provider) return "—";
-  return provider === "mercadopago" ? "Mercado Pago" : provider === "abacatepay" ? "AbacatePay (histórico)" : provider;
+  return provider === "validapay" ? "ValidaPay" : provider === "mercadopago" ? "Mercado Pago" : provider === "abacatepay" ? "AbacatePay (histórico)" : provider;
 }
 
 /**
@@ -145,10 +136,3 @@ export function refundFailureText(code: string | undefined, provider: string | n
   return "Solicitação registrada, mas o provedor não confirmou o pedido de reembolso. Tente reenviar em alguns minutos.";
 }
 
-/** Tradução dos erros das RPCs/função para o operador. */
-export function adminErrorText(code: string | undefined, message: string): string {
-  if (code === "MM011" || /reasonrequired/.test(message)) return `Escreva o motivo com ${REASON_MIN} a ${REASON_MAX} caracteres.`;
-  if (code === "MM004" || /forbidden/.test(message)) return "Sem permissão para esta ação.";
-  if (code === "MM005" || /invalid/.test(message)) return "Ação recusada pelo servidor: confira os dados e o estado atual.";
-  return "Não foi possível concluir. Tente de novo.";
-}

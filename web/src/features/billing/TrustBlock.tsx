@@ -14,7 +14,7 @@ export function TrustBlock({ plan, gracePct = 10 }: { plan: PublicPlan; gracePct
       {title && <p className="plano-trust-titulo">{title}</p>}
       <ul className="plano-trust-lista">
         <li><Check /><span>Pague só depois de testar: o evento já nasce no ar, grátis.</span></li>
-        <li><Check /><span>{validapayCheckoutEnabled() ? "Pagamento único, sem assinatura. Pague com Pix ou cartão sem sair do MemoriesMT." : "Pagamento único, sem assinatura. Cartão ou Pix, conforme disponível no Mercado Pago. Se expirar, nada é cobrado."}</span></li>
+        <li><Check /><span>{validapayCheckoutEnabled() ? "Pagamento único, sem assinatura. Pague com Pix ou cartão sem sair do Revela." : "Pagamento único, sem assinatura. Cartão ou Pix, conforme disponível no Mercado Pago. Se expirar, nada é cobrado."}</span></li>
         <li><Check /><span>{gracePct > 0 ? `Ninguém é barrado na festa: ${gracePct}% de folga e aviso antes de lotar.` : "Ninguém é barrado na festa: aviso antes de lotar."}</span></li>
       </ul>
     </section>

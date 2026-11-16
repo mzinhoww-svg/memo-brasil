@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { expect, it, vi } from 'vitest';
-import { ConfirmSheet } from '@/components/memoriesmt/ConfirmSheet';
+import { ConfirmSheet } from '@/components/revela/ConfirmSheet';
 it('confirmação foca Cancelar e mantém tentativa recuperável em erro', async () => {
  const run = vi.fn().mockRejectedValueOnce(new Error('rede')).mockResolvedValueOnce(undefined);
  render(<ConfirmSheet title="Excluir?" onCancel={() => {}} onConfirm={run} />);

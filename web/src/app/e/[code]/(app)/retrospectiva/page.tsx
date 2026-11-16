@@ -1,45 +1,45 @@
 "use client";
 
-import { Breadcrumbs, Button, PostCard, StatGrid, StatTile } from "@/components/memoriesmt";
-import { retrospectiveOpen } from "@/domain/event";
+import Link from "next/link";
+import { useMemo } from "react";
+import { endAt, retrospectiveOpen } from "@/domain/event";
 import { visiblePhotos } from "@/domain/photo";
-import { formatDate, usePhotoUrls } from "@/features/app/hooks";
 import { useGuest } from "@/features/events/guest-context";
-import { avatarOf, tagFor, visionName } from "@/features/photos/labels";
+import { retroHeadline, retrospective } from "@/features/feed/retro";
+import { stampDay } from "@/features/guest/format";
+import { useSmartBack } from "@/lib/smart-back";
+import { FeedRetrospectiva } from "@/revela/screens/FeedRetrospectiva";
 
-/** Retrospectiva: abre depois da revelação, com a capa em Instrument Serif e as fotos destacadas. */
+/** 24h · Retrospectiva: abre depois da revelação, com os números reais do evento. */
 export default function Retrospectiva() {
-  const { event, viewer, now, photos, reactions, participants } = useGuest();
+  const { event, viewer, now, photos, reactions } = useGuest();
+  const back = useSmartBack(`/e/${event.code}/agora`);
   const open = retrospectiveOpen(event, now, viewer.host);
-  const shown = visiblePhotos(event, photos, viewer, now);
-  const best = [...shown].sort((a, b) => Number(b.highlighted) - Number(a.highlighted) || reactions.filter((r) => r.photoId === b.id).length - reactions.filter((r) => r.photoId === a.id).length).slice(0, 6);
-  const urls = usePhotoUrls(best);
-  const nf = (n: number) => n.toLocaleString("pt-BR");
+  // o anfitrião vê os números do evento todo (menos fotos removidas); o convidado, só as fotos que já pode ver
+  const shown = useMemo(
+    () => (viewer.host ? photos.filter((p) => p.status !== "removida") : visiblePhotos(event, photos, viewer, now)),
+    [event, photos, viewer, now],
+  );
+  const data = useMemo(() => retrospective(shown, reactions, { tz: event.timezone || "America/Cuiaba", shotsPerPerson: event.shotsPerPerson, window: { start: event.startAt, end: endAt(event) } }),
+    [shown, reactions, event]);
 
   if (!open) {
     return (
-      <div className="app-screen">
-        <h1 className="titulo-tela app-h1">A retrospectiva ainda não abriu.</h1>
-        <p className="corpo app-p app-muted">Ela abre quando o evento terminar e as fotos forem reveladas.</p>
-        <Button href={`/e/${event.code}/agora`} block>Voltar ao Agora</Button>
+      <div className="scr">
+        <div className="safe">
+          <h1 className="rv-title-lg">A retrospectiva ainda não abriu.</h1>
+          <p className="rv-body muted" style={{ margin: "10px 0 16px" }}>Ela abre quando as fotos forem reveladas.</p>
+          <Link href={`/e/${event.code}/agora`} className="rv-btn rv-btn--block rv-btn--primary" onClick={(e) => { e.preventDefault(); back(); }}>Voltar</Link>
+        </div>
       </div>
     );
   }
+  const year = new Intl.DateTimeFormat("pt-BR", { timeZone: event.timezone || "America/Cuiaba", year: "numeric" }).format(new Date(event.startAt));
   return (
-    <div className="app-screen">
-      <Breadcrumbs items={[{ label: "Agora", href: `/e/${event.code}/agora` }, { label: "Retrospectiva" }]} />
-      <div className="app-stack-sm">
-        <p className="eyebrow app-eyebrow">{formatDate(event.startAt)} · {event.title}</p>
-        <p className="emocao-lg app-emocao">Todo mundo viu um {event.category === "casamento" ? "casamento" : "evento"} diferente. Agora dá para ver todos.</p>
-      </div>
-      <StatGrid>
-        <StatTile value={nf(shown.length)} label="fotos" />
-        <StatTile value={nf(participants.length)} label="convidados" />
-      </StatGrid>
-      <div className="app-stack" style={{ gap: "var(--space-8)" }}>
-        {best.map((p) => <PostCard key={p.id} vision={visionName(p)} meta={p.moment} avatar={avatarOf(p)} imageSrc={urls[p.id]} alt={`Foto de ${visionName(p)}`} caption={p.caption} tag={p.highlighted ? tagFor(event.category) : undefined} />)}
-      </div>
-      <Button href={`/e/${event.code}/explorar`} variant="secundario" block>Ver todas em Explorar</Button>
-    </div>
+    <FeedRetrospectiva
+      backHref={`/e/${event.code}/agora`} onBack={back} stamp={`${stampDay(event.startAt, event.timezone)} ${year}`}
+      headline={retroHeadline(event.category, shown.length)}
+      tiles={data.tiles} bars={data.bars} shooters={data.shooters}
+    />
   );
 }

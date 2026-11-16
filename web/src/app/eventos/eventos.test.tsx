@@ -42,13 +42,12 @@ describe("Meus eventos (/eventos)", () => {
     await app.repos.events.save(ev("e2", "u1", NOW - HOUR, "Festa de hoje"));
     await app.repos.events.save(ev("e3", "u2", NOW - HOUR, "Festa de outra pessoa"));
     render(<MeusEventos />);
-    const ativos = await screen.findByRole("region", { name: "Ativos" });
-    const encerrados = screen.getByRole("region", { name: "Encerrados" });
-    expect(within(ativos).getByText("Festa de hoje")).toBeInTheDocument();
-    expect(within(encerrados).getByText("Festa antiga")).toBeInTheDocument();
-    expect(ativos.compareDocumentPosition(encerrados) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Festa de hoje" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Abrir câmera" })).toHaveAttribute("href", "/e/Ce2/agora");
+    expect(screen.getByRole("link", { name: "QR code" })).toHaveAttribute("href", "/painel/e2/qr");
+    const prateleira = screen.getByRole("link", { name: /Festa antiga/ });
+    expect(prateleira).toHaveAttribute("href", "/painel/e1");
     expect(screen.queryByText("Festa de outra pessoa")).toBeNull();
-    expect(within(ativos).getByRole("link", { name: "Painel" })).toHaveAttribute("href", "/painel/e2");
   });
 
   it("organizador sem eventos vê o convite para criar", async () => {

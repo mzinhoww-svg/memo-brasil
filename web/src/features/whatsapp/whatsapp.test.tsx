@@ -29,7 +29,7 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
-const mount = (variant: "cartao" | "compacta" | "passo" = "cartao", extra: Partial<Parameters<typeof WhatsappOptIn>[0]> = {}) =>
+const mount = (variant: "linha" | "compacta" | "passo" = "linha", extra: Partial<Parameters<typeof WhatsappOptIn>[0]> = {}) =>
   render(<WhatsappOptIn eventId={EV} variant={variant} {...extra} />);
 
 describe("quando aparece", () => {
@@ -53,12 +53,12 @@ describe("quando aparece", () => {
     expect(container).toBeEmptyDOMElement();
   });
   it("depois da revelação: não pede opt-in; quem já ativou continua vendo o estado no cartão", async () => {
-    const a = mount("cartao", { revealed: true });
+    const a = mount("linha", { revealed: true });
     await act(async () => {});
     expect(a.container).toBeEmptyDOMElement();
     a.unmount();
     api.getWhatsappStatus.mockResolvedValue(st({ optin: true }));
-    mount("cartao", { revealed: true });
+    mount("linha", { revealed: true });
     expect(await screen.findByText(WA_COPY.active)).toBeInTheDocument();
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Icon } from "@/components/memoriesmt";
+import { Button, Icon } from "@/components/revela";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
 

@@ -3,16 +3,16 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "MemoriesMT",
-    short_name: "MemoriesMT",
-    description: "A festa vista por todo mundo.",
+    name: "Revela",
+    short_name: "Revela",
+    description: "A câmera descartável coletiva para eventos.",
     lang: "pt-BR",
     start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#FFFFFF",
-    theme_color: "#FFFFFF",
+    background_color: "#0E0C0B",
+    theme_color: "#0E0C0B",
     categories: ["photo", "social"],
     icons: [
       { src: "/pwa/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
@@ -21,7 +21,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: "Entrar na festa", url: "/entrar" },
-      { name: "Criar evento", url: "/criar" },
+      { name: "Montar câmera", url: "/criar" },
     ],
   };
 }

@@ -29,7 +29,7 @@ describe("ZIP do álbum", () => {
     const r = await zipAlbum(repos, ev, photos);
     expect(r.saved).toBe(2);
     expect(r.missing).toBe(1);
-    expect(r.filename).toBe("memoriesmt-emy-igor.zip");
+    expect(r.filename).toBe("revela-emy-igor.zip");
     const zip = await JSZip.loadAsync(await r.blob.arrayBuffer());
     expect(Object.keys(zip.files).sort()).toEqual(["emy-igor-001-o-sim.jpg", "emy-igor-002-o-sim.jpg"]);
   });

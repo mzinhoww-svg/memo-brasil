@@ -54,7 +54,7 @@ describe("versões vigentes", () => {
   });
   it("as versões do código existem na migration que as publica (sem divergência)", () => {
     const v1 = readFileSync(resolve(__dirname, "../../../supabase/migrations/20261022001300_legal_v1_retention.sql"), "utf8");
-    const v2 = readFileSync(resolve(__dirname, "../../../supabase/migrations/20261116000100_whatsapp_optin.sql"), "utf8");
+    const v2 = readFileSync(resolve(__dirname, "../../../supabase/migrations/20261118000100_whatsapp_optin.sql"), "utf8");
     expect(v1).toContain(`('terms', '${TERMS_VERSION}'`);
     expect(v2).toContain(`('privacy', '${PRIVACY_VERSION}'`);
   });

@@ -217,7 +217,7 @@ describe("CheckoutPending", () => {
     expect(screen.getByText("R$ 189,00 · Pix")).toBeInTheDocument();
     expect(screen.getByText("#7F3A-21C9")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Voltar ao painel" })).toHaveAttribute("href", "/painel/ev1");
-    expect(screen.getByRole("link", { name: "Imprimir os cards das mesas" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Baixar QR code" })).toBeInTheDocument();
     await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(api.orderStatus).toHaveBeenCalledTimes(1);
   });
@@ -403,6 +403,12 @@ describe("página /painel/[id]/plano", () => {
     await settle();
     expect(window.location.search).toBe("?plano=casamento");
   });
+  it("o quadro do painel já tem título e nome do evento: a página não repete o eyebrow 'evento · Plano'", async () => {
+    render(<PlanoPage />);
+    await screen.findByRole("heading", { name: "De que tamanho é a festa?" });
+    expect(screen.queryByText("Ana & Rui · Plano")).toBeNull();
+    expect(screen.queryByText(/ · Plano$/)).toBeNull();
+  });
   it("código aplicado mostra B9", async () => {
     api.redeemCode.mockResolvedValue({ applied: true, planCode: "casamento", reason: "ok" });
     render(<PlanoPage />);
@@ -410,7 +416,7 @@ describe("página /painel/[id]/plano", () => {
     await userEvent.type(screen.getByLabelText("Código"), "mmt7kq4xr2p");
     await userEvent.click(screen.getByRole("button", { name: "Aplicar" }));
     expect(await screen.findByRole("heading", { name: "Plano Casamento liberado." })).toBeInTheDocument();
-    expect(screen.getByText("Até 250 convidados e 36 fotos cada, sem pagar nada. Presente de MemoriesMT.")).toBeInTheDocument();
+    expect(screen.getByText("Até 250 convidados e 36 fotos cada, sem pagar nada. Presente de Revela.")).toBeInTheDocument();
     expect(screen.getByText("MMT-7KQ4-XR2P")).toBeInTheDocument();
     expect(screen.getByText("Ana & Rui · este evento")).toBeInTheDocument();
   });
@@ -422,7 +428,7 @@ describe("escolha de plano no checkout transparente de produção", () => {
     api.quote.mockResolvedValue({ planCode: "festa", fromPlanCode: null, amountCents: 2900, payable: true, reason: "ok" });
     const onPay = vi.fn();
     render(<PlanPicker eventId="ev1" plans={PLANS} currentCode="gratis" settings={SETTINGS} busy={false} onPay={onPay} onRedeemed={vi.fn()} initialPlan="festa" />);
-    const button = await screen.findByRole("button", { name: "Continuar para pagamento · R$ 29,00" });
+    const button = await screen.findByRole("button", { name: "Escolher para Festa · R$ 29" });
     expect(screen.queryByText(/Mercado Pago/)).not.toBeInTheDocument();
     await userEvent.click(button);
     expect(onPay).toHaveBeenCalledWith("festa");

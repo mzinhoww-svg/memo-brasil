@@ -210,3 +210,22 @@ export class ValidaPayClient {
     };
   }
 }
+
+/** Expiração do Pix definida pelo Master (platform_settings `validapay_pix_expiry_minutes`): 5 a 1440 minutos, padrão 15. */
+export const PIX_EXPIRY_DEFAULT_MIN = 15;
+export function normalizePixExpiry(value: unknown): number {
+  const n = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+  return Number.isInteger(n) && n >= 5 && n <= 1440 ? n : PIX_EXPIRY_DEFAULT_MIN;
+}
+/** O Pix vale até o menor entre o prazo do provedor e (criação + minutos configurados). */
+export function capPixExpiry(providerExpiresAt: string | undefined, createdAt: string, minutes: number): string | undefined {
+  const created = Date.parse(createdAt);
+  const own = Number.isFinite(created) ? created + minutes * 60_000 : NaN;
+  const theirs = providerExpiresAt ? Date.parse(providerExpiresAt) : NaN;
+  const pick = Number.isFinite(own) && Number.isFinite(theirs) ? Math.min(own, theirs) : Number.isFinite(own) ? own : Number.isFinite(theirs) ? theirs : NaN;
+  return Number.isFinite(pick) ? new Date(pick).toISOString() : undefined;
+}
+export const pixExpired = (createdAt: string, minutes: number, now: number): boolean => {
+  const created = Date.parse(createdAt);
+  return Number.isFinite(created) && now >= created + minutes * 60_000;
+};

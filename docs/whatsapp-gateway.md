@@ -9,7 +9,7 @@ Só recebe quem tocou em "Receber avisos no WhatsApp" **e enviou a primeira mens
 2. O convidado envia a mensagem pronta; o bot confirma e o gateway chama `whatsapp-webhook` (`x-wa-signature: sha256=<hmac do corpo bruto>`).
    Assinatura inválida = 401 antes de qualquer parse. `optin.confirmed` / `optin.revoked` são idempotentes e à prova de ordem (`whatsapp_apply_event`). `message.received` é ignorado.
 3. A tela faz polling leve (4 s, só com a aba visível, até 15 min) e revalida ao voltar o foco; vira "Ativado ✓" quando o webhook grava.
-4. `reveal_due_events()` (pg_cron, 1/min) enfileira `kind='revealed'` em `whatsapp_outbox` **na mesma transação** da revelação, só para opt-in ativo, não bloqueado, com a flag ligada.
+4. Um gatilho em `events` (dispara dentro de `release_reveal`, no job de 1/min e no "revelar agora") enfileira `kind='revealed'` em `whatsapp_outbox` **na mesma transação** da revelação, só para opt-in ativo, não bloqueado, com a flag ligada.
 5. `whatsapp-dispatch` (pg_cron, 1/min): lote de 4, teto de 55 envios/hora (o gateway limita a 60/h), 1,5 s entre envios. `409 NO_OPT_IN` = marca revogado e nunca reenvia; erros passageiros reagendam (até 5 tentativas); 429/401 param o lote.
 
 ## Dados e privacidade (LGPD)
@@ -30,7 +30,7 @@ Só recebe quem tocou em "Receber avisos no WhatsApp" **e enviou a primeira mens
 
 ## Publicar (depois de aprovado o SQL final)
 ```
-supabase db push                                   # migration 20261116000100_whatsapp_optin.sql
+supabase db push                                   # migration 20261118000100_whatsapp_optin.sql
 supabase secrets set WA_GATEWAY_URL=... WA_GATEWAY_API_KEY=... WA_GATEWAY_WEBHOOK_SECRET=...
 supabase functions deploy whatsapp-optin
 supabase functions deploy whatsapp-webhook --no-verify-jwt      # o gateway não manda JWT; a autenticação é a assinatura

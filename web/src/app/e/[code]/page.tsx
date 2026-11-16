@@ -2,17 +2,23 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, EventHeader, EventTheme, Field, KnownPeople, Signature } from "@/components/memoriesmt";
+import Link from "next/link";
+import { Button, CameraStage, EventTheme, GuestShell, Icon, KnownPeople, ShotCounter } from "@/components/revela";
+import { ConvidadoConsentimento } from "@/revela/screens/ConvidadoConsentimento";
+import { ConvidadoEntrar } from "@/revela/screens/ConvidadoEntrar";
+import { ConvidadoInvalido } from "@/revela/screens/ConvidadoInvalido";
+import { ConvidadoLotado } from "@/revela/screens/ConvidadoLotado";
+import { wrapOf } from "@/domain/options";
+import { ConvidadoCarregando } from "@/revela/screens/ConvidadoCarregando";
 import { eventStatus, isRevealed } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
-import { formatDate, useEventData } from "@/features/app/hooks";
+import { formatDate, prefetchEventData, useEventData } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
-import { factsFromEvent, factsFromPreview, inviteLines } from "@/features/invitations/invite-copy";
 import { tableFromSearch } from "@/features/invitations/links";
 import { joinEvent } from "@/features/participants/service";
 import { BackendNotice } from "@/features/app/backend-notice";
-import { useBrandImages } from "@/features/studio/useBrandImages";
-import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/consent/ConsentCheck";
+import { CONSENT_FAILED, CONSENT_REQUIRED } from "@/features/consent/ConsentCheck";
+import { EMAIL_RE, saveGuestEmail } from "@/features/participants/guest-email";
 import { currentConsent, recordConsent } from "@/lib/consent";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
@@ -36,7 +42,6 @@ export default function Convite() {
   const router = useRouter();
   const { ready, user, signIn, repos, now, known, switchTo, canSwitchIdentity, backend, ensureSession } = useApp();
   const data = useEventData({ code });
-  const brand = useBrandImages(data.event?.id); // só quem já entrou (RLS do bucket) recebe URL assinada
   // na nuvem o convite só abre com sessão (anônima, sem conta): cria ao chegar
   const [sessionFailed, setSessionFailed] = useState(false);
   const openSession = useCallback(() => ensureSession().catch(() => setSessionFailed(true)), [ensureSession]);
@@ -52,6 +57,10 @@ export default function Convite() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [ackedPrivacy, setAckedPrivacy] = useState(false);
   const [consentError, setConsentError] = useState<string | undefined>();
+  const [askConsent, setAskConsent] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState<string | undefined>();
+  const [full, setFull] = useState(false);
   const [avisosEventId, setAvisosEventId] = useState<string | undefined>(); // passo opcional: avisos por WhatsApp, depois de entrar
   const member = data.participants.find((p) => p.userId === user?.id);
   const event = data.event ?? data.preview; // quem ainda não entrou só recebe a prévia do convite
@@ -93,14 +102,15 @@ export default function Convite() {
 
   async function enter() {
     setError(undefined);
-    if (!acceptedTerms || !ackedPrivacy) return setConsentError(CONSENT_REQUIRED);
-    setConsentError(undefined);
     const trimmed = name.trim();
     if (!trimmed) {
       setError(MESSAGES.nome);
       document.querySelector<HTMLInputElement>('input[autocomplete="given-name"]')?.focus();
       return;
     }
+    if (email.trim() && !EMAIL_RE.test(email.trim())) { setEmailError("Confira o e-mail ou deixe em branco."); return; }
+    if (!acceptedTerms || !ackedPrivacy) { setAskConsent(true); return; }
+    setConsentError(undefined);
     if (busy) return;
     setBusy(true);
     try {
@@ -113,9 +123,13 @@ export default function Convite() {
       if (!r.ok) {
         if (r.reason === "ocupado") { setSecs(RETRY_IN_S); setJoinAt(Date.now() + RETRY_IN_S * 1000); return; }
         if (r.reason === "inativo") { setInactive(true); return; }
+        if (r.reason === "lotado") { setFull(true); return; }
         setError(r.reason === "codigo" ? copyFor(backendMode()).inviteInvalid : MESSAGES[r.reason]);
         return;
       }
+      if (email.trim()) await saveGuestEmail(r.event.id, email);
+      // lê a festa já como membro antes de ir para a câmera: ela abre sem a tela de carregando (se falhar, ela mesma lê)
+      await prefetchEventData(repos, { code }, me.id, now()).catch(() => undefined);
       // passo opcional e pulável: só aparece se o recurso está ligado, a pessoa já é participante e ainda não ativou
       if (backend === "supabase") {
         const st = await getWhatsappStatus(r.event.id).catch(() => null);
@@ -133,114 +147,137 @@ export default function Convite() {
   if (avisosEventId) {
     const go = () => router.push(`/e/${code}/postar`);
     return (
-      <main className="app-col app-col--card app-fluid">
-        <div className="app-screen">
+      <EventTheme wrap={event?.cameraStyle}>
+        <GuestShell>
           <WhatsappOptIn variant="passo" eventId={avisosEventId} onContinue={go} onSkip={go} />
-        </div>
-      </main>
+        </GuestShell>
+      </EventTheme>
     );
   }
 
-  if (!ready || data.loading) return <main className="app-col"><p className="app-screen app-muted">Abrindo o convite…</p></main>;
+  const dateStamp = event ? stampDate(event.startAt) : undefined;
+  const top = dateStamp ? <span className="rv-stamp">{dateStamp}</span> : undefined;
+
+  // 20g · Carregando a festa: a câmera do evento com o nome, assim que o convite chega
+  if (!ready || data.loading) return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={event?.title ?? null} wrap={event?.cameraStyle} /></main>;
+  // 20h: o código não abre nenhuma festa — volta para a tela do código, em vermelho
+  if (!inactive && data.error !== "forbidden" && !data.error && !sessionFailed && !waiting && (!event || data.access === "inexistente")) {
+    router.replace(`/entrar?erro=${encodeURIComponent(code)}`);
+    return <main role="status" aria-label="Carregando a festa"><ConvidadoCarregando name={null} /></main>;
+  }
+  // 20e: convite vencido ou trocado
   if (inactive || data.error === "forbidden") {
-    return (
-      <main className="app-col app-col--card app-fluid">
-        <div className="app-screen">
-          <p className="eyebrow app-eyebrow">Convite</p>
-          <h1 className="titulo-tela app-h1">Este convite não está mais ativo.</h1>
-          <p className="corpo app-p app-muted">Fale com quem convidou você. Pode ser que a festa tenha um link novo.</p>
-          <Button href="/entrar" block>Tenho outro código</Button>
-          <Button href="/" variant="texto">Conhecer o MemoriesMT</Button>
-        </div>
-      </main>
-    );
+    return <main><ConvidadoInvalido closeHref="/" actionHref="/entrar#codigo" /></main>;
   }
   if (sessionFailed || waiting) {
-    const retryLabel = sessionFailed ? "Tentar de novo" : "Tentar agora";
     return (
-      <main className="app-col app-col--card app-fluid">
-        <div className="app-screen">
-          <p className="eyebrow app-eyebrow">{event ? [event.title, formatDate(event.startAt)].join(" · ") : "Convite"}</p>
-          <h1 className="titulo-tela app-h1">Muita gente entrando agora.</h1>
-          <p className="corpo app-p app-muted">{sessionFailed ? "Não conseguimos abrir o convite agora. Toque em Tentar de novo." : "Tentamos de novo sozinhos em 30 segundos. Pode deixar esta tela aberta."}</p>
-          {!sessionFailed && (
-            <div className="app-card">
-              <span className="eyebrow app-muted">Nova tentativa em</span>
-              <span role="timer" aria-live="off" className="display" data-testid="nova-tentativa" style={{ fontVariantNumeric: "tabular-nums" }}>{`0:${String(secs).padStart(2, "0")}`}</span>
-            </div>
-          )}
-          <Button variant="cta" block onClick={retryNow}>{retryLabel}</Button>
+      <GuestShell closeHref="/" top={top} action={<Button variant="secundario" block icon="agora" onClick={retryNow}>{sessionFailed ? "Tentar de novo" : "Tentar agora"}</Button>}>
+        <CameraStage wrap={event?.cameraStyle} size={640} className="rv-camera--off" print={{ name: event?.title, poses: event?.shotsPerPerson }} />
+        <div className="rv-guest__center">
+          <h1 className="titulo-pagina app-h1">Muita gente entrando agora</h1>
+          <p className="corpo app-muted" style={{ margin: 0 }}>{sessionFailed ? "Não conseguimos abrir o convite agora. Toque em Tentar de novo." : "Tentamos de novo sozinhos em 30 segundos. Pode deixar esta tela aberta."}</p>
+          {!sessionFailed && <ShotCounter value={`0:${String(secs).padStart(2, "0")}`} label="nova tentativa" />}
+          {!sessionFailed && <span role="timer" aria-live="off" className="rv-sr-only" data-testid="nova-tentativa">{`0:${String(secs).padStart(2, "0")}`}</span>}
         </div>
-      </main>
+      </GuestShell>
     );
   }
-  if (data.error) {
+  if (data.error || !event) {
     return (
-      <main className="app-col app-col--card app-fluid">
-        <div className="app-screen">
-          <h1 className="titulo-tela app-h1">Não deu para abrir o convite.</h1>
-          <p className="corpo app-p app-muted">Confira a internet e tente de novo.</p>
-          <Button variant="cta" block onClick={() => void refreshData()}>Tentar de novo</Button>
+      <GuestShell closeHref="/" action={<Button variant="primario" block onClick={() => void refreshData()}>Tentar de novo</Button>}>
+        <div className="rv-guest__center" style={{ marginTop: "auto", marginBottom: "auto" }}>
+          <Icon name="sem-sinal" decorative size={40} />
+          <h1 className="titulo-pagina app-h1">Não deu para abrir o convite</h1>
+          <p className="corpo app-muted" style={{ margin: 0 }}>Confira a internet e tente de novo.</p>
         </div>
-      </main>
-    );
-  }
-  if (!event || data.access === "inexistente") {
-    return (
-      <main className="app-col app-col--card app-fluid">
-        <div className="app-screen">
-          <h1 className="titulo-tela app-h1">Código não confere.</h1>
-          <p className="corpo app-p app-muted">{copyFor(backendMode()).inviteInvalidBody}</p>
-          <Button href="/entrar" block>Tentar outro código</Button>
-          <Button href="/" variant="texto">Voltar ao início</Button>
-        </div>
-      </main>
+      </GuestShell>
     );
   }
 
-
-  const facts = data.event ? factsFromEvent(data.event, now()) : data.preview ? factsFromPreview(data.preview) : undefined;
   const ended = (data.preview?.status ?? (data.event ? eventStatus(data.event, now()) : "ativo")) === "encerrado";
-  const meta = [formatDate(event.startAt), event.place].filter(Boolean).join(" · ");
+  const lotada = !isHost && !member && (full || data.preview?.full === true);
+  // 20f (câmera lotou) e câmera fechada: mesma tela
+  if (lotada || (ended && !isHost && !member)) {
+    return (
+      <EventTheme wrap={event.cameraStyle}>
+        <main>
+          <ConvidadoLotado
+            title={event.title}
+            wrap={event.cameraStyle}
+            stamp={dateStamp ?? ""}
+            poses={event.shotsPerPerson}
+            closed={!lotada}
+            body={lotada ? `Os ${event.capacity ?? ""} lugares de ${event.title} já foram ocupados. Fale com o anfitrião, que pode abrir mais vagas.`.replace("Os  lugares", "Os lugares") : MESSAGES.encerrado}
+            closeHref="/"
+            onRetry={() => { setFull(false); void refreshData(); }}
+          />
+        </main>
+      </EventTheme>
+    );
+  }
+
+  const inside = isHost || member;
+  // 20d: Antes de fotografar (aceite dos Termos e da Política), sobre a câmera
+  if (askConsent && !inside) {
+    return (
+      <EventTheme wrap={event.cameraStyle}>
+        <main>
+          <ConvidadoConsentimento
+            title={event.title}
+            wrap={wrapOf(event.cameraStyle)}
+            left={event.shotsPerPerson}
+            checked={[acceptedTerms, ackedPrivacy]}
+            onCheck={(i, v) => { if (i === 0) setAcceptedTerms(v); else setAckedPrivacy(v); setConsentError(undefined); }}
+            error={consentError}
+            onLater={() => setAskConsent(false)}
+            onAccept={() => { if (!acceptedTerms || !ackedPrivacy) { setConsentError(CONSENT_REQUIRED); return; } setAskConsent(false); void enter(); }}
+          />
+        </main>
+      </EventTheme>
+    );
+  }
+
+  // 20b: Entrar no evento
   return (
-    <EventTheme palette={event.palette} font={event.eventFont} theme={event.theme} className="app-col app-col--card app-fluid">
-      <main style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-        <EventHeader meta={meta} name={event.title} {...brand} />
-        <div className="app-screen">
-          {(isHost || member) && <p className="emocao app-emocao">A visão de {event.hostName}. Agora, a sua.</p>}
-          {event.theme?.welcomeMessage && <p className="app-p" data-testid="mensagem-evento">{event.theme.welcomeMessage}</p>}
-
-          {!user && canSwitchIdentity && <KnownPeople people={known} onPick={(id) => void switchTo(id)} />}
-
-          {isHost || member ? (
-            <div className="app-stack">
-              <h1 className="titulo-tela app-h1">Você está dentro, {member?.name ?? user?.name}.</h1>
-              <Button href={`/e/${code}/agora`} block>Ver no Agora</Button>
-              {isHost && <Button variant="secundario" href={`/painel/${data.event?.id}`} block>Abrir o painel do evento</Button>}
+    <EventTheme wrap={event.cameraStyle}>
+      <main>
+        <ConvidadoEntrar
+          title={event.title}
+          wrap={event.cameraStyle}
+          stamp={dateStamp ?? ""}
+          printDate={formatDate(event.startAt)}
+          poses={event.shotsPerPerson}
+          welcome={event.theme?.welcomeMessage}
+          name={name}
+          email={email}
+          nameError={error}
+          emailError={emailError}
+          busy={busy}
+          inside={inside ? (member?.name ?? user?.name ?? "") : undefined}
+          cta={inside ? (
+            <div className="stack">
+              <Link href={`/e/${code}/postar`} className="rv-btn rv-btn--block rv-btn--primary"><Icon name="camera" decorative size={20} />Abrir câmera</Link>
+              {isHost && <Link href={`/painel/${data.event?.id}`} className="rv-btn rv-btn--block">Abrir o painel</Link>}
             </div>
-          ) : (
-            <form className="app-stack" onSubmit={(e) => { e.preventDefault(); void enter(); }}>
-              <p className="eyebrow app-eyebrow">Você foi convidado para fotografar</p>
-              <ul className="app-convite" aria-label="Como funciona esta festa" data-testid="convite-linhas">
-                {(facts ? inviteLines(facts, now()) : []).map((l) => (
-                  <li key={l.head}><strong>{l.head}</strong>{l.tail ? <span className="app-muted"> {l.tail}</span> : null}</li>
-                ))}
-              </ul>
-              <h1 className="titulo-tela app-h1">Entrar na festa</h1>
-              <Field label="Como te chamam na festa?" value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" maxLength={40} error={error} />
-              {!ended && <ConsentChecks terms={acceptedTerms} privacy={ackedPrivacy} onTerms={(v) => { setAcceptedTerms(v); if (v) setConsentError(undefined); }} onPrivacy={(v) => { setAckedPrivacy(v); if (v) setConsentError(undefined); }} />}
-              {consentError && <p className="mm-field-erro" role="alert">{consentError}</p>}
-              {!ended && <p className="app-p app-muted">Ao postar, você declara ter o direito de compartilhar a foto com as pessoas autorizadas neste evento.</p>}
-              <Button type="submit" variant="primario" block disabled={busy || ended}>{busy ? "Entrando…" : "Entrar e abrir a câmera"}</Button>
-              <p className="meta app-muted">Sem conta e sem baixar app.</p>
-              {ended && <p className="mm-field-erro">{MESSAGES.encerrado}</p>}
-            </form>
-          )}
-
-          <BackendNotice localText="Versão local: tudo fica guardado neste aparelho. Fotos de outros aparelhos só aparecem quando o servidor entrar." />
-          <div style={{ marginTop: "auto" }}><Signature /></div>
-        </div>
+          ) : undefined}
+          extra={<>
+            {consentError && <p className="rv-field-erro" role="alert">{consentError}</p>}
+            {!user && canSwitchIdentity && <KnownPeople people={known} onPick={(id) => void switchTo(id)} />}
+            <BackendNotice localText="Versão local: tudo fica guardado neste aparelho. Fotos de outros aparelhos só aparecem quando o servidor entrar." />
+          </>}
+          onName={(v) => { setName(v); setError(undefined); }}
+          onEmail={(v) => { setEmail(v); setEmailError(undefined); }}
+          onSubmit={() => void enter()}
+        />
       </main>
     </EventTheme>
   );
+}
+
+const WEEK = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+const MONTH = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+/** Carimbo de data da câmera: "SÁB 14 MAR 2027". */
+function stampDate(ts: number): string {
+  const d = new Date(ts);
+  return `${WEEK[d.getDay()]} ${String(d.getDate()).padStart(2, "0")} ${MONTH[d.getMonth()]} ${d.getFullYear()}`;
 }

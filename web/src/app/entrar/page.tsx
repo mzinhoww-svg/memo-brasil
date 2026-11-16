@@ -1,33 +1,52 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Breadcrumbs, Button, Field, Signature } from "@/components/memoriesmt";
-import { extractShareCode } from "@/domain/share-code";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { SHARE_CODE_ALPHABET, extractShareCode } from "@/domain/share-code";
+import { useApp } from "@/features/app/provider";
+import { ConvidadoCodigo } from "@/revela/screens/ConvidadoCodigo";
 
-export default function Entrar() {
+/** Só letras e números do alfabeto do código (sem 0, O, 1, I, L), em maiúsculas, até 8; um link ou caminho colado vira o código. */
+function clean(raw: string): string {
+  const fromLink = extractShareCode(raw);
+  if (fromLink) return fromLink;
+  return [...raw.toUpperCase()].filter((c) => SHARE_CODE_ALPHABET.includes(c)).join("").slice(0, 8);
+}
+
+/** 20c · Código do convite e 20h · Código não confere. O endereço /entrar é o impresso no convite A5. */
+function Codigo() {
   const router = useRouter();
-  const [value, setValue] = useState("");
-  const [error, setError] = useState<string | undefined>();
+  const search = useSearchParams();
+  const { repos, now, ensureSession, backend, ready } = useApp();
+  const [code, setCode] = useState(() => clean(search.get("erro") ?? ""));
+  const [error, setError] = useState(() => Boolean(search.get("erro")));
+  const [busy, setBusy] = useState(false);
 
-  function submit() {
-    const code = extractShareCode(value);
-    if (!code) return setError("Código não confere. Confira no card da mesa.");
-    router.push(`/e/${code}`);
+  async function submit() {
+    if (!ready || busy) return;
+    const c = extractShareCode(code);
+    if (!c) return setError(true);
+    setBusy(true);
+    try {
+      if (backend === "supabase") await ensureSession();
+      const preview = await repos.events.preview(c, now());
+      if (!preview) { setError(true); return; }
+      router.push(`/e/${c}`);
+    } catch {
+      // sem rede ou limite de tentativas: a tela do convite sabe explicar e tentar de novo
+      router.push(`/e/${c}`);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
-    <main className="app-col app-col--card app-fluid">
-      <div className="app-screen">
-        <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: "Entrar na festa" }]} />
-        <form className="app-stack" onSubmit={(e) => { e.preventDefault(); submit(); }} noValidate>
-          <h1 className="titulo-tela app-h1">Entrar na festa</h1>
-          <p className="corpo app-p app-muted">Digite o código do card da mesa ou cole o link do convite.</p>
-          <Field label="Código da festa" code value={value} onChange={(e) => { setValue(e.target.value); setError(undefined); }} placeholder="Ex.: NFVARBQX" autoCapitalize="characters" autoComplete="off" spellCheck={false} error={error} help="São 8 letras e números." />
-          <Button type="submit" block>Entrar na festa</Button>
-        </form>
-        <div style={{ marginTop: "auto" }}><Signature /></div>
-      </div>
+    <main>
+      <ConvidadoCodigo code={code} error={error} busy={busy} onChange={(raw) => { setError(false); setCode(clean(raw)); }} onSubmit={() => void submit()} onBack={() => router.back()} />
     </main>
   );
+}
+
+export default function Entrar() {
+  return <Suspense fallback={null}><Codigo /></Suspense>;
 }
