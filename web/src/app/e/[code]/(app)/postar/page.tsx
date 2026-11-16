@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Breadcrumbs, Button, Chip, Chips, Field, Progress } from "@/components/memoriesmt";
+import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 import { eventStatus, isRevealed, shotsLeft } from "@/domain/event";
 import { useApp } from "@/features/app/provider";
 import { useGuest } from "@/features/events/guest-context";
@@ -403,6 +404,7 @@ function PostarSession() {
           <p className="emocao-lg app-emocao">Sua visão entrou na história.</p>
           {draftWarning && <p role="alert">Foto enviada. Não foi possível apagar o rascunho local; ele pode reaparecer até expirar.</p>}
           <p className="corpo app-p app-muted" data-testid={isRevealed(event, now) ? undefined : "guardada-no-escuro"}>{audienceCopy}</p>
+          <WhatsappOptIn variant="compacta" eventId={event.id} revealed={isRevealed(event, now)} />
           <div className="app-stack-sm">
             <Button href={`${base}/agora`} block>Ver no Agora</Button>
             {(left === null || left > 0) && <Button variant="secundario" block onClick={again}>Postar outra</Button>}
@@ -411,6 +413,7 @@ function PostarSession() {
       ) : denial ? (
         <div className="app-stack">
           <p className="corpo app-p" role="alert">{denial}</p>
+          <WhatsappOptIn variant="compacta" eventId={event.id} revealed={isRevealed(event, now)} />
           {shot && hasAttempt && <p className="app-p">{DISCARD_NOTICE}</p>}
           <Button href={`${base}/agora`} block>Voltar ao evento</Button>
           {shot && <Button variant="secundario" block disabled={discarding} onClick={() => void again()}>Descartar foto</Button>}

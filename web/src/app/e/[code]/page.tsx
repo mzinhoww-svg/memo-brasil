@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, EventHeader, EventTheme, Field, KnownPeople, Signature } from "@/components/memoriesmt";
-import { eventStatus } from "@/domain/event";
+import { eventStatus, isRevealed } from "@/domain/event";
 import { normalizeShareCode } from "@/domain/share-code";
 import { formatDate, useEventData } from "@/features/app/hooks";
 import { useApp } from "@/features/app/provider";
@@ -16,6 +16,8 @@ import { CONSENT_FAILED, CONSENT_REQUIRED, ConsentChecks } from "@/features/cons
 import { currentConsent, recordConsent } from "@/lib/consent";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
+import { getWhatsappStatus } from "@/features/whatsapp/api";
+import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 
 const MESSAGES = {
   encerrado: "Esta festa já terminou. As fotos continuam com quem estava lá.",
@@ -50,6 +52,7 @@ export default function Convite() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [ackedPrivacy, setAckedPrivacy] = useState(false);
   const [consentError, setConsentError] = useState<string | undefined>();
+  const [avisosEventId, setAvisosEventId] = useState<string | undefined>(); // passo opcional: avisos por WhatsApp, depois de entrar
   const member = data.participants.find((p) => p.userId === user?.id);
   const event = data.event ?? data.preview; // quem ainda não entrou só recebe a prévia do convite
   const isHost = data.access === "organizador";
@@ -113,6 +116,11 @@ export default function Convite() {
         setError(r.reason === "codigo" ? copyFor(backendMode()).inviteInvalid : MESSAGES[r.reason]);
         return;
       }
+      // passo opcional e pulável: só aparece se o recurso está ligado, a pessoa já é participante e ainda não ativou
+      if (backend === "supabase") {
+        const st = await getWhatsappStatus(r.event.id).catch(() => null);
+        if (st && st.enabled && st.eligible && !st.optin && !isRevealed(r.event, now())) { setAvisosEventId(r.event.id); return; }
+      }
       router.push(`/e/${code}/postar`);
     } catch {
       setError(MESSAGES.rede);
@@ -121,6 +129,17 @@ export default function Convite() {
     }
   }
   useEffect(() => { enterRef.current = enter; });
+
+  if (avisosEventId) {
+    const go = () => router.push(`/e/${code}/postar`);
+    return (
+      <main className="app-col app-col--card app-fluid">
+        <div className="app-screen">
+          <WhatsappOptIn variant="passo" eventId={avisosEventId} onContinue={go} onSkip={go} />
+        </div>
+      </main>
+    );
+  }
 
   if (!ready || data.loading) return <main className="app-col"><p className="app-screen app-muted">Abrindo o convite…</p></main>;
   if (inactive || data.error === "forbidden") {

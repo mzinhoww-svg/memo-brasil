@@ -1,6 +1,6 @@
 import { Breadcrumbs, Button, Signature } from "@/components/memoriesmt";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/consent";
-import { LEGAL_UPDATED_AT, type LegalSection } from "@/lib/legal-text";
+import { LEGAL_UPDATED_AT, PRIVACY_UPDATED_AT, type LegalSection } from "@/lib/legal-text";
 
 /** Moldura das páginas legais (texto em lib/legal-text). Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
 export const isDraftVersion = (version: string): boolean => version.endsWith("-rascunho");
@@ -13,7 +13,7 @@ export function LegalPage({ title, kind, sections, version }: { title: string; k
         <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: title }]} />
         <h1 className="titulo-tela app-h1">{title}</h1>
         {isDraftVersion(v) && <p className="app-banner" role="note">Rascunho: este texto ainda não é a versão final.</p>}
-        <p className="app-p app-muted">Versão: {v} · Atualização: {LEGAL_UPDATED_AT}</p>
+        <p className="app-p app-muted">Versão: {v} · Atualização: {kind === "terms" ? LEGAL_UPDATED_AT : PRIVACY_UPDATED_AT}</p>
         <div className="app-stack">
           {sections.map((s) => (
             <section key={s.title} className="app-stack-sm">

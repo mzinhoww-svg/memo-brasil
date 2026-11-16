@@ -3,12 +3,12 @@ import { createViaWizard, wizardToSummary } from "./helpers";
 
 const ALERTA = /Aceite os Termos de Uso e confirme a leitura da Política de Privacidade/;
 
-test("termos e privacidade são páginas públicas na versão 2026-10-22-v1, sem aviso de rascunho", async ({ page }) => {
-  for (const [rota, titulo] of [["/termos", "Termos de uso"], ["/privacidade", "Política de privacidade"]] as const) {
+test("termos (v1) e privacidade (v2) são páginas públicas, sem aviso de rascunho", async ({ page }) => {
+  for (const [rota, titulo, versao] of [["/termos", "Termos de uso", "Versão: 2026-10-22-v1 · Atualização: 22 de outubro de 2026"], ["/privacidade", "Política de privacidade", "Versão: 2026-11-16-v2 · Atualização: 16 de novembro de 2026"]] as const) {
     const r = await page.goto(rota);
     expect(r?.status(), rota).toBe(200);
     await expect(page.getByRole("heading", { level: 1, name: titulo })).toBeVisible();
-    await expect(page.getByText("Versão: 2026-10-22-v1 · Atualização: 22 de outubro de 2026")).toBeVisible();
+    await expect(page.getByText(versao)).toBeVisible();
     await expect(page.getByText(/rascunho|revisão jurídica/i)).toHaveCount(0);
     await expect(page.getByText("mazinhoww@gmail.com").first()).toBeVisible();
     await expect(page.getByText("Aurimar Espindola Nogueira").first()).toBeVisible();

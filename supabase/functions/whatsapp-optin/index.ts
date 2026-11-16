@@ -1,0 +1,57 @@
+// Pede ao gateway um código de opt-in de uso único e devolve SÓ o link wa.me. A chave do gateway nunca sai do servidor.
+// Sessão do convidado (anônima vale); o banco decide se ele é participante não bloqueado e se o recurso está ligado.
+import { createOptin } from "../_shared/wa-gateway.ts";
+import { handleOptinRequest } from "../_shared/wa-optin.ts";
+import { preflight, responder, userClient } from "../_shared/payments-runtime.ts";
+import { adminClient, logWa, siteOrigin, waConfig } from "../_shared/wa-runtime.ts";
+
+const FN = "whatsapp-optin";
+
+Deno.serve(async (req) => {
+  const json = responder(req, true);
+  if (req.method === "OPTIONS") return preflight(req);
+  if (req.method !== "POST") return json({ error: "method" }, 405);
+
+  const auth = req.headers.get("Authorization") ?? "";
+  let userId: string | null = null;
+  const client = auth.startsWith("Bearer ") ? userClient(auth) : null;
+  if (client) {
+    const { data, error } = await client.auth.getUser();
+    if (!error && data.user) userId = data.user.id;
+  }
+
+  let body: Record<string, unknown> = {};
+  try { body = (await req.json()) as Record<string, unknown>; } catch { return json({ error: "invalid" }, 400); }
+
+  const cfg = waConfig();
+  if (!cfg) { logWa(FN, "sem_configuracao"); return json({ error: "indisponivel" }, 503); }
+  const admin = adminClient();
+
+  try {
+    const r = await handleOptinRequest({ eventId: body.eventId }, {
+      userId,
+      status: async (eventId) => {
+        const { data, error } = await client!.rpc("whatsapp_status", { p_event: eventId });
+        if (error) throw Object.assign(new Error("status"), { code: error.code });
+        return { enabled: data?.enabled === true, eligible: data?.eligible === true };
+      },
+      rateLimit: async (uid) => {
+        const { error } = await admin.rpc("check_rate_limit", { p_key: `wa-optin:${uid}`, p_max: 8, p_window: "10 minutes" });
+        if (!error) return true;
+        if (error.code === "MM006") return false;
+        throw new Error("rate");
+      },
+      eventCode: async (eventId) => {
+        const { data } = await admin.from("events").select("code").eq("id", eventId).is("deleted_at", null).maybeSingle();
+        return typeof data?.code === "string" ? data.code : null;
+      },
+      siteOrigin: siteOrigin(),
+      createOptin: (i) => createOptin(cfg, i),
+    });
+    logWa(FN, String(r.status));
+    return json(r.body, r.status);
+  } catch {
+    logWa(FN, "erro");
+    return json({ error: "indisponivel" }, 503);
+  }
+});

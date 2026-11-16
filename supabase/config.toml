@@ -449,3 +449,14 @@ verify_jwt = false # exact raw-body HMAC; never accepts an unsigned provider eve
 
 [functions.payments-validapay-reconcile]
 verify_jwt = false # own sandbox-only bearer token; no public reconciliation access
+
+[functions.whatsapp-optin]
+verify_jwt = true
+
+# O gateway não manda JWT: a autenticação é a assinatura HMAC do corpo bruto (x-wa-signature).
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+# Chamada pelo pg_cron com a service_role; a função compara o Bearer por conta própria.
+[functions.whatsapp-dispatch]
+verify_jwt = false

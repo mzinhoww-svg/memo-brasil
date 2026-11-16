@@ -5,6 +5,7 @@ import type { MemoEvent } from "@/domain/event";
 import { formatCountdown, formatInZone, zoneLabel } from "@/domain/reveal";
 import { revealDayTime } from "@/features/invitations/invite-copy";
 import { useClock } from "@/features/app/hooks";
+import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 
 /** Tela de espera da revelação: contagem regressiva no fuso do evento. `preview` marca a prévia do organizador. */
 export function WaitingReveal({ event, ownCount, totalCount, preview }: { event: MemoEvent; ownCount: number; totalCount: number; preview?: boolean }) {
@@ -32,6 +33,7 @@ export function WaitingReveal({ event, ownCount, totalCount, preview }: { event:
         <StatTile value={ownCount.toLocaleString("pt-BR")} label={ownCount === 1 ? "foto sua guardada" : "fotos suas guardadas"} />
         {event.everyoneSeesAll && <StatTile value={totalCount.toLocaleString("pt-BR")} label={totalCount === 1 ? "foto no álbum" : "fotos no álbum"} />}
       </StatGrid>
+      {!preview && <WhatsappOptIn variant="compacta" eventId={event.id} />}
     </section>
   );
 }

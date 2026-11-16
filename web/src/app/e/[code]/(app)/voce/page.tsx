@@ -13,6 +13,7 @@ import { useGuest } from "@/features/events/guest-context";
 import { devToolsEnabled } from "@/lib/dev-tools";
 import { copyFor } from "@/features/app/copy";
 import { backendMode } from "@/lib/supabase/env";
+import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
 
 export default function Voce() {
   const { event, user, now, photos, counts, isHost } = useGuest();
@@ -86,6 +87,7 @@ export default function Voce() {
           Ativar avisos
         </Button>
         {avisos && <p className="app-p" role="status">{avisos}</p>}
+        <WhatsappOptIn variant="cartao" eventId={event.id} revealed={revealed} />
       </section>
 
       <div className="app-stack-sm">
