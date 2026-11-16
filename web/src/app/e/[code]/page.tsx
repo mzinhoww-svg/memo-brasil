@@ -24,6 +24,7 @@ import { backendMode } from "@/lib/supabase/env";
 import { createCloudSmartAlbum, type AccountFaceStatus } from "@/features/smart-album/service";
 import { track } from "@/features/smart-album/analytics";
 import { markWhatsappOpened, prefetchJoinLink, readyJoinLink } from "@/features/whatsapp/useWhatsappOptIn";
+import { formatBrPhone, getMyPhone, saveMyPhone } from "@/features/whatsapp/contact";
 import { browserSupabase } from "@/lib/supabase/client";
 
 const MESSAGES = {
@@ -74,6 +75,7 @@ export default function Convite() {
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState<string | undefined>();
   const [waReady, setWaReady] = useState(false);
+  const [marketing, setMarketing] = useState(false);
   const waOpened = useRef(false);
   const [full, setFull] = useState(false);
   const member = data.participants.find((p) => p.userId === user?.id);
@@ -90,6 +92,17 @@ export default function Convite() {
       .then(({ data: on }) => { if (live) setWaAvailable(on === true); }, () => undefined);
     return () => { live = false; };
   }, [backend]);
+  // número guardado na conta (Política v4): preenche sozinho e traz a escolha sobre campanhas
+  useEffect(() => {
+    if (!waAvailable || !user) return;
+    let live = true;
+    void getMyPhone().then((c) => {
+      if (!live || !c) return;
+      setPhone((p) => p || formatBrPhone(c.phone));
+      setMarketing(c.marketing);
+    }, () => undefined);
+    return () => { live = false; };
+  }, [waAvailable, user]);
   useEffect(() => {
     if (!waAvailable || !user || !phoneOk || !code) return;
     let live = true;
@@ -166,6 +179,7 @@ export default function Convite() {
         return;
       }
       if (waOpened.current) markWhatsappOpened(r.event.id); // a câmera já mostra "Aguardando confirmação…"
+      if (backend === "supabase" && waAvailable && wantsWhatsapp) void saveMyPhone(phone, marketing, r.event.id).catch(() => undefined); // guardar não segura a entrada
       // lê a festa já como membro antes de ir para a câmera: ela abre sem a tela de carregando (se falhar, ela mesma lê)
       await prefetchEventData(repos, { code }, me.id, now()).catch(() => undefined);
       let dest = `/e/${code}/postar`;
@@ -261,6 +275,7 @@ export default function Convite() {
             error={consentError}
             onLater={() => setAskConsent(false)}
             face={faceOffer ? { checked: faceOptIn, onCheck: setFaceOptIn } : undefined}
+            marketing={waAvailable && phoneOk ? { checked: marketing, onCheck: setMarketing } : undefined}
             onAccept={() => { if (!acceptedTerms || !ackedPrivacy) { setConsentError(CONSENT_REQUIRED); return; } setAskConsent(false); void enter(); }}
           />
         </main>

@@ -4,7 +4,7 @@ import { eventStatus } from "@/domain/event";
 import { useGuestOptional, useHostNav } from "@/features/events/guest-context";
 import { useSmartAlbumUi } from "@/features/smart-album/use-smart-album";
 
-type TabId = "feed" | "minhas" | "voce" | "fotos" | "camera";
+type TabId = "feed" | "minhas" | "voce" | "fotos" | "camera" | "agenda";
 
 /** "Minhas Fotos" (Smart Album): só com a chave `smart_album_ui` ligada para o evento. Fora do layout do convidado não aparece. */
 function SmartAlbumTab({ eventId, href, on }: { eventId: string; href: string; on: boolean }) {
@@ -26,6 +26,24 @@ export function GuestTabs({ code, current }: { code?: string; current: TabId }) 
   const tab = (id: TabId) => `rv-tab rv-press${current === id ? " rv-tab--on" : ""}`;
   // evento rolando: botão central de câmera, laranja e em destaque; terminou o evento, a barra volta ao desenho normal
   const live = guest ? eventStatus(guest.event, guest.now) === "ativo" : false;
+  const voce = (
+    <Link href={href("voce")} className={tab("voce")} aria-current={current === "voce" ? "page" : undefined}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
+      <span>Você</span>
+    </Link>
+  );
+  const painel = host && (
+    <Link href={host.panelHref} data-tab="painel" className="rv-tab rv-press" aria-label="Painel do evento">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></svg>
+      <span>Painel</span>
+    </Link>
+  );
+  const agenda = (
+    <Link href={href("programacao")} data-tab="agenda" className={tab("agenda")} aria-current={current === "agenda" ? "page" : undefined}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
+      <span>Agenda</span>
+    </Link>
+  );
   return (
     <nav className="tabs">
       <div className="rv-tabbar">
@@ -37,23 +55,24 @@ export function GuestTabs({ code, current }: { code?: string; current: TabId }) 
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13" r="4" /></svg>
           <span>Fotos</span>
         </Link>
-        {live && (
-          <Link href={href("postar")} data-tab="camera" className="rv-tab-cam rv-press" aria-label="Abrir câmera" aria-current={current === "camera" ? "page" : undefined}>
-            <span className="rv-tab-cam__btn" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13" r="4" /></svg>
-            </span>
-          </Link>
-        )}
-        {guest && <SmartAlbumTab eventId={guest.event.id} href={href("minhas-fotos")} on={current === "fotos"} />}
-        <Link href={href("voce")} className={tab("voce")} aria-current={current === "voce" ? "page" : undefined}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
-          <span>Você</span>
-        </Link>
-        {host && (
-          <Link href={host.panelHref} data-tab="painel" className="rv-tab rv-press" aria-label="Painel do evento">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></svg>
-            <span>Painel</span>
-          </Link>
+        {live ? (
+          <>
+            <Link href={href("postar")} data-tab="camera" className="rv-tab-cam rv-press" aria-label="Abrir câmera" aria-current={current === "camera" ? "page" : undefined}>
+              <span className="rv-tab-cam__btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13" r="4" /></svg>
+              </span>
+            </Link>
+            {/* duas abas de cada lado do botão: convidado tem Agenda + Você; anfitrião, Você + Painel. Minhas Fotos só serve depois da revelação. */}
+            {!host && agenda}
+            {voce}
+            {painel}
+          </>
+        ) : (
+          <>
+            {guest && <SmartAlbumTab eventId={guest.event.id} href={href("minhas-fotos")} on={current === "fotos"} />}
+            {voce}
+            {painel}
+          </>
         )}
       </div>
     </nav>

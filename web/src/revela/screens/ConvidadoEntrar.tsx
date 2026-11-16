@@ -96,7 +96,7 @@ export function ConvidadoEntrar({
                 <input type="tel" inputMode="tel" value={phone} onChange={(e) => onPhone?.(e.target.value)} onFocus={() => setFocus("phone")} onBlur={() => setFocus(null)} aria-label="WhatsApp com DDD (opcional)" placeholder="WhatsApp com DDD (opcional)" autoComplete="tel-national" maxLength={20} aria-describedby="whatsapp-ajuda" aria-invalid={phoneError ? true : undefined} />
               </label>
               <p className={`rv-caption${phoneError ? " rv-caption--err" : ""}`} id="whatsapp-ajuda" style={{ "marginTop": "10px" }}>
-                {phoneError ?? phoneHelp ?? "Opcional. Avisamos no WhatsApp quando as fotos forem reveladas."}
+                {phoneError ?? phoneHelp ?? "Opcional. Avisamos quando as fotos forem reveladas e guardamos o número para os próximos eventos."}
               </p>
             </>}
           </>

@@ -1,4 +1,4 @@
-/** Textos das páginas /termos (2026-11-16-v2) e /privacidade (2026-11-16-v3). Política v2: avisos por WhatsApp; Termos v2 e Política v3: seção 11 (busca facial opcional). Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
+/** Textos das páginas /termos (2026-11-16-v3) e /privacidade (2026-11-16-v4). Política v2: avisos por WhatsApp; Termos v2 e Política v3: seção 11 (busca facial opcional); Termos v3 e Política v4: número de WhatsApp guardado na conta e novidades com autorização separada. Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
 export type LegalSection = { title: string; blocks: (string | string[])[] };
 
 export const LEGAL_UPDATED_AT = "16 de novembro de 2026";
@@ -13,6 +13,7 @@ export const TERMS_TEXT: LegalSection[] = [
     "O organizador administra seu evento, seus convites e as configurações disponíveis. Participantes acessam o evento por convite e devem respeitar as pessoas fotografadas e as regras comunicadas pelo organizador.",
     "A criação de conta de organizador exige maioridade civil. A participação de menores deve ocorrer sob responsabilidade de seu representante legal. Não devem ser enviados conteúdos de crianças ou adolescentes sem as autorizações cabíveis e a observância de seu melhor interesse.",
     "Não compartilhe sua conta. Links e códigos de convite devem ser enviados somente às pessoas que você deseja admitir no evento.",
+    "Ao entrar em um evento, você pode informar seu número de WhatsApp (opcional). Ele fica guardado na sua conta para os avisos do evento e para ser preenchido automaticamente nos próximos eventos. Novidades e ofertas do Revela só são enviadas com uma autorização separada, em caixa própria e nunca pré-marcada, que você desliga quando quiser em Você. Em Você também é possível apagar o número. As condições estão na Política de Privacidade.",
   ] },
   { title: "3. Fotografias e direitos de imagem", blocks: [
     "Quem envia uma fotografia declara possuir os direitos ou autorizações necessários para compartilhá-la naquele contexto.",
@@ -70,7 +71,7 @@ export const PRIVACY_TEXT: LegalSection[] = [
       "Dados do evento, convites, configurações e horários.",
       "Fotografias enviadas e informações técnicas necessárias ao processamento.",
       "Registros de aceite, versões dos documentos e datas.",
-      "Número de telefone do WhatsApp e data da ativação, somente se você pedir os avisos por WhatsApp do Revela.",
+      "Número de telefone do WhatsApp, se você o informar ao entrar em um evento ou ativar os avisos por WhatsApp, com as datas e a sua escolha sobre novidades e ofertas.",
       "Informações técnicas de acesso, erros, segurança e atendimento.",
     ],
     "Não recebemos sua senha do Google. Não solicitamos CPF ou outros documentos apenas para participar de um evento.",
@@ -78,7 +79,9 @@ export const PRIVACY_TEXT: LegalSection[] = [
   { title: "3. Finalidades e fundamentos", blocks: [
     "Utilizamos os dados para autenticar usuários, administrar eventos, admitir convidados, armazenar fotografias, aplicar limites, controlar a revelação, disponibilizar a galeria e atender solicitações.",
     "O tratamento pode se fundamentar na execução do serviço solicitado, cumprimento de obrigações legais, exercício regular de direitos e interesses legítimos de segurança e funcionamento, quando cabíveis.",
-    "Avisos por WhatsApp (opcionais): se você tocar em \"Receber avisos no WhatsApp\" e enviar a mensagem pronta do seu próprio número, usamos esse número apenas para avisar sobre o evento, como o aviso de que as fotos foram reveladas. Não enviamos propaganda nem mensagens de outros eventos. O consentimento é específico e pode ser desfeito a qualquer momento enviando SAIR; ao sair, ao deixar o evento ou quando o evento é excluído, o número é apagado. O organizador do evento não vê o seu número.",
+    "Avisos por WhatsApp (opcionais): se você enviar a mensagem pronta do seu próprio número, usamos esse número para avisar sobre o evento, como o aviso de que as fotos foram reveladas. O consentimento é específico e pode ser desfeito a qualquer momento enviando SAIR; ao sair, ao deixar o evento ou quando o evento é excluído, o vínculo do número com aquele evento é apagado. O organizador do evento não vê o seu número.",
+    "Número guardado na sua conta (opcional): o número que você informa ao entrar em um evento fica guardado na sua conta para ser preenchido automaticamente nos próximos eventos, sem precisar digitar de novo. Você vê o número em Você e pode apagá-lo a qualquer momento.",
+    "Novidades e ofertas (opcional): só enviamos novidades, ofertas e campanhas do Revela por WhatsApp a quem autorizar de forma específica, em caixa própria e nunca pré-marcada (consentimento, art. 7º, I, e art. 8º da LGPD). Sem essa autorização, não enviamos propaganda. Você retira a autorização quando quiser, em Você ou respondendo SAIR, sem prejuízo para o uso do Revela. A autorização vale só para o Revela: o número não é vendido nem cedido a terceiros para publicidade e o organizador do evento não tem acesso a ele.",
     "Quando uma finalidade exigir consentimento, ele será solicitado de maneira específica. Aceitar os Termos ou declarar ciência desta Política não autoriza automaticamente publicidade, reconhecimento facial ou qualquer uso incompatível.",
   ] },
   { title: "4. Acesso às fotografias", blocks: [
@@ -89,7 +92,7 @@ export const PRIVACY_TEXT: LegalSection[] = [
   { title: "5. Fornecedores e compartilhamento", blocks: [
     "Utilizamos fornecedores de autenticação, hospedagem e armazenamento, incluindo Google, Vercel e Supabase, conforme os recursos em operação.",
     "Dados poderão ser tratados em infraestrutura localizada fora do Brasil. Quando aplicável, serão adotados os mecanismos e requisitos legais de transferência internacional.",
-    "Os avisos por WhatsApp são enviados por uma conexão de WhatsApp operada por nós, que não é um canal oficial da Meta; as mensagens passam também pelo próprio WhatsApp, que as trata conforme seus termos. Só enviamos a quem optou.",
+    "Os avisos e as novidades por WhatsApp são enviados por uma conexão de WhatsApp operada por nós, que não é um canal oficial da Meta; as mensagens passam também pelo próprio WhatsApp, que as trata conforme seus termos. Só enviamos a quem optou.",
     "Também poderemos compartilhar informações estritamente necessárias para atender obrigações legais ou proteger direitos.",
     "Não vendemos dados pessoais nem utilizamos fotografias dos eventos para publicidade ou treinamento de inteligência artificial sem autorização específica.",
     "Uma futura integração de pagamentos deverá ser informada antes de sua utilização, incluindo o provedor e os dados necessários à transação.",
@@ -102,6 +105,7 @@ export const PRIVACY_TEXT: LegalSection[] = [
     "As fotografias ficam disponíveis por 90 dias após o encerramento do evento. Depois, seu acesso é encerrado e a exclusão do armazenamento ativo é concluída em até 30 dias.",
     "Solicitações válidas de exclusão antecipada serão processadas em até 30 dias, ressalvadas hipóteses legais de conservação devidamente justificadas.",
     "Cópias de segurança são restritas à recuperação e eliminadas em até 30 dias adicionais à exclusão do armazenamento ativo. Se houver restauração, as exclusões já determinadas deverão ser reaplicadas.",
+    "O número de WhatsApp guardado na conta é mantido até você apagá-lo em Você, pedir a exclusão ou excluir a conta. O registro de quando você autorizou ou retirou a autorização de novidades pode ser conservado como prova, pelo prazo necessário à defesa de direitos.",
     "Dados de conta são mantidos enquanto necessários à relação com o usuário. Registros de aceite, segurança e atendimento podem ser conservados pelo período necessário a obrigações legais e defesa de direitos, com acesso restrito e sem justificar a guarda indiscriminada de fotografias.",
   ] },
   { title: "8. Seus direitos", blocks: [

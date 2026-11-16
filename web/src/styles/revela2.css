@@ -701,3 +701,25 @@ em.warn { font-style: normal; color: var(--carimbo); }
 @media (prefers-reduced-motion: reduce) { .rv-tab-cam__btn { transition: none; } }
 /* com o botão de câmera saltado, o fim da tela rolável ganha folga para o botão não cobrir o último CTA */
 body:has(.rv-tab-cam) .safe--tabs { padding-bottom: calc(var(--tabs-h) + 30px); }
+/* Laboratório (Feed em espera) se ajusta à altura do aparelho: a pilha encolhe e os respiros diminuem para tudo caber sem rolar;
+   em telas muito baixas a rolagem continua como reserva. */
+.scr-lab { --lab-k: 1; }
+.lab-title { font-size: 34px; line-height: 36px; margin-top: 4px; }
+.lab-stack { width: 300px; height: 230px; margin: 0 auto; zoom: var(--lab-k); }
+.lab-count { margin-top: 18px; }
+@media (min-height: 880px) { .scr-lab { --lab-k: 1.15; } }
+@media (max-height: 820px) { .scr-lab { --lab-k: .86; } }
+@media (max-height: 740px) {
+  .scr-lab { --lab-k: .72; }
+  .scr-lab .safe { padding-top: max(28px, calc(env(safe-area-inset-top) + 12px)); }
+  .scr-lab .lab-title { font-size: 30px; line-height: 32px; }
+  .scr-lab .lab { margin-top: 12px; padding: 12px 0 14px; }
+  .scr-lab .lab-count { margin-top: 12px; margin-bottom: 10px; }
+}
+@media (max-height: 680px) {
+  .scr-lab { --lab-k: .68; }
+  .scr-lab .countdown > div { padding: 6px 0; }
+  .scr-lab .countdown .rvm-odo { font-size: 28px; line-height: 32px; }
+  .scr-lab .countdown .rvm-odo.rv-odo > span, .scr-lab .countdown .rvm-odo i { height: 32px; line-height: 32px; }
+}
+@media (max-height: 620px) { .scr-lab { --lab-k: .5; } }

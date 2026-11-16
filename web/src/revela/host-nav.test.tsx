@@ -15,9 +15,10 @@ describe("anfitrião dentro da área do convidado", () => {
     wrap(false, <GuestTabs code="ABC123" current="feed" />, true);
     expect(tabNames()).toEqual(["Feed", "Fotos", "Você"]);
   });
-  it("evento rolando: botão central de câmera entre Fotos e Você, que abre a câmera", () => {
+  it("evento rolando: botão central de câmera com duas abas de cada lado", () => {
     wrap(false, <GuestTabs code="ABC123" current="feed" />);
-    expect(tabNames()).toEqual(["Feed", "Fotos", "Abrir câmera", "Você"]);
+    expect(tabNames()).toEqual(["Feed", "Fotos", "Abrir câmera", "Agenda", "Você"]);
+    expect(screen.getByRole("link", { name: "Agenda" }).getAttribute("href")).toBe("/e/ABC123/programacao");
     expect(screen.getByRole("link", { name: "Abrir câmera" }).getAttribute("href")).toBe("/e/ABC123/postar");
   });
   it("evento encerrado: a barra volta ao desenho normal, sem o botão de câmera", () => {
@@ -28,6 +29,10 @@ describe("anfitrião dentro da área do convidado", () => {
     wrap(true, <GuestTabs code="ABC123" current="feed" />);
     const painel = screen.getByRole("link", { name: "Painel do evento" });
     expect(painel.getAttribute("href")).toBe("/painel/ev1");
+  });
+  it("anfitrião com o evento rolando: Você e Painel do lado direito do botão", () => {
+    wrap(true, <GuestTabs code="ABC123" current="feed" />);
+    expect(tabNames()).toEqual(["Feed", "Fotos", "Abrir câmera", "Você", "Painel do evento"]);
   });
   it("fora do layout do convidado (telas de desenho) não quebra e não mostra Painel", () => {
     render(<GuestTabs current="voce" />);

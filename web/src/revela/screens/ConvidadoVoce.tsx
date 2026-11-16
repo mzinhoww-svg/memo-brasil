@@ -23,9 +23,11 @@ export interface VoceProps {
   face?: string;
   /** Linha extra do grupo Avisos (ex.: avisos por WhatsApp). */
   whatsapp?: ReactNode;
+  /** Seus dados · número guardado na conta e campanhas. */
+  contact?: ReactNode;
 }
 
-export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de Ana & Leo · Mesa 4", used = 9, total = 27, notify = true, email = "bia.moraes@email.com", onNotify, onEmail, onDownload, onLeave, onDelete, whatsapp, face }: VoceProps = {}) {
+export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de Ana & Leo · Mesa 4", used = 9, total = 27, notify = true, email = "bia.moraes@email.com", onNotify, onEmail, onDownload, onLeave, onDelete, whatsapp, face, contact }: VoceProps = {}) {
   const host = useHostNav();
   return (
     <>
@@ -108,6 +110,7 @@ export function ConvidadoVoce({ code, name = "Bia Moraes", sub = "Convidada de A
           Seus dados
         </h2>
         <div className="rv-group">
+          {contact}
           {face && code && (
             <Link className="rv-row" href={`/e/${code}/minhas-fotos`}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

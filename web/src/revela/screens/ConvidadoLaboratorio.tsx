@@ -36,17 +36,17 @@ export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana
   }, [photos]);
   return (
     <>
-    <div className="scr">
+    <div className="scr scr-lab">
       <div className="safe safe--tabs safe--scroll">
         <div className="row between">
           <div>
             <div className="rv-stamp" style={{ "fontSize": "12px" }}>{stamp}</div>
-            <h1 className="rv-display" style={{ "fontSize": "34px", "lineHeight": "36px", "marginTop": "4px" }}>{title}</h1>
+            <h1 className="rv-display lab-title">{title}</h1>
           </div>
           {live ? <span className="live"><i className="rv-live-dot" />Rolando</span> : <span className="rv-caption">Encerrada</span>}
         </div>
         <div className="lab">
-          <div className="stackviz" style={{ "width": "300px", "height": "230px", "margin": "0 auto" }}>
+          <div className="stackviz lab-stack">
             <div className="rv-print rv-print--back" style={{ "position": "absolute", "left": "40px", "top": "24px", "width": "150px", "height": "190px", "transform": "rotate(-9deg)", "zIndex": "1" }}><i className="rvm-ph"><i className="rv-blurred" /></i></div>
             <div className="rv-print rv-print--back" style={{ "position": "absolute", "left": "110px", "top": "6px", "width": "150px", "height": "190px", "transform": "rotate(5deg)", "zIndex": "2" }}><i className="rvm-ph"><i className="rv-blurred" /></i></div>
             <div key={pop} className={`rv-print rv-print--back${pop > 0 ? " rv-pop" : ""}`} data-testid="pilha-laboratorio" style={{ "position": "absolute", "left": "76px", "top": "40px", "width": "150px", "height": "190px", "rotate": "-2deg", "zIndex": "3" }}><i className="rvm-ph"><i className="rv-blurred" /></i></div>
@@ -63,7 +63,7 @@ export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana
           </p>
         </div>
         {countdown && (
-        <div className="countdown" style={{ "marginTop": "18px" }} role="timer" aria-label={`Revela em ${countdown.h} horas e ${countdown.m} minutos`}>
+        <div className="countdown lab-count" role="timer" aria-label={`Revela em ${countdown.h} horas e ${countdown.m} minutos`}>
           <div><Odo value={countdown.h} padText /><span>horas</span></div>
           <div><Odo value={countdown.m} padText /><span>min</span></div>
           <div><Odo value={countdown.s} padText /><span>seg</span></div>
@@ -80,12 +80,15 @@ export function ConvidadoLaboratorio({ code, stamp = "SÁB 14 MAR", title = "Ana
             </svg>
             {cta}
           </Link>
+          {/* evento ao vivo: a Agenda está na barra de abas, então o atalho some e o botão ocupa a linha */}
+          {!live && (
           <Link href={code ? `/e/${code}/programacao` : "#"} className="rv-icon-btn" style={{ "width": "56px", "height": "56px" }} aria-label="Programação">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="5" width="18" height="16" rx="2" />
               <path d="M3 10h18M8 3v4M16 3v4" />
             </svg>
           </Link>
+          )}
         </div>
       </div>
       <GuestTabs code={code} current="feed" />
