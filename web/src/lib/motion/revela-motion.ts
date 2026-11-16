@@ -77,7 +77,7 @@ export async function shoot(p: ShootParts): Promise<void> {
   await Promise.all([done(flash), done(wheel)]);
 }
 
-/** A pose recém-tirada encolhe e voa para o destino (a aba "Minhas", por exemplo). */
+/** A pose recém-tirada encolhe e voa para o destino (a aba "Fotos", por exemplo). */
 export function flyTo(el: HTMLElement, target: HTMLElement): Promise<void> {
   if (reduced()) return Promise.resolve();
   const a = el.getBoundingClientRect(), b = target.getBoundingClientRect();

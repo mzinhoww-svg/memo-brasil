@@ -369,7 +369,7 @@ test("cabeçalhos de segurança e CSP sem violações de console nas telas princ
   expect(h["content-security-policy"]).toContain("frame-ancestors 'none'");
   await page.goto("/dev/seed");
   await page.waitForURL(/agora/);
-  await page.getByRole("link", { name: "Minhas" }).click();
+  await page.getByRole("link", { name: "Fotos", exact: true }).click();
   await page.getByRole("link", { name: "Você" }).click();
   expect(errors.filter((e) => /Content Security Policy|Refused to/i.test(e))).toEqual([]);
 });

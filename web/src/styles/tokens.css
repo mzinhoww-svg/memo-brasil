@@ -78,6 +78,15 @@
   --wrap-casamento-band: #C9A35B;
   --wrap-aniversario-band: #0E1A66;
   --wrap-noite-band: #0B1F17;
+  /* faixa da prévia do nome no assistente (passo 2): fundo e texto por embalagem */
+  --wrap-aniversario-name-bg: #0E1A66;
+  --wrap-aniversario-name-ink: #F6C945;
+  --wrap-casamento-name-bg: #C9A35C;
+  --wrap-casamento-name-ink: #1C0B03;
+  --wrap-festa-name-bg: #1A0700;
+  --wrap-festa-name-ink: #FAD9B8;
+  --wrap-noite-name-bg: #0B1F16;
+  --wrap-noite-name-ink: #EFF7E2;
 }
 
 [data-theme="light"] {
@@ -156,6 +165,15 @@
   --wrap-casamento-band: #C9A35B;
   --wrap-aniversario-band: #0E1A66;
   --wrap-noite-band: #0B1F17;
+  /* faixa da prévia do nome no assistente (passo 2): fundo e texto por embalagem */
+  --wrap-aniversario-name-bg: #0E1A66;
+  --wrap-aniversario-name-ink: #F6C945;
+  --wrap-casamento-name-bg: #C9A35C;
+  --wrap-casamento-name-ink: #1C0B03;
+  --wrap-festa-name-bg: #1A0700;
+  --wrap-festa-name-ink: #FAD9B8;
+  --wrap-noite-name-bg: #0B1F16;
+  --wrap-noite-name-ink: #EFF7E2;
 }
 
 /* Extensões de app sem cor: alvos de toque e larguras. */
@@ -206,14 +224,6 @@
   --k-1a0b0bcc: #1a0b0bcc;
   --k-1c1210: #1c1210;
   --k-1d1917f2: #1d1917f2;
-  --k-0e1a66: #0e1a66;
-  --k-f6c945: #f6c945;
-  --k-c9a35c: #c9a35c;
-  --k-1c0b03: #1c0b03;
-  --k-1a0700: #1a0700;
-  --k-fad9b8: #fad9b8;
-  --k-0b1f16: #0b1f16;
-  --k-eff7e2: #eff7e2;
   --k-1d1a18: #1d1a18;
   --k-241c17: #241c17;
   --k-2a1610: #2a1610;

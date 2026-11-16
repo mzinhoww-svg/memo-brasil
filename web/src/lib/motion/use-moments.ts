@@ -42,7 +42,7 @@ export function popHeart(e: MouseEvent<HTMLElement>): void {
   void heartPop(e.currentTarget);
 }
 
-/** Uma cópia pequena da pose sai de `from` e voa até o item "Minhas" das abas (ou, sem abas na tela, até `fallback`). */
+/** Uma cópia pequena da pose sai de `from` e voa até o item "Fotos" das abas (rota /minhas) (ou, sem abas na tela, até `fallback`). */
 export function flyPose(url: string, from: HTMLElement | null, fallback?: HTMLElement | null): Promise<void> {
   const target = document.querySelector<HTMLElement>('[data-tab="minhas"]') ?? fallback ?? null;
   if (!from || !target) return Promise.resolve();
