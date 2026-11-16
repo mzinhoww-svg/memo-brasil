@@ -78,6 +78,15 @@
   --wrap-casamento-band: #C9A35B;
   --wrap-aniversario-band: #0E1A66;
   --wrap-noite-band: #0B1F17;
+  /* faixa da prévia do nome no assistente (passo 2): fundo e texto por embalagem */
+  --wrap-aniversario-name-bg: #0E1A66;
+  --wrap-aniversario-name-ink: #F6C945;
+  --wrap-casamento-name-bg: #C9A35C;
+  --wrap-casamento-name-ink: #1C0B03;
+  --wrap-festa-name-bg: #1A0700;
+  --wrap-festa-name-ink: #FAD9B8;
+  --wrap-noite-name-bg: #0B1F16;
+  --wrap-noite-name-ink: #EFF7E2;
 }
 
 [data-theme="light"] {
@@ -156,6 +165,15 @@
   --wrap-casamento-band: #C9A35B;
   --wrap-aniversario-band: #0E1A66;
   --wrap-noite-band: #0B1F17;
+  /* faixa da prévia do nome no assistente (passo 2): fundo e texto por embalagem */
+  --wrap-aniversario-name-bg: #0E1A66;
+  --wrap-aniversario-name-ink: #F6C945;
+  --wrap-casamento-name-bg: #C9A35C;
+  --wrap-casamento-name-ink: #1C0B03;
+  --wrap-festa-name-bg: #1A0700;
+  --wrap-festa-name-ink: #FAD9B8;
+  --wrap-noite-name-bg: #0B1F16;
+  --wrap-noite-name-ink: #EFF7E2;
 }
 
 /* Extensões de app sem cor: alvos de toque e larguras. */
