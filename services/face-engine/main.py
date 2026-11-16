@@ -26,18 +26,23 @@ import os
 import sys
 import threading
 import urllib.request
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
 import cv2
 import numpy as np
 
-ENGINE_VERSION = "opencv-yunet-sface.t1"
+ENGINE_VERSION = "opencv-yunet-sface.t2"
 # Limiar de cosseno do SFace: 0.363 é o valor publicado pelo OpenCV para "mesma pessoa". "probable" exige folga acima dele.
 # NÃO calibrado com dados do produto (ver docs/smart-album/04-model-evaluation.md).
 REVIEW_THRESHOLD = float(os.environ.get("REVIEW_THRESHOLD", "0.363"))
 PROBABLE_THRESHOLD = float(os.environ.get("PROBABLE_THRESHOLD", "0.45"))
-DETECT_SCORE = 0.85
+DETECT_SCORE = 0.85        # selfie: detecção exigente
+DETECT_SCORE_RETRY = 0.6   # selfie: 2ª tentativa (luz ruim, rosto muito perto, foto girada)
+DETECT_SCORE_EVENT = 0.7   # fotos do evento: mais sensível para rostos pequenos/de lado (o limiar de identidade continua o mesmo)
+FETCH_WORKERS = int(os.environ.get("FETCH_WORKERS", "4"))  # downloads em paralelo (worker de 384 MB); a inferência continua serializada
 MIN_FACE_PX = 36
 MAX_BYTES = 12 * 1024 * 1024
 MAX_SIDE = 1600
@@ -83,9 +88,10 @@ class Engine:
         self.detector = cv2.FaceDetectorYN.create(ensure_model("yunet"), "", (320, 320), DETECT_SCORE, 0.3, 5000)
         self.recognizer = cv2.FaceRecognizerSF.create(ensure_model("sface"), "")
 
-    def faces(self, img: np.ndarray) -> list[np.ndarray]:
+    def faces(self, img: np.ndarray, score: float = DETECT_SCORE) -> list[np.ndarray]:
         h, w = img.shape[:2]
         self.detector.setInputSize((w, h))
+        self.detector.setScoreThreshold(score)
         _, found = self.detector.detect(img)
         if found is None:
             return []
@@ -102,7 +108,9 @@ class Engine:
 def decode(data: bytes) -> np.ndarray | None:
     if not data or len(data) > MAX_BYTES:
         return None
-    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+    # JPEG grande (foto original de celular, ~4000 px): decodifica direto em 1/2, que ainda passa de MAX_SIDE e usa 1/4 da memória
+    flag = cv2.IMREAD_REDUCED_COLOR_2 if data[:2] == b"\xff\xd8" and len(data) > 2_000_000 else cv2.IMREAD_COLOR
+    img = cv2.imdecode(np.frombuffer(data, np.uint8), flag)
     if img is None:
         return None
     h, w = img.shape[:2]
@@ -163,60 +171,95 @@ class Fetcher:
             return None
 
 
-def search(engine: Engine, fetch, reference_url: str, photos: list[dict]) -> dict:
+ROTATIONS = (None, cv2.ROTATE_90_CLOCKWISE, cv2.ROTATE_180, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+
+def reference_embeddings(engine: Engine, img: np.ndarray) -> tuple[str, list[np.ndarray]]:
+    """Acha o rosto do titular na selfie com tentativas progressivas e devolve 2 embeddings (foto e espelho).
+
+    1) detecção exigente; 2) mais sensível; 3) com margem (rosto colado na borda/muito perto); 4) girada 90/180/270 (EXIF perdido).
+    Para no primeiro resultado que não seja "sem rosto": "várias pessoas" e "rosto pequeno" continuam valendo como resposta."""
+    pad = max(img.shape[:2]) // 4
+    padded = cv2.copyMakeBorder(img, pad, pad, pad, pad, cv2.BORDER_CONSTANT, value=(0, 0, 0))
+    attempts = [(img, DETECT_SCORE), (img, DETECT_SCORE_RETRY), (padded, DETECT_SCORE_RETRY)]
+    attempts += [(cv2.rotate(img, r), DETECT_SCORE_RETRY) for r in ROTATIONS[1:]]
+    status = "no_face"
+    for candidate, score in attempts:
+        status, face = pick_reference(engine.faces(candidate, score))
+        if status == "no_face":
+            continue
+        if status != "ok":
+            return status, []
+        refs = [engine.embed(candidate, face)]
+        mirror = cv2.flip(candidate, 1)
+        st2, face2 = pick_reference(engine.faces(mirror, score))
+        if st2 == "ok":
+            refs.append(engine.embed(mirror, face2))
+        return "ok", refs
+    return status, []
+
+
+def best_score(engine: Engine, refs: list[np.ndarray], img: np.ndarray) -> float:
+    best = -1.0
+    for face in engine.faces(img, DETECT_SCORE_EVENT):
+        e = engine.embed(img, face)
+        best = max(best, *(engine.similarity(r, e) for r in refs))
+    return best
+
+
+def prefetched(fetch, photos: list[dict], workers: int = FETCH_WORKERS):
+    """Baixa e decodifica em paralelo, devolvendo na ordem. Janela limitada (workers + 2) para não estourar a memória do worker."""
+    if workers <= 1:
+        for p in photos:
+            yield p, decode(fetch(str(p.get("url", ""))) or b"")
+        return
+    load = lambda p: decode(fetch(str(p.get("url", ""))) or b"")  # noqa: E731
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        window: deque = deque()
+        it = iter(photos)
+        for p in it:
+            window.append((p, ex.submit(load, p)))
+            if len(window) >= workers + 2:
+                break
+        while window:
+            p, fut = window.popleft()
+            nxt = next(it, None)
+            if nxt is not None:
+                window.append((nxt, ex.submit(load, nxt)))
+            yield p, fut.result()
+
+
+def match_photos(engine: Engine, fetch, reference_url: str, photos: list[dict], id_key: str) -> dict:
     ref_img = decode(fetch(reference_url) or b"")
     if ref_img is None:
         return {"reference": "invalid_image", "results": [], "processed": 0}
     with engine.lock:
-        status, ref_face = pick_reference(engine.faces(ref_img))
-        if status != "ok":
-            return {"reference": status, "results": [], "processed": 0}
-        ref = engine.embed(ref_img, ref_face)
+        status, refs = reference_embeddings(engine, ref_img)
     del ref_img
+    if status != "ok":
+        return {"reference": status, "results": [], "processed": 0}
     results, processed = [], 0
-    for p in photos[:MAX_PHOTOS_PER_CALL]:
-        pid, url = str(p.get("id", "")), str(p.get("url", ""))
-        img = decode(fetch(url) or b"")
+    for p, img in prefetched(fetch, photos):
         processed += 1
         if img is None:
             continue
-        best = -1.0
         with engine.lock:
-            for face in engine.faces(img):
-                best = max(best, engine.similarity(ref, engine.embed(img, face)))
+            score = best_score(engine, refs, img)
         del img
-        b = band_for(best)
+        b = band_for(score)
         if b:
-            results.append({"id": pid, "band": b})
+            results.append({id_key: str(p.get("id", "")), "band": b})
     return {"reference": "ok", "results": results, "processed": processed}
+
+
+def search(engine: Engine, fetch, reference_url: str, photos: list[dict]) -> dict:
+    """Modo http: até MAX_PHOTOS_PER_CALL por chamada."""
+    return match_photos(engine, fetch, reference_url, photos[:MAX_PHOTOS_PER_CALL], "id")
 
 
 def run_job(engine: Engine, fetch, reference_url: str, photos: list[dict]) -> dict:
-    """Job inteiro (modo pull): referência calculada uma vez, todas as fotos em sequência."""
-    ref_img = decode(fetch(reference_url) or b"")
-    if ref_img is None:
-        return {"reference": "invalid_image", "results": [], "processed": 0}
-    with engine.lock:
-        status, ref_face = pick_reference(engine.faces(ref_img))
-        if status != "ok":
-            return {"reference": status, "results": [], "processed": 0}
-        ref = engine.embed(ref_img, ref_face)
-    del ref_img
-    results, processed = [], 0
-    for p in photos:
-        img = decode(fetch(str(p.get("url", ""))) or b"")
-        processed += 1
-        if img is None:
-            continue
-        best = -1.0
-        with engine.lock:
-            for face in engine.faces(img):
-                best = max(best, engine.similarity(ref, engine.embed(img, face)))
-        del img
-        b = band_for(best)
-        if b:
-            results.append({"photoId": str(p.get("id", "")), "band": b})
-    return {"reference": "ok", "results": results, "processed": processed}
+    """Job inteiro (modo pull): referência calculada uma vez, fotos baixadas em paralelo e comparadas em sequência."""
+    return match_photos(engine, fetch, reference_url, photos, "photoId")
 
 
 def post_json(url: str, token: str, body: dict, timeout: int = 60) -> dict:

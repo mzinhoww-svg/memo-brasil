@@ -3,7 +3,7 @@
 // recebe chave do banco; só um Bearer próprio (SMART_ALBUM_ENGINE_TOKEN). Lógica pura, testada sem Deno.
 interface ClaimedJob { jobId: string; eventId: string; profileId: string; referencePath: string; photoIds: string[] }
 
-export const PULL_ENGINE_VERSION = "opencv-yunet-sface.t1";
+export const PULL_ENGINE_VERSION = "opencv-yunet-sface.t2";
 export const SIGN_TTL_SECONDS = 1800; // o motor processa em sequência; 30 min cobre eventos grandes
 const ERR = /^[a-z_]{1,40}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

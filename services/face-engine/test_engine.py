@@ -40,6 +40,14 @@ def run(img_dir: str) -> None:
     assert fe.pick_reference(many)[0] in ("multiple_faces", "ok")
     print("ok escolha da referência")
 
+    # selfie difícil: girada (EXIF perdido) e rosto colado na borda continuam achando o titular; espelho vira 2ª referência
+    for name, img in {"girada 90": cv2.rotate(lena, cv2.ROTATE_90_CLOCKWISE), "girada 180": cv2.rotate(lena, cv2.ROTATE_180),
+                      "muito perto": lena[int(lf[0][1]):int(lf[0][1] + lf[0][3]), int(lf[0][0]):int(lf[0][0] + lf[0][2])]}.items():
+        st, refs = fe.reference_embeddings(eng, img)
+        assert st == "ok" and refs, f"{name}: {st}"
+        print(f"ok referência {name}: {len(refs)} embeddings")
+    assert fe.reference_embeddings(eng, np.full((400, 400, 3), 128, np.uint8))[0] == "no_face"
+
     # identidade: a mesma pessoa transformada fica acima do limiar; outra pessoa fica abaixo
     ref = eng.embed(lena, lf[0])
     variants = {
@@ -80,6 +88,18 @@ def run(img_dir: str) -> None:
     store["https://h/vazia"] = enc(blank)
     assert fe.search(eng, store.get, "https://h/vazia", [])["reference"] == "no_face"
     print("ok busca fim a fim")
+
+    # downloads em paralelo devolvem na ordem e com janela limitada
+    import time as _t
+    def slow(u):
+        _t.sleep(0.05 if u.endswith("0") else 0.01)
+        return store.get("https://h/a")
+    many_p = [{"id": str(i), "url": f"https://h/{i}"} for i in range(20)]
+    t0 = _t.time()
+    got = [p["id"] for p, img in fe.prefetched(slow, many_p, workers=6) if img is not None]
+    assert got == [str(i) for i in range(20)], got
+    assert _t.time() - t0 < 0.5, "paralelo deveria ser mais rápido que sequencial"
+    print("ok downloads em paralelo")
 
     # fetcher: só HTTPS no host permitido
     f = fe.Fetcher("abc.supabase.co")
