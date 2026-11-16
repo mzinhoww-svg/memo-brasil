@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Sheet } from "@/components/revela";
 import { useApp } from "@/features/app/provider";
 import { browserSupabase } from "@/lib/supabase/client";
+import { visibleEmail } from "@/features/whatsapp/technical-email";
 
 const ROW_BTN = { width: "100%", background: "none", border: 0, textAlign: "left" as const, cursor: "pointer", font: "inherit" };
 const chevron = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>;
@@ -20,7 +21,7 @@ export function AccountMenu() {
   useEffect(() => {
     if (!open || backend !== "supabase") return;
     let live = true;
-    void browserSupabase().auth.getUser().then(({ data }) => { if (live) setEmail(data.user?.email ?? undefined); }, () => undefined);
+    void browserSupabase().auth.getUser().then(({ data }) => { if (live) setEmail(visibleEmail(data.user?.email)); }, () => undefined);
     return () => { live = false; };
   }, [open, backend]);
   if (!user) return null;
