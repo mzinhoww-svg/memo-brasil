@@ -90,3 +90,16 @@ ou `update feature_flags set enabled=false where key='smart_album_face_matching'
   eventos.
 - **Termos e Política 2026-11-16-v2:** seção 11 nos dois textos; `legal_documents` publica a versão na mesma migration.
 - Testes: pgTAP `41_smart_album_account_consent` (45), unitários do serviço, e2e "aceite único".
+
+## 11. Pré-processamento durante o evento (motor t3)
+- **Antes:** cada pessoa com a busca ligada fazia o motor reanalisar todas as fotos do evento depois da revelação (N pessoas × M fotos).
+- **Agora:** cada foto é analisada uma vez, quando fica pronta. Gatilho em `photos` → `photo_analysis` (fila). O motor chama
+  `/claim-photos` (lote de 8 + selfies de quem autorizou e participa do evento: `smart_album_event_references`), compara em memória e
+  devolve por `/complete-photos` só `{photoId, faces, sharpness, matches[{profileId, band}]}`. Nenhum embedding vai ao banco; rostos de
+  quem não autorizou são descartados no motor. As selfies ficam em cache só na memória do processo (15 min).
+- **Revelação:** nada a processar. `face_photo_matches` já existe e continua fechado por `is_revealed` + `can_see_photo` na leitura.
+- **Recuperação:** selfie enviada (ou entrada no evento) depois de fotos já analisadas → `smart_album_enqueue_auto` cria uma busca por
+  pessoa, depois da revelação, como antes. Foto nova nunca cria busca por pessoa.
+- **Classificação sem identidade:** `photo_analysis.kind` (retrato/grupo/sem_pessoas pela contagem de rostos) e `sharpness`. Ainda sem
+  tela: os dados ficam prontos para filtros e "melhores fotos".
+- Testes: pgTAP 41 (fila, lote, resultado fechado antes da revelação, recuperação), `smart-album-pull.test.ts`, `test_engine.py`.

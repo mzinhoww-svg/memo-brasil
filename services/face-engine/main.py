@@ -6,7 +6,8 @@ Modelos abertos do OpenCV Zoo, com licença comercial:
 Os pesos são baixados na primeira subida e conferidos por SHA-256 (o código não aceita outro arquivo).
 
 Modo padrão "pull" (ENGINE_MODE=pull): sem endereço público; a cada PULL_INTERVAL s pergunta à Edge Function `smart-album-engine` (no
-mesmo host do Storage) se há busca na fila, processa e devolve só {photoId, band}. Modo "http" (ENGINE_MODE=http): servidor abaixo.
+mesmo host do Storage) se há fotos novas para analisar (pré-processamento durante o evento) ou busca de recuperação na fila, e devolve
+só {photoId, band} / {photoId, faces, sharpness, matches[{profileId, band}]}. Modo "http" (ENGINE_MODE=http): servidor abaixo.
 Contrato HTTP (só JSON, autenticado por Bearer):
   POST /v1/search {"reference_url": str, "photos": [{"id": str, "url": str}, ...]}
     -> {"reference": "ok" | "no_face" | "multiple_faces" | "low_quality" | "invalid_image",
@@ -25,6 +26,7 @@ import json
 import os
 import sys
 import threading
+import time
 import urllib.request
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
@@ -34,7 +36,7 @@ from urllib.parse import urlparse
 import cv2
 import numpy as np
 
-ENGINE_VERSION = "opencv-yunet-sface.t2"
+ENGINE_VERSION = "opencv-yunet-sface.t3"
 # Limiar de cosseno do SFace: 0.363 é o valor publicado pelo OpenCV para "mesma pessoa". "probable" exige folga acima dele.
 # NÃO calibrado com dados do produto (ver docs/smart-album/04-model-evaluation.md).
 REVIEW_THRESHOLD = float(os.environ.get("REVIEW_THRESHOLD", "0.363"))
@@ -262,6 +264,88 @@ def run_job(engine: Engine, fetch, reference_url: str, photos: list[dict]) -> di
     return match_photos(engine, fetch, reference_url, photos, "photoId")
 
 
+# ------------------------------------------------------------------------------------------------------------ pré-processamento
+REF_TTL = 900  # s: embeddings das selfies ficam só na memória do processo, por pouco tempo, para não baixar a selfie a cada lote
+REF_MAX = 400
+
+
+class RefCache:
+    """profileId -> (status, embeddings, quando). Só memória; some no restart. O banco revalida consentimento ao gravar cada resultado."""
+
+    def __init__(self) -> None:
+        self.items: dict[str, tuple[str, list[np.ndarray], float]] = {}
+
+    def get(self, engine: Engine, fetch, profile_id: str, url: str) -> tuple[str, list[np.ndarray]]:
+        hit = self.items.get(profile_id)
+        if hit and time.time() - hit[2] < REF_TTL:
+            return hit[0], hit[1]
+        img = decode(fetch(url) or b"")
+        if img is None:
+            return "unavailable", []  # falha de rede/arquivo: não é erro da selfie; tenta no próximo lote
+        with engine.lock:
+            status, refs = reference_embeddings(engine, img)
+        del img
+        if len(self.items) >= REF_MAX:
+            for k in sorted(self.items, key=lambda k: self.items[k][2])[: REF_MAX // 4]:
+                del self.items[k]
+        self.items[profile_id] = (status, refs, time.time())
+        return status, refs
+
+
+def sharpness(img: np.ndarray) -> float:
+    """Nitidez (variância do Laplaciano) numa versão reduzida: número só para ordenar/filtrar, não identifica ninguém."""
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    k = 640 / max(g.shape[:2])
+    if k < 1:
+        g = cv2.resize(g, (round(g.shape[1] * k), round(g.shape[0] * k)), interpolation=cv2.INTER_AREA)
+    return round(float(cv2.Laplacian(g, cv2.CV_64F).var()), 2)
+
+
+def process_batch(engine: Engine, fetch, batch: dict, cache: RefCache) -> dict:
+    """Cada foto é analisada uma vez: rostos -> embeddings em memória -> comparação com as selfies de quem autorizou naquele evento.
+    Sai só {photoId, faces, sharpness, matches[{profileId, band}]}; embeddings e rostos de terceiros são descartados aqui."""
+    by_event: dict[str, list[tuple[str, list[np.ndarray]]]] = {}
+    ref_errors, seen = [], set()
+    for r in batch.get("refs") or []:
+        pid, ev = str(r.get("profileId", "")), str(r.get("eventId", ""))
+        status, refs = cache.get(engine, fetch, pid, str(r.get("url", "")))
+        if status == "ok":
+            by_event.setdefault(ev, []).append((pid, refs))
+        elif status in ("no_face", "multiple_faces", "low_quality") and pid not in seen:
+            seen.add(pid)
+            ref_errors.append({"profileId": pid, "error": status})
+    results, failed = [], []
+    photos = batch.get("photos") or []
+    for p, img in prefetched(fetch, photos):
+        pid = str(p.get("id", ""))
+        if img is None:
+            failed.append(pid)
+            continue
+        with engine.lock:
+            faces = engine.faces(img, DETECT_SCORE_EVENT)
+            embs = [engine.embed(img, f) for f in faces]
+            matches = []
+            for profile_id, refs in by_event.get(str(p.get("eventId", "")), []) if embs else []:
+                b = band_for(max(engine.similarity(r, e) for r in refs for e in embs))
+                if b:
+                    matches.append({"profileId": profile_id, "band": b})
+        results.append({"photoId": pid, "faces": len(faces), "sharpness": sharpness(img), "matches": matches})
+        del img, embs
+    return {"results": results, "failed": failed, "refErrors": ref_errors}
+
+
+def pull_photos_once(engine: Engine, fetcher: Fetcher, base_url: str, token: str, cache: RefCache, post=None) -> str:
+    """Uma rodada do pré-processamento: reserva um lote de fotos novas, analisa e devolve. 'idle' ou 'done'."""
+    post = post or post_json
+    batch = (post(f"{base_url}/claim-photos", token, {}) or {}).get("batch")
+    if not batch or not batch.get("photos"):
+        return "idle"
+    out = process_batch(engine, fetcher.get, batch, cache)
+    r = post(f"{base_url}/complete-photos", token, out)
+    log(f"lote: fotos={len(out['results'])} falhas={len(out['failed'])} selfies={len(batch.get('refs') or [])} resultados={r.get('matches')}")
+    return "done"
+
+
 def post_json(url: str, token: str, body: dict, timeout: int = 60) -> dict:
     req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
                                  headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "User-Agent": "revela-face-engine"})
@@ -343,8 +427,8 @@ def main() -> None:
     engine = Engine()
     if os.environ.get("ENGINE_MODE", "pull") == "pull":
         # sem endereço público: pergunta à Edge Function smart-album-engine (mesmo host do Storage) se há busca na fila
-        import time
         base = f"https://{host}/functions/v1/smart-album-engine"
+        cache = RefCache()
         interval = max(5, int(os.environ.get("PULL_INTERVAL", "20")))
         log(f"pronto ({ENGINE_VERSION}), modo pull a cada {interval}s")
         while True:
@@ -353,7 +437,12 @@ def main() -> None:
             except Exception as e:  # noqa: BLE001 - rede/servidor: tenta de novo na próxima rodada
                 log(f"pull erro={type(e).__name__}")
                 state = "idle"
-            if state == "idle":
+            try:  # fotos novas do evento: analisadas conforme chegam (pré-processamento)
+                photos_state = pull_photos_once(engine, Fetcher(host), base, token, cache)
+            except Exception as e:  # noqa: BLE001
+                log(f"lote erro={type(e).__name__}")
+                photos_state = "idle"
+            if state == "idle" and photos_state == "idle":
                 time.sleep(interval)
     port = int(os.environ.get("PORT", "80"))
     log(f"pronto ({ENGINE_VERSION}) na porta {port}")

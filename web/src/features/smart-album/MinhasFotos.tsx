@@ -71,6 +71,8 @@ export function MinhasFotos() {
   const autoSearched = useRef(false);
   const f = state?.face;
   useEffect(() => {
+    // aceite de conta: o servidor já analisa as fotos conforme chegam e cria a busca de recuperação sozinho; o app não dispara nada
+    if (f?.scope === "account") return;
     if (autoSearched.current || !state?.revealed || !f?.available || !f.consented || (f.profile !== "pending" && f.profile !== "ready") || f.job) return;
     autoSearched.current = true;
     void sa.api.requestSearch(event.id, `sa-${crypto.randomUUID().replace(/-/g, "")}`).then(() => { track("smart_album_job_started"); return sa.reload(); }).catch(() => {});

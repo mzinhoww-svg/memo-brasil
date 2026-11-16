@@ -151,6 +151,33 @@ def run(img_dir: str) -> None:
     assert calls[-1] == ("fail", {"jobId": "j2", "error": "no_face", "referenceInvalid": True}), calls[-1]
     assert fe.pull_once(eng, pf, "https://h/fn", "t", fake_post) == "idle"
     print("ok modo pull")
+    # pré-processamento: uma passada por foto contra as selfies do evento; selfie ruim vira refErrors; foto que não abre vira failed
+    cache = fe.RefCache()
+    store["https://h/vazia2"] = enc(blank)
+    batch = {"photos": [{"id": "a", "eventId": "e1", "url": "https://h/a"}, {"id": "b", "eventId": "e1", "url": "https://h/b"},
+                        {"id": "g", "eventId": "e2", "url": "https://h/g"}, {"id": "x", "eventId": "e1", "url": "https://h/c"},
+                        {"id": "v", "eventId": "e1", "url": "https://h/vazia"}],
+             "refs": [{"eventId": "e1", "profileId": "lena", "url": "https://h/ref"}, {"eventId": "e2", "profileId": "lena", "url": "https://h/ref"},
+                      {"eventId": "e1", "profileId": "ruim", "url": "https://h/vazia2"}, {"eventId": "e1", "profileId": "fora", "url": "https://h/nao-existe"}]}
+    out = fe.process_batch(eng, store.get, batch, cache)
+    byid = {r["photoId"]: r for r in out["results"]}
+    assert byid["a"]["matches"] == [{"profileId": "lena", "band": "probable"}] and byid["a"]["faces"] == 1, byid["a"]
+    assert byid["b"]["matches"] == [] and byid["b"]["faces"] >= 1, byid["b"]
+    assert byid["g"]["matches"] == [] and byid["g"]["faces"] >= 5, byid["g"]
+    assert byid["v"]["faces"] == 0 and byid["v"]["matches"] == [], byid["v"]
+    assert all(set(r) == {"photoId", "faces", "sharpness", "matches"} for r in out["results"]), "sem score nem embedding na saída"
+    assert out["failed"] == ["x"] and out["refErrors"] == [{"profileId": "ruim", "error": "no_face"}], out
+    assert byid["a"]["sharpness"] > byid["v"]["sharpness"] == 0.0
+    n_fetch = []
+    fe.process_batch(eng, lambda u: (n_fetch.append(u), store.get(u))[1], {"photos": [], "refs": batch["refs"][:1]}, cache)
+    assert n_fetch == [], "selfie em cache não é baixada de novo"
+    posts = []
+    def fake_post2(url, tok, body):
+        posts.append((url.rsplit("/", 1)[-1], body))
+        return {"batch": batch} if url.endswith("/claim-photos") and len(posts) == 1 else ({"batch": None} if url.endswith("/claim-photos") else {"matches": 1})
+    assert fe.pull_photos_once(eng, pf, "https://h/fn", "t", cache, fake_post2) == "done" and posts[-1][0] == "complete-photos"
+    assert fe.pull_photos_once(eng, pf, "https://h/fn", "t", cache, fake_post2) == "idle"
+    print("ok pré-processamento")
     print("TODOS OS TESTES PASSARAM")
 
 

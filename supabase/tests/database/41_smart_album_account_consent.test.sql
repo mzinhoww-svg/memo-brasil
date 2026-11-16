@@ -101,13 +101,50 @@ select is((select j -> 0 ->> 'referencePath' from claim41), (select path from re
 select is(public.smart_album_worker_complete(((select j -> 0 ->> 'jobId' from claim41))::uuid, '[{"photoId":"00000000-0000-4000-8000-0000000041f1","band":"probable"}]', 1, 'opencv-yunet-sface.t2'), 1, 'resultado gravado em X');
 select is((select status from public.face_profiles where reference_storage_path = (select path from ref41)), 'ready', 'selfie de conta fica pronta');
 select is(public.smart_album_enqueue_auto(5), 0, 'sem foto nova depois da busca: não repete');
--- na mesma transação tudo tem o mesmo now(): a busca anterior é recuada para que a foto nova seja de fato posterior
-update public.face_search_jobs set created_at = now() - interval '30 minutes' where user_id = '00000000-0000-4000-8000-0000000041a2';
-insert into public.photos (id, event_id, author_id, author_name, storage_path, upload_status, created_at) values
-  ('00000000-0000-4000-8000-0000000041f4', '00000000-0000-4000-8000-0000000041e1', '00000000-0000-4000-8000-0000000041a1', 'Host', '00000000-0000-4000-8000-0000000041e1/00000000-0000-4000-8000-0000000041f4', 'pronta', now() + interval '1 minute');
-select is(public.smart_album_enqueue_auto(5), 1, 'foto nova depois da revelação: busca de novo');
+-- ===================================================================== pré-processamento durante o evento
+-- foto nova NÃO gera busca por pessoa: entra na fila de análise e é comparada uma vez com as selfies de quem autorizou
+insert into public.photos (id, event_id, author_id, author_name, storage_path, upload_status) values
+  ('00000000-0000-4000-8000-0000000041f4', '00000000-0000-4000-8000-0000000041e1', '00000000-0000-4000-8000-0000000041a1', 'Host', '00000000-0000-4000-8000-0000000041e1/00000000-0000-4000-8000-0000000041f4', 'pronta'),
+  ('00000000-0000-4000-8000-0000000041f5', '00000000-0000-4000-8000-0000000041e3', '00000000-0000-4000-8000-0000000041a1', 'Host', '00000000-0000-4000-8000-0000000041e3/00000000-0000-4000-8000-0000000041f5', 'pronta'),
+  ('00000000-0000-4000-8000-0000000041f6', '00000000-0000-4000-8000-0000000041e2', '00000000-0000-4000-8000-0000000041a1', 'Host', '00000000-0000-4000-8000-0000000041e2/00000000-0000-4000-8000-0000000041f6', 'pronta');
+select is((select count(*)::int from public.photo_analysis where status = 'queued'), 2, 'fotos novas de X e P entram na fila; a de Y (organizador desligou) não');
+select is(public.smart_album_enqueue_auto(5), 0, 'foto nova não cria busca por pessoa');
 select tests41.login('00000000-0000-4000-8000-0000000041a2');
-select is((select count(*)::int from public.smart_album_list_matches('00000000-0000-4000-8000-0000000041e1', 30, null)), 1, 'Gil vê o resultado em X');
+select throws_ok($$select public.smart_album_worker_claim_photos(8)$$, '42501', null, 'cliente não reserva fotos para análise');
+select throws_ok($$select public.smart_album_worker_complete_photos('[]', '[]', '[]', 'x')$$, '42501', null, 'cliente não grava análise');
+select throws_ok($$select count(*) from public.photo_analysis$$, '42501', null, 'cliente não lê a tabela de análise');
+reset role;
+create temporary table pre41 on commit drop as select public.smart_album_worker_claim_photos(8) as j;
+select is(jsonb_array_length((select j -> 'photos' from pre41)), 2, 'worker recebe as 2 fotos');
+select is((select count(*)::int from jsonb_array_elements((select j -> 'refs' from pre41)) x where x ->> 'referencePath' = (select path from ref41)), 2, 'a selfie de Gil vale para X e para P (participa dos dois)');
+select is(public.smart_album_worker_complete_photos(
+  jsonb_build_array(
+    jsonb_build_object('photoId', '00000000-0000-4000-8000-0000000041f4', 'faces', 3, 'sharpness', 120.5, 'matches', jsonb_build_array(
+      jsonb_build_object('profileId', (select id from public.face_profiles where reference_storage_path = (select path from ref41)), 'band', 'review'),
+      jsonb_build_object('profileId', '00000000-0000-4000-8000-00000000dead', 'band', 'probable'))),
+    jsonb_build_object('photoId', '00000000-0000-4000-8000-0000000041f5', 'faces', 1, 'sharpness', 80, 'matches', jsonb_build_array(
+      jsonb_build_object('profileId', (select id from public.face_profiles where reference_storage_path = (select path from ref41)), 'band', 'probable')))),
+  '[]', '[]', 'opencv-yunet-sface.t3'), 2, 'grava só os resultados de perfis válidos (perfil inexistente é ignorado)');
+select is((select kind from public.photo_analysis where photo_id = '00000000-0000-4000-8000-0000000041f4'), 'grupo', '3 rostos = grupo');
+select is((select kind from public.photo_analysis where photo_id = '00000000-0000-4000-8000-0000000041f5'), 'retrato', '1 rosto = retrato');
+select is(public.smart_album_enqueue_auto(5), 0, 'tudo coberto: nenhuma busca por pessoa');
+select tests41.login('00000000-0000-4000-8000-0000000041a2');
+select is((select count(*)::int from public.smart_album_list_matches('00000000-0000-4000-8000-0000000041e1', 30, null)), 2, 'Gil vê os resultados em X (busca + pré-processamento)');
+select throws_ok($$select * from public.smart_album_list_matches('00000000-0000-4000-8000-0000000041e3', 30, null)$$, 'MM017', null, 'P não revelou: o resultado pré-processado fica fechado');
+select is(public.smart_album_state('00000000-0000-4000-8000-0000000041e3') -> 'face' ->> 'matches', null, 'P não revelou: nem a contagem aparece');
+reset role;
+-- quem entra depois: fotos já analisadas pedem uma busca de recuperação
+insert into auth.users (id, email, is_anonymous) values ('00000000-0000-4000-8000-0000000041a5', 'lia41@test.local', false);
+insert into public.profiles (id) values ('00000000-0000-4000-8000-0000000041a5') on conflict do nothing;
+select tests41.login('00000000-0000-4000-8000-0000000041a5');
+select lives_ok($$select public.smart_album_grant_account_consent('2026-11-16-v2', 'entrada', true)$$, 'Lia autoriza na conta');
+create temporary table lia41 on commit drop as select public.smart_album_begin_account_reference('camera') ->> 'path' as path;
+select lives_ok($$insert into storage.objects (bucket_id, name) select 'face-references', path from lia41$$, 'Lia envia a selfie');
+reset role;
+select is(public.smart_album_enqueue_auto(5), 0, 'Lia não participa de nenhum evento: nada a buscar');
+insert into public.participants (event_id, user_id, name, joined_at) values ('00000000-0000-4000-8000-0000000041e1', '00000000-0000-4000-8000-0000000041a5', 'Lia', now() + interval '1 second');
+select is(public.smart_album_enqueue_auto(5), 1, 'Lia entrou em X depois das análises: busca de recuperação');
+select is(public.smart_album_enqueue_auto(5), 0, 'e só uma');
 reset role;
 
 -- ===================================================================== revogação apaga tudo, em todos os eventos
