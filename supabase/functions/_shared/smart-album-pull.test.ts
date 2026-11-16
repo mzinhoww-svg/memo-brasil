@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { claim, complete, fail, PULL_ENGINE_VERSION, safeEqual, type PullDeps } from "./smart-album-pull.ts";
+import { claim, complete, fail, PULL_ENGINE_VERSION, safeEqual, sha256Hex, tokenOk, type PullDeps } from "./smart-album-pull.ts";
 
 const J = "00000000-0000-4000-8000-0000000000aa";
 const P1 = "00000000-0000-4000-8000-0000000000f1";
@@ -25,6 +25,13 @@ describe("modo pull", () => {
     expect(safeEqual("abc", "abc")).toBe(true);
     expect(safeEqual("abc", "abd")).toBe(false);
     expect(safeEqual("", "")).toBe(false);
+  });
+  it("token: compara o SHA-256; curto ou errado é recusado", async () => {
+    const t = "x".repeat(40);
+    const h = await sha256Hex(t);
+    expect(await tokenOk(t, h)).toBe(true);
+    expect(await tokenOk("y".repeat(40), h)).toBe(false);
+    expect(await tokenOk("curto", await sha256Hex("curto"))).toBe(false);
   });
   it("claim: 1 job com URLs assinadas; foto sem URL fica de fora", async () => {
     const { d } = deps();

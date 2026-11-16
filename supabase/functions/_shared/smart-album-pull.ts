@@ -1,7 +1,7 @@
 // Smart Album · modo "pull": o motor facial (servidor próprio, sem endereço público) pergunta à Edge Function `smart-album-engine` se
 // há busca na fila. A função (service_role) reserva o job pelo banco, devolve URLs assinadas de leitura e grava o resultado. O motor nunca
 // recebe chave do banco; só um Bearer próprio (SMART_ALBUM_ENGINE_TOKEN). Lógica pura, testada sem Deno.
-import type { ClaimedJob } from "./smart-album-worker.ts";
+interface ClaimedJob { jobId: string; eventId: string; profileId: string; referencePath: string; photoIds: string[] }
 
 export const PULL_ENGINE_VERSION = "opencv-yunet-sface.t1";
 export const SIGN_TTL_SECONDS = 1800; // o motor processa em sequência; 30 min cobre eventos grandes
@@ -11,6 +11,16 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 export interface PullDeps {
   rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { code?: string } | null }>;
   sign: (bucket: "face-references" | "event-photos", paths: string[], ttlSeconds: number) => Promise<Record<string, string>>;
+}
+
+/** SHA-256 (hex) do token do motor: o token em si fica só na Vertra; a função compara hashes (sem segredo no painel). */
+export const ENGINE_TOKEN_SHA256 = "812095005a8f37cb3c64df9d7263e94c89c180e675a20ee96e50d7de4b82aa89";
+export async function sha256Hex(s: string): Promise<string> {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+export async function tokenOk(bearer: string, expectedHex = ENGINE_TOKEN_SHA256): Promise<boolean> {
+  return bearer.length >= 32 && safeEqual(await sha256Hex(bearer), expectedHex);
 }
 
 export function safeEqual(a: string, b: string): boolean {

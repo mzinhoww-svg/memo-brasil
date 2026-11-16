@@ -1,15 +1,14 @@
-// Ponto de contato do motor facial em modo pull (POST /claim, /complete, /fail). Autenticação: Bearer SMART_ALBUM_ENGINE_TOKEN.
+// Ponto de contato do motor facial em modo pull (POST /claim, /complete, /fail). Autenticação: Bearer cujo SHA-256 = ENGINE_TOKEN_SHA256.
 // verify_jwt desligado no deploy: quem chama é o motor (sem JWT do Supabase); a checagem é o token próprio abaixo.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { claim, complete, fail, safeEqual, type PullDeps } from "../_shared/smart-album-pull.ts";
+import { claim, complete, fail, tokenOk, type PullDeps } from "../_shared/smart-album-pull.ts";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "cache-control": "no-store", "x-content-type-options": "nosniff" } });
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method" }, 405);
-  const expected = Deno.env.get("SMART_ALBUM_ENGINE_TOKEN") ?? "";
   const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer /, "");
-  if (expected.length < 32 || !safeEqual(token, expected)) return json({ error: "forbidden" }, 403);
+  if (!(await tokenOk(token))) return json({ error: "forbidden" }, 403);
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
   const deps: PullDeps = {
     rpc: async (fn, args) => {
