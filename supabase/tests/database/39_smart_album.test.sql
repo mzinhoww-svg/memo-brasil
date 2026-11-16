@@ -121,7 +121,15 @@ reset role;
 select tests.login('00000000-0000-4000-8000-0000000039a5', null, true);
 select throws_ok($$select public.smart_album_grant_face_consent('00000000-0000-4000-8000-0000000039e1', '2026-11-16-teste', 'upload', true)$$, 'MM004', null, 'sessão anônima não consente');
 reset role;
-select is((select count(*)::int from public.audit_logs where action = 'smart_album.consent_granted' and event_id = '00000000-0000-4000-8000-0000000039e1'), 1, 'aceite auditado (sem dado biométrico)');
+select is((select count(*)::int from public.audit_logs where action = 'smart_album.consent_granted' and event_id is null and detail ->> 'event' = '00000000-0000-4000-8000-0000000039e1'), 1, 'aceite auditado (sem dado biométrico, sem event_id)');
+select tests.login('00000000-0000-4000-8000-0000000039a1');
+select is((select count(*)::int from public.audit_logs where action like 'smart_album.%'), 0, 'anfitrião NÃO vê na trilha quem consentiu à busca facial');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000039a4');
+select is((public.smart_album_revoke_face('00000000-0000-4000-8000-0000000039e1') ->> 'status'), 'done', 'revogar sem nada a apagar responde "done"');
+select is((public.smart_album_revoke_face('00000000-0000-4000-8000-0000000000ff') ->> 'status'), 'done', 'revogar em evento qualquer não falha…');
+reset role;
+select is((select count(*)::int from public.audit_logs where action like 'smart_album.%' and actor_id = '00000000-0000-4000-8000-0000000039a4'), 0, '…e não grava nada na trilha (sem poluição)');
 
 -- append-only
 select throws_ok($$update public.face_consents set source = 'google' where user_id = '00000000-0000-4000-8000-0000000039a2'$$, 'MM005', null, 'consentimento é append-only (só a revogação muda)');
@@ -146,6 +154,7 @@ reset role;
 select tests.login('00000000-0000-4000-8000-0000000039a7');
 select isnt(public.smart_album_grant_face_consent('00000000-0000-4000-8000-0000000039e3', '2026-11-16-teste', 'camera', true), null, 'Duda consente no evento P (ainda não revelado)');
 select throws_ok($$select public.smart_album_request_search('00000000-0000-4000-8000-0000000039e3', 'idem-duda-0001')$$, 'MM017', null, 'antes da revelação: nenhum job');
+select ok((public.smart_album_begin_reference('00000000-0000-4000-8000-0000000039e3', 'camera') ->> 'path') is not null, 'Duda pode preparar a referência antes da revelação');
 select throws_ok($$select * from public.smart_album_list_matches('00000000-0000-4000-8000-0000000039e3')$$, 'MM017', null, 'antes da revelação: nenhum resultado');
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000039a2');
@@ -213,6 +222,15 @@ create temporary table claimed3 on commit drop as select public.smart_album_work
 select is(public.smart_album_worker_fail((select (j -> 0 ->> 'jobId')::uuid from claimed3), 'engine_timeout'), 'queued', 'falha transitória volta à fila');
 select throws_ok($$select public.smart_album_worker_fail((select (j -> 0 ->> 'jobId')::uuid from claimed3), 'Erro com PII')$$, 'MM005', null, 'código de erro não aceita texto livre');
 reset role;
+-- referência rejeitada pelo motor (simulado num job à parte, em savepoint): perfil em erro, caminho zerado, objeto na fila de purga
+savepoint ref_invalid;
+set local role service_role;
+create temporary table claimed4 on commit drop as select public.smart_album_worker_claim(5) as j;
+select is(public.smart_album_worker_fail((select (j -> 0 ->> 'jobId')::uuid from claimed4), 'no_face', true), 'failed', 'referência sem rosto: falha definitiva');
+reset role;
+select is((select count(*)::int from public.face_profiles where user_id = '00000000-0000-4000-8000-0000000039a2' and status = 'error' and reference_storage_path is null), 1, 'perfil em erro sem caminho guardado');
+select ok(exists(select 1 from public.storage_purge_queue q join ref on q.path = ref.path where q.bucket = 'face-references'), 'referência rejeitada vai para a purga');
+rollback to savepoint ref_invalid;
 
 -- bloqueio do participante revoga a consulta
 update public.participants set blocked_at = now() where event_id = '00000000-0000-4000-8000-0000000039e1' and user_id = '00000000-0000-4000-8000-0000000039a2';
@@ -251,9 +269,26 @@ select is((select count(*)::int from public.face_consents where user_id = '00000
 select ok(exists(select 1 from public.audit_logs where action = 'smart_album.consent_revoked'), 'revogação auditada');
 select ok(not exists(select 1 from public.audit_logs where action like 'smart_album.%' and detail::text ~ '(face-references|/00000000-0000-4000-8000-0000000039a2/)'), 'auditoria sem caminho de referência');
 
--- cascata: excluir o evento leva todos os dados faciais
+-- cascata: excluir o evento leva todos os dados faciais, e a referência ainda guardada vai para a purga (não fica órfã)
+create temporary table duda_ref on commit drop as select reference_storage_path as path from public.face_profiles where event_id = '00000000-0000-4000-8000-0000000039e3' and reference_storage_path is not null;
+select is((select count(*)::int from duda_ref), 1, 'Duda tem referência guardada');
 delete from public.events where id = '00000000-0000-4000-8000-0000000039e3';
 select is((select count(*)::int from public.face_consents where event_id = '00000000-0000-4000-8000-0000000039e3'), 0, 'evento excluído: consentimentos/perfis/jobs somem em cascata');
+select ok(exists(select 1 from public.storage_purge_queue q join duda_ref d on q.path = d.path where q.bucket = 'face-references'), 'exclusão física enfileira a referência para purga');
+
+-- quem sai do evento (participação apagada, ex.: exclusão de conta) tem os dados apagados pela expiração
+select tests.login('00000000-0000-4000-8000-0000000039a6', 'master');
+select lives_ok($$select public.admin_set_feature_flag('smart_album_face_matching', true, '{"events":["00000000-0000-4000-8000-0000000039e1"]}'::jsonb, 'Religar para o teste de saída')$$, 'religa a busca');
+reset role;
+select tests.login('00000000-0000-4000-8000-0000000039a3');
+select isnt(public.smart_album_grant_face_consent('00000000-0000-4000-8000-0000000039e1', '2026-11-16-teste', 'upload', true), null, 'Bia consente');
+select ok((public.smart_album_begin_reference('00000000-0000-4000-8000-0000000039e1', 'upload') ->> 'path') is not null, 'Bia prepara a referência');
+reset role;
+delete from public.participants where event_id = '00000000-0000-4000-8000-0000000039e1' and user_id = '00000000-0000-4000-8000-0000000039a3';
+set local role service_role;
+select is(public.smart_album_expire(), 1, 'expiração apaga os dados de quem saiu do evento');
+reset role;
+select is((select count(*)::int from public.face_consents where user_id = '00000000-0000-4000-8000-0000000039a3' and revoked_at is null), 0, 'consentimento de quem saiu encerrado');
 
 select * from finish();
 rollback;

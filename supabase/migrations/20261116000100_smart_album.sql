@@ -210,12 +210,21 @@ language sql stable security definer set search_path = '' as $$
     select 1 from public.face_profiles fp join public.face_consents c on c.id = fp.consent_id
     where fp.reference_storage_path = p_name and fp.user_id = auth.uid() and fp.status = 'pending'
       and c.revoked_at is null and public.smart_album_face_enabled(fp.event_id)
+      and (public.is_member(fp.event_id) or public.is_host(fp.event_id))
       and not exists (select 1 from storage.objects o where o.bucket_id = 'face-references' and o.name = p_name))
 $$;
 create policy "face_references_insert" on storage.objects for insert to authenticated
   with check (bucket_id = 'face-references' and public.can_upload_face_reference(name));
 
 -- ===================================================================================================================== RPCs do titular
+-- Auditoria do Smart Album SEM event_id: a política audit_host_select mostra ao anfitrião as linhas do evento, e quem consentiu/revogou
+-- a busca facial não é informação do anfitrião. Master/auditor continuam vendo (event_id vai no detalhe).
+create function public.smart_album_audit(p_event uuid, p_action text, p_detail jsonb default '{}') returns void
+language sql security definer set search_path = '' as $$
+  insert into public.audit_logs (actor_id, event_id, action, detail)
+  values (auth.uid(), null, p_action, coalesce(p_detail, '{}') || jsonb_build_object('event', p_event))
+$$;
+
 create function public.smart_album_can_use(p_event uuid) returns boolean
 language sql stable security definer set search_path = '' as $$
   select auth.uid() is not null and (public.is_member(p_event) or public.is_host(p_event))
@@ -224,19 +233,24 @@ $$;
 -- apaga tudo que a busca facial produziu para (evento, titular): resultados, jobs ativos e referência (purga assíncrona do objeto)
 create function public.smart_album_erase(p_event uuid, p_user uuid, p_reason text) returns int
 language plpgsql security definer set search_path = '' as $$
-declare n int := 0; r record;
+declare n int := 0; touched int := 0; c int; r record;
 begin
   update public.face_search_jobs set status = 'cancelled', completed_at = now(), locked_until = null
     where event_id = p_event and user_id = p_user and status in ('queued', 'processing');
+  get diagnostics c = row_count; touched := touched + c;
   delete from public.face_photo_matches where event_id = p_event and user_id = p_user;
+  get diagnostics c = row_count; touched := touched + c;
   for r in select id, reference_storage_path from public.face_profiles where event_id = p_event and user_id = p_user and status <> 'erased' for update loop
     if r.reference_storage_path is not null then
       insert into public.storage_purge_queue (path, bucket) values (r.reference_storage_path, 'face-references') on conflict do nothing;
       n := n + 1;
     end if;
     update public.face_profiles set status = 'erased', reference_storage_path = null, updated_at = now() where id = r.id;
+    touched := touched + 1;
   end loop;
-  perform public.audit(p_event, 'smart_album.face_erased', jsonb_build_object('reason', p_reason, 'objects_queued', n));
+  if touched > 0 then -- nada a apagar = nada a auditar (revogar em evento qualquer não polui a trilha)
+    perform public.smart_album_audit(p_event, 'smart_album.face_erased', jsonb_build_object('reason', p_reason, 'objects_queued', n));
+  end if;
   return n;
 end $$;
 
@@ -288,8 +302,13 @@ begin
     if existing.consent_version = cur then return existing.id; end if;
     update public.face_consents set revoked_at = now(), revoked_reason = 'versao' where id = existing.id; -- nova versão exige novo aceite
   end if;
-  insert into public.face_consents (event_id, user_id, consent_version, source, self_attested) values (p_event, uid, cur, p_source, true) returning id into nid;
-  perform public.audit(p_event, 'smart_album.consent_granted', jsonb_build_object('version', cur, 'source', p_source));
+  begin
+    insert into public.face_consents (event_id, user_id, consent_version, source, self_attested) values (p_event, uid, cur, p_source, true) returning id into nid;
+  exception when unique_violation then -- chamada concorrente: devolve o consentimento que ganhou
+    select id into nid from public.face_consents where event_id = p_event and user_id = uid and revoked_at is null;
+    return nid;
+  end;
+  perform public.smart_album_audit(p_event, 'smart_album.consent_granted', jsonb_build_object('version', cur, 'source', p_source));
   return nid;
 end $$;
 
@@ -312,10 +331,13 @@ begin
   end if;
   select * into ev from public.events where id = p_event;
   path := p_event::text || '/' || uid::text || '/' || pid::text;
-  insert into public.face_profiles (id, event_id, user_id, consent_id, reference_source, reference_storage_path, status, expires_at)
-  values (pid, p_event, uid, c.id, p_source, path, 'pending',
-          least(now() + interval '30 days', public.event_end(ev.start_at, ev.duration_hours, ev.ended_at) + interval '30 days'));
-  perform public.audit(p_event, 'smart_album.reference_started', jsonb_build_object('source', p_source));
+  begin
+    insert into public.face_profiles (id, event_id, user_id, consent_id, reference_source, reference_storage_path, status, expires_at)
+    values (pid, p_event, uid, c.id, p_source, path, 'pending',
+            least(now() + interval '30 days', public.event_end(ev.start_at, ev.duration_hours, ev.ended_at) + interval '30 days'));
+  exception when unique_violation then raise exception 'conflict' using errcode = 'MM005'; -- outra troca simultânea venceu; repetir
+  end;
+  perform public.smart_album_audit(p_event, 'smart_album.reference_started', jsonb_build_object('source', p_source));
   return jsonb_build_object('profileId', pid, 'bucket', 'face-references', 'path', path);
 end $$;
 
@@ -343,8 +365,14 @@ begin
     raise exception 'invalid' using errcode = 'MM005'; -- sem referência enviada
   end if;
   perform public.check_rate_limit('sa_search:' || uid::text, 6, interval '1 hour');
-  insert into public.face_search_jobs (event_id, user_id, face_profile_id, idempotency_key) values (p_event, uid, fp.id, p_idempotency) returning * into j;
-  perform public.audit(p_event, 'smart_album.job_started', '{}'::jsonb);
+  begin
+    insert into public.face_search_jobs (event_id, user_id, face_profile_id, idempotency_key) values (p_event, uid, fp.id, p_idempotency) returning * into j;
+  exception when unique_violation then -- mesma chave ou outro job ativo criado ao mesmo tempo
+    select * into j from public.face_search_jobs where (user_id = uid and idempotency_key = p_idempotency)
+      or (event_id = p_event and user_id = uid and status in ('queued', 'processing')) order by created_at desc limit 1;
+    return jsonb_build_object('jobId', j.id, 'status', j.status);
+  end;
+  perform public.smart_album_audit(p_event, 'smart_album.job_started', '{}'::jsonb);
   return jsonb_build_object('jobId', j.id, 'status', j.status);
 end $$;
 
@@ -374,7 +402,7 @@ declare uid uuid := auth.uid();
 begin
   if not public.smart_album_can_use(p_event) then raise exception 'forbidden' using errcode = 'MM004'; end if;
   update public.face_photo_matches set hidden_by_user = true where event_id = p_event and user_id = uid and photo_id = p_photo;
-  if found then perform public.audit(p_event, 'smart_album.match_hidden', '{}'::jsonb); end if;
+  if found then perform public.smart_album_audit(p_event, 'smart_album.match_hidden', '{}'::jsonb); end if;
 end $$;
 
 -- revogar sempre funciona (mesmo com a busca desligada): retira o consentimento, cancela jobs, apaga resultados e enfileira a referência
@@ -383,10 +411,11 @@ language plpgsql security definer set search_path = '' as $$
 declare uid uuid := auth.uid(); n int; q int;
 begin
   if uid is null then raise exception 'forbidden' using errcode = 'MM004'; end if;
+  perform public.check_rate_limit('sa_revoke:' || uid::text, 60, interval '1 hour'); -- folgado: revogar nunca deve travar quem usa
   update public.face_consents set revoked_at = now(), revoked_reason = 'usuario' where event_id = p_event and user_id = uid and revoked_at is null;
   get diagnostics n = row_count;
   q := public.smart_album_erase(p_event, uid, 'revogacao');
-  if n > 0 then perform public.audit(p_event, 'smart_album.consent_revoked', '{}'::jsonb); end if;
+  if n > 0 then perform public.smart_album_audit(p_event, 'smart_album.consent_revoked', '{}'::jsonb); end if;
   return jsonb_build_object('revoked', n, 'purgeQueued', q, 'status', case when q > 0 then 'purge_queued' else 'done' end);
 end $$;
 
@@ -471,7 +500,10 @@ begin
   if j.id is null or j.status <> 'processing' then raise exception 'invalid' using errcode = 'MM005'; end if;
   if coalesce(p_reference_invalid, false) then
     -- referência sem rosto/vários rostos/qualidade: não adianta repetir; a pessoa troca a foto
-    update public.face_profiles set status = 'error', error_code = p_error, updated_at = now() where id = j.face_profile_id;
+    insert into public.storage_purge_queue (path, bucket)
+      select fp.reference_storage_path, 'face-references' from public.face_profiles fp where fp.id = j.face_profile_id and fp.reference_storage_path is not null
+      on conflict do nothing;
+    update public.face_profiles set status = 'error', error_code = p_error, reference_storage_path = null, updated_at = now() where id = j.face_profile_id;
     st := 'failed';
   else
     st := case when j.attempts < 3 then 'queued' else 'failed' end;
@@ -488,8 +520,12 @@ declare r record; n int := 0;
 begin
   for r in
     select distinct fp.event_id, fp.user_id, case when p.blocked_at is not null then 'bloqueado' else 'expirado' end as why
-    from public.face_profiles fp left join public.participants p on p.event_id = fp.event_id and p.user_id = fp.user_id
-    where fp.status <> 'erased' and (fp.expires_at < now() or p.blocked_at is not null)
+    from public.face_profiles fp
+    join public.events e on e.id = fp.event_id
+    left join public.participants p on p.event_id = fp.event_id and p.user_id = fp.user_id
+    where fp.status <> 'erased'
+      and (fp.expires_at < now() or p.blocked_at is not null or e.deleted_at is not null
+           or (p.user_id is null and e.host_id is distinct from fp.user_id)) -- saiu do evento / conta excluída / evento excluído
   loop
     update public.face_consents set revoked_at = now(), revoked_reason = r.why where event_id = r.event_id and user_id = r.user_id and revoked_at is null;
     perform public.smart_album_erase(r.event_id, r.user_id, r.why);
@@ -500,6 +536,17 @@ begin
   return n;
 end $$;
 
+-- exclusão física (cascata de evento/conta, ou limpeza): a referência ainda guardada entra na fila de purga, nunca fica órfã no bucket
+create function public.face_profiles_purge_on_delete() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if old.reference_storage_path is not null then
+    insert into public.storage_purge_queue (path, bucket) values (old.reference_storage_path, 'face-references') on conflict do nothing;
+  end if;
+  return old;
+end $$;
+create trigger face_profiles_purge_on_delete before delete on public.face_profiles for each row execute function public.face_profiles_purge_on_delete();
+
 -- ===================================================================================================================== permissões
 revoke execute on function public.smart_album_ui_enabled(uuid), public.smart_album_legal_gate(), public.smart_album_face_consent_version(),
   public.smart_album_face_enabled(uuid), public.smart_album_set_item(uuid, text, boolean), public.smart_album_my_items(uuid),
@@ -508,11 +555,13 @@ revoke execute on function public.smart_album_ui_enabled(uuid), public.smart_alb
   public.smart_album_begin_reference(uuid, text), public.smart_album_request_search(uuid, text),
   public.smart_album_list_matches(uuid, int, timestamptz), public.smart_album_hide_match(uuid, uuid), public.smart_album_revoke_face(uuid),
   public.smart_album_eligible_photo_ids(uuid, uuid), public.smart_album_worker_claim(int), public.smart_album_worker_complete(uuid, jsonb, int, text),
-  public.smart_album_worker_fail(uuid, text, boolean), public.smart_album_expire()
+  public.smart_album_worker_fail(uuid, text, boolean), public.smart_album_expire(), public.smart_album_audit(uuid, text, jsonb),
+  public.face_profiles_purge_on_delete()
   from public, anon;
 revoke execute on function public.smart_album_erase(uuid, uuid, text), public.smart_album_eligible_photo_ids(uuid, uuid),
   public.smart_album_worker_claim(int), public.smart_album_worker_complete(uuid, jsonb, int, text),
-  public.smart_album_worker_fail(uuid, text, boolean), public.smart_album_expire(), public.face_consents_append_only()
+  public.smart_album_worker_fail(uuid, text, boolean), public.smart_album_expire(), public.face_consents_append_only(),
+  public.smart_album_audit(uuid, text, jsonb), public.face_profiles_purge_on_delete()
   from authenticated;
 grant execute on function public.smart_album_ui_enabled(uuid), public.smart_album_face_enabled(uuid), public.smart_album_set_item(uuid, text, boolean),
   public.smart_album_my_items(uuid), public.can_upload_face_reference(text), public.smart_album_can_use(uuid), public.smart_album_state(uuid),

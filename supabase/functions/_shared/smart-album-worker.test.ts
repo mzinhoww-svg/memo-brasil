@@ -127,4 +127,16 @@ describe("runBatch", () => {
     expect(calls[0]).toEqual({ fn: "smart_album_worker_claim", args: { p_limit: 2 } });
     expect(out).toHaveLength(1);
   });
+  it("um job que o banco recusa (revogado no meio) não derruba o resto do lote", async () => {
+    const jobs = [job, { ...job, jobId: "j2" }];
+    const { d } = deps();
+    d.rpc = vi.fn(async (fn: string, args: Record<string, unknown>) => {
+      if (fn === "smart_album_worker_claim") return { data: jobs, error: null };
+      if (fn === "smart_album_worker_complete" && args.p_job === "j1") return { data: null, error: { code: "MM005" } };
+      if (fn === "smart_album_worker_complete") return { data: 1, error: null };
+      return { data: null, error: null };
+    }) as WorkerDeps["rpc"];
+    const out = await runBatch(d, 2);
+    expect(out.map((o) => [o.jobId, o.status])).toEqual([["j1", "cancelled"], ["j2", "completed"]]);
+  });
 });

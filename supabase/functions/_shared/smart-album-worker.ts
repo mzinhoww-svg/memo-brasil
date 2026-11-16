@@ -82,6 +82,15 @@ export async function processJob(deps: WorkerDeps, job: ClaimedJob): Promise<Job
 export async function runBatch(deps: WorkerDeps, limit = 3): Promise<JobOutcome[]> {
   const jobs = ((await call(deps, "smart_album_worker_claim", { p_limit: limit })) as ClaimedJob[] | null) ?? [];
   const out: JobOutcome[] = [];
-  for (const j of jobs) out.push(await processJob(deps, j)); // sequencial: concorrência e custo limitados por execução
+  for (const j of jobs) {
+    // sequencial (concorrência e custo limitados). Um job que falha (ex.: titular revogou no meio) não derruba os demais do lote;
+    // ele volta à fila quando o lock vence ou já foi cancelado pelo banco.
+    try {
+      out.push(await processJob(deps, j));
+    } catch {
+      (deps.log ?? (() => {}))(`smart-album job=${j.jobId} status=erro_lote`);
+      out.push({ jobId: j.jobId, status: "cancelled", matches: 0, processed: 0, error: "batch_error" });
+    }
+  }
   return out;
 }
