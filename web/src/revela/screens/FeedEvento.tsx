@@ -138,9 +138,21 @@ export interface FeedEventoProps extends FeedPostHandlers {
   /** contêiner que rola (a lista do feed): para guardar e restaurar a posição */
   scrollRef?: Ref<HTMLDivElement>;
   onScroll?: UIEventHandler<HTMLDivElement>;
+  /** formato do feed: lista de fotos grandes (padrão) ou grade de 3 colunas, como o perfil do Instagram */
+  view?: FeedView;
+  /** presente = mostra a chave Lista/Grade */
+  onView?: (v: FeedView) => void;
 }
+export type FeedView = "lista" | "grade";
 
-export function FeedEvento({ code, stamp = "DOM 15 MAR", title = "Ana & Leo", stories = FEED_REF_STORIES, posts = FEED_REF_POSTS, scroll, bellHref, onStory, after, notice, scrollRef, onScroll, ...h }: FeedEventoProps = {}) {
+const ICON_LIST = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="1.5" /><rect x="4" y="13" width="16" height="7" rx="1.5" /></svg>
+);
+const ICON_GRID = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1" /><rect x="13.5" y="3.5" width="7" height="7" rx="1" /><rect x="3.5" y="13.5" width="7" height="7" rx="1" /><rect x="13.5" y="13.5" width="7" height="7" rx="1" /></svg>
+);
+
+export function FeedEvento({ code, stamp = "DOM 15 MAR", title = "Ana & Leo", stories = FEED_REF_STORIES, posts = FEED_REF_POSTS, scroll, bellHref, onStory, after, notice, scrollRef, onScroll, view = "lista", onView, ...h }: FeedEventoProps = {}) {
   return (
     <>
     <div className="scr">
@@ -166,7 +178,22 @@ export function FeedEvento({ code, stamp = "DOM 15 MAR", title = "Ana & Leo", st
             </div>
           ))}
         </div>
-        {posts.map((p) => <FeedPost key={p.id} post={p} {...h} />)}
+        {onView && (
+          <div className="feed-view" role="group" aria-label="Formato do feed">
+            <button type="button" className="rv-icon-btn" aria-label="Ver em lista" aria-pressed={view === "lista"} onClick={() => onView("lista")}>{ICON_LIST}</button>
+            <button type="button" className="rv-icon-btn" aria-label="Ver em grade" aria-pressed={view === "grade"} onClick={() => onView("grade")}>{ICON_GRID}</button>
+          </div>
+        )}
+        {view === "grade" ? (
+          <div className="feed-grid" data-testid="feed-grade">
+            {posts.map((p) => (
+              <button key={p.id} type="button" className="feed-grid__item" data-post-id={p.id} aria-label={`Abrir a foto de ${p.author}, ${p.pose}`} onClick={() => h.onOpen?.(p.id)}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- miniatura assinada do Storage */}
+                <img src={p.imageSrc} alt="" loading="lazy" decoding="async" />
+              </button>
+            ))}
+          </div>
+        ) : posts.map((p) => <FeedPost key={p.id} post={p} {...h} />)}
         {after}
       </div>
       <GuestTabs code={code} current="feed" />

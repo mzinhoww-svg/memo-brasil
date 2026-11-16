@@ -19,7 +19,7 @@ import { reportPhoto } from "@/features/photos/service";
 import { canDownloadOriginal, DOWNLOAD_DENIED_TEXT, downloadPhoto, DownloadNotAllowedError, reactorsOf } from "@/features/photos/share";
 import { stampDay } from "@/features/guest/format";
 import { DENUNCIA_MOTIVOS_FOTO, FeedDenunciar } from "@/revela/screens/FeedDenunciar";
-import { FeedEvento, type FeedPostData, type FeedStory } from "@/revela/screens/FeedEvento";
+import { FeedEvento, type FeedPostData, type FeedStory, type FeedView } from "@/revela/screens/FeedEvento";
 import { revealFeed } from "@/lib/motion/revela-motion";
 import { useFirstOpen } from "@/lib/motion/use-moments";
 import { FeedReacoes } from "@/revela/screens/FeedReacoes";
@@ -29,6 +29,11 @@ const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAI
 const PAGE = 20;
 /** Eventos cuja virada (revealFeed) já tocou nesta sessão: voltar ao feed depois não repete. */
 const TURNED = new Set<string>();
+const VIEW_KEY = "mm-feed-view";
+/** Formato escolhido pela pessoa (lista ou grade de 3 colunas); lembrado neste aparelho. */
+function readView(): FeedView {
+  try { return window.localStorage.getItem(VIEW_KEY) === "grade" ? "grade" : "lista"; } catch { return "lista"; }
+}
 
 /** 24d · 24e · 24f · 24g: o feed do evento revelado, ligado às fotos, reações e comentários reais. */
 export function RevealedFeed() {
@@ -37,6 +42,8 @@ export function RevealedFeed() {
   // posição guardada ao sair do feed (Retrospectiva, Minhas, Você…): autor e paginação voltam como estavam, a rolagem logo abaixo
   const [saved] = useState(() => (typeof window === "undefined" ? undefined : readFeedScroll(event.code)));
   const [pickedAuthor, setAuthor] = useState(() => saved?.author ?? "t");
+  const [view, setViewState] = useState<FeedView>(() => (typeof window === "undefined" ? "lista" : readView()));
+  const setView = (v: FeedView) => { setViewState(v); try { window.localStorage.setItem(VIEW_KEY, v); } catch { /* sem armazenamento: vale só nesta visita */ } };
   const [limit, setLimit] = useState(() => Math.max(PAGE, saved?.limit ?? PAGE));
   const [openId, setOpenId] = useState<string | undefined>();
   const [commentsFor, setCommentsFor] = useState<string | undefined>();
@@ -206,7 +213,7 @@ export function RevealedFeed() {
     <>
       <FeedEvento
         code={event.code} stamp={stampDay(event.startAt, event.timezone)} title={event.title} bellHref={`/e/${event.code}/aviso-email`}
-        stories={stories} onStory={(id) => { setAuthor(id); setLimit(PAGE); }}
+        stories={stories} onStory={(id) => { setAuthor(id); setLimit(PAGE); }} view={view} onView={setView}
         posts={page.map(toPost)} scroll scrollRef={scroller} onScroll={onScroll}
         onOpen={setOpenId} onLike={onLike} onComments={setCommentsFor} onShare={() => void share()} onDownload={(id) => void download(id)} onMore={setMoreFor}
         notice={(notice || viewer.host || (viewer.host && revealStatus === "pendente") || (!live && retrospectiveOpen(event, now, viewer.host))) ? (
