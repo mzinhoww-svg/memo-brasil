@@ -136,6 +136,9 @@ body.rv2 { margin: 0; background: var(--bg); color: var(--ink); font-family: var
 .tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; padding-bottom: calc(20px + env(safe-area-inset-bottom)); background: var(--k-0e0c0bf2); }
 :root { --tabs-h: calc(64px + 20px + env(safe-area-inset-bottom)); }
 .safe--tabs { padding-bottom: calc(var(--tabs-h) + 8px); }
+/* tela cujo conteúdo pode passar da altura (Minhas poses com o rolo cheio): rola por dentro e o botão do fim fica acima das abas */
+.safe--scroll { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.safe--scroll > * { flex-shrink: 0; }
 .tabs .rv-tabbar { background: transparent; }
 .cta-bar { display: flex; gap: var(--space-3); align-items: center; }
 .cta-bar .rv-btn { flex: 1; }
