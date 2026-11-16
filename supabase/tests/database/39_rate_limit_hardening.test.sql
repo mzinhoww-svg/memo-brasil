@@ -68,13 +68,13 @@ select tests.login('00000000-0000-4000-8000-0000000039c1', 'aal2', true);
 select lives_ok($$select public.admin_set_plan('casamento', 19900, true, true, 'motivo longo o bastante')$$, 'S4: com aal2 muda');
 reset role;
 
--- ===================================================== S8: o organizador não lê a ação da equipe
+-- ===================================================== S8 (revertido por decisão de produto): o organizador continua vendo o acesso do Master ao próprio evento
 insert into public.audit_logs (actor_id, actor_role, event_id, action, reason, detail) values
   ('00000000-0000-4000-8000-0000000039c1', 'master', '00000000-0000-4000-8000-0000000039e1', 'event.adjusted', 'segredo da equipe', '{}'),
   (null, null, '00000000-0000-4000-8000-0000000039e1', 'photo.added', null, '{}');
 select tests.login('00000000-0000-4000-8000-0000000039a1');
-select is((select count(*)::int from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000039e1' and action = 'event.adjusted'), 0, 'S8: o organizador não vê a ação do Master');
-select ok((select count(*) from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000039e1' and action = 'photo.added') = 1, 'S8: continua vendo o que é do próprio evento');
+select is((select count(*)::int from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000039e1' and action = 'event.adjusted'), 1, 'S8: o organizador enxerga a ação do Master no próprio evento (transparência)');
+select ok((select count(*) from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000039e1' and action = 'photo.added') = 1, 'S8: e o que é do próprio evento');
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000039c1', 'aal2', true);
 select is((select count(*)::int from public.audit_logs where event_id = '00000000-0000-4000-8000-0000000039e1' and action = 'event.adjusted'), 1, 'S8: o Master continua vendo');
