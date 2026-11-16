@@ -36,7 +36,7 @@ export function odometer(el: HTMLElement, value: number | string, minDigits = 2)
   }
   el.setAttribute("role", "text");
   el.setAttribute("aria-label", text);
-  [...text].forEach((ch, k) => { (el.children[k].firstElementChild as HTMLElement).style.transform = `translateY(-${Number(ch)}em)`; });
+  [...text].forEach((ch, k) => { (el.children[k].firstElementChild as HTMLElement).style.transform = `translateY(-${Number(ch) * 10}%)`; /* % da própria fita (10 linhas): cai na linha certa em qualquer altura de linha */ });
 }
 
 /* ------------------------------------------------------------------ disparo */
