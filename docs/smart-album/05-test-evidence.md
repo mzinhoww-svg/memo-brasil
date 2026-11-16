@@ -6,7 +6,7 @@ Ambiente: container da sessão (Linux), Node 24, Supabase local via `npx supabas
 | Rodada | Resultado |
 |---|---|
 | Linha de base na `main` (`758e7ee`), antes de qualquer mudança | 2083/2085 — 2 falhas pré-existentes em `02_v2_studio_admin` (esperava 6 jobs `mm-*`, há 7 desde `20261024000100`) |
-| Depois da migration + correção da expectativa do teste 02 + correções da revisão | **2202/2202 PASS** (`Files=35, Tests=2202`) |
+| Depois da migration + correção da expectativa do teste 02 + correções da revisão | **2202/2202 PASS** (`Files=35, Tests=2202`), também após `db reset` com a `main` mesclada |
 | `39_smart_album.test.sql` isolado | **117/117 PASS** |
 | Rollback (`supabase/ops/rollback_smart_album.sql`) | executado no local: 0 funções/tabelas/políticas restantes; reaplicação da migration ok; 39 passa de novo |
 
@@ -39,10 +39,23 @@ Capturas: `evidence/e2e-antes-da-revelacao-360.png`, `evidence/e2e-consentimento
 ## 4. Revisão de segurança independente
 Agente revisor sem acesso às minhas conclusões, com o banco local. Verificado ok: grants, `search_path`, Storage só INSERT, restauração da personificação, match sem acesso. Achados corrigidos no commit `bafff80`: (alto) anfitrião via na trilha quem consentiu; (médio) revoke poluía auditoria de qualquer evento; (médio) referência órfã em exclusão de conta/evento; (baixo) referência rejeitada não purgada; (baixo) `unique_violation` em concorrência; (baixo) um job derrubava o lote. Suspeitas não reproduzidas registradas em `07-release-gates.md` (corrida upload×revogação → varredura periódica; upload sem SELECT policy → testar no Supabase completo).
 
-## 5. Suíte E2E completa
-_preenchido ao final da execução_
+## 5. Suíte E2E completa e configs do CI
+
+**a) `playwright.config.ts`, todos os specs, build pré-merge (`9e1dd2c`)**: 176 passaram, 10 falharam, 67 pulados (specs remotos/Supabase sem credencial).
+- 9 falhas = ambiente: `camera-fila` e `motion-moments` gravam vídeo e o Playwright 1.64 pede `ffmpeg-1013`; o ambiente só tem `ffmpeg-1011`.
+- 1 falha = `validapay-local` (ver c).
+
+**b) Depois do merge da `main` (`250416a`)**, com um diretório de navegadores da sessão que aponta `ffmpeg-1013 → 1011`: `camera-fila`, `motion-moments`, `smart-album`, `feed-revela`, `feed-voltar`, `flows`, `a11y`, `revela-a11y` → 64 passaram, 3 falharam. As 3 falham só em `video.saveAs` (o ffmpeg antigo não gera o `.webm`), **depois** de todas as asserções funcionais do teste, que passaram: fila da câmera, disparo, virada do feed.
+
+**c) Configs do CI**, mesmos builds que o workflow usa:
+- `playwright.ux.config.ts` (build com `NEXT_PUBLIC_MM_BACKEND=local` etc.): **12/12**.
+- `playwright.validapay.config.ts`: 2 falhas (desktop: axe não acha `main` na página de checkout; celular: rolagem horizontal). **Falha pré-existente**: reproduzida idêntica num worktree da `main` pura (`e2684bf`), com `npm ci` + build próprios. No CI da `main` ela não aparecia porque o job `web` parava antes, no `npm test` (o `no-hex`, corrigido neste PR). Não corrigida aqui: é a tela de checkout, que o plano manda não tocar.
+
+**d) Correções de base trazidas por este PR** (vermelhas na `main`): pgTAP 02 (jobs `mm-*`) e `no-hex` (`CameraNome.tsx`, cores viraram tokens).
+
+**e) Árvore mesclada**: vitest 1506/1506; funções 206/206; typecheck limpo; lint 0 erros; `supabase db reset` do zero com as 58 migrations, inclusive a `20261116000100` da `main` e esta `20261116000200`, + pgTAP **2202/2202**.
 
 ## 6. Não executado
 - iPhone Safari/PWA e Android Chrome físicos; câmera real; foto real do Google (CORS/expiração).
 - Integração do adaptador nuvem contra Supabase completo (Auth + PostgREST + Storage API): só o banco foi exercitado.
-- Benchmark, viés, custo, pentest; config E2E `playwright.ux.config.ts`/`validapay` (ver §5).
+- Benchmark, viés, custo, pentest.
