@@ -16,13 +16,15 @@ export interface ConvidadoConsentimentoProps extends Omit<CameraFrameProps, "ove
   /** Aceite OPCIONAL e separado da busca facial (consentimento específico e destacado, LGPD art. 11). Só aparece para conta não anônima
       com a busca liberada; nasce desmarcado e recusar não muda nada na entrada. */
   face?: { checked: boolean; onCheck: (value: boolean) => void };
+  /** Campanhas no WhatsApp (só quando a pessoa informou o número): autorização própria, nunca pré-marcada. */
+  marketing?: { checked: boolean; onCheck: (value: boolean) => void };
 }
 
 const CHECK = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5 9-10" /></svg>
 );
 
-export function ConvidadoConsentimento({ checked = [true, true], onCheck, error, onLater, onAccept, face, left = 27, ...frame }: ConvidadoConsentimentoProps = {}) {
+export function ConvidadoConsentimento({ checked = [true, true], onCheck, error, onLater, onAccept, face, marketing, left = 27, ...frame }: ConvidadoConsentimentoProps = {}) {
   const panel = useRef<HTMLDivElement>(null);
   const open = useOpen();
   useEffect(() => { panel.current?.focus({ preventScroll: true }); }, []);
@@ -58,6 +60,16 @@ export function ConvidadoConsentimento({ checked = [true, true], onCheck, error,
                       (dado biométrico, guardado por até 12 meses; desligo quando quiser). Tenho 18 anos ou mais.{" "}
                       <Link href="/privacidade" className="link" target="_blank" rel="noopener">Como funciona</Link>
                     </span>
+                  </label>
+                </div>
+              )}
+              {marketing && (
+                <div className="consent-optional">
+                  <p className="consent-optional__tag">Opcional · novidades</p>
+                  <label className="consent">
+                    <input type="checkbox" checked={marketing.checked} onChange={(e) => marketing.onCheck(e.target.checked)} />
+                    <i className={`cbx${marketing.checked ? " on" : ""}`}>{CHECK}</i>
+                    <span>Quero receber novidades e ofertas do Revela no meu WhatsApp. Saio quando quiser, em Você.</span>
                   </label>
                 </div>
               )}

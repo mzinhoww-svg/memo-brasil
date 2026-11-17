@@ -56,25 +56,39 @@ export type OptinDeps = {
   issueReturnToken: (eventId: string, userId: string, tokenHash: string) => Promise<void>;
   siteOrigin: string;
   createOptin: (i: { subjectId: string; replyText: string; messageTemplate: string }) => Promise<{ waLink: string; expiresAt?: string }>;
+  /** antes de entrar (formulário de entrada): o banco diz se pode preparar o aviso para esse código de evento */
+  prejoin?: (code: string, userId: string) => Promise<{ status: string; eventId?: string }>;
   /** só nos testes: token fixo */
   newToken?: () => string;
 };
 export type OptinResult = { status: number; body: Record<string, unknown> };
 
-export async function handleOptinRequest(input: { eventId?: unknown }, d: OptinDeps): Promise<OptinResult> {
+export async function handleOptinRequest(input: { eventId?: unknown; code?: unknown; prejoin?: unknown }, d: OptinDeps): Promise<OptinResult> {
   if (!d.userId) return { status: 401, body: { error: "unauthorized" } };
-  const eventId = typeof input.eventId === "string" ? input.eventId : "";
-  if (!UUID_RE.test(eventId)) return { status: 400, body: { error: "invalid" } };
+  let eventId = typeof input.eventId === "string" ? input.eventId : "";
 
-  let st: { enabled: boolean; eligible: boolean };
-  try {
-    st = await d.status(eventId);
-  } catch (e) {
-    if ((e as { code?: string })?.code === "MM004") return { status: 403, body: { error: "forbidden" } };
-    return { status: 503, body: { error: "indisponivel" } };
+  if (input.prejoin === true) {
+    // formulário de entrada: ainda não é participante; o opt-in só vale se ele entrar (o banco garante na confirmação e na volta)
+    const code = typeof input.code === "string" ? input.code : "";
+    if (!/^[A-Za-z0-9]{4,16}$/.test(code) || !d.prejoin) return { status: 400, body: { error: "invalid" } };
+    let pj: { status: string; eventId?: string };
+    try { pj = await d.prejoin(code, d.userId); } catch { return { status: 503, body: { error: "indisponivel" } }; }
+    if (pj.status === "disabled") return { status: 503, body: { error: "indisponivel" } };
+    if (pj.status === "not_found") return { status: 404, body: { error: "nao_encontrado" } };
+    if (pj.status !== "ok" || !pj.eventId || !UUID_RE.test(pj.eventId)) return { status: 403, body: { error: "forbidden" } };
+    eventId = pj.eventId;
+  } else {
+    if (!UUID_RE.test(eventId)) return { status: 400, body: { error: "invalid" } };
+    let st: { enabled: boolean; eligible: boolean };
+    try {
+      st = await d.status(eventId);
+    } catch (e) {
+      if ((e as { code?: string })?.code === "MM004") return { status: 403, body: { error: "forbidden" } };
+      return { status: 503, body: { error: "indisponivel" } };
+    }
+    if (!st.enabled) return { status: 503, body: { error: "indisponivel" } };
+    if (!st.eligible) return { status: 403, body: { error: "forbidden" } };
   }
-  if (!st.enabled) return { status: 503, body: { error: "indisponivel" } };
-  if (!st.eligible) return { status: 403, body: { error: "forbidden" } };
 
   if (!(await d.rateLimit(d.userId))) return { status: 429, body: { error: "muitas_tentativas" } };
   const info = await d.eventInfo(eventId);
@@ -92,7 +106,7 @@ export async function handleOptinRequest(input: { eventId?: unknown }, d: OptinD
       replyText: buildReplyText(d.siteOrigin, info.code, info.title, token),
       messageTemplate: buildMessageTemplate(info.title),
     });
-    return { status: 200, body: { waLink: r.waLink, ...(r.expiresAt ? { expiresAt: r.expiresAt } : {}) } };
+    return { status: 200, body: { waLink: r.waLink, eventId, ...(r.expiresAt ? { expiresAt: r.expiresAt } : {}) } };
   } catch (e) {
     if (e instanceof WaGatewayError) return { status: 502, body: { error: "gateway_indisponivel" } };
     throw e;

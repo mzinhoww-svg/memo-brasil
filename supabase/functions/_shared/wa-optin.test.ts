@@ -57,7 +57,7 @@ describe("handleOptinRequest", () => {
   it("devolve só o waLink", async () => {
     const d = deps();
     const r = await handleOptinRequest({ eventId: EV }, d);
-    expect(r).toEqual({ status: 200, body: { waLink: "https://wa.me/5565999990000?text=x", expiresAt: "2026-11-16T10:15:00Z" } });
+    expect(r).toEqual({ status: 200, body: { waLink: "https://wa.me/5565999990000?text=x", eventId: EV, expiresAt: "2026-11-16T10:15:00Z" } });
     expect(d.createOptin).toHaveBeenCalledWith({
       subjectId: `${EV}.${US}`,
       replyText: `Pronto! Avisos de "Casamento Ana & Leo" ativados 🎉 Volte ao evento: https://app.example.test/e/AB23CD45/voltar?r=${TOKEN}`,
@@ -109,5 +109,27 @@ describe("handleOptinRequest", () => {
   it("falha ao ler o estado: 503, não 500 cru", async () => {
     const d = deps({ status: vi.fn(async () => { throw new Error("db down"); }) });
     expect((await handleOptinRequest({ eventId: EV }, d)).status).toBe(503);
+  });
+});
+
+describe("antes de entrar (formulário de entrada)", () => {
+  it("pelo código do evento: prepara o código e o token sem exigir participação", async () => {
+    const d = deps({ prejoin: vi.fn(async () => ({ status: "ok", eventId: EV })) });
+    const r = await handleOptinRequest({ code: "GVADWTR7", prejoin: true }, d);
+    expect(r.status).toBe(200);
+    expect(r.body.eventId).toBe(EV);
+    expect(d.prejoin).toHaveBeenCalledWith("GVADWTR7", US);
+    expect(d.status).not.toHaveBeenCalled(); // ainda não é participante
+    expect(d.issueReturnToken).toHaveBeenCalledWith(EV, US, await sha256Hex(TOKEN));
+  });
+  it.each([["disabled", 503], ["not_found", 404], ["forbidden", 403]] as const)("banco diz %s: %i sem gastar código", async (status, http) => {
+    const d = deps({ prejoin: vi.fn(async () => ({ status })) });
+    expect((await handleOptinRequest({ code: "GVADWTR7", prejoin: true }, d)).status).toBe(http);
+    expect(d.createOptin).not.toHaveBeenCalled();
+  });
+  it.each(["", "x; drop", "a".repeat(30), 7])("código inválido %s: 400", async (code) => {
+    const d = deps({ prejoin: vi.fn() });
+    expect((await handleOptinRequest({ code, prejoin: true }, d)).status).toBe(400);
+    expect(d.prejoin).not.toHaveBeenCalled();
   });
 });

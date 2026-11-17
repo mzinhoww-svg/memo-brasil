@@ -4,7 +4,7 @@ import { LEGAL_UPDATED_AT, PRIVACY_TEXT, PRIVACY_UPDATED_AT, TERMS_TEXT, type Le
 
 const flat = (sections: LegalSection[]) => sections.flatMap((s) => [s.title, ...s.blocks.flat()]).join("\n");
 
-describe("textos legais (Termos 2026-11-16-v2, Política 2026-11-16-v3)", () => {
+describe("textos legais (Termos 2026-11-16-v3, Política 2026-11-16-v4)", () => {
   it("têm onze seções cada, numeradas", () => {
     for (const t of [TERMS_TEXT, PRIVACY_TEXT]) {
       expect(t).toHaveLength(11);
@@ -12,8 +12,8 @@ describe("textos legais (Termos 2026-11-16-v2, Política 2026-11-16-v3)", () => 
     }
   });
   it("a versão vigente do código é a do texto publicado", () => {
-    expect(TERMS_VERSION).toBe("2026-11-16-v2");
-    expect(PRIVACY_VERSION).toBe("2026-11-16-v3");
+    expect(TERMS_VERSION).toBe("2026-11-16-v3");
+    expect(PRIVACY_VERSION).toBe("2026-11-16-v4");
     expect(LEGAL_UPDATED_AT).toBe("16 de novembro de 2026");
     expect(PRIVACY_UPDATED_AT).toBe("16 de novembro de 2026");
   });
@@ -23,6 +23,15 @@ describe("textos legais (Termos 2026-11-16-v2, Política 2026-11-16-v3)", () => 
     expect(p).toContain("no máximo, 12 meses após o envio");
     expect(p).toContain("Estados Unidos");
     expect(flat(TERMS_TEXT)).toContain("autorização específica e separada, dada em caixa própria (nunca pré-marcada)");
+  });
+  it("WhatsApp guardado na conta e novidades só com autorização separada, que se desliga em Você", () => {
+    const p = flat(PRIVACY_TEXT);
+    const t = flat(TERMS_TEXT);
+    expect(p).toContain("preenchido automaticamente nos próximos eventos");
+    expect(p).toContain("em caixa própria e nunca pré-marcada (consentimento, art. 7º, I, e art. 8º da LGPD)");
+    expect(p).toContain("Sem essa autorização, não enviamos propaganda.");
+    expect(p).toContain("até você apagá-lo em Você");
+    expect(t).toContain("Novidades e ofertas do Revela só são enviadas com uma autorização separada");
   });
   it("publicam os prazos de retenção: 90 dias de disponibilidade e exclusão em até 30 dias", () => {
     const t = flat(TERMS_TEXT);
@@ -51,13 +60,13 @@ describe("textos legais (Termos 2026-11-16-v2, Política 2026-11-16-v3)", () => 
   it("a Política fala em ciência, não em consentimento genérico", () => {
     expect(flat(PRIVACY_TEXT)).toContain("Aceitar os Termos ou declarar ciência desta Política não autoriza automaticamente publicidade, reconhecimento facial ou qualquer uso incompatível");
   });
-  it("a Política v2 descreve os avisos por WhatsApp: opt-in próprio, SAIR, exclusão do número e número oculto do organizador", () => {
+  it("a Política descreve os avisos por WhatsApp: opt-in próprio, SAIR, exclusão do vínculo com o evento e número oculto do organizador", () => {
     const p = flat(PRIVACY_TEXT);
     expect(p).toContain("Número de telefone do WhatsApp");
     expect(p).toContain("enviando SAIR");
-    expect(p).toContain("o número é apagado");
+    expect(p).toContain("o vínculo do número com aquele evento é apagado");
     expect(p).toContain("O organizador do evento não vê o seu número");
     expect(p).toContain("não é um canal oficial da Meta");
-    expect(flat(TERMS_TEXT)).not.toContain("WhatsApp");
+    expect(flat(TERMS_TEXT)).toContain("seu número de WhatsApp (opcional)");
   });
 });

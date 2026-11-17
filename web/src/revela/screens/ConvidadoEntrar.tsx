@@ -1,5 +1,5 @@
 "use client";
-/* Convidado-entrar.html (20b): câmera do evento, cota de poses, nome e e-mail opcional. Sem props, mostra os dados do desenho. */
+/* Convidado-entrar.html (20b): câmera do evento, cota de poses, nome e WhatsApp opcional (avisos). Sem props, mostra os dados do desenho. */
 import { useState, type FormEvent, type ReactNode } from "react";
 import { CameraStage } from "@/components/revela";
 import type { CameraStyle } from "@/domain/options";
@@ -15,9 +15,14 @@ export interface ConvidadoEntrarProps {
   poses?: number | null;
   welcome?: string;
   name?: string;
-  email?: string;
+  /** WhatsApp opcional para o aviso da revelação (no lugar do e-mail) */
+  phone?: string;
   nameError?: string;
-  emailError?: string;
+  phoneError?: string;
+  /** Linha de ajuda do WhatsApp (muda quando o WhatsApp já está pronto para abrir). */
+  phoneHelp?: string;
+  /** Some o campo quando os avisos por WhatsApp estão desligados ou fora do modo nuvem. */
+  showPhone?: boolean;
   busy?: boolean;
   /** Quem já está dentro do evento: no lugar dos campos aparece "Você está dentro, …" e o `cta`. */
   inside?: string;
@@ -26,19 +31,19 @@ export interface ConvidadoEntrarProps {
   /** Avisos e atalhos do app abaixo do formulário. */
   extra?: ReactNode;
   onName?: (value: string) => void;
-  onEmail?: (value: string) => void;
+  onPhone?: (value: string) => void;
   onSubmit?: () => void;
 }
 
-const MAIL = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>
+const PHONE = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.5L3 21l1.6-5.4A8.5 8.5 0 1 1 21 12z" /></svg>
 );
 
 export function ConvidadoEntrar({
-  title = "Ana & Leo", wrap = "casamento", stamp = "SÁB 14 MAR 2027", printDate, poses = 27, welcome, name = "Bia Moraes", email = "bia.moraes@email.com",
-  nameError, emailError, busy, inside, cta, extra, onName, onEmail, onSubmit,
+  title = "Ana & Leo", wrap = "casamento", stamp = "SÁB 14 MAR 2027", printDate, poses = 27, welcome, name = "Bia Moraes", phone = "",
+  nameError, phoneError, phoneHelp, showPhone = true, busy, inside, cta, extra, onName, onPhone, onSubmit,
 }: ConvidadoEntrarProps = {}) {
-  const [focus, setFocus] = useState<"name" | "email" | null>("name");
+  const [focus, setFocus] = useState<"name" | "phone" | null>("name");
   const submit = (e: FormEvent) => { e.preventDefault(); onSubmit?.(); };
   return (
     <>
@@ -85,13 +90,15 @@ export function ConvidadoEntrar({
               <input value={name} onChange={(e) => onName?.(e.target.value)} onFocus={() => setFocus("name")} onBlur={() => setFocus(null)} aria-label="Seu nome" placeholder="Seu nome" autoComplete="given-name" maxLength={40} aria-invalid={nameError ? true : undefined} aria-describedby={nameError ? "erro-nome" : undefined} />
             </label>
             {nameError && <p id="erro-nome" className="rv-field-erro" role="alert" style={{ "marginTop": "8px" }}>{nameError}</p>}
-            <label className={`rv-field${emailError ? " rv-field--err" : focus === "email" ? " rv-field--focus" : ""}`} style={{ "marginTop": "10px" }}>
-              {MAIL}
-              <input type="email" inputMode="email" value={email} onChange={(e) => onEmail?.(e.target.value)} onFocus={() => setFocus("email")} onBlur={() => setFocus(null)} aria-label="E-mail (opcional)" placeholder="E-mail (opcional)" autoComplete="email" maxLength={254} aria-describedby="email-ajuda" aria-invalid={emailError ? true : undefined} />
-            </label>
-            <p className={`rv-caption${emailError ? " rv-caption--err" : ""}`} id="email-ajuda" style={{ "marginTop": "10px" }}>
-              {emailError ?? "E-mail opcional. Só serve para avisar quando as fotos revelarem."}
-            </p>
+            {showPhone && <>
+              <label className={`rv-field${phoneError ? " rv-field--err" : focus === "phone" ? " rv-field--focus" : ""}`} style={{ "marginTop": "10px" }}>
+                {PHONE}
+                <input type="tel" inputMode="tel" value={phone} onChange={(e) => onPhone?.(e.target.value)} onFocus={() => setFocus("phone")} onBlur={() => setFocus(null)} aria-label="WhatsApp com DDD (opcional)" placeholder="WhatsApp com DDD (opcional)" autoComplete="tel-national" maxLength={20} aria-describedby="whatsapp-ajuda" aria-invalid={phoneError ? true : undefined} />
+              </label>
+              <p className={`rv-caption${phoneError ? " rv-caption--err" : ""}`} id="whatsapp-ajuda" style={{ "marginTop": "10px" }}>
+                {phoneError ?? phoneHelp ?? "Opcional. Avisamos quando as fotos forem reveladas e guardamos o número para os próximos eventos."}
+              </p>
+            </>}
           </>
         )}
         {extra}

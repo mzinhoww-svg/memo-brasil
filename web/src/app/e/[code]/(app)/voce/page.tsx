@@ -8,6 +8,7 @@ import { useGuest } from "@/features/events/guest-context";
 import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
 import { ConvidadoVoce } from "@/revela/screens/ConvidadoVoce";
+import { ContactPhoneRows } from "@/features/whatsapp/ContactPhoneRows";
 import { createCloudSmartAlbum } from "@/features/smart-album/service";
 import { isRevealed } from "@/domain/event";
 import { WhatsappOptIn } from "@/features/whatsapp/WhatsappOptIn";
@@ -81,7 +82,7 @@ export default function Voce() {
   const sub = `${event.hostName ? `Convidado de ${event.title}` : "Convidado"}${participant?.tableLabel ? ` · ${participant.tableLabel}` : ""}`;
   return (
     <>
-      <ConvidadoVoce code={event.code} name={user.name} sub={sub} used={counts.mine} total={total} notify={notify} email={email ?? "Adicionar e-mail"}
+      <ConvidadoVoce contact={<ContactPhoneRows />} code={event.code} name={user.name} sub={sub} used={counts.mine} total={total} notify={notify} email={email ?? "Adicionar e-mail"}
         onNotify={() => void toggleNotify()} onEmail={() => void editEmail()} onDownload={() => void downloadMine()} onLeave={() => void leave()} onDelete={() => void wipe()} face={face}
         whatsapp={<WhatsappOptIn variant="linha" eventId={event.id} revealed={isRevealed(event, now)} />} />
       {msg && <p className="rv-field-erro rv-toast-in" role="status" style={{ position: "fixed", left: 20, right: 20, bottom: "calc(var(--tabs-h) + 8px)", textAlign: "center", zIndex: 40 }} onClick={() => setMsg(undefined)}>{msg}</p>}
