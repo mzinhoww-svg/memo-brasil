@@ -17,6 +17,7 @@ import { browserSupabase } from "@/lib/supabase/client";
 import { formatBRL, quote } from "./api";
 import { prepareCard } from "./validapay-card";
 import { LOAD_TIMEOUT_MS, ValidaPayTimeoutError, withTimeout, ValidaPayOpenOrderError, ValidaPayEnvironmentConflictError, validateReceiptEnvironment, recoverSandbox, sandboxCall, sandboxConfig, sandboxRefund, type SandboxConfig, type SandboxReceipt } from "./validapay-client";
+import { visibleEmail } from "@/features/whatsapp/technical-email";
 
 const SLOW_AFTER_MS = Math.min(8_000, LOAD_TIMEOUT_MS);
 
@@ -68,9 +69,9 @@ export function ValidaPayCheckout({ eventId, planCode, eventTitle = "sua festa",
         if (stopped) return;
         if (previous) validateReceiptEnvironment(previous, cfg.environment);
         const restore = previous && (previous.planCode === planCode || ["pendente", "criado"].includes(previous.status)) ? previous : null;
-        setOrder(restore); setEmail(user.data.user?.email ?? "");
+        setOrder(restore); setEmail(visibleEmail(user.data.user?.email) ?? "");
         const meta = user.data.user?.user_metadata as { full_name?: string; name?: string } | undefined;
-        setAccountName(String(meta?.full_name ?? meta?.name ?? user.data.user?.email?.split("@")[0] ?? "").trim());
+        setAccountName(String(meta?.full_name ?? meta?.name ?? visibleEmail(user.data.user?.email)?.split("@")[0] ?? "").trim());
         setMethod(restore?.paymentMethod === "card" ? "card" : "pix");
         if (!restore || !["pago", "pendente", "criado"].includes(restore.status)) {
           const quoted = await withTimeout(quote(eventId, planCode));

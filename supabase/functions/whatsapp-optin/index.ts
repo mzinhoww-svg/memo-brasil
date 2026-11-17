@@ -1,4 +1,5 @@
-// Pede ao gateway um código de opt-in de uso único e devolve SÓ o link wa.me. A chave do gateway nunca sai do servidor.
+// Pede ao gateway um código de opt-in de uso único e devolve SÓ o link wa.me (+ validade). A chave do gateway nunca sai do servidor.
+// Gera também o token de volta (uso único, 2 h) que vai no link da resposta do bot; o banco guarda só o SHA-256.
 // Sessão do convidado (anônima vale); o banco decide se ele é participante não bloqueado e se o recurso está ligado.
 import { createOptin } from "../_shared/wa-gateway.ts";
 import { handleOptinRequest } from "../_shared/wa-optin.ts";
@@ -40,9 +41,13 @@ Deno.serve(async (req) => {
         if (error.code === "MM006") return false;
         throw new Error("rate");
       },
-      eventCode: async (eventId) => {
-        const { data } = await admin.from("events").select("code").eq("id", eventId).is("deleted_at", null).maybeSingle();
-        return typeof data?.code === "string" ? data.code : null;
+      eventInfo: async (eventId) => {
+        const { data } = await admin.from("events").select("code, title").eq("id", eventId).is("deleted_at", null).maybeSingle();
+        return typeof data?.code === "string" ? { code: data.code, title: typeof data.title === "string" ? data.title : "" } : null;
+      },
+      issueReturnToken: async (eventId, uid, tokenHash) => {
+        const { error } = await admin.rpc("whatsapp_issue_return_token", { p_event: eventId, p_user: uid, p_hash: tokenHash });
+        if (error) throw new Error("token");
       },
       siteOrigin: siteOrigin(),
       createOptin: (i) => createOptin(cfg, i),
