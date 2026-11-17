@@ -4,7 +4,7 @@ import { LEGAL_UPDATED_AT, PRIVACY_TEXT, PRIVACY_UPDATED_AT, TERMS_TEXT, type Le
 
 const flat = (sections: LegalSection[]) => sections.flatMap((s) => [s.title, ...s.blocks.flat()]).join("\n");
 
-describe("textos legais (Termos 2026-11-16-v2, Política 2026-11-16-v3)", () => {
+describe("textos legais (Termos 2026-11-16-v2, Política 2026-11-17-v4)", () => {
   it("têm onze seções cada, numeradas", () => {
     for (const t of [TERMS_TEXT, PRIVACY_TEXT]) {
       expect(t).toHaveLength(11);
@@ -13,9 +13,9 @@ describe("textos legais (Termos 2026-11-16-v2, Política 2026-11-16-v3)", () => 
   });
   it("a versão vigente do código é a do texto publicado", () => {
     expect(TERMS_VERSION).toBe("2026-11-16-v2");
-    expect(PRIVACY_VERSION).toBe("2026-11-16-v3");
+    expect(PRIVACY_VERSION).toBe("2026-11-17-v4");
     expect(LEGAL_UPDATED_AT).toBe("16 de novembro de 2026");
-    expect(PRIVACY_UPDATED_AT).toBe("16 de novembro de 2026");
+    expect(PRIVACY_UPDATED_AT).toBe("17 de novembro de 2026");
   });
   it("seção 11: busca facial opcional, com aceite separado, 12 meses e processamento nos EUA", () => {
     const p = flat(PRIVACY_TEXT);
@@ -23,6 +23,13 @@ describe("textos legais (Termos 2026-11-16-v2, Política 2026-11-16-v3)", () => 
     expect(p).toContain("no máximo, 12 meses após o envio");
     expect(p).toContain("Estados Unidos");
     expect(flat(TERMS_TEXT)).toContain("autorização específica e separada, dada em caixa própria (nunca pré-marcada)");
+  });
+  it("seção 6: medição de acesso sem cookies, sem IP, respeitando Não rastrear, com retenção de 400 dias", () => {
+    const p = flat(PRIVACY_TEXT);
+    expect(p).toContain("Medição de acesso, sem cookies");
+    expect(p).toContain("Não guardamos o seu IP");
+    expect(p).toContain("Respeitamos o sinal \"Não rastrear\"");
+    expect(p).toContain("apagados em até 400 dias");
   });
   it("publicam os prazos de retenção: 90 dias de disponibilidade e exclusão em até 30 dias", () => {
     const t = flat(TERMS_TEXT);

@@ -8,7 +8,7 @@ const MASTER: readonly PlatformRole[] = ["master"];
 
 /** Áreas do menu → papéis que abrem a área (as RPCs de cada área negam o resto com MM004). */
 export const AREA_ROLES: Record<AppNavId, readonly PlatformRole[]> = {
-  visao: ALL, eventos: ALL, pessoas: ALL,
+  visao: ALL, acessos: ALL, eventos: ALL, pessoas: ALL,
   planos: MASTER, pagamentos: MASTER, cortesias: MASTER,
   revelacoes: ALL, moderacao: ALL,
   impressoes: MASTER,

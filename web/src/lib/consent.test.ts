@@ -48,13 +48,13 @@ describe("versões vigentes", () => {
   it("sem confirmações marcadas, currentConsent não as inventa", () => {
     expect(currentConsent("convidado", null, { termsAccepted: false, privacyAcknowledged: false })).toMatchObject({ termsAccepted: false, privacyAcknowledged: false });
   });
-  it("a versão vigente: Termos 2026-11-16-v2 e Política 2026-11-16-v3", () => {
+  it("a versão vigente: Termos 2026-11-16-v2 e Política 2026-11-17-v4", () => {
     expect(TERMS_VERSION).toBe("2026-11-16-v2");
-    expect(PRIVACY_VERSION).toBe("2026-11-16-v3");
+    expect(PRIVACY_VERSION).toBe("2026-11-17-v4");
   });
   it("as versões do código existem na migration que as publica (sem divergência)", () => {
-    const sql = readFileSync(resolve(__dirname, "../../../supabase/migrations/20261117000400_smart_album_account_consent.sql"), "utf8");
-    expect(sql).toContain(`('terms', '${TERMS_VERSION}'`);
-    expect(sql).toContain(`('privacy', '${PRIVACY_VERSION}'`);
+    const read = (f: string) => readFileSync(resolve(__dirname, "../../../supabase/migrations", f), "utf8");
+    expect(read("20261117000400_smart_album_account_consent.sql")).toContain(`('terms', '${TERMS_VERSION}'`);
+    expect(read("20261119000100_access_analytics.sql")).toContain(`('privacy', '${PRIVACY_VERSION}'`); // v4: seção 6 (medição de acesso)
   });
 });

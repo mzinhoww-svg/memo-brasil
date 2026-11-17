@@ -9,7 +9,7 @@ import { MasterFrame, type AppNavId, type MasterUser } from "@/revela/master-kit
 export function currentOf(path: string): AppNavId {
   const seg = path.replace(/\/$/, "").split("/")[2] ?? "";
   const map: Record<string, AppNavId> = {
-    "": "visao", busca: "visao", eventos: "eventos", pessoas: "pessoas",
+    "": "visao", busca: "visao", acessos: "acessos", eventos: "eventos", pessoas: "pessoas",
     planos: "planos", pagamentos: "pagamentos", impressoes: "impressoes", codigos: "cortesias", revelacoes: "revelacoes", moderacao: "moderacao", saude: "saude",
     lgpd: "lgpd", auditoria: "auditoria", configuracoes: "configuracoes",
   };

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { decideConsoleAccess, decideMasterAccess } from "./access";
 import { canOpen, ROLE_MATRIX, visibleNav, whoCanOpen } from "./roles";
+import { MASTER_NAV, MASTER_NAV_APP } from "@/revela/master-icons";
 
 const u = (role?: string) => ({ is_anonymous: false, app_metadata: role ? { role } : {} });
 describe("decideConsoleAccess: permissão por papel", () => {
@@ -32,15 +33,15 @@ describe("decideConsoleAccess: permissão por papel", () => {
 
 describe("papéis × áreas do menu", () => {
   it("master abre tudo; Impressões só com a chave ligada", () => {
-    expect(visibleNav("master", { printedAlbum: true })).toHaveLength(13);
+    expect(visibleNav("master", { printedAlbum: true })).toHaveLength(14);
     const off = visibleNav("master", { printedAlbum: false });
-    expect(off).toHaveLength(12);
+    expect(off).toHaveLength(13);
     expect(off).not.toContain("impressoes");
   });
   it("support não vê Planos, Pagamentos, Cortesias, Impressões, Auditoria nem Configurações", () => {
     const nav = visibleNav("support", { printedAlbum: true });
     for (const a of ["planos", "pagamentos", "cortesias", "impressoes", "auditoria", "configuracoes"] as const) expect(nav).not.toContain(a);
-    expect(nav).toEqual(["visao", "eventos", "pessoas", "revelacoes", "moderacao", "saude", "lgpd"]);
+    expect(nav).toEqual(["visao", "acessos", "eventos", "pessoas", "revelacoes", "moderacao", "saude", "lgpd"]);
   });
   it("auditor vê Auditoria, mas não Pagamentos nem Configurações", () => {
     const nav = visibleNav("auditor", { printedAlbum: true });
@@ -63,5 +64,17 @@ describe("papéis × áreas do menu", () => {
     expect(row("Auditoria")).toMatchObject({ support: "no", auditor: "yes" });
     expect(row("Exportar")).toMatchObject({ support: "no", auditor: "yes" });
     expect(row("E-mail e contato completos")).toMatchObject({ support: "masked", auditor: "masked" });
+  });
+});
+
+describe("menu do app × desenho de referência", () => {
+  it("o desenho segue com os 13 itens; o app encaixa Acessos logo depois de Visão geral", () => {
+    expect(MASTER_NAV).toHaveLength(13);
+    expect(MASTER_NAV_APP).toHaveLength(14);
+    expect(MASTER_NAV_APP.slice(0, 3).map((n) => n.id)).toEqual(["visao", "acessos", "eventos"]);
+  });
+  it("support e auditor abrem Acessos (só leitura, números agregados)", () => {
+    for (const r of ["master", "support", "auditor"] as const) expect(canOpen(r, "acessos")).toBe(true);
+    expect(canOpen(null, "acessos")).toBe(false);
   });
 });

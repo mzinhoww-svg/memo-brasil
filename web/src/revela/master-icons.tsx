@@ -19,10 +19,17 @@ export const MASTER_NAV = [
   { id: "auditoria", label: "Auditoria", icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2" /></svg>) },
   { id: "configuracoes", label: "Configurações", icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>) },
 ] as const;
-export type MasterNavId = (typeof MASTER_NAV)[number]["id"];
+
+/** Itens que o app tem além dos 13 do desenho (as telas de referência não os trazem): entram no menu real, logo depois de "Visão geral". */
+export const MASTER_NAV_EXTRA = [
+  { id: "acessos", label: "Acessos", icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>) },
+] as const;
+export type MasterNavId = (typeof MASTER_NAV)[number]["id"] | (typeof MASTER_NAV_EXTRA)[number]["id"];
+/** Menu do app: os 13 do desenho com os extras encaixados (Acessos logo depois de Visão geral). */
+export const MASTER_NAV_APP = [MASTER_NAV[0], ...MASTER_NAV_EXTRA, ...MASTER_NAV.slice(1)] as const;
 
 /** Rotas reais de cada item do menu (as mesmas do console). */
 export const MASTER_HREF: Record<MasterNavId, string> = {
-  visao: "/master", eventos: "/master/eventos", pessoas: "/master/pessoas", planos: "/master/planos", pagamentos: "/master/pagamentos", cortesias: "/master/codigos",
+  visao: "/master", acessos: "/master/acessos", eventos: "/master/eventos", pessoas: "/master/pessoas", planos: "/master/planos", pagamentos: "/master/pagamentos", cortesias: "/master/codigos",
   impressoes: "/master/impressoes", revelacoes: "/master/revelacoes", moderacao: "/master/moderacao", saude: "/master/saude", lgpd: "/master/lgpd", auditoria: "/master/auditoria", configuracoes: "/master/configuracoes",
 };

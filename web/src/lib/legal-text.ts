@@ -1,8 +1,8 @@
-/** Textos das páginas /termos (2026-11-16-v2) e /privacidade (2026-11-16-v3). Política v2: avisos por WhatsApp; Termos v2 e Política v3: seção 11 (busca facial opcional). Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
+/** Textos das páginas /termos (2026-11-16-v2) e /privacidade (2026-11-17-v4). Política v4: seção 6 (medição de acesso sem cookies). Política v2: avisos por WhatsApp; Termos v2 e Política v3: seção 11 (busca facial opcional). Origem: texto fornecido pelo operador; sem revisão jurídica profissional registrada. */
 export type LegalSection = { title: string; blocks: (string | string[])[] };
 
 export const LEGAL_UPDATED_AT = "16 de novembro de 2026";
-export const PRIVACY_UPDATED_AT = "16 de novembro de 2026";
+export const PRIVACY_UPDATED_AT = "17 de novembro de 2026";
 
 export const TERMS_TEXT: LegalSection[] = [
   { title: "1. Sobre o serviço", blocks: [
@@ -96,7 +96,8 @@ export const PRIVACY_TEXT: LegalSection[] = [
   ] },
   { title: "6. Armazenamento local e tecnologias necessárias", blocks: [
     "Usamos cookies e armazenamento do navegador necessários para autenticação, continuidade da sessão e funcionamento do serviço.",
-    "Tecnologias opcionais de publicidade ou medição, caso adotadas, deverão ser identificadas separadamente e submetidas às escolhas exigidas pela legislação. Não há autorização genérica para publicidade pelo simples uso da plataforma.",
+    "Medição de acesso, sem cookies: contamos as páginas abertas e a origem do tráfego (site ou rede de onde a pessoa veio, campanha, tipo de aparelho, navegador, sistema e país) em estatísticas usadas só para entender o uso e melhorar o Revela. Não guardamos o seu IP, não gravamos cookies para isso e não identificamos você: um código irreversível, que muda todo dia, só permite contar pessoas distintas por dia. Páginas de eventos aparecem sem o código do convite. Respeitamos o sinal \"Não rastrear\" e o Global Privacy Control do navegador. Esses registros são apagados em até 400 dias. Fundamento: interesse legítimo de funcionamento e melhoria do serviço, sobre dados que não identificam a pessoa.",
+    "Outras tecnologias de publicidade ou medição, caso adotadas, deverão ser identificadas separadamente e submetidas às escolhas exigidas pela legislação. Não há autorização genérica para publicidade pelo simples uso da plataforma.",
   ] },
   { title: "7. Retenção e exclusão", blocks: [
     "As fotografias ficam disponíveis por 90 dias após o encerramento do evento. Depois, seu acesso é encerrado e a exclusão do armazenamento ativo é concluída em até 30 dias.",

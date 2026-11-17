@@ -1,0 +1,82 @@
+/* Acessos (Master): visitas, páginas, origem do tráfego, aparelhos e países. Somente leitura; dados da RPC admin_access_stats. */
+import { MCard, MHead, MTable, Seg, Tiles } from "../master-kit";
+import { MasterStatePage } from "../master/MasterState";
+import { PERIODS, PERIOD_LABEL, countryName, mediumLabel, perVisit, seriesBars, share, type AccessStats, type Period } from "@/lib/master/access-stats";
+
+export const ACESSOS_AREA = "Acessos";
+const nf = (n: number) => new Intl.NumberFormat("pt-BR").format(n);
+
+export function MasterAcessosView({ stats, period }: { stats: AccessStats; period: Period }) {
+  const { totals } = stats;
+  const bars = seriesBars(stats.series);
+  const entriesTotal = stats.sources.reduce((n, s) => n + s.entries, 0);
+  const devTotal = stats.devices.reduce((n, d) => n + d.visitors, 0);
+  const ctyTotal = stats.countries.reduce((n, c) => n + c.visitors, 0);
+  return (
+    <>
+      <MHead title={ACESSOS_AREA} caption="Quem chegou ao Revela e de onde veio · sem cookies e sem guardar IP">
+        <Seg items={PERIODS.map((p) => ({ label: PERIOD_LABEL[p], href: `/master/acessos?dias=${p}`, on: p === period }))} />
+      </MHead>
+      <Tiles items={[
+        { label: "Visitantes", value: nf(totals.visitors), note: period === 1 ? "pessoas distintas hoje" : "distintas por dia, somadas" },
+        { label: "Visualizações", value: nf(totals.views), note: "páginas abertas" },
+        { label: "Visitas", value: nf(totals.entries), note: "chegadas ao site" },
+        { label: "Páginas por visitante", value: perVisit(totals.views, totals.visitors), note: "média no período" },
+      ]} />
+      <div className="mgrid2" style={{ gridTemplateColumns: "1.4fr 1fr" }}>
+        <MCard>
+          <h2 className="rv-title" style={{ fontSize: "18px" }}>Visitantes por dia</h2>
+          <div className="mmini" style={{ marginTop: "12px" }}>
+            <div className="row between"><span>Últimos {Math.min(period, 90)} {Math.min(period, 90) === 1 ? "dia" : "dias"}</span><b>{nf(totals.visitors)}</b></div>
+            <div className="bars" role="img" aria-label={`Visitantes por dia nos últimos ${period} dias`}>
+              {bars.map((b, i) => <div key={i} title={b.title}><i style={{ height: `${b.height}%` }} className={b.on ? "on" : undefined} /><span>{b.label}</span></div>)}
+            </div>
+          </div>
+        </MCard>
+        <MCard style={{ paddingBottom: "8px" }}>
+          <h2 className="rv-title" style={{ fontSize: "18px" }}>Aparelhos</h2>
+          <MTable cols="1.4fr .8fr .6fr" head={["Aparelho", "Visitantes", "%"]} empty="Sem visitas no período."
+            rows={stats.devices.map((d) => ({ key: d.device, cells: [d.device[0].toUpperCase() + d.device.slice(1), nf(d.visitors), share(d.visitors, devTotal)] }))} />
+        </MCard>
+      </div>
+      <div className="mgrid2" style={{ marginTop: "14px" }}>
+        <MCard style={{ paddingBottom: "8px" }}>
+          <h2 className="rv-title" style={{ fontSize: "18px" }}>De onde vêm as visitas</h2>
+          <MTable cols="1.5fr 1fr .7fr .6fr" head={["Origem", "Tipo", "Visitas", "%"]} empty="Sem visitas no período."
+            rows={stats.sources.map((s) => ({ key: `${s.source}|${s.medium}`, cells: [s.source, mediumLabel(s.medium), nf(s.entries), share(s.entries, entriesTotal)] }))} />
+        </MCard>
+        <MCard style={{ paddingBottom: "8px" }}>
+          <h2 className="rv-title" style={{ fontSize: "18px" }}>Sites que enviaram gente</h2>
+          <MTable cols="2fr .7fr" head={["Site", "Visitas"]} empty="Nenhum site de origem ainda."
+            rows={stats.referrers.map((r) => ({ key: r.host, cells: [r.host, nf(r.entries)] }))} />
+        </MCard>
+      </div>
+      <div className="mgrid2" style={{ marginTop: "14px" }}>
+        <MCard style={{ paddingBottom: "8px" }}>
+          <h2 className="rv-title" style={{ fontSize: "18px" }}>Páginas mais vistas</h2>
+          <MTable cols="2fr .7fr .8fr" head={["Página", "Vistas", "Visitantes"]} empty="Sem páginas medidas ainda."
+            rows={stats.pages.map((p) => ({ key: p.path, cells: [<code key="c">{p.path}</code>, nf(p.views), nf(p.visitors)] }))} />
+        </MCard>
+        <MCard style={{ paddingBottom: "8px" }}>
+          <h2 className="rv-title" style={{ fontSize: "18px" }}>Países</h2>
+          <MTable cols="1.6fr .8fr .6fr" head={["País", "Visitantes", "%"]} empty="Sem visitas no período."
+            rows={stats.countries.map((c) => ({ key: c.country, cells: [countryName(c.country), nf(c.visitors), share(c.visitors, ctyTotal)] }))} />
+        </MCard>
+      </div>
+      {stats.campaigns.length > 0 && (
+        <MCard style={{ marginTop: "14px", paddingBottom: "8px" }}>
+          <h2 className="rv-title" style={{ fontSize: "18px" }}>Campanhas (UTM)</h2>
+          <MTable cols="1.6fr 1.2fr .7fr" head={["Campanha", "Origem", "Visitas"]}
+            rows={stats.campaigns.map((c) => ({ key: `${c.campaign}|${c.source}`, cells: [c.campaign, c.source, nf(c.entries)] }))} />
+        </MCard>
+      )}
+      <p className="rv-caption" style={{ marginTop: "14px" }}>
+        “Visitantes” são pessoas distintas por dia, somadas no período: sem cookies, o mesmo aparelho em dias diferentes conta de novo. Robôs e quem ativou “Não rastrear” ficam de fora.
+      </p>
+    </>
+  );
+}
+
+export function MasterAcessosEstado({ variant }: { variant: "empty" | "error" | "denied" | "loading" }) {
+  return <MasterStatePage area={ACESSOS_AREA} variant={variant} cols={4} rows={6} {...(variant === "empty" ? { title: "Ainda sem visitas medidas", text: "A medição começou agora: os números aparecem conforme as pessoas abrem o site." } : {})} />;
+}

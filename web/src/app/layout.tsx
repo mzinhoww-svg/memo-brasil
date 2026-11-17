@@ -3,6 +3,7 @@ import "./globals.css";
 import { AppProvider } from "@/features/app/provider";
 import { SiteFooter } from "@/components/revela/SiteFooter";
 import { StorageBanner } from "@/components/revela/StorageBanner";
+import { AccessTracker } from "@/lib/access/Tracker";
 import { RegisterServiceWorker } from "@/lib/register-sw";
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <a className="rv-skip" href="#conteudo">Ir para o conteúdo</a>
         <RegisterServiceWorker />
+        <AccessTracker />
         <AppProvider>
           <StorageBanner />
           <div id="conteudo">{children}</div>

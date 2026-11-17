@@ -3,7 +3,7 @@
    Um único `<aside>` no DOM: o CSS (`styles/master-responsivo.css`) decide se ele é coluna, trilho ou gaveta, então os seletores de desktop
    (`aside.mside a.mnav`) continuam valendo. A escolha do trilho fica no localStorage (com try/catch) e, antes da hidratação, num atributo do <html>. */
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import { MASTER_HREF, MASTER_LOGO, MASTER_NAV, type MasterNavId } from "./master-icons";
+import { MASTER_HREF, MASTER_LOGO, MASTER_NAV, MASTER_NAV_APP, type MasterNavId } from "./master-icons";
 import { DESKTOP_QUERY, RAIL_KEY } from "./master-menu";
 
 export interface MasterUser { name: string; role: string }
@@ -126,7 +126,7 @@ export function MenuToggle() {
 /** Menu lateral do Master. `visible` (só no app) restringe os itens: o layout tira o que o papel não abre e "Impressões" quando a chave `printed_album` está desligada. */
 export function MasterAside({ current, links = false, user = { name: "Marcos", role: "Administrador · master" }, visible }: { current?: MasterNavId; links?: boolean; user?: MasterUser; visible?: readonly MasterNavId[] }) {
   const m = useMasterMenu();
-  const items = visible ? MASTER_NAV.filter((n) => visible.includes(n.id)) : [...MASTER_NAV];
+  const items = visible ? MASTER_NAV_APP.filter((n) => visible.includes(n.id)) : [...MASTER_NAV]; // sem `visible` = desenho de referência (13 itens)
   const hidden = !m.desktop && !m.drawerOpen;
   return (
     <aside id={m.asideId} className="mside" aria-label="Menu do console" inert={hidden} aria-hidden={hidden || undefined} data-open={m.drawerOpen || undefined}
