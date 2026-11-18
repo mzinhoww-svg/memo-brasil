@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: { absolute: "Fotos do casamento tiradas pelos convidados | Revela" },
   description: DESCRIPTION,
   alternates: { canonical: "/" },
-  openGraph: { title: "Fotos do casamento tiradas pelos convidados", description: DESCRIPTION, url: "/" },
+  openGraph: { type: "website", locale: "pt_BR", siteName: "Revela", title: "Fotos do casamento tiradas pelos convidados", description: DESCRIPTION, url: "/" },
 };
 
 /** Catálogo público relido a cada hora (preços na página que o Google indexa). */
