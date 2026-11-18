@@ -32,7 +32,8 @@ export function CameraPublicar({
   plans = PLANS_REF, selected = "casamento", payNote = "Pix ou cartão, sem sair do app", next = "Continuar · R$ 189", busy, error, pack, legal, codeNotice, onSelect, onBack, onNext,
 }: CameraPublicarProps = {}) {
   return (
-    <WizardSheet step={8} title="Escolha o plano" caption="Pague uma vez por evento. Sem assinatura." onBack={onBack} onNext={onNext} next={next} busy={busy}
+    <WizardSheet step={7} title={plans.length ? "Escolha o plano" : "Tudo pronto"}
+      caption={plans.length ? "Pague uma vez por evento. Sem assinatura." : "Grátis até 10 convidados. Para mais gente, escolha o tamanho no painel."} onBack={onBack} onNext={onNext} next={next} busy={busy}
       foot={(legal || codeNotice) && (
       <>
       {codeNotice && <p className="rv-caption center" role="status" data-testid="aviso-codigo" style={{ margin: "0 0 6px", color: "var(--revela-text)" }}>{codeNotice}</p>}
@@ -53,10 +54,10 @@ export function CameraPublicar({
         <div><span className="rv-caption">Poses</span><b>{posesLabel}</b></div>
         <div><span className="rv-caption">Revela</span><b>{revealLabel}</b></div>
       </div>
-      <PlanCards plans={plans} selected={selected} onSelect={onSelect} />
+      {plans.length > 0 && <PlanCards plans={plans} selected={selected} onSelect={onSelect} />}
       {pack && <PackSwitch {...pack} />}
       {error && <p className="rv-caption center" role="alert" style={{ color: "var(--danger)" }}>{error}</p>}
-      <div className="paynote">
+      {plans.length > 0 && <div className="paynote">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2.5l3.6 3.6-3.6 3.6-3.6-3.6zM12 14.3l3.6 3.6-3.6 3.6-3.6-3.6zM2.5 12l3.6-3.6 3.6 3.6-3.6 3.6zM14.3 12l3.6-3.6 3.6 3.6-3.6 3.6z" />
         </svg>
@@ -66,7 +67,7 @@ export function CameraPublicar({
           <path d="M8 11V7a4 4 0 0 1 8 0v4" />
         </svg>
         <span>ValidaPay</span>
-      </div>
+      </div>}
     </WizardSheet>
   );
 }

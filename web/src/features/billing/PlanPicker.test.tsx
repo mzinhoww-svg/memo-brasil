@@ -14,7 +14,7 @@ import { PlanPicker } from "./PlanPicker";
 import type { PublicPlan, PublicSettings } from "./types";
 
 const P = (code: string, name: string, g: number | null, s: number | null, cents: number, free = false): PublicPlan => ({ code, name, maxGuests: g, maxShots: s, priceCents: cents, isFree: free, features: [] });
-const PLANS = [P("gratis", "Grátis", 10, 10, 0, true), P("festa", "Festa", 30, 24, 2900), P("celebracao", "Celebração", 100, 24, 8900), P("casamento", "Casamento", 250, 36, 18900)];
+const PLANS = [P("gratis", "Grátis", 10, 10, 0, true), P("festa", "Festa", 30, 24, 2900), P("celebracao", "Celebração", 100, 24, 8900), { ...P("casamento", "Casamento", 250, 36, 18900), highlighted: true }];
 const SETTINGS: PublicSettings = { supportEmail: null, supportPhone: null, companyLegalName: null, companyCnpj: null, paymentsEnv: "sandbox", capacityGracePct: 10 };
 const OK = { planCode: "casamento", fromPlanCode: null, amountCents: 18900, payable: true, reason: "ok" };
 const BLOCKED = { planCode: "casamento", fromPlanCode: null, amountCents: 0, payable: false, reason: "evento_encerrado" };
@@ -129,8 +129,7 @@ describe("PlanPicker: o que muda entre os ramos", () => {
     await within(foot(container)).findByRole("button", { name: "Escolher para Casamento · R$ 189" });
     await userEvent.click(screen.getByRole("radio", { name: /^Festa/ }));
     expect(await within(foot(container)).findByRole("button", { name: /Escolher para Festa/ })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("radio", { name: /^Grátis/ }));
-    expect(within(foot(container)).getByRole("button", { name: /Escolher para Festa/ })).toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: /^Grátis/ })).toBeNull(); // "Aumentar para" lista só as faixas maiores
   });
 
   it("só o Grátis (pagamentos desligados): título único no quadro e sem botão de pagar", () => {

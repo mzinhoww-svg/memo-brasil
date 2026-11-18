@@ -3,6 +3,7 @@
 -- diferença de preço na cotação (grátis, plano pago, cortesia, legado), limite de poses imposto pelo servidor com e sem o pacote,
 -- pedido real até o direito, idempotência da migration e preservação de planos/pedidos/direitos, e o Master (packOf).
 begin;
+\ir ../fixtures/catalogo_legado.sql
 select no_plan();
 
 -- ===================================================== estado inicial criado pela migration (antes de qualquer fixture)

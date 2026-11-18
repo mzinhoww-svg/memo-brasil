@@ -21,7 +21,7 @@ export interface CameraFiltroProps {
 
 export function CameraFiltro({ samples, film = "filme35", busy, onPick, onBack, onNext }: CameraFiltroProps = {}) {
   return (
-    <WizardSheet step={6} title="Qual filme?" caption="O filme é aplicado em todas as fotos. Dá para tirar depois." onBack={onBack} onNext={onNext} busy={busy}>
+    <WizardSheet step={5} title="Qual filme?" caption="O filme é aplicado em todas as fotos. Dá para tirar depois." onBack={onBack} onNext={onNext} busy={busy}>
       <div className="compare" role="radiogroup" aria-label="Filme">
         {FILMS.map((f) => (
           <div key={f.id} className={`cmp${film === f.id ? " on" : ""}`} role="radio" aria-checked={film === f.id} aria-label={FILM_LABEL[f.id]} tabIndex={0} style={{ cursor: "pointer" }}

@@ -10,46 +10,15 @@ import { CreateWizard } from "./wizard";
 const next = () => fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
 /** Passo 1 (embalagem) → 2 (nome) → preenche → 3 (quando é a festa). */
 async function nameAndNext() { next(); fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Festa preservada" } }); next(); }
-/** Do passo 3 até o 8: festa, poses, revelar, filme, quem vê. */
-async function finalStep() { await nameAndNext(); for (let i = 0; i < 5; i++) next(); await screen.findByRole("radio", { name: /^Grátis/ }); }
-/** CTA do passo 8: tocar em continuar vale como aceite (aviso junto ao botão); não há diálogo. */
+/** Do passo 3 até o 7: festa, revelar, filme, quem vê. Sem escolha de plano: o evento nasce no Grátis. */
+async function finalStep() { await nameAndNext(); for (let i = 0; i < 4; i++) next(); await screen.findByRole("button", { name: "Criar câmera" }); }
+/** CTA do último passo: tocar em continuar vale como aceite (aviso junto ao botão); não há diálogo. */
 async function submit() {
   fireEvent.click(screen.getByRole("button", { name: /Criar câmera|Continuar ·/ }));
   expect(screen.queryByRole("dialog", { name: "Antes de criar" })).toBeNull();
 }
 beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); mocks.push.mockReset(); mocks.destination.mockReset(); mocks.openCheckout.mockReset(); mocks.signIn.mockResolvedValue({ id: "u", name: "Ana" }); mocks.lookup.mockResolvedValue(null); mocks.save.mockImplementation(async (e) => e); });
 describe("recuperação do assistente", () => {
-  it.each(["pendente", "falhou"])("checkout %s retoma o mesmo destino sem outro evento ou pedido", async (navigation) => {
-    const checkout = "https://checkout.test/order-1";
-    mocks.destination.mockResolvedValue({ kind: "checkout", url: checkout });
-    if (navigation === "falhou") mocks.openCheckout.mockImplementationOnce(() => { throw new Error("navigation failed"); });
-    render(<CreateWizard />);
-    await finalStep();
-    fireEvent.click(screen.getByRole("radio", { name: /^Casamento/ }));
-    await submit();
-    await waitFor(() => expect(mocks.openCheckout).toHaveBeenCalledOnce());
-    await screen.findByRole("button", { name: "Continuar para o pagamento" });
-    expect(screen.queryByRole("button", { name: /Criar câmera|Continuar ·/ })).toBeNull();
-    if (navigation === "falhou") expect(screen.getByRole("alert")).toHaveTextContent(/evento.*criado/);
-    fireEvent.click(screen.getByRole("button", { name: "Continuar para o pagamento" }));
-    await waitFor(() => expect(mocks.openCheckout).toHaveBeenCalledTimes(2));
-    expect(mocks.openCheckout.mock.calls.map(([url]) => url)).toEqual([checkout, checkout]);
-    expect(mocks.destination).toHaveBeenCalledOnce();
-    expect(mocks.save).toHaveBeenCalledOnce();
-  });
-  it("falha ao preparar o destino preserva o evento e oferece seu plano sem repetir checkout", async () => {
-    mocks.destination.mockRejectedValueOnce(new Error("offline"));
-    render(<CreateWizard />);
-    await finalStep();
-    fireEvent.click(screen.getByRole("radio", { name: /^Casamento/ }));
-    await submit();
-    await screen.findByRole("alert");
-    const eventId = mocks.save.mock.calls[0][0].id;
-    fireEvent.click(screen.getByRole("button", { name: "Continuar para o pagamento" }));
-    expect(mocks.push).toHaveBeenCalledWith(`/painel/${eventId}/plano?plano=casamento`);
-    expect(mocks.destination).toHaveBeenCalledExactlyOnceWith(eventId, "casamento");
-    expect(mocks.save).toHaveBeenCalledOnce();
-  });
   it.each(["pendente", "falhou"])("navegação %s depois de salvar só retoma o mesmo evento", async (navigation) => {
     if (navigation === "falhou") mocks.push.mockImplementationOnce(() => { throw new Error("navigation failed"); });
     render(<CreateWizard />);
@@ -86,23 +55,7 @@ describe("recuperação do assistente", () => {
     await waitFor(() => expect(mocks.push).toHaveBeenCalled());
     expect(mocks.save.mock.calls[0][0].title).toBe("Festa preservada");
   });
-  it("36 fotos são desejo: o plano que comporta vem marcado no passo 8 e o Grátis segue disponível", async () => {
-    render(<CreateWizard />); await nameAndNext(); next(); next(); // quando é → quando revelar → poses
-    fireEvent.click(await screen.findByRole("button", { name: /^36/ }));
-    expect(screen.getByRole("button", { name: /^36/ })).toHaveAttribute("aria-pressed", "true");
-    for (let i = 0; i < 3; i++) next();
-    expect(screen.getByRole("radio", { name: /^Casamento/ })).toBeChecked();
-    expect(screen.getByRole("button", { name: "Continuar · R$ 189" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("radio", { name: /^Grátis/ }));
-    expect(screen.getByRole("radio", { name: /^Grátis/ })).toBeChecked();
-    expect(mocks.save).not.toHaveBeenCalled();
-  });
-  it("10 poses: o Grátis vem marcado no passo 8", async () => {
-    render(<CreateWizard />); await finalStep();
-    expect(screen.getByRole("radio", { name: /^Grátis/ })).toBeChecked();
-    expect(screen.getByRole("button", { name: "Criar câmera" })).toBeInTheDocument();
-  });
-  it("passo 5: quatro opções; revelar antes do fim da festa é bloqueado", async () => {
+  it("passo 4: quatro opções; revelar antes do fim da festa é bloqueado", async () => {
     render(<CreateWizard />); await nameAndNext(); next(); // quando é a festa → quando revelar
     for (const t of ["Quando a festa acabar", "No dia seguinte", "Um dia depois", "Escolher dia e hora"]) expect(screen.getByRole("button", { name: new RegExp(t) })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Escolher dia e hora/ }));

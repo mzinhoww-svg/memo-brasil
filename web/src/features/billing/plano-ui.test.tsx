@@ -10,7 +10,7 @@ const api = vi.hoisted(() => ({
 vi.mock("./api", async (orig) => ({ ...(await orig<typeof import("./api")>()), ...api }));
 const nav = vi.hoisted(() => ({ goToCheckout: vi.fn() }));
 vi.mock("./checkout-nav", async (orig) => ({ ...(await orig<typeof import("./checkout-nav")>()), goToCheckout: nav.goToCheckout }));
-vi.mock("./entitlement", () => ({ currentPlanCode: vi.fn(async () => "gratis") }));
+vi.mock("./entitlement", () => ({ currentPlanCode: vi.fn(async () => "gratis"), currentPlan: vi.fn(async () => null) }));
 vi.mock("@/features/admin/context", () => ({ useAdmin: () => ({ event: { id: "ev1", title: "Ana & Rui" }, refresh: vi.fn() }) }));
 
 import { BillingError, BillingUnavailableError, ProviderUnavailableError } from "./api";
@@ -22,7 +22,7 @@ import { TrustBlock } from "./TrustBlock";
 import type { OrderView, PublicPlan, PublicSettings } from "./types";
 
 const P = (code: string, name: string, g: number | null, s: number | null, cents: number, free = false): PublicPlan => ({ code, name, maxGuests: g, maxShots: s, priceCents: cents, isFree: free, features: [] });
-const PLANS = [P("gratis", "Grátis", 10, 10, 0, true), P("festa", "Festa", 30, 24, 2900), P("celebracao", "Celebração", 100, 24, 8900), P("casamento", "Casamento", 250, 36, 18900), P("grande", "Grande", 500, null, 34900)];
+const PLANS = [P("gratis", "Grátis", 10, 10, 0, true), P("festa", "Festa", 30, 24, 2900), P("celebracao", "Celebração", 100, 24, 8900), { ...P("casamento", "Casamento", 250, 36, 18900), highlighted: true }, P("grande", "Grande", 500, null, 34900)];
 const SETTINGS: PublicSettings = { supportEmail: "oi@memoriesmt.test", supportPhone: null, companyLegalName: null, companyCnpj: null, paymentsEnv: "sandbox", capacityGracePct: 10 };
 const MP_URL = "https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=123-abc";
 const ORDER: OrderView = { orderId: "7f3a21c9-0000-4000-8000-000000000000", status: "pendente", planCode: "casamento", amountCents: 18900, checkoutUrl: MP_URL, provider: "mercadopago", expiresAt: new Date(Date.now() + 29 * 60_000 + 41_000).toISOString() };
@@ -70,13 +70,13 @@ describe("PlanPicker", () => {
   it("B7: só o Grátis -> Evento maior? com e-mail de suporte e cartão de código", () => {
     render(<PlanPicker {...base} plans={[PLANS[0]]} currentCode="gratis" settings={{ ...SETTINGS, paymentsEnv: "desligado" }} />);
     expect(screen.getByRole("heading", { name: "Evento maior?" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Falar com a gente" })).toHaveAttribute("href", expect.stringContaining("mailto:oi@memoriesmt.test"));
+    expect(screen.getByRole("link", { name: "Falar no WhatsApp" })).toHaveAttribute("href", expect.stringContaining("https://wa.me/5565996227110"));
     expect(screen.getByTestId("cartao-codigo")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Pagar/ })).toBeNull();
   });
   it("B7 sem e-mail de suporte cadastrado: o texto 'fale com a gente' usa o canal oficial (nunca fica sem saída)", () => {
     render(<PlanPicker {...base} plans={[PLANS[0]]} currentCode="gratis" settings={{ ...SETTINGS, supportEmail: null, paymentsEnv: "desligado" }} />);
-    expect(screen.getByRole("link", { name: "Falar com a gente" })).toHaveAttribute("href", expect.stringContaining("mailto:mazinhoww@gmail.com"));
+    expect(screen.getByRole("link", { name: "Falar no WhatsApp" })).toHaveAttribute("href", expect.stringContaining("https://wa.me/"));
   });
   it("resumo do pedido antes de continuar: plano, total e pagamento único", async () => {
     api.quote.mockResolvedValue({ planCode: "casamento", fromPlanCode: null, amountCents: 18900, payable: true, reason: "ok" });
@@ -393,7 +393,7 @@ describe("página /painel/[id]/plano", () => {
   it("retorno ?retorno=sucesso SEM pedido nenhum no servidor volta à escolha de plano, sem plano ativo", async () => {
     window.history.replaceState(null, "", "/painel/ev1/plano?retorno=sucesso&status=approved&payment_id=1");
     render(<PlanoPage />);
-    expect(await screen.findByRole("heading", { name: "De que tamanho é a festa?" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Quantos convidados vão à festa?" })).toBeInTheDocument();
     expect(screen.queryByText(/ativo\./)).toBeNull();
     expect(window.location.search).toBe("");
   });
@@ -405,7 +405,7 @@ describe("página /painel/[id]/plano", () => {
   });
   it("o quadro do painel já tem título e nome do evento: a página não repete o eyebrow 'evento · Plano'", async () => {
     render(<PlanoPage />);
-    await screen.findByRole("heading", { name: "De que tamanho é a festa?" });
+    await screen.findByRole("heading", { name: "Quantos convidados vão à festa?" });
     expect(screen.queryByText("Ana & Rui · Plano")).toBeNull();
     expect(screen.queryByText(/ · Plano$/)).toBeNull();
   });

@@ -22,7 +22,7 @@ export interface CameraPrivacidadeProps {
 
 export function CameraPrivacidade({ feed = true, download = true, showDownload = true, busy, onFeed, onDownload, onBack, onNext }: CameraPrivacidadeProps = {}) {
   return (
-    <WizardSheet step={7} title="Quem vê o quê" caption="Você vê tudo e pode tirar qualquer foto antes da revelação." onBack={onBack} onNext={onNext} busy={busy}>
+    <WizardSheet step={6} title="Quem vê o quê" caption="Você vê tudo e pode tirar qualquer foto antes da revelação." onBack={onBack} onNext={onNext} busy={busy}>
       <div className="privviz">
         <div className="rv-print" style={{ position: "absolute", left: "30px", top: "10px", width: "120px", height: "150px", transform: "rotate(-7deg)", zIndex: 1 }}>
           <img src="/revela/ref/sc-baloes.jpg" alt="Foto de convidado" />

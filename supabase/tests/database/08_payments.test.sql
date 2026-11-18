@@ -2,6 +2,7 @@
 -- Organizador: payments_quote / payments_open_order / payments_order_status (authenticated, só o anfitrião).
 -- Serviço: payments_attach_charge / payments_apply_status / payments_record_event (só service_role).
 begin;
+\ir ../fixtures/catalogo_legado.sql
 select no_plan();
 
 create schema tests;

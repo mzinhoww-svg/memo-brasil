@@ -77,8 +77,8 @@ describe("assistente", () => {
     const { container, rerender } = render(h(WizardSheet, { step: 3, title: "t", caption: "c", children: "corpo" }));
     expect(container.querySelector(".sheet-body")).toHaveClass("rv-rise");
     const segs = () => Array.from(container.querySelectorAll(".rv-steps i.rv-seg"));
-    expect(segs()).toHaveLength(8);
-    await waitFor(() => expect(segs().map((s) => s.getAttribute("data-on"))).toEqual(["true", "true", "true", "false", "false", "false", "false", "false"]));
+    expect(segs()).toHaveLength(7);
+    await waitFor(() => expect(segs().map((s) => s.getAttribute("data-on"))).toEqual(["true", "true", "true", "false", "false", "false", "false"]));
     for (const dir of ["next", "back"] as const) {
       rerender(h(WizardDirection.Provider, { value: dir }, h(WizardSheet, { step: 3, title: "t", caption: "c", children: "corpo" })));
       const body = container.querySelector(".sheet-body")!;

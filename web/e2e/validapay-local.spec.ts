@@ -6,7 +6,7 @@ test("local checkout stays closed without configuration, survives reload and doe
   const financialRequests: string[] = [];
   page.on("request", (request) => { if (/validapay\.com\.br/.test(request.url())) financialRequests.push(request.url()); });
   const { id } = await createViaWizard(page, { title: "ValidaPay local validation" });
-  await page.goto(`/painel/${id}/checkout-validapay?plano=festa`);
+  await page.goto(`/painel/${id}/checkout-validapay?plano=ate150`);
   await expect(page.getByRole("heading", { name: "Checkout indisponível" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Gerar Pix|Confirmar pagamento/ })).toHaveCount(0);
   await page.reload();

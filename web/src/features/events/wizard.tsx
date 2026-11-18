@@ -17,24 +17,35 @@ import { CameraNome } from "@/revela/screens/CameraNome";
 import { CameraFiltro } from "@/revela/screens/CameraFiltro";
 import { CameraPrivacidade } from "@/revela/screens/CameraPrivacidade";
 import { CameraData } from "@/revela/screens/CameraData";
-import { CameraPoses, type PoseChoice } from "@/revela/screens/CameraPoses";
 import { CameraRevelacao, type RevealChoiceView } from "@/revela/screens/CameraRevelacao";
 import { CameraPublicar, type PlanView } from "@/revela/screens/CameraPublicar";
 import { hostFallbackName, suggestEventNames } from "./name-suggestions";
-import { clearPendingCode, planForShots, poseNotice, poseOption, poseOptions, readPendingCode } from "./plan-catalog";
-import { afterCreateDestination, type AfterCreate } from "./after-create";
+import { clearPendingCode, freeShots, readPendingCode } from "./plan-catalog";
+import type { AfterCreate } from "./after-create";
 import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CodeApplied, REDEEM_TEXT, RedeemCode, redeemMessage } from "@/features/billing/RedeemCode";
-import { formatBRL, listPosePacks, listPublicPlans, peekCode, redeemCode } from "@/features/billing/api";
-import { packAsPlan, packExtraShots, packForBase } from "@/features/billing/pose-packs";
-import type { GiftView, PosePack, PublicPlan } from "@/features/billing/types";
+import { listPublicPlans, peekCode, redeemCode } from "@/features/billing/api";
+import type { GiftView, PublicPlan } from "@/features/billing/types";
 import { buildCreateInput, WIZARD_DEFAULTS } from "./wizard-input";
 import { defaultTimezone, zonedToEpoch, zoneLabel, type RevealErrors } from "@/domain/reveal";
 
 export { WIZARD_DEFAULTS };
 
-/** Os 8 passos de "Monte a câmera": embalagem, nome, quando é a festa, poses, revelação, filme, quem vê, plano. */
-const STEP_COUNT = 8;
+/** `?plano=<código>` da URL do assistente (vindo dos botões de faixa da home); só códigos no formato do catálogo. */
+function wantedPlanFromUrl(): string | null {
+  try {
+    const c = new URLSearchParams(window.location.search).get("plano");
+    return c && /^[a-z][a-z0-9_]{1,31}$/.test(c) ? c : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Os 7 passos de "Monte a câmera": embalagem, nome, quando é a festa, revelação, filme, quem vê, criar.
+ * O evento sempre nasce no Grátis (poses do Grátis); o tamanho da festa é escolhido depois, no painel (/painel/<id>/plano).
+ */
+const STEP_COUNT = 7;
 const LAST_STEP = STEP_COUNT - 1;
 type CreatedEvent = { eventId: string; title: string; paid: boolean; destination: AfterCreate; ready: boolean };
 
@@ -54,13 +65,7 @@ export function CreateWizard() {
   const [win, setWin] = useState<WindowInput>(() => defaultWindow(now(), defaultTimezone()));
   const [choice, setChoice] = useState<RevealChoice>("manha");
   const [revCustom, setRevCustom] = useState(""); // aaaa-mm-ddTHH:MM no fuso do evento
-  const [planTouched, setPlanTouched] = useState(false);
-  const [rollOn, setRollOn] = useState(true);
-  const [desiredShots, setDesiredShots] = useState<number | null>(WIZARD_DEFAULTS.shots); // null = poses livres
   const [plans, setPlans] = useState<PublicPlan[] | null>(null);
-  const [packs, setPacks] = useState<PosePack[]>([]);
-  const [packOn, setPackOn] = useState(false); // interruptor "Mais poses" do passo 8
-  const [planCode, setPlanCode] = useState("gratis");
   const [pendingCode, setPendingCode] = useState<string | null>(null);
   const [gift, setGift] = useState<GiftView | null>(null);
   const [codeOutcome, setCodeOutcome] = useState<{ eventId: string; eventTitle: string; code: string; applied: PublicPlan | null | "sem-plano"; error?: string } | null>(null);
@@ -112,7 +117,6 @@ export function CreateWizard() {
         if (g?.status === "ativo") setGift(g);
       });
       void Promise.all([listPublicPlans()]).then(([p]) => { setPlans(p); }, () => setPlans([]));
-      void listPosePacks().then(setPacks, () => setPacks([]));
     }, 0);
     return () => clearTimeout(t);
   }, []);
@@ -156,7 +160,7 @@ export function CreateWizard() {
       }
       const startNow = now();
       const hoursNow = (w.endMs - startNow) / 3_600_000;
-      const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, w.endMs, { date: customDate ?? "", time: customTime ?? "", timezone }), desiredShots, cameraStyle: wrap, filmLook: film, everyoneSeesAll, downloadHigh });
+      const input = buildCreateInput({ title, category, durationHours: hoursNow, reveal: buildRevealInput(choice, w.endMs, { date: customDate ?? "", time: customTime ?? "", timezone }), desiredShots: plans ? freeShots(plans) : WIZARD_DEFAULTS.shots, cameraStyle: wrap, filmLook: film, everyoneSeesAll, downloadHigh });
       const r = await createEvent(repos, me, input, startNow);
       if (!r.ok) {
         if (r.errors.reveal) {
@@ -165,13 +169,15 @@ export function CreateWizard() {
         }
         return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
       }
-      const chosen = orderPlan; // o plano do pedido: o escolhido, ou a variante "Mais poses" quando o interruptor está ligado
       const eventId = r.event.id;
-      const paid = !!chosen && !chosen.isFree;
-      // A identidade salva é terminal: retomar a saída nunca repete a criação ou o pedido.
+      // A identidade salva é terminal: retomar a saída nunca repete a criação. Sem pagamento aqui: o plano é escolhido no painel.
+      // faixa escolhida na home (/criar?plano=ate150): o evento nasce no Grátis e segue para essa faixa no painel. Lida da URL na hora
+      // de criar; com o catálogo carregado, só vale faixa paga dele (catálogo ainda carregando: o painel valida o código).
+      const wantedCode = wantedPlanFromUrl();
+      const wanted = !pendingCode && wantedCode && (plans === null || plans.some((p) => p.code === wantedCode && !p.isFree)) ? wantedCode : null;
       const result: CreatedEvent = {
-        eventId, title: r.event.title, paid, ready: !paid,
-        destination: { kind: "plan", href: paid ? `/painel/${eventId}/plano?plano=${encodeURIComponent(chosen.code)}` : `/criar/pronto/${eventId}` },
+        eventId, title: r.event.title, paid: !!wanted, ready: true,
+        destination: { kind: "plan", href: wanted ? `/painel/${eventId}/plano?plano=${encodeURIComponent(wanted)}` : `/criar/pronto/${eventId}` },
       };
       retainCreated(result);
       if (pendingCode) {
@@ -188,11 +194,6 @@ export function CreateWizard() {
         }
         return setCodeOutcome(outcome);
       }
-      if (chosen && !chosen.isFree) {
-        // plano pago escolhido: encaminha ao checkout do provedor vigente
-        const dest = await afterCreateDestination(eventId, chosen.code);
-        retainCreated({ ...result, destination: dest, ready: true });
-      }
       continueCreated();
     } catch {
       if (!recoverHandoff()) setErrors({ create: "Não deu para criar o evento. Confira sua conexão e tente de novo." });
@@ -202,34 +203,16 @@ export function CreateWizard() {
     }
   }
 
-  const catalog = plans ?? [];
-  const shotsPlan = planForShots(catalog, desiredShots);
-  // pré-seleção do plano: o mais barato que comporta as poses escolhidas, até a pessoa tocar em outro
-  const planCodeEff = planTouched ? planCode : (shotsPlan?.code ?? catalog.find((p) => p.isFree)?.code ?? planCode);
-  const chosenPlan = gift ? undefined : catalog.find((p) => p.code === planCodeEff); // presente: o plano vem do código, sem cobrança
-  // "Mais poses": só nos planos pagos que têm pacote à venda; o servidor cobra a variante (e só a diferença de quem já tem o plano)
-  const salePack = chosenPlan && !chosenPlan.isFree ? packForBase(packs, chosenPlan.code) : undefined;
-  const packActive = packOn && !!salePack;
-  const orderPlan = packActive && salePack ? packAsPlan(salePack) : chosenPlan;
+  const shots = plans ? freeShots(plans) : WIZARD_DEFAULTS.shots;
   const tz = timezone;
   const cityLabel = zoneLabel(tz).split(" (")[0].replace(/^.*\//, "").replace(/_/g, " ");
-  const money = (cents: number) => (cents % 100 === 0 ? `R$ ${cents / 100}` : formatBRL(cents));
   const options = revealOptions(endMs(), tz);
   const customAt = customDate && customTime ? zonedToEpoch(customDate, customTime, tz) : NaN;
   const revealAtMs = choice === "dia" ? customAt : options.find((o) => o.id === choice)?.at;
-  const poseChoices: PoseChoice[] = poseOptions(catalog).map((n) => {
-    // catálogo ainda carregando: sem legenda (nunca "indisponível" por engano)
-    return { n, caption: plans === null ? "\u00a0" : poseOption(catalog, n, money).caption };
-  });
   const giftView: PlanView | undefined = gift?.planCode ? {
     code: gift.planCode, tier: gift.planName ?? "Presente", price: "Presente",
     lines: [gift.maxGuests === null ? "convidados sem limite" : `${gift.maxGuests} convidados`, gift.maxShots === null ? "poses livres" : `${gift.maxShots} poses cada`],
   } : undefined;
-  const planViews: PlanView[] = giftView ? [giftView] : catalog.map((p, i) => ({
-    code: p.code, tier: p.name, price: p.isFree ? "Grátis" : money(p.priceCents),
-    lines: [p.maxGuests === null ? "convidados sem limite" : `${p.maxGuests} convidados`, p.maxShots === null ? "poses livres" : `${p.maxShots} poses cada`],
-    gold: !p.isFree && i === catalog.length - 1 && catalog.length > 2,
-  }));
   const revealChoiceViews: RevealChoiceView[] = options.map((o) => ({ id: o.id, label: o.label, small: o.at !== undefined ? shortWhen(o.at, tz) : (choice === "dia" && Number.isFinite(customAt) ? shortWhen(customAt, tz) : " ") }));
   const wrapLabelUi = WRAP_INFO[wrap].label;
 
@@ -320,21 +303,17 @@ export function CreateWizard() {
         />
       );
     }
-    if (step === 4) {
-      return <CameraPoses step={5} value={desiredShots} choices={poseChoices} notice={poseNotice(catalog, desiredShots)} roll={rollOn} onPick={setDesiredShots} onRoll={setRollOn} onBack={back} onNext={next} busy={busy} />;
-    }
-    if (step === 5) return <CameraFiltro film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
-    if (step === 6) return <CameraPrivacidade showDownload feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;
-    if (step === 7) {
+    if (step === 4) return <CameraFiltro film={film} busy={busy} onPick={setFilm} onBack={back} onNext={next} />;
+    if (step === 5) return <CameraPrivacidade showDownload feed={everyoneSeesAll} download={downloadHigh} busy={busy} onFeed={setEveryoneSeesAll} onDownload={setDownloadHigh} onBack={back} onNext={next} />;
+    if (step === 6) {
       const revealShort = revealAtMs !== undefined && Number.isFinite(revealAtMs) ? shortWhen(revealAtMs, tz).replace(" ", ", ") : "—";
-      const cta = busy ? "Criando câmera…" : orderPlan && !orderPlan.isFree ? `Continuar · ${money(orderPlan.priceCents)}` : "Criar câmera";
+      const cta = busy ? "Criando câmera…" : "Criar câmera";
       return (
         <>
           <CameraPublicar
-            image={`/revela/3d/cam-${wrap}-640.webp`} wrapLabel={wrapLabelUi} posesLabel={packActive && salePack ? `${salePack.maxShots} por pessoa` : desiredShots === null ? "livres" : `${desiredShots} por pessoa`} revealLabel={revealShort}
-            plans={planViews.length ? planViews : undefined} selected={giftView?.code ?? chosenPlan?.code ?? "gratis"} next={cta} busy={busy} error={errors.create}
-            pack={salePack ? { price: `+${money(salePack.extraCents)}`, meta: `+${packExtraShots(salePack)} poses por pessoa (${salePack.baseMaxShots} → ${salePack.maxShots})`, on: packActive, onToggle: setPackOn } : undefined}
-            onSelect={(c) => { setPlanCode(c); setPlanTouched(true); setPackOn(false); }} onBack={back}
+            image={`/revela/3d/cam-${wrap}-640.webp`} wrapLabel={wrapLabelUi} posesLabel={`${giftView && gift?.maxShots ? gift.maxShots : shots} por pessoa`} revealLabel={revealShort}
+            plans={giftView ? [giftView] : []} selected={giftView?.code ?? "gratis"} next={cta} busy={busy} error={errors.create}
+            onBack={back}
             legal={{ termsHref: "/termos", privacyHref: "/privacidade" }}
             codeNotice={giftView ? `Presente: plano ${giftView.tier}, sem pagamento.` : pendingCode ? `Código de cortesia ${pendingCode} será aplicado ao criar o evento.` : undefined}
             onNext={() => void create()}

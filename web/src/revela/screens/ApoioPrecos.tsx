@@ -2,16 +2,14 @@
 /* Gerado de design-system/revela/html/Apoio-precos.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 export interface PrecoView { code: string; name: string; line: string; price: string; on?: boolean }
 export const PRECOS_REF: PrecoView[] = [
-  { code: "gratis", name: "Grátis", line: "10 convidados · 10 poses cada", price: "R$ 0" },
-  { code: "festa", name: "Festa", line: "30 convidados · 24 poses cada", price: "R$ 29" },
-  { code: "celebracao", name: "Celebração", line: "100 convidados · 24 poses cada", price: "R$ 89" },
-  { code: "casamento", name: "Casamento", line: "250 convidados · 36 poses cada", price: "R$ 189", on: true },
-  { code: "grande", name: "Grande", line: "500 convidados · poses livres", price: "R$ 349" },
+  { code: "gratis", name: "Até 10 convidados", line: "10 poses por convidado", price: "Grátis" },
+  { code: "ate150", name: "Até 150 convidados", line: "36 poses por convidado", price: "R$ 147", on: true },
+  { code: "ate300", name: "Até 300 convidados", line: "36 poses por convidado", price: "R$ 297" },
 ];
 
-export interface ApoioPrecosProps { plans?: PrecoView[]; payNote?: string; payProvider?: string; onBack?: () => void; onNext?: () => void }
+export interface ApoioPrecosProps { plans?: PrecoView[]; payNote?: string; payProvider?: string; salesHref?: string; onBack?: () => void; onNext?: () => void }
 
-export function ApoioPrecos({ plans = PRECOS_REF, payNote = "Pix ou cartão, sem sair do app", payProvider = "ValidaPay", onBack, onNext }: ApoioPrecosProps = {}) {
+export function ApoioPrecos({ plans = PRECOS_REF, payNote = "Pix ou cartão, sem sair do app", payProvider = "ValidaPay", salesHref, onBack, onNext }: ApoioPrecosProps = {}) {
   return (
     <>
     <div className="scr">
@@ -25,12 +23,10 @@ export function ApoioPrecos({ plans = PRECOS_REF, payNote = "Pix ou cartão, sem
           <span style={{ "width": "44px" }} />
         </div>
         <h1 className="rv-display" style={{ "fontSize": "44px", "lineHeight": "46px", "marginTop": "14px" }}>
-          Um preço
-          <br />
-          por festa.
+          Quantos convidados vão à festa?
         </h1>
         <p className="rv-body muted" style={{ "margin": "10px 0 20px" }}>
-          Sem assinatura. Convidados não pagam nada e não precisam baixar app.
+          Pagamento único por evento, sem assinatura. Convidados não pagam nada e não precisam baixar app.
         </p>
         <div className="stack" style={{ "gap": "8px" }}>
           {plans.map((p) => (
@@ -49,6 +45,7 @@ export function ApoioPrecos({ plans = PRECOS_REF, payNote = "Pix ou cartão, sem
             </div>
           ))}
         </div>
+        {salesHref && <a className="rv-link" href={salesHref} target="_blank" rel="noopener noreferrer" style={{ "display": "inline-block", "marginTop": "16px" }}>Mais de 300 convidados? Fale no WhatsApp</a>}
         <div className="paynote" style={{ "marginTop": "16px" }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2.5l3.6 3.6-3.6 3.6-3.6-3.6zM12 14.3l3.6 3.6-3.6 3.6-3.6-3.6zM2.5 12l3.6-3.6 3.6 3.6-3.6 3.6zM14.3 12l3.6-3.6 3.6 3.6-3.6 3.6z" />
@@ -66,7 +63,7 @@ export function ApoioPrecos({ plans = PRECOS_REF, payNote = "Pix ou cartão, sem
         </div>
         <div className="grow" />
         <button className="rv-btn rv-btn--block rv-btn--primary" style={{  }} onClick={onNext}>
-          Montar câmera
+          Criar evento grátis
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>

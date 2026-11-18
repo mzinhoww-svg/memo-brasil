@@ -5,10 +5,13 @@ import { SiteFooter } from "@/components/revela/SiteFooter";
 import { StorageBanner } from "@/components/revela/StorageBanner";
 import { AccessTracker } from "@/lib/access/Tracker";
 import { RegisterServiceWorker } from "@/lib/register-sw";
+import { siteOrigin } from "@/lib/site";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteOrigin()),
   title: { default: "Revela", template: "%s · Revela" },
-  description: "A câmera descartável coletiva para eventos. Cada convidado tem suas poses, e a festa revela junta.",
+  description: "Os convidados fotografam pelo celular, sem app, e as fotos se revelam juntas na hora marcada. Grátis até 10 convidados; R$ 147 até 150.",
+  openGraph: { type: "website", locale: "pt_BR", siteName: "Revela", url: "/" },
   applicationName: "Revela",
   icons: { icon: "/revela/logos/revela-mark.svg", apple: "/pwa/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "Revela", statusBarStyle: "black-translucent" },

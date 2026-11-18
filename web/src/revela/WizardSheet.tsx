@@ -1,5 +1,5 @@
 "use client";
-/* Casca comum dos passos do assistente "Montar a câmera" (Camera-*.html): grab, título + n/8, barra de passos, corpo e barra de ação. Mesmo markup da referência. */
+/* Casca comum dos passos do assistente "Montar a câmera" (Camera-*.html): grab, título + n/7, barra de passos, corpo e barra de ação. Mesmo markup da referência. */
 import { useEffect, useState, type ReactNode } from "react";
 import { useWizardDirection } from "./wizard-motion";
 
@@ -31,10 +31,10 @@ export function WizardSheet({ step, title, caption, children, next = "Próximo",
             <h1 className="rv-title">{title}</h1>
             <p className="rv-caption" style={{ marginTop: "4px", maxWidth: "290px" }}>{caption}</p>
           </div>
-          <span className="rv-stamp" style={{ fontSize: "12px", marginTop: "6px" }} aria-label={`Passo ${step} de 8`}>{step}/8</span>
+          <span className="rv-stamp" style={{ fontSize: "12px", marginTop: "6px" }} aria-label={`Passo ${step} de 7`}>{step}/7</span>
         </div>
         <div className="rv-steps">
-          {Array.from({ length: 8 }, (_, i) => <i key={i} className={`rv-seg${i < step ? " on" : ""}`} data-on={i < filled} />)}
+          {Array.from({ length: 7 }, (_, i) => <i key={i} className={`rv-seg${i < step ? " on" : ""}`} data-on={i < filled} />)}
         </div>
         <div className={`sheet-body ${dir ? "rv-step" : "rv-rise"}`} data-dir={dir}>{children}</div>
         {foot && <div className="sheet-foot" style={{ flex: "none", padding: "0 0 10px", textAlign: "center" }}>{foot}</div>}

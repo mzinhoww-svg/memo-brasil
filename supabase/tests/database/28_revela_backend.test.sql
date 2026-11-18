@@ -1,5 +1,6 @@
 -- pgTAP · Revela 2.0: embalagens/filme, plano em destaque + publicação de preços (TOTP), comentários, e-mail do convidado e aviso de revelação.
 begin;
+\ir ../fixtures/catalogo_legado.sql
 select no_plan();
 
 create schema tests;
