@@ -86,7 +86,7 @@ function PlanoCorpo() {
   const onOrder = useCallback((o: OrderView) => {
     setOrder(o);
     if (o.status === "pago") { refreshCurrent(); void refresh(); }
-  }, [eventId, refresh]);
+  }, [refreshCurrent, refresh]);
 
   const pay = useCallback(async (planCode: string, fresh = false) => {
     if (inflight.current) return; // clique duplo: um pedido só
