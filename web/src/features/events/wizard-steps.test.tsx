@@ -12,7 +12,7 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", async () => 
   it("1 · embalagem: amostras do desenho; escolher troca a câmera, o nome e o texto", async () => {
     render(<CreateWizard />);
     expect(screen.getByRole("heading", { name: "Escolha a embalagem" })).toBeInTheDocument();
-    expect(screen.getByText("1/8")).toBeInTheDocument();
+    expect(screen.getByText("1/7")).toBeInTheDocument();
     expect(screen.getAllByRole("radio").map((r) => r.textContent)).toEqual(["Festa", "Casamento", "Aniversário", "Noite"]);
     fireEvent.click(screen.getByRole("radio", { name: "Casamento" }));
     expect(screen.getByRole("radio", { name: "Casamento" })).toBeChecked();
@@ -44,7 +44,7 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", async () => 
       render(<CreateWizard />);
       next();
       fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Ana & Leo" } });
-      for (let i = 0; i < 6; i++) next();
+      for (let i = 0; i < 5; i++) next();
       expect(await screen.findByTestId("aviso-codigo")).toHaveTextContent("Código de cortesia MMT-7KQ4-AB12 será aplicado ao criar o evento.");
     } finally { localStorage.clear(); }
   });
@@ -55,7 +55,7 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", async () => 
       render(<CreateWizard />);
       next();
       fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Ana & Leo" } });
-      for (let i = 0; i < 6; i++) next();
+      for (let i = 0; i < 5; i++) next();
       expect(await screen.findByText("Presente: plano Casamento, sem pagamento.")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Criar câmera" })).toBeInTheDocument();
       expect(screen.queryByText(/R\$/)).toBeNull();
@@ -68,7 +68,7 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", async () => 
       render(<CreateWizard />);
       next();
       fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Ana & Leo" } });
-      for (let i = 0; i < 6; i++) next();
+      for (let i = 0; i < 5; i++) next();
       await waitFor(() => expect(screen.queryByTestId("aviso-codigo")).toBeNull());
       expect(screen.getByRole("button", { name: "Criar câmera" })).toBeInTheDocument();
     } finally { localStorage.clear(); mocks.peek.mockReset(); mocks.peek.mockResolvedValue(null); }
@@ -77,7 +77,7 @@ describe("passos 1, 2, 6 e 7 do assistente (telas 07, 08, 12, 13)", async () => 
     render(<CreateWizard />);
     next();
     fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Ana & Leo" } });
-    for (let i = 0; i < 4; i++) next(); // nome → festa → poses → revelar → filme
+    for (let i = 0; i < 3; i++) next(); // nome → festa → revelar → filme
     expect(screen.getByRole("heading", { name: "Qual filme?" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Filme 35mm" })).toBeChecked();
     expect(screen.getByAltText("Sem filme")).toHaveAttribute("src", "/revela/ref/sc-bolo-natural.jpg");

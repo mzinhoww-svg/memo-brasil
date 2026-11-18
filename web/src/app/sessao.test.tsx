@@ -68,7 +68,7 @@ describe("painel (UX-11, E5, UX-06)", () => {
 describe("home (UX-13, E6)", () => {
   it("home com ?erro=login mostra banner", async () => {
     search = "erro=login";
-    const { default: Home } = await import("./page");
+    const { HomeHero: Home } = await import("@/features/home/HomeHero");
     render(<Home />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Não conseguimos entrar com o Google. Tente de novo.");
     await userEvent.click(screen.getByRole("button", { name: "Fechar aviso" }));
@@ -76,7 +76,7 @@ describe("home (UX-13, E6)", () => {
   });
   it("sem o parâmetro não há banner e não há guia nem exemplos sintéticos", async () => {
     process.env.NEXT_PUBLIC_MM_DEV_TOOLS = "1";
-    const { default: Home } = await import("./page");
+    const { HomeHero: Home } = await import("@/features/home/HomeHero");
     render(<Home />);
     expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.queryByText(/Guia de componentes|revelação em 2 minutos/i)).toBeNull();
@@ -85,7 +85,7 @@ describe("home (UX-13, E6)", () => {
   });
   it("home não lista eventos; com sessão de anfitrião oferece Minhas câmeras", async () => {
     app.canCreate = true;
-    const { default: Home } = await import("./page");
+    const { HomeHero: Home } = await import("@/features/home/HomeHero");
     render(<Home />);
     expect(screen.queryByRole("heading", { name: /Seus eventos|Festas em que você entrou/ })).toBeNull();
     expect(screen.getByRole("link", { name: "Minhas câmeras" })).toHaveAttribute("href", "/eventos");
@@ -94,7 +94,7 @@ describe("home (UX-13, E6)", () => {
   });
   it("visitante sem sessão não vê Meus eventos", async () => {
     app.user = undefined;
-    const { default: Home } = await import("./page");
+    const { HomeHero: Home } = await import("@/features/home/HomeHero");
     render(<Home />);
     expect(screen.queryByRole("link", { name: "Minhas câmeras" })).toBeNull();
   });

@@ -8,7 +8,7 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("./api", async (orig) => ({ ...(await orig<typeof import("./api")>()), ...api }));
 const ent = vi.hoisted(() => ({ code: "festa" }));
-vi.mock("./entitlement", () => ({ currentPlanCode: vi.fn(async () => ent.code) }));
+vi.mock("./entitlement", () => ({ currentPlanCode: vi.fn(async () => ent.code), currentPlan: vi.fn(async () => null) }));
 const nav = vi.hoisted(() => ({ goToCheckout: vi.fn(), redirect: vi.fn(), search: "" }));
 vi.mock("./checkout-nav", async (orig) => ({ ...(await orig<typeof import("./checkout-nav")>()), goToCheckout: nav.goToCheckout }));
 vi.mock("next/navigation", () => ({ redirect: (url: string) => nav.redirect(url), useSearchParams: () => new URLSearchParams(nav.search), useRouter: () => ({ push: vi.fn() }) }));

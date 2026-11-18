@@ -4,7 +4,8 @@ import { contactFrom } from "@/components/revela/SiteFooter";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/revela";
 import { formatBRL, quote } from "./api";
-import { PLAN_TEXT, QUOTE_BLOCK, planRank } from "./flow";
+import { PLAN_TEXT, QUOTE_BLOCK, planRank, upgradeOptions } from "./flow";
+import { salesContactHref } from "@/lib/contact";
 import { PackCard, packMeta } from "./PackCard";
 import { PlanCard } from "./PlanCard";
 import { packForBase, planWithPack } from "./pose-packs";
@@ -16,8 +17,6 @@ import { PackSwitch } from "@/revela/PackSwitch";
 import { PlanoConteudo, type Gauge } from "@/revela/screens/PlanoConteudo";
 import { PainelFoot, ScreenH1 } from "@/revela/painel-ui";
 import type { PlanView } from "@/revela/screens/CameraPublicar";
-
-const RECOMMENDED = "casamento";
 
 type Props = {
   eventId: string;
@@ -36,7 +35,12 @@ type Props = {
   packs?: PosePack[];
   /** O evento já tem o pacote (o direito atual é a variante): o cartão some e planos maiores já levam o pacote. */
   hasPack?: boolean;
+  /** O plano atual por código, mesmo fora do catálogo visível (plano antigo desligado): limites e nome reais para "Plano atual". */
+  currentPlan?: PublicPlan;
 };
+
+/** Garantias curtas sob as faixas (wireframe "Escolher plano"). */
+const GARANTIAS = ["As fotos já tiradas continuam no evento", "Sem app para os convidados", "Download de todas as fotos depois da revelação"];
 
 const money = (cents: number) => (cents % 100 === 0 ? `R$ ${cents / 100}` : formatBRL(cents));
 const planView = (p: PublicPlan, last: boolean, n: number): PlanView => ({
@@ -50,10 +54,11 @@ const planView = (p: PublicPlan, last: boolean, n: number): PlanView => ({
  * Roda dentro do quadro do painel: o título é da rota, o botão de pagar vai para o rodapé fixo (`PainelFoot`) e o texto de
  * pagamento e os avisos ficam no fluxo, acima dele.
  */
-export function PlanPicker({ eventId, plans, currentCode, settings, busy, error, onPay, onRedeemed, initialPlan, usage, packs = [], hasPack = false }: Props) {
+export function PlanPicker({ eventId, plans, currentCode, settings, busy, error, onPay, onRedeemed, initialPlan, usage, packs = [], hasPack = false, currentPlan }: Props) {
   const native = validapayCheckoutEnabled();
   const rank = planRank(plans, currentCode);
-  const higher = useMemo(() => plans.filter((_, i) => i > rank), [plans, rank]);
+  const knownCurrent = currentPlan ?? plans.find((p) => p.code === currentCode);
+  const higher = useMemo(() => upgradeOptions(plans, knownCurrent), [plans, knownCurrent]);
   const paidOff = plans.every((p) => p.isFree);
   const [selected, setSelected] = useState<string>("");
   const [redeemOpen, setRedeemOpen] = useState(false);
@@ -63,7 +68,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
 
   // `?plano=festa_36` (variante) pré-seleciona o plano-base com o pacote ligado
   const initialPack = packs.find((k) => k.available && k.code === initialPlan);
-  const chosen = selected || higher.find((p) => p.code === (initialPack?.baseCode ?? initialPlan))?.code || (higher.find((p) => p.code === RECOMMENDED) ?? higher[0])?.code || "";
+  const chosen = selected || higher.find((p) => p.code === (initialPack?.baseCode ?? initialPlan))?.code || (higher.find((p) => p.highlighted) ?? higher[0])?.code || "";
   const plan = plans.find((p) => p.code === chosen);
   // interruptor "Mais poses" do plano escolhido (quem já tem o pacote leva o pacote junto, sem alternar)
   const salePack = plan && !plan.isFree ? packForBase(packs, plan.code) : undefined;
@@ -71,7 +76,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
   const payCode = packOn && salePack ? salePack.code : chosen;
   const listCents = packOn && salePack ? salePack.priceCents : plan?.priceCents; // preço de tabela do que será pago (antes da cotação)
   // cartão avulso "Mais poses": plano atual pago com pacote à venda, e o evento ainda sem o pacote
-  const current0 = plans[rank];
+  const current0 = knownCurrent ?? plans[rank];
   const standalone = !hasPack && current0 && !current0.isFree ? packForBase(packs, current0.code) : undefined;
 
   useEffect(() => {
@@ -97,11 +102,12 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
     ? <PackSwitch price={`+${money(salePack.extraCents)}`} meta={packMeta(salePack)} on={packOn} locked={hasPack} onToggle={setPackChoice} />
     : null;
 
-  const support = contactFrom(settings);
-  const mail = (subject: string) => `mailto:${support}?subject=${encodeURIComponent(subject)}`;
+  const sales = salesContactHref(undefined, contactFrom(settings));
+  const biggestPaid = plans.filter((p) => !p.isFree).at(-1);
+  const salesLink = <a className="rv-link plano-whatsapp" href={sales} target="_blank" rel="noopener noreferrer">Mais de {biggestPaid?.maxGuests ?? 300} convidados? Fale no WhatsApp</a>;
+  const garantias = <ul className="plano-garantias app-muted">{GARANTIAS.map((g) => <li key={g}>{g}</li>)}</ul>;
 
   if (paidOff) {
-    const talk = mail("Plano maior para o meu evento");
     return (
       <div className="plano-escolha" data-testid="pagamentos-desligados">
         <ScreenH1 className="titulo-tela app-h1">{PLAN_TEXT.titulo}</ScreenH1>
@@ -111,7 +117,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
         <section className="plano-cartao">
           <h2 className="titulo-card app-h1">Evento maior?</h2>
           <p className="app-p app-muted">Os planos pagos voltam em breve. Enquanto isso, fale com a gente e liberamos o seu evento.</p>
-          <Button href={talk} variant="secundario" block>Falar com a gente</Button>
+          <Button href={sales} variant="secundario" block>Falar no WhatsApp</Button>
         </section>
         <RedeemCode eventId={eventId} onApplied={onRedeemed} />
       </div>
@@ -120,7 +126,8 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
 
   const cur = q && q.code === payCode ? q.quote : null;
   if (native) {
-    const current = planWithPack(plans[rank] ?? plans[0], hasPack ? packs.find((k) => k.baseCode === (plans[rank] ?? plans[0])?.code) : undefined);
+    const base0 = current0 ?? plans[0];
+    const current = planWithPack(base0, hasPack ? packs.find((k) => k.baseCode === base0?.code) : undefined);
     const gauges: Gauge[] = [];
     if (usage && current) {
       if (current.maxGuests !== null) gauges.push({ label: "Convidados", text: `${usage.guests} de ${current.maxGuests}`, pct: Math.min(100, Math.round((usage.guests / current.maxGuests) * 100)), warn: usage.guests >= current.maxGuests * 0.9 });
@@ -136,24 +143,22 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
           current={current ? `${current.name} · ${current.isFree ? "Grátis" : money(current.priceCents)}` : "Grátis"}
           gauges={gauges}
           warning={left !== null && left <= 5 ? `Faltam ${left} lugares. Quem chegar depois vê "câmera lotada".` : null}
-          plans={plans.map((p, i) => planView(p, i === plans.length - 1, plans.length))}
+          plans={higher.map((p, i) => planView(p, i === higher.length - 1, higher.length + 1))}
           selected={chosen} error={blockedText ?? error ?? undefined}
-          onSelect={(code) => { const i = plans.findIndex((p) => p.code === code); if (i > rank) { setSelected(code); setPackChoice(null); } }}
-          extra={packCard} afterPlans={packSwitch}
+          onSelect={(code) => { if (higher.some((p) => p.code === code)) { setSelected(code); setPackChoice(null); } }}
+          extra={packCard} afterPlans={<>{packSwitch}{salesLink}{garantias}</>}
         />
-        <PainelFoot>
+        {higher.length > 0 && <PainelFoot>
           <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={confirm} disabled={busy || !plan || !!blockedText} aria-busy={busy || undefined}>
             {busy ? "Abrindo pagamento…" : plan && nowPay !== undefined ? `${rank >= 0 && current && !current.isFree ? "Trocar" : "Escolher"} para ${plan.name}${packOn ? " + Mais poses" : ""} · ${money(nowPay)}` : "Escolha um plano"}
           </button>
-        </PainelFoot>
+        </PainelFoot>}
       </div>
     );
   }
   const blocked = cur && cur !== "erro" && !cur.payable ? (QUOTE_BLOCK[cur.reason] ?? "Este plano não pode ser comprado agora.") : null;
   const pay = cur && cur !== "erro" ? cur.amountCents : listCents;
   const diff = cur && cur !== "erro" && plan && cur.payable && cur.amountCents !== listCents;
-  const biggest = plans[plans.length - 1];
-  const more = mail("Evento com mais convidados");
 
   return (
     <div className="plano-escolha">
@@ -163,17 +168,18 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
         <div className="app-stack">
           {packCard}
           <div className="plano-lista" role="radiogroup" aria-label="Planos">
-            {plans.map((p, i) => {
+            {plans.map((p) => {
               const isCurrent = p.code === currentCode;
-              const included = i <= rank;
+              const included = !higher.some((h) => h.code === p.code);
               return <PlanCard key={p.code} plan={p} name="plano" selected={p.code === chosen && !included} disabled={included} badge={isCurrent ? "Seu plano" : included ? "Incluído" : undefined} onSelect={() => { setSelected(p.code); setPackChoice(null); }} />;
             })}
           </div>
           {packSwitch}
           <div className="plano-links">
-            {more && biggest && <a href={more}>Mais de {biggest.maxGuests ?? 500} convidados? Fale com a gente</a>}
+            {salesLink}
             <button type="button" className="plano-link" aria-expanded={redeemOpen} onClick={() => setRedeemOpen((v) => !v)}>Tenho um código</button>
           </div>
+          {garantias}
           {redeemOpen && <RedeemCode eventId={eventId} onApplied={onRedeemed} onClose={() => setRedeemOpen(false)} />}
         </div>
         <div className="app-stack plano-resumo">
@@ -189,11 +195,11 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
             </dl>
           )}
           <p className="app-p app-muted plano-nota">Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado.</p>
-          <PainelFoot>
+          {higher.length > 0 && <PainelFoot>
             <Button variant="cta" block disabled={busy || !plan || !!blocked} aria-busy={busy} onClick={() => onPay(payCode)}>
               {busy ? "Abrindo o Mercado Pago…" : pay !== undefined ? <>Pagar com Mercado Pago · <span className="nowrap">{formatBRL(pay)}</span></> : "Pagar com Mercado Pago"}
             </Button>
-          </PainelFoot>
+          </PainelFoot>}
         </div>
       </div>
     </div>

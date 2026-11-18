@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { OrderView, PublicPlan } from "./types";
-import { PLAN_TEXT, clearIdempotencyKey, countdown, idempotencyKeyFor, joinGuests, paymentLabel, parseReturn, planRank, reconcileCheckout, screenFor, trustTitle } from "./flow";
+import { PLAN_TEXT, clearIdempotencyKey, countdown, idempotencyKeyFor, joinGuests, paymentLabel, parseReturn, planRank, reconcileCheckout, screenFor, trustTitle, upgradeOptions } from "./flow";
 
 const NOW = Date.parse("2026-10-22T12:00:00Z");
 const order = (o: Partial<OrderView> = {}): OrderView => ({ orderId: "o1", status: "pendente", planCode: "casamento", amountCents: 18900, provider: "mercadopago", expiresAt: new Date(NOW + 60_000).toISOString(), ...o });
@@ -69,7 +69,7 @@ describe("TrustBlock e textos", () => {
   it("Grátis omite o título", () => expect(trustTitle(plan({ code: "gratis", isFree: true, maxGuests: 10, priceCents: 0 }))).toBeNull());
   it("mensagem do MM013 e textos exatos", () => {
     expect(PLAN_TEXT.expirado).toBe("Nada foi cobrado. Quando quiser, comece um novo pagamento.");
-    expect(PLAN_TEXT.sub).toBe("Pagamento único por evento, no Mercado Pago. Cartão ou Pix, conforme disponível. Sem assinatura.");
+    expect(PLAN_TEXT.sub).toBe("Pagamento único. Cada convidado tem 36 poses. Pix ou cartão, sem assinatura.");
     expect(PLAN_TEXT.provedor).toBe("Seu pedido está guardado; tente de novo em 1 minuto.");
   });
   it("joinGuests e rank", () => {
@@ -105,4 +105,14 @@ describe("parseReturn (retorno do Checkout Pro é só dica)", () => {
     expect(parseReturn("")).toEqual({ hint: null, search: "" });
     expect(parseReturn("?plano=festa")).toEqual({ hint: null, search: "?plano=festa" });
   });
+});
+
+describe("upgradeOptions (faixas maiores que o plano atual)", () => {
+  const P = (code: string, g: number | null, cents: number) => ({ code, name: code, maxGuests: g, maxShots: 36, priceCents: cents, isFree: cents === 0, features: [] });
+  const plans = [P("gratis", 10, 0), P("ate150", 150, 14700), P("ate300", 300, 29700)];
+  it("do Grátis: as duas faixas pagas", () => expect(upgradeOptions(plans, plans[0]).map((p) => p.code)).toEqual(["ate150", "ate300"]));
+  it("de um plano antigo de 250: só a de 300", () => expect(upgradeOptions(plans, P("casamento", 250, 18900)).map((p) => p.code)).toEqual(["ate300"]));
+  it("do maior: nenhuma", () => expect(upgradeOptions(plans, plans[2])).toEqual([]));
+  it("plano atual sem limite: nenhuma", () => expect(upgradeOptions(plans, P("grande", null, 34900))).toEqual([]));
+  it("plano atual desconhecido: as pagas", () => expect(upgradeOptions(plans, undefined).map((p) => p.code)).toEqual(["ate150", "ate300"]));
 });

@@ -5,7 +5,7 @@ vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(m
 vi.mock("@/features/app/provider", () => ({ useApp: () => ({ signInWithGoogle: m.login, ready: true, persistent: true, known: [] }) }));
 vi.mock("@/features/marketing/usePublicCatalog", () => ({ usePublicCatalog: () => ({ plans: [], settings: null, failed: false }) }));
 vi.mock("@/features/marketing/ContactEmail", () => ({ ContactEmail: () => <span>suporte</span> }));
-import Home from "@/app/page";
+import { HomeHero as Home } from "@/features/home/HomeHero";
 import Ajuda from "@/app/ajuda/page";
 import { PricingLine } from "./PricingLine";
 import { SiteFooter } from "@/components/revela/SiteFooter";
