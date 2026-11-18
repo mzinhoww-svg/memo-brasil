@@ -8,22 +8,23 @@ vi.mock("@/features/billing/api", async (orig) => ({ ...(await orig<typeof impor
 import { PrecosView } from "./PrecosView";
 
 const P = (code: string, name: string, g: number | null, s: number | null, cents: number, free = false) => ({ code, name, maxGuests: g, maxShots: s, priceCents: cents, isFree: free, features: [] });
-const ALL = [P("gratis", "Grátis", 10, 10, 0, true), P("festa", "Festa", 30, 24, 2900), P("celebracao", "Celebração", 100, 24, 8900), P("casamento", "Casamento", 250, 36, 18900), P("grande", "Grande", 500, null, 34900)];
+const ALL = [P("gratis", "Grátis", 10, 10, 0, true), { ...P("ate150", "Até 150 convidados", 150, 36, 14700), highlighted: true }, P("ate300", "Até 300 convidados", 300, 36, 29700)];
 const S = { supportEmail: "oi@memoriesmt.test", supportPhone: null, companyLegalName: null, companyCnpj: null, paymentsEnv: "sandbox", capacityGracePct: 12 };
 beforeEach(() => { Object.values(api).forEach((m) => m.mockReset()); nav.push.mockReset(); nav.back.mockReset(); });
 
 describe("PrecosView (30 · Preços)", () => {
-  it("mostra os 5 planos do catálogo, Casamento destacado e o CTA Montar câmera", async () => {
+  it("três faixas por convidados, a de 150 em destaque, WhatsApp acima de 300 e CTA Criar evento grátis", async () => {
     api.listPublicPlans.mockResolvedValue(ALL); api.getPublicSettings.mockResolvedValue(S);
     render(<PrecosView />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Um preçopor festa.");
-    expect(await screen.findByTestId("preco-casamento")).toHaveTextContent("R$ 189");
-    expect(screen.getByTestId("preco-casamento")).toHaveClass("on");
-    expect(screen.getByTestId("preco-casamento")).toHaveTextContent("250 convidados · 36 poses cada");
-    for (const [c, v] of [["gratis", "R$ 0"], ["festa", "R$ 29"], ["celebracao", "R$ 89"], ["grande", "R$ 349"]]) expect(screen.getByTestId(`preco-${c}`)).toHaveTextContent(v);
-    expect(screen.getByTestId("preco-grande")).toHaveTextContent("poses livres");
-    expect(screen.getByTestId("preco-festa")).not.toHaveClass("on");
-    fireEvent.click(screen.getByRole("button", { name: /Montar câmera/ }));
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Quantos convidados vão à festa?");
+    expect(await screen.findByTestId("preco-ate150")).toHaveTextContent("R$ 147");
+    expect(screen.getByTestId("preco-ate150")).toHaveClass("on");
+    expect(screen.getByTestId("preco-ate150")).toHaveTextContent("Até 150 convidados");
+    expect(screen.getByTestId("preco-ate300")).toHaveTextContent("R$ 297");
+    expect(screen.getByTestId("preco-gratis")).toHaveTextContent("Grátis");
+    expect(screen.getByTestId("preco-ate300")).not.toHaveClass("on");
+    expect(screen.getByRole("link", { name: /Mais de 300 convidados\? Fale no WhatsApp/ })).toHaveAttribute("href", expect.stringContaining("https://wa.me/"));
+    fireEvent.click(screen.getByRole("button", { name: /Criar evento grátis/ }));
     expect(nav.push).toHaveBeenCalledWith("/criar");
   });
   it("pagamentos desligados: só o Grátis, sem destaque, e avisa que os pagos voltam em breve", async () => {

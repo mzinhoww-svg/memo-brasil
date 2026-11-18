@@ -1,0 +1,29 @@
+/* Home pública (features/marketing/Landing.tsx): seções de texto lidas pelo Google, abaixo do topo do app. Só tokens. */
+.lp { background: var(--bg); color: var(--ink); font-family: var(--font-sans); }
+.lp-sec { padding: var(--space-12) var(--space-5); }
+.lp-sec--alt { background: var(--surface-1); }
+.lp-wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-6); }
+.lp-wrap--narrow { max-width: 760px; }
+.lp-h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 4vw, 36px); line-height: 1.1; letter-spacing: -0.01em; }
+.lp-h2--lead { font-size: clamp(32px, 5vw, 48px); line-height: 1.05; max-width: 22ch; }
+.lp-h3 { margin: 0; font-size: 20px; font-weight: 700; }
+.lp-lead { margin: 0; font-size: 18px; line-height: 1.5; color: var(--ink-muted); max-width: 60ch; }
+.lp-muted { margin: 0; color: var(--ink-muted); line-height: 1.5; }
+.lp-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-5); }
+.lp-step { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-6); background: var(--surface-2); border-radius: var(--radius-lg); }
+.lp-num { font-family: var(--font-stamp); font-size: 28px; color: var(--carimbo); }
+.lp-tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-5); }
+.lp-tier { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-6); background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+.lp-tier[data-highlighted] { background: var(--surface-2); border: 2px solid var(--revela); }
+.lp-tier-label { font-weight: 600; color: var(--ink-muted); }
+.lp-tier[data-highlighted] .lp-tier-label { color: var(--revela-text); }
+.lp-tier-price { font-family: var(--font-display); font-size: 48px; line-height: 1; }
+.lp-tier-note { flex-grow: 1; font-size: 15px; }
+.lp-sales { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; justify-content: space-between; padding: var(--space-5) var(--space-6); background: var(--surface-1); border-radius: var(--radius-lg); }
+.lp-sales p { margin: 0; }
+.lp-garantias { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-7); font-size: 15px; }
+.lp-faq { border-bottom: 1px solid var(--line); padding: var(--space-4) 0; }
+.lp-faq summary { font-size: 17px; font-weight: 600; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.lp-faq p { margin-top: var(--space-2); }
+.lp-final { text-align: center; }
+.lp-final .lp-wrap { align-items: center; }
