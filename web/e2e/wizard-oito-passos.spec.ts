@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { seedHost } from "./helpers";
 
 /** Os 8 passos do assistente em 360×640 (o celular mais apertado): a ação principal é alcançável e nada passa da largura. */
-test("assistente em 360×640: ação principal alcançável e sem rolagem lateral nos 8 passos", async ({ page }) => {
+test("assistente em 360×640: ação principal alcançável e sem rolagem lateral nos 7 passos", async ({ page }) => {
   test.setTimeout(90_000);
   await page.setViewportSize({ width: 360, height: 640 });
   await page.goto("/criar");
@@ -26,9 +26,8 @@ test("assistente em 360×640: ação principal alcançável e sem rolagem latera
   await next(4);
   await next(5);
   await next(6);
-  await next(7);
-  await page.getByRole("heading", { level: 1, name: "Escolha o plano" }).waitFor();
-  await check(8);
+  await page.getByRole("heading", { level: 1, name: "Tudo pronto" }).waitFor();
+  await check(7);
   expect(problems).toEqual([]);
 });
 

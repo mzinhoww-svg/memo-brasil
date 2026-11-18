@@ -64,8 +64,8 @@ export async function seedHost(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Percorre os 8 passos de "Monte a câmera" pela interface real e para no passo 8 (plano):
- * embalagem → nome → quando é a festa (6 h) → quando revelar → poses (Grátis) → filme → quem vê o quê → plano.
+ * Percorre os 7 passos de "Monte a câmera" pela interface real e para no passo 7 (criar):
+ * embalagem → nome → quando é a festa (6 h) → quando revelar → filme → quem vê o quê → tudo pronto.
  * O evento sempre nasce no Grátis (10/10): `shots`/`capacity` fora disso são ajustados no painel por `createViaWizard`.
  */
 export async function wizardToSummary(page: Page, opts: { title?: string; reveal?: RevealOpt; shots?: string; capacity?: string; host?: string } = {}): Promise<void> {
@@ -86,13 +86,12 @@ export async function wizardToSummary(page: Page, opts: { title?: string; reveal
     await page.getByLabel("Dia e hora da revelação").fill(`${reveal.date}T${reveal.time}`);
   }
   await next(); // 4 quando revelar
-  await next(); // 5 poses: 10 (Grátis)
-  await next(); // 6 filme
-  await next(); // 7 quem vê o quê
-  await page.getByRole("heading", { level: 1, name: "Escolha o plano" }).waitFor();
+  await next(); // 5 filme
+  await next(); // 6 quem vê o quê
+  await page.getByRole("heading", { level: 1, name: "Tudo pronto" }).waitFor();
 }
 
-/** Passo 8: não há mais diálogo "Antes de criar"; tocar em continuar vale como aceite (aviso junto ao botão). Mantida para os chamadores. */
+/** Passo 7: não há mais diálogo "Antes de criar"; tocar em continuar vale como aceite (aviso junto ao botão). Mantida para os chamadores. */
 export async function acceptTerms(page: Page) {
   await expect(page.getByRole("dialog", { name: "Antes de criar" })).toHaveCount(0);
 }
