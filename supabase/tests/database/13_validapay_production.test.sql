@@ -1,5 +1,6 @@
 -- Local simulated provider evidence only; no live financial operations.
 begin;
+\ir ../fixtures/catalogo_legado.sql
 select no_plan();
 insert into auth.users(id,aud,role,email,is_anonymous) values
 ('00000000-0000-4000-8000-0000000013a1','authenticated','authenticated','vp-prod-owner@test.local',false),

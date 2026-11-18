@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ redeem: vi.fn(), signIn: vi.fn(), lookup: vi.fn(), save: vi.fn(), push: vi.fn(), destination: vi.fn(), openCheckout: vi.fn() }));
@@ -50,5 +50,24 @@ describe("assistente sem poses nem plano: o evento nasce no Grátis", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Criar câmera" }));
     await vi.waitFor(() => expect(mocks.redeem).toHaveBeenCalledOnce());
     expect(mocks.redeem.mock.calls[0][1]).toBe("MMT-7KQ4-AB12");
+  });
+  it("veio da home com ?plano=ate150: cria no Grátis e segue para escolher a faixa no painel", async () => {
+    window.history.replaceState(null, "", "/criar?plano=ate150");
+    try {
+      toName();
+      for (let i = 0; i < 5; i++) next();
+      fireEvent.click(await screen.findByRole("button", { name: "Criar câmera" }));
+      await vi.waitFor(() => expect(mocks.push).toHaveBeenCalledWith(expect.stringMatching(/^\/painel\/[^/]+\/plano\?plano=ate150$/)));
+    } finally { window.history.replaceState(null, "", "/"); }
+  });
+  it("?plano= desconhecido ou grátis é ignorado: segue para o convite", async () => {
+    window.history.replaceState(null, "", "/criar?plano=casamento");
+    try {
+      toName();
+      await act(async () => { await new Promise((r) => setTimeout(r, 20)); }); // catálogo carregado (como depois de 5 passos)
+      for (let i = 0; i < 5; i++) next();
+      fireEvent.click(await screen.findByRole("button", { name: "Criar câmera" }));
+      await vi.waitFor(() => expect(mocks.push).toHaveBeenCalledWith(expect.stringMatching(/^\/criar\/pronto\//)));
+    } finally { window.history.replaceState(null, "", "/"); }
   });
 });

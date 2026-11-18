@@ -148,11 +148,11 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
           onSelect={(code) => { if (higher.some((p) => p.code === code)) { setSelected(code); setPackChoice(null); } }}
           extra={packCard} afterPlans={<>{packSwitch}{salesLink}{garantias}</>}
         />
-        <PainelFoot>
+        {higher.length > 0 && <PainelFoot>
           <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={confirm} disabled={busy || !plan || !!blockedText} aria-busy={busy || undefined}>
             {busy ? "Abrindo pagamento…" : plan && nowPay !== undefined ? `${rank >= 0 && current && !current.isFree ? "Trocar" : "Escolher"} para ${plan.name}${packOn ? " + Mais poses" : ""} · ${money(nowPay)}` : "Escolha um plano"}
           </button>
-        </PainelFoot>
+        </PainelFoot>}
       </div>
     );
   }
@@ -195,11 +195,11 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
             </dl>
           )}
           <p className="app-p app-muted plano-nota">Você conclui o pagamento no Mercado Pago, com as formas disponíveis para você (cartão e, quando houver, Pix), e volta para cá. O plano libera assim que o pagamento for confirmado.</p>
-          <PainelFoot>
+          {higher.length > 0 && <PainelFoot>
             <Button variant="cta" block disabled={busy || !plan || !!blocked} aria-busy={busy} onClick={() => onPay(payCode)}>
               {busy ? "Abrindo o Mercado Pago…" : pay !== undefined ? <>Pagar com Mercado Pago · <span className="nowrap">{formatBRL(pay)}</span></> : "Pagar com Mercado Pago"}
             </Button>
-          </PainelFoot>
+          </PainelFoot>}
         </div>
       </div>
     </div>

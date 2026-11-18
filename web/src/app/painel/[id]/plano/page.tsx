@@ -8,7 +8,7 @@ import { useAdmin } from "@/features/admin/context";
 import {
   BillingError, BillingUnavailableError, ProviderUnavailableError, formatBRL, getPublicSettings, listPosePacks, listPublicPlans, openOrder, startCheckout,
 } from "@/features/billing/api";
-import { currentPlanCode } from "@/features/billing/entitlement";
+import { currentPlan, currentPlanCode } from "@/features/billing/entitlement";
 import { PLAN_TEXT, checkoutErrorMessage, clearIdempotencyKey, idempotencyKeyFor, parseReturn, reconcileCheckout, type ReturnHint } from "@/features/billing/flow";
 import { validapayCheckoutEnabled } from "@/features/billing/checkout-provider";
 import { goToCheckout } from "@/features/billing/checkout-nav";
@@ -38,6 +38,8 @@ function PlanoCorpo() {
   const [packs, setPacks] = useState<PosePack[]>([]);
   const [settings, setSettings] = useState<PublicSettings>(NO_SETTINGS);
   const [current, setCurrent] = useState("gratis");
+  // plano atual com nome e limites mesmo fora do catálogo público (plano antigo desligado): entra nas buscas por código
+  const [known, setKnown] = useState<PublicPlan | null>(null);
   const [order, setOrder] = useState<OrderView | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [down, setDown] = useState<Down | null>(null);
@@ -61,12 +63,12 @@ function PlanoCorpo() {
 
   const load = useCallback(async () => {
     try {
-      const [p, s, c, o, k] = await Promise.all([
+      const [p, s, c, o, k, kn] = await Promise.all([
         listPublicPlans(), getPublicSettings(), currentPlanCode(eventId),
         openOrder(eventId).catch((e) => { if (e instanceof BillingUnavailableError) return null; throw e; }),
-        listPosePacks(),
+        listPosePacks(), currentPlan(eventId),
       ]);
-      setPlans(p); setPacks(k); setSettings(s); setCurrent(c); setOrder(o); setLoadError(false);
+      setPlans(p); setPacks(k); setSettings(s); setCurrent(c); setKnown(kn); setOrder(o); setLoadError(false);
     } catch {
       setLoadError(true);
     }
@@ -74,12 +76,16 @@ function PlanoCorpo() {
   useEffect(() => { const t = setTimeout(() => void load(), 0); return () => clearTimeout(t); }, [load]);
 
   // buscas por código incluem as variantes "Mais poses" (ocultas do seletor)
-  const lookup = useMemo(() => lookupPlans(plans ?? [], packs), [plans, packs]);
+  const lookup = useMemo(() => {
+    const all = lookupPlans(plans ?? [], packs);
+    return known && !all.some((p) => p.code === known.code) ? [...all, known] : all;
+  }, [plans, packs, known]);
+  const refreshCurrent = useCallback(() => { void currentPlanCode(eventId).then(setCurrent); void currentPlan(eventId).then(setKnown); }, [eventId]);
   const planName = useCallback((code: string) => lookup.find((p) => p.code === code)?.name ?? code, [lookup]);
 
   const onOrder = useCallback((o: OrderView) => {
     setOrder(o);
-    if (o.status === "pago") { void currentPlanCode(eventId).then(setCurrent); void refresh(); }
+    if (o.status === "pago") { refreshCurrent(); void refresh(); }
   }, [eventId, refresh]);
 
   const pay = useCallback(async (planCode: string, fresh = false) => {
@@ -134,7 +140,7 @@ function PlanoCorpo() {
   } else {
     body = (
       <PlanPicker eventId={eventId} plans={plans} currentCode={basePlanCode(packs, current)} currentPlan={lookup.find((p) => p.code === basePlanCode(packs, current))} packs={packs} hasPack={!!packByCode(packs, current)} settings={settings} busy={busy} error={error} initialPlan={initialPlan} usage={{ guests: participants?.length ?? 0, shots: event.shotsPerPerson ?? null }} onPay={(c) => void pay(c)}
-        onRedeemed={(r) => { setApplied({ planCode: r.planCode ?? "", code: r.code }); void currentPlanCode(eventId).then(setCurrent); void refresh(); }} />
+        onRedeemed={(r) => { setApplied({ planCode: r.planCode ?? "", code: r.code }); refreshCurrent(); void refresh(); }} />
     );
   }
   return (

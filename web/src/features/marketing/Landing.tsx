@@ -69,7 +69,7 @@ export function Landing({ tiers }: { tiers: Tier[] }) {
                 <span className="lp-tier-label">{t.label}</span>
                 <span className="lp-tier-price">{t.price}</span>
                 <span className="lp-muted lp-tier-note">{t.note}</span>
-                <Link href="/criar" className={`rv-btn rv-btn--block ${t.highlighted ? "rv-btn--primary" : "rv-btn--line"}`}>
+                <Link href={t.priceCents > 0 ? `/criar?plano=${encodeURIComponent(t.code)}` : "/criar"} className={`rv-btn rv-btn--block ${t.highlighted ? "rv-btn--primary" : "rv-btn--line"}`}>
                   {t.priceCents > 0 ? `Escolher ${t.label.toLowerCase()}` : "Criar evento grátis"}
                 </Link>
               </div>

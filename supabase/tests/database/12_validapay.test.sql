@@ -1,5 +1,6 @@
 -- Local-only financial tests. No network or real charges.
 begin;
+\ir ../fixtures/catalogo_legado.sql
 select no_plan();
 create function pg_temp.vp_confirm(p_order uuid,p_charge jsonb,p_source text) returns jsonb language sql as $$
  select public.payments_validapay_confirm(p_order,p_charge||jsonb_build_object('merchantReference',p_order::text),p_source)

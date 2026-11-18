@@ -20,6 +20,8 @@ describe("Landing (seções de texto da home para o Google)", () => {
     expect(screen.getByText(/Mais de 300 convidados\?/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Falar no WhatsApp/ })).toHaveAttribute("href", salesContactHref());
     expect(screen.getAllByRole("link", { name: "Criar evento grátis" })[0]).toHaveAttribute("href", "/criar");
+    expect(screen.getByRole("link", { name: "Escolher até 150 convidados" })).toHaveAttribute("href", "/criar?plano=ate150");
+    expect(screen.getByRole("link", { name: "Escolher até 300 convidados" })).toHaveAttribute("href", "/criar?plano=ate300");
   });
   it("dúvidas visíveis e JSON-LD com FAQPage e as ofertas em reais", () => {
     const { container } = render(<Landing tiers={PRICING_FALLBACK} />);

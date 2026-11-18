@@ -10,7 +10,7 @@ const api = vi.hoisted(() => ({
 vi.mock("./api", async (orig) => ({ ...(await orig<typeof import("./api")>()), ...api }));
 const nav = vi.hoisted(() => ({ goToCheckout: vi.fn() }));
 vi.mock("./checkout-nav", async (orig) => ({ ...(await orig<typeof import("./checkout-nav")>()), goToCheckout: nav.goToCheckout }));
-vi.mock("./entitlement", () => ({ currentPlanCode: vi.fn(async () => "gratis") }));
+vi.mock("./entitlement", () => ({ currentPlanCode: vi.fn(async () => "gratis"), currentPlan: vi.fn(async () => null) }));
 vi.mock("@/features/admin/context", () => ({ useAdmin: () => ({ event: { id: "ev1", title: "Ana & Rui" }, refresh: vi.fn() }) }));
 
 import { BillingError, BillingUnavailableError, ProviderUnavailableError } from "./api";

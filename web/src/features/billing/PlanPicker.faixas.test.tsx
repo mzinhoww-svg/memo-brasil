@@ -41,6 +41,7 @@ describe.each([["nativo", true], ["Mercado Pago", false]] as const)("PlanPicker 
     expect(screen.getByRole("link", { name: /Fale no WhatsApp/ })).toBeInTheDocument();
     expect(screen.queryByRole("radio", { name: /Até 150 convidados/, checked: true })).toBeNull();
     expect(screen.queryByRole("button", { name: /· R\$/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Escolha um plano|Pagar com Mercado Pago/ })).toBeNull(); // sem botão de pagar morto
   });
 
   it("plano antigo (Casamento, 250): mostra o plano atual e oferece só a faixa maior", async () => {

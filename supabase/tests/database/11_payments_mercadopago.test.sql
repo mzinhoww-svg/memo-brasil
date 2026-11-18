@@ -3,6 +3,7 @@
 -- centavos, moeda, live_mode, recebedor, external_reference, data de atualização, reembolsado) e o recebedor esperado.
 -- Valores fictícios; nenhum acesso a rede.
 begin;
+\ir ../fixtures/catalogo_legado.sql
 select no_plan();
 
 create schema tests;

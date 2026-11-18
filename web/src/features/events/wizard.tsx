@@ -31,6 +31,16 @@ import { defaultTimezone, zonedToEpoch, zoneLabel, type RevealErrors } from "@/d
 
 export { WIZARD_DEFAULTS };
 
+/** `?plano=<código>` da URL do assistente (vindo dos botões de faixa da home); só códigos no formato do catálogo. */
+function wantedPlanFromUrl(): string | null {
+  try {
+    const c = new URLSearchParams(window.location.search).get("plano");
+    return c && /^[a-z][a-z0-9_]{1,31}$/.test(c) ? c : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Os 7 passos de "Monte a câmera": embalagem, nome, quando é a festa, revelação, filme, quem vê, criar.
  * O evento sempre nasce no Grátis (poses do Grátis); o tamanho da festa é escolhido depois, no painel (/painel/<id>/plano).
@@ -161,7 +171,14 @@ export function CreateWizard() {
       }
       const eventId = r.event.id;
       // A identidade salva é terminal: retomar a saída nunca repete a criação. Sem pagamento aqui: o plano é escolhido no painel.
-      const result: CreatedEvent = { eventId, title: r.event.title, paid: false, ready: true, destination: { kind: "plan", href: `/criar/pronto/${eventId}` } };
+      // faixa escolhida na home (/criar?plano=ate150): o evento nasce no Grátis e segue para essa faixa no painel. Lida da URL na hora
+      // de criar; com o catálogo carregado, só vale faixa paga dele (catálogo ainda carregando: o painel valida o código).
+      const wantedCode = wantedPlanFromUrl();
+      const wanted = !pendingCode && wantedCode && (plans === null || plans.some((p) => p.code === wantedCode && !p.isFree)) ? wantedCode : null;
+      const result: CreatedEvent = {
+        eventId, title: r.event.title, paid: !!wanted, ready: true,
+        destination: { kind: "plan", href: wanted ? `/painel/${eventId}/plano?plano=${encodeURIComponent(wanted)}` : `/criar/pronto/${eventId}` },
+      };
       retainCreated(result);
       if (pendingCode) {
         // o evento já existe: o código nunca impede a criação; a recusa aparece em B8, com mensagem neutra

@@ -1,6 +1,7 @@
 -- pgTAP · COM-007 (mínimo): Master de pagamentos, cortesia auditada, catálogo de planos, configuração pública e o job
 -- de conciliação. RPCs do Master exigem is_master() e motivo de 10 a 500 caracteres.
 begin;
+\ir ../fixtures/catalogo_legado.sql
 select no_plan();
 
 create schema tests;

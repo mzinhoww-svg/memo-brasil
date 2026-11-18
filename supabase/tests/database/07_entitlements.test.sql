@@ -1,6 +1,7 @@
 -- pgTAP · COM-001: planos, direitos por evento, plano efetivo e backfill legado.
 -- effective_entitlement() é a fonte única de limites; payments_env() decide quais direitos de ambiente valem.
 begin;
+\ir ../fixtures/catalogo_legado.sql
 select no_plan();
 
 create schema tests;
