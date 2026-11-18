@@ -85,6 +85,16 @@ export function parseReturn(search: string): { hint: ReturnHint | null; search: 
   return { hint, search: rest ? `?${rest}` : "" };
 }
 
+/**
+ * Faixas que aumentam o evento: planos pagos com mais convidados que o plano atual (`null` = sem limite vence tudo).
+ * O plano atual pode estar fora do catálogo visível (plano antigo desligado), por isso compara limites, não posição.
+ */
+export function upgradeOptions(plans: PublicPlan[], current: PublicPlan | undefined): PublicPlan[] {
+  const cap = current ? current.maxGuests : 0;
+  if (cap === null) return [];
+  return plans.filter((p) => !p.isFree && (p.maxGuests === null || p.maxGuests > cap));
+}
+
 /** Posição do plano na lista do servidor (já ordenada); desconhecido = 0 (piso). */
 export function planRank(plans: PublicPlan[], code: string | null): number {
   const i = plans.findIndex((p) => p.code === code);
@@ -113,8 +123,8 @@ export function formatDateTime(iso: string | undefined): string {
 }
 
 export const PLAN_TEXT = {
-  titulo: "De que tamanho é a festa?",
-  sub: "Pagamento único por evento, no Mercado Pago. Cartão ou Pix, conforme disponível. Sem assinatura.",
+  titulo: "Quantos convidados vão à festa?",
+  sub: "Pagamento único. Cada convidado tem 36 poses. Pix ou cartão, sem assinatura.",
   expirado: "Nada foi cobrado. Quando quiser, comece um novo pagamento.",
   provedor: "Seu pedido está guardado; tente de novo em 1 minuto.",
   outroPlano: (nome: string) => `Você já tem um pagamento aberto do plano ${nome}. Conclua esse ou deixe expirar antes de escolher outro plano.`,

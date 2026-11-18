@@ -6,7 +6,7 @@ import { PlanPicker } from "./PlanPicker";
 import type { PublicPlan, PublicSettings } from "./types";
 
 const P = (code: string, name: string, g: number | null, s: number | null, cents: number, free = false): PublicPlan => ({ code, name, maxGuests: g, maxShots: s, priceCents: cents, isFree: free, features: [] });
-const PLANS = [P("gratis", "Grátis", 10, 10, 0, true), P("festa", "Festa", 30, 24, 2900), P("casamento", "Casamento", 250, 36, 18900)];
+const PLANS = [P("gratis", "Grátis", 10, 10, 0, true), P("festa", "Festa", 30, 24, 2900), { ...P("casamento", "Casamento", 250, 36, 18900), highlighted: true }];
 const S: PublicSettings = { supportEmail: null, supportPhone: null, companyLegalName: null, companyCnpj: null, paymentsEnv: "sandbox", capacityGracePct: 10 };
 
 describe("PlanPicker initialPlan", () => {

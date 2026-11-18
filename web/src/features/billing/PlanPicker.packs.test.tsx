@@ -59,7 +59,7 @@ describe.each([["ramo nativo (ValidaPay)", true], ["ramo Mercado Pago", false]] 
     expect(screen.queryByTestId("cartao-mais-poses")).toBeNull();
     unmount();
     const c = render(<PlanPicker {...base} currentCode="casamento" />);
-    await screen.findAllByRole("radio");
+    await screen.findByText(/Plano atual|Seu plano/);
     expect(screen.queryByTestId("cartao-mais-poses")).toBeNull();
     c.unmount();
     render(<PlanPicker {...base} currentCode="festa" packs={[{ ...PACKS[0], available: false }]} />);

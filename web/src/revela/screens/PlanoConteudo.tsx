@@ -44,8 +44,8 @@ export function PlanoConteudo({
         {warning && <p className="rv-caption" style={{ marginTop: "12px", color: "var(--carimbo)" }}>{warning}</p>}
       </div>
       {extra}
-      <h2 className="rv-group-h">Aumentar para</h2>
-      <PlanCards plans={plans} selected={selected} onSelect={onSelect} />
+      {plans.length > 0 && <h2 className="rv-group-h">Aumentar para</h2>}
+      {plans.length > 0 && <PlanCards plans={plans} selected={selected} onSelect={onSelect} />}
       {afterPlans}
       <div className="grow" />
       <div className="paynote">

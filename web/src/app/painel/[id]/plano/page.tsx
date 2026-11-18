@@ -133,7 +133,7 @@ function PlanoCorpo() {
     body = <CheckoutPending order={order} plans={lookup} warning={warning} eventId={eventId} returnHint={returnHint} busy={busy} onOrder={onOrder} onChoosePlan={toPicker} onNewCheckout={() => void pay(order.planCode, true)} />;
   } else {
     body = (
-      <PlanPicker eventId={eventId} plans={plans} currentCode={basePlanCode(packs, current)} packs={packs} hasPack={!!packByCode(packs, current)} settings={settings} busy={busy} error={error} initialPlan={initialPlan} usage={{ guests: participants?.length ?? 0, shots: event.shotsPerPerson ?? null }} onPay={(c) => void pay(c)}
+      <PlanPicker eventId={eventId} plans={plans} currentCode={basePlanCode(packs, current)} currentPlan={lookup.find((p) => p.code === basePlanCode(packs, current))} packs={packs} hasPack={!!packByCode(packs, current)} settings={settings} busy={busy} error={error} initialPlan={initialPlan} usage={{ guests: participants?.length ?? 0, shots: event.shotsPerPerson ?? null }} onPay={(c) => void pay(c)}
         onRedeemed={(r) => { setApplied({ planCode: r.planCode ?? "", code: r.code }); void currentPlanCode(eventId).then(setCurrent); void refresh(); }} />
     );
   }
