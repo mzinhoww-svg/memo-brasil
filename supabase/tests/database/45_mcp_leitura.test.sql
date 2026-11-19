@@ -22,11 +22,8 @@ select is((select count(distinct p.proname)::int from pg_proc p join pg_namespac
             where n.nspname = 'public' and p.proname = any (public.mcp_read_functions())),
           cardinality(public.mcp_read_functions()), 'todas as funções da lista existem');
 
--- identidade do bot: papel master ativo, sem senha
-select ok(exists (select 1 from public.platform_roles where user_id = '00000000-0000-4000-8000-00000000b07a' and role = 'master' and revoked_at is null),
-          'bot tem papel master ativo');
-select ok((select encrypted_password is null or encrypted_password = '' from auth.users where id = '00000000-0000-4000-8000-00000000b07a'),
-          'bot não tem senha');
+select ok(not exists (select 1 from auth.users where id = '00000000-0000-4000-8000-00000000b07a'), 'sem token emitido, o bot não existe');
+select ok(not has_function_privilege('authenticated', 'public.mcp_ensure_bot()', 'execute'), 'authenticated não cria o bot');
 
 -- ===================================================== emissão e revogação (escritas: antes das leituras)
 select public.mcp_issue_token('teste45') as tok \gset
@@ -34,6 +31,11 @@ select public.mcp_issue_token('revogado45') as tok_rev \gset
 select ok(:'tok' ~ '^mcp_[0-9a-f]{64}$', 'token no formato mcp_ + 64 hex');
 select ok(not exists (select 1 from public.mcp_tokens where token_hash = :'tok'), 'token em claro não é guardado');
 select ok(public.mcp_revoke_token('revogado45'), 'revoga pelo nome');
+-- identidade do bot criada na primeira emissão: papel master ativo, sem senha
+select ok(exists (select 1 from public.platform_roles where user_id = '00000000-0000-4000-8000-00000000b07a' and role = 'master' and revoked_at is null),
+          'bot tem papel master ativo');
+select ok((select encrypted_password is null or encrypted_password = '' from auth.users where id = '00000000-0000-4000-8000-00000000b07a'),
+          'bot não tem senha');
 
 -- ===================================================== leitura pelo bot (como anon, só com o token)
 set local role anon;

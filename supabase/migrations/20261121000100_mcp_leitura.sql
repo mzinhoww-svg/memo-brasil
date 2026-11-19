@@ -18,20 +18,6 @@ create table public.mcp_tokens (
 alter table public.mcp_tokens enable row level security; -- sem policies: nenhum cliente lê ou escreve
 revoke all on public.mcp_tokens from public, anon, authenticated;
 
--- ---------------------------------------------------------------- identidade do bot (sem senha: não há como entrar com ela)
-insert into auth.users (id, instance_id, aud, role, email, is_anonymous, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-values ('00000000-0000-4000-8000-00000000b07a', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-        'mcp-bot@fotosdocasamento.online', false, '{"role": "master", "mcp": true}', '{"name": "Bot MCP (somente leitura)"}', now(), now())
-on conflict (id) do nothing;
-insert into public.profiles (id) values ('00000000-0000-4000-8000-00000000b07a') on conflict do nothing;
-do $$
-begin
-  if not exists (select 1 from public.platform_roles where user_id = '00000000-0000-4000-8000-00000000b07a' and role = 'master' and revoked_at is null) then
-    perform set_config('mm.audit_reason', 'Bot MCP somente leitura: identidade usada só por mcp_read, sem senha', true);
-    insert into public.platform_roles (user_id, role) values ('00000000-0000-4000-8000-00000000b07a', 'master');
-  end if;
-end $$;
-
 -- ---------------------------------------------------------------- lista fechada (ferramenta → função)
 create or replace function public.mcp_read_functions() returns text[]
 language sql immutable set search_path = '' as $$
@@ -112,16 +98,34 @@ revoke all on function public.mcp_read_functions(), public.mcp_tools() from publ
 grant execute on function public.mcp_read_functions(), public.mcp_tools() to authenticated, service_role;
 
 -- ---------------------------------------------------------------- operador (SQL editor do Supabase): emitir e revogar
+-- identidade do bot (sem senha: não há como entrar com ela), criada só na primeira emissão de token, para não aparecer em bases
+-- que nunca usaram o MCP (testes, ambientes de prévia)
+create or replace function public.mcp_ensure_bot() returns uuid
+language plpgsql volatile security definer set search_path = '' as $$
+declare bot constant uuid := '00000000-0000-4000-8000-00000000b07a';
+begin
+  insert into auth.users (id, instance_id, aud, role, email, is_anonymous, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  values (bot, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'mcp-bot@fotosdocasamento.online', false,
+          '{"role": "master", "mcp": true}', '{"name": "Bot MCP (somente leitura)"}', now(), now())
+  on conflict (id) do nothing;
+  insert into public.profiles (id) values (bot) on conflict do nothing;
+  if not exists (select 1 from public.platform_roles where user_id = bot and role = 'master' and revoked_at is null) then
+    perform set_config('mm.audit_reason', 'Bot MCP somente leitura: identidade usada só por mcp_read, sem senha', true);
+    insert into public.platform_roles (user_id, role) values (bot, 'master');
+  end if;
+  return bot;
+end $$;
+
 create or replace function public.mcp_issue_token(p_name text) returns text
 language plpgsql volatile security definer set search_path = '' as $$
 declare tok text := 'mcp_' || replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
 begin
   insert into public.mcp_tokens (name, token_hash, actor_id)
-  values (btrim(p_name), encode(extensions.digest(tok, 'sha256'), 'hex'), '00000000-0000-4000-8000-00000000b07a');
+  values (btrim(p_name), encode(extensions.digest(tok, 'sha256'), 'hex'), public.mcp_ensure_bot());
   return tok; -- única vez em que o token aparece em claro
 end $$;
 create or replace function public.mcp_revoke_token(p_name text) returns boolean
 language sql volatile security definer set search_path = '' as $$
   update public.mcp_tokens set revoked_at = now() where name = btrim(p_name) and revoked_at is null returning true
 $$;
-revoke all on function public.mcp_issue_token(text), public.mcp_revoke_token(text) from public, anon, authenticated, service_role;
+revoke all on function public.mcp_issue_token(text), public.mcp_revoke_token(text), public.mcp_ensure_bot() from public, anon, authenticated, service_role;
