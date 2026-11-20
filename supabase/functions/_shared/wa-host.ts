@@ -20,6 +20,9 @@ export type HostItem = {
 };
 
 const SAIR = "Para não receber mais avisos, responda SAIR.";
+/** WhatsApp de vendas: dúvida sobre plano/pagamento vai para uma pessoa (este número só envia avisos). */
+export const SALES_WA = "https://wa.me/5565996227110";
+const DUVIDAS = `Dúvidas? Fale com a gente: ${SALES_WA}`;
 const firstName = (name: string | null) => cleanTitle(name).split(" ")[0];
 const greet = (name: string | null) => (firstName(name) ? `Oi, ${firstName(name)}!` : "Oi!");
 
@@ -36,9 +39,9 @@ export function buildHostMessage(i: HostItem, origin: string): string | null {
   const title = cleanTitle(i.event_title);
   switch (i.kind) {
     case "pedido_1h":
-      return `${greet(i.host_name)} Vi que o pagamento da câmera do seu evento não foi concluído. Quer tentar de novo? É só tocar aqui: ${recoveryLink(origin, i)}\n\n${SAIR}`;
+      return `${greet(i.host_name)} Vi que o pagamento da câmera do seu evento não foi concluído. Quer tentar de novo? É só tocar aqui: ${recoveryLink(origin, i)}\n\n${DUVIDAS}\n${SAIR}`;
     case "pedido_24h":
-      return `${firstName(i.host_name) ? `${firstName(i.host_name)}, a` : "A"} câmera ${title ? `de "${title}"` : "do seu evento"} continua pronta te esperando. Se preferir, dá para seguir no plano grátis e mudar depois. Retomar: ${recoveryLink(origin, i)}\n\n${SAIR}`;
+      return `${firstName(i.host_name) ? `${firstName(i.host_name)}, a` : "A"} câmera ${title ? `de "${title}"` : "do seu evento"} continua pronta te esperando. Se preferir, dá para seguir no plano grátis e mudar depois. Retomar: ${recoveryLink(origin, i)}\n\n${DUVIDAS}\n${SAIR}`;
     default:
       return null;
   }

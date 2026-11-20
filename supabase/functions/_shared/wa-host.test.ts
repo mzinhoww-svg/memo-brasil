@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildHostMessage, handleHostOptinRequest, hostSubjectId, parseHostSubject, recoveryLink, type HostItem } from "./wa-host";
+import { buildHostMessage, handleHostOptinRequest, hostSubjectId, parseHostSubject, recoveryLink, SALES_WA, type HostItem } from "./wa-host";
 import { parseSubjectId } from "./wa-optin";
 import { runDispatch } from "./wa-dispatch";
 
@@ -33,12 +33,14 @@ describe("mensagens de recuperação de pedido", () => {
     expect(t).toContain(recoveryLink(O, item()));
     expect(t).toContain("responda SAIR");
     expect(t).not.toMatch(/responde esta mensagem/);
+    expect(t).toContain("Dúvidas? Fale com a gente: https://wa.me/5565996227110");
   });
   it("24 h: nome do evento e a opção de seguir no grátis", () => {
     const t = buildHostMessage(item({ kind: "pedido_24h" }), O)!;
     expect(t).toContain('a câmera de "Casamento Ana e Beto" continua pronta');
     expect(t).toContain("seguir no plano grátis");
     expect(t).toContain("utm_campaign=pedido_24h");
+    expect(t).toContain(SALES_WA);
     expect(t).toContain("responda SAIR");
   });
   it("sem nome: saudação neutra; título com aspas/quebras é limpo", () => {
