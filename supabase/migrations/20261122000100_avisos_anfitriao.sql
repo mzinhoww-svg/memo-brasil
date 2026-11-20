@@ -123,7 +123,7 @@ begin
     return 'teste';
   end if;
   if e.deleted_at is not null then return 'evento_apagado'; end if;
-  if e.start_at + make_interval(hours => coalesce(e.duration_hours, 6)) < now() then return 'evento_passou'; end if;
+  if e.start_at + coalesce(e.duration_hours, 6) * interval '1 hour' < now() then return 'evento_passou'; end if;
   if o.order_id is not null and exists (
        select 1 from public.payment_orders x
        where x.event_id = o.event_id and x.provider_env = 'production' and x.id <> po.id and x.created_at > po.created_at) then
