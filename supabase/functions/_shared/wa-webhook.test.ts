@@ -94,3 +94,26 @@ describe("webhook do gateway", () => {
     expect(JSON.stringify(r)).not.toMatch(/5565|test-only/);
   });
 });
+
+describe("webhook: opt-in do anfitrião (subject host.<user_id>)", () => {
+  const host = (type: "optin.confirmed" | "optin.revoked", phone: string | null = "5565999992222") =>
+    JSON.stringify({ type, instanceId: "revela", project: "revela", subjectId: `host.${US}`, phone, at: "2026-11-22T10:00:00.000Z" });
+  it("confirmado vai para o anfitrião, nunca para o convidado", async () => {
+    const apply = vi.fn(); const applyHost = vi.fn(async () => "applied" as const);
+    const raw = host("optin.confirmed");
+    const r = await handleWaWebhook({ raw, signature: sign(raw), secret, apply, applyHost });
+    expect(r).toEqual({ status: 200, body: { ok: true, outcome: "applied" } });
+    expect(applyHost).toHaveBeenCalledWith({ type: "optin.confirmed", userId: US, phone: "5565999992222", at: "2026-11-22T10:00:00.000Z" });
+    expect(apply).not.toHaveBeenCalled();
+  });
+  it("SAIR (revogado) também chega ao anfitrião", async () => {
+    const applyHost = vi.fn(async () => "applied" as const);
+    const raw = host("optin.revoked", null);
+    await handleWaWebhook({ raw, signature: sign(raw), secret, apply: vi.fn(), applyHost });
+    expect(applyHost).toHaveBeenCalledWith({ type: "optin.revoked", userId: US, phone: null, at: "2026-11-22T10:00:00.000Z" });
+  });
+  it("sem applyHost configurado: ignora o subject do anfitrião", async () => {
+    const raw = host("optin.confirmed");
+    expect(await handleWaWebhook({ raw, signature: sign(raw), secret, apply: vi.fn() })).toEqual({ status: 200, body: { ok: true, ignored: "subject" } });
+  });
+});

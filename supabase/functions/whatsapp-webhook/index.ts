@@ -21,6 +21,14 @@ Deno.serve(async (req) => {
       }
       return data as "applied" | "stale" | "blocked" | "unknown_subject";
     },
+    applyHost: async (i) => {
+      const { data, error } = await admin.rpc("host_whatsapp_apply_event", { p_type: i.type, p_user: i.userId, p_phone: i.phone, p_at: i.at });
+      if (error) {
+        if (error.code === "MM005") return "invalid";
+        throw new Error("apply_host");
+      }
+      return data as "applied" | "stale" | "unknown_subject";
+    },
   });
   logWa(FN, `${r.status}:${String(r.body.outcome ?? r.body.ignored ?? r.body.error ?? "ok")}`);
   return jsonResponse(r.body, r.status);

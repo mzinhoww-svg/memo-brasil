@@ -1,17 +1,20 @@
 // Webhook do gateway (puro): valida a assinatura do corpo BRUTO antes de qualquer parse e aplica eventos de opt-in.
 // A gravação (RPC whatsapp_apply_event) é idempotente e à prova de ordem, então o gateway pode repetir a entrega (3 tentativas).
+import { parseHostSubject } from "./wa-host.ts";
 import { parseSubjectId } from "./wa-optin.ts";
 import { verifyWaSignature } from "./wa-signature.ts";
 
 export type ApplyInput = { type: "optin.confirmed" | "optin.revoked"; eventId: string; userId: string; phone: string | null; at: string };
 export type ApplyOutcome = "applied" | "stale" | "blocked" | "unknown_subject" | "invalid";
 export type ApplyFn = (i: ApplyInput) => Promise<ApplyOutcome>;
+/** Opt-in do anfitrião (subject `host.<user_id>`): conta inteira, sem evento. */
+export type HostApplyFn = (i: { type: ApplyInput["type"]; userId: string; phone: string | null; at: string }) => Promise<ApplyOutcome>;
 export type WebhookResult = { status: number; body: Record<string, unknown> };
 
 const MAX_BODY = 65_536;
 const PROJECT = "revela";
 
-export async function handleWaWebhook(i: { raw: string; signature: string | null; secret: string; apply: ApplyFn }): Promise<WebhookResult> {
+export async function handleWaWebhook(i: { raw: string; signature: string | null; secret: string; apply: ApplyFn; applyHost?: HostApplyFn }): Promise<WebhookResult> {
   if (!i.secret) return { status: 503, body: { error: "disabled" } };
   if (i.raw.length > MAX_BODY) return { status: 413, body: { error: "invalid" } };
   if (!(await verifyWaSignature(i.raw, i.signature, i.secret))) return { status: 401, body: { error: "unauthorized" } };
@@ -24,7 +27,8 @@ export async function handleWaWebhook(i: { raw: string; signature: string | null
   if (ev.type !== "optin.confirmed" && ev.type !== "optin.revoked") return { status: 200, body: { ok: true, ignored: "type" } };
   if (ev.project !== PROJECT || ev.instanceId !== PROJECT) return { status: 200, body: { ok: true, ignored: "project" } };
   const subject = parseSubjectId(ev.subjectId);
-  if (!subject) return { status: 200, body: { ok: true, ignored: "subject" } };
+  const hostSubject = subject ? null : parseHostSubject(ev.subjectId);
+  if (!subject && !(hostSubject && i.applyHost)) return { status: 200, body: { ok: true, ignored: "subject" } };
 
   const at = typeof ev.at === "string" && !Number.isNaN(Date.parse(ev.at)) ? ev.at : null;
   if (!at) return { status: 400, body: { error: "invalid" } };
@@ -38,7 +42,9 @@ export async function handleWaWebhook(i: { raw: string; signature: string | null
   if (phone === "") phone = null;
 
   try {
-    const outcome = await i.apply({ type: ev.type, eventId: subject.eventId, userId: subject.userId, phone, at });
+    const outcome = subject
+      ? await i.apply({ type: ev.type, eventId: subject.eventId, userId: subject.userId, phone, at })
+      : await i.applyHost!({ type: ev.type, userId: hostSubject!.userId, phone, at });
     return { status: 200, body: { ok: true, outcome } };
   } catch {
     return { status: 500, body: { error: "indisponivel" } };

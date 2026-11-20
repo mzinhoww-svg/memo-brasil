@@ -1,5 +1,6 @@
 /* Gerado de design-system/revela/html/Painel-resumo.html por scripts/html-to-tsx.mjs. Markup, classes, textos e estilos inline = referência. */
 "use client";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ScreenHeader } from "../painel-ui";
 
@@ -13,6 +14,8 @@ export interface PainelResumoProps {
   cards?: { sub: string; href: string }[];
   settingsHref?: string;
   onBack?: () => void;
+  /** Avisos acima dos números (limite do plano, avisos no WhatsApp). */
+  extra?: ReactNode;
 }
 export const PAINEL_RESUMO_REF: Required<PainelResumoProps> = {
   name: "Ana & Leo", live: true, stamp: "REVELA DOM 12:00",
@@ -22,10 +25,10 @@ export const PAINEL_RESUMO_REF: Required<PainelResumoProps> = {
     { sub: "32 entraram", href: "#" }, { sub: "12 links", href: "#" }, { sub: "6 momentos", href: "#" }, { sub: "1 agendado", href: "#" },
     { sub: "2 denúncias", href: "#" }, { sub: "ZIP e CSV", href: "#" }, { sub: "Casamento", href: "#" }, { sub: "Casamento", href: "#" },
   ],
-  settingsHref: "#", onBack: () => undefined,
+  settingsHref: "#", onBack: () => undefined, extra: null,
 };
 
-export function PainelResumo({ name = PAINEL_RESUMO_REF.name, live = PAINEL_RESUMO_REF.live, stamp = PAINEL_RESUMO_REF.stamp, tiles = PAINEL_RESUMO_REF.tiles, gauge = PAINEL_RESUMO_REF.gauge, cards = PAINEL_RESUMO_REF.cards, settingsHref = "#", onBack }: PainelResumoProps = {}) {
+export function PainelResumo({ name = PAINEL_RESUMO_REF.name, live = PAINEL_RESUMO_REF.live, stamp = PAINEL_RESUMO_REF.stamp, tiles = PAINEL_RESUMO_REF.tiles, gauge = PAINEL_RESUMO_REF.gauge, cards = PAINEL_RESUMO_REF.cards, settingsHref = "#", onBack, extra }: PainelResumoProps = {}) {
   return (
     <>
     <div className="scr">
@@ -44,6 +47,7 @@ export function PainelResumo({ name = PAINEL_RESUMO_REF.name, live = PAINEL_RESU
             {stamp}
           </span>
         </div>
+        {extra && <div className="stack" style={{ "marginTop": "12px" }}>{extra}</div>}
         <div className="tiles" style={{ "marginTop": "12px" }}>
           <div className="tile">
             <span>

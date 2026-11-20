@@ -14,6 +14,7 @@ import { validapayCheckoutEnabled } from "@/features/billing/checkout-provider";
 import { goToCheckout } from "@/features/billing/checkout-nav";
 import { CheckoutPending, ProviderDown } from "@/features/billing/CheckoutPending";
 import { PlanPicker } from "@/features/billing/PlanPicker";
+import { HostWhatsappOptIn } from "@/features/host-whatsapp/HostWhatsappOptIn";
 import { CodeApplied } from "@/features/billing/RedeemCode";
 import { basePlanCode, lookupPlans, packByCode } from "@/features/billing/pose-packs";
 import type { OrderView, PosePack, PublicPlan, PublicSettings } from "@/features/billing/types";
@@ -146,6 +147,7 @@ function PlanoCorpo() {
   return (
     <div className="plano-pagina pf-pad">
       {body}
+      <HostWhatsappOptIn />
     </div>
   );
 }

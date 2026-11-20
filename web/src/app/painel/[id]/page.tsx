@@ -1,5 +1,7 @@
 "use client";
 
+import { HostWhatsappOptIn } from "@/features/host-whatsapp/HostWhatsappOptIn";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { eventStatus } from "@/domain/event";
@@ -64,6 +66,7 @@ export default function VisaoGeral() {
       ]}
       settingsHref={`${base}/configuracoes`}
       onBack={() => router.push("/eventos")}
+      extra={<HostWhatsappOptIn />}
     />
   );
 }
