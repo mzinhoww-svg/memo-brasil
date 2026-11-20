@@ -1,0 +1,86 @@
+import { describe, expect, it, vi } from "vitest";
+import { buildHostMessage, handleHostOptinRequest, hostSubjectId, parseHostSubject, recoveryLink, type HostItem } from "./wa-host";
+import { parseSubjectId } from "./wa-optin";
+import { runDispatch } from "./wa-dispatch";
+
+const O = "https://fotosdocasamento.online";
+const item = (over: Partial<HostItem> = {}): HostItem => ({
+  id: 7, kind: "pedido_1h", phone: "5565999990000", host_name: "Ana", event_id: "11111111-1111-4111-8111-111111111111",
+  event_title: "Casamento Ana e Beto", event_code: "AB23CD45", plan_code: "ate150", attempts: 1, ...over,
+});
+
+describe("subject do anfitrião", () => {
+  const uid = "22222222-2222-4222-8222-222222222222";
+  it("host.<user_id> ida e volta, sem dado pessoal", () => {
+    expect(hostSubjectId(uid)).toBe(`host.${uid}`);
+    expect(parseHostSubject(`host.${uid}`)).toEqual({ userId: uid });
+  });
+  it("não confunde com o subject do convidado (evento.usuário)", () => {
+    expect(parseHostSubject(`${uid}.${uid}`)).toBeNull();
+    expect(parseSubjectId(`host.${uid}`)).toBeNull();
+    expect(parseHostSubject("host.lixo")).toBeNull();
+  });
+});
+
+describe("mensagens de recuperação de pedido", () => {
+  it("link reabre o plano do evento com a faixa escolhida e marca a origem", () => {
+    expect(recoveryLink(O, item())).toBe(`${O}/painel/11111111-1111-4111-8111-111111111111/plano?plano=ate150&utm_source=whatsapp&utm_medium=recuperacao&utm_campaign=pedido_1h`);
+  });
+  it("1 h: nome, link e saída; sem promessa de atendimento por resposta", () => {
+    const t = buildHostMessage(item(), O)!;
+    expect(t).toMatch(/^Oi, Ana!/);
+    expect(t).toContain("pagamento da câmera do seu evento não foi concluído");
+    expect(t).toContain(recoveryLink(O, item()));
+    expect(t).toContain("responda SAIR");
+    expect(t).not.toMatch(/responde esta mensagem/);
+  });
+  it("24 h: nome do evento e a opção de seguir no grátis", () => {
+    const t = buildHostMessage(item({ kind: "pedido_24h" }), O)!;
+    expect(t).toContain('a câmera de "Casamento Ana e Beto" continua pronta');
+    expect(t).toContain("seguir no plano grátis");
+    expect(t).toContain("utm_campaign=pedido_24h");
+    expect(t).toContain("responda SAIR");
+  });
+  it("sem nome: saudação neutra; título com aspas/quebras é limpo", () => {
+    expect(buildHostMessage(item({ host_name: null }), O)).toMatch(/^Oi!/);
+    expect(buildHostMessage(item({ kind: "pedido_24h", event_title: 'A "B"\n\nC' }), O)).toContain('"A B C"');
+  });
+  it("tipo desconhecido não vira mensagem", () => {
+    expect(buildHostMessage(item({ kind: "outro" }), O)).toBeNull();
+  });
+  it("o laço de envio comum aceita os itens do anfitrião", async () => {
+    const send = vi.fn(async () => ({ id: "gw" }));
+    const mark = vi.fn(async () => undefined);
+    const r = await runDispatch<HostItem>({
+      enabled: async () => true, claim: async () => [item()], send, mark, revoke: async () => undefined,
+      sleep: async () => undefined, siteOrigin: O, batch: 4, hourlyCap: 55, maxAttempts: 5, build: buildHostMessage,
+    });
+    expect(r.sent).toBe(1);
+    expect(send).toHaveBeenCalledWith({ phone: "5565999990000", text: buildHostMessage(item(), O) });
+    expect(mark).toHaveBeenCalledWith(item(), "enviado", { gatewayId: "gw" });
+  });
+});
+
+describe("pedido de opt-in do anfitrião", () => {
+  const base = {
+    userId: "22222222-2222-4222-8222-222222222222",
+    status: vi.fn(async () => ({ enabled: true })),
+    rateLimit: vi.fn(async () => true),
+    siteOrigin: O,
+    createOptin: vi.fn(async () => ({ waLink: "https://wa.me/5565000000000?text=x", expiresAt: "2026-11-22T10:00:00Z" })),
+  };
+  it("gera o link wa.me com subject host.<user_id> e texto próprio de anfitrião", async () => {
+    const r = await handleHostOptinRequest(base);
+    expect(r).toEqual({ status: 200, body: { waLink: "https://wa.me/5565000000000?text=x", expiresAt: "2026-11-22T10:00:00Z" } });
+    const arg = (base.createOptin.mock.calls[0] as unknown as [{ subjectId: string; replyText: string; messageTemplate: string }])[0];
+    expect(arg.subjectId).toBe("host.22222222-2222-4222-8222-222222222222");
+    expect(arg.messageTemplate).toContain("{{code}}");
+    expect(arg.replyText).toContain("SAIR");
+    expect(arg.replyText).toContain(`${O}/eventos`);
+  });
+  it("sem sessão: 401; recurso desligado: 503; muitas tentativas: 429", async () => {
+    expect((await handleHostOptinRequest({ ...base, userId: null })).status).toBe(401);
+    expect((await handleHostOptinRequest({ ...base, status: async () => ({ enabled: false }) })).status).toBe(503);
+    expect((await handleHostOptinRequest({ ...base, rateLimit: async () => false })).status).toBe(429);
+  });
+});

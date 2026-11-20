@@ -5,13 +5,17 @@ import { WaGatewayError } from "./wa-gateway.ts";
 
 export type ClaimedItem = { event_id: string; user_id: string; kind: string; phone: string | null; title: string; code: string; attempts: number };
 export type MarkStatus = "enviado" | "pendente" | "revogado" | "falhou";
-export type DispatchDeps = {
+/** O que o worker precisa de cada item; avisos ao convidado (ClaimedItem) e ao anfitrião (wa-host.ts) usam o mesmo laço. */
+export type SendableItem = { phone: string | null; attempts: number };
+export type DispatchDeps<T extends SendableItem = ClaimedItem> = {
   enabled: () => Promise<boolean>;
-  claim: (limit: number, hourlyCap: number) => Promise<ClaimedItem[]>;
+  claim: (limit: number, hourlyCap: number) => Promise<T[]>;
   send: (i: { phone: string; text: string }) => Promise<{ id: string }>;
-  mark: (item: ClaimedItem, status: MarkStatus, extra: { gatewayId?: string; error?: string; retryInS?: number }) => Promise<void>;
+  mark: (item: T, status: MarkStatus, extra: { gatewayId?: string; error?: string; retryInS?: number }) => Promise<void>;
   /** registra a saída (optin.revoked) quando o gateway diz que a pessoa não tem opt-in */
-  revoke: (item: ClaimedItem) => Promise<void>;
+  revoke: (item: T) => Promise<void>;
+  /** texto da mensagem (padrão: aviso de revelação ao convidado); null = tipo desconhecido */
+  build?: (item: T, origin: string) => string | null;
   sleep: (ms: number) => Promise<void>;
   siteOrigin: string;
   batch: number;
@@ -29,7 +33,7 @@ export function buildMessage(i: ClaimedItem, origin = ""): string | null {
   return `Suas fotos de "${clean(i.title, 60)}" foram reveladas no Revela! 🎉\nVeja o álbum: ${origin}/e/${i.code}/agora\n\nPara parar de receber avisos, responda SAIR.`;
 }
 
-export async function runDispatch(d: DispatchDeps): Promise<DispatchReport> {
+export async function runDispatch<T extends SendableItem = ClaimedItem>(d: DispatchDeps<T>): Promise<DispatchReport> {
   const r: DispatchReport = { sent: 0, retried: 0, failed: 0, revoked: 0, stoppedEarly: false };
   if (!(await d.enabled())) return { ...r, skipped: "desligado" };
   const items = await d.claim(d.batch, d.hourlyCap);
@@ -37,7 +41,7 @@ export async function runDispatch(d: DispatchDeps): Promise<DispatchReport> {
   for (let n = 0; n < items.length; n++) {
     const it = items[n];
     if (!it.phone) { await d.mark(it, "revogado", { error: "sem_telefone" }); r.revoked++; continue; }
-    const text = buildMessage(it, d.siteOrigin);
+    const text = d.build ? d.build(it, d.siteOrigin) : buildMessage(it as unknown as ClaimedItem, d.siteOrigin);
     if (!text) { await d.mark(it, "falhou", { error: "tipo_desconhecido" }); r.failed++; continue; }
     if (n > 0) await d.sleep(SPACING_MS);
     try {
