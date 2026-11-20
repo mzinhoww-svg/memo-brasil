@@ -1,4 +1,4 @@
-import { MNote } from "@/revela/master-kit";
+import { BtnLink, MNote } from "@/revela/master-kit";
 import { MasterStatePage } from "@/revela/master";
 import { ExportSheetButton } from "../ExportSheetButton";
 import { ReconcileSheetButton } from "../ReconcileSheetButton";
@@ -44,7 +44,7 @@ export default async function Pagamentos({ searchParams }: { searchParams: Promi
     return { key: o.orderId, when: relWhen(o.createdAt), order: `#${o.orderId.slice(0, 8).toUpperCase()}`, event: o.eventTitle ?? "Evento excluído", plan: o.planName ?? o.planCode, method: methodLabel(o.paymentMethod), amount: brl(o.amountCents), tone: st.tone, status: st.label, href: `/master/pagamentos/${o.orderId}` };
   });
   if (all.length === 0 && !filtro) {
-    return <MasterStatePage area="Pagamentos" variant="empty" caption="Cobranças da ValidaPay, conciliadas com os pedidos do Revela" title="Nenhum pagamento ainda" text="Quando alguém pagar um plano, o pedido aparece aqui." actions={<ReconcileSheetButton />} />;
+    return <MasterStatePage area="Pagamentos" variant="empty" caption="Cobranças da ValidaPay, conciliadas com os pedidos do Revela" title="Nenhum pagamento ainda" text="Quando alguém pagar um plano, o pedido aparece aqui." actions={<><ReconcileSheetButton /><BtnLink href="/master/pagamentos/crescimento">Funil de crescimento</BtnLink></>} />;
   }
   const sum = s.state === "ok" ? s.data : null;
   const lastAt = lastReq.state === "ok" ? lastReq.data.items[0]?.at : undefined;
@@ -62,6 +62,7 @@ export default async function Pagamentos({ searchParams }: { searchParams: Promi
       chips={FILTROS.map(([k, label]) => ({ label, href: k ? `/master/pagamentos?f=${k}` : "/master/pagamentos", on: k === filtro }))}
       rows={rows}
       actions={<>
+        <BtnLink href="/master/pagamentos/crescimento">Funil de crescimento</BtnLink>
         <ReconcileSheetButton last={lastAt ? relWhen(lastAt) : undefined} />
         <ExportSheetButton kind="pagamentos" screen="pagamentos" screenLabel="Pagamentos" filters={{ f: filtro }} period="Todo o período"
           filtersText={`Método e situação: ${FILTROS.find(([k]) => k === filtro)?.[1] ?? "Todos"}`} rowsEstimate={shown.length} />
