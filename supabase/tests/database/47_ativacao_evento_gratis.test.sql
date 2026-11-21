@@ -58,8 +58,10 @@ select public.host_whatsapp_apply_event('optin.confirmed', '00000000-0000-4000-8
 update public.host_outbox set next_attempt_at = now() - interval '1 minute' where event_id = '00000000-0000-4000-8000-0000000047e3' and kind = 'ativ_criado';
 select is((select kind from public.host_claim_batch(10, 55)), 'ativ_criado', 'ativou os avisos: o aviso de criado sai');
 
-insert into public.events (id, title, category, host_id, host_name, duration_hours, start_at, created_at) values
-  ('00000000-0000-4000-8000-0000000047e4', 'Antigo', 'festa', '00000000-0000-4000-8000-0000000047a2', 'Caio', 4, now() + interval '30 days', now() - interval '25 hours');
+insert into public.events (id, title, category, host_id, host_name, duration_hours, start_at) values
+  ('00000000-0000-4000-8000-0000000047e4', 'Antigo', 'festa', '00000000-0000-4000-8000-0000000047a2', 'Caio', 4, now() + interval '30 days');
+-- o banco grava created_at do servidor: envelhece o aviso direto na fila (criado há 25 h)
+update public.host_outbox set send_after = now() - interval '25 hours' where event_id = '00000000-0000-4000-8000-0000000047e4' and kind = 'ativ_criado';
 select is((select count(*)::int from public.host_claim_batch(10, 55)), 0, 'criado há mais de 24 h não sai');
 select is((select last_error from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e4' and kind = 'ativ_criado'), 'atrasado', 'motivo: atrasado');
 
