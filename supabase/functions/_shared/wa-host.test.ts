@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-<<<<<<< HEAD
 import { buildHostMessage, eventLink, handleHostOptinRequest, hostSubjectId, parseHostSubject, recoveryLink, SALES_WA, type HostItem } from "./wa-host";
-=======
-import { buildHostMessage, handleHostOptinRequest, hostSubjectId, parseHostSubject, recoveryLink, SALES_WA, type HostItem } from "./wa-host";
->>>>>>> origin/claude/pensive-wozniak-4w2wpo
 import { parseSubjectId } from "./wa-optin";
 import { runDispatch } from "./wa-dispatch";
 
@@ -67,7 +63,6 @@ describe("mensagens de recuperação de pedido", () => {
   });
 });
 
-<<<<<<< HEAD
 describe("ativação do evento grátis", () => {
   const ev = (kind: string, over: Partial<HostItem> = {}) => item({ kind, plan_code: null, ...over });
   it("logo depois de criar: QR com origem marcada, contato e saída", () => {
@@ -96,8 +91,6 @@ describe("ativação do evento grátis", () => {
   });
 });
 
-=======
->>>>>>> origin/claude/pensive-wozniak-4w2wpo
 describe("pedido de opt-in do anfitrião", () => {
   const base = {
     userId: "22222222-2222-4222-8222-222222222222",
