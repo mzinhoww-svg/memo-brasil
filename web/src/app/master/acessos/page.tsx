@@ -1,4 +1,4 @@
-import { parsePeriod, type AccessStats } from "@/lib/master/access-stats";
+import { parsePeriod, type AccessStats, type OriginConversion } from "@/lib/master/access-stats";
 import { MasterAcessosEstado, MasterAcessosView } from "@/revela/screens/MasterAcessos";
 import { requireRole, rpc } from "../data";
 
@@ -7,8 +7,11 @@ export default async function Acessos({ searchParams }: { searchParams: Promise<
   const gate = await requireRole("acessos");
   if ("denied" in gate) return gate.denied;
   const period = parsePeriod((await searchParams).dias);
-  const r = await rpc<AccessStats>(gate.sb, "admin_access_stats", { p_days: period });
+  const [r, conv] = await Promise.all([
+    rpc<AccessStats>(gate.sb, "admin_access_stats", { p_days: period }),
+    rpc<OriginConversion>(gate.sb, "admin_conversion_by_origin", { p_days: period }),
+  ]);
   if (r.state !== "ok") return <MasterAcessosEstado variant={r.state === "denied" ? "denied" : "error"} />;
   if (r.data.totals.views === 0) return <MasterAcessosEstado variant="empty" />;
-  return <MasterAcessosView stats={r.data} period={period} />;
+  return <MasterAcessosView stats={r.data} period={period} conversion={conv.state === "ok" && Array.isArray(conv.data?.rows) ? conv.data : null} />;
 }

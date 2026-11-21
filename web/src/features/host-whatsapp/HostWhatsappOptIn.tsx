@@ -14,7 +14,23 @@ const ERRORS = {
  * Opt-in do anfitrião: lembretes do evento e do pagamento no WhatsApp. Consentimento explícito (a pessoa toca e envia a mensagem
  * pelo próprio WhatsApp); some quando o recurso está desligado ou fora da nuvem; "SAIR" desativa a qualquer momento.
  */
-export function HostWhatsappOptIn() {
+const COPY = {
+  painel: {
+    title: "Avisos no WhatsApp",
+    body: "Receba os lembretes do seu evento e do pagamento no seu WhatsApp. Só sobre os seus eventos; para sair, envie SAIR a qualquer momento.",
+    cta: "Receber avisos no WhatsApp",
+  },
+  // logo depois de criar o evento: pergunta clara e opcional (texto da Coordenação)
+  criacao: {
+    title: "Quer receber no WhatsApp os lembretes do seu evento?",
+    body: "Avisamos quando faltar pouco para a festa e quando os convidados chegarem ao limite. Responda SAIR quando quiser.",
+    cta: "Sim, quero receber no WhatsApp",
+  },
+} as const;
+
+export function HostWhatsappOptIn({ variant = "painel" }: { variant?: keyof typeof COPY } = {}) {
+  const copy = COPY[variant];
+  const [dismissed, setDismissed] = useState(false);
   const [status, setStatus] = useState<HostWhatsappStatus | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -30,7 +46,7 @@ export function HostWhatsappOptIn() {
     finally { setBusy(false); }
   }
 
-  if (!status?.enabled) return null;
+  if (!status?.enabled || dismissed) return null;
   if (status.optin) {
     return (
       <section className="app-card stack" data-testid="host-wa-ativado">
@@ -41,16 +57,17 @@ export function HostWhatsappOptIn() {
   }
   return (
     <section className="app-card stack" aria-labelledby="host-wa-titulo">
-      <h2 id="host-wa-titulo" className="titulo-card app-h1">Avisos no WhatsApp</h2>
-      <p className="app-p app-muted">Receba os lembretes do seu evento e do pagamento no seu WhatsApp. Só sobre os seus eventos; para sair, envie SAIR a qualquer momento.</p>
+      <h2 id="host-wa-titulo" className="titulo-card app-h1">{copy.title}</h2>
+      <p className="app-p app-muted">{copy.body}</p>
       {error && <p className="rv-field-erro" role="alert">{error}</p>}
       {link ? (
         <a className="wa-btn wa-btn--compacto" href={link} target="_blank" rel="noopener"><WhatsappLogo />Abrir o WhatsApp e enviar</a>
       ) : (
         <button type="button" className="wa-btn wa-btn--compacto" onClick={() => void ask()} disabled={busy} aria-busy={busy || undefined}>
-          <WhatsappLogo />{error ? "Tentar de novo" : busy ? "Preparando o WhatsApp…" : "Receber avisos no WhatsApp"}
+          <WhatsappLogo />{error ? "Tentar de novo" : busy ? "Preparando o WhatsApp…" : copy.cta}
         </button>
       )}
+      {variant === "criacao" && !link && <button type="button" className="plano-link" onClick={() => setDismissed(true)}>Agora não</button>}
     </section>
   );
 }

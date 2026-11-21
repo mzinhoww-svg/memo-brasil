@@ -8,6 +8,7 @@ import { useApp } from "@/features/app/provider";
 import { CONSENT_FAILED } from "@/features/consent/ConsentCheck";
 import { currentConsent, recordConsent } from "@/lib/consent";
 import { createEvent } from "./service";
+import { recordEventOrigin } from "@/lib/access/first-touch";
 import { REVEAL_ERROR_TEXT, resolveReveal } from "./reveal-input";
 import { buildRevealInput, type RevealChoice } from "./reveal-choice";
 import { WINDOW_ERROR_TEXT, REVEAL_BEFORE_END_TEXT, defaultWindow, longDay, noticeLine, resolveWindow, revealOptions, shortWhen, type WindowInput } from "./wizard-time";
@@ -170,6 +171,7 @@ export function CreateWizard() {
         return setErrors({ create: "Não deu para criar o evento. Confira os campos e tente de novo." });
       }
       const eventId = r.event.id;
+      void recordEventOrigin(eventId); // de onde veio quem criou (primeiro toque); não segura a criação
       // A identidade salva é terminal: retomar a saída nunca repete a criação. Sem pagamento aqui: o plano é escolhido no painel.
       // faixa escolhida na home (/criar?plano=ate150): o evento nasce no Grátis e segue para essa faixa no painel. Lida da URL na hora
       // de criar; com o catálogo carregado, só vale faixa paga dele (catálogo ainda carregando: o painel valida o código).

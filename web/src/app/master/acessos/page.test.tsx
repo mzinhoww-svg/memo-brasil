@@ -32,8 +32,12 @@ const STATS = {
   browsers: [{ browser: "Chrome", visitors: 70 }],
   countries: [{ country: "BR", visitors: 110 }, { country: "PT", visitors: 10 }],
 };
+const CONV = { days: 7, rows: [
+  { source: "Facebook", medium: "parceria", campaign: "promo-nov", events: 4, activated: 2, paid: 1, revenueCents: 14700 },
+  { source: "Sem registro", medium: "—", campaign: null, events: 3, activated: 0, paid: 0, revenueCents: 0 },
+], rowsLast: [{ source: "YouTube", medium: "video", campaign: "canal-x", events: 4, activated: 2, paid: 1, revenueCents: 14700 }] };
 const as = (role: PlatformRole | null, data: unknown = STATS, error: { code?: string; message: string } | null = null) => {
-  m.rpc.mockImplementation(async () => ({ data, error }));
+  m.rpc.mockImplementation(async (name: string) => (name === "admin_conversion_by_origin" && !error ? { data: CONV, error: null } : { data, error }));
   m.session.mockResolvedValue({ access: role ? "ok" : "forbidden", role, sb: role ? { rpc: m.rpc } : null, user: { name: "x" } });
 };
 const open = async (ui: Promise<ReactNode>) => render(<>{await ui}</>);
@@ -42,6 +46,19 @@ beforeEach(() => { m.session.mockReset(); m.rpc.mockReset(); });
 afterEach(cleanup);
 
 describe("Master · Acessos", () => {
+  it("conversão por origem: eventos, com convidado, pagos e receita por origem do primeiro acesso", async () => {
+    as("master");
+    await open(Acessos({ searchParams: sp({ dias: "7" }) }));
+    expect(screen.getByRole("heading", { name: "Conversão por origem" })).toBeInTheDocument();
+    expect(screen.getByText("promo-nov")).toBeInTheDocument();
+    expect(screen.getAllByText("2 · 50%").length).toBe(2);
+    expect(screen.getAllByText("1 · 25%").length).toBe(2);
+    expect(screen.getAllByText("R$ 147,00").length).toBe(2);
+    expect(screen.getByText("Sem registro")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Conversão pela última origem" })).toBeInTheDocument();
+    expect(screen.getByText("canal-x")).toBeInTheDocument();
+    expect(m.rpc).toHaveBeenCalledWith("admin_conversion_by_origin", { p_days: 7 });
+  });
   it("mostra totais, origem, páginas, aparelhos e países (com nomes em português)", async () => {
     as("master");
     await open(Acessos({ searchParams: sp({ dias: "7" }) }));
