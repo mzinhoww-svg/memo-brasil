@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildHostMessage, handleHostOptinRequest, hostSubjectId, parseHostSubject, recoveryLink, SALES_WA, type HostItem } from "./wa-host";
+import { buildHostMessage, eventLink, handleHostOptinRequest, hostSubjectId, parseHostSubject, recoveryLink, SALES_WA, type HostItem } from "./wa-host";
 import { parseSubjectId } from "./wa-optin";
 import { runDispatch } from "./wa-dispatch";
 
@@ -60,6 +60,34 @@ describe("mensagens de recuperação de pedido", () => {
     expect(r.sent).toBe(1);
     expect(send).toHaveBeenCalledWith({ phone: "5565999990000", text: buildHostMessage(item(), O) });
     expect(mark).toHaveBeenCalledWith(item(), "enviado", { gatewayId: "gw" });
+  });
+});
+
+describe("ativação do evento grátis", () => {
+  const ev = (kind: string, over: Partial<HostItem> = {}) => item({ kind, plan_code: null, ...over });
+  it("logo depois de criar: QR com origem marcada, contato e saída", () => {
+    const t = buildHostMessage(ev("ativ_criado"), O)!;
+    expect(t).toMatch(/^Sua câmera "Casamento Ana e Beto" está pronta!/);
+    expect(t).toContain(`${O}/painel/11111111-1111-4111-8111-111111111111/qr?utm_source=whatsapp&utm_medium=ativacao&utm_campaign=ativ_criado`);
+    expect(t).toContain(SALES_WA);
+    expect(t).toContain("responda SAIR");
+  });
+  it("3 dias antes e véspera falam do QR", () => {
+    expect(buildHostMessage(ev("ativ_3d"), O)).toMatch(/^Faltam 3 dias para o Casamento Ana e Beto! Já espalhou o QR\?/);
+    const v = buildHostMessage(ev("ativ_vespera"), O)!;
+    expect(v).toMatch(/^Amanhã é o grande dia: Casamento Ana e Beto!/);
+    expect(v).toContain("/qr?");
+  });
+  it("dia seguinte leva ao plano (mais convidados e poses)", () => {
+    const t = buildHostMessage(ev("ativ_dia_seguinte"), O)!;
+    expect(t).toContain("liberar mais convidados e mais poses");
+    expect(t).toContain(eventLink(O, ev("ativ_dia_seguinte"), "plano"));
+  });
+  it("sem título: frase neutra; nenhuma mensagem tem dado de convidado", () => {
+    expect(buildHostMessage(ev("ativ_3d", { event_title: "" }), O)).toMatch(/^Faltam 3 dias para o seu evento!/);
+    for (const k of ["ativ_criado", "ativ_3d", "ativ_vespera", "ativ_dia_seguinte"]) {
+      expect(buildHostMessage(ev(k), O)).not.toContain("5565999990000");
+    }
   });
 });
 

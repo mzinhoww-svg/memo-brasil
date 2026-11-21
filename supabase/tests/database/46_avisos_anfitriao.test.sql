@@ -14,6 +14,8 @@ insert into public.events (id, title, category, host_id, host_name, duration_hou
   ('00000000-0000-4000-8000-0000000046e1', 'Casamento Ana', 'casamento', '00000000-0000-4000-8000-0000000046a1', 'Ana', 6, 10, 10, now() + interval '10 days'),
   ('00000000-0000-4000-8000-0000000046e2', 'Já passou', 'festa', '00000000-0000-4000-8000-0000000046a1', 'Ana', 6, 10, 10, now() - interval '3 days'),
   ('00000000-0000-4000-8000-0000000046e3', 'Sem opt-in', 'festa', '00000000-0000-4000-8000-0000000046a2', 'B', 6, 10, 10, now() + interval '10 days');
+-- a ativação do evento grátis (teste 47) usa a mesma fila: aqui só interessa a recuperação de pedido
+delete from public.host_outbox where kind like 'ativ\_%';
 
 -- ===================================================== estrutura e privilégios
 select has_table('public', 'host_whatsapp', 'host_whatsapp existe');
