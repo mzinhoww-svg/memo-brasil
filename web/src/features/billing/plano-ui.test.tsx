@@ -61,6 +61,14 @@ describe("PlanPicker", () => {
     expect(screen.getByRole("radio", { name: /Festa/ })).toBeDisabled();
     expect(screen.getAllByText("Incluído").length).toBe(0 + 1); // só o plano abaixo do atual (Grátis)
   });
+  it("oferta de limite: preço com desconto do servidor, preço de tabela riscado e o prazo; sem o texto de diferença", async () => {
+    api.quote.mockResolvedValue({ planCode: "casamento", fromPlanCode: "gratis", amountCents: 15120, payable: true, reason: "ok",
+      discount: { pct: 20, listCents: 18900, expiresAt: new Date(Date.now() + 3_600_000).toISOString() } });
+    render(<PlanPicker {...base} plans={PLANS} currentCode="gratis" />);
+    expect(await screen.findByRole("button", { name: "Pagar com Mercado Pago · R$ 151,20" })).toBeEnabled();
+    expect(screen.getByTestId("plano-oferta")).toHaveTextContent(/20% de desconto: de R\$ 189,00 por R\$ 151,20 até \d{2}\/\d{2} às \d{2}:\d{2}/);
+    expect(screen.queryByTestId("diferenca")).toBeNull();
+  });
   it("quote não pagável bloqueia o CTA com o motivo", async () => {
     api.quote.mockResolvedValue({ planCode: "casamento", fromPlanCode: null, amountCents: 0, payable: false, reason: "evento_encerrado" });
     render(<PlanPicker {...base} plans={PLANS} currentCode="gratis" />);

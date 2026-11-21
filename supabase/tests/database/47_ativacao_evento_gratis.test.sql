@@ -1,6 +1,6 @@
 -- pgTAP · sequência de ativação do evento grátis (WhatsApp ao anfitrião): agenda ao criar, horários no fuso do evento,
 -- reagenda/cancela quando a data muda, espera o opt-in do "logo depois de criar" por até 24 h e nunca sai para evento pago,
--- de teste, ou (no dia seguinte) longe do limite do grátis.
+-- de teste. (O aviso de limite com desconto, que substituiu o "dia seguinte", está no teste 48.)
 begin;
 select no_plan();
 
@@ -19,13 +19,11 @@ insert into public.events (id, title, category, host_id, host_name, duration_hou
   ('00000000-0000-4000-8000-0000000047e1', 'Festa da Bia', 'aniversario', '00000000-0000-4000-8000-0000000047a1', 'Bia', 3, 10, 10,
    ((current_date + 10) + time '20:00') at time zone 'America/Cuiaba', 'America/Cuiaba');
 select is((select array_agg(kind order by send_after) from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e1'),
-          array['ativ_criado', 'ativ_3d', 'ativ_vespera', 'ativ_dia_seguinte'], 'criar agenda os quatro avisos');
+          array['ativ_criado', 'ativ_3d', 'ativ_vespera'], 'criar agenda os três lembretes do QR');
 select is((select send_after from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e1' and kind = 'ativ_3d'),
           ((current_date + 7) + time '10:00') at time zone 'America/Cuiaba', '3 dias antes, às 10 h no fuso do evento');
 select is((select send_after from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e1' and kind = 'ativ_vespera'),
           ((current_date + 9) + time '10:00') at time zone 'America/Cuiaba', 'véspera às 10 h');
-select is((select send_after from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e1' and kind = 'ativ_dia_seguinte'),
-          ((current_date + 11) + time '10:00') at time zone 'America/Cuiaba', 'dia seguinte ao fim, às 10 h');
 
 -- logo depois de criar: sai na próxima retirada, com o nome e o evento
 select results_eq($$select h.kind, h.phone, h.host_name, h.event_title from public.host_claim_batch(10, 55) h$$,
@@ -65,33 +63,12 @@ update public.host_outbox set send_after = now() - interval '25 hours' where eve
 select is((select count(*)::int from public.host_claim_batch(10, 55)), 0, 'criado há mais de 24 h não sai');
 select is((select last_error from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e4' and kind = 'ativ_criado'), 'atrasado', 'motivo: atrasado');
 
--- ===================================================== evento pago: recebe os lembretes do QR, não a oferta do dia seguinte
+-- ===================================================== evento pago também recebe os lembretes do QR
 select set_config('mm.audit_reason', 'teste 47', true);
 insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, env, reason)
 values ('00000000-0000-4000-8000-0000000047e3', 'ate150', 150, 36, 'cortesia', 'nenhum', 'teste 47');
 update public.host_outbox set send_after = now() - interval '1 minute' where event_id = '00000000-0000-4000-8000-0000000047e3' and kind = 'ativ_vespera';
 select results_eq($$select h.kind from public.host_claim_batch(10, 55) h$$, $$values ('ativ_vespera'::text)$$, 'evento pago: véspera sai');
-update public.host_outbox set send_after = now() - interval '1 minute' where event_id = '00000000-0000-4000-8000-0000000047e3' and kind = 'ativ_dia_seguinte';
-select is((select count(*)::int from public.host_claim_batch(10, 55)), 0, 'evento pago: oferta do dia seguinte não sai');
-select is((select last_error from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e3' and kind = 'ativ_dia_seguinte'), 'pago', 'motivo: pago');
-
--- ===================================================== dia seguinte: só perto do limite do grátis (80% dos convidados)
-insert into public.events (id, title, category, host_id, host_name, duration_hours, start_at, created_at) values
-  ('00000000-0000-4000-8000-0000000047e5', 'Já foi', 'festa', '00000000-0000-4000-8000-0000000047a1', 'Bia', 4, now() - interval '2 days', now() - interval '3 days'),
-  ('00000000-0000-4000-8000-0000000047e6', 'Lotou', 'festa', '00000000-0000-4000-8000-0000000047a1', 'Bia', 4, now() - interval '2 days', now() - interval '3 days');
-insert into public.host_outbox (user_id, event_id, kind, send_after) values
-  ('00000000-0000-4000-8000-0000000047a1', '00000000-0000-4000-8000-0000000047e5', 'ativ_dia_seguinte', now() - interval '1 minute'),
-  ('00000000-0000-4000-8000-0000000047a1', '00000000-0000-4000-8000-0000000047e6', 'ativ_dia_seguinte', now() - interval '1 minute')
-on conflict (event_id, kind, order_id) do update set send_after = excluded.send_after, status = 'pendente', next_attempt_at = now() - interval '1 minute';
-insert into auth.users (id, aud, role, email, is_anonymous)
-select ('00000000-0000-4000-8000-0000000047' || lpad(g::text, 2, '0'))::uuid, 'authenticated', 'authenticated', 'g' || g || '@t47.local', false from generate_series(10, 17) g;
-insert into public.profiles (id) select ('00000000-0000-4000-8000-0000000047' || lpad(g::text, 2, '0'))::uuid from generate_series(10, 17) g on conflict do nothing;
-insert into public.participants (event_id, user_id, name)
-select '00000000-0000-4000-8000-0000000047e6', ('00000000-0000-4000-8000-0000000047' || lpad(g::text, 2, '0'))::uuid, 'C' || g from generate_series(10, 17) g;
-update public.host_outbox set status = 'cancelado' where status = 'pendente' and kind = 'ativ_criado';
-select results_eq($$select h.event_title from public.host_claim_batch(10, 55) h$$, $$values ('Lotou'::text)$$, 'dia seguinte só para quem chegou perto do limite');
-select is((select last_error from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e5' and kind = 'ativ_dia_seguinte'),
-          'longe_do_limite', 'motivo: longe do limite');
 
 -- ===================================================== evento de teste não entra na fila
 insert into public.events (id, title, category, host_id, host_name, duration_hours, start_at, is_test) values

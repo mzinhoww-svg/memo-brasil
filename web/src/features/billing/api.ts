@@ -34,9 +34,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { browserSupabase } from "@/lib/supabase/client";
 import { backendMode } from "@/lib/supabase/env";
 import { devToolsEnabled } from "@/lib/dev-tools";
-import type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, GiftStatus, GiftView, PosePack, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
+import type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, GiftStatus, GiftView, PosePack, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult, UpgradeOffer } from "./types";
 
-export type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PosePack, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult } from "./types";
+export type { OrderStatus, OrderView, PaymentProvider, PaymentsEnv, PosePack, PublicPlan, PublicSettings, Quote, QuoteReason, RedeemReason, RedeemResult, UpgradeOffer } from "./types";
 
 export class BillingError extends Error {
   constructor(readonly code: string, readonly status?: number, message?: string) {
@@ -232,7 +232,16 @@ export async function quote(eventId: string, planCode: string): Promise<Quote> {
     amountCents: Number(q.amountCents),
     payable: q.payable === true && reason === "ok",
     reason,
+    ...(typeof q.discountPct === "number" && typeof q.listCents === "number" && typeof q.offerExpiresAt === "string"
+      ? { discount: { pct: q.discountPct, listCents: q.listCents, expiresAt: q.offerExpiresAt } } : {}),
   };
+}
+
+/** Oferta de upgrade válida do evento (só o anfitrião); null sem oferta, vencida ou já usada. */
+export async function upgradeOffer(eventId: string): Promise<UpgradeOffer | null> {
+  const r = await rpc<Json | null>("event_upgrade_offer", { p_event: eventId });
+  if (!r || typeof r.percent !== "number" || typeof r.expiresAt !== "string") return null;
+  return { percent: r.percent, expiresAt: r.expiresAt };
 }
 
 export async function orderStatus(orderId: string): Promise<OrderView> {

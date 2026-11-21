@@ -79,14 +79,18 @@ describe("ativação do evento grátis", () => {
     expect(v).toContain("sem baixar nada. Ver o QR: ");
     expect(v).toContain("/qr?");
   });
-  it("dia seguinte leva ao plano (mais convidados e poses)", () => {
-    const t = buildHostMessage(ev("ativ_dia_seguinte"), O)!;
-    expect(t).toContain("liberar mais convidados e mais poses");
-    expect(t).toContain(eventLink(O, ev("ativ_dia_seguinte"), "plano"));
+  it("limite atingido: oferta de 20% por 48 h e link do plano", () => {
+    const t = buildHostMessage(ev("ativ_limite"), O)!;
+    expect(t).toMatch(/^Sua festa está bombando! 🎉 O plano grátis de "Casamento Ana e Beto" chegou ao limite\./);
+    expect(t).toContain("20% de desconto nas próximas 48 horas");
+    expect(t).toContain(eventLink(O, ev("ativ_limite"), "plano"));
+  });
+  it("o antigo aviso do dia seguinte não gera mais texto", () => {
+    expect(buildHostMessage(ev("ativ_dia_seguinte"), O)).toBeNull();
   });
   it("sem título: frase neutra; nenhuma mensagem tem dado de convidado", () => {
     expect(buildHostMessage(ev("ativ_3d", { event_title: "" }), O)).toMatch(/^Faltam 3 dias para o seu evento!/);
-    for (const k of ["ativ_criado", "ativ_3d", "ativ_vespera", "ativ_dia_seguinte"]) {
+    for (const k of ["ativ_criado", "ativ_3d", "ativ_vespera", "ativ_limite"]) {
       expect(buildHostMessage(ev(k), O)).not.toContain("5565999990000");
     }
   });
