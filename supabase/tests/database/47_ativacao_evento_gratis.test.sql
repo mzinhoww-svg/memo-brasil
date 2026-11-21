@@ -65,13 +65,15 @@ update public.host_outbox set send_after = now() - interval '25 hours' where eve
 select is((select count(*)::int from public.host_claim_batch(10, 55)), 0, 'criado há mais de 24 h não sai');
 select is((select last_error from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e4' and kind = 'ativ_criado'), 'atrasado', 'motivo: atrasado');
 
--- ===================================================== evento pago não recebe a sequência
+-- ===================================================== evento pago: recebe os lembretes do QR, não a oferta do dia seguinte
 select set_config('mm.audit_reason', 'teste 47', true);
 insert into public.event_entitlements (event_id, plan_code, max_guests, max_shots, source, env, reason)
 values ('00000000-0000-4000-8000-0000000047e3', 'ate150', 150, 36, 'cortesia', 'nenhum', 'teste 47');
 update public.host_outbox set send_after = now() - interval '1 minute' where event_id = '00000000-0000-4000-8000-0000000047e3' and kind = 'ativ_vespera';
-select is((select count(*)::int from public.host_claim_batch(10, 55)), 0, 'evento pago: não sai');
-select is((select last_error from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e3' and kind = 'ativ_vespera'), 'pago', 'motivo: pago');
+select results_eq($$select h.kind from public.host_claim_batch(10, 55) h$$, $$values ('ativ_vespera'::text)$$, 'evento pago: véspera sai');
+update public.host_outbox set send_after = now() - interval '1 minute' where event_id = '00000000-0000-4000-8000-0000000047e3' and kind = 'ativ_dia_seguinte';
+select is((select count(*)::int from public.host_claim_batch(10, 55)), 0, 'evento pago: oferta do dia seguinte não sai');
+select is((select last_error from public.host_outbox where event_id = '00000000-0000-4000-8000-0000000047e3' and kind = 'ativ_dia_seguinte'), 'pago', 'motivo: pago');
 
 -- ===================================================== dia seguinte: só perto do limite do grátis (80% dos convidados)
 insert into public.events (id, title, category, host_id, host_name, duration_hours, start_at, created_at) values

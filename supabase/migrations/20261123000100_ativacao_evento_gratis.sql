@@ -1,10 +1,11 @@
--- Sequência de ativação do evento GRÁTIS por WhatsApp (mesma fila e mesmo opt-in de host_outbox). ADITIVA.
+-- Sequência de ativação do evento por WhatsApp (mesma fila e mesmo opt-in de host_outbox). ADITIVA.
 -- Quatro avisos, todos só para quem ativou os avisos no WhatsApp (opt-in próprio; "SAIR" revoga):
 --   ativ_criado        logo depois de criar (QR + como usar). Quem ainda não ativou os avisos tem até 24 h para ativar; depois sai da fila.
 --   ativ_3d            3 dias antes do evento, às 10 h no fuso do evento ("já espalhou o QR?")
 --   ativ_vespera       na véspera, às 10 h no fuso do evento
 --   ativ_dia_seguinte  no dia seguinte ao fim, às 10 h — só se o evento chegou perto do limite do grátis (oferta de mais convidados/poses)
--- Nunca sai para evento pago (o direito efetivo deixou de ser o grátis), de teste/equipe, apagado ou que já passou.
+-- Os lembretes do QR (criado, 3 dias, véspera) valem para todo evento; a oferta do dia seguinte só para o grátis.
+-- Nunca sai para evento de teste/equipe, apagado ou que já passou.
 -- Mudou a data do evento: os avisos pendentes são reagendados (ou cancelados, se a nova data já não comporta).
 
 -- ---------------------------------------------------------------- agenda (insert do evento e mudança de data)
@@ -98,7 +99,8 @@ begin
   optin := exists (select 1 from public.host_whatsapp w where w.user_id = o.user_id and w.whatsapp_optin and w.whatsapp_phone is not null);
 
   if o.kind like 'ativ\_%' then
-    if (select source from public.effective_entitlement(e.id)) <> 'gratis' then return 'pago'; end if;
+    -- lembretes do QR valem para todo evento; só a oferta do dia seguinte é exclusiva do grátis
+    if o.kind = 'ativ_dia_seguinte' and (select source from public.effective_entitlement(e.id)) <> 'gratis' then return 'pago'; end if;
     if o.kind <> 'ativ_dia_seguinte' and e.start_at + coalesce(e.duration_hours, 6) * interval '1 hour' < now() then
       return 'evento_passou';
     end if;

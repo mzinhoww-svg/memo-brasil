@@ -48,13 +48,13 @@ export function buildHostMessage(i: HostItem, origin: string): string | null {
       return `${greet(i.host_name)} Vi que o pagamento da câmera do seu evento não foi concluído. Quer tentar de novo? É só tocar aqui: ${recoveryLink(origin, i)}\n\n${DUVIDAS}\n${SAIR}`;
     case "pedido_24h":
       return `${firstName(i.host_name) ? `${firstName(i.host_name)}, a` : "A"} câmera ${title ? `de "${title}"` : "do seu evento"} continua pronta te esperando. Se preferir, dá para seguir no plano grátis e mudar depois. Retomar: ${recoveryLink(origin, i)}\n\n${DUVIDAS}\n${SAIR}`;
-    // ---- ativação do evento grátis (seção 3); a véspera não tinha texto no rascunho: mesmo tom do aviso de 3 dias
+    // ---- ativação do evento grátis (seção 3); texto da véspera aprovado pela Coordenação
     case "ativ_criado":
       return `Sua câmera ${title ? `"${title}"` : "do evento"} está pronta! 🎉 Próximo passo: imprima o QR e coloque nas mesas. Seus convidados fotografam pelo celular, sem baixar aplicativo. Ver o QR: ${eventLink(origin, i, "qr")}\n\n${DUVIDAS}\n${SAIR}`;
     case "ativ_3d":
       return `Faltam 3 dias para ${title ? `o ${title}` : "o seu evento"}! Já espalhou o QR? Dica: coloque um em cada mesa e um na entrada. ${eventLink(origin, i, "qr")}\n\n${DUVIDAS}\n${SAIR}`;
     case "ativ_vespera":
-      return `Amanhã é o grande dia${title ? `: ${title}` : ""}! 🎉 Confira se o QR já está impresso e nas mesas. Na hora, os convidados só apontam a câmera do celular. ${eventLink(origin, i, "qr")}\n\n${DUVIDAS}\n${SAIR}`;
+      return `Amanhã é o grande dia${title ? `: ${title}` : ""}! 🎉 Já imprimiu o QR e colocou nas mesas? Na hora, os convidados apontam a câmera do celular e fotografam, sem baixar nada. Ver o QR: ${eventLink(origin, i, "qr")}\n\n${DUVIDAS}\n${SAIR}`;
     case "ativ_dia_seguinte":
       return `As fotos ${title ? `do ${title}` : "do seu evento"} estão chegando! 📸 Se a festa foi grande, vale liberar mais convidados e mais poses para ninguém ficar de fora: ${eventLink(origin, i, "plano")}\n\n${DUVIDAS}\n${SAIR}`;
     default:

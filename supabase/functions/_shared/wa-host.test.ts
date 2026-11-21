@@ -76,6 +76,7 @@ describe("ativação do evento grátis", () => {
     expect(buildHostMessage(ev("ativ_3d"), O)).toMatch(/^Faltam 3 dias para o Casamento Ana e Beto! Já espalhou o QR\?/);
     const v = buildHostMessage(ev("ativ_vespera"), O)!;
     expect(v).toMatch(/^Amanhã é o grande dia: Casamento Ana e Beto!/);
+    expect(v).toContain("sem baixar nada. Ver o QR: ");
     expect(v).toContain("/qr?");
   });
   it("dia seguinte leva ao plano (mais convidados e poses)", () => {
