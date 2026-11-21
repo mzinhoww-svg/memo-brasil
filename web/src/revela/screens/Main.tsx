@@ -16,6 +16,9 @@ export interface MainProps {
   extra?: ReactNode;
   /** Menu da conta (anfitrião com sessão): vai no canto, ao lado do convite compacto. */
   account?: ReactNode;
+  /** Promessa (h1) e frase de apoio; sem isso, os textos do desenho. */
+  title?: ReactNode;
+  lead?: ReactNode;
   /** Quem já está logado já aceitou: some a frase "Ao continuar, você aceita…" (os links seguem no rodapé do site). */
   hideLegal?: boolean;
   /** Links dos Termos e da Privacidade. */
@@ -44,7 +47,7 @@ const DEFAULT_ACTIONS = (
   </>
 );
 
-export function Main({ inviteHref = "/entrar#codigo", account, hideLegal = false, banner, actions = DEFAULT_ACTIONS, extra, termsHref = "/termos", privacyHref = "/privacidade" }: MainProps = {}) {
+export function Main({ inviteHref = "/entrar#codigo", title, lead, account, hideLegal = false, banner, actions = DEFAULT_ACTIONS, extra, termsHref = "/termos", privacyHref = "/privacidade" }: MainProps = {}) {
   return (
     <>
     <div className="scr scr--scroll">
@@ -90,12 +93,10 @@ export function Main({ inviteHref = "/entrar#codigo", account, hideLegal = false
         {banner}
         <div className="grow" />
         <h1 className="rv-display" style={{ "fontSize": "44px", "lineHeight": "46px" }}>
-          Cada convidado
-          <br />
-          é uma câmera.
+          {title ?? <>Cada convidado<br />é uma câmera.</>}
         </h1>
         <p className="rv-body muted" style={{ "margin": "14px 0 24px", "maxWidth": "320px" }}>
-          Monte a câmera do evento, espalhe o QR pela festa e veja tudo revelado no dia seguinte.
+          {lead ?? "Monte a câmera do evento, espalhe o QR pela festa e veja tudo revelado no dia seguinte."}
         </p>
         <div className="stack">
           {actions}

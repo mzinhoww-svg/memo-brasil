@@ -52,7 +52,7 @@ async function expectCalm(page: Page, label: string, min = 1) {
 
 test("home: botões e entradas sem movimento", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Montar câmera" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Criar a câmera do meu evento" }).first()).toBeVisible();
   await expectCalm(page, "home");
 });
 

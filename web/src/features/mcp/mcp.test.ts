@@ -5,7 +5,8 @@ import { handleMcp } from "./protocol";
 import { McpAuthError, callMcpRead } from "./rpc";
 import { MCP_TOOLS } from "./tools";
 
-const MIGRATION = readFileSync(join(__dirname, "../../../../supabase/migrations/20261121000100_mcp_leitura.sql"), "utf8");
+// a lista vigente é a da migração mais recente que redefine mcp_read
+const MIGRATION = readFileSync(join(__dirname, "../../../../supabase/migrations/20261126000100_metricas_semanais.sql"), "utf8");
 const rpc = (method: string, params?: unknown, id: number | string = 1) => ({ jsonrpc: "2.0", id, method, params });
 
 describe("catálogo de ferramentas", () => {

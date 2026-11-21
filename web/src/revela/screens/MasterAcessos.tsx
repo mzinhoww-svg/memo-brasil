@@ -1,7 +1,7 @@
 /* Acessos (Master): visitas, páginas, origem do tráfego, aparelhos e países. Somente leitura; dados da RPC admin_access_stats. */
 import { MCard, MHead, MTable, Seg, Tiles } from "../master-kit";
 import { MasterStatePage } from "../master/MasterState";
-import { PERIODS, PERIOD_LABEL, countryName, mediumLabel, perVisit, seriesBars, share, type AccessStats, type OriginConversion, type Period } from "@/lib/master/access-stats";
+import { PERIODS, PERIOD_LABEL, countryName, mediumLabel, perVisit, seriesBars, share, type AccessStats, type OriginConversion, type Period, type WeeklyConversion } from "@/lib/master/access-stats";
 
 export const ACESSOS_AREA = "Acessos";
 const nf = (n: number) => new Intl.NumberFormat("pt-BR").format(n);
@@ -15,6 +15,23 @@ export function ConversaoPorOrigem({ data }: { data: OriginConversion }) {
       <TabelaConversao title="Conversão por origem" caption="Eventos criados no período, pela origem da primeira visita de quem criou. Sem equipe e sem testes." rows={data.rows} />
       {data.rowsLast && <TabelaConversao title="Conversão pela última origem" caption="Os mesmos eventos, pela origem da última visita antes de criar (quem conheceu por um canal e voltou por outro)." rows={data.rowsLast} />}
     </>
+  );
+}
+
+const semana = (iso: string) => { const [, m, d] = iso.slice(0, 10).split("-"); return `${d}/${m}`; };
+
+/** Os números da semana: avisos ligados, ativação, limite, ofertas, conversão e expiração (por semana de criação do evento). */
+export function SemanaASemana({ data }: { data: WeeklyConversion }) {
+  return (
+    <MCard style={{ marginTop: "14px", paddingBottom: "8px" }}>
+      <h2 className="rv-title" style={{ fontSize: "18px" }}>Semana a semana</h2>
+      <p className="rv-caption">Por semana de criação do evento (segunda a domingo). Sem equipe e sem testes. Ofertas: criadas · abertas (pedido iniciado) · pagas.</p>
+      <MTable cols=".7fr .6fr 1fr 1fr .7fr 1fr .8fr .9fr" head={["Semana", "Eventos", "Com convidado", "Avisos no WhatsApp", "No limite", "Ofertas", "Pagos", "Pedidos expirados"]}
+        empty="Sem eventos no período."
+        rows={data.rows.map((r) => ({ key: r.week, cells: [semana(r.week), nf(r.events), `${nf(r.activated)} · ${share(r.activated, r.events)}`,
+          `${nf(r.hostsWhatsapp)} de ${nf(r.hosts)}`, nf(r.atLimit), `${nf(r.offersCreated)} · ${nf(r.offersOpened)} · ${nf(r.offersPaid)}`,
+          `${nf(r.paid)} · ${share(r.paid, r.events)}`, `${nf(r.ordersExpired)} de ${nf(r.orders)}`] }))} />
+    </MCard>
   );
 }
 
@@ -32,7 +49,7 @@ function TabelaConversao({ title, caption, rows }: { title: string; caption: str
   );
 }
 
-export function MasterAcessosView({ stats, period, conversion }: { stats: AccessStats; period: Period; conversion?: OriginConversion | null }) {
+export function MasterAcessosView({ stats, period, conversion, weekly }: { stats: AccessStats; period: Period; conversion?: OriginConversion | null; weekly?: WeeklyConversion | null }) {
   const { totals } = stats;
   const bars = seriesBars(stats.series);
   const entriesTotal = stats.sources.reduce((n, s) => n + s.entries, 0);
@@ -96,6 +113,7 @@ export function MasterAcessosView({ stats, period, conversion }: { stats: Access
             rows={stats.campaigns.map((c) => ({ key: `${c.campaign}|${c.source}`, cells: [c.campaign, c.source, nf(c.entries)] }))} />
         </MCard>
       )}
+      {weekly && <SemanaASemana data={weekly} />}
       {conversion && <ConversaoPorOrigem data={conversion} />}
       <p className="rv-caption" style={{ marginTop: "14px" }}>
         “Visitantes” são pessoas distintas por dia, somadas no período: sem cookies, o mesmo aparelho em dias diferentes conta de novo. Robôs e quem ativou “Não rastrear” ficam de fora.

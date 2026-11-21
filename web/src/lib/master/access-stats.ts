@@ -50,3 +50,8 @@ export const mediumLabel = (m: string): string => MEDIUM_LABEL[m] ?? m;
 /** Conversão por origem (RPC admin_conversion_by_origin): eventos criados no período pelo primeiro toque de quem criou. */
 export type OriginConversionRow = { source: string; medium: string; campaign: string | null; events: number; activated: number; paid: number; revenueCents: number };
 export type OriginConversion = { days: number; rows: OriginConversionRow[]; rowsLast?: OriginConversionRow[] };
+
+/** Consulta semanal (RPC admin_conversion_weekly), por semana de criação do evento, a mais recente primeiro. */
+export type WeeklyRow = { week: string; events: number; activated: number; hosts: number; hostsWhatsapp: number; atLimit: number;
+  offersCreated: number; offersOpened: number; offersPaid: number; paid: number; orders: number; ordersExpired: number };
+export type WeeklyConversion = { weeks: number; rows: WeeklyRow[] };

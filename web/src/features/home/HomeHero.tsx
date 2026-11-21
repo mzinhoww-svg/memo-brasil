@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Button, Icon, KnownPeople } from "@/components/revela";
 import { AberturaSplash } from "@/revela/screens/AberturaSplash";
 import { Main } from "@/revela/screens/Main";
@@ -44,15 +44,26 @@ function LoginErrorBanner() {
   );
 }
 
-const GOOGLE = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M20.5 12.2c0-.6-.1-1.2-.2-1.7H12v3.3h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.6-1.6 2.6-3.8 2.6-6.5z" />
-    <path d="M12 21c2.4 0 4.5-.8 5.9-2.2L15 16.5c-.8.5-1.8.9-3 .9-2.3 0-4.3-1.6-5-3.7H4v2.3A9 9 0 0 0 12 21z" />
-    <path d="M7 13.7a5.4 5.4 0 0 1 0-3.4V8H4a9 9 0 0 0 0 8z" />
-    <path d="M12 6.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 4 8l3 2.3c.7-2.1 2.7-3.7 5-3.7z" />
-  </svg>
-);
 const SPLASH_KEY = "mm-abertura";
+export const CTA = "Criar a câmera do meu evento";
+
+/** true depois que o fim do topo saiu da tela para cima (rolou para as seções de texto). */
+function usePastElement(ref: RefObject<HTMLElement | null>): boolean {
+  const [past, setPast] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setPast(!e.isIntersecting && e.boundingClientRect.top < 0));
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+  return past;
+}
+
+/** Botão fixo no rodapé do celular (some no computador pelo CSS), visível depois que o topo sai da tela. */
+function StickyCta({ show, children }: { show: boolean; children: ReactNode }) {
+  return <div className="home-sticky" data-show={show ? "1" : "0"} aria-hidden={!show} inert={!show || undefined} data-testid="cta-fixo">{children}</div>;
+}
 
 /** 00 · Splash: só ao abrir o app instalado (tela cheia), uma vez por sessão e sem "reduzir movimento". No navegador vai direto à 01. */
 function useSplash(): boolean {
@@ -76,24 +87,30 @@ export function HomeHero() {
   const cloud = backend === "supabase";
   const host = ready && (cloud ? canCreate : true);
   const splash = useSplash();
+  const heroEnd = useRef<HTMLDivElement>(null);
+  const pastHero = usePastElement(heroEnd);
 
-  const actions = host && user ? (
+  const go = () => void signInWithGoogle("/criar");
+  // um botão só (item 6): leva a /criar; sem sessão na nuvem, o mesmo botão abre o login do Google e volta para /criar
+  const cta = host && user || !cloud
+    ? <Link href="/criar" className="rv-btn rv-btn--block rv-btn--paper"><Icon name="camera" decorative size={20} />{CTA}</Link>
+    : <button type="button" className="rv-btn rv-btn--block rv-btn--paper" onClick={go}><Icon name="camera" decorative size={20} />{CTA}</button>;
+  const actions = (
     <>
-      <Link href="/criar" className="rv-btn rv-btn--block rv-btn--paper"><Icon name="camera" decorative size={20} />Montar câmera</Link>
-      <Link href="/eventos" className="rv-btn rv-btn--block rv-btn--line">Minhas câmeras</Link>
+      {cta}
+      {host && user ? (
+        <Link href="/eventos" className="rv-link center">Minhas câmeras</Link>
+      ) : cloud ? (
+        <p className="rv-caption center">Você entra com a sua conta Google.{emailLoginEnabled() && <> Ou <Link href="/entrar" className="link">receba um link por e-mail</Link>.</>}</p>
+      ) : null}
     </>
-  ) : cloud ? (
-    <>
-      <button type="button" className="rv-btn rv-btn--block rv-btn--paper" onClick={() => void signInWithGoogle("/criar")}>{GOOGLE}Continuar com Google</button>
-      {emailLoginEnabled() && <Link href="/entrar" className="rv-btn rv-btn--block rv-btn--line"><Icon name="email" decorative size={20} />Receber link por e-mail</Link>}
-    </>
-  ) : (
-    <Link href="/criar" className="rv-btn rv-btn--block rv-btn--paper"><Icon name="camera" decorative size={20} />Montar câmera</Link>
   );
 
   return (
     <main>
       <Main
+        title={<>A câmera dos convidados{" "}<br />para o seu evento.</>}
+        lead="Grátis para começar. Os convidados fotografam pelo celular, sem baixar nada."
         account={host && user && cloud ? <AccountMenu /> : undefined}
         hideLegal={Boolean(host && user && cloud)}
         banner={<Suspense fallback={null}><LoginErrorBanner /></Suspense>}
@@ -109,6 +126,10 @@ export function HomeHero() {
           <BackendNotice localText="Versão local: eventos e fotos ficam guardados só neste aparelho. A colaboração entre aparelhos chega com o servidor." />
         </>}
       />
+      <div ref={heroEnd} aria-hidden="true" />
+      <StickyCta show={pastHero}>{host && user || !cloud
+        ? <Link href="/criar" className="rv-btn rv-btn--block rv-btn--primary">{CTA}</Link>
+        : <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={go}>{CTA}</button>}</StickyCta>
       {splash && <div className="rv-splash" aria-hidden="true"><AberturaSplash /></div>}
     </main>
   );

@@ -3,11 +3,11 @@ import { createViaWizard, postViaFile, seedHost } from "./helpers";
 
 // Experiência pública sem demonstração (Task 10) e defeitos de sessão/identidade (Task 11), no modo local.
 
-test("home mostra a proposta, Montar câmera e Tenho um convite, sem botão de experimentar câmera, sem exemplo em banco nem guia de componentes", async ({ page }) => {
+test("home mostra a proposta, um botão só (Criar a câmera do meu evento) e Tenho um convite, sem botão de experimentar câmera, sem exemplo em banco nem guia de componentes", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Cada convidado é uma câmera.", level: 1 })).toBeVisible();
-  await expect(page.getByText("Monte a câmera do evento, espalhe o QR pela festa e veja tudo revelado no dia seguinte.")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Montar câmera" })).toHaveAttribute("href", "/criar");
+  await expect(page.getByRole("heading", { name: "A câmera dos convidados para o seu evento.", level: 1 })).toBeVisible();
+  await expect(page.getByText("Grátis para começar. Os convidados fotografam pelo celular, sem baixar nada.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Criar a câmera do meu evento" }).first()).toHaveAttribute("href", "/criar");
   await expect(page.getByRole("link", { name: "Tenho um convite" })).toHaveAttribute("href", "/entrar#codigo");
   for (const t of [/Guia de componentes/i, /Ver uma festa de exemplo/i, /revelação em 2 minutos/i]) await expect(page.getByText(t)).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Experimentar câmera" })).toHaveCount(0);

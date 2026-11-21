@@ -36,8 +36,12 @@ const CONV = { days: 7, rows: [
   { source: "Facebook", medium: "parceria", campaign: "promo-nov", events: 4, activated: 2, paid: 1, revenueCents: 14700 },
   { source: "Sem registro", medium: "—", campaign: null, events: 3, activated: 0, paid: 0, revenueCents: 0 },
 ], rowsLast: [{ source: "YouTube", medium: "video", campaign: "canal-x", events: 4, activated: 2, paid: 1, revenueCents: 14700 }] };
+const WEEK = { weeks: 8, rows: [
+  { week: "2026-11-16", events: 7, activated: 2, hosts: 6, hostsWhatsapp: 1, atLimit: 1, offersCreated: 1, offersOpened: 1, offersPaid: 0, paid: 0, orders: 3, ordersExpired: 1 },
+] };
 const as = (role: PlatformRole | null, data: unknown = STATS, error: { code?: string; message: string } | null = null) => {
-  m.rpc.mockImplementation(async (name: string) => (name === "admin_conversion_by_origin" && !error ? { data: CONV, error: null } : { data, error }));
+  m.rpc.mockImplementation(async (name: string) => (name === "admin_conversion_by_origin" && !error ? { data: CONV, error: null }
+    : name === "admin_conversion_weekly" && !error ? { data: WEEK, error: null } : { data, error }));
   m.session.mockResolvedValue({ access: role ? "ok" : "forbidden", role, sb: role ? { rpc: m.rpc } : null, user: { name: "x" } });
 };
 const open = async (ui: Promise<ReactNode>) => render(<>{await ui}</>);
@@ -46,6 +50,13 @@ beforeEach(() => { m.session.mockReset(); m.rpc.mockReset(); });
 afterEach(cleanup);
 
 describe("Master · Acessos", () => {
+  it("semana a semana: avisos ligados, ativação, limite, ofertas, pagos e expirados", async () => {
+    as("master");
+    await open(Acessos({ searchParams: sp({ dias: "7" }) }));
+    expect(screen.getByRole("heading", { name: "Semana a semana" })).toBeInTheDocument();
+    for (const t of ["16/11", "2 · 29%", "1 de 6", "1 · 1 · 0", "1 de 3"]) expect(screen.getByText(t)).toBeInTheDocument();
+    expect(m.rpc).toHaveBeenCalledWith("admin_conversion_weekly", { p_weeks: 8 });
+  });
   it("conversão por origem: eventos, com convidado, pagos e receita por origem do primeiro acesso", async () => {
     as("master");
     await open(Acessos({ searchParams: sp({ dias: "7" }) }));

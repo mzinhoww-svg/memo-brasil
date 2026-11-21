@@ -27,3 +27,14 @@
 .lp-faq p { margin-top: var(--space-2); }
 .lp-final { text-align: center; }
 .lp-final .lp-wrap { align-items: center; }
+
+/* Botão fixo do celular na home (item 6): aparece depois que o topo sai da tela; no computador não existe. */
+.home-sticky {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface-1); border-top: 1px solid var(--line);
+  transform: translateY(110%); transition: transform .2s ease;
+}
+.home-sticky[data-show="1"] { transform: none; }
+@media (min-width: 768px) { .home-sticky { display: none; } }
+@media (prefers-reduced-motion: reduce) { .home-sticky { transition: none; } }
