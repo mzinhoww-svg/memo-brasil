@@ -4,10 +4,10 @@ begin;
 select no_plan();
 
 create schema tests;
-create function tests.login(p_user uuid) returns void language plpgsql as $$
+create function tests.login(p_user uuid, p_master boolean default false) returns void language plpgsql as $$
 begin
   perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'is_anonymous', false, 'aal', 'aal2',
-    'app_metadata', '{}'::json)::text, true);
+    'app_metadata', case when p_master then json_build_object('role', 'master') else '{}'::json end)::text, true);
   set local role authenticated;
 end $$;
 grant usage on schema tests to authenticated;
@@ -59,7 +59,7 @@ insert into public.participants (event_id, user_id, name) values ('00000000-0000
 select tests.login('00000000-0000-4000-8000-0000000049a1');
 select throws_ok($$select public.admin_conversion_by_origin(30)$$, 'MM004', null, 'anfitrião não lê o relatório');
 reset role;
-select tests.login('00000000-0000-4000-8000-0000000049f1');
+select tests.login('00000000-0000-4000-8000-0000000049f1', true);
 select is((select r from jsonb_array_elements(public.admin_conversion_by_origin(30) -> 'rows') r where r ->> 'source' = 'Instagramscript'),
           '{"source":"Instagramscript","medium":"social","campaign":"lancamento","events":1,"activated":1,"paid":1,"revenueCents":14700}'::jsonb,
           'linha da origem: 1 evento, com convidado, pago, R$ 147');
