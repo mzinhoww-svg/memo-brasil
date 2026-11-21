@@ -46,3 +46,7 @@ export function countryName(code: string): string {
 
 export const MEDIUM_LABEL: Record<string, string> = { direto: "Direto", social: "Rede social", "orgânico": "Busca", "e-mail": "E-mail", "referência": "Outro site", pago: "Anúncio", campanha: "Campanha" };
 export const mediumLabel = (m: string): string => MEDIUM_LABEL[m] ?? m;
+
+/** Conversão por origem (RPC admin_conversion_by_origin): eventos criados no período pelo primeiro toque de quem criou. */
+export type OriginConversionRow = { source: string; medium: string; campaign: string | null; events: number; activated: number; paid: number; revenueCents: number };
+export type OriginConversion = { days: number; rows: OriginConversionRow[] };

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { normalizePath } from "./classify";
+import { captureFirstTouch } from "./first-touch";
 
 const SESSION_KEY = "mm-visita";
 
@@ -16,6 +17,7 @@ const optedOut = () => navigator.doNotTrack === "1" || (navigator as Navigator &
 export function AccessTracker() {
   const pathname = usePathname();
   useEffect(() => {
+    captureFirstTouch(); // primeiro toque (atribuição do evento/pedido): local, sem dado pessoal
     try {
       if (process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_MM_BACKEND !== "supabase") return;
       if (!pathname || !normalizePath(pathname) || optedOut()) return;

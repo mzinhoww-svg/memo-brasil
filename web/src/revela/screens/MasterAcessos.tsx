@@ -1,12 +1,28 @@
 /* Acessos (Master): visitas, páginas, origem do tráfego, aparelhos e países. Somente leitura; dados da RPC admin_access_stats. */
 import { MCard, MHead, MTable, Seg, Tiles } from "../master-kit";
 import { MasterStatePage } from "../master/MasterState";
-import { PERIODS, PERIOD_LABEL, countryName, mediumLabel, perVisit, seriesBars, share, type AccessStats, type Period } from "@/lib/master/access-stats";
+import { PERIODS, PERIOD_LABEL, countryName, mediumLabel, perVisit, seriesBars, share, type AccessStats, type OriginConversion, type Period } from "@/lib/master/access-stats";
 
 export const ACESSOS_AREA = "Acessos";
 const nf = (n: number) => new Intl.NumberFormat("pt-BR").format(n);
 
-export function MasterAcessosView({ stats, period }: { stats: AccessStats; period: Period }) {
+const brl = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100).replace(/\s/g, " ");
+
+/** Eventos criados no período por origem de quem criou (primeiro toque): quantos receberam convidado e quantos pagaram. */
+export function ConversaoPorOrigem({ data }: { data: OriginConversion }) {
+  return (
+    <MCard style={{ marginTop: "14px", paddingBottom: "8px" }}>
+      <h2 className="rv-title" style={{ fontSize: "18px" }}>Conversão por origem</h2>
+      <p className="rv-caption">Eventos criados no período, pela origem da primeira visita de quem criou. Sem equipe e sem testes.</p>
+      <MTable cols="1.3fr .9fr 1.1fr .6fr .8fr .6fr .8fr" head={["Origem", "Tipo", "Campanha", "Eventos", "Com convidado", "Pagos", "Receita"]}
+        empty="Nenhum evento criado no período."
+        rows={data.rows.map((r) => ({ key: `${r.source}|${r.medium}|${r.campaign ?? ""}`,
+          cells: [r.source, r.medium === "—" ? "—" : mediumLabel(r.medium), r.campaign ?? "—", nf(r.events), `${nf(r.activated)} · ${share(r.activated, r.events)}`, `${nf(r.paid)} · ${share(r.paid, r.events)}`, brl(r.revenueCents)] }))} />
+    </MCard>
+  );
+}
+
+export function MasterAcessosView({ stats, period, conversion }: { stats: AccessStats; period: Period; conversion?: OriginConversion | null }) {
   const { totals } = stats;
   const bars = seriesBars(stats.series);
   const entriesTotal = stats.sources.reduce((n, s) => n + s.entries, 0);
@@ -70,6 +86,7 @@ export function MasterAcessosView({ stats, period }: { stats: AccessStats; perio
             rows={stats.campaigns.map((c) => ({ key: `${c.campaign}|${c.source}`, cells: [c.campaign, c.source, nf(c.entries)] }))} />
         </MCard>
       )}
+      {conversion && <ConversaoPorOrigem data={conversion} />}
       <p className="rv-caption" style={{ marginTop: "14px" }}>
         “Visitantes” são pessoas distintas por dia, somadas no período: sem cookies, o mesmo aparelho em dias diferentes conta de novo. Robôs e quem ativou “Não rastrear” ficam de fora.
       </p>
