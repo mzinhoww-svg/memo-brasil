@@ -55,8 +55,9 @@ export function buildHostMessage(i: HostItem, origin: string): string | null {
       return `Faltam 3 dias para ${title ? `o ${title}` : "o seu evento"}! Já espalhou o QR? Dica: coloque um em cada mesa e um na entrada. ${eventLink(origin, i, "qr")}\n\n${DUVIDAS}\n${SAIR}`;
     case "ativ_vespera":
       return `Amanhã é o grande dia${title ? `: ${title}` : ""}! 🎉 Já imprimiu o QR e colocou nas mesas? Na hora, os convidados apontam a câmera do celular e fotografam, sem baixar nada. Ver o QR: ${eventLink(origin, i, "qr")}\n\n${DUVIDAS}\n${SAIR}`;
-    case "ativ_dia_seguinte":
-      return `As fotos ${title ? `do ${title}` : "do seu evento"} estão chegando! 📸 Se a festa foi grande, vale liberar mais convidados e mais poses para ninguém ficar de fora: ${eventLink(origin, i, "plano")}\n\n${DUVIDAS}\n${SAIR}`;
+    // limite do grátis atingido durante o evento (a oferta de 20% por 48 h nasce no banco no mesmo instante)
+    case "ativ_limite":
+      return `Sua festa está bombando! 🎉 O plano grátis ${title ? `de "${title}" ` : ""}chegou ao limite. Libere mais convidados e mais poses com 20% de desconto nas próximas 48 horas: ${eventLink(origin, i, "plano")}\n\n${DUVIDAS}\n${SAIR}`;
     default:
       return null;
   }

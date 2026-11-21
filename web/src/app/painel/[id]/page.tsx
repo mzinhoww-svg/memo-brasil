@@ -1,6 +1,7 @@
 "use client";
 
 import { HostWhatsappOptIn } from "@/features/host-whatsapp/HostWhatsappOptIn";
+import { UpgradeBanner } from "@/features/billing/UpgradeBanner";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -42,6 +43,9 @@ export default function VisaoGeral() {
   const links = 1 + event.tables + invites;
   const moments = event.moments.length;
   const notice = event.notice && (!event.notice.expiresAt || event.notice.expiresAt > now);
+  const shotsBy = new Map<string, number>();
+  for (const p of live) if (p.authorId && p.authorId !== event.hostId) shotsBy.set(p.authorId, (shotsBy.get(p.authorId) ?? 0) + 1);
+  const posesFull = event.shotsPerPerson !== null && [...shotsBy.values()].some((n) => n >= (event.shotsPerPerson as number));
 
   return (
     <PainelResumo
@@ -66,7 +70,11 @@ export default function VisaoGeral() {
       ]}
       settingsHref={`${base}/configuracoes`}
       onBack={() => router.push("/eventos")}
-      extra={<HostWhatsappOptIn />}
+      extra={<>
+        <UpgradeBanner eventId={event.id} isFree={info.loaded && (info.current?.isFree ?? true)} guests={guests} capacity={event.capacity}
+          posesFull={posesFull} ended={eventStatus(event, now) === "encerrado"} />
+        <HostWhatsappOptIn />
+      </>}
     />
   );
 }

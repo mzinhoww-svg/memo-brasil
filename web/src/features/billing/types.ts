@@ -65,7 +65,12 @@ export type Quote = {
   amountCents: number;
   payable: boolean;
   reason: QuoteReason;
+  /** Desconto da oferta de limite (20% por 48 h), já aplicado em `amountCents`; ausente sem oferta válida. */
+  discount?: { pct: number; listCents: number; expiresAt: string };
 };
+
+/** Oferta de upgrade do evento grátis que chegou ao limite (vale por tempo limitado, uma vez). */
+export type UpgradeOffer = { percent: number; expiresAt: string };
 
 export type PaymentsEnv = "desligado" | "sandbox" | "production";
 

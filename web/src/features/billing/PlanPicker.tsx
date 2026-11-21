@@ -125,6 +125,13 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
   }
 
   const cur = q && q.code === payCode ? q.quote : null;
+  const disc = cur && cur !== "erro" && cur.payable ? cur.discount : undefined;
+  const offerLine = disc ? (
+    <p className="app-p plano-oferta" data-testid="plano-oferta">
+      <strong>{disc.pct}% de desconto</strong>: de <s>{formatBRL(disc.listCents)}</s> por {formatBRL(cur && cur !== "erro" ? cur.amountCents : disc.listCents)} até{" "}
+      {new Date(disc.expiresAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).replace(",", " às")}.
+    </p>
+  ) : null;
   if (native) {
     const base0 = current0 ?? plans[0];
     const current = planWithPack(base0, hasPack ? packs.find((k) => k.baseCode === base0?.code) : undefined);
@@ -146,7 +153,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
           plans={higher.map((p, i) => planView(p, i === higher.length - 1, higher.length + 1))}
           selected={chosen} error={blockedText ?? error ?? undefined}
           onSelect={(code) => { if (higher.some((p) => p.code === code)) { setSelected(code); setPackChoice(null); } }}
-          extra={packCard} afterPlans={<>{packSwitch}{salesLink}{garantias}</>}
+          extra={<>{offerLine}{packCard}</>} afterPlans={<>{packSwitch}{salesLink}{garantias}</>}
         />
         {higher.length > 0 && <PainelFoot>
           <button type="button" className="rv-btn rv-btn--block rv-btn--primary" onClick={confirm} disabled={busy || !plan || !!blockedText} aria-busy={busy || undefined}>
@@ -158,7 +165,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
   }
   const blocked = cur && cur !== "erro" && !cur.payable ? (QUOTE_BLOCK[cur.reason] ?? "Este plano não pode ser comprado agora.") : null;
   const pay = cur && cur !== "erro" ? cur.amountCents : listCents;
-  const diff = cur && cur !== "erro" && plan && cur.payable && cur.amountCents !== listCents;
+  const diff = cur && cur !== "erro" && plan && cur.payable && !cur.discount && cur.amountCents !== listCents;
 
   return (
     <div className="plano-escolha">
@@ -184,6 +191,7 @@ export function PlanPicker({ eventId, plans, currentCode, settings, busy, error,
         </div>
         <div className="app-stack plano-resumo">
           {plan && <TrustBlock plan={plan} gracePct={settings.capacityGracePct} />}
+          {offerLine}
           {diff && <p className="app-p app-muted" data-testid="diferenca">Você paga só a diferença do seu plano atual: {formatBRL(pay ?? 0)}.</p>}
           {blocked && <p className="app-p" role="status">{blocked}</p>}
           {error && <p className="plano-erro" role="alert">{error}</p>}
