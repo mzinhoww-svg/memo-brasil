@@ -90,7 +90,9 @@ describe("home (UX-13, E6)", () => {
     render(<Home />);
     expect(screen.queryByRole("heading", { name: /Seus eventos|Festas em que você entrou/ })).toBeNull();
     expect(screen.getByRole("link", { name: "Minhas câmeras" })).toHaveAttribute("href", "/eventos");
-    expect(screen.getByRole("link", { name: "Montar câmera" })).toHaveAttribute("href", "/criar");
+    // um botão só no topo (o fixo do celular fica escondido até rolar)
+    expect(screen.getByRole("link", { name: "Criar a câmera do meu evento" })).toHaveAttribute("href", "/criar");
+    expect(screen.getByRole("heading", { level: 1, name: "A câmera dos convidados para o seu evento." })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tenho um convite" })).toHaveAttribute("href", "/entrar#codigo");
   });
   it("visitante sem sessão não vê Meus eventos", async () => {

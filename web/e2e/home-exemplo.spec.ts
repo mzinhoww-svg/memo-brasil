@@ -82,7 +82,7 @@ for (const size of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { 
   test(`home ${size.width}px sem rolagem horizontal e com as ações visíveis`, async ({ page }) => {
     await page.setViewportSize(size);
     await page.goto("/");
-    for (const name of ["Montar câmera", "Tenho um convite"]) await expect(page.getByRole("link", { name })).toBeVisible();
+    for (const name of ["Criar a câmera do meu evento", "Tenho um convite"]) await expect(page.getByRole("link", { name }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: "Experimentar câmera" })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     // rodapé só com o próprio conteúdo, sem bloco vazio de tela cheia
@@ -96,9 +96,9 @@ test("home por teclado: Tab alcança as ações na ordem; a festa de exemplo seg
   for (let i = 0; i < 12 && reached.length < 2; i++) {
     await page.keyboard.press("Tab");
     const name = await page.evaluate(() => (document.activeElement as HTMLElement | null)?.innerText?.trim() ?? "");
-    if (["Tenho um convite", "Montar câmera"].includes(name)) reached.push(name);
+    if (["Tenho um convite", "Criar a câmera do meu evento"].includes(name)) reached.push(name);
   }
-  expect(reached).toEqual(["Tenho um convite", "Montar câmera"]);
+  expect(reached).toEqual(["Tenho um convite", "Criar a câmera do meu evento"]);
   await page.goto("/exemplo");
   await page.getByRole("link", { name: "Criar meu evento grátis" }).focus();
   await page.keyboard.press("Enter");
@@ -110,4 +110,16 @@ test("Tenho um convite leva ao formulário de código", async ({ page }) => {
   await page.getByRole("link", { name: "Tenho um convite" }).click();
   await page.waitForURL(/\/entrar/);
   await expect(page.getByRole("heading", { name: /Digite o código/, level: 1 })).toBeVisible();
+});
+
+test("celular: botão fixo aparece depois de rolar para as seções de texto; no computador não existe", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const fixo = page.getByTestId("cta-fixo");
+  await expect(fixo).toHaveAttribute("data-show", "0");
+  await page.locator("#precos").scrollIntoViewIfNeeded();
+  await expect(fixo).toHaveAttribute("data-show", "1");
+  await expect(fixo.getByRole("link", { name: "Criar a câmera do meu evento" })).toBeInViewport();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(fixo).toBeHidden();
 });

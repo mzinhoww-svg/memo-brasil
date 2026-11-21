@@ -98,7 +98,7 @@ export function Landing({ tiers }: { tiers: Tier[] }) {
       <section className="lp-sec lp-final" aria-labelledby="lp-final">
         <div className="lp-wrap lp-wrap--narrow">
           <h2 id="lp-final" className="lp-h2">Monte a câmera do seu casamento hoje.</h2>
-          <Link href="/criar" className="rv-btn rv-btn--primary">Criar evento grátis</Link>
+          <Link href="/criar" className="rv-btn rv-btn--primary">Criar a câmera do meu evento</Link>
         </div>
       </section>
 

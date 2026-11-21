@@ -60,5 +60,7 @@ export const MCP_TOOLS: McpTool[] = [
   tool("planos", "Planos", "Catálogo de planos com preços, limites e se estão à venda."),
   tool("configuracoes", "Configurações", "Configurações da plataforma e flags."),
   tool("buscar", "Busca geral", "Busca em eventos, pessoas e pedidos.", { texto: { ...P.texto, description: "O que buscar." } }, ["texto"]),
+  tool("conversao_semanal", "Conversão semanal", "Por semana de criação do evento: anfitriões com avisos no WhatsApp, ativação (evento com convidado), eventos no limite do grátis, ofertas de desconto (criadas, abertas, pagas), eventos pagos e pedidos expirados. Sem equipe e sem testes.", { semanas: { type: "integer", minimum: 1, maximum: 52, description: "Quantas semanas (padrão 8)." } }),
+  tool("conversao_origem", "Conversão por origem", "Eventos criados no período por origem de quem criou (primeira e última visita): quantos receberam convidado, quantos pagaram e a receita.", { dias: P.dias }),
 ];
 export const MCP_TOOL_NAMES = new Set(MCP_TOOLS.map((t) => t.name));
