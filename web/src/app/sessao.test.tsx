@@ -25,6 +25,7 @@ vi.mock("@/features/app/hooks", async (orig) => ({ ...(await orig<typeof import(
 vi.mock("@/features/events/guest-context", () => ({ useHostNav: () => null, useGuestOptional: () => null, useGuest: () => ({ event: { id: "e1", code: "ABCD2345", shotsPerPerson: 10, revealStatus: "desativada", revealEnabled: false }, user: app.user, now: 1, photos: [], counts: { mine: 0, total: 0 }, isHost: false }) }));
 vi.mock("@/features/studio/useBrandImages", () => ({ useBrandImages: () => ({}) }));
 vi.mock("@/features/invitations/qr", () => ({ qrDataUrl: async () => "data:image/png;base64,AA==" }));
+vi.mock("@/features/host-whatsapp/HostWhatsappOptIn", () => ({ HostWhatsappOptIn: () => null })); // cartão próprio, testado à parte
 
 beforeEach(() => {
   mode = "supabase"; app.backend = "supabase"; app.canSwitchIdentity = false; app.canCreate = false; app.user = { id: "u1", name: "Ana", createdAt: 1 };

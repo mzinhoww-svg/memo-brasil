@@ -6,6 +6,7 @@ import { Button, ScreenSkeleton } from "@/components/revela";
 import { CameraPronta } from "@/revela/screens/CameraPronta";
 import { useEventData } from "@/features/app/hooks";
 import { inviteUrl } from "@/features/invitations/links";
+import { HostWhatsappOptIn } from "@/features/host-whatsapp/HostWhatsappOptIn";
 
 export default function Pronto() {
   const { id } = useParams<{ id: string }>();
@@ -59,7 +60,8 @@ export default function Pronto() {
 
   return (
     <>
-      <CameraPronta name={event.title} cam={`/revela/3d/cam-${event.cameraStyle}-960.webp`} shareLabel={copied ? "Convite copiado" : "Compartilhar convite"} printHref={`/painel/${event.id}/qr`} onShare={() => void share()} />
+      <CameraPronta name={event.title} cam={`/revela/3d/cam-${event.cameraStyle}-960.webp`} shareLabel={copied ? "Convite copiado" : "Compartilhar convite"} printHref={`/painel/${event.id}/qr`} onShare={() => void share()}
+        extra={<div style={{ textAlign: "left", marginTop: "8px" }}><HostWhatsappOptIn variant="criacao" /></div>} />
       {/* leitura por teste/automação e foco de cópia quando a área de transferência falha; fora da vista */}
       <div className="rv-sr-only">
         <span data-testid="codigo">{event.code}</span>

@@ -2,13 +2,13 @@
 "use client";
 import Link from "next/link";
 import { Cam3D } from "@/components/revela/Cam3D";
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { confetti } from "@/lib/motion/revela-motion";
 import { useMomentOnce } from "@/lib/motion/use-moments";
 
-export interface CameraProntaProps { name?: string; cam?: string; shareLabel?: string; printHref?: string; onShare?: () => void }
+export interface CameraProntaProps { name?: string; cam?: string; shareLabel?: string; printHref?: string; onShare?: () => void; /** Abaixo dos botões (ex.: pergunta opcional dos avisos no WhatsApp). */ extra?: ReactNode }
 
-export function CameraPronta({ name = "Ana & Leo", cam = "/revela/ref/cam-casamento.webp", shareLabel = "Compartilhar convite", printHref = "#", onShare }: CameraProntaProps = {}) {
+export function CameraPronta({ name = "Ana & Leo", cam = "/revela/ref/cam-casamento.webp", shareLabel = "Compartilhar convite", printHref = "#", onShare, extra }: CameraProntaProps = {}) {
   const canvas = useRef<HTMLCanvasElement>(null);
   // câmera pronta: o confete estoura uma vez ao abrir a tela
   useMomentOnce(true, () => { if (canvas.current) void confetti(canvas.current, { mode: "burst", origin: { x: 0.5, y: 0.5 } }); });
@@ -44,6 +44,7 @@ export function CameraPronta({ name = "Ana & Leo", cam = "/revela/ref/cam-casame
             </svg>
             Baixar QR code
           </Link>
+          {extra}
         </div>
       </div>
       <div className="home-ind" />

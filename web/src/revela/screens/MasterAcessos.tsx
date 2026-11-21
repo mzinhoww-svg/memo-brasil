@@ -11,9 +11,19 @@ const brl = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency
 /** Eventos criados no período por origem de quem criou (primeiro toque): quantos receberam convidado e quantos pagaram. */
 export function ConversaoPorOrigem({ data }: { data: OriginConversion }) {
   return (
+    <>
+      <TabelaConversao title="Conversão por origem" caption="Eventos criados no período, pela origem da primeira visita de quem criou. Sem equipe e sem testes." rows={data.rows} />
+      {data.rowsLast && <TabelaConversao title="Conversão pela última origem" caption="Os mesmos eventos, pela origem da última visita antes de criar (quem conheceu por um canal e voltou por outro)." rows={data.rowsLast} />}
+    </>
+  );
+}
+
+function TabelaConversao({ title, caption, rows }: { title: string; caption: string; rows: OriginConversion["rows"] }) {
+  const data = { rows };
+  return (
     <MCard style={{ marginTop: "14px", paddingBottom: "8px" }}>
-      <h2 className="rv-title" style={{ fontSize: "18px" }}>Conversão por origem</h2>
-      <p className="rv-caption">Eventos criados no período, pela origem da primeira visita de quem criou. Sem equipe e sem testes.</p>
+      <h2 className="rv-title" style={{ fontSize: "18px" }}>{title}</h2>
+      <p className="rv-caption">{caption}</p>
       <MTable cols="1.3fr .9fr 1.1fr .6fr .8fr .6fr .8fr" head={["Origem", "Tipo", "Campanha", "Eventos", "Com convidado", "Pagos", "Receita"]}
         empty="Nenhum evento criado no período."
         rows={data.rows.map((r) => ({ key: `${r.source}|${r.medium}|${r.campaign ?? ""}`,

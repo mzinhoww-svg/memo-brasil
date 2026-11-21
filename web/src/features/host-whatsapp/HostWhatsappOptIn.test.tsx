@@ -39,4 +39,14 @@ describe("HostWhatsappOptIn (avisos do evento e do pagamento para o anfitrião)"
     expect(await screen.findByRole("alert")).toHaveTextContent(/WhatsApp não respondeu/);
     expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
   });
+  it("na criação do evento: pergunta opcional com SAIR, e 'Agora não' esconde", async () => {
+    api.getHostWhatsappStatus.mockResolvedValue({ enabled: true, optin: false });
+    render(<HostWhatsappOptIn variant="criacao" />);
+    expect(await screen.findByRole("heading", { name: "Quer receber no WhatsApp os lembretes do seu evento?" })).toBeInTheDocument();
+    expect(screen.getByText(/Responda SAIR quando quiser/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sim, quero receber no WhatsApp" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Agora não" }));
+    expect(screen.queryByRole("heading", { name: /lembretes do seu evento/ })).toBeNull();
+    expect(api.requestHostWhatsappLink).not.toHaveBeenCalled();
+  });
 });

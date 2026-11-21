@@ -2,6 +2,7 @@
 
 import { HostWhatsappOptIn } from "@/features/host-whatsapp/HostWhatsappOptIn";
 import { UpgradeBanner } from "@/features/billing/UpgradeBanner";
+import { PainelLembrete, lembreteDoPainel } from "@/features/events/PainelLembrete";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -73,6 +74,7 @@ export default function VisaoGeral() {
       extra={<>
         <UpgradeBanner eventId={event.id} isFree={info.loaded && (info.current?.isFree ?? true)} guests={guests} capacity={event.capacity}
           posesFull={posesFull} ended={eventStatus(event, now) === "encerrado"} />
+        <PainelLembrete eventId={event.id} lembrete={lembreteDoPainel(event, now, guests)} />
         <HostWhatsappOptIn />
       </>}
     />

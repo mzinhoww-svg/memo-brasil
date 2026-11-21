@@ -31,19 +31,21 @@ insert into public.events (id, title, category, host_id, host_name, duration_hou
   ('00000000-0000-4000-8000-0000000049e4', 'Da equipe', 'festa', '00000000-0000-4000-8000-0000000049f1', 'H', 6, now() + interval '5 days');
 
 -- ===================================================== gravação pelo anfitrião
-select ok(not has_function_privilege('anon', 'public.set_event_origin(uuid, text, text, text)', 'execute'), 'anon não grava origem');
+select ok(not has_function_privilege('anon', 'public.set_event_origin(uuid, text, text, text, text, text, text)', 'execute'), 'anon não grava origem');
 select tests.login('00000000-0000-4000-8000-0000000049a2');
 select throws_ok($$select public.set_event_origin('00000000-0000-4000-8000-0000000049e1', 'X', 'social', null)$$, 'MM004', null, 'outra pessoa não grava');
 reset role;
 select tests.login('00000000-0000-4000-8000-0000000049a1');
-select public.set_event_origin('00000000-0000-4000-8000-0000000049e1', ' Instagram<script> ', 'social', 'lancamento');
+select public.set_event_origin('00000000-0000-4000-8000-0000000049e1', ' Instagram<script> ', 'social', 'lancamento', 'YouTube', 'video', 'canal');
 select public.set_event_origin('00000000-0000-4000-8000-0000000049e1', 'Google', 'orgânico', null); -- segunda vez: ignorada
 select public.set_event_origin('00000000-0000-4000-8000-0000000049e2', null, null, null);
 reset role;
 select is((select origin_source || '|' || origin_medium || '|' || origin_campaign from public.events where id = '00000000-0000-4000-8000-0000000049e1'),
           'Instagramscript|social|lancamento', 'gravada saneada, só a primeira vez');
-select is((select coalesce(origin_source, '-') || '|' || origin_medium from public.events where id = '00000000-0000-4000-8000-0000000049e2'),
-          '-|direto', 'sem origem: direto');
+select is((select last_source || '|' || last_medium || '|' || last_campaign from public.events where id = '00000000-0000-4000-8000-0000000049e1'),
+          'YouTube|video|canal', 'último toque gravado junto');
+select is((select coalesce(origin_source, '-') || '|' || origin_medium || '|' || last_medium from public.events where id = '00000000-0000-4000-8000-0000000049e2'),
+          '-|direto|direto', 'sem origem: direto (primeiro e último)');
 
 -- ===================================================== pedido herda a origem do evento
 insert into public.payment_orders (id, event_id, host_id, plan_code, amount_cents, status, provider, provider_env, idempotency_key)
@@ -51,6 +53,7 @@ values ('00000000-0000-4000-8000-0000000049d1', '00000000-0000-4000-8000-0000000
 update public.payment_orders set status = 'pago', paid_at = now() where id = '00000000-0000-4000-8000-0000000049d1';
 select is((select origin_source || '|' || origin_campaign from public.payment_orders where id = '00000000-0000-4000-8000-0000000049d1'),
           'Instagramscript|lancamento', 'pedido com a origem do evento');
+select is((select last_source from public.payment_orders where id = '00000000-0000-4000-8000-0000000049d1'), 'YouTube', 'pedido com o último toque');
 
 -- convidado no evento do Instagram (ativação)
 insert into public.participants (event_id, user_id, name) values ('00000000-0000-4000-8000-0000000049e1', '00000000-0000-4000-8000-0000000049c1', 'Conv');
@@ -64,6 +67,7 @@ select is((select r from jsonb_array_elements(public.admin_conversion_by_origin(
           '{"source":"Instagramscript","medium":"social","campaign":"lancamento","events":1,"activated":1,"paid":1,"revenueCents":14700}'::jsonb,
           'linha da origem: 1 evento, com convidado, pago, R$ 147');
 select is((select (r ->> 'events')::int from jsonb_array_elements(public.admin_conversion_by_origin(30) -> 'rows') r where r ->> 'source' = 'Direto'), 1, 'direto conta');
+select is((select (r ->> 'paid')::int from jsonb_array_elements(public.admin_conversion_by_origin(30) -> 'rowsLast') r where r ->> 'source' = 'YouTube'), 1, 'visão pelo último toque');
 reset role;
 select ok(not exists (select 1 from public.events e where e.id in ('00000000-0000-4000-8000-0000000049e3', '00000000-0000-4000-8000-0000000049e4')
             and public.metrics_counts_host(e.host_id)), 'conta do dono e equipe ficam fora das métricas');

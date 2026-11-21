@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { FIRST_TOUCH_KEY, captureFirstTouch, readFirstTouch } from "./first-touch";
+import { FIRST_TOUCH_KEY, LAST_TOUCH_KEY, captureFirstTouch, inAppSource, readFirstTouch } from "./first-touch";
 
 const HOST = "fotosdocasamento.online";
 beforeEach(() => localStorage.clear());
@@ -27,6 +27,27 @@ describe("primeiro toque (atribuição)", () => {
     Object.defineProperty(navigator, "doNotTrack", { value: "1", configurable: true });
     captureFirstTouch({ search: "?utm_source=instagram", host: HOST }, "", 1);
     expect(readFirstTouch()).toBeNull();
+  });
+  it("último toque: YouTube primeiro, Instagram depois — os dois ficam; entrada direta não apaga o último", () => {
+    captureFirstTouch({ search: "?utm_source=youtube&utm_medium=video", host: HOST }, "", 1);
+    captureFirstTouch({ search: "?utm_source=instagram&utm_medium=social", host: HOST }, "", 2);
+    captureFirstTouch({ search: "", host: HOST }, "", 3);
+    expect(readFirstTouch()?.source).toBe("YouTube");
+    expect(readFirstTouch(LAST_TOUCH_KEY)).toMatchObject({ source: "Instagram", at: 2 });
+  });
+  it("navegador interno do Instagram e do TikTok sem UTM e sem referência: origem pelo app", () => {
+    const IG = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 312.0.0.0";
+    const TT = "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36 trill_330 BytedanceWebview/d8a21c6 musical_ly_2023";
+    captureFirstTouch({ search: "", host: HOST }, "", 1, IG);
+    expect(readFirstTouch()).toMatchObject({ source: "Instagram", medium: "social" });
+    localStorage.clear();
+    captureFirstTouch({ search: "", host: HOST }, "", 1, TT);
+    expect(readFirstTouch()).toMatchObject({ source: "TikTok", medium: "social" });
+    expect(inAppSource("Mozilla/5.0 (Windows NT 10.0) Chrome/120")).toBeNull();
+  });
+  it("UTM vence o app (link do vídeo com UTM aberto no Instagram)", () => {
+    captureFirstTouch({ search: "?utm_source=tiktok&utm_campaign=video12", host: HOST }, "", 1, "Instagram 300");
+    expect(readFirstTouch()).toMatchObject({ source: "TikTok", campaign: "video12" });
   });
   it("valor corrompido no armazenamento não quebra", () => {
     localStorage.setItem(FIRST_TOUCH_KEY, "{lixo");

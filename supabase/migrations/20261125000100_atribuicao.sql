@@ -3,14 +3,21 @@
 -- Métricas de conversão nunca contam equipe, contas/eventos de teste nem as contas listadas em platform_settings.metrics_excluded_hosts
 -- (contas do próprio dono usadas para testar).
 
+-- origin_* = primeiro toque (primeira visita do navegador); last_* = último toque (a origem mais recente antes de criar o evento).
 alter table public.events
   add column origin_source text check (origin_source is null or char_length(origin_source) <= 80),
   add column origin_medium text check (origin_medium is null or char_length(origin_medium) <= 40),
-  add column origin_campaign text check (origin_campaign is null or char_length(origin_campaign) <= 60);
+  add column origin_campaign text check (origin_campaign is null or char_length(origin_campaign) <= 60),
+  add column last_source text check (last_source is null or char_length(last_source) <= 80),
+  add column last_medium text check (last_medium is null or char_length(last_medium) <= 40),
+  add column last_campaign text check (last_campaign is null or char_length(last_campaign) <= 60);
 alter table public.payment_orders
   add column origin_source text check (origin_source is null or char_length(origin_source) <= 80),
   add column origin_medium text check (origin_medium is null or char_length(origin_medium) <= 40),
-  add column origin_campaign text check (origin_campaign is null or char_length(origin_campaign) <= 60);
+  add column origin_campaign text check (origin_campaign is null or char_length(origin_campaign) <= 60),
+  add column last_source text check (last_source is null or char_length(last_source) <= 80),
+  add column last_medium text check (last_medium is null or char_length(last_medium) <= 40),
+  add column last_campaign text check (last_campaign is null or char_length(last_campaign) <= 60);
 
 insert into public.platform_settings (key, value) values ('metrics_excluded_hosts', '[]'::jsonb) on conflict (key) do nothing;
 
@@ -24,33 +31,43 @@ $$;
 revoke all on function public.metrics_counts_host(uuid) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------- gravação pelo anfitrião (uma vez, logo depois de criar)
-create function public.set_event_origin(p_event uuid, p_source text, p_medium text, p_campaign text) returns void
+create function public.origin_clean(p text, p_max int) returns text
+language sql immutable set search_path = '' as $$
+  select nullif(left(btrim(regexp_replace(coalesce(p, ''), '[[:cntrl:]<>]', '', 'g')), p_max), '')
+$$;
+
+create function public.set_event_origin(p_event uuid, p_source text, p_medium text, p_campaign text,
+  p_last_source text default null, p_last_medium text default null, p_last_campaign text default null) returns void
 language plpgsql security definer set search_path = '' as $$
-declare
-  clean_src text := nullif(left(btrim(regexp_replace(coalesce(p_source, ''), '[[:cntrl:]<>]', '', 'g')), 80), '');
-  clean_med text := nullif(left(btrim(regexp_replace(coalesce(p_medium, ''), '[[:cntrl:]<>]', '', 'g')), 40), '');
-  clean_cmp text := nullif(left(btrim(regexp_replace(coalesce(p_campaign, ''), '[[:cntrl:]<>]', '', 'g')), 60), '');
+declare has_last boolean := public.origin_clean(p_last_medium, 40) is not null or public.origin_clean(p_last_source, 80) is not null;
 begin
   if auth.uid() is null or not exists (select 1 from public.events where id = p_event and host_id = auth.uid() and deleted_at is null) then
     raise exception 'forbidden' using errcode = 'MM004';
   end if;
   update public.events
-     set origin_source = clean_src, origin_medium = coalesce(clean_med, 'direto'), origin_campaign = clean_cmp
+     set origin_source = public.origin_clean(p_source, 80),
+         origin_medium = coalesce(public.origin_clean(p_medium, 40), 'direto'),
+         origin_campaign = public.origin_clean(p_campaign, 60),
+         last_source = case when has_last then public.origin_clean(p_last_source, 80) else public.origin_clean(p_source, 80) end,
+         last_medium = coalesce(case when has_last then public.origin_clean(p_last_medium, 40) else public.origin_clean(p_medium, 40) end, 'direto'),
+         last_campaign = case when has_last then public.origin_clean(p_last_campaign, 60) else public.origin_clean(p_campaign, 60) end
    where id = p_event and origin_medium is null; -- só a primeira vez
   update public.payment_orders o
-     set origin_source = e.origin_source, origin_medium = e.origin_medium, origin_campaign = e.origin_campaign
+     set origin_source = e.origin_source, origin_medium = e.origin_medium, origin_campaign = e.origin_campaign,
+         last_source = e.last_source, last_medium = e.last_medium, last_campaign = e.last_campaign
     from public.events e
    where e.id = p_event and o.event_id = p_event and o.origin_medium is null;
 end $$;
-revoke all on function public.set_event_origin(uuid, text, text, text) from public, anon;
-grant execute on function public.set_event_origin(uuid, text, text, text) to authenticated;
+revoke all on function public.set_event_origin(uuid, text, text, text, text, text, text) from public, anon;
+grant execute on function public.set_event_origin(uuid, text, text, text, text, text, text) to authenticated;
 
 -- pedido herda a origem do evento
 create function public.payment_orders_origin() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
   if new.event_id is not null and new.origin_medium is null then
-    select e.origin_source, e.origin_medium, e.origin_campaign into new.origin_source, new.origin_medium, new.origin_campaign
+    select e.origin_source, e.origin_medium, e.origin_campaign, e.last_source, e.last_medium, e.last_campaign
+      into new.origin_source, new.origin_medium, new.origin_campaign, new.last_source, new.last_medium, new.last_campaign
       from public.events e where e.id = new.event_id;
   end if;
   return new;
@@ -68,10 +85,11 @@ begin
   if not public.is_platform_staff() then raise exception 'forbidden' using errcode = 'MM004'; end if;
   return (
     with ev as (
-      select e.id, e.host_id,
+      select e.id,
              coalesce(e.origin_source, case when e.origin_medium is null then 'Sem registro' else 'Direto' end) as source,
-             coalesce(e.origin_medium, '—') as medium,
-             coalesce(e.origin_campaign, '') as campaign,
+             coalesce(e.origin_medium, '—') as medium, coalesce(e.origin_campaign, '') as campaign,
+             coalesce(e.last_source, case when e.last_medium is null then 'Sem registro' else 'Direto' end) as l_source,
+             coalesce(e.last_medium, '—') as l_medium, coalesce(e.last_campaign, '') as l_campaign,
              exists (select 1 from public.participants p where p.event_id = e.id and p.user_id <> e.host_id) as activated
       from public.events e
       where e.created_at >= since and e.deleted_at is null and not e.is_test and public.metrics_counts_host(e.host_id)
@@ -80,18 +98,20 @@ begin
       from public.payment_orders o
       where o.status = 'pago' and o.provider_env = 'production' and o.event_id in (select id from ev)
       group by o.event_id
-    )
+    ), j as (select ev.*, paid.event_id as paid_event, paid.cents from ev left join paid on paid.event_id = ev.id)
     select jsonb_build_object(
       'days', d,
       'generatedAt', now(),
-      'rows', coalesce(jsonb_agg(r order by (r ->> 'events')::int desc, r ->> 'source'), '[]'::jsonb))
-    from (
-      select jsonb_build_object('source', ev.source, 'medium', ev.medium, 'campaign', nullif(ev.campaign, ''),
-               'events', count(*), 'activated', count(*) filter (where ev.activated),
-               'paid', count(paid.event_id), 'revenueCents', coalesce(sum(paid.cents), 0)) as r
-      from ev left join paid on paid.event_id = ev.id
-      group by ev.source, ev.medium, ev.campaign
-    ) t
+      'rows', (select coalesce(jsonb_agg(r order by (r ->> 'events')::int desc, r ->> 'source'), '[]'::jsonb) from (
+                 select jsonb_build_object('source', source, 'medium', medium, 'campaign', nullif(campaign, ''),
+                          'events', count(*), 'activated', count(*) filter (where activated),
+                          'paid', count(paid_event), 'revenueCents', coalesce(sum(cents), 0)) r
+                 from j group by source, medium, campaign) a),
+      'rowsLast', (select coalesce(jsonb_agg(r order by (r ->> 'events')::int desc, r ->> 'source'), '[]'::jsonb) from (
+                 select jsonb_build_object('source', l_source, 'medium', l_medium, 'campaign', nullif(l_campaign, ''),
+                          'events', count(*), 'activated', count(*) filter (where activated),
+                          'paid', count(paid_event), 'revenueCents', coalesce(sum(cents), 0)) r
+                 from j group by l_source, l_medium, l_campaign) b))
   );
 end $$;
 revoke all on function public.admin_conversion_by_origin(int) from public, anon;
