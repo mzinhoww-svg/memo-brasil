@@ -62,12 +62,12 @@ select is(public.payments_quote('00000000-0000-4000-8000-0000000048e1', 'ate150'
           '{"planCode":"ate150","fromPlanCode":"gratis","amountCents":11760,"payable":true,"reason":"ok","listCents":14700,"discountPct":20}'::jsonb,
           'cotação com 20%: R$ 117,60 em vez de R$ 147');
 select is(public.payments_quote('00000000-0000-4000-8000-0000000048e2', 'ate150') ->> 'amountCents', '14700', 'evento sem oferta: preço de tabela');
-select is((select price_cents from public.plans where code = 'ate150'), 14700, 'preço de tabela não muda');
 
 -- pedido com desconto leva a marca da oferta
 select public.payments_open_order('00000000-0000-4000-8000-0000000048e1', 'ate150', gen_random_uuid()) ->> 'orderId' as o1 \gset
 reset role;
 select is((select amount_cents from public.payment_orders where id = :'o1'::uuid), 11760, 'pedido com o valor da cotação');
+select is((select price_cents from public.plans where code = 'ate150'), 14700, 'preço de tabela não muda');
 select is((select offer_id from public.payment_orders where id = :'o1'::uuid), (select id from public.upgrade_offers where event_id = '00000000-0000-4000-8000-0000000048e1'), 'pedido marcado com a oferta');
 
 -- pago: oferta usada; nova cotação volta ao preço de tabela (uso único)
