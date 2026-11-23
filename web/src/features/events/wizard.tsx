@@ -24,6 +24,8 @@ import { hostFallbackName, suggestEventNames } from "./name-suggestions";
 import { clearPendingCode, freeShots, readPendingCode } from "./plan-catalog";
 import type { AfterCreate } from "./after-create";
 import { goToCheckout } from "@/features/billing/checkout-nav";
+import { validapayCheckoutEnabled } from "@/features/billing/checkout-provider";
+import { claimFunnelOffer } from "@/features/funnel/api";
 import { CodeApplied, REDEEM_TEXT, RedeemCode, redeemMessage } from "@/features/billing/RedeemCode";
 import { listPublicPlans, peekCode, redeemCode } from "@/features/billing/api";
 import type { GiftView, PublicPlan } from "@/features/billing/types";
@@ -177,9 +179,12 @@ export function CreateWizard() {
       // de criar; com o catálogo carregado, só vale faixa paga dele (catálogo ainda carregando: o painel valida o código).
       const wantedCode = wantedPlanFromUrl();
       const wanted = !pendingCode && wantedCode && (plans === null || plans.some((p) => p.code === wantedCode && !p.isFree)) ? wantedCode : null;
+      // oferta do funil de quiz (lead guardado neste navegador, prazo conferido no servidor): segue direto para o Pix do plano da oferta
+      const funnel = !pendingCode && validapayCheckoutEnabled() ? await claimFunnelOffer(eventId) : null;
       const result: CreatedEvent = {
-        eventId, title: r.event.title, paid: !!wanted, ready: true,
-        destination: { kind: "plan", href: wanted ? `/painel/${eventId}/plano?plano=${encodeURIComponent(wanted)}` : `/criar/pronto/${eventId}` },
+        eventId, title: r.event.title, paid: !!funnel || !!wanted, ready: true,
+        destination: { kind: "plan", href: funnel ? `/painel/${eventId}/checkout-validapay?plano=${encodeURIComponent(funnel.planCode)}`
+          : wanted ? `/painel/${eventId}/plano?plano=${encodeURIComponent(wanted)}` : `/criar/pronto/${eventId}` },
       };
       retainCreated(result);
       if (pendingCode) {

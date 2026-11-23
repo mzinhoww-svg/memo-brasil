@@ -466,3 +466,7 @@ verify_jwt = false
 # Chamada pelo pg_cron com a service_role; a função compara o Bearer por conta própria.
 [functions.whatsapp-dispatch]
 verify_jwt = false
+
+# Aberta a visitantes sem conta (a chave publicável nova não é JWT): a função valida o corpo e limita por IP.
+[functions.funnel-lead]
+verify_jwt = false
