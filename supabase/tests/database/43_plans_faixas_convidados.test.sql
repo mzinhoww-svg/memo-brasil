@@ -2,9 +2,9 @@
 begin;
 select plan(9);
 
-select is((select array_agg(code order by sort) from public.plans where production_active and pack_of is null),
+select is((select array_agg(code order by sort) from public.plans where production_active and pack_of is null and not offer_only),
   array['gratis', 'ate150', 'ate300'], 'produção: só três planos visíveis');
-select is((select array_agg(code order by sort) from public.plans where sandbox_active and pack_of is null),
+select is((select array_agg(code order by sort) from public.plans where sandbox_active and pack_of is null and not offer_only),
   array['gratis', 'ate150', 'ate300'], 'sandbox: os mesmos três');
 select is((select price_cents from public.plans where code = 'ate150'), 14700, 'até 150 = R$ 147');
 select is((select price_cents from public.plans where code = 'ate300'), 29700, 'até 300 = R$ 297');

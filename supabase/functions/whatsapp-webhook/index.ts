@@ -29,6 +29,11 @@ Deno.serve(async (req) => {
       }
       return data as "applied" | "stale" | "unknown_subject";
     },
+    applyLead: async (i) => {
+      const { data, error } = await admin.rpc("funnel_lead_confirm", { p_lead: i.leadId, p_at: i.at });
+      if (error) throw new Error("apply_lead");
+      return data as "applied" | "stale" | "unknown_subject";
+    },
   });
   logWa(FN, `${r.status}:${String(r.body.outcome ?? r.body.ignored ?? r.body.error ?? "ok")}`);
   return jsonResponse(r.body, r.status);

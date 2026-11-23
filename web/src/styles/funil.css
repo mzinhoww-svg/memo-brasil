@@ -1,0 +1,13 @@
+/* Funil de quiz (/q/<slug> e /oferta). Só tokens; nada de cor literal aqui. */
+.funil { max-width: 560px; margin: 0 auto; width: 100%; }
+.funil-barra { height: 6px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
+.funil-barra-fill { height: 100%; background: var(--revela); border-radius: var(--radius-pill); transition: width 200ms ease; }
+.funil-etapa { margin: 0; font: 400 13px/16px var(--font-stamp); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); }
+.funil-chamada { color: var(--revela-text); font-weight: 600; }
+.funil-opt { min-height: 56px; padding: var(--space-3) var(--space-4); }
+.funil-plano { gap: var(--space-3); }
+.funil-travas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.funil-trava { font: 400 16px/24px var(--font-sans); color: var(--ink-muted); display: flex; gap: var(--space-2); }
+.funil-relogio { margin: 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--revela-soft); color: var(--revela-text); font: 600 17px/24px var(--font-sans); text-align: center; }
+.funil-relogio strong { font-family: var(--font-stamp); font-size: 20px; }
+@media (prefers-reduced-motion: reduce) { .funil-barra-fill { transition: none; } }
